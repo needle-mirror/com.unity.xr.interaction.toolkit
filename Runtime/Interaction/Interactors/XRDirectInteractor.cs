@@ -14,6 +14,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Direct Interactor")]
 	public class XRDirectInteractor : XRBaseControllerInteractor
 	{
+        protected override List<XRBaseInteractable> ValidTargets { get { return m_ValidTargets; } }
+
         // reusable list of valid targets
         List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
 

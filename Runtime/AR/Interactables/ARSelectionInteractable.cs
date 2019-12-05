@@ -34,12 +34,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class ARSelectionInteractable : ARBaseGestureInteractable
     {
+
+        bool m_GestureSelected;
+
         /// <summary>
         /// The visualization game object that will become active when the object is selected.
-        /// </summary>
-        public GameObject m_SelectionVisualization;
-        
-        bool m_GestureSelected;
+        /// </summary>        
+        [SerializeField, Tooltip("The GameObject that will become active when the object is selected.")]
+        GameObject m_SelectionVisualization;
+        public GameObject selectionVisualization { get { return m_SelectionVisualization; } set { m_SelectionVisualization = value; } }
+
 
         /// <summary>
         /// The Unity Update() method.

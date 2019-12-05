@@ -43,6 +43,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_RaycastTriggerInteraction;
         SerializedProperty m_HoverToSelect;
         SerializedProperty m_HoverTimeToSelect;
+        SerializedProperty m_EnableUIInteraction;
 
         SerializedProperty m_LineType;
         SerializedProperty m_EndPointDistance;
@@ -100,6 +101,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent raycastTriggerInteraction = new GUIContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via raycast.");
             public static readonly GUIContent hoverToSelect = new GUIContent("Hover To Select", "If true, this interactor will simulate a Select event if hovered over an Interactable for some amount of time. Selection will be exited when the Interactor is no longer hovering over the Interactable.");
             public static readonly GUIContent hoverTimeToSelect = new GUIContent("Hover Time To Select", "Number of seconds for which this interactor must hover over an object to select it.");
+            public static readonly GUIContent enableUIInteraction = new GUIContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
             public static readonly GUIContent lineType = new GUIContent("Line Type", "Line type of the ray cast.");
             public static readonly GUIContent endPointDistance = new GUIContent("End Point Distance", "Increase this value distance will make the end of curve further from the start point.");
             public static readonly GUIContent controlPointDistance = new GUIContent("Control Point Distance", "Increase this value will make the peak of the curve further from the start point.");
@@ -110,7 +112,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent acceleration = new GUIContent("Acceleration", "Gravity of the projectile in the reference frame.");
             public static readonly GUIContent additionalFlightTime = new GUIContent("Additional FlightTime", "Additional flight time after the projectile lands at the same height of the start point in the tracking space. Increase this value will make the end point drop lower in height.");
             public static readonly GUIContent referenceFrame = new GUIContent("Reference Frame", "The reference frame of the projectile. If not set it will try to find the XRRig object, if the XRRig does not exist it will use self");
-            public static readonly GUIContent hitDetectionType = new GUIContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");        
+            public static readonly GUIContent hitDetectionType = new GUIContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
+            public static readonly string startingInteractableWarning = "A Starting Selected Interactable will be instantly deselected unless the Interactor is in Toggle Select mode.";
         }
 
         void OnEnable()
@@ -148,6 +151,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
             m_HoverToSelect = serializedObject.FindProperty("m_HoverToSelect");
             m_HoverTimeToSelect = serializedObject.FindProperty("m_HoverTimeToSelect");
+            m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
 
             m_LineType = serializedObject.FindProperty("m_LineType");
             m_EndPointDistance = serializedObject.FindProperty("m_EndPointDistance");
@@ -169,6 +173,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public override void OnInspectorGUI()
         {
+
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRRayInteractor)target), typeof(XRRayInteractor), false);
+            GUI.enabled = true;
+
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
@@ -176,6 +185,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
             EditorGUILayout.PropertyField(m_ToggleSelect, Tooltips.toggleSelect);
+            if (m_StartingSelectedInteractable.objectReferenceValue != null && !m_ToggleSelect.boolValue)
+            {
+                EditorGUILayout.HelpBox(Tooltips.startingInteractableWarning, MessageType.Warning, true);
+            }
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, Tooltips.hideControllerOnSelect);
 
             EditorGUILayout.Space();
@@ -231,6 +244,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUILayout.PropertyField(m_HoverTimeToSelect, Tooltips.hoverTimeToSelect);
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.PropertyField(m_EnableUIInteraction, Tooltips.enableUIInteraction);
 
             EditorGUILayout.Space();
 

@@ -29,7 +29,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             var rayInteractableGo = ObjectFactory.CreateGameObject(gameObjectName,
                 typeof(XRController),                
-                typeof(XRUIPointer),
                 typeof(XRRayInteractor),
                 typeof(LineRenderer),
                 typeof(XRInteractorLineVisual));
@@ -56,8 +55,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var directInteractableGo = ObjectFactory.CreateGameObject("Direct Interactor",
                 typeof(XRController),
                 typeof(SphereCollider),
-                typeof(XRDirectInteractor),
-                typeof(XRUIPointer));
+                typeof(XRDirectInteractor));
             var sphereCollider = directInteractableGo.GetComponent<SphereCollider>();
             sphereCollider.isTrigger = true;
             sphereCollider.radius = 0.1f;
@@ -177,10 +175,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             SnapTurnProvider snapTurnProvider = locomotionSystemGO.GetComponent<SnapTurnProvider>();
             snapTurnProvider.system = locomotionSystem;
-            snapTurnProvider.enablePrimaryDevice = true;
-            snapTurnProvider.PrimaryDeviceNode = XRNode.LeftHand;
-            snapTurnProvider.enableSecondaryDevice = true;
-            snapTurnProvider.SecondaryDeviceNode = XRNode.RightHand;
+            snapTurnProvider.turnUsage = SnapTurnProvider.InputAxes.Primary2DAxis;
         }
 
         [MenuItem("GameObject/XR/Teleportation Area", false, 10)]
@@ -232,31 +227,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Canvas canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvas.worldCamera = vrCamera;
-        }
-
-        [MenuItem("GameObject/XR/UI Pointer", false, 10)]
-        static void CreateXRUIPointer()
-        {
-            GameObject selectedGo = Selection.activeGameObject;
-            if(selectedGo == null)
-            {
-                selectedGo = new GameObject("Controller", typeof(XRController), typeof(XRUIPointer));
-            }
-           
-            XRController controller = selectedGo.GetComponent<XRController>();
-            if(controller == null)
-            {
-                GameObject controllerGo = new GameObject("Controller", typeof(XRController), typeof(XRUIPointer));
-                controller = selectedGo.GetComponent<XRController>();
-                Undo.SetTransformParent(controllerGo.transform, selectedGo.transform, "Parent Controller to Selected GameObject");
-                selectedGo = controllerGo;
-            }
-
-            XRUIPointer pointer = selectedGo.GetComponent<XRUIPointer>();
-            if (pointer == null)
-                selectedGo.AddComponent<XRUIPointer>();
-
-            Selection.activeGameObject = selectedGo;
         }
 
         static void SetupLineRenderer(LineRenderer lineRenderer)

@@ -451,7 +451,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>True if selection is valid this frame, False if not.</returns>
         public override bool IsSelectableBy(XRBaseInteractor interactor)
         {
-            return !m_SelectingInteractor || m_SelectingInteractor == interactor || !m_SelectingInteractor.isSelectExclusive;
+            return base.IsSelectableBy(interactor) && (!m_SelectingInteractor || m_SelectingInteractor == interactor || !m_SelectingInteractor.isSelectExclusive);
         }
 
         //

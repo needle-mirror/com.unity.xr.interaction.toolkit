@@ -114,14 +114,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // are we still selecting this object   
                     bool found = false;
-                    foreach (Collider collider in colliders)
+                    for(int i = 0; i < colliders.Count; i++)
                     {
-                        if (collider == raycastHit.collider)
+                        if (colliders[i] == raycastHit.collider)
                         {
                             found = true;
                             break;
                         }
                     }
+
                     if (found)
                     {
                         TeleportRequest tr = new TeleportRequest();

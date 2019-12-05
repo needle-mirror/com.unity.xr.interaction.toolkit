@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrRig.cameraFloorOffsetObject.transform);
-            interactor.lineType = XRRayInteractor.LineType.StraightLine;
+            interactor.lineType = XRRayInteractor.LineType.StraightLine;            
 
             // controller
             var controller = interactor.GetComponent<XRController>();
@@ -85,8 +85,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrRig.cameraFloorOffsetObject.transform);
-            interactor.lineType = XRRayInteractor.LineType.ProjectileCurve; // projectile curve
-         
+            interactor.lineType = XRRayInteractor.LineType.ProjectileCurve; // projectile curve            
+
             // controller
             var controller = interactor.GetComponent<XRController>();
 
@@ -179,9 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             LocomotionSystem locoSys = xrRig.gameObject.AddComponent<LocomotionSystem>();
             locoSys.xrRig = xrRig;
             SnapTurnProvider snapProvider = xrRig.gameObject.AddComponent<SnapTurnProvider>();
-            snapProvider.system = locoSys;
-            snapProvider.enablePrimaryDevice = true;
-            snapProvider.PrimaryDeviceNode = XRNode.LeftHand;
+            snapProvider.system = locoSys;            
             float turnAmount = snapProvider.turnAmount;                     
 
             snapProvider.FakeStartTurn(false);

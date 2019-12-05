@@ -3,25 +3,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.EventSystems;
+
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    // internal class used for comparing RaycastHits (so linq/allocations can be avoided)
-    internal class RaycastHitComparer : IComparer<RaycastHit>
-    {
-        public int Compare(RaycastHit a, RaycastHit b)
-        {
-            return a.distance.CompareTo(b.distance);
-        }
-    }
-
     /// <summary>
     /// Interactor used for interacting with interactables at a distance.  This is handled via raycasts
     /// that update the current set of valid targets for this interactor.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Ray Interactor")]
-	public class XRRayInteractor : XRBaseControllerInteractor, ILineRenderable
-	{
+	public class XRRayInteractor : XRBaseControllerInteractor, IUIInteractable
+    {
+        private class RaycastHitComparer : IComparer<RaycastHit>
+        {
+            public int Compare(RaycastHit a, RaycastHit b)
+            {
+                float aDistance = a.collider != null ? a.distance : float.MaxValue;
+                float bDistance = b.collider != null ? b.distance : float.MaxValue;
+                int result = aDistance.CompareTo(bDistance);
+                return result;
+            }
+        }
+
         const float k_DefaultMaxRaycastDistance     = 30f;
         const float k_DefaultHoverTimeToSelect      = 0.5f;
         const int   kMaxRaycastHits                 = 10;
@@ -130,20 +135,51 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_HoverTimeToSelect = k_DefaultHoverTimeToSelect;
         /// <summary>Gets or sets the number of seconds for which this interactor must hover over an object to select it if Hover To Select is enabled.</summary>
         public float hoverTimeToSelect { get { return m_HoverTimeToSelect; } set { m_HoverTimeToSelect = value; } }
-        
+
+        [SerializeField]
+        bool m_EnableUIInteraction = true;
+        /// <summary>Gets or sets whether this interactor is able to affect UI.</summary>
+        public bool enableUIInteraction
+        {
+            get
+            {
+                return m_EnableUIInteraction;
+            }
+            set
+            {
+                if(m_EnableUIInteraction != value)
+                {
+                    m_EnableUIInteraction = value;
+                    if (enabled)
+                    {
+                        if(m_EnableUIInteraction)
+                        {
+                            m_InputModule.RegisterInteractable(this);
+                        }
+                        else
+                        {
+                            m_InputModule.UnregisterInteractable(this);
+                        }
+                    }
+                }     
+            }
+        }
+
         /// <summary>Gets the signed angle between the controller's forward direction and the tracking space.</summary>
         public float Angle
         {
             get
             {
-                Vector3 projectedForward = Vector3.ProjectOnPlane(transform.forward, m_ReferenceFrame.up);
-                if (Vector3.Angle(transform.forward, projectedForward) == 0)
+                Vector3 projectedForward = Vector3.ProjectOnPlane(m_StartTransform.forward, m_ReferenceFrame.up);
+                if (Vector3.Angle(m_StartTransform.forward, projectedForward) == 0)
                     return 0;
                 else
-                    return Vector3.SignedAngle(transform.forward, projectedForward, Vector3.Cross(transform.forward, projectedForward));
+                    return Vector3.SignedAngle(m_StartTransform.forward, projectedForward, Vector3.Cross(m_StartTransform.forward, projectedForward));
             }
         }
-        
+
+        protected override List<XRBaseInteractable> ValidTargets { get { return m_ValidTargets; } }
+
         // reusable array of raycast hits
         RaycastHit[]    m_RaycastHits           = new RaycastHit[kMaxRaycastHits];
         RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
@@ -166,22 +202,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         // Control points to calculate the bezier curve
         Vector3[] m_ControlPoints = new Vector3[3];
 
-        /// <summary>The start point of the raycast. Default value is the controller transform, or the attachTransform if it is not null.</summary>
-        Vector3 m_StartPoint { get { return (attachTransform != null) ? attachTransform.position : transform.position; } }
+        /// <summary>The starting transform of any Raycasts.  Default value is the controller transform, or the attachTransform if it is not null.</summary>
+        Transform m_StartTransform { get { return attachTransform ?? transform; } }
 
+        // Input Module for fast access to UI systems.
+        XRUIInputModule m_InputModule;
+
+        // Used by UpdateUIModel to retrieve the line points to pass along to Unity UI.
+        static Vector3[] s_CachedLinePoints;
 
         void RebuildSamplePoints()
         {
             if (m_LineType == LineType.StraightLine)
             {
-                m_SamplePoints = new Vector3[2];
-
+                if(m_SamplePoints == null || m_SamplePoints.Length != 2)
+                    m_SamplePoints = new Vector3[2];
             }
             else
             {
-                m_SamplePoints = new Vector3[m_SampleFrequency];
+                if(m_SamplePoints == null || m_SamplePoints.Length != m_SampleFrequency)
+                    m_SamplePoints = new Vector3[m_SampleFrequency];
             }
             m_NoSamplePoints = 0;
+        }
+
+        void FindOrCreateXRUIInputModule()
+        {
+            var eventSystem = Object.FindObjectOfType<EventSystem>();
+            if (eventSystem == null)
+                eventSystem = new GameObject("Event System", typeof(EventSystem)).GetComponent<EventSystem>();
+
+            m_InputModule = eventSystem.GetComponent<XRUIInputModule>();
+            if (m_InputModule == null)
+                m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
         }
 
         protected override void OnEnable()
@@ -189,14 +242,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnEnable();
             RebuildSamplePoints();
             FindReferenceFrame();
+
+            if(m_EnableUIInteraction)
+            {
+                FindOrCreateXRUIInputModule();
+                m_InputModule.RegisterInteractable(this);
+            }
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
+
             // clear lines
-            m_SamplePoints = null;
             m_NoSamplePoints = -1;
+
+            if(m_EnableUIInteraction)
+            {
+                m_InputModule.UnregisterInteractable(this);
+            }
+            m_InputModule = null;
         }
 
         /// <summary> This function implements the ILineRenderable interface and returns the sample points of the line. </summary>
@@ -229,20 +294,80 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// of the hit point, and its position in linePoints. </summary>
         public bool TryGetHitInfo(ref Vector3 position, ref Vector3 normal, ref int positionInLine, ref bool isValidTarget)
         {
-            RaycastHit raycastHit = new RaycastHit();
+            float distance = float.MaxValue;
+            int rayIndex = int.MaxValue;
+
+            RaycastHit raycastHit;
             if (GetCurrentRaycastHit(out raycastHit))  // if the raycast hits any collider
             {
                 position = raycastHit.point;
                 normal = raycastHit.normal;
-                positionInLine = m_HitPositionInLine;
-
+                positionInLine = rayIndex = m_HitPositionInLine;
+                distance = raycastHit.distance;
                 // if the collider is registered as an interactable and the interactable is being hovered
                 var interactable = interactionManager.TryGetInteractableForCollider(raycastHit.collider);
-
+                
                 isValidTarget = interactable && m_HoverTargets.Contains(interactable);
-                return true;
             }
 
+            RaycastResult result;
+            int raycastPointIndex;
+            if(GetCurrentUIRaycastResult(out result, out raycastPointIndex))
+            {
+                if(raycastPointIndex >= 0)
+                {
+                    if (raycastPointIndex < positionInLine || ((raycastPointIndex == rayIndex) && (raycastHit.distance <= distance)))
+                    {
+                        position = result.worldPosition;
+                        normal = result.worldNormal;
+                        positionInLine = raycastPointIndex;
+
+                        isValidTarget = result.gameObject != null;
+                    }
+                }                
+            }
+
+            return isValidTarget;
+        }
+
+        /// <summary>
+        /// Updates the current UI Model to match the state of the Interactor
+        /// </summary>
+        /// <param name="model">The model that will match this Interactor</param>
+        public void UpdateUIModel(ref TrackedDeviceModel model)
+        {
+            model.position = m_StartTransform.position;
+            model.orientation = m_StartTransform.rotation;
+            model.select = isUISelectActive;
+
+            int numPoints = 0;
+            GetLinePoints(ref s_CachedLinePoints, ref numPoints);
+
+            List<Vector3> raycastPoints = model.raycastPoints;
+            raycastPoints.Clear();
+            if (numPoints > 0 && s_CachedLinePoints != null)
+            {
+                raycastPoints.Capacity = raycastPoints.Count + numPoints;
+                for (int i = 0; i < numPoints; i++)
+                    raycastPoints.Add(s_CachedLinePoints[i]);
+            }
+            model.raycastLayerMask = raycastMask;
+        }
+
+        /// <summary>
+        /// Attempts to retrieve the current UI Model.  Returns false if not available.
+        /// </summary>
+        /// <param name="model"> The UI Model that matches that Interactor.</param>
+        /// <returns></returns>
+        public bool TryGetUIModel(out TrackedDeviceModel model)
+        {
+            if(m_InputModule != null)
+            {
+                if (m_InputModule.GetTrackedDeviceModel(this, out model))
+                    return true;
+            }
+
+            model = new TrackedDeviceModel(-1);
             return false;
         }
 
@@ -261,12 +386,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
             raycastHit = new RaycastHit();
             return false;
         }
+
+        bool GetCurrentUIRaycastResult(out RaycastResult result, out int raycastPointIndex)
+        {
+            TrackedDeviceModel model;
+            if(TryGetUIModel(out model))
+            {
+                result = model.implementationData.lastFrameRaycast;
+                raycastPointIndex = model.implementationData.lastFrameRaycastResultPositionInLine;
+                return result.isValid;
+            }
+
+            result = new RaycastResult();
+            raycastPointIndex = -1;
+            return false;
+        }
                        
         void UpdateControlPoints()
         {
-            m_ControlPoints[0] = m_StartPoint;
-            m_ControlPoints[1] = m_ControlPoints[0] + transform.forward * m_ControlPointDistance + transform.up * m_ControlPointHeight;
-            m_ControlPoints[2] = m_ControlPoints[0] + transform.forward * m_EndPointDistance + transform.up * m_EndPointHeight;
+            m_ControlPoints[0] = m_StartTransform.position;
+            m_ControlPoints[1] = m_ControlPoints[0] + m_StartTransform.forward * m_ControlPointDistance + m_StartTransform.up * m_ControlPointHeight;
+            m_ControlPoints[2] = m_ControlPoints[0] + m_StartTransform.forward * m_EndPointDistance + m_StartTransform.up * m_EndPointHeight;
         }
 
         Vector3 CalculateBezierPoint(float t, Vector3 start, Vector3 control, Vector3 end)
@@ -322,6 +462,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         int CheckCollidersBetweenPoints(Vector3 from, Vector3 to)
         {
+            Array.Clear(m_RaycastHits, 0, kMaxRaycastHits);
+
             if (m_HitDetectionType == HitDetectionType.SphereCast && m_SphereCastRadius > 0.0f)
             {
                 // casts a sphere along a ray from last point to next point to check if there are hits in between  
@@ -356,19 +498,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             m_NoSamplePoints = 1;
-            m_SamplePoints[0] = m_StartPoint;
+            m_SamplePoints[0] = m_StartTransform.position;
                         
-            m_PreviousPoint = m_StartPoint;
+            m_PreviousPoint = m_StartTransform.position;
             m_HitCount = 0;
             m_HitPositionInLine = 0;
-            int maxSamplePoints = 0;
             int accumulatedHits = 0;
 
+            int maxSamplePoints;
             switch (m_LineType)
             {
                 case LineType.StraightLine:
-
-                    m_NextPoint =  m_PreviousPoint + transform.forward * maxRaycastDistance;
+                    m_NextPoint =  m_PreviousPoint + m_StartTransform.forward * maxRaycastDistance;
                     m_HitCount = CheckCollidersBetweenPoints(m_PreviousPoint, m_NextPoint);
 
                     if (m_HitCount != 0)
@@ -382,7 +523,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case LineType.ProjectileCurve:
                   
                     float flightTime = 2.0f * m_Velocity * Mathf.Sin(Mathf.Abs(Angle) * Mathf.Deg2Rad) / m_Acceleration + m_AdditionalFlightTime;
-                    Vector3 velocityVector = transform.forward * m_Velocity;
+                    Vector3 velocityVector = m_StartTransform.forward * m_Velocity;
                     Vector3 accelerationVector = m_ReferenceFrame.up * -1.0f * m_Acceleration;
 
                     maxSamplePoints = m_SamplePoints.Length;
@@ -391,7 +532,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {                    
                         float t = (float)i / (float)(m_SampleFrequency - 1) * flightTime;
 
-                        m_NextPoint = CalculateProjectilePoint(t, m_StartPoint, velocityVector, accelerationVector);
+                        m_NextPoint = CalculateProjectilePoint(t, m_StartTransform.position, velocityVector, accelerationVector);
 
                         // check collider only when there has not been a hit point
                         if (accumulatedHits == 0)
@@ -439,13 +580,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_HitCount = accumulatedHits;
                     break;
 
-            }             
+            }
 
             // sort all the hits by distance to the controller
             if (m_HitCount > 0)
 			{
-                Array.Sort(m_RaycastHits, 0, m_HitCount, m_RaycastHitComparer);  
-			    for (var i = 0; i < Math.Min(m_HitCount, kMaxRaycastHits); ++i)  
+                SortingHelpers.Sort(m_RaycastHits, m_RaycastHitComparer);
+                for (var i = 0; i < Math.Min(m_HitCount, kMaxRaycastHits); ++i)  
 			    {
                     var interactable = interactionManager.TryGetInteractableForCollider(m_RaycastHits[i].collider);
 			        if (interactable && !validTargets.Contains(interactable))
@@ -469,7 +610,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns><c>true</c> if the interactable can be selected this frame.</returns>
         public override bool CanSelect(XRBaseInteractable interactable)
         {
-            bool selectActivated = (m_CurrentNearestObject == interactable && m_PassedHoverTimeToSelect) || base.CanSelect(interactable);
+            bool selectActivated = (hoverToSelect && (m_CurrentNearestObject == interactable) && m_PassedHoverTimeToSelect) || base.CanSelect(interactable);
             return selectActivated && (selectTarget == null || selectTarget == interactable);
         }
     }

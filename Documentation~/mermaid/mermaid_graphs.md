@@ -9,6 +9,10 @@ graph TD;
     GrabInteractable-->DropTargetInteractable
     BaseInteractable-->PullInteractable
     BaseInteractable-->DoorInteractable
+    classDef blue fill:#daedfd, stroke:#2196f3, stroke-width:2px, rx:5, ry:5;
+    class BaseInteractor,RayInteractor,ContactInteractor blue
+    class BaseInteractable,GrabInteractable,PullInteractable blue
+    class DoorInteractable,DropTargetInteractable blue
 ```
 
 # xrft_interaction_update.png
@@ -36,4 +40,8 @@ graph TD;
     InteractionMananger->>Interactable: IsHoverableBy
     InteractionMananger->>Interactor: OnHoverEnter
     InteractionMananger->>Interactable: OnHoverEnter
+    classDef blue fill:#daedfd, stroke:#2196f3, stroke-width:2px, rx:5, ry:5;
+    class BaseInteractor,RayInteractor,ContactInteractor blue
+    class BaseInteractable,GrabInteractable,PullInteractable blue
+    class DoorInteractable,DropTargetInteractable blue
 ```

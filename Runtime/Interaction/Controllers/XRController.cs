@@ -20,12 +20,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             IndexTouch,
             ThumbTouch,
             Secondary2DAxis,
-            IndexFinger,
-            MiddleFinger,
-            RingFinger,
-            PinkyFinger,
-            CombinedTrigger
         };
+
+        static string[] s_InputAxisNames = new string[]
+            {
+                "Primary2DAxis",
+                "DPad",
+                "Trigger",
+                "Grip",
+                "IndexTouch",
+                "ThumbTouch",
+                "Secondary2DAxis",
+            };
 
         /// <summary>
         /// The update type being used by the tracked pose driver
@@ -50,6 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Header("Tracking Configuration")]
                 
         [SerializeField]
+        [Tooltip("The time within the frame that the XRController will sample input.")]
         UpdateType m_UpdateTrackingType = UpdateType.UpdateAndBeforeRender;
         /// <summary>
         /// The update type being used by the tracked pose driver
@@ -76,26 +83,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool enableInputActions { get { return m_EnableInputActions; } set { m_EnableInputActions = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the XRNode for this controller.")]
         XRNode m_ControllerNode;
         /// <summary>Gets or sets the XRNode for this controller.</summary>
         public XRNode controllerNode { get { return m_ControllerNode; } set { m_ControllerNode = value; } }
 
         [SerializeField]
+        [Tooltip("The input usage that triggers a select, activate or uiInteraction action")]
         InputAxes m_SelectUsage = InputAxes.Grip;
         /// <summary>Gets or sets the usage to use for detecting selection.</summary>
         public InputAxes selectUsage { get { return m_SelectUsage; } set { m_SelectUsage = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the usage to use for detecting activation.")]
         InputAxes m_ActivateUsage = InputAxes.Trigger;
         /// <summary>Gets or sets the usage to use for detecting activation.</summary>
         public InputAxes activateUsage { get { return m_ActivateUsage; } set { m_ActivateUsage = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the usage to use for detecting a UI press.")]
         InputAxes m_UIPressUsage = InputAxes.Trigger;
         /// <summary>Gets or sets the usage to use for detecting a UI press.</summary>
         public InputAxes uiPressUsage { get { return m_UIPressUsage; } set { m_UIPressUsage = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the the amount the axis needs to be pressed to trigger an interaction event.")]
         float m_AxisToPressThreshold = 0.1f;
         /// <summary>Gets or sets the the amount the axis needs to be pressed to trigger an interaction event.</summary>
         public float axisToPressThreshold { get { return m_AxisToPressThreshold; } set { m_AxisToPressThreshold = value; } }
@@ -103,11 +115,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Header("Model")]
 
         [SerializeField]
+        [Tooltip("Gets or sets the model prefab to show for this controller.")]
         Transform m_ModelPrefab;
         /// <summary>Gets or sets the model prefab to show for this controller.</summary>
         public Transform modelPrefab { get { return m_ModelPrefab; } set { m_ModelPrefab = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the model transform that is used as the parent for the controller model.")]
         Transform m_ModelTransform;
         /// <summary>Gets or sets the model transform that is used as the parent for the controller model.
         /// Note: setting this will not automatically destroy the previous model transform object.
@@ -115,16 +129,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Transform modelTransform { get { return m_ModelTransform; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets whether this model animates in response to interaction events.")]
         bool m_AnimateModel;
         /// <summary>Gets or sets whether this model animates in response to interaction events.</summary>
         public bool animateModel { get { return m_AnimateModel; } set { m_AnimateModel = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the animation transition to enable when selecting.")]
         string m_ModelSelectTransition;
         /// <summary>Gets or sets the animation transition to enable when selecting.</summary>
         public string modelSelectTransition { get { return m_ModelSelectTransition; } set { m_ModelSelectTransition = value; } }
 
         [SerializeField]
+        [Tooltip("Gets or sets the animation transition to enable when de-selecting.")]
         string m_ModelDeSelectTransition;
         /// <summary>Gets or sets the animation transition to enable when de-selecting.</summary>
         public string modelDeSelectTransition { get { return m_ModelDeSelectTransition; } set { m_ModelDeSelectTransition = value; } }
@@ -153,6 +170,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         internal InteractionState activateInteractionState { get { return m_ActivateInteractionState; } }
         /// <summary>Gets the current ui press interaction state.</summary>
         internal InteractionState uiPressInteractionState { get { return m_UIPressInteractionState; } }
+
+        /// <summary>Gets the InputDevice being used to read data from.</summary>
+        public InputDevice inputDevice 
+        { 
+            get
+            {
+                return m_InputDevice.isValid ? m_InputDevice : (m_InputDevice = InputDevices.GetDeviceAtXRNode(controllerNode));
+            }
+        }
+        private InputDevice m_InputDevice;
 
         // Flag to indicate that setup should be (re)performed on Update.
         bool m_PerformSetup = true;
@@ -251,20 +278,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 UpdateTrackingInput();
 
             }
-            if(enableInputActions)
+
+            if (enableInputActions)
             {
                 UpdateInput();
-            }   
+            }
         }
 
         void UpdateTrackingInput()
         {
             Vector3 devicePosition = new Vector3();
-            if (InputDevices.GetDeviceAtXRNode(controllerNode).TryGetFeatureValue(CommonUsages.devicePosition, out devicePosition))
+            if (inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out devicePosition))
                 transform.localPosition = devicePosition;
 
             Quaternion deviceRotation = new Quaternion();
-            if (InputDevices.GetDeviceAtXRNode(controllerNode).TryGetFeatureValue(CommonUsages.deviceRotation, out deviceRotation))
+            if (inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out deviceRotation))
                 transform.localRotation = deviceRotation;
         }
 
@@ -275,17 +303,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ActivateInteractionState.activatedThisFrame = m_ActivateInteractionState.deActivatedThisFrame = false;
             m_UIPressInteractionState.activatedThisFrame = m_UIPressInteractionState.deActivatedThisFrame = false;
 
-            HandleInteractionAction(controllerNode, m_SelectUsage.ToString(), ref m_SelectInteractionState);
-            HandleInteractionAction(controllerNode, m_ActivateUsage.ToString(), ref m_ActivateInteractionState);
-            HandleInteractionAction(controllerNode, m_UIPressUsage.ToString(), ref m_UIPressInteractionState);
+            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_SelectUsage], ref m_SelectInteractionState);
+            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_ActivateUsage], ref m_ActivateInteractionState);
+            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_UIPressUsage], ref m_UIPressInteractionState);
 
-            UpdateControllerModelAnimation();                     
+            UpdateControllerModelAnimation();
         }
 
         void HandleInteractionAction(XRNode node, string usage, ref InteractionState interactionState)
         {
             float value = 0.0f;
-            var inputDevice = InputDevices.GetDeviceAtXRNode(node);
             if (inputDevice.isValid && inputDevice.TryGetFeatureValue(new InputFeatureUsage<float>(usage), out value) &&
                 value >= m_AxisToPressThreshold)
             {
@@ -342,9 +369,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (animator)
                 {
                     if (m_SelectInteractionState.activatedThisFrame)
-                        animator.SetBool(modelSelectTransition, true);
+                        animator.SetTrigger(modelSelectTransition);
                     else if (m_SelectInteractionState.deActivatedThisFrame)
-                        animator.SetBool(modelDeSelectTransition, true);
+                        animator.SetTrigger(modelDeSelectTransition);
                 }
             }
         }
@@ -362,10 +389,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool SendHapticImpulse(float amplitude, float duration)
         {
             HapticCapabilities capabilities;
-            if (InputDevices.GetDeviceAtXRNode(controllerNode).TryGetHapticCapabilities(out capabilities) &&
+            if (inputDevice.TryGetHapticCapabilities(out capabilities) &&
                 capabilities.supportsImpulse)
             {
-                return InputDevices.GetDeviceAtXRNode(controllerNode).SendHapticImpulse(0, amplitude, duration);
+                return inputDevice.SendHapticImpulse(0, amplitude, duration);
             }
             return false;
         }

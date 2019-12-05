@@ -71,6 +71,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent playHapticsOnHoverExit = new GUIContent("Play Haptics On Hover Exit", "Play haptics when the hover state is exited.");
             public static readonly GUIContent hapticHoverExitIntensity = new GUIContent("Haptic Hover Exit Intensity", "Haptics intensity to play when the hover state is exited.");
             public static readonly GUIContent hapticHoverExitDuration = new GUIContent("Haptic Hover Exit Duration", "Haptics Duration to play when the hover state is exited.");
+            public static readonly string startingInteractableWarning = "A Starting Selected Interactable will be instantly deselected unless the Interactor is in Toggle Select mode.";
         }
 
         void OnEnable()
@@ -111,13 +112,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public override void OnInspectorGUI()
         {
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRDirectInteractor)target), typeof(XRDirectInteractor), false);
+            GUI.enabled = true;
+            
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
             EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
-            EditorGUILayout.PropertyField(m_ToggleSelect, Tooltips.toggleSelect);
+            EditorGUILayout.PropertyField(m_ToggleSelect, Tooltips.toggleSelect);           
+            if (m_StartingSelectedInteractable.objectReferenceValue != null && !m_ToggleSelect.boolValue)
+            {
+                EditorGUILayout.HelpBox(Tooltips.startingInteractableWarning, MessageType.Warning, true);
+            }
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, Tooltips.hideControllerOnSelect);
 
             EditorGUILayout.Space();

@@ -56,6 +56,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public override void OnInspectorGUI()
         {
+
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRSocketInteractor)target), typeof(XRSocketInteractor), false);
+            GUI.enabled = true;
+
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);

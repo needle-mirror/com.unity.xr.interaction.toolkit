@@ -46,10 +46,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class ARPlacementInteractable : ARBaseGestureInteractable
     {
+        [SerializeField]
+        [Tooltip("A GameObject to place when a raycast from a user touch hits a plane.")]
+        GameObject m_PlacementPrefab;
         /// <summary>
         /// A GameObject to place when a raycast from a user touch hits a plane.
         /// </summary>
-        public GameObject PlacementPrefab;
+        public GameObject placementPrefab { get { return m_PlacementPrefab; } set { m_PlacementPrefab = value; } }
 
         [SerializeField, Tooltip("Called when the this interactable places a new GameObject in the world.")]
         ARObjectPlacedEvent m_OnObjectPlaced = new ARObjectPlacedEvent();
@@ -99,7 +102,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     return;
                 
                 // Instantiate placement prefab at the hit pose.
-                var placementObject = Instantiate(PlacementPrefab, hit.pose.position, hit.pose.rotation);
+                var placementObject = Instantiate(placementPrefab, hit.pose.position, hit.pose.rotation);
 
                 // Create anchor to track reference point and set it as the parent of placementObject.
                 // TODO: this should update with a reference point for better tracking.

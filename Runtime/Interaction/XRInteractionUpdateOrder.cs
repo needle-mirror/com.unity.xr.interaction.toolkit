@@ -13,9 +13,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_ControllerRecorder = -30000;        
         public const int k_Controllers = k_ControllerRecorder + 1;
         public const int k_ControllerInteractionManager = -1000;
-        public const int k_InteractionManager = -100;
-        public const int k_XRUIPointer = k_InteractionManager + 1;
-        public const int k_Interactors = k_XRUIPointer + 1;
+        public const int k_InteractionManager = -100;        
+        public const int k_Interactors = k_InteractionManager + 1;
         public const int k_Interactables = k_Interactors + 1;
 
         public const int k_LineVisual = 100;

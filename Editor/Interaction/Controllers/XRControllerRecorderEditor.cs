@@ -9,6 +9,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         public override void OnInspectorGUI()
         {
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRControllerRecorder)target), typeof(XRControllerRecorder), false);
+            GUI.enabled = true;
+
             var controllerRecorder = (XRControllerRecorder)target;
             DrawDefaultInspector();
 

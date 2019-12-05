@@ -52,16 +52,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, Tooltip("Colliders to use for interaction (if empty, will use any child colliders).")]
         List<Collider> m_Colliders = new List<Collider>();
         /// <summary>Gets colliders to use for interaction with this interactable.</summary>
-        public IEnumerable<Collider> colliders { get { return m_Colliders; } }
+        public List<Collider> colliders { get { return m_Colliders; } }
 
         [SerializeField, Tooltip("Only interactors with this Layer Mask will interact with this interactable.")]
         LayerMask m_InteractionLayerMask = -1;
         /// <summary>Gets or sets the layer mask to use to filter interactors that can interact with this interactable.</summary>
         public LayerMask interactionLayerMask { get { return m_InteractionLayerMask; } set { m_InteractionLayerMask = value; } }
-
-        static XRInteractionManager s_CachedInteractionManager;
-        float m_CachedDistanceToInteractor = float.MaxValue;
-
 
         List<XRBaseInteractor> m_HoveringInteractors = new List<XRBaseInteractor>();
         /// <summary>Gets the list of interactors that are hovering on this interactable; </summary>
@@ -73,9 +69,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>Gets whether this interactable is currently being selected.</summary>
         public bool isSelected { get; private set; }
 
-        /// <summary>Gets cached distance to the last interactor.</summary>
-        public float cachedDistanceToInteractor { get { return m_CachedDistanceToInteractor; } }
-        
         XRInteractionManager m_RegisteredInteractionManager = null;
 
         [Header("Interactable Events")]
@@ -201,8 +194,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool IsOnValidLayerMask(XRBaseInteractor interactor)
         {
-            return interactionLayerMask == -1 || interactor.interactionLayerMask == -1 ||
-                (interactionLayerMask & interactor.interactionLayerMask) == interactor.interactionLayerMask;
+            return (interactionLayerMask & interactor.interactionLayerMask) != 0;
         }
 
         /// <summary>
@@ -283,6 +275,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
         [SerializeField]
+        [Tooltip("The reticle that will appear at the end of the line when it is valid.")]
         GameObject m_CustomReticle;
         /// <summary>Gets or sets the reticle that will appear at the end of the line when it is valid.</summary>
         public GameObject customReticle { get { return m_CustomReticle; } set { m_CustomReticle = value; } }

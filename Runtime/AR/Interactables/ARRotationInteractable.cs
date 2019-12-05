@@ -37,10 +37,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class ARRotationInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("Rate at which to rotate object with a drag.")]
-        float m_RotationRateDegreesDrag = 100.0f;
-        
+        float m_RotationRateDegreesDrag = 100.0f;        
         /// <summary>Gets or sets the rate at which to rotate object with a drag.</summary>
-        public float RotationRateDegreesDrag { 
+        public float rotationRateDegreesDrag { 
             get { return m_RotationRateDegreesDrag; }
             set { m_RotationRateDegreesDrag = value; }
         }
@@ -49,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         float m_RotationRateDegreesTwist = 2.5f;
         
         /// <summary>Gets or sets the rate at which to rotate object with a twist.</summary>
-        public float RotationRateDegreesTwist { 
+        public float rotationRateDegreesTwist { 
             get { return m_RotationRateDegreesTwist; }
             set { m_RotationRateDegreesTwist = value; }
         }

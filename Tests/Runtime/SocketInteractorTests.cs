@@ -17,25 +17,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator SocketInteractorCanHoverInteractable()
-        {
-            var manager = TestUtilities.CreateInteractionManager();
-            var socketInteractor = TestUtilities.CreateSocketInteractor();
-            var interactable = TestUtilities.CreateGrabInteractable();
-            interactable.name = "int1";
-            var interactable2 = TestUtilities.CreateGrabInteractable();
-            interactable2.name = "int2";
-            interactable.transform.position = new Vector3(1.0f,0.0f,0.0f);
-
-            // interactable 2 will be hovered as interactable will be SELECTED.
-            yield return TestUtilities.WaitForInteraction();
-
-            List<XRBaseInteractable> hoverTargetList = new List<XRBaseInteractable>();
-            socketInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable2).Or.EqualTo(interactable));
-        }
-
-        [UnityTest]
         public IEnumerator SocketInteractorCanSelectInteractable()
         {
             var manager = TestUtilities.CreateInteractionManager();

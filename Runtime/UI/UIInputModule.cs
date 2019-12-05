@@ -15,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     {
         Camera m_Camera;
         /// <summary>
-        /// The camera that is used to perform 2D raycasts when deterimining the screen space location of a tracked device cursor.
+        /// The camera that is used to perform 2D raycasts when determining the screen space location of a tracked device cursor.
         /// </summary>
         public Camera uiCamera { get { return m_Camera; } set { m_Camera = value; } }
 
@@ -291,9 +291,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             touchState.OnFrameFinished();
         }
 
-        internal void ProcessTrackedDevice(ref TrackedDeviceModel deviceState)
+        internal void ProcessTrackedDevice(ref TrackedDeviceModel deviceState, bool force = false)
         {
-            if (!deviceState.changedThisFrame)
+            if (!deviceState.changedThisFrame && !force)
                 return;
 
             var eventData = GetOrCreateCachedTrackedDeviceEvent();
@@ -303,29 +303,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.button = PointerEventData.InputButton.Left;
     
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
-            Camera mainCamera = uiCamera ?? Camera.main;
-            var screenPosition = Vector2.zero;
-            if (eventData.pointerCurrentRaycast.isValid)
+
+            // Get associated camera, or main-tagged camera, or camera from raycast, and if *nothing* exists, then abort processing this frame.
+            Camera camera = uiCamera ?? Camera.main ?? eventData.pointerCurrentRaycast.module?.eventCamera ?? null;
+            if (camera != null)
             {
-                screenPosition = mainCamera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
-            }
-            else
-            {
-                Ray ray = eventData.ray;
-                Vector3 endPosition = ray.origin + (ray.direction.normalized * eventData.maxDistance);
-                screenPosition = mainCamera.WorldToScreenPoint(endPosition);
-                        eventData.position = screenPosition;
-            }
+                var screenPosition = Vector2.zero;
+                if (eventData.pointerCurrentRaycast.isValid)
+                {
+                    screenPosition = camera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
+                }
+                else
+                {
+                    Vector3 endPosition = eventData.rayPoints.Count > 0 ? eventData.rayPoints[eventData.rayPoints.Count - 1] : Vector3.zero;
+                    screenPosition = camera.WorldToScreenPoint(endPosition);
+                    eventData.position = screenPosition;
+                }
 
-            var thisFrameDelta = screenPosition - eventData.position;
-            eventData.position = screenPosition;
-            eventData.delta = thisFrameDelta;
+                var thisFrameDelta = screenPosition - eventData.position;
+                eventData.position = screenPosition;
+                eventData.delta = thisFrameDelta;
 
-            ProcessMouseButton(deviceState.selectDelta, eventData);
-            ProcessMouseMovement(eventData);
-            ProcessMouseButtonDrag(eventData, trackedDeviceDragThresholdMultiplier);
+                ProcessMouseButton(deviceState.selectDelta, eventData);
+                ProcessMouseMovement(eventData);
+                ProcessMouseButtonDrag(eventData, trackedDeviceDragThresholdMultiplier);
 
-            deviceState.CopyFrom(eventData);
+                deviceState.CopyFrom(eventData);
+            }  
 
             deviceState.OnFrameFinished();
         }

@@ -134,6 +134,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>Gets or sets the Haptics duration to play on HoverExit.</summary>
         public float hapticHoverExitDuration { get { return m_HapticHoverExitDuration; } set { m_HapticHoverExitDuration = value; } }
 
+        /// <summary>
+        /// Gets a list of targets that can be selected.
+        /// </summary>
+        protected abstract List<XRBaseInteractable> ValidTargets { get; }
+
         bool m_ToggleSelectActive;
         XRController m_Controller;
         AudioSource m_EffectsAudioSource;
@@ -174,7 +179,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_Controller)
                 {
                     if (m_Controller.selectInteractionState.activatedThisFrame)
-                        m_ToggleSelectActive = !m_ToggleSelectActive;
+                    {
+                        if(m_ToggleSelectActive || ValidTargets.Count > 0)
+                            m_ToggleSelectActive = !m_ToggleSelectActive;
+                    }
+                        
                     if (selectTarget && m_Controller.activateInteractionState.activatedThisFrame)
                         selectTarget.OnActivate(this);
                     if (selectTarget && m_Controller.activateInteractionState.deActivatedThisFrame)
@@ -193,6 +202,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 return base.isSelectActive && ((m_Controller && m_Controller.selectInteractionState.active) 
                     || m_ToggleSelect && m_ToggleSelectActive);
+            }
+        }
+
+        protected bool isUISelectActive
+        {
+            get
+            {
+                return m_Controller && m_Controller.uiPressInteractionState.active;
             }
         }
 

@@ -16,8 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public enum InputAxes
         {
             Primary2DAxis = 0,
-            Secondary2DAxis = 1,
-            DPad = 2,           
+            Secondary2DAxis = 1,   
         };
 
         // Mapping of the above InputAxes to actual common usage values
@@ -27,52 +26,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         };
 
         [SerializeField]
-        [Tooltip("If this is enabled, we will attempt to read data from the selected primary device.")]
-        bool m_EnablePrimaryDevice;
-        /// <summary>
-        /// If this is enabled, we will attempt to read data from the selected primary device.
-        /// </summary>
-        public bool enablePrimaryDevice {  get { return m_EnablePrimaryDevice; } set { m_EnablePrimaryDevice = value; } }
-
-        [SerializeField]
-        [Tooltip("The device role that will be used to locate the 'Primary' controller device to use for snap turning.")]
-        XRNode m_PrimaryDeviceNode;
-        /// <summary>
-        /// The device node that will be used to locate the "Primary" controller device to use for snap turning.
-        /// </summary>
-        public XRNode PrimaryDeviceNode { get { return m_PrimaryDeviceNode; } set { m_PrimaryDeviceNode = value; TryResolveDevice(m_PrimaryDeviceNode, out m_CurrentPrimaryDevice); } }
-
-        [SerializeField]
-        [Tooltip("The 2D Input Axis on the primary device that will be used to trigger a snap turn.")]
-        InputAxes m_PrimaryDeviceTurnAxis = InputAxes.Primary2DAxis;
+        [Tooltip("The 2D Input Axis on the primary devices that will be used to trigger a snap turn.")]
+        InputAxes m_TurnUsage = InputAxes.Primary2DAxis;
         /// <summary>
         /// The 2D Input Axis on the primary device that will be used to trigger a snap turn.
         /// </summary>
-        public InputAxes PrimaryDeviceTurnAxis { get { return m_PrimaryDeviceTurnAxis; } set { m_PrimaryDeviceTurnAxis = value; } }
+        public InputAxes turnUsage { get { return m_TurnUsage; } set { m_TurnUsage = value; } }
 
         [SerializeField]
-        [Tooltip("If this is enabled, we will attempt to read data from the selected secondary device.")]
-        bool m_EnableSecondaryDevice;
+        [Tooltip("A list of controllers that allow Snap Turn.  If an XRController is not enabled, or does not have input actions enabled.  Snap Turn will not work.")]
+        List<XRController> m_Controllers = new List<XRController>();
         /// <summary>
-        /// If this is enabled, we will attempt to read data from the selected secondary device.
+        /// The XRControllers that allow SnapTurn.  An XRController must be enabled in order to Snap Turn.
         /// </summary>
-        public bool enableSecondaryDevice { get { return m_EnableSecondaryDevice; } set { m_EnableSecondaryDevice = value; } }
-
-        [SerializeField]
-        [Tooltip("The device role that will be used to locate the 'Secondary' controller device to use for snap turning.")]
-        XRNode m_SecondaryDeviceNode;
-        /// <summary>
-        /// The device node that will be used to locate the "Secondary" controller device to use for snap turning.
-        /// </summary>
-        public XRNode SecondaryDeviceNode { get { return m_SecondaryDeviceNode; } set { m_SecondaryDeviceNode = value; TryResolveDevice(m_SecondaryDeviceNode, out m_CurrentSecondaryDevice); } }
-        
-        [SerializeField]
-        [Tooltip("The 2D Input Axis on the secondary device that will be used to trigger a snap turn.")]
-        InputAxes m_SecondaryDeviceTurnAxis = InputAxes.Primary2DAxis;
-        /// <summary>
-        /// The 2D Input Axis on the secondary device that will be used to trigger a snap turn.
-        /// </summary>
-        public InputAxes SecondaryDeviceTurnAxis { get { return m_SecondaryDeviceTurnAxis; } set { m_SecondaryDeviceTurnAxis = value; } }
+        public List<XRController> controllers { get { return m_Controllers; } set { m_Controllers = value; } }
 
         [SerializeField]
         [Tooltip("The number of degrees clockwise to rotate when snap turning clockwise.")]
@@ -92,7 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The deadzone that the controller movement will have to be above to trigger a snap turn.")]
-        float m_DeadZone = 0.15f;
+        float m_DeadZone = 0.75f;
         /// <summary>
         /// The deadzone that the controller movement will have to be above to trigger a snap turn.
         /// </summary>
@@ -102,42 +69,52 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_CurrentTurnAmount = 0.0f;
         float m_TimeStarted = 0.0f;
 
-        InputDevice m_CurrentPrimaryDevice;
-        InputDevice m_CurrentSecondaryDevice;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            TryResolveDevice(m_PrimaryDeviceNode, out m_CurrentPrimaryDevice);
-            TryResolveDevice(m_SecondaryDeviceNode, out m_CurrentSecondaryDevice);
-        }
+        List<bool> m_ControllersWereActive = new List<bool>();
 
         private void Update()
         {           
-            if(!m_CurrentPrimaryDevice.isValid)
-            {
-                TryResolveDevice(m_PrimaryDeviceNode, out m_CurrentPrimaryDevice);
-            }
-            if(!m_CurrentSecondaryDevice.isValid)
-            {
-                TryResolveDevice(m_SecondaryDeviceNode, out m_CurrentSecondaryDevice);
-            }
-
             // wait for a certain amount of time before allowing another turn.
             if (m_TimeStarted > 0.0f && (m_TimeStarted + m_DebounceTime < Time.time))
             {
                 m_TimeStarted = 0.0f;
                 return;
             }
-           
-            // if idle, check other input
-            if (m_EnablePrimaryDevice)
-                InspectInput(m_Vec2UsageList[(int)m_PrimaryDeviceTurnAxis], m_CurrentPrimaryDevice);
 
-            if (m_EnableSecondaryDevice)
-                InspectInput(m_Vec2UsageList[(int)m_SecondaryDeviceTurnAxis], m_CurrentSecondaryDevice);
-        
+            if(m_Controllers.Count > 0)
+            {
+                EnsureControllerDataListSize();
 
+                InputFeatureUsage<Vector2> feature = m_Vec2UsageList[(int)m_TurnUsage];
+                for (int i = 0; i < m_Controllers.Count; i++)
+                {
+                    XRController controller = m_Controllers[i];
+                    if (controller != null)
+                    {
+                        if (controller.enableInputActions && m_ControllersWereActive[i])
+                        {
+                            InputDevice device = controller.inputDevice;
+
+                            Vector2 currentState;
+                            if (device.TryGetFeatureValue(feature, out currentState))
+                            {
+                                if (currentState.x > deadZone)
+                                {
+                                    StartTurn(m_TurnAmount);
+                                }
+                                else if (currentState.x < -deadZone)
+                                {
+                                    StartTurn(-m_TurnAmount);
+                                }
+                            }
+                        }
+                        else //This adds a 1 frame delay when enabling input actions, so that the frame it's enabled doesn't trigger a snap turn.
+                        {
+                            m_ControllersWereActive[i] = controller.enableInputActions;
+                        }
+                    }
+                }
+            }
+            
             if (Math.Abs(m_CurrentTurnAmount) > 0.0f && BeginLocomotion())
             {
                 var xrRig = system.xrRig;
@@ -149,39 +126,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 EndLocomotion();
             }
         }
-        
 
-
-        private bool TryResolveDevice(XRNode role, out InputDevice device)
+        void EnsureControllerDataListSize()
         {
-            
-            var inputDevice = InputDevices.GetDeviceAtXRNode(role);
-            if(inputDevice.isValid)
+            if(m_Controllers.Count != m_ControllersWereActive.Count)
             {
-                device = inputDevice;
-                return true;
-            }
-            device = new InputDevice();
-            return false;
-        }
-
-        private void InspectInput(InputFeatureUsage<Vector2> feature, InputDevice device)
-        {
-            if (device != null)
-            {
-                Vector2 currentState;
-                if (device.TryGetFeatureValue(feature, out currentState))
+                while(m_ControllersWereActive.Count < m_Controllers.Count)
                 {
-                    if (currentState.x > deadZone)
-                    {
-                        StartTurn(m_TurnAmount);
-                    }
-                    else if (currentState.x < -deadZone)
-                    {
-                        StartTurn(-m_TurnAmount);
-                    }
+                    m_ControllersWereActive.Add(false);
                 }
-            }        
+
+                while(m_ControllersWereActive.Count < m_Controllers.Count)
+                {
+                    m_ControllersWereActive.RemoveAt(m_ControllersWereActive.Count - 1);
+                }
+            }
         }
 
         internal void FakeStartTurn(bool isLeft)

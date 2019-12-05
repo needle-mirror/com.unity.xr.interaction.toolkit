@@ -31,6 +31,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_OnSelectExit;
         SerializedProperty m_OnActivate;
         SerializedProperty m_Colliders;
+        SerializedProperty m_InteractionLayerMask;
 
         bool m_showInteractableEvents = false;
 
@@ -55,6 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent throwAngularVelocityScale = new GUIContent("Throw Angular Velocity Scale", "Scale the angular velocity used when throwing");
             public static readonly GUIContent gravityOnDetach = new GUIContent("Gravity On Detach", "Object has gravity when released (will still use pre-grab value if this is false).");
             public static readonly GUIContent colliders = new GUIContent("Colliders", "Colliders to include when selecting/interacting with an interactable");
+            public static readonly GUIContent interactionLayerMask = new GUIContent("InteractionLayerMask", "Only Interactors with this LayerMask will interact with this Interactable.");
         }
 
         void OnEnable()
@@ -84,10 +86,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OnSelectExit = serializedObject.FindProperty("m_OnSelectExit");
             m_OnActivate = serializedObject.FindProperty("m_OnActivate");
             m_Colliders = serializedObject.FindProperty("m_Colliders");
+            m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
         }
 
         public override void OnInspectorGUI()
         {
+
+            GUI.enabled = false;
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRGrabInteractable)target), typeof(XRGrabInteractable), false);
+            GUI.enabled = true;
+
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
@@ -95,6 +103,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_MovementType, Tooltips.movementType);
 
             EditorGUILayout.PropertyField(m_Colliders, Tooltips.colliders, true);
+
+            EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
 
             EditorGUILayout.PropertyField(m_TrackPosition, Tooltips.trackPosition);
             if (m_TrackPosition.boolValue)

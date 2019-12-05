@@ -122,7 +122,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator GestureInteractor_SelectPlacementInteractable_CreatesGO()
         {
             var interactable = ObjectFactory.CreateGameObject("ARPlacementInteractable", typeof(ARPlacementInteractable));
-            interactable.GetComponent<ARPlacementInteractable>().PlacementPrefab = new GameObject();
+            interactable.GetComponent<ARPlacementInteractable>().placementPrefab = new GameObject();
             CreateTestPlane();
 
             yield return SimulateTouches(

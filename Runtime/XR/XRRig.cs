@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -42,16 +45,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
         [SerializeField]
-        [Tooltip("Decide XR experience is Room Scale or Stationary.")]
+        [Tooltip("Set if the XR experience is Room Scale or Stationary.")]
         TrackingSpaceType m_TrackingSpace = TrackingSpaceType.Stationary;
         /// <summary>Gets or sets if the experience is rooms scale or stationary.  Not all devices support all tracking spaces; if the selected tracking space is not set it will fall back to Stationary.</summary>
-        public TrackingSpaceType trackingSpace { get { return m_TrackingSpace; } set { m_TrackingSpace = value; SetupCamera(); } }
+        public TrackingSpaceType trackingSpace { get { return m_TrackingSpace; } set { m_TrackingSpace = value; TryInitializeCamera(); } }
 
         [SerializeField]
-        [Tooltip("Camera Height - overwritten by device settings when using Room Scale ")]
+        [Tooltip("Camera Height to be used when in Stationary tracking space.")]
         float m_CameraYOffset = k_DefaultCameraYOffset;
         /// <summary>Gets or sets the amount the camera is offset from the floor (by moving the camera offset object).</summary>
-        public float cameraYOffset { get { return m_CameraYOffset; } set { m_CameraYOffset = value; SetupCamera(); } }
+        public float cameraYOffset { get { return m_CameraYOffset; } set { m_CameraYOffset = value; TryInitializeCamera(); } }
 
         /// <summary>Gets the rig's local position in camera space.</summary>
         public Vector3 rigInCameraSpacePos { get { return m_CameraGameObject.transform.InverseTransformPoint(m_RigBaseGameObject.transform.position); } }
@@ -61,6 +64,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>Gets the camera's height relative to the rig.</summary>
         public float cameraInRigSpaceHeight { get { return cameraInRigSpacePos.y; } }
+
+        /// <summary>
+        /// Used to cache the input subsystems without creating additional garbage.
+        /// </summary>
+        static List<XRInputSubsystem> s_InputSubsystems = new List<XRInputSubsystem>();
+
+        // Bookkeeping to track lazy initialization of the tracking space type.
+        bool m_CameraInitialized = false;
+        bool m_CameraInitializing = false;
 
         void Awake()
         {
@@ -73,7 +85,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void Start()
         {
-            SetupCamera();
+            TryInitializeCamera();
         }
 
         void OnValidate()
@@ -81,13 +93,112 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (rig == null)
                 rig = gameObject;
 
-            SetupCamera();
+            TryInitializeCamera();
+        }
+
+        void TryInitializeCamera()
+        {
+            m_CameraInitialized = SetupCamera();            
+            if (!m_CameraInitialized & !m_CameraInitializing)
+                StartCoroutine(RepeatInitializeCamera());
+        }
+
+        /// <summary>
+        /// Repeatedly attempt to initialize the camera.
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator RepeatInitializeCamera()
+        {
+            m_CameraInitializing = true;
+            yield return null;
+            while (!m_CameraInitialized)
+            {
+                m_CameraInitialized = SetupCamera();
+                yield return null;
+            }
+            m_CameraInitializing = false;
         }
 
         /// <summary>
         /// Handles re-centering and off-setting the camera in space depending on which tracking space it is setup in.
         /// </summary>
-        void SetupCamera()
+#if UNITY_2019_3_OR_NEWER
+        bool SetupCamera()
+        {
+            SubsystemManager.GetInstances<XRInputSubsystem>(s_InputSubsystems);
+
+            bool initialized = true;
+            if(s_InputSubsystems.Count != 0)
+            {
+                for (int i = 0; i < s_InputSubsystems.Count; i++)
+                {
+                    initialized &= SetupCamera(s_InputSubsystems[i]);
+                }
+            }
+            else
+            {
+                SetupCameraLegacy();
+            }
+            
+            return initialized;
+        }
+
+        bool SetupCamera(XRInputSubsystem subsystem)
+        {
+            if (subsystem == null)
+                return false;
+
+            bool trackingSettingsSet = false;
+
+            float desiredOffset = cameraYOffset;
+            if (m_TrackingSpace == TrackingSpaceType.RoomScale)
+            {
+                // We need to check for Unknown because we may not be in a state where we can read this data yet.
+                if((subsystem.GetSupportedTrackingOriginModes() & (TrackingOriginModeFlags.Floor | TrackingOriginModeFlags.Unknown)) == 0)
+                {
+                    Debug.LogWarning("XRRig.SetupCamera: Attempting to set the tracking space to Room, but that is not supported by the SDK.");
+                    return true;
+                }
+
+                if(subsystem.TrySetTrackingOriginMode(TrackingOriginModeFlags.Floor))
+                {
+                    desiredOffset = 0;
+                    trackingSettingsSet = true;
+                }        
+            }
+
+            if (m_TrackingSpace == TrackingSpaceType.Stationary)
+            {
+                // We need to check for Unknown because we may not be in a state where we can read this data yet.
+                if ((subsystem.GetSupportedTrackingOriginModes() & (TrackingOriginModeFlags.Device | TrackingOriginModeFlags.Unknown)) == 0)
+                {
+                    Debug.LogWarning("XRRig.SetupCamera: Attempting to set the tracking space to Stationary, but that is not supported by the SDK.");
+                    return true;
+                }
+
+                if (subsystem.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device))
+                {
+                    trackingSettingsSet = subsystem.TryRecenter();
+                }                    
+            }
+
+            if(trackingSettingsSet)
+            {
+                // Move camera to correct height
+                if (m_CameraFloorOffsetObject)
+                    m_CameraFloorOffsetObject.transform.localPosition = new Vector3(m_CameraFloorOffsetObject.transform.localPosition.x, desiredOffset, m_CameraFloorOffsetObject.transform.localPosition.z);
+
+            }
+            return trackingSettingsSet;
+        }
+#else
+        bool SetupCamera()
+        {
+            SetupCameraLegacy();
+            return true;
+        }
+#endif
+        void SetupCameraLegacy()
         {
             float cameraYOffset = m_CameraYOffset;
             XRDevice.SetTrackingSpaceType(m_TrackingSpace);
@@ -100,7 +211,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_CameraFloorOffsetObject)
                 m_CameraFloorOffsetObject.transform.localPosition = new Vector3(m_CameraFloorOffsetObject.transform.localPosition.x, cameraYOffset, m_CameraFloorOffsetObject.transform.localPosition.z);
         }
-
 
         /// <summary>
         /// Rotates the rig object around the camera object by the provided angleDegrees, this rotation only occurs around the rig's Up vector
@@ -248,7 +358,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 GizmoHelpers.DrawAxisArrows(m_CameraGameObject.transform, 0.5f);
 
                 Vector3 floorPos = m_CameraGameObject.transform.position;
-                floorPos.y = 0.0f;
+                floorPos.y = m_RigBaseGameObject.transform.position.y;
                 Gizmos.DrawLine(floorPos, m_CameraGameObject.transform.position);
             }
         }

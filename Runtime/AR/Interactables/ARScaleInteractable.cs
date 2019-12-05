@@ -36,30 +36,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class ARScaleInteractable : ARBaseGestureInteractable
     {
+
+        [SerializeField, Tooltip("The minimum scale of the object.")]
+        float m_MinScale = 0.75f;
         /// <summary>
         /// The minimum scale of the object.
         /// </summary>
-        public float MinScale = 0.75f;
+        public float minScale {  get { return m_MinScale; } set { m_MinScale = value; } }
 
+        [SerializeField, Tooltip("The maximum scale of the object.")]
+        float m_MaxScale = 1.75f;
         /// <summary>
         /// The maximum scale of the object.
         /// </summary>
-        public float MaxScale = 1.75f;
+        public float maxScale {  get { return m_MaxScale; } set { m_MaxScale = value; } }
 
+        [SerializeField, Tooltip("The elastic ratio used when scaling the object")]
+        float m_ElasticRatioLimit = 0.0f;
         /// <summary>
         /// The limit of the elastic ratio.
         /// </summary>
-        public float ElasticRatioLimit = 0.8f;
-        
+        public float elasticRatioLimit { get { return m_ElasticRatioLimit; } set { m_ElasticRatioLimit = value; } }
+
+        [SerializeField, Tooltip("Sensitivity to movement being translated into scale.")]
+        float m_Sensitivity = 0.75f;
         /// <summary>
         /// Sensitivity to movement being translated into scale.
         /// </summary>
-        public float Sensitivity = 0.75f;
-        
+        public float sensitivity { get { return m_Sensitivity; } set { m_Sensitivity = value; } }
+
+        [SerializeField, Tooltip("Amount that the scale bounces back after hitting min/max of range.")]
+        float m_Elasticity = 0.15f;
         /// <summary>
         /// Amount that the scale bounces back after hitting min/max of range.
         /// </summary>
-        public float Elasticity = 0.15f;
+        public float elasticity { get { return m_Elasticity; } set { m_Elasticity = value; } }
 
         float m_CurrentScaleRatio;
         bool m_IsScaling;
@@ -68,13 +79,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             get
             {
-                if (MinScale > MaxScale)
+                if (minScale > maxScale)
                 {
                     Debug.LogError("minScale must be smaller than maxScale.");
                     return 0.0f;
                 }
 
-                return MaxScale - MinScale;
+                return maxScale - minScale;
             }
         }
 
@@ -91,7 +102,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             get
             {
                 float elasticScaleRatio = m_ClampedScaleRatio + ElasticDelta();
-                float elasticScale = MinScale + (elasticScaleRatio * m_ScaleDelta);
+                float elasticScale = minScale + (elasticScaleRatio * m_ScaleDelta);
                 return elasticScale;
             }
         }
@@ -101,13 +112,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected void OnEnable()
         {           
-            m_CurrentScaleRatio = (transform.localScale.x - MinScale) / m_ScaleDelta;
+            m_CurrentScaleRatio = (transform.localScale.x - minScale) / m_ScaleDelta;
         }
 
         void OnValidate() 
         {
-            MinScale = Mathf.Max(0.0f, MinScale);
-            MaxScale = Mathf.Max(Mathf.Max(0.0f, MinScale), MaxScale);
+            minScale = Mathf.Max(0.0f, minScale);
+            maxScale = Mathf.Max(Mathf.Max(0.0f, minScale), maxScale);
         }
 
         /// <summary>
@@ -137,7 +148,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnStartManipulation(PinchGesture gesture)
         {
             m_IsScaling = true;
-            m_CurrentScaleRatio = (transform.localScale.x - MinScale) / m_ScaleDelta;
+            m_CurrentScaleRatio = (transform.localScale.x - minScale) / m_ScaleDelta;
         }
 
         /// <summary>
@@ -146,15 +157,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="gesture">The current gesture.</param>
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += Sensitivity * GestureTouchesUtility.PixelsToInches(gesture.GapDelta);
+            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.GapDelta);
 
             float currentScale = m_CurrentScale;
             transform.localScale = new Vector3(currentScale, currentScale, currentScale);
 
             // If we've tried to scale too far beyond the limit, then cancel the gesture
             // to snap back within the scale range.
-            if (m_CurrentScaleRatio < -ElasticRatioLimit
-                || m_CurrentScaleRatio > (1.0f + ElasticRatioLimit))
+            if (m_CurrentScaleRatio < -elasticRatioLimit
+                || m_CurrentScaleRatio > (1.0f + elasticRatioLimit))
             {
                 gesture.Cancel();
             }
@@ -185,7 +196,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return 0.0f;
             }
 
-            return (1.0f - (1.0f / ((Mathf.Abs(overRatio) * Elasticity) + 1.0f)))
+            return (1.0f - (1.0f / ((Mathf.Abs(overRatio) * elasticity) + 1.0f)))
             * Mathf.Sign(overRatio);
         }
 

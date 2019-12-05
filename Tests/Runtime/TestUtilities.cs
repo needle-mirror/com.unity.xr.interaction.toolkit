@@ -101,6 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRController controller = interactorGO.GetComponent<XRController>();
             XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
             controller.enableInputTracking = false;
+            interactor.enableUIInteraction = false;
             return interactor;
         }
         internal static XRSocketInteractor CreateSocketInteractor()

@@ -6,8 +6,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public class TeleportationAnchor : BaseTeleportationInteractable
     {
         [SerializeField]
+        [Tooltip("The transform that represents the teleportation destination")]
         Transform m_TeleportAnchorTransform;
-
         /// <summary>
         /// The transform that represents the teleportation destination
         /// </summary>

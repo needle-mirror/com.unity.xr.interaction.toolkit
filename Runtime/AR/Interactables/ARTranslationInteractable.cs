@@ -36,15 +36,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     [RequireComponent(typeof(ARSelectionInteractable))]
     public class ARTranslationInteractable : ARBaseGestureInteractable
     {
+        [SerializeField]
+        [Tooltip("Controls whether the object will be constrained vertically, horizontally, or free to move in all axis.")]
+        GestureTransformationUtility.GestureTranslationMode m_ObjectGestureTranslationMode;
         /// <summary>
         /// The translation mode of this object.
         /// </summary>
-        public GestureTransformationUtility.GestureTranslationMode objectGestureTranslationMode;
+        public GestureTransformationUtility.GestureTranslationMode objectGestureTranslationMode {  get { return m_ObjectGestureTranslationMode; } set { m_ObjectGestureTranslationMode = value; } }
 
+        [SerializeField]
+        [Tooltip("The maximum translation distance of this object.")]
+        float m_MaxTranslationDistance = 10.0f;
         /// <summary>
         /// The maximum translation distance of this object.
         /// </summary>
-        public float MaxTranslationDistance = 10.0f;
+        public float maxTranslationDistance {  get { return m_MaxTranslationDistance; } set { m_MaxTranslationDistance = value; } }
 
         const float k_PositionSpeed = 12.0f;
         const float k_DiffThreshold = 0.0001f;
@@ -115,7 +121,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             GestureTransformationUtility.Placement desiredPlacement =
                 GestureTransformationUtility.GetBestPlacementPosition(
                     transform.parent.position, gesture.Position, m_GroundingPlaneHeight, 0.03f,
-                    MaxTranslationDistance, objectGestureTranslationMode);
+                    maxTranslationDistance, objectGestureTranslationMode);
 
             if (desiredPlacement.HasHoveringPosition && desiredPlacement.HasPlacementPosition)
             {
@@ -150,8 +156,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             Vector3 desiredLocalPosition = transform.parent.InverseTransformPoint(desiredPose.position);
 
-            if (desiredLocalPosition.magnitude > MaxTranslationDistance)
-                desiredLocalPosition = desiredLocalPosition.normalized * MaxTranslationDistance;
+            if (desiredLocalPosition.magnitude > maxTranslationDistance)
+                desiredLocalPosition = desiredLocalPosition.normalized * maxTranslationDistance;
             desiredPose.position = transform.parent.TransformPoint(desiredLocalPosition);
 
             //Anchor newAnchor = m_LastPlacement.Trackable.CreateAnchor(desiredPose);

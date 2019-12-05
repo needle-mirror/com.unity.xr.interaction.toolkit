@@ -26,6 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
 
         [SerializeField]
+        [Tooltip("The Interaction Manager that this interactor will communicate with.")]
         XRInteractionManager m_InteractionManager;
         /// <summary>Gets or sets Interaction Manager.</summary>
         public XRInteractionManager interactionManager
@@ -39,11 +40,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        [Tooltip("Only interactables with this layer mask will respond to this interactor.")]
         LayerMask m_InteractionLayerMask = -1;
         /// <summary>Gets or sets interaction layer mask.  Only interactables with this layer mask will respond to this interactor.</summary>
         public LayerMask InteractionLayerMask { get { return m_InteractionLayerMask; } set { m_InteractionLayerMask = value; } }
 
         [SerializeField]
+        [Tooltip("The attach transform that is used as an attach point for interactables.")]
         Transform m_AttachTransform;
         /// <summary>Gets or sets the attach transform that is used as an attach point for interactables.
         /// Note: setting this will not automatically destroy the previous attach transform object.
@@ -51,6 +54,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Transform attachTransform { get { return m_AttachTransform; } }
 
         [SerializeField]
+        [Tooltip("The interactable that will be attached at startup.")]
         XRBaseInteractable m_StartingSelectedInteractable = null;
 
         // target selected object (may by null)
@@ -134,6 +138,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             else
                 Debug.LogWarning("Could not find InteractionManager.", this);
         }
+                
+
+        protected void Start()
+        {
+            if (m_InteractionManager != null && m_StartingSelectedInteractable != null)
+                m_InteractionManager.ForceSelect(this, m_StartingSelectedInteractable);
+        }
 
         protected virtual void OnEnable()
         {
@@ -199,7 +210,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_RegisteredInteractionManager != null)
                 m_RequiresRegistration = false;
         }
-        
+
         internal void ClearHoverTargets()
         {
             m_HoverTargets.Clear();
@@ -207,8 +218,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool IsOnValidLayerMask(XRBaseInteractable interactable)
         {
-            return interactionLayerMask == -1 || interactable.interactionLayerMask == -1 ||
-                (interactionLayerMask & interactable.interactionLayerMask) == interactable.interactionLayerMask;
+            return (interactionLayerMask & interactable.interactionLayerMask) != 0;
         }
 
         /// <summary>

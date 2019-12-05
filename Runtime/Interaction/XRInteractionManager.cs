@@ -62,15 +62,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
         }
 
-        void Awake()
-        {
-            foreach (var interactor in m_Interactors)
-            {
-                if (interactor.startingSelectedInteractable)
-                    SelectEnter(interactor, interactor.startingSelectedInteractable);
-            }
-        }
-
         void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactor in m_Interactors)
@@ -144,7 +135,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 				if (interactor is ARGestureInteractor)
 					m_GestureInteractablesNeedReconnect = true;
 #endif
-			}
+            }
 
 		}
 
@@ -223,6 +214,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 			return validTargets;
 		}
+
+        internal void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        {
+            SelectEnter(interactor, interactable);
+        }
 
 		void ClearInteractorSelection(XRBaseInteractor interactor)
 		{

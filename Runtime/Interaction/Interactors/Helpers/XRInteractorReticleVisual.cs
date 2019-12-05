@@ -68,9 +68,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         // reusable array of raycast hits
         RaycastHit[] m_RaycastHits = new RaycastHit[k_MaxRaycastHits];
-        RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
-
-        XRUIPointer m_XRUIPointer;
 
         bool m_ReticleActive = false;
         /// <summary>Gets or sets whether the reticlePrefab is currently active.</summary>
@@ -92,7 +89,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_Interactor.onSelectExit.AddListener(OnSelectExit); 
             }
             SetupReticlePrefab();
-            m_XRUIPointer = GetComponent<XRUIPointer>();
             reticleActive = false;
         }
 
@@ -128,6 +124,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 reticleActive = false;
         }
 
+        static RaycastHit FindClosestHit(RaycastHit[] hits, int hitCount)
+        {
+            int index = 0;
+            float distance = float.MaxValue;
+            for(int i = 0; i < hitCount; i++)
+            {
+                if (hits[i].distance < distance)
+                {
+                    distance = hits[i].distance;
+                    index = i;      
+                }
+            }
+
+            return hits[index];
+        }
+
         bool TryGetRaycastPoint(ref Vector3 raycastPos, ref Vector3 raycastNormal)
         {
             bool raycastHit = false;
@@ -137,27 +149,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_RaycastHits, m_MaxRaycastDistance, m_RaycastMask);
             if (hitCount != 0)
             {
-                Array.Sort(m_RaycastHits, 0, hitCount, m_RaycastHitComparer);
-                raycastPos = m_RaycastHits.First().point;
-                raycastNormal = m_RaycastHits.First().normal;
+                RaycastHit closestHit = FindClosestHit(m_RaycastHits, hitCount);
+                raycastPos = closestHit.point;
+                raycastNormal = closestHit.normal;
                 raycastHit = true;
-            }
-
-            // Get last Raycast against EventSystem system with attached XRPointer (if available)
-            if (m_XRUIPointer && m_XRUIPointer.enabled)
-            {
-                TrackedDeviceModel model = m_XRUIPointer.GetTrackedDeviceModel();
-                RaycastResult lastRaycastResult = model.implementationData.lastFrameRaycast;
-                if(lastRaycastResult.isValid)
-                {
-                    if ((lastRaycastResult.worldPosition - m_Interactor.transform.position).sqrMagnitude <
-                    (raycastPos - m_Interactor.transform.position).sqrMagnitude)
-                    {
-                        raycastPos = lastRaycastResult.worldPosition;
-                        raycastNormal = lastRaycastResult.worldNormal;
-                    }
-                    raycastHit = true;
-                }              
             }
 
             return raycastHit;

@@ -9,7 +9,7 @@ using UnityEditor;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>Get line points and hit point info for rendering </summary>
-    interface ILineRenderable
+    public interface ILineRenderable
     {        
         bool GetLinePoints(ref Vector3[] linePoints, ref int noPoints);
         bool TryGetHitInfo(ref Vector3 position, ref Vector3 normal, ref int positionInLine, ref bool isValidTarget);
@@ -364,7 +364,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : m_Reticle;
                 if (m_ReticleToUse != null)
                 {
-                    m_Reticle.SetActive(false);
+                    m_ReticleToUse.SetActive(false);
                 }
             }
 
