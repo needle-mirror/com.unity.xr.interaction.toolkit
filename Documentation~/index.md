@@ -41,7 +41,7 @@ To install this package, follow the instructions in the [Package Manager documen
 
 To set up a Scene for use with the XR Interaction Toolkit, use the commands in the **XR** menu **(Game Object > XR)** to create Interaction GameObjects. You can drop Interactors, Interactables, and the VR Camera Rig into the Scene from this menu.
 
-<img src="images/ui_helpers.png" width=50% height=50%>
+![ui_helpers](images/ui_helpers.png)
 
 ### Detailed setup
 
@@ -51,7 +51,7 @@ Every Scene that uses the XR Interaction Toolkit needs at least one Interaction 
 
 #### Controller/Interactor
 
-<img src="images/interactor_setup.png" width=50% height=50%>
+![interactor_setup](images/interactor_setup.png)
 
 An Interactor component controls how a GameObject interacts with other objects in the Scene. There are multiple types of Interactors. The example in the screenshot above uses a Ray Interactor, a component that uses [Unity ray casting](https://docs.unity3d.com/ScriptReference/Physics.Raycast.html) in order to find valid Interactable objects in the Scene.  
 
@@ -69,7 +69,8 @@ The **Enable Interaction with UI GameObjects** checkbox controls whether this **
 
 #### Interactable
 
-<img src="images/interactable_setup.png" width=50% height=50%>
+![interactable_setup](images/interactable_setup.png)
+
 Interactable components define how the user can interact with objects in a Scene. In the screenshot above, the interactable GameObject supports grabbing, moving, dropping and throwing.
 
 Interactables support a default Sphere collider to detect interaction, but other types of colliders can provide better hit detection.
@@ -80,7 +81,7 @@ Interactables support a default Sphere collider to detect interaction, but other
 
 #### XR Interaction Toolkit Debugger window
 
-<img src="images/interaction_debugger.png" width=75% height=75%>
+![interaction_debugger](images/interaction_debugger.png)
 
 The XR Interaction Toolkit Debugger window displays a top-down view of all the Input Devices, Interactables, and Interactors in a Scene. It also displays their relationship to each other and their parent Interaction Managers. To access this window, go to Window > Analysis.
 
@@ -104,7 +105,7 @@ The XR Interaction package comes with a helper that perform basic setup. Use the
 | - | - |
 | **UI Canvas** | Creates a new world-space canvas that you can then add standard UI elements to. If you haven’t configured an EventSystem yet, it also creates and configures a new EventSystem for XR. |
 
-<img src="images/ui_helpers.png" width=50% height=50%>
+![ui_helpers](images/ui_helpers.png)
 
 ### Custom Setup
 
@@ -114,12 +115,12 @@ The EventSystem component acts as a central dispatch for UI events to process in
 
 __Note:__ If you already created a canvas or you created the EventSystem first, you might have a StandaloneInputModule component in your Project. Remove it, or it might block input processing.
 
-<img src="images/ui_event_system_setup.png" width=50% height=50%>
+![event_system_setup](images/ui_event_system_setup.png)
 
 #### Canvas
 All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below), called the **Tracked Device Graphic Raycaster**. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
 
-<img src="images/ui_canvas_setup.png" width=50% height=50%>
+![ui_canvas_setup](images/ui_canvas_setup.png)
 
 ## Architecture
 
@@ -194,7 +195,7 @@ You can extend the XR Interaction Toolkit system through either [inheritance](ht
 
 Interactors and Interactables both have various event callbacks that can be used to drive reactions to interaction state changes.  You can use events these to define your own behavior to hover, selection and activation state changes with no additional coding.
 
-<img src="images/interactable_events_callback_example.png" width=50% height=50%>
+![callback_examples](images/interactable_events_callback_example.png)
 
 
 ### Extending Interactors
@@ -278,3 +279,4 @@ https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit/issues
 |September 4, 2019|Document revised with updated images and component names.|
 |October 3, 2019|Document update to reflect package naming for release|
 |December 4, 2019|Document revised with documentation team feedback|
+|December 12, 2019|Fixed image linking|

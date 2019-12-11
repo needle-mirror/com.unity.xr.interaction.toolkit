@@ -39,7 +39,7 @@ On the **XR Rig** GameObject, add a **Locomotion System**, a **Teleportation Pro
 
 To set up Snap Turn, on the **Snap Turn Provider** script, enable the primary device and (optionally) the secondary device, and set their Device Node and Turn Input Source. For a hand Controller with a joystick, the Device Node field should be **Left Hand** or **Right Hand**, and the Turn Input Source field should be **Primary 2D Axis**.
 
-<img src="images/xrrig_locomotion_setup.png" width=75% height=75%>
+![locomotion_setup](images/xrrig_locomotion_setup.png)
 
 ### 3. Create Teleportation Interactables
 
@@ -59,7 +59,8 @@ These options are described below.
 
 #### Straight line
 
-<img src="images/straight_line_ray.png" width=75% height=75%>
+
+![straight_line_ray](images/straight_line_ray.png)
 
 If you select the straight line option, the **XR Ray Interactor** performs a single raycast into the scene with a ray the length set by the Max Raycast Distance parameter. The image above shows the configuration options.
 
@@ -72,7 +73,7 @@ If you select the straight line option, the **XR Ray Interactor** performs a sin
 
 If you select the projectile curve option, the XR Ray Interactor generates a projectile curve by sampling the trajectory of a projectile. You can use the angle of the Controller to control the distance of the landing point. When you lift your Controller up, the landing point will first go further, then come back closer if you keep lifting the Controller. The projectile curve option is recommended for use in teleportation scenarios.
 
-<img src="images/projectile_ray.png" width=75% height=75%>
+![projectile_ray](images/projectile_ray.png)
 
 | Projectile curve parameter | Description |
 |-|-|
@@ -84,7 +85,7 @@ If you select the projectile curve option, the XR Ray Interactor generates a pro
 
 #### Bezier Curve
 
-<img src="images/bezier_ray.png" width=75% height=75%>
+![bezier_ray](images/bezier_ray.png)
 
 In addition to its start point, a bezier curve uses a control point and an endpoint. The start point is the position of the **Attached Transform** of the **Ray Interactor**. Unlike Projectile Curve, a bezier curve's reference frame is set to self by default. As a result, the curve rotates with the Controller.
 
@@ -100,7 +101,7 @@ In addition to its start point, a bezier curve uses a control point and an endpo
 
 The **XR Interactor Line Visual** gives you additional options to customize the look of your line for Teleportation. It requires the Line Render component and gets line points from the Ray Interactor.
 
-<img src="images/line_visual.png" width=75% height=75%>
+![line_visual](images/line_visual.png)
 
 | Setting | Description |
 |-|-|
@@ -142,7 +143,7 @@ Before detailing the options on the XR Rig component, it's important to understa
 
 The image below shows the XR Rig component. 
 
-<img src="images/xrrig.png" width=75% height=75%>
+![xr-rig](images/xrrig.png)
 
 The **Rig Base Game Object** indicates which GameObject acts as the transform from tracking space into world space. In the recommended hierarchy, this is the "XR Rig" GameObject.
 
@@ -162,7 +163,7 @@ The Locomotion System is a MonoBehaviour that acts as the arbitrator for Locomot
 
 The following is an image of the Locomotion System MonoBehaviour:
 
-<img src="images/locomotion_system.png" width=75% height=75%>
+![locomotion-system](images/locomotion_system.png)
 
 The **Timeout** field controls the maximum amount of time a single Locomotion Provider can keep exclusive access of the Locomotion System. In this example, the value is set to 600 seconds.
 
@@ -213,7 +214,7 @@ The Teleportation Provider Component implements the `LocomotionProvider` abstrac
 
 The following image shows the Teleportation Provider MonoBehaviour.
 
-<img src="images/teleportation_provider.png" width=75% height=75%>
+![teleportation-provider](images/teleportation_provider.png)
 
 The **System** field should reference the Locomotion System MonoBehaviour that you want the teleportation provider to interact with. If you don't specify a Locomotion System, the provider will attempt to find one in the current Scene.
 
@@ -227,7 +228,7 @@ The Teleport Area Interactable is intended to be used by the Ray Interactor or a
 
 The following image shows an example of the Teleport Area Interactable.
 
-<img src="images/teleportation_area.png" width=75% height=75%>
+![teleportation-area](images/teleportation_area.png)
 
 The settings on the Teleportation Area Interactable are similar to other Interactables. This documentation only covers the elements that support teleportation.
 
@@ -252,7 +253,7 @@ The Teleport Anchor Interactable is intended to be used by the Ray Interactor or
 
 The following image shows an example of the Teleport Anchor Interactable.
 
-<img src="images/teleportation_anchor.png" width=75% height=75%>
+![teleportation-anchor](images/teleportation_anchor.png)
 
 The settings on the **Teleportation Anchor** Interactable are similar to the **Teleport Area** Interactable. This documentation only covers new elements.
 
@@ -266,7 +267,7 @@ The XR Interaction package provides an example implementation of a Snap Turn Pro
 
 The following image shows an example of the Snap Turn Provider.
 
-<img src="images/snapturn_provider.png" width=75% height=75%>
+![snap-turnprovider](images/snapturn_provider.png)
 
 |Property|Description|
 |-|-|
