@@ -260,11 +260,6 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 * 2019.3 and later.
 
-### Known limitations
-
-For up to date issues, please reference the GitHub issues repository:
-https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit/issues
-
 ### Document revision history
 
 |Date|Reason|
@@ -280,3 +275,4 @@ https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit/issues
 |October 3, 2019|Document update to reflect package naming for release|
 |December 4, 2019|Document revised with documentation team feedback|
 |December 12, 2019|Fixed image linking|
+|January 10, 2020|removed private github link|

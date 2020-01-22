@@ -6,7 +6,6 @@
         "Unity.XR.ARSubsystems",
         "Unity.XR.ARFoundation"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -19,6 +18,12 @@
             "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",
             "define": "AR_FOUNDATION_PRESENT"
+        },
+        {
+            "name": "com.unity.xr.legacyinputhelpers",
+            "expression": "1.3.0",
+            "define": "LIH_PRESENT"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

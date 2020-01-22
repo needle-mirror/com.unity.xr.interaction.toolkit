@@ -210,8 +210,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>Gets whether this interactor is in a state where it could select (always true for sockets if active).</summary>
         public override bool isSelectActive { get { return m_SocketActive; } }
 
-        /// <summary>Gets if this interactor requires exclusive selection of an interactable (always false for sockets).</summary>
-        public override bool isSelectExclusive { get { return false; } }
+        /// <summary>Gets if this interactor requires exclusive selection of an interactable (always false for sockets).  That is, this interactor will only be selected if only exactly one interactor is trying to select it.</summary>
+        public override bool requireSelectExclusive { get { return true; } }
 
         /// <summary>Gets the movement type to use when overriding the selected interactable's movement (always Kinematic for sockets).</summary>
         public override XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride

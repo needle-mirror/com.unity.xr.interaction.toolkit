@@ -11,7 +11,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_InteractionLayerMask;
         SerializedProperty m_AttachTransform;
         SerializedProperty m_StartingSelectedInteractable;
-        SerializedProperty m_ToggleSelect;
+        SerializedProperty m_SelectActionTrigger;
         SerializedProperty m_HideControllerOnSelect;
 
         SerializedProperty m_PlayAudioClipOnSelectEnter;
@@ -73,7 +73,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent interactionLayerMask = new GUIContent("Interaction Layer Mask", "Only interactables with this Layer Mask will respond to this interactor.");
             public static readonly GUIContent attachTransform = new GUIContent("Attach Transform", "Attach Transform to use for this Interactor.  Will create empty GameObject if none set.");
             public static readonly GUIContent startingSelectedInteractable = new GUIContent("Starting Selected Interactable", "Interactable that will be selected upon start.");
-            public static readonly GUIContent toggleSelect = new GUIContent("Toggle Select", "Toggle select on button press instead of hold.");
+            public static readonly GUIContent selectActionTrigger = new GUIContent("Select Action Trigger", "Choose how the select action is triggered by current state, state transitions, toggle when the select button is pressed, or [Sticky] toggle on when the select button is pressed and off the second time the select button is depressed.");
             public static readonly GUIContent hideControllerOnSelect = new GUIContent("Hide Controller On Select", "Hide controller on select.");
             public static readonly GUIContent PlayAudioClipOnSelectEnter = new GUIContent("Play AudioClip On Select Enter", "Play an audio clip when the Select state is entered.");
             public static readonly GUIContent AudioClipForOnSelectEnter = new GUIContent("AudioClip To Play On Select Enter", "The audio clip to play when the Select state is entered.");
@@ -113,7 +113,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent additionalFlightTime = new GUIContent("Additional FlightTime", "Additional flight time after the projectile lands at the same height of the start point in the tracking space. Increase this value will make the end point drop lower in height.");
             public static readonly GUIContent referenceFrame = new GUIContent("Reference Frame", "The reference frame of the projectile. If not set it will try to find the XRRig object, if the XRRig does not exist it will use self");
             public static readonly GUIContent hitDetectionType = new GUIContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
-            public static readonly string startingInteractableWarning = "A Starting Selected Interactable will be instantly deselected unless the Interactor is in Toggle Select mode.";
+            public static readonly string startingInteractableWarning = "A Starting Selected Interactable will be instantly deselected unless the Interactor's Toggle Select Mode is set to 'Toggle' or 'Sticky'.";
         }
 
         void OnEnable()
@@ -122,7 +122,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
-            m_ToggleSelect = serializedObject.FindProperty("m_ToggleSelect");
+            m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
             m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
             m_PlayAudioClipOnSelectEnter = serializedObject.FindProperty("m_PlayAudioClipOnSelectEnter");
             m_AudioClipForOnSelectEnter = serializedObject.FindProperty("m_AudioClipForOnSelectEnter");
@@ -184,8 +184,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
             EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
-            EditorGUILayout.PropertyField(m_ToggleSelect, Tooltips.toggleSelect);
-            if (m_StartingSelectedInteractable.objectReferenceValue != null && !m_ToggleSelect.boolValue)
+            EditorGUILayout.PropertyField(m_SelectActionTrigger, Tooltips.selectActionTrigger);
+            if (m_StartingSelectedInteractable.objectReferenceValue != null 
+                && (m_SelectActionTrigger.enumValueIndex == 2 || m_SelectActionTrigger.enumValueIndex == 3))
             {
                 EditorGUILayout.HelpBox(Tooltips.startingInteractableWarning, MessageType.Warning, true);
             }

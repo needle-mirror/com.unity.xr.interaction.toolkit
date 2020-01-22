@@ -3,7 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.XR;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -43,12 +48,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public GameObject cameraGameObject { get { return m_CameraGameObject;} set { m_CameraGameObject = value;}}
 
+#if UNITY_2019_3_OR_NEWER
+        [SerializeField]
+        [Tooltip("Sets the type of tracking origin to use for this Rig. Tracking origins identify where 0,0,0 is in the world of tracking.")]
+        /// <summary>Gets or sets the type of tracking origin to use for this Rig. Tracking origins identify where 0,0,0 is in the world of tracking. Not all devices support all tracking spaces; if the selected tracking space is not set it will fall back to Stationary.</summary>
+        TrackingOriginModeFlags m_TrackingOriginMode = TrackingOriginModeFlags.Unknown;
+        public TrackingOriginModeFlags TrackingOriginMode { get { return m_TrackingOriginMode; } set { m_TrackingOriginMode = value; TryInitializeCamera(); } }
+#endif
 
+        // Disable Obsolete warnings for TrackingSpaceType, explicitely to read in old data and upgrade.
+#pragma warning disable 0618
         [SerializeField]
         [Tooltip("Set if the XR experience is Room Scale or Stationary.")]
         TrackingSpaceType m_TrackingSpace = TrackingSpaceType.Stationary;
+
         /// <summary>Gets or sets if the experience is rooms scale or stationary.  Not all devices support all tracking spaces; if the selected tracking space is not set it will fall back to Stationary.</summary>
+#if UNITY_2019_3_OR_NEWER
+        [Obsolete("XRRig.trackingSpace is obsolete.  Please use XRRig.trackingOriginMode.")]
+#endif
         public TrackingSpaceType trackingSpace { get { return m_TrackingSpace; } set { m_TrackingSpace = value; TryInitializeCamera(); } }
+#pragma warning restore 0618
 
         [SerializeField]
         [Tooltip("Camera Height to be used when in Stationary tracking space.")]
@@ -74,6 +93,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_CameraInitialized = false;
         bool m_CameraInitializing = false;
 
+        /// Utility helper to migrate from TrackingSpace to TrackingOrigin seamlessly
+        void UpgradeTrackingSpaceToTrackingOriginMode()
+        {
+#if UNITY_2019_3_OR_NEWER
+            // Disable Obsolete warnings for TrackingSpaceType, explicitely to allow a proper upgrade path.
+#pragma warning disable 0618
+            if (m_TrackingOriginMode == TrackingOriginModeFlags.Unknown && m_TrackingSpace <= TrackingSpaceType.RoomScale)
+            {
+                switch (m_TrackingSpace)
+                {
+                    case TrackingSpaceType.RoomScale:
+                        {
+                            m_TrackingOriginMode = TrackingOriginModeFlags.Floor;
+                            break; 
+                        }
+                    case TrackingSpaceType.Stationary:
+                        {
+                            m_TrackingOriginMode = TrackingOriginModeFlags.Device;
+                            break; 
+                        }
+                    default:
+                        break;
+                }
+
+                // Tag is Invalid not to be used.
+                m_TrackingSpace = (TrackingSpaceType)3;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(this);
+#endif //UNITY_EDITOR
+#pragma warning restore 0618
+            }
+#endif //UNITY_2019_3_OR_NEWER
+        }
+
+
         void Awake()
         {
             if (!m_CameraFloorOffsetObject)
@@ -90,6 +144,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void OnValidate()
         {
+            UpgradeTrackingSpaceToTrackingOriginMode();
+
             if (rig == null)
                 rig = gameObject;
 
@@ -128,7 +184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             SubsystemManager.GetInstances<XRInputSubsystem>(s_InputSubsystems);
 
             bool initialized = true;
-            if(s_InputSubsystems.Count != 0)
+            if (s_InputSubsystems.Count != 0)
             {
                 for (int i = 0; i < s_InputSubsystems.Count; i++)
                 {
@@ -137,9 +193,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             else
             {
-                SetupCameraLegacy();
+                // Disable Obsolete warnings for TrackingSpaceType, explicitely to allow a proper upgrade path.
+#pragma warning disable 0618
+                if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
+                {
+                    SetupCameraLegacy(TrackingSpaceType.RoomScale);
+                }
+                else if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
+                {
+                    SetupCameraLegacy(TrackingSpaceType.Stationary);
+                }
+#pragma warning restore 0618
             }
-            
+
             return initialized;
         }
 
@@ -151,7 +217,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             bool trackingSettingsSet = false;
 
             float desiredOffset = cameraYOffset;
-            if (m_TrackingSpace == TrackingSpaceType.RoomScale)
+            if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
             {
                 // We need to check for Unknown because we may not be in a state where we can read this data yet.
                 if((subsystem.GetSupportedTrackingOriginModes() & (TrackingOriginModeFlags.Floor | TrackingOriginModeFlags.Unknown)) == 0)
@@ -160,14 +226,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     return true;
                 }
 
-                if(subsystem.TrySetTrackingOriginMode(TrackingOriginModeFlags.Floor))
+                if(subsystem.TrySetTrackingOriginMode(m_TrackingOriginMode))
                 {
                     desiredOffset = 0;
                     trackingSettingsSet = true;
                 }        
             }
 
-            if (m_TrackingSpace == TrackingSpaceType.Stationary)
+            if (m_TrackingOriginMode == TrackingOriginModeFlags.Device)
             {
                 // We need to check for Unknown because we may not be in a state where we can read this data yet.
                 if ((subsystem.GetSupportedTrackingOriginModes() & (TrackingOriginModeFlags.Device | TrackingOriginModeFlags.Unknown)) == 0)
@@ -176,7 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     return true;
                 }
 
-                if (subsystem.TrySetTrackingOriginMode(TrackingOriginModeFlags.Device))
+                if (subsystem.TrySetTrackingOriginMode(m_TrackingOriginMode))
                 {
                     trackingSettingsSet = subsystem.TryRecenter();
                 }                    
@@ -194,23 +260,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #else
         bool SetupCamera()
         {
-            SetupCameraLegacy();
+            SetupCameraLegacy(m_TrackingSpace);
             return true;
         }
 #endif
-        void SetupCameraLegacy()
+
+        // Disable Obsolete warnings for TrackingSpaceType, explicitely to allow for using legacy data if available.
+#pragma warning disable 0618
+        void SetupCameraLegacy(TrackingSpaceType trackingSpace)
         {
             float cameraYOffset = m_CameraYOffset;
-            XRDevice.SetTrackingSpaceType(m_TrackingSpace);
-            if (m_TrackingSpace == TrackingSpaceType.Stationary)
+            XRDevice.SetTrackingSpaceType(trackingSpace);
+            if (trackingSpace == TrackingSpaceType.Stationary)
                 InputTracking.Recenter();
-            else if (m_TrackingSpace == TrackingSpaceType.RoomScale)
+            else if (trackingSpace == TrackingSpaceType.RoomScale)
                 cameraYOffset = 0;
 
             // Move camera to correct height
             if (m_CameraFloorOffsetObject)
                 m_CameraFloorOffsetObject.transform.localPosition = new Vector3(m_CameraFloorOffsetObject.transform.localPosition.x, cameraYOffset, m_CameraFloorOffsetObject.transform.localPosition.z);
         }
+#pragma warning restore 0618
 
         /// <summary>
         /// Rotates the rig object around the camera object by the provided angleDegrees, this rotation only occurs around the rig's Up vector

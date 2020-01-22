@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "0.9.2-preview",
+  "version": "0.9.3-preview",
   "unity": "2019.3",
   "description": "XR Interaction toolkit for creating VR and AR experiences.",
   "keywords": [
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:Unity-Technologies/com.unity.xr.interaction.toolkit.git",
-    "revision": "60643c30a704a4f798f8e53260cd63aded49c6b9"
+    "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
+    "revision": "67c2fadc6749d532adcb29c04a0438e396a75cbc"
   }
 }

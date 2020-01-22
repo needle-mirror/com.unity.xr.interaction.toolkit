@@ -54,5 +54,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
         }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorCanPassToAnother()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            var directInteractor1 = TestUtilities.CreateDirectInteractor();
+            directInteractor1.name = "directInteractor1";
+            var controller1 = directInteractor1.GetComponent<XRController>();
+            var controllerRecorder1 = TestUtilities.CreateControllerRecorder(controller1, (recording) =>
+            {
+                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
+                    false, false, false);
+                recording.AddRecordingFrame(0.1f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+            });
+
+            var directInteractor2 = TestUtilities.CreateDirectInteractor();
+            directInteractor2.name = "directInteractor2";
+            var controller2 = directInteractor2.GetComponent<XRController>();
+            var controllerRecorder2 = TestUtilities.CreateControllerRecorder(controller2, (recording) =>
+            {
+                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
+                    false, false, false);
+                recording.AddRecordingFrame(0.1f, Vector3.zero, Quaternion.identity,
+                    false, false, false);
+                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+                recording.AddRecordingFrame(0.3f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+            });
+
+            controllerRecorder1.isPlaying = true;
+            controllerRecorder2.isPlaying = true;
+
+            var testStartTime = Time.time;
+            yield return TestUtilities.WaitForInteraction();
+
+            // directInteractor1 grabs the interactable
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor1), "In first frame, controller 1 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
+
+            // Wait for the proper interaction that signifies the handoff
+            while (Time.time - testStartTime < 0.2f)
+                yield return null;
+            
+            // directInteractor2 grabs the interactable from directInteractor1
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor2), "In second frame, controller 2 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
+        }
     }
 }

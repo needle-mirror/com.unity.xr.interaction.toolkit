@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.9.3-preview] - 2020-01-23
+Lots of fixes based on user feedback from the blog post / forums
+Including:
+Adds pose provider support to XR Controller Monobehaviour
+Fixes minor documentation issues
+Fixed passing from hand to hand of objects using direct interactors
+Removes need for box colliders behind UI to stop line visuals from drawing through them
+Adds abiilty to put objects back to their original hierarchy position when dropping them.
+Fixes null ref in controller states clear
+Fixes no "OnRelease" even for Activate on Grabbable
+Makes teleport configurable to use either activate or select
+
 
 ## [0.9.2-preview] - 2019-12-17
 rolled LIH version back until 1.3.9 is on production.

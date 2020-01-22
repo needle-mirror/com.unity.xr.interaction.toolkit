@@ -1,5 +1,8 @@
 using System;
 using UnityEngine;
+#if LIH_PRESENT
+using UnityEngine.Experimental.XR.Interaction;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -10,29 +13,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent, AddComponentMenu("XR/XR Controller")]
     public class XRController : MonoBehaviour
     {
-        /// <summary>Available axes to bind interaction actions to.</summary>
-        public enum InputAxes
-        {
-            Primary2DAxis,
-            DPad,
-            Trigger,
-            Grip,
-            IndexTouch,
-            ThumbTouch,
-            Secondary2DAxis,
-        };
-
-        static string[] s_InputAxisNames = new string[]
-            {
-                "Primary2DAxis",
-                "DPad",
-                "Trigger",
-                "Grip",
-                "IndexTouch",
-                "ThumbTouch",
-                "Secondary2DAxis",
-            };
-
         /// <summary>
         /// The update type being used by the tracked pose driver
         /// </summary>
@@ -77,34 +57,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
       
         [Header("Configuration")]
-
+        
         [SerializeField, Tooltip("Used to disable an input state changing in the interactor. useful for swapping to a different interactor on the same object")]
         bool m_EnableInputActions = true;
         public bool enableInputActions { get { return m_EnableInputActions; } set { m_EnableInputActions = value; } }
+
+#if LIH_PRESENT
+        [SerializeField, Tooltip("Pose provider used to provide tracking data separate from the XR Node")]
+        BasePoseProvider m_PoseProvider;
+        public BasePoseProvider poseProvider { get { return m_PoseProvider; } set { m_PoseProvider = value; } }
+#endif
 
         [SerializeField]
         [Tooltip("Gets or sets the XRNode for this controller.")]
         XRNode m_ControllerNode;
         /// <summary>Gets or sets the XRNode for this controller.</summary>
         public XRNode controllerNode { get { return m_ControllerNode; } set { m_ControllerNode = value; } }
-
+        
         [SerializeField]
         [Tooltip("The input usage that triggers a select, activate or uiInteraction action")]
-        InputAxes m_SelectUsage = InputAxes.Grip;
+        InputHelpers.Button m_SelectUsage = InputHelpers.Button.Grip;
         /// <summary>Gets or sets the usage to use for detecting selection.</summary>
-        public InputAxes selectUsage { get { return m_SelectUsage; } set { m_SelectUsage = value; } }
+        public InputHelpers.Button selectUsage { get { return m_SelectUsage; } set { m_SelectUsage = value; } }
 
         [SerializeField]
         [Tooltip("Gets or sets the usage to use for detecting activation.")]
-        InputAxes m_ActivateUsage = InputAxes.Trigger;
+        InputHelpers.Button m_ActivateUsage = InputHelpers.Button.Trigger;
         /// <summary>Gets or sets the usage to use for detecting activation.</summary>
-        public InputAxes activateUsage { get { return m_ActivateUsage; } set { m_ActivateUsage = value; } }
+        public InputHelpers.Button activateUsage { get { return m_ActivateUsage; } set { m_ActivateUsage = value; } }
 
         [SerializeField]
         [Tooltip("Gets or sets the usage to use for detecting a UI press.")]
-        InputAxes m_UIPressUsage = InputAxes.Trigger;
+        InputHelpers.Button m_UIPressUsage = InputHelpers.Button.Trigger;
         /// <summary>Gets or sets the usage to use for detecting a UI press.</summary>
-        public InputAxes uiPressUsage { get { return m_UIPressUsage; } set { m_UIPressUsage = value; } }
+        public InputHelpers.Button uiPressUsage { get { return m_UIPressUsage; } set { m_UIPressUsage = value; } }
 
         [SerializeField]
         [Tooltip("Gets or sets the the amount the axis needs to be pressed to trigger an interaction event.")]
@@ -285,15 +271,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void UpdateTrackingInput()
-        {
+        protected void UpdateTrackingInput()
+        {                       
             Vector3 devicePosition = new Vector3();
-            if (inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out devicePosition))
-                transform.localPosition = devicePosition;
-
             Quaternion deviceRotation = new Quaternion();
-            if (inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out deviceRotation))
-                transform.localRotation = deviceRotation;
+
+#if LIH_PRESENT
+            if (m_PoseProvider != null)
+            {
+                Pose poseProviderPose = new Pose();
+                if(m_PoseProvider.TryGetPoseFromProvider(out poseProviderPose))
+                {
+                    transform.localPosition = poseProviderPose.position;
+                    transform.localRotation = poseProviderPose.rotation;
+                }
+            }
+            else
+#endif
+            {
+                if (inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out devicePosition))
+                    transform.localPosition = devicePosition;
+
+                if (inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out deviceRotation))
+                    transform.localRotation = deviceRotation;
+            }
         }
 
         void UpdateInput()
@@ -303,18 +304,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ActivateInteractionState.activatedThisFrame = m_ActivateInteractionState.deActivatedThisFrame = false;
             m_UIPressInteractionState.activatedThisFrame = m_UIPressInteractionState.deActivatedThisFrame = false;
 
-            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_SelectUsage], ref m_SelectInteractionState);
-            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_ActivateUsage], ref m_ActivateInteractionState);
-            HandleInteractionAction(controllerNode, s_InputAxisNames[(int)m_UIPressUsage], ref m_UIPressInteractionState);
+            HandleInteractionAction(controllerNode, m_SelectUsage, ref m_SelectInteractionState);
+            HandleInteractionAction(controllerNode, m_ActivateUsage, ref m_ActivateInteractionState);
+            HandleInteractionAction(controllerNode, m_UIPressUsage, ref m_UIPressInteractionState);
 
             UpdateControllerModelAnimation();
         }
 
-        void HandleInteractionAction(XRNode node, string usage, ref InteractionState interactionState)
+        void HandleInteractionAction(XRNode node, InputHelpers.Button button, ref InteractionState interactionState)
         {
-            float value = 0.0f;
-            if (inputDevice.isValid && inputDevice.TryGetFeatureValue(new InputFeatureUsage<float>(usage), out value) &&
-                value >= m_AxisToPressThreshold)
+            bool pressed = false;
+            inputDevice.IsPressed(button, out pressed, m_AxisToPressThreshold);
+                
+            if (pressed)
             {
                 if (!interactionState.active)
                 {

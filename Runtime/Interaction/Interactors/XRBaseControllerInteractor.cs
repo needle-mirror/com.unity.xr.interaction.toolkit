@@ -15,10 +15,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [RequireComponent(typeof(XRController))]
     public abstract class XRBaseControllerInteractor : XRBaseInteractor
     {
+        public enum SelectActionTriggerType 
+        {
+            State = 0,
+            StateChange = 1,
+            // This interaction will start on the select button/key being activated 
+            // and remain enagaged until the second time it is activated.
+            Toggle = 2,
+            // Start interaction on select enter, and wait until the second time the 
+            // select key is depressed before exiting the interaction.  This is useful
+            // for grabbing and throwing without having to hold a button down
+            Sticky = 3
+        }
+
         [SerializeField]
-        bool m_ToggleSelect;
+        SelectActionTriggerType m_SelectActionTrigger = SelectActionTriggerType.StateChange;
         /// <summary>Gets or sets whether this interactor toggles selection on button press (rather than selection on press).</summary>
-        public bool toggleSelect { get { return m_ToggleSelect; } set { m_ToggleSelect = value; } }
+        public SelectActionTriggerType selectActionTrigger { get { return m_SelectActionTrigger; } set { m_SelectActionTrigger = value; } }
 
         [SerializeField]
         bool m_HideControllerOnSelect;
@@ -140,6 +153,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected abstract List<XRBaseInteractable> ValidTargets { get; }
 
         bool m_ToggleSelectActive;
+        bool m_WaitingForSecondDeactivate;
         XRController m_Controller;
         AudioSource m_EffectsAudioSource;
 
@@ -153,7 +167,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 Debug.LogWarning("Could not find XR Controller component.", this);
 
             // if we are toggling selection and have a starting object, start out holding it
-            if (m_ToggleSelect && startingSelectedInteractable != null)
+            if (m_SelectActionTrigger == SelectActionTriggerType.Toggle && startingSelectedInteractable != null)
                 m_ToggleSelectActive = true;
 
             if (m_PlayAudioClipOnSelectEnter || m_PlayAudioClipOnSelectExit 
@@ -180,9 +194,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     if (m_Controller.selectInteractionState.activatedThisFrame)
                     {
+                        if (m_ToggleSelectActive && m_SelectActionTrigger == SelectActionTriggerType.Sticky)
+                            m_WaitingForSecondDeactivate = true;
+
                         if(m_ToggleSelectActive || ValidTargets.Count > 0)
                             m_ToggleSelectActive = !m_ToggleSelectActive;
                     }
+
+                    if (m_Controller.selectInteractionState.deActivatedThisFrame && m_WaitingForSecondDeactivate)
+                        m_WaitingForSecondDeactivate = false;
                         
                     if (selectTarget && m_Controller.activateInteractionState.activatedThisFrame)
                         selectTarget.OnActivate(this);
@@ -200,8 +220,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get
             {
-                return base.isSelectActive && ((m_Controller && m_Controller.selectInteractionState.active) 
-                    || m_ToggleSelect && m_ToggleSelectActive);
+                if (!base.isSelectActive)
+                    return false;
+
+                switch (m_SelectActionTrigger)
+                {
+                    case SelectActionTriggerType.State:
+                        return (m_Controller?.selectInteractionState.active ?? false);
+
+                    case SelectActionTriggerType.StateChange:
+                        return (m_Controller?.selectInteractionState.activatedThisFrame ?? false)
+                            || (selectTarget != null && !(m_Controller?.selectInteractionState.deActivatedThisFrame ?? true));
+
+                    case SelectActionTriggerType.Toggle:
+                        return m_ToggleSelectActive;
+
+                    case SelectActionTriggerType.Sticky:
+                        return m_ToggleSelectActive || m_WaitingForSecondDeactivate;
+
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -239,6 +278,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected internal override void OnSelectExit(XRBaseInteractable interactable)
         {
             base.OnSelectExit(interactable);
+
+            // If another interactable takes this one, make sure toggle select state is set false
+            m_ToggleSelectActive = false;
+            m_WaitingForSecondDeactivate = false;
 
             if (m_Controller)
                 m_Controller.hideControllerModel = false;

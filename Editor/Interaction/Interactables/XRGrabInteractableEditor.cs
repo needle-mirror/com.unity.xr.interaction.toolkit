@@ -23,6 +23,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_ThrowVelocityScale;
         SerializedProperty m_ThrowAngularVelocityScale;
         SerializedProperty m_GravityOnDetach;
+        SerializedProperty m_RetainTransformParent;
         SerializedProperty m_OnFirstHoverEnter;
         SerializedProperty m_OnHoverEnter;
         SerializedProperty m_OnHoverExit;
@@ -30,6 +31,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_OnSelectEnter;
         SerializedProperty m_OnSelectExit;
         SerializedProperty m_OnActivate;
+        SerializedProperty m_OnDeactivate;
         SerializedProperty m_Colliders;
         SerializedProperty m_InteractionLayerMask;
 
@@ -57,6 +59,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent gravityOnDetach = new GUIContent("Gravity On Detach", "Object has gravity when released (will still use pre-grab value if this is false).");
             public static readonly GUIContent colliders = new GUIContent("Colliders", "Colliders to include when selecting/interacting with an interactable");
             public static readonly GUIContent interactionLayerMask = new GUIContent("InteractionLayerMask", "Only Interactors with this LayerMask will interact with this Interactable.");
+            public static readonly GUIContent retainTransformParent = new GUIContent("RetainTransformParent", "If enabled, this Interactable have its parent retained after it is released from an interactor.");
         }
 
         void OnEnable()
@@ -78,6 +81,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ThrowVelocityScale = serializedObject.FindProperty("m_ThrowVelocityScale");
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
             m_GravityOnDetach = serializedObject.FindProperty("m_GravityOnDetach");
+            m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
             m_OnFirstHoverEnter = serializedObject.FindProperty("m_OnFirstHoverEnter");
             m_OnHoverEnter = serializedObject.FindProperty("m_OnHoverEnter");
             m_OnHoverExit = serializedObject.FindProperty("m_OnHoverExit");
@@ -85,6 +89,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OnSelectEnter = serializedObject.FindProperty("m_OnSelectEnter");
             m_OnSelectExit = serializedObject.FindProperty("m_OnSelectExit");
             m_OnActivate = serializedObject.FindProperty("m_OnActivate");
+            m_OnDeactivate = serializedObject.FindProperty("m_OnDeactivate");
             m_Colliders = serializedObject.FindProperty("m_Colliders");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
         }
@@ -105,6 +110,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_Colliders, Tooltips.colliders, true);
 
             EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
+
+            EditorGUILayout.PropertyField(m_RetainTransformParent, Tooltips.retainTransformParent);
 
             EditorGUILayout.PropertyField(m_TrackPosition, Tooltips.trackPosition);
             if (m_TrackPosition.boolValue)
@@ -159,6 +166,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUILayout.PropertyField(m_OnSelectEnter);
                 EditorGUILayout.PropertyField(m_OnSelectExit);
                 EditorGUILayout.PropertyField(m_OnActivate);
+                EditorGUILayout.PropertyField(m_OnDeactivate);
             }
 
             serializedObject.ApplyModifiedProperties();

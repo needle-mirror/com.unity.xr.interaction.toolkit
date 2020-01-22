@@ -241,12 +241,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
-            // allow new exclusive selection to take precedence over previous non-exclusive selection (useful Interactors like Sockets)
-            if (interactor.isSelectExclusive)
+            // If Exclusive Selection, is this the only interactor trying to interact?
+            if (interactor.requireSelectExclusive)
             {
                 for (int i = 0; i < m_Interactors.Count; i++)
                 {
-                    if (m_Interactors[i].selectTarget == interactable && !m_Interactors[i].isSelectExclusive)
+                    if (m_Interactors[i] != interactor 
+                        && m_Interactors[i].selectTarget == interactable)
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < m_Interactors.Count; i++)
+                {
+                    if (m_Interactors[i].selectTarget == interactable)
                         SelectExit(m_Interactors[i], interactable);
                 }
             }

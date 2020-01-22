@@ -108,12 +108,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>Gets or sets whether object has gravity when released.</summary>
         public bool gravityOnDetach { get { return m_GravityOnDetach; } set { m_GravityOnDetach = value; } }
 
+        [SerializeField]
+        bool m_RetainTransformParent = true;
+        /// <summary>Gets or sets whether to retain the transform's location in the scene hierarchy when the object is dropped.
+        public bool retainTransformParent { get { return m_RetainTransformParent; } set { m_RetainTransformParent = value; } }
+
         // RigidBody's previous settings
         bool m_WasKinematic;
         bool m_UsedGravity;
+        Transform m_OriginalSceneParent;
 
         // Interactor
         XRBaseInteractor m_SelectingInteractor;
+        /// <summary>Get the current selecting interactor for this interactable.
+        public XRBaseInteractor selectingInteractor { get { return m_SelectingInteractor; } }
 
         // Point we are attaching to on this Interactable (in interactor's attach's coordinate space)
         Vector3 m_InteractorLocalPosition;
@@ -385,8 +393,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             base.OnSelectEnter(interactor);
 
+            // Only do this on the first select, because otherwise the original parent will be overwritten as null.
+            if (m_SelectingInteractor == null)
+            {
+                m_OriginalSceneParent = transform.parent;
+                transform.parent = null;
+            }
+
             m_SelectingInteractor = interactor;
-            transform.parent = null;
 
             // special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors)
             m_CurrentMovementType = (interactor.selectedInteractableMovementTypeOverride != null) ? interactor.selectedInteractableMovementTypeOverride.Value : m_MovementType;
@@ -424,6 +438,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 		{
             base.OnSelectExit(interactor);
 
+            if (m_RetainTransformParent)
+                transform.parent = m_OriginalSceneParent;
+
             // reset RididBody settings
             m_RigidBody.isKinematic = m_WasKinematic;
             m_RigidBody.useGravity = m_UsedGravity | m_GravityOnDetach;
@@ -442,16 +459,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override bool IsHoverableBy(XRBaseInteractor interactor) 
         { 
             return true;
-        }
-
-        /// <summary>
-        /// Determines if this interactable can be selected by a given interactor.
-        /// </summary>
-        /// <param name="interactor">Interactor to check for a valid selection with.</param>
-        /// <returns>True if selection is valid this frame, False if not.</returns>
-        public override bool IsSelectableBy(XRBaseInteractor interactor)
-        {
-            return base.IsSelectableBy(interactor) && (!m_SelectingInteractor || m_SelectingInteractor == interactor || !m_SelectingInteractor.isSelectExclusive);
         }
 
         //

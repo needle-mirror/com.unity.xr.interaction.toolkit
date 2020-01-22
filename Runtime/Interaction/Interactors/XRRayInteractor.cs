@@ -316,7 +316,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if(raycastPointIndex >= 0)
                 {
-                    if (raycastPointIndex < positionInLine || ((raycastPointIndex == rayIndex) && (raycastHit.distance <= distance)))
+                    if (raycastPointIndex < rayIndex || ((raycastPointIndex == rayIndex) && (result.distance <= distance)))
                     {
                         position = result.worldPosition;
                         normal = result.worldNormal;

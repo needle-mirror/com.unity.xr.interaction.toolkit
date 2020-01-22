@@ -244,7 +244,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public virtual bool CanSelect(XRBaseInteractable interactable)                { return m_AllowSelect && IsOnValidLayerMask(interactable); }
 
         /// <summary>Gets if this interactor requires exclusive selection of an interactable.</summary>
-        public virtual bool isSelectExclusive                                       { get { return true; } }
+        public virtual bool requireSelectExclusive                                       { get { return false; } }
 
         /// <summary>Gets whether this interactor can override the movement type of the currently selected interactable.</summary>
         public virtual bool overrideSelectedInteractableMovement                    { get { return false; } }

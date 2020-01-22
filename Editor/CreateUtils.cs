@@ -150,14 +150,22 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static void CreateRoomScaleVRCameraRig()
         {
             var vrCameraRig = CreateXRRigWithHandControllers();
+#if UNITY_2019_3_OR_NEWER
+            vrCameraRig.TrackingOriginMode = UnityEngine.XR.TrackingOriginModeFlags.Floor;
+#else
             vrCameraRig.trackingSpace = UnityEngine.XR.TrackingSpaceType.RoomScale;
+#endif
         }
 
         [MenuItem("GameObject/XR/Stationary XR Rig", false, 10)]
         static void CreateStationaryVRCameraRig()
         {
             var vrCameraRig = CreateXRRigWithHandControllers();
+#if UNITY_2019_3_OR_NEWER
+            vrCameraRig.TrackingOriginMode = UnityEngine.XR.TrackingOriginModeFlags.Device;
+#else
             vrCameraRig.trackingSpace = UnityEngine.XR.TrackingSpaceType.Stationary;
+#endif
         }
 
         [MenuItem("GameObject/XR/Locomotion System", false, 10)]

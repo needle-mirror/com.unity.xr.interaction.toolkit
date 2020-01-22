@@ -74,7 +74,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public enum TeleportTrigger
         {
             OnSelectExit = 0,
-            OnSelectEnter = 1,
+            OnSelectEnter,
+            OnActivate,
+            OnDeactivate
         }
 
         [SerializeField]
@@ -151,6 +153,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 SendTeleportRequest(interactor);
 
             base.OnSelectExit(interactor);
+        }
+
+        protected internal override void OnActivate(XRBaseInteractor interactor)
+        {
+            if (m_TeleportTrigger == TeleportTrigger.OnActivate)
+                SendTeleportRequest(interactor);
+
+            base.OnActivate(interactor);
+        }
+
+        protected internal override void OnDeactivate(XRBaseInteractor interactor)
+        {
+            if (m_TeleportTrigger == TeleportTrigger.OnDeactivate)
+                SendTeleportRequest(interactor);
+
+            base.OnDeactivate(interactor);
         }
     }
 }
