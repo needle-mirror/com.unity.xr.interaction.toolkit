@@ -7,6 +7,9 @@ using UnityEngine.XR.Interaction.Toolkit;
 #if LIH_PRESENT
 using UnityEngine.Experimental.XR.Interaction;
 #endif 
+#if LIH_PRESENT_V2API
+using UnityEngine.SpatialTracking;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -25,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         static Vector3 testpos = new Vector3(1.0f, 2.0f, 3.0f);
         static Quaternion testrot = new Quaternion(0.09853293f, 0.09853293f, 0.09853293f, 0.9853293f);
 
-#if LIH_PRESENT
+#if LIH_PRESENT_V1API
         internal class TestPoseProvider : BasePoseProvider
         {          
             public override bool TryGetPoseFromProvider(out Pose output)
@@ -35,6 +38,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 tmp.rotation = testrot;
                 output = tmp;
                 return true;
+            }
+        }
+#elif LIH_PRESENT_V2API
+        internal class TestPoseProvider : BasePoseProvider
+        {          
+            public override PoseDataFlags GetPoseFromProvider(out Pose output)
+            {
+                Pose tmp = new Pose();
+                tmp.position = testpos;
+                tmp.rotation = testrot;
+                output = tmp;
+                return  PoseDataFlags.Position | PoseDataFlags.Rotation;
             }
         }
 #endif
@@ -88,7 +103,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
 #endif
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
         }
     }
 }

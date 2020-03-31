@@ -130,13 +130,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             addRecordingFrames(controllerRecorder.recording);
             return controllerRecorder;
-        }
-
-        static readonly int k_WaitCount = 5;
-        internal static IEnumerator WaitForInteraction()
-        {
-            for (int i=0; i < k_WaitCount; ++i)
-                yield return null;
-        }
+        }      
     }
 }

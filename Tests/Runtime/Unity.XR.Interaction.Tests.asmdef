@@ -32,6 +32,16 @@
             "name": "com.unity.xr.legacyinputhelpers",
             "expression": "1.3.0",
             "define": "LIH_PRESENT"
+        },
+        {
+            "name": "com.unity.xr.legacyinputhelpers",
+            "expression": "[1.3.0,1.9.9]",
+            "define": "LIH_PRESENT_V1API"
+        },
+        {
+            "name": "com.unity.xr.legacyinputhelpers",
+            "expression": "2.0.0",
+            "define": "LIH_PRESENT_V2API"
         }
     ],
     "noEngineReferences": false

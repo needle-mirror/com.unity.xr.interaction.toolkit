@@ -276,7 +276,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Vector3 devicePosition = new Vector3();
             Quaternion deviceRotation = new Quaternion();
 
-#if LIH_PRESENT
+#if LIH_PRESENT_V1API
             if (m_PoseProvider != null)
             {
                 Pose poseProviderPose = new Pose();
@@ -286,6 +286,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     transform.localRotation = poseProviderPose.rotation;
                 }
             }
+            else
+#elif LIH_PRESENT_V2API
+            if (m_PoseProvider != null)
+            {
+                Pose poseProviderPose = new Pose();
+                var retFlags = m_PoseProvider.GetPoseFromProvider(out poseProviderPose);
+                if ((retFlags & SpatialTracking.PoseDataFlags.Position) > 0)
+                {
+                    transform.localPosition = poseProviderPose.position;
+                }
+                if ((retFlags & SpatialTracking.PoseDataFlags.Rotation) > 0)
+                { 
+                    transform.localRotation = poseProviderPose.rotation;
+                }
+            }            
             else
 #endif
             {

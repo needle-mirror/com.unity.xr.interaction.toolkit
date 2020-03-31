@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var socketInteractor = TestUtilities.CreateSocketInteractor();
             var interactable = TestUtilities.CreateGrabInteractable();
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(socketInteractor.selectTarget, Is.EqualTo(interactable));
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(socketInteractor.selectTarget, Is.EqualTo(null));
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));

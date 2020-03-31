@@ -4,6 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.9.4-preview] - 2020-04-01
+fix to allow 1.3.X or 2.X versions of legacy input helpers to work with the XR Interaction toolkit. 
+
 ## [0.9.3-preview] - 2020-01-23
 Lots of fixes based on user feedback from the blog post / forums
 Including:

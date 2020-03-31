@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             var directInteractor = TestUtilities.CreateDirectInteractor();
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
@@ -50,13 +50,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
         }
 
         [UnityTest]
-        public IEnumerator DirectInteractorCanPassToAnother()
+        public IEnumerator 
+            DirectInteractorCanPassToAnother()
         {
             TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();
@@ -94,15 +95,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder1.isPlaying = true;
             controllerRecorder2.isPlaying = true;
 
-            var testStartTime = Time.time;
-            yield return TestUtilities.WaitForInteraction();
-
+            yield return new WaitForSeconds(0.1f);
+  
             // directInteractor1 grabs the interactable
             Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor1), "In first frame, controller 1 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
 
             // Wait for the proper interaction that signifies the handoff
-            while (Time.time - testStartTime < 0.2f)
-                yield return null;
+            yield return new WaitForSeconds(0.1f);
             
             // directInteractor2 grabs the interactable from directInteractor1
             Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor2), "In second frame, controller 2 should grab the interactable. Instead got " + interactable.selectingInteractor.name);

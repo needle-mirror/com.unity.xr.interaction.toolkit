@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(interactor, validTargets);
@@ -57,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
         }

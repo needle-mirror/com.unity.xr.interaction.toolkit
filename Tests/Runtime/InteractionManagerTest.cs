@@ -47,7 +47,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Object.Destroy(interactor);
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(manager.interactors, Has.Count.EqualTo(0));
         }
@@ -60,8 +60,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Object.Destroy(interactable);
 
-            yield return TestUtilities.WaitForInteraction();
-            
+            yield return new WaitForSeconds(0.1f);
+
             Assert.That(manager.interactables, Has.Count.EqualTo(0));
         }
 
@@ -80,7 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactableB = TestUtilities.CreateGrabInteractable();
             interactableB.interactionManager = managerB;
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
             managerA.GetValidTargets(interactorA, validTargets);

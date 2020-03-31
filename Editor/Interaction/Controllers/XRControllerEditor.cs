@@ -29,7 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
 #if LIH_PRESENT
-            public static GUIContent poseProviderLabel = EditorGUIUtility.TrTextContent("Update Tracking Type");
+            public static GUIContent poseProviderLabel = EditorGUIUtility.TrTextContent("Pose Provider");
             public static readonly string poseProviderWarning = "This XR Controller is using an external pose provider for tracking.  This takes priority over the Controller Node Setting.";
 #endif
         }

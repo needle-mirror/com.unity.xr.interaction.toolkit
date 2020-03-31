@@ -184,7 +184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             snapProvider.FakeStartTurn(false);
 
-            yield return TestUtilities.WaitForInteraction();
+            yield return new WaitForSeconds(0.1f);
 
             Assert.That(xrRig.transform.rotation.eulerAngles == new Vector3(0, turnAmount, 0));
 
