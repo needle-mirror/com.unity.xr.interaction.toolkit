@@ -1,48 +1,72 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.AR;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// The Interaction Manager acts as an intermediary between Interactors and Interactables in a scene.  
-    /// It is possible to have multiple Interaction Managers, each with their own valid set of Interactors and Interactables.  
-    /// Upon Awake both Interactors and Interactables register themselves with a valid Interaction Manager in the scene 
-    /// (if a specific one has not already been assigned in the inspector).  Every scene must have at least one Interaction Mananger
+    /// The Interaction Manager acts as an intermediary between Interactors and Interactables.
+    /// It is possible to have multiple Interaction Managers, each with their own valid set of Interactors and Interactables.
+    /// Upon Awake both Interactors and Interactables register themselves with a valid Interaction Manager
+    /// (if a specific one has not already been assigned in the inspector). The loaded scenes must have at least one Interaction Manager
     /// for Interactors and Interactables to be able to communicate.
     /// </summary>
     /// <remarks>
     /// Many of the methods on this class are designed to be internal such that they can be called by the abstract
     /// base classes of the Interaction system (but are not called directly).
     /// </remarks>
-	[AddComponentMenu("XR/XR Interaction Manager")]
+    [AddComponentMenu("XR/XR Interaction Manager")]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionManager)]
+    public class XRInteractionManager : MonoBehaviour
+    {
+        // TODO Expose as a read-only wrapper without using ReadOnlyCollection since that class causes allocations when enumerating
+        /// <summary>
+        /// (Read Only) List of registered interactors.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by XR Interaction Debugger and tests.
+        /// </remarks>
+        internal List<XRBaseInteractor> interactors => m_Interactors;
 
-	public class XRInteractionManager : MonoBehaviour
-	{        
+        // TODO Expose as a read-only wrapper without using ReadOnlyCollection since that class causes allocations when enumerating
+        /// <summary>
+        /// (Read Only) List of registered interactables.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by XR Interaction Debugger and tests.
+        /// </remarks>
+        internal List<XRBaseInteractable> interactables => m_Interactables;
 
-        List<XRBaseInteractor> 	m_Interactors 	= new List<XRBaseInteractor>();
-		List<XRBaseInteractable> m_Interactables = new List<XRBaseInteractable>();
+        /// <summary>
+        /// Map of all registered objects to test for colliding.
+        /// </summary>
+        readonly Dictionary<Collider, XRBaseInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, XRBaseInteractable>();
 
-        // internal properties for accessing Interactors and Interactables (used by XR Interaction Debugger)
-        internal List<XRBaseInteractor> interactors { get { return m_Interactors; } }
-        internal List<XRBaseInteractable> interactables { get { return m_Interactables; } }
+        /// <summary>
+        /// List of registered interactors.
+        /// </summary>
+        readonly List<XRBaseInteractor> m_Interactors = new List<XRBaseInteractor>();
 
-        // map of all registered objects to test for colliding
-        Dictionary<Collider, XRBaseInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, XRBaseInteractable>();
+        /// <summary>
+        /// List of registered interactables.
+        /// </summary>
+        readonly List<XRBaseInteractable> m_Interactables = new List<XRBaseInteractable>();
 
-        // reusable list of interactables for retrieving hover targets
-        List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
+        /// <summary>
+        /// Reusable list of interactables for retrieving hover targets.
+        /// </summary>
+        readonly List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
 
-        // reusable list of valid targets for and interactor
-        List<XRBaseInteractable> m_InteractorValidTargets = new List<XRBaseInteractable>();
+        /// <summary>
+        /// Reusable list of valid targets for an interactor.
+        /// </summary>
+        readonly List<XRBaseInteractable> m_InteractorValidTargets = new List<XRBaseInteractable>();
 
 #if AR_FOUNDATION_PRESENT
-        // Flag to indicate that interactables should be reconnected to gestures next frame
-        bool m_GestureInteractablesNeedReconnect = false;
+        /// <summary>
+        /// A boolean value that indicates that interactables should be reconnected to gestures next frame.
+        /// </summary>
+        bool m_GestureInteractablesNeedReconnect;
 #endif
 
         protected virtual void OnEnable()
@@ -55,54 +79,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Application.onBeforeRender -= OnBeforeRender;
         }
 
-        [BeforeRenderOrder(XRInteractionUpdateOrder.k_BeforeRenderOrder)]
-        void OnBeforeRender()
+        protected virtual void Update()
         {
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
-        }
-
-        void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
-        {
-            foreach (var interactor in m_Interactors)
-            {
-                interactor.ProcessInteractor(updatePhase);
-            }
-        }
-           
-        void ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase updatePhase)
-        {
-            foreach (var interactable in m_Interactables)
-            {
-                interactable.ProcessInteractable(updatePhase);
-            }
-        }
-
-        private void LateUpdate()
-        {
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
-        }
-
-        private void FixedUpdate()
-        {
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
-        }
-
-        void Update()
-		{
             ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
             foreach (var interactor in m_Interactors)
-			{
-				GetValidTargets(interactor, m_InteractorValidTargets);
+            {
+                GetValidTargets(interactor, m_InteractorValidTargets);
 
-				ClearInteractorSelection(interactor); 
-				ClearInteractorHover(interactor, m_InteractorValidTargets);
-				InteractorSelectValidTargets(interactor, m_InteractorValidTargets);
-				InteractorHoverValidTargets(interactor, m_InteractorValidTargets);
-			}
+                ClearInteractorSelection(interactor);
+                ClearInteractorHover(interactor, m_InteractorValidTargets);
+                InteractorSelectValidTargets(interactor, m_InteractorValidTargets);
+                InteractorHoverValidTargets(interactor, m_InteractorValidTargets);
+            }
 
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
@@ -111,142 +100,193 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // (in which case we need to reconnect gestures).
             if (m_GestureInteractablesNeedReconnect)
             {
-	            foreach (var interactable in m_Interactables)
-	            {
-		            var gestureInteractable = interactable as ARBaseGestureInteractable;
-		            if (gestureInteractable != null)
-		            {
-			            gestureInteractable.DisconnectGestureInteractor();
-			            gestureInteractable.ConnectGestureInteractor();
-		            }
-	            }
+                foreach (var interactable in m_Interactables)
+                {
+                    var gestureInteractable = interactable as ARBaseGestureInteractable;
+                    if (gestureInteractable != null)
+                    {
+                        gestureInteractable.DisconnectGestureInteractor();
+                        gestureInteractable.ConnectGestureInteractor();
+                    }
+                }
 
-	            m_GestureInteractablesNeedReconnect = false;
+                m_GestureInteractablesNeedReconnect = false;
             }
 #endif
         }
 
-		internal void RegisterInteractor(XRBaseInteractor interactor)
-		{
-			if (!m_Interactors.Contains(interactor))
-			{
-				m_Interactors.Add(interactor);
+        protected virtual void LateUpdate()
+        {
+            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
+            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
+        }
+
+        protected virtual void FixedUpdate()
+        {
+            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+        }
+
+        [BeforeRenderOrder(XRInteractionUpdateOrder.k_BeforeRenderOrder)]
+        protected virtual void OnBeforeRender()
+        {
+            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
+            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
+        }
+
+        protected virtual void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            foreach (var interactor in m_Interactors)
+            {
+                interactor.ProcessInteractor(updatePhase);
+            }
+        }
+
+        protected virtual void ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            foreach (var interactable in m_Interactables)
+            {
+                interactable.ProcessInteractable(updatePhase);
+            }
+        }
+
+        public virtual void RegisterInteractor(XRBaseInteractor interactor)
+        {
+            if (!m_Interactors.Contains(interactor))
+            {
+                m_Interactors.Add(interactor);
 #if AR_FOUNDATION_PRESENT
-				if (interactor is ARGestureInteractor)
-					m_GestureInteractablesNeedReconnect = true;
+                if (interactor is ARGestureInteractor)
+                    m_GestureInteractablesNeedReconnect = true;
 #endif
             }
+        }
 
-		}
-
-      
-
-
-		internal void UnregisterInteractor(XRBaseInteractor interactor)
-		{
+        public virtual void UnregisterInteractor(XRBaseInteractor interactor)
+        {
             if (m_Interactors.Contains(interactor))
-            {                           
-                ClearInteractorHover(interactor, null);                
-                ClearInteractorSelection(interactor);                
-                
+            {
+                ClearInteractorHover(interactor, null);
+                SelectCancel(interactor, interactor.selectTarget);
+
                 m_Interactors.Remove(interactor);
 #if AR_FOUNDATION_PRESENT
-				if (interactor is ARGestureInteractor)
-					m_GestureInteractablesNeedReconnect = true;
+                if (interactor is ARGestureInteractor)
+                    m_GestureInteractablesNeedReconnect = true;
 #endif
-			}
-		}
+            }
+        }
 
-		internal void RegisterInteractable(XRBaseInteractable interactable)
-		{
+        public virtual void RegisterInteractable(XRBaseInteractable interactable)
+        {
             if (!m_Interactables.Contains(interactable))
             {
                 m_Interactables.Add(interactable);
-                
-                foreach (var collider in interactable.colliders)
+
+                foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (collider != null && !m_ColliderToInteractableMap.ContainsKey(collider))
-                        m_ColliderToInteractableMap.Add(collider, interactable);
+                    if (interactableCollider != null && !m_ColliderToInteractableMap.ContainsKey(interactableCollider))
+                        m_ColliderToInteractableMap.Add(interactableCollider, interactable);
                 }
 #if AR_FOUNDATION_PRESENT
                 if (interactable is ARBaseGestureInteractable)
-					m_GestureInteractablesNeedReconnect = true;
+                    m_GestureInteractablesNeedReconnect = true;
 #endif
             }
-		}
+        }
 
-		internal void UnregisterInteractable(XRBaseInteractable interactable)
-		{
+        public virtual void UnregisterInteractable(XRBaseInteractable interactable)
+        {
             if (m_Interactables.Contains(interactable))
             {
+                // Cancel select states for interactors that are selecting this interactable.
+                foreach (var interactor in m_Interactors)
+                {
+                    if (interactor.selectTarget == interactable)
+                        SelectCancel(interactor, interactable);
+                }
+
                 m_Interactables.Remove(interactable);
 
-                foreach (var collider in interactable.colliders)
+                foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (collider != null && m_ColliderToInteractableMap.ContainsKey(collider))
-                        m_ColliderToInteractableMap.Remove(collider);
+                    if (interactableCollider != null && m_ColliderToInteractableMap.ContainsKey(interactableCollider))
+                        m_ColliderToInteractableMap.Remove(interactableCollider);
                 }
 #if AR_FOUNDATION_PRESENT
-                if (interactable is ARBaseGestureInteractable)
-	                m_GestureInteractablesNeedReconnect = true;
+                if (interactable is ARBaseGestureInteractable gestureInteractable)
+                {
+                    gestureInteractable.DisconnectGestureInteractor();
+                    m_GestureInteractablesNeedReconnect = true;
+                }
 #endif
             }
-		}
+        }
 
-		internal XRBaseInteractable TryGetInteractableForCollider(Collider collider)
-		{
-			XRBaseInteractable interactable;
-            if (collider != null && m_ColliderToInteractableMap.TryGetValue(collider, out interactable))
+        public XRBaseInteractable TryGetInteractableForCollider(Collider interactableCollider)
+        {
+            if (interactableCollider != null && m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var interactable))
                 return interactable;
-            
+
             return null;
-		}
+        }
 
-		internal List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
-		{
-			interactor.GetValidTargets(validTargets);
+        // TODO Expose the dictionary as a read-only wrapper if necessary rather than providing a reference this way
+        public void GetColliderToInteractableMap(ref Dictionary<Collider, XRBaseInteractable> map)
+        {
+            if (map != null)
+            {
+                map.Clear();
+                map = m_ColliderToInteractableMap;
+            }
+        }
 
-			// Remove interactables that are not being handled by this manager.
-            for (int i = validTargets.Count - 1; i >= 0; --i)
+        public List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        {
+            interactor.GetValidTargets(validTargets);
+
+            // Remove interactables that are not being handled by this manager.
+            for (var i = validTargets.Count - 1; i >= 0; --i)
             {
                 if (!m_Interactables.Contains(validTargets[i]))
                     validTargets.RemoveAt(i);
             }
-			return validTargets;
-		}
 
-        internal void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable)
+            return validTargets;
+        }
+
+        public void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
             SelectEnter(interactor, interactable);
         }
 
-		void ClearInteractorSelection(XRBaseInteractor interactor)
-		{
-            // TODO: Make sure SelectExit is called if the selectTarget of the interactor is destroyed (and write a test around this).
-            if (interactor.selectTarget &&
-				(!interactor.isSelectActive || !interactor.CanSelect(interactor.selectTarget) || !interactor.selectTarget.IsSelectableBy(interactor)))
-                SelectExit(interactor, interactor.selectTarget);
-		}
-
-		void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
-		{
-            interactor.GetHoverTargets(m_HoverTargetList);
-            for (int i = 0; i < m_HoverTargetList.Count; i++)
+        public virtual void ClearInteractorSelection(XRBaseInteractor interactor)
+        {
+            if (interactor.selectTarget != null &&
+                (!interactor.isSelectActive || !interactor.CanSelect(interactor.selectTarget) || !interactor.selectTarget.IsSelectableBy(interactor)))
             {
-                var target = m_HoverTargetList[i];
+                SelectExit(interactor, interactor.selectTarget);
+            }
+        }
+
+        public virtual void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        {
+            interactor.GetHoverTargets(m_HoverTargetList);
+            foreach (var target in m_HoverTargetList)
+            {
                 if (!interactor.isHoverActive || !interactor.CanHover(target) || !target.IsHoverableBy(interactor) || ((validTargets != null && !validTargets.Contains(target)) || validTargets == null))
                     HoverExit(interactor, target);
             }
-		}
+        }
 
-        void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        public virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
             // If Exclusive Selection, is this the only interactor trying to interact?
             if (interactor.requireSelectExclusive)
             {
-                for (int i = 0; i < m_Interactors.Count; i++)
+                for (var i = 0; i < m_Interactors.Count; ++i)
                 {
-                    if (m_Interactors[i] != interactor 
+                    if (m_Interactors[i] != interactor
                         && m_Interactors[i].selectTarget == interactable)
                     {
                         return;
@@ -255,63 +295,84 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             else
             {
-                for (int i = 0; i < m_Interactors.Count; i++)
+                for (var i = 0; i < m_Interactors.Count; ++i)
                 {
                     if (m_Interactors[i].selectTarget == interactable)
                         SelectExit(m_Interactors[i], interactable);
                 }
             }
-            interactor.OnSelectEnter(interactable);
-            interactable.OnSelectEnter(interactor);
+
+            interactor.OnSelectEntering(interactable);
+            interactable.OnSelectEntering(interactor);
+            interactor.OnSelectEntered(interactable);
+            interactable.OnSelectEntered(interactor);
         }
 
-        void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        public virtual void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
-            interactor.OnSelectExit(interactable);
-            interactable.OnSelectExit(interactor);
+            interactor.OnSelectExiting(interactable);
+            interactable.OnSelectExiting(interactor);
+            interactor.OnSelectExited(interactable);
+            interactable.OnSelectExited(interactor);
         }
 
-        void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        public virtual void SelectCancel(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
-            interactor.OnHoverEnter(interactable);
-            interactable.OnHoverEnter(interactor);
+            // TODO Add an OnSelectCancel function to XRBaseInteractor?
+            interactor.OnSelectExiting(interactable);
+            interactor.OnSelectExited(interactable);
+            if (interactable != null)
+            {
+                interactable.OnSelectCanceling(interactor);
+                interactable.OnSelectCanceled(interactor);
+            }
         }
 
-        void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        public virtual void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
-            interactor.OnHoverExit(interactable);
-            interactable.OnHoverExit(interactor);
+            interactor.OnHoverEntering(interactable);
+            interactable.OnHoverEntering(interactor);
+            interactor.OnHoverEntered(interactable);
+            interactable.OnHoverEntered(interactor);
         }
 
-        void InteractorSelectValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
-		{
-			if (interactor.isSelectActive)
-			{
-				for (var i=0; i < validTargets.Count && interactor.isSelectActive; ++i)
-				{
+        public virtual void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        {
+            interactor.OnHoverExiting(interactable);
+            interactable.OnHoverExiting(interactor);
+            interactor.OnHoverExited(interactable);
+            interactable.OnHoverExited(interactor);
+        }
+
+        protected virtual void InteractorSelectValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        {
+            if (interactor.isSelectActive)
+            {
+                for (var i = 0; i < validTargets.Count && interactor.isSelectActive; ++i)
+                {
                     if (interactor.CanSelect(validTargets[i]) && validTargets[i].IsSelectableBy(interactor) &&
-                    	interactor.selectTarget != validTargets[i])
+                        interactor.selectTarget != validTargets[i])
                     {
                         SelectEnter(interactor, validTargets[i]);
                     }
-				}
-			}
-		}
+                }
+            }
+        }
 
-		void InteractorHoverValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
-		{
-			if (interactor.isHoverActive)
-			{
-				for (var i=0; i < validTargets.Count && interactor.isHoverActive; ++i)
-				{
+        protected virtual void InteractorHoverValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        {
+            if (interactor.isHoverActive)
+            {
+                for (var i=0; i < validTargets.Count && interactor.isHoverActive; ++i)
+                {
                     interactor.GetHoverTargets(m_HoverTargetList);
                     if (interactor.CanHover(validTargets[i]) && validTargets[i].IsHoverableBy(interactor) &&
-                    	!m_HoverTargetList.Contains(validTargets[i]))
+                        !m_HoverTargetList.Contains(validTargets[i]))
                     {
                         HoverEnter(interactor, validTargets[i]);
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }

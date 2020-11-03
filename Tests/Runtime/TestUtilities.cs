@@ -52,8 +52,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject interactorGO = new GameObject();
             CreateGOSphereCollider(interactorGO);
             XRDirectInteractor interactor = interactorGO.AddComponent<XRDirectInteractor>();
-            XRController controller = interactorGO.GetComponent<XRController>();
+            XRController controller = interactorGO.AddComponent<XRController>();
+            interactor.xrController = controller;
             controller.enableInputTracking = false;
+            controller.enableInputActions = false;
             return interactor;
         }
 
@@ -98,10 +100,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject interactorGO = new GameObject();
             interactorGO.name = "Ray Interactor";
             XRRayInteractor interactor = interactorGO.AddComponent<XRRayInteractor>();
-            XRController controller = interactorGO.GetComponent<XRController>();
+            XRController controller = interactorGO.AddComponent<XRController>();
             XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
+            interactor.xrController = controller;
             controller.enableInputTracking = false;
-            interactor.enableUIInteraction = false;
+            interactor.enableUIInteraction = false;            
+            controller.enableInputActions = false;
             return interactor;
         }
         internal static XRSocketInteractor CreateSocketInteractor()
@@ -123,9 +127,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         internal static XRControllerRecorder CreateControllerRecorder(XRController controller, Action<XRControllerRecording> addRecordingFrames)
-        {
+        {            
             var controllerRecorder = controller.gameObject.AddComponent<XRControllerRecorder>();
-            controllerRecorder.controller = controller;
+            controllerRecorder.xrController = controller;
             controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
 
             addRecordingFrames(controllerRecorder.recording);

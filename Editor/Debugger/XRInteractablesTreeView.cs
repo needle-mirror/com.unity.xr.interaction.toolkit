@@ -1,13 +1,12 @@
-#if UNITY_EDITOR
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    // Multi-column TreeView that shows Interactables
+    /// <summary>
+    /// Multi-column <see cref="TreeView"/> that shows Interactables.
+    /// </summary>
     class XRInteractablesTreeView : TreeView
     {
         public static XRInteractablesTreeView Create(XRInteractionManager interactionManager, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
@@ -24,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return new XRInteractablesTreeView(interactionManager, treeState, header);
         }
 
-        const float kRowHeight = 20f;
+        const float k_RowHeight = 20f;
 
         class Item : TreeViewItem
         {
@@ -43,18 +42,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             COUNT
         }
 
-        XRInteractionManager m_InteractionManager;
+        readonly XRInteractionManager m_InteractionManager;
 
         static MultiColumnHeaderState CreateHeaderState()
         {
             var columns = new MultiColumnHeaderState.Column[(int)ColumnId.COUNT];
 
-            columns[(int)ColumnId.Name]         = new MultiColumnHeaderState.Column { width = 180, minWidth = 80, headerContent = new GUIContent("Name") };
-            columns[(int)ColumnId.Type]         = new MultiColumnHeaderState.Column {width = 120, minWidth = 80, headerContent = new GUIContent("Type") };
-            columns[(int)ColumnId.LayerMask]    = new MultiColumnHeaderState.Column { width = 120, minWidth = 80, headerContent = new GUIContent("Layer Mask") };
-            columns[(int)ColumnId.Colliders]    = new MultiColumnHeaderState.Column { width = 120, minWidth = 80, headerContent = new GUIContent("Colliders") };
-            columns[(int)ColumnId.Hover]        = new MultiColumnHeaderState.Column {width = 80, minWidth = 80, headerContent = new GUIContent("Hover") };
-            columns[(int)ColumnId.Select]       = new MultiColumnHeaderState.Column {width = 80, minWidth = 80, headerContent = new GUIContent("Select") };
+            columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = new GUIContent("Name") };
+            columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Type") };
+            columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Layer Mask") };
+            columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Colliders") };
+            columns[(int)ColumnId.Hover]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = new GUIContent("Hover") };
+            columns[(int)ColumnId.Select]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = new GUIContent("Select") };
 
             return new MultiColumnHeaderState(columns);
         }
@@ -64,32 +63,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_InteractionManager = manager;
             showBorder = false;
-            rowHeight = kRowHeight;
+            rowHeight = k_RowHeight;
             Reload();
         }
 
         protected override TreeViewItem BuildRoot()
         {
-            var rootItem = BuildInteractableTree();
-
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
-                displayName = "Interaction Manager",
                 id = 0,
-                children = new List<TreeViewItem> {rootItem},
-                depth = -1
+                children = new List<TreeViewItem> { BuildInteractableTree() },
+                depth = -1,
             };
         }
 
         TreeViewItem BuildInteractableTree()
         {
-            int id = 0;
-            var rootItem = new Item
+            var rootTreeItem = new Item
             {
-                id = id++,
-                displayName = m_InteractionManager == null ? "-" : m_InteractionManager.name,
-                depth = 0
+                id = m_InteractionManager != null ? m_InteractionManager.GetInstanceID() : 1,
+                displayName = m_InteractionManager != null ? m_InteractionManager.name : "-",
+                depth = 0,
             };
 
             // Build children.
@@ -100,21 +95,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     var childItem = new Item
                     {
-                        id = id,
+                        id = interactable.GetInstanceID(),
                         displayName = interactable.name,
                         interactable = interactable,
-                        depth = 1
+                        depth = 1,
+                        parent = rootTreeItem,
                     };
-                    childItem.parent = rootItem;
                     children.Add(childItem);
                 }
 
                 // Sort children by name.
                 children.Sort((a, b) => string.Compare(a.displayName, b.displayName));
-                rootItem.children = children;
+                rootTreeItem.children = children;
             }
 
-            return rootItem;
+            return rootTreeItem;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -149,7 +144,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         GUI.Label(cellRect, item.interactable.interactionLayerMask.value.ToString());
                         break;
                     case (int)ColumnId.Colliders:
-                        var colliderNames = item.interactable.colliders.Select(x => x.gameObject.name).ToList<string>();
+                        var colliderNames = item.interactable.colliders.Select(x => x.gameObject.name).ToList();
                         GUI.Label(cellRect, string.Join(",", colliderNames.ToArray()));
                         break;
                     case (int)ColumnId.Hover:
@@ -163,4 +158,3 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
     }
 }
-#endif // UNITY_EDITOR

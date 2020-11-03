@@ -1,40 +1,47 @@
-using UnityEngine;
 using UnityEditor;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     [CustomEditor(typeof(XRControllerRecording))]
-    class XRControllerRecordingEditor : Editor 
-    { 
-        private XRControllerRecording controllerRecording;
-     
-    	void Awake()
-    	{
-    		controllerRecording = (XRControllerRecording)target;
-    	}
-     
-    	public override void OnInspectorGUI()
-    	{
+    class XRControllerRecordingEditor : Editor
+    {
+        XRControllerRecording m_ControllerRecording;
+
+        SerializedProperty m_Frames;
+
+        protected void OnEnable()
+        {
+            m_ControllerRecording = (XRControllerRecording)target;
+            m_Frames = serializedObject.FindProperty("m_Frames");
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
             if (GUILayout.Button("Clear Recording"))
-                controllerRecording.frames.Clear();
+                m_Frames.ClearArray();
 
             GUILayout.Label("Frames");
-    		GUILayout.BeginVertical();
+            GUILayout.BeginVertical();
             DisplayRecordingFrames();
             GUILayout.Space(5);
             GUILayout.EndVertical();
+
+            serializedObject.ApplyModifiedProperties();
         }
-     
+
         void DisplayRecordingFrames()
         {
-            for (int i = 0; i < controllerRecording.frames.Count; i++ )
+            foreach (var frame in m_ControllerRecording.frames)
             {
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.TextField(controllerRecording.frames[i].time.ToString(), GUILayout.Width(80));
-                GUILayout.TextField(controllerRecording.frames[i].position.ToString(), GUILayout.Width(100));
-                GUILayout.TextField(controllerRecording.frames[i].rotation.ToString(), GUILayout.Width(160));
-                GUILayout.TextField(controllerRecording.frames[i].selectActive.ToString(), GUILayout.Width(40));
-                GUILayout.TextField(controllerRecording.frames[i].pressActive.ToString(), GUILayout.Width(40));
+                EditorGUILayout.FloatField((float)frame.time, GUILayout.ExpandWidth(true));
+                EditorGUILayout.TextField(frame.position.ToString(), GUILayout.Width(120));
+                EditorGUILayout.TextField(frame.rotation.ToString(), GUILayout.Width(160));
+                EditorGUILayout.Toggle(frame.selectInteractionState.active, GUILayout.MaxWidth(14));
+                EditorGUILayout.Toggle(frame.activateInteractionState.active, GUILayout.MaxWidth(14));
+                EditorGUILayout.Toggle(frame.uiPressInteractionState.active, GUILayout.MaxWidth(14));
                 EditorGUILayout.EndHorizontal();
             }
         }

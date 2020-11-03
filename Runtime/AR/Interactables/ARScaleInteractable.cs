@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if !AR_FOUNDATION_PRESENT
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
@@ -36,96 +38,124 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class ARScaleInteractable : ARBaseGestureInteractable
     {
-
         [SerializeField, Tooltip("The minimum scale of the object.")]
         float m_MinScale = 0.75f;
+
         /// <summary>
         /// The minimum scale of the object.
         /// </summary>
-        public float minScale {  get { return m_MinScale; } set { m_MinScale = value; } }
+        public float minScale
+        {
+            get => m_MinScale;
+            set => m_MinScale = value;
+        }
 
         [SerializeField, Tooltip("The maximum scale of the object.")]
         float m_MaxScale = 1.75f;
+
         /// <summary>
         /// The maximum scale of the object.
         /// </summary>
-        public float maxScale {  get { return m_MaxScale; } set { m_MaxScale = value; } }
+        public float maxScale
+        {
+            get => m_MaxScale;
+            set => m_MaxScale = value;
+        }
 
         [SerializeField, Tooltip("The elastic ratio used when scaling the object")]
-        float m_ElasticRatioLimit = 0.0f;
+        float m_ElasticRatioLimit;
+
         /// <summary>
         /// The limit of the elastic ratio.
         /// </summary>
-        public float elasticRatioLimit { get { return m_ElasticRatioLimit; } set { m_ElasticRatioLimit = value; } }
+        public float elasticRatioLimit
+        {
+            get => m_ElasticRatioLimit;
+            set => m_ElasticRatioLimit = value;
+        }
 
         [SerializeField, Tooltip("Sensitivity to movement being translated into scale.")]
         float m_Sensitivity = 0.75f;
+
         /// <summary>
         /// Sensitivity to movement being translated into scale.
         /// </summary>
-        public float sensitivity { get { return m_Sensitivity; } set { m_Sensitivity = value; } }
+        public float sensitivity
+        {
+            get => m_Sensitivity;
+            set => m_Sensitivity = value;
+        }
 
         [SerializeField, Tooltip("Amount that the scale bounces back after hitting min/max of range.")]
         float m_Elasticity = 0.15f;
+
         /// <summary>
         /// Amount that the scale bounces back after hitting min/max of range.
         /// </summary>
-        public float elasticity { get { return m_Elasticity; } set { m_Elasticity = value; } }
+        public float elasticity
+        {
+            get => m_Elasticity;
+            set => m_Elasticity = value;
+        }
 
-        float m_CurrentScaleRatio;
-        bool m_IsScaling;
-
-        float m_ScaleDelta
+        float scaleDelta
         {
             get
             {
                 if (minScale > maxScale)
                 {
                     Debug.LogError("minScale must be smaller than maxScale.");
-                    return 0.0f;
+                    return 0f;
                 }
 
                 return maxScale - minScale;
             }
         }
 
-        float m_ClampedScaleRatio
+        float clampedScaleRatio => Mathf.Clamp01(m_CurrentScaleRatio);
+
+        Vector3 currentScale
         {
             get
             {
-                return Mathf.Clamp01(m_CurrentScaleRatio);
+                var elasticScaleRatio = clampedScaleRatio + ElasticDelta();
+                var elasticScale = minScale + (elasticScaleRatio * scaleDelta);
+                return new Vector3(elasticScale, elasticScale, elasticScale);
             }
         }
 
-        float m_CurrentScale
+        float m_CurrentScaleRatio;
+        bool m_IsScaling;
+
+        protected void OnValidate()
         {
-            get
-            {
-                float elasticScaleRatio = m_ClampedScaleRatio + ElasticDelta();
-                float elasticScale = minScale + (elasticScaleRatio * m_ScaleDelta);
-                return elasticScale;
-            }
+            minScale = Mathf.Max(0f, minScale);
+            maxScale = Mathf.Max(Mathf.Max(0f, minScale), maxScale);
         }
 
         /// <summary>
         /// Enabled the scale controller.
         /// </summary>
         protected void OnEnable()
-        {           
-            m_CurrentScaleRatio = (transform.localScale.x - minScale) / m_ScaleDelta;
+        {
+            m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
         }
 
-        void OnValidate() 
+        protected void LateUpdate()
         {
-            minScale = Mathf.Max(0.0f, minScale);
-            maxScale = Mathf.Max(Mathf.Max(0.0f, minScale), maxScale);
+            if (!m_IsScaling)
+            {
+                m_CurrentScaleRatio =
+                    Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
+                transform.localScale = currentScale;
+            }
         }
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
         protected override bool CanStartManipulationForGesture(PinchGesture gesture)
         {
             if (!IsGameObjectSelected())
@@ -148,7 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnStartManipulation(PinchGesture gesture)
         {
             m_IsScaling = true;
-            m_CurrentScaleRatio = (transform.localScale.x - minScale) / m_ScaleDelta;
+            m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
         }
 
         /// <summary>
@@ -157,15 +187,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="gesture">The current gesture.</param>
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.GapDelta);
+            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.gapDelta);
 
-            float currentScale = m_CurrentScale;
-            transform.localScale = new Vector3(currentScale, currentScale, currentScale);
+            transform.localScale = currentScale;
 
             // If we've tried to scale too far beyond the limit, then cancel the gesture
             // to snap back within the scale range.
             if (m_CurrentScaleRatio < -elasticRatioLimit
-                || m_CurrentScaleRatio > (1.0f + elasticRatioLimit))
+                || m_CurrentScaleRatio > (1f + elasticRatioLimit))
             {
                 gesture.Cancel();
             }
@@ -182,33 +211,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         float ElasticDelta()
         {
-            float overRatio = 0.0f;
-            if (m_CurrentScaleRatio > 1.0f)
+            float overRatio;
+            if (m_CurrentScaleRatio > 1f)
             {
-                overRatio = m_CurrentScaleRatio - 1.0f;
+                overRatio = m_CurrentScaleRatio - 1f;
             }
-            else if (m_CurrentScaleRatio < 0.0f)
+            else if (m_CurrentScaleRatio < 0f)
             {
                 overRatio = m_CurrentScaleRatio;
             }
             else
             {
-                return 0.0f;
+                return 0f;
             }
 
-            return (1.0f - (1.0f / ((Mathf.Abs(overRatio) * elasticity) + 1.0f)))
-            * Mathf.Sign(overRatio);
-        }
-
-        void LateUpdate()
-        {
-            if (!m_IsScaling)
-            {
-                m_CurrentScaleRatio =
-                    Mathf.Lerp(m_CurrentScaleRatio, m_ClampedScaleRatio, Time.deltaTime * 8.0f);
-                float currentScale = m_CurrentScale;
-                transform.localScale = new Vector3(currentScale, currentScale, currentScale);
-            }
+            return (1f - (1f / ((Mathf.Abs(overRatio) * elasticity) + 1f))) * Mathf.Sign(overRatio);
         }
     }
 }

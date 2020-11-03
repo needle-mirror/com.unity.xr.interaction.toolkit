@@ -18,6 +18,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
 
 #if !AR_FOUNDATION_PRESENT
 
@@ -25,11 +26,6 @@
 namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARBaseGestureInteractable {} }
 
 #else
-
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -44,200 +40,137 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Determines if this interactable can be selected by a given interactor.
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid selection with.</param>
-        /// <returns>True if selection is valid this frame, False if not.</returns>
-        public override bool IsSelectableBy(XRBaseInteractor interactor) { return false; }
+        /// <returns>Returns <see langword="true"/> if selection is valid this frame. Returns <see langword="false"/> otherwise.</returns>
+        public override bool IsSelectableBy(XRBaseInteractor interactor) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected virtual bool CanStartManipulationForGesture(DragGesture gesture)
-        {
-            return false;
-        }
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        protected virtual bool CanStartManipulationForGesture(DragGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected virtual bool CanStartManipulationForGesture(PinchGesture gesture)
-        {
-            return false;
-        }
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        protected virtual bool CanStartManipulationForGesture(PinchGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected virtual bool CanStartManipulationForGesture(TapGesture gesture)
-        {
-            return false;
-        }
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        protected virtual bool CanStartManipulationForGesture(TapGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected virtual bool CanStartManipulationForGesture(TwistGesture gesture)
-        {
-            return false;
-        }
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        protected virtual bool CanStartManipulationForGesture(TwistGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture)
-        {
-            return false;
-        }
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture) => false;
 
         /// <summary>
         /// Function called when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(DragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnStartManipulation(DragGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(PinchGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnStartManipulation(PinchGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TapGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnStartManipulation(TapGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TwistGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnStartManipulation(TwistGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TwoFingerDragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnStartManipulation(TwoFingerDragGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is continued.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(DragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnContinueManipulation(DragGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is continued.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(PinchGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnContinueManipulation(PinchGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is continued.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TapGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnContinueManipulation(TapGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is continued.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TwistGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnContinueManipulation(TwistGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is continued.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TwoFingerDragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnContinueManipulation(TwoFingerDragGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is ended.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(DragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnEndManipulation(DragGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is ended.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(PinchGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnEndManipulation(PinchGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is ended.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TapGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnEndManipulation(TapGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is ended.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TwistGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnEndManipulation(TwistGesture gesture) { }
 
         /// <summary>
         /// Function called when the manipulation is ended.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TwoFingerDragGesture gesture)
-        {
-            // Optional override.
-        }
+        protected virtual void OnEndManipulation(TwoFingerDragGesture gesture) { }
 
         static ARGestureInteractor s_GestureInteractor;
-        
-        protected static ARGestureInteractor gestureInteractor
-        {
-            get { return s_GestureInteractor; }
-        }
+
+        protected static ARGestureInteractor gestureInteractor => s_GestureInteractor;
 
         static bool UpdateGestureInteractor()
         {
@@ -259,7 +192,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             return true;
         }
-        
+
         protected virtual bool IsGameObjectSelected()
         {
             if (!UpdateGestureInteractor())
@@ -277,10 +210,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid hover state with.</param>
         /// <returns>True if hovering is valid this frame, False if not.</returns>
-        public override bool IsHoverableBy(XRBaseInteractor interactor)
-        {
-            return (interactor is ARGestureInteractor);
-        }
+        public override bool IsHoverableBy(XRBaseInteractor interactor) => interactor is ARGestureInteractor;
 
         /// <summary>
         /// Connect an interactor's gestures to this interactable
@@ -289,7 +219,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (!UpdateGestureInteractor())
                 return;
-            
+
             if (s_GestureInteractor.DragGestureRecognizer != null)
                 s_GestureInteractor.DragGestureRecognizer.onGestureStarted += OnGestureStarted;
 
@@ -313,7 +243,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (!UpdateGestureInteractor())
                 return;
-            
+
             if (s_GestureInteractor.DragGestureRecognizer != null)
                 s_GestureInteractor.DragGestureRecognizer.onGestureStarted -= OnGestureStarted;
 

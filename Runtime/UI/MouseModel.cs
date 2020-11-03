@@ -12,50 +12,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     public enum ButtonDeltaState
     {
         NoChange = 0,
-        Pressed = 1,
-        Released = 2,
+        Pressed = 1 << 0,
+        Released = 1 << 1,
     }
 
     /// <summary>
-    /// Represents the state of a single mouse button within the uGUI system.  Keeps track of various book-keeping regarding clicks, drags, and presses.
-    /// Can be converted to and from PointerEventData for sending into uGUI.
+    /// Represents the state of a single mouse button within the Unity UI (UGUI) system. Keeps track of various book-keeping regarding clicks, drags, and presses.
+    /// Can be converted to and from PointerEventData for sending into Unity UI (UGUI).
     /// </summary>
     public struct MouseButtonModel
     {
         internal struct ImplementationData
         {
             /// <summary>
-            /// Used to cache whether or not the current mouse button is being dragged.  See <see cref="PointerEventData.dragging"/> for more details.
+            /// Used to cache whether or not the current mouse button is being dragged. See <see cref="PointerEventData.dragging"/> for more details.
             /// </summary>
             public bool isDragging { get; set; }
 
             /// <summary>
-            /// Used to cache the last time this button was pressed.  See <see cref="PointerEventData.clickTime"/> for more details.
+            /// Used to cache the last time this button was pressed. See <see cref="PointerEventData.clickTime"/> for more details.
             /// </summary>
             public float pressedTime { get; set; }
 
             /// <summary>
-            /// The position on the screen that this button was last pressed.  In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
+            /// The position on the screen that this button was last pressed. In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
             /// </summary>
             public Vector2 pressedPosition { get; set; }
 
             /// <summary>
-            /// The Raycast data from the time it was pressed.  See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
+            /// The Raycast data from the time it was pressed. See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
             /// </summary>
             public RaycastResult pressedRaycast { get; set; }
 
             /// <summary>
-            /// The last gameobject pressed on that can handle press or click events.  See <see cref="PointerEventData.pointerPress"/> for more details.
+            /// The last GameObject pressed on that can handle press or click events.  See <see cref="PointerEventData.pointerPress"/> for more details.
             /// </summary>
             public GameObject pressedGameObject { get; set; }
 
             /// <summary>
-            /// The last gameobject pressed on regardless of whether it can handle events or not.  See <see cref="PointerEventData.rawPointerPress"/> for more details.
+            /// The last GameObject pressed on regardless of whether it can handle events or not. See <see cref="PointerEventData.rawPointerPress"/> for more details.
             /// </summary>
             public GameObject pressedGameObjectRaw { get; set; }
 
             /// <summary>
-            /// The gameobject currently being dragged if any.  See <see cref="PointerEventData.pointerDrag"/> for more details.
+            /// The GameObject currently being dragged if any. See <see cref="PointerEventData.pointerDrag"/> for more details.
             /// </summary>
             public GameObject draggedGameObject { get; set; }
 
@@ -65,7 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public void Reset()
             {
                 isDragging = false;
-                pressedTime = 0.0f;
+                pressedTime = 0f;
                 pressedPosition = Vector2.zero;
                 pressedRaycast = new RaycastResult();
                 pressedGameObject = pressedGameObjectRaw = draggedGameObject = null;
@@ -73,14 +73,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Used to store the current binary state of the button.  When set, will also track the changes between calls of <see cref="OnFrameFinished"/> in <see cref="lastFrameDelta"/>.
+        /// Used to store the current binary state of the button. When set, will also track the changes between calls of <see cref="OnFrameFinished"/> in <see cref="lastFrameDelta"/>.
         /// </summary>
         public bool isDown
         {
-            get
-            {
-                return m_IsDown;
-            }
+            get => m_IsDown;
             set
             {
                 if (m_IsDown != value)
@@ -110,15 +107,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Call this on each frame in order to reset properties that detect whether or not a certain condition was met this frame.
         /// </summary>
-        public void OnFrameFinished()
-        {
-            lastFrameDelta = ButtonDeltaState.NoChange;
-        }
+        public void OnFrameFinished() => lastFrameDelta = ButtonDeltaState.NoChange;
 
         /// <summary>
         /// Fills a <see cref="PointerEventData"/> with this mouse button's internally cached values.
         /// </summary>
-        /// <param name="eventData">These objects are used to send data through the uGUI system.</param>
+        /// <param name="eventData">These objects are used to send data through the Unity UI (UGUI) system.</param>
         public void CopyTo(PointerEventData eventData)
         {
             eventData.dragging = m_ImplementationData.isDragging;
@@ -133,7 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Fills this object with the values from a <see cref="PointerEventData"/>.
         /// </summary>
-        /// <param name="eventData">These objects are used to send data through the uGUI system.</param>
+        /// <param name="eventData">These objects are used to send data through the Unity UI (UGUI) system.</param>
         public void CopyFrom(PointerEventData eventData)
         {
             m_ImplementationData.isDragging = eventData.dragging;
@@ -145,11 +139,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_ImplementationData.draggedGameObject = eventData.pointerDrag;
         }
 
-        private bool m_IsDown;
-        private ImplementationData m_ImplementationData;
+        bool m_IsDown;
+        ImplementationData m_ImplementationData;
     }
 
-    internal struct MouseModel
+    struct MouseModel
     {
         internal struct InternalData
         {
@@ -171,12 +165,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// An Id representing a unique pointer.  See <see cref="UnityEngine.Experimental.Input.Pointer.pointerId"/> for more details.
+        /// An Id representing a unique pointer.
         /// </summary>
-        public int pointerId { get; private set; }
+        public int pointerId { get; }
 
         /// <summary>
-        /// A flag representing whether any mouse data has changed this frame, meaning that events should be processed.
+        /// A boolean value representing whether any mouse data has changed this frame, meaning that events should be processed.
         /// </summary>
         /// <remarks>
         /// This only checks for changes in mouse state (<see cref="position"/>, <see cref="leftButton"/>, <see cref="rightButton"/>, <see cref="middleButton"/>, or <see cref="scrollPosition"/>).
@@ -185,7 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         public Vector2 position
         {
-            get { return m_Position; }
+            get => m_Position;
             set
             {
                 if (m_Position != value)
@@ -204,13 +198,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         public Vector2 scrollPosition
         {
-            get { return m_ScrollPosition; }
+            get => m_ScrollPosition;
             set
             {
                 if (m_ScrollPosition != value)
                 {
                     changedThisFrame = true;
-                    scrollDelta = value - m_ScrollPosition;
+                    scrollDelta = value + m_ScrollPosition;
                     m_ScrollPosition = value;
                 }
             }
@@ -221,16 +215,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Vector2 scrollDelta { get; private set; }
 
-
         /// <summary>
-        /// Cached data and button state representing a left mouse button on a mouse.  Used by uGUI to keep track of persistent click, press, and drag states.
+        /// Cached data and button state representing a left mouse button on a mouse.
+        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel leftButton
         {
-            get
-            {
-                return m_LeftButton;
-            }
+            get => m_LeftButton;
             set
             {
                 changedThisFrame |= (value.lastFrameDelta != ButtonDeltaState.NoChange);
@@ -251,14 +242,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Cached data and button state representing a right mouse button on a mouse.  Used by uGUI to keep track of persistent click, press, and drag states.
+        /// Cached data and button state representing a right mouse button on a mouse.
+        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel rightButton
         {
-            get
-            {
-                return m_RightButton;
-            }
+            get => m_RightButton;
             set
             {
                 changedThisFrame |= (value.lastFrameDelta != ButtonDeltaState.NoChange);
@@ -279,14 +268,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Cached data and button state representing a middle mouse button on a mouse.  Used by uGUI to keep track of persistent click, press, and drag states.
+        /// Cached data and button state representing a middle mouse button on a mouse.
+        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel middleButton
         {
-            get
-            {
-                return m_MiddleButton;
-            }
+            get => m_MiddleButton;
             set
             {
                 changedThisFrame |= (value.lastFrameDelta != ButtonDeltaState.NoChange);
@@ -361,12 +348,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_InternalData.pointerTarget = eventData.pointerEnter;
         }
 
-        private Vector2 m_Position;
-        private Vector2 m_ScrollPosition;
-        private MouseButtonModel m_LeftButton;
-        private MouseButtonModel m_RightButton;
-        private MouseButtonModel m_MiddleButton;
-
-        private InternalData m_InternalData;
+        Vector2 m_Position;
+        Vector2 m_ScrollPosition;
+        MouseButtonModel m_LeftButton;
+        MouseButtonModel m_RightButton;
+        MouseButtonModel m_MiddleButton;
+        InternalData m_InternalData;
     }
 }

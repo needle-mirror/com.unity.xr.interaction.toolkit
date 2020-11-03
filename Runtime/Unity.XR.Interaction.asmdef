@@ -5,7 +5,8 @@
         "UnityEngine.SpatialTracking",
         "Unity.XR.ARSubsystems",
         "Unity.XR.ARFoundation",
-        "UnityEngine.XR.LegacyInputHelpers"
+        "UnityEngine.XR.LegacyInputHelpers",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

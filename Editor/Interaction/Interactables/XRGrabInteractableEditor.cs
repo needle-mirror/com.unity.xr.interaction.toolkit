@@ -3,9 +3,10 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRGrabInteractable))]
-    internal class XRGrabInteractableEditor : Editor
+    [CustomEditor(typeof(XRGrabInteractable)), CanEditMultipleObjects]
+    public class XRGrabInteractableEditor : Editor
     {
+        SerializedProperty m_InteractionManager;
         SerializedProperty m_AttachTransform;
         SerializedProperty m_AttachEaseInTime;
         SerializedProperty m_MovementType;
@@ -24,23 +25,22 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_ThrowAngularVelocityScale;
         SerializedProperty m_GravityOnDetach;
         SerializedProperty m_RetainTransformParent;
-        SerializedProperty m_OnFirstHoverEnter;
-        SerializedProperty m_OnHoverEnter;
-        SerializedProperty m_OnHoverExit;
-        SerializedProperty m_OnLastHoverExit;
-        SerializedProperty m_OnSelectEnter;
-        SerializedProperty m_OnSelectExit;
+        SerializedProperty m_OnFirstHoverEntered;
+        SerializedProperty m_OnHoverEntered;
+        SerializedProperty m_OnHoverExited;
+        SerializedProperty m_OnLastHoverExited;
+        SerializedProperty m_OnSelectEntered;
+        SerializedProperty m_OnSelectExited;
+        SerializedProperty m_OnSelectCanceled;
         SerializedProperty m_OnActivate;
         SerializedProperty m_OnDeactivate;
         SerializedProperty m_Colliders;
         SerializedProperty m_InteractionLayerMask;
 
-        bool m_showInteractableEvents = false;
-
-
         static class Tooltips
         {
-            public static readonly GUIContent attachTransform = new GUIContent("Attach Transform", "Attach point to use on this Interactable (will use RigidBody center if none set).");
+            public static readonly GUIContent interactionManager = new GUIContent("Interaction Manager", "Manager to handle all interaction management (will find one if empty).");
+            public static readonly GUIContent attachTransform = new GUIContent("Attach Transform", "Attach point to use on this Interactable (will use transform.position as center if none set).");
             public static readonly GUIContent attachEaseInTime = new GUIContent("Attach Ease In Time", "Time it takes to ease in the attach (time of 0.0 indicates no easing).");
             public static readonly GUIContent movementType = new GUIContent("Movement Type", "Type of movement for RigidBody.");
             public static readonly GUIContent trackPosition = new GUIContent("Track Position", "Whether the this interactable should track the position of the interactor.");
@@ -53,17 +53,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent tightenRotation = new GUIContent("Tighten Rotation", "Reduces the maximum follow rotation difference when using smoothing.");
             public static readonly GUIContent throwOnDetach = new GUIContent("Throw On Detach", "Object inherits the interactor's velocity when released.");
             public static readonly GUIContent throwSmoothingDuration = new GUIContent("Throw Smoothing Duration", "Time period to average thrown velocity over");
-            public static readonly GUIContent throwSmoothingCurve = new GUIContent("ThrowSmoothingCurve", "The curve to use to weight velocity smoothing (most recent frames to the right.");
+            public static readonly GUIContent throwSmoothingCurve = new GUIContent("Throw Smoothing Curve", "The curve to use to weight velocity smoothing (most recent frames to the right.");
             public static readonly GUIContent throwVelocityScale = new GUIContent("Throw Velocity Scale", "Scale the velocity used when throwing.");
             public static readonly GUIContent throwAngularVelocityScale = new GUIContent("Throw Angular Velocity Scale", "Scale the angular velocity used when throwing");
             public static readonly GUIContent gravityOnDetach = new GUIContent("Gravity On Detach", "Object has gravity when released (will still use pre-grab value if this is false).");
             public static readonly GUIContent colliders = new GUIContent("Colliders", "Colliders to include when selecting/interacting with an interactable");
-            public static readonly GUIContent interactionLayerMask = new GUIContent("InteractionLayerMask", "Only Interactors with this LayerMask will interact with this Interactable.");
-            public static readonly GUIContent retainTransformParent = new GUIContent("RetainTransformParent", "If enabled, this Interactable have its parent retained after it is released from an interactor.");
+            public static readonly GUIContent interactionLayerMask = new GUIContent("Interaction Layer Mask", "Only Interactors with this LayerMask will interact with this Interactable.");
+            public static readonly GUIContent retainTransformParent = new GUIContent("Retain Transform Parent", "If enabled, this Interactable have its parent retained after it is released from an interactor.");
         }
 
-        void OnEnable()
+        protected void OnEnable()
         {
+            m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_MovementType = serializedObject.FindProperty("m_MovementType");
             m_AttachEaseInTime = serializedObject.FindProperty("m_AttachEaseInTime");
@@ -82,12 +83,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
             m_GravityOnDetach = serializedObject.FindProperty("m_GravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
-            m_OnFirstHoverEnter = serializedObject.FindProperty("m_OnFirstHoverEnter");
-            m_OnHoverEnter = serializedObject.FindProperty("m_OnHoverEnter");
-            m_OnHoverExit = serializedObject.FindProperty("m_OnHoverExit");
-            m_OnLastHoverExit = serializedObject.FindProperty("m_OnLastHoverExit");
-            m_OnSelectEnter = serializedObject.FindProperty("m_OnSelectEnter");
-            m_OnSelectExit = serializedObject.FindProperty("m_OnSelectExit");
+            m_OnFirstHoverEntered = serializedObject.FindProperty("m_OnFirstHoverEntered");
+            m_OnHoverEntered = serializedObject.FindProperty("m_OnHoverEntered");
+            m_OnHoverExited = serializedObject.FindProperty("m_OnHoverExited");
+            m_OnLastHoverExited = serializedObject.FindProperty("m_OnLastHoverExited");
+            m_OnSelectEntered = serializedObject.FindProperty("m_OnSelectEntered");
+            m_OnSelectExited = serializedObject.FindProperty("m_OnSelectExited");
+            m_OnSelectCanceled = serializedObject.FindProperty("m_OnSelectCanceled");
             m_OnActivate = serializedObject.FindProperty("m_OnActivate");
             m_OnDeactivate = serializedObject.FindProperty("m_OnDeactivate");
             m_Colliders = serializedObject.FindProperty("m_Colliders");
@@ -96,20 +98,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public override void OnInspectorGUI()
         {
-
-            GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRGrabInteractable)target), typeof(XRGrabInteractable), false);
-            GUI.enabled = true;
-
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
-            EditorGUILayout.PropertyField(m_AttachEaseInTime, Tooltips.attachEaseInTime);
-            EditorGUILayout.PropertyField(m_MovementType, Tooltips.movementType);
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((XRGrabInteractable)target), typeof(XRGrabInteractable), false);
+            EditorGUI.EndDisabledGroup();
 
+            EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
+            EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
             EditorGUILayout.PropertyField(m_Colliders, Tooltips.colliders, true);
 
-            EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
+            EditorGUILayout.Space();
+
+            // Grab Configuration
+            EditorGUILayout.PropertyField(m_MovementType, Tooltips.movementType);
 
             EditorGUILayout.PropertyField(m_RetainTransformParent, Tooltips.retainTransformParent);
 
@@ -154,17 +156,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUI.indentLevel--;
             }
 
-            m_showInteractableEvents = EditorGUILayout.Foldout(m_showInteractableEvents, "Interactable Events");
 
-            if (m_showInteractableEvents)
+            EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
+            EditorGUILayout.PropertyField(m_AttachEaseInTime, Tooltips.attachEaseInTime);
+
+            EditorGUILayout.Space();
+
+            m_OnFirstHoverEntered.isExpanded = EditorGUILayout.Foldout(m_OnFirstHoverEntered.isExpanded, EditorGUIUtility.TrTempContent("Interactable Events"), true);
+
+            if (m_OnFirstHoverEntered.isExpanded)
             {
-                // UnityEvents have not yet supported Tooltips
-                EditorGUILayout.PropertyField(m_OnFirstHoverEnter);
-                EditorGUILayout.PropertyField(m_OnHoverEnter);
-                EditorGUILayout.PropertyField(m_OnHoverExit);
-                EditorGUILayout.PropertyField(m_OnLastHoverExit);
-                EditorGUILayout.PropertyField(m_OnSelectEnter);
-                EditorGUILayout.PropertyField(m_OnSelectExit);
+                EditorGUILayout.PropertyField(m_OnFirstHoverEntered);
+                EditorGUILayout.PropertyField(m_OnHoverEntered);
+                EditorGUILayout.PropertyField(m_OnHoverExited);
+                EditorGUILayout.PropertyField(m_OnLastHoverExited);
+                EditorGUILayout.PropertyField(m_OnSelectEntered);
+                EditorGUILayout.PropertyField(m_OnSelectExited);
+                EditorGUILayout.PropertyField(m_OnSelectCanceled);
                 EditorGUILayout.PropertyField(m_OnActivate);
                 EditorGUILayout.PropertyField(m_OnDeactivate);
             }

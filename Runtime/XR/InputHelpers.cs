@@ -4,7 +4,9 @@ using UnityEngine.XR;
 
 public static class InputHelpers
 {
-    /// <summary>A list of buttons that can be bound to.</summary>
+    /// <summary>
+    /// A list of buttons that can be bound to.
+    /// </summary>
     public enum Button
     {
         None = 0,
@@ -28,7 +30,7 @@ public static class InputHelpers
         SecondaryAxis2DUp,
         SecondaryAxis2DDown,
         SecondaryAxis2DLeft,
-        SecondaryAxis2DRight
+        SecondaryAxis2DRight,
     };
 
     enum ButtonReadType
@@ -39,7 +41,7 @@ public static class InputHelpers
         Axis2DUp,
         Axis2DDown,
         Axis2DLeft,
-        Axis2DRight
+        Axis2DRight,
     }
 
     struct ButtonInfo
@@ -54,7 +56,7 @@ public static class InputHelpers
         public ButtonReadType type;
     }
 
-    static ButtonInfo[] s_ButtonData = new ButtonInfo[]
+    static readonly ButtonInfo[] s_ButtonData =
     {
         new ButtonInfo("", ButtonReadType.None),
         new ButtonInfo("MenuButton", ButtonReadType.Binary),
@@ -80,13 +82,13 @@ public static class InputHelpers
         new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DRight),
     };
 
-    static float s_DefaultPressThreshold = 0.1f;
+    const float k_DefaultPressThreshold = 0.1f;
 
     public static bool IsPressed(this InputDevice device, Button button, out bool isPressed, float pressThreshold = -1.0f)
     {
-        if((int)button >= s_ButtonData.Length)    
+        if ((int)button >= s_ButtonData.Length)
         {
-            throw new ArgumentException("[InputHelpers.IsPressed] The value of <button> is out or the supported range.");
+            throw new ArgumentException("[InputHelpers.IsPressed] The value of <button> is out of the supported range.");
         }
 
         if (!device.isValid)
@@ -95,12 +97,12 @@ public static class InputHelpers
             return false;
         }
 
-        ButtonInfo info = s_ButtonData[(int)button];
+        var info = s_ButtonData[(int)button];
         switch (info.type)
         {
             case ButtonReadType.Binary:
                 {
-                    if(device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out bool value))
+                    if(device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
                     {
                         isPressed = value;
                         return true;
@@ -109,9 +111,9 @@ public static class InputHelpers
                 break;
             case ButtonReadType.Axis1D:
                 {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out float value))
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
                     {
-                        float threshold = (pressThreshold >= 0.0f) ? pressThreshold : s_DefaultPressThreshold;
+                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
                         isPressed = value >= threshold;
                         return true;
                     }
@@ -119,9 +121,9 @@ public static class InputHelpers
                 break;
             case ButtonReadType.Axis2DUp:
                 {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out Vector2 value))
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        float threshold = (pressThreshold >= 0.0f) ? pressThreshold : s_DefaultPressThreshold;
+                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
                         isPressed = value.y >= threshold;
                         return true;
                     }
@@ -129,9 +131,9 @@ public static class InputHelpers
                 break;
             case ButtonReadType.Axis2DDown:
                 {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out Vector2 value))
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        float threshold = (pressThreshold >= 0.0f) ? pressThreshold : s_DefaultPressThreshold;
+                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
                         isPressed = value.y <= -threshold;
                         return true;
                     }
@@ -139,9 +141,9 @@ public static class InputHelpers
                 break;
             case ButtonReadType.Axis2DLeft:
                 {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out Vector2 value))
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        float threshold = (pressThreshold >= 0.0f) ? pressThreshold : s_DefaultPressThreshold;
+                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
                         isPressed = value.x <= -threshold;
                         return true;
                     }
@@ -149,17 +151,16 @@ public static class InputHelpers
                 break;
             case ButtonReadType.Axis2DRight:
                 {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out Vector2 value))
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        float threshold = (pressThreshold >= 0.0f) ? pressThreshold : s_DefaultPressThreshold;
+                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
                         isPressed = value.x >= threshold;
                         return true;
                     }
                 }
                 break;
-            default:
-                break;
         }
+
         isPressed = false;
         return false;
     }

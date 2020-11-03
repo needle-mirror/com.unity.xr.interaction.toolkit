@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using System;
@@ -61,19 +63,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public event Action<T> onFinished;
 
         /// <summary>
-        /// Gets a value indicating whether the gesture was cancelled.
+        /// (Read Only) a value indicating whether the gesture was cancelled.
         /// </summary>
         public bool WasCancelled { get; private set; }
 
         /// <summary>
-        /// Gets or sets the object this gesture is targeting.
+        /// (Read Only) The object this gesture is targeting.
         /// </summary>
         public GameObject TargetObject { get; protected set; }
 
         /// <summary>
-        /// Gets the gesture recognizer.
+        /// (Read Only) the gesture recognizer.
         /// </summary>
-        protected internal GestureRecognizer<T> m_Recognizer { get; private set; }
+        protected internal GestureRecognizer<T> m_Recognizer { get; }
 
         bool m_HasStarted { get; set; }
 

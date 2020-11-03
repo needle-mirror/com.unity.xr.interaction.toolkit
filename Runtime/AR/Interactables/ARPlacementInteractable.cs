@@ -19,6 +19,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if !AR_FOUNDATION_PRESENT
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
@@ -36,11 +38,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
 
     /// <summary>
-    /// UnityEvent that responds to changes of hover and selection by this interactor.
+    /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this interactor.
     /// </summary>
     [Serializable]
     public class ARObjectPlacedEvent : UnityEvent<ARPlacementInteractable, GameObject> { }
-    
+
     /// <summary>
     /// Controls the placement of Andy objects via a tap gesture.
     /// </summary>
@@ -49,28 +51,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         [SerializeField]
         [Tooltip("A GameObject to place when a raycast from a user touch hits a plane.")]
         GameObject m_PlacementPrefab;
+
         /// <summary>
-        /// A GameObject to place when a raycast from a user touch hits a plane.
+        /// A <see cref="GameObject"/> to place when a raycast from a user touch hits a plane.
         /// </summary>
-        public GameObject placementPrefab { get { return m_PlacementPrefab; } set { m_PlacementPrefab = value; } }
+        public GameObject placementPrefab
+        {
+            get => m_PlacementPrefab;
+            set => m_PlacementPrefab = value;
+        }
 
         [SerializeField, Tooltip("Called when the this interactable places a new GameObject in the world.")]
         ARObjectPlacedEvent m_OnObjectPlaced = new ARObjectPlacedEvent();
-        /// <summary>Gets or sets the event that is called when the this interactable places a new GameObject in the world.</summary>
-        public ARObjectPlacedEvent onObjectPlaced { get { return m_OnObjectPlaced; } set { m_OnObjectPlaced = value; } }
-        
-        static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+
+        /// <summary>
+        /// The event that is called when the this interactable places a new <see cref="GameObject"/> in the world.
+        /// </summary>
+        public ARObjectPlacedEvent onObjectPlaced
+        {
+            get => m_OnObjectPlaced;
+            set => m_OnObjectPlaced = value;
+        }
+
+        static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
         static GameObject s_TrackablesObject;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
         protected override bool CanStartManipulationForGesture(TapGesture gesture)
         {
             // Allow for test planes
-            if (gesture.TargetObject == null || gesture.TargetObject.layer == 9)
+            if (gesture.TargetObject == null || gesture.TargetObject.layer == 9) // TODO Placement gesture layer check should be configurable
                 return true;
 
             return false;
@@ -87,25 +101,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             // If gesture is targeting an existing object we are done.
             // Allow for test planes
-            if (gesture.TargetObject != null && gesture.TargetObject.layer != 9)
+            if (gesture.TargetObject != null && gesture.TargetObject.layer != 9) // TODO Placement gesture layer check should be configurable
                 return;
-            
+
             // Raycast against the location the player touched to search for planes.
-            if (GestureTransformationUtility.Raycast(gesture.StartPosition, s_Hits, TrackableType.PlaneWithinPolygon))
+            if (GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, TrackableType.PlaneWithinPolygon))
             {
                 var hit = s_Hits[0];
-                
+
                 // Use hit pose and camera pose to check if hittest is from the
                 // back of the plane, if it is, no need to create the anchor.
                 if (Vector3.Dot(Camera.main.transform.position - hit.pose.position,
                         hit.pose.rotation * Vector3.up) < 0)
                     return;
-                
+
                 // Instantiate placement prefab at the hit pose.
                 var placementObject = Instantiate(placementPrefab, hit.pose.position, hit.pose.rotation);
 
                 // Create anchor to track reference point and set it as the parent of placementObject.
-                // TODO: this should update with a reference point for better tracking.
+                // TODO This should update with a reference point for better tracking.
                 var anchorObject = new GameObject("PlacementAnchor");
                 anchorObject.transform.position = hit.pose.position;
                 anchorObject.transform.rotation = hit.pose.rotation;
@@ -117,8 +131,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 if (s_TrackablesObject != null)
                     anchorObject.transform.parent = s_TrackablesObject.transform;
 
-                if (m_OnObjectPlaced != null)
-                    m_OnObjectPlaced.Invoke(this, placementObject);
+                m_OnObjectPlaced?.Invoke(this, placementObject);
             }
         }
     }

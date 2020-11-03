@@ -3,9 +3,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRRayInteractor))]
-    [CanEditMultipleObjects]
-    internal class XRRayInteractorEditor : Editor
+    [CustomEditor(typeof(XRRayInteractor)), CanEditMultipleObjects]
+    public class XRRayInteractorEditor : Editor
     {
         SerializedProperty m_InteractionManager;
         SerializedProperty m_InteractionLayerMask;
@@ -14,31 +13,31 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_SelectActionTrigger;
         SerializedProperty m_HideControllerOnSelect;
 
-        SerializedProperty m_PlayAudioClipOnSelectEnter;
-        SerializedProperty m_AudioClipForOnSelectEnter;
-        SerializedProperty m_PlayAudioClipOnSelectExit;
-        SerializedProperty m_AudioClipForOnSelectExit;
-        SerializedProperty m_PlayAudioClipOnHoverEnter;
-        SerializedProperty m_AudioClipForOnHoverEnter;
-        SerializedProperty m_PlayAudioClipOnHoverExit;
-        SerializedProperty m_AudioClipForOnHoverExit;
+        SerializedProperty m_PlayAudioClipOnSelectEntered;
+        SerializedProperty m_AudioClipForOnSelectEntered;
+        SerializedProperty m_PlayAudioClipOnSelectExited;
+        SerializedProperty m_AudioClipForOnSelectExited;
+        SerializedProperty m_PlayAudioClipOnHoverEntered;
+        SerializedProperty m_AudioClipForOnHoverEntered;
+        SerializedProperty m_PlayAudioClipOnHoverExited;
+        SerializedProperty m_AudioClipForOnHoverExited;
 
-        SerializedProperty m_PlayHapticsOnSelectEnter;
+        SerializedProperty m_PlayHapticsOnSelectEntered;
         SerializedProperty m_HapticSelectEnterIntensity;
         SerializedProperty m_HapticSelectEnterDuration;
-        SerializedProperty m_PlayHapticsOnHoverEnter;
+        SerializedProperty m_PlayHapticsOnHoverEntered;
         SerializedProperty m_HapticHoverEnterIntensity;
         SerializedProperty m_HapticHoverEnterDuration;
-        SerializedProperty m_PlayHapticsOnSelectExit;
+        SerializedProperty m_PlayHapticsOnSelectExited;
         SerializedProperty m_HapticSelectExitIntensity;
         SerializedProperty m_HapticSelectExitDuration;
-        SerializedProperty m_PlayHapticsOnHoverExit;
+        SerializedProperty m_PlayHapticsOnHoverExited;
         SerializedProperty m_HapticHoverExitIntensity;
         SerializedProperty m_HapticHoverExitDuration;
 
         SerializedProperty m_MaxRaycastDistance;
         SerializedProperty m_HitDetectionType;
-        SerializedProperty m_SphereCastRadius;        
+        SerializedProperty m_SphereCastRadius;
         SerializedProperty m_RaycastMask;
         SerializedProperty m_RaycastTriggerInteraction;
         SerializedProperty m_HoverToSelect;
@@ -57,15 +56,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_AdditionalFlightTime;
         SerializedProperty m_ReferenceFrame;
 
-        SerializedProperty m_OnHoverEnter;
-        SerializedProperty m_OnHoverExit;
-        SerializedProperty m_OnSelectEnter;
-        SerializedProperty m_OnSelectExit;
+        SerializedProperty m_OnHoverEntered;
+        SerializedProperty m_OnHoverExited;
+        SerializedProperty m_OnSelectEntered;
+        SerializedProperty m_OnSelectExited;
 
+        SerializedProperty m_KeepSelectedTargetValid;
+        SerializedProperty m_AllowAnchorControl;
+        SerializedProperty m_UseForceGrab;
 
-        bool m_ShowInteractorEvents;
-        bool m_ShowSoundEvents = false;
-        bool m_ShowHapticEvents = false;
+        SerializedProperty m_AnchorRotateSpeed;
+        SerializedProperty m_AnchorTranslateSpeed;
 
         static class Tooltips
         {
@@ -75,28 +76,31 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent startingSelectedInteractable = new GUIContent("Starting Selected Interactable", "Interactable that will be selected upon start.");
             public static readonly GUIContent selectActionTrigger = new GUIContent("Select Action Trigger", "Choose how the select action is triggered by current state, state transitions, toggle when the select button is pressed, or [Sticky] toggle on when the select button is pressed and off the second time the select button is depressed.");
             public static readonly GUIContent hideControllerOnSelect = new GUIContent("Hide Controller On Select", "Hide controller on select.");
-            public static readonly GUIContent PlayAudioClipOnSelectEnter = new GUIContent("Play AudioClip On Select Enter", "Play an audio clip when the Select state is entered.");
-            public static readonly GUIContent AudioClipForOnSelectEnter = new GUIContent("AudioClip To Play On Select Enter", "The audio clip to play when the Select state is entered.");
-            public static readonly GUIContent PlayAudioClipOnSelectExit = new GUIContent("Play AudioClip On Select Exit", "Play an audio clip when the Select state is exited.");
-            public static readonly GUIContent AudioClipForOnSelectExit = new GUIContent("AudioClip To Play On Select Exit", "The audio clip to play when the Select state is exited.");
-            public static readonly GUIContent PlayAudioClipOnHoverEnter = new GUIContent("Play AudioClip On Hover Enter", "Play an audio clip when the Hover state is entered.");
-            public static readonly GUIContent AudioClipForOnHoverEnter = new GUIContent("AudioClip To Play On Hover Enter", "The audio clip to play when the Hover state is entered.");
-            public static readonly GUIContent PlayAudioClipOnHoverExit = new GUIContent("Play AudioClip On Hover Exit", "Play an audio clip when the Hover state is exited.");
-            public static readonly GUIContent AudioClipForOnHoverExit = new GUIContent("AudioClip To Play On Hover Exit", "The audio clip to play when the Hover state is exited.");
-            public static readonly GUIContent playHapticsOnSelectEnter = new GUIContent("Play Haptics On Select Enter", "Play haptics when the select state is entered.");
-            public static readonly GUIContent hapticSelectEnterIntensity = new GUIContent("Haptic Select Enter Intensity", "Haptics intensity to play when the select state is entered.");
-            public static readonly GUIContent hapticSelectEnterDuration = new GUIContent("Haptic Select Enter Duration", "Haptics Duration to play when the select state is entered.");
-            public static readonly GUIContent playHapticsOnHoverEnter = new GUIContent("Play Haptics On Hover Enter", "Play haptics when the hover state is entered.");
-            public static readonly GUIContent hapticHoverEnterIntensity = new GUIContent("Haptic Hover Enter Intensity", "Haptics intensity to play when the hover state is entered.");
-            public static readonly GUIContent hapticHoverEnterDuration = new GUIContent("Haptic Hover Enter Duration", "Haptics Duration to play when the hover state is entered.");
-            public static readonly GUIContent playHapticsOnSelectExit = new GUIContent("Play Haptics On Select Exit", "Play haptics when the select state is exited.");
-            public static readonly GUIContent hapticSelectExitIntensity = new GUIContent("Haptic Select Exit Intensity", "Haptics intensity to play when the select state is exited.");
-            public static readonly GUIContent hapticSelectExitDuration = new GUIContent("Haptic Select Exit Duration", "Haptics Duration to play when the select state is exited.");
-            public static readonly GUIContent playHapticsOnHoverExit = new GUIContent("Play Haptics On Hover Exit", "Play haptics when the hover state is exited.");
-            public static readonly GUIContent hapticHoverExitIntensity = new GUIContent("Haptic Hover Exit Intensity", "Haptics intensity to play when the hover state is exited.");
-            public static readonly GUIContent hapticHoverExitDuration = new GUIContent("Haptic Hover Exit Duration", "Haptics Duration to play when the hover state is exited.");
+
+            public static readonly GUIContent playAudioClipOnSelectEntered = new GUIContent("On Select Entered", "Play an audio clip when the Select state is entered.");
+            public static readonly GUIContent audioClipForOnSelectEntered = new GUIContent("AudioClip To Play", "The audio clip to play when the Select state is entered.");
+            public static readonly GUIContent playAudioClipOnSelectExited = new GUIContent("On Select Exited", "Play an audio clip when the Select state is exited.");
+            public static readonly GUIContent audioClipForOnSelectExited = new GUIContent("AudioClip To Play", "The audio clip to play when the Select state is exited.");
+            public static readonly GUIContent playAudioClipOnHoverEntered = new GUIContent("On Hover Entered", "Play an audio clip when the Hover state is entered.");
+            public static readonly GUIContent audioClipForOnHoverEntered = new GUIContent("AudioClip To Play", "The audio clip to play when the Hover state is entered.");
+            public static readonly GUIContent playAudioClipOnHoverExited = new GUIContent("On Hover Exited", "Play an audio clip when the Hover state is exited.");
+            public static readonly GUIContent audioClipForOnHoverExited = new GUIContent("AudioClip To Play", "The audio clip to play when the Hover state is exited.");
+
+            public static readonly GUIContent playHapticsOnSelectEntered = new GUIContent("On Select Entered", "Play haptics when the Select state is entered.");
+            public static readonly GUIContent hapticSelectEnterIntensity = new GUIContent("Haptic Intensity", "Haptics intensity to play when the Select state is entered.");
+            public static readonly GUIContent hapticSelectEnterDuration = new GUIContent("Duration", "Haptics duration (in seconds) to play when the Select state is entered.");
+            public static readonly GUIContent playHapticsOnHoverEntered = new GUIContent("On Hover Entered", "Play haptics when the Hover State is entered.");
+            public static readonly GUIContent hapticHoverEnterIntensity = new GUIContent("Haptic Intensity", "Haptics intensity to play when the Hover state is entered.");
+            public static readonly GUIContent hapticHoverEnterDuration = new GUIContent("Duration", "Haptics duration (in seconds) to play when the Hover state is entered.");
+            public static readonly GUIContent playHapticsOnSelectExited = new GUIContent("On Select Exited", "Play haptics when the Select state is exited.");
+            public static readonly GUIContent hapticSelectExitIntensity = new GUIContent("Haptic Intensity", "Haptics intensity to play when the Select state is exited.");
+            public static readonly GUIContent hapticSelectExitDuration = new GUIContent("Duration", "Haptics duration (in seconds) to play when the Select state is exited.");
+            public static readonly GUIContent playHapticsOnHoverExited = new GUIContent("On Hover Exited", "Play haptics when the Hover state is exited.");
+            public static readonly GUIContent hapticHoverExitIntensity = new GUIContent("Haptic Intensity", "Haptics intensity to play when the Hover state is exited.");
+            public static readonly GUIContent hapticHoverExitDuration = new GUIContent("Duration", "Haptics duration (in seconds) to play when the Hover state is exited.");
+
             public static readonly GUIContent maxRaycastDistance = new GUIContent("Max Raycast Distance", "Max distance of ray cast. Increase this value will let you reach further.");
-            public static readonly GUIContent sphereCastRadius = new GUIContent("Sphere Cast Radius", "Radius of this Interactor's ray, used for spherecasting.");
+            public static readonly GUIContent sphereCastRadius = new GUIContent("Sphere Cast Radius", "Radius of this Interactor's ray, used for sphere casting.");
             public static readonly GUIContent raycastMask = new GUIContent("Raycast Mask", "Layer mask used for limiting raycast targets.");
             public static readonly GUIContent raycastTriggerInteraction = new GUIContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via raycast.");
             public static readonly GUIContent hoverToSelect = new GUIContent("Hover To Select", "If true, this interactor will simulate a Select event if hovered over an Interactable for some amount of time. Selection will be exited when the Interactor is no longer hovering over the Interactable.");
@@ -110,13 +114,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent sampleFrequency = new GUIContent("Sample Frequency", "Gets or sets the number of sample points of the curve, should be at least 3, the higher the better quality.");
             public static readonly GUIContent velocity = new GUIContent("Velocity", "Initial velocity of the projectile. Increase this value will make the curve reach further.");
             public static readonly GUIContent acceleration = new GUIContent("Acceleration", "Gravity of the projectile in the reference frame.");
-            public static readonly GUIContent additionalFlightTime = new GUIContent("Additional FlightTime", "Additional flight time after the projectile lands at the same height of the start point in the tracking space. Increase this value will make the end point drop lower in height.");
-            public static readonly GUIContent referenceFrame = new GUIContent("Reference Frame", "The reference frame of the projectile. If not set it will try to find the XRRig object, if the XRRig does not exist it will use self");
+            public static readonly GUIContent additionalFlightTime = new GUIContent("Additional Flight Time", "Additional flight time after the projectile lands at the same height of the start point in the tracking space. Increase this value will make the end point drop lower in height.");
+            public static readonly GUIContent referenceFrame = new GUIContent("Reference Frame", "The reference frame of the projectile. If not set it will try to find the XRRig GameObject, and if that does not exist it will use its own Transform.");
             public static readonly GUIContent hitDetectionType = new GUIContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
+
+            public static readonly GUIContent keepSelectedTargetValid = new GUIContent("Keep Selected Target Valid", "Keep selecting the target when not pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation interactables.");
+            public static readonly GUIContent allowAnchorControl = new GUIContent("Anchor Control", "Allows the user to move the attach anchor point using the joystick.");
+            public static readonly GUIContent forceGrab = new GUIContent("Force Grab", "Force grab moves the object to your hand rather than interacting with it at a distance.");
+            public static readonly GUIContent anchorRotateSpeed = new GUIContent("Rotate Speed", "Speed that the anchor is rotated.");
+            public static readonly GUIContent anchorTranslateSpeed = new GUIContent("Translate Speed", "Speed that the anchor is translated.");
+
             public static readonly string startingInteractableWarning = "A Starting Selected Interactable will be instantly deselected unless the Interactor's Toggle Select Mode is set to 'Toggle' or 'Sticky'.";
+            public static readonly string missingRequiredController = "XR Ray Interactor requires the GameObject to have an XR Controller component. Add one to ensure this component can respond to user input.";
         }
 
-        void OnEnable()
+        protected void OnEnable()
         {
             m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
@@ -124,24 +136,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
             m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
             m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
-            m_PlayAudioClipOnSelectEnter = serializedObject.FindProperty("m_PlayAudioClipOnSelectEnter");
-            m_AudioClipForOnSelectEnter = serializedObject.FindProperty("m_AudioClipForOnSelectEnter");
-            m_PlayAudioClipOnSelectExit = serializedObject.FindProperty("m_PlayAudioClipOnSelectExit");
-            m_AudioClipForOnSelectExit = serializedObject.FindProperty("m_AudioClipForOnSelectExit");
-            m_PlayAudioClipOnHoverEnter = serializedObject.FindProperty("m_PlayAudioClipOnHoverEnter");
-            m_AudioClipForOnHoverEnter = serializedObject.FindProperty("m_AudioClipForOnHoverEnter");
-            m_PlayAudioClipOnHoverExit = serializedObject.FindProperty("m_PlayAudioClipOnHoverExit");
-            m_AudioClipForOnHoverExit = serializedObject.FindProperty("m_AudioClipForOnHoverExit");
-            m_PlayHapticsOnSelectEnter = serializedObject.FindProperty("m_PlayHapticsOnSelectEnter");
+            m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
+            m_AudioClipForOnSelectEntered = serializedObject.FindProperty("m_AudioClipForOnSelectEntered");
+            m_PlayAudioClipOnSelectExited = serializedObject.FindProperty("m_PlayAudioClipOnSelectExited");
+            m_AudioClipForOnSelectExited = serializedObject.FindProperty("m_AudioClipForOnSelectExited");
+            m_PlayAudioClipOnHoverEntered = serializedObject.FindProperty("m_PlayAudioClipOnHoverEntered");
+            m_AudioClipForOnHoverEntered = serializedObject.FindProperty("m_AudioClipForOnHoverEntered");
+            m_PlayAudioClipOnHoverExited = serializedObject.FindProperty("m_PlayAudioClipOnHoverExited");
+            m_AudioClipForOnHoverExited = serializedObject.FindProperty("m_AudioClipForOnHoverExited");
+            m_PlayHapticsOnSelectEntered = serializedObject.FindProperty("m_PlayHapticsOnSelectEntered");
             m_HapticSelectEnterIntensity = serializedObject.FindProperty("m_HapticSelectEnterIntensity");
             m_HapticSelectEnterDuration = serializedObject.FindProperty("m_HapticSelectEnterDuration");
-            m_PlayHapticsOnHoverEnter = serializedObject.FindProperty("m_PlayHapticsOnHoverEnter");
+            m_PlayHapticsOnHoverEntered = serializedObject.FindProperty("m_PlayHapticsOnHoverEntered");
             m_HapticHoverEnterIntensity = serializedObject.FindProperty("m_HapticHoverEnterIntensity");
             m_HapticHoverEnterDuration = serializedObject.FindProperty("m_HapticHoverEnterDuration");
-            m_PlayHapticsOnSelectExit = serializedObject.FindProperty("m_PlayHapticsOnSelectExit");
+            m_PlayHapticsOnSelectExited = serializedObject.FindProperty("m_PlayHapticsOnSelectExited");
             m_HapticSelectExitIntensity = serializedObject.FindProperty("m_HapticSelectExitIntensity");
             m_HapticSelectExitDuration = serializedObject.FindProperty("m_HapticSelectExitDuration");
-            m_PlayHapticsOnHoverExit = serializedObject.FindProperty("m_PlayHapticsOnHoverExit");
+            m_PlayHapticsOnHoverExited = serializedObject.FindProperty("m_PlayHapticsOnHoverExited");
             m_HapticHoverExitIntensity = serializedObject.FindProperty("m_HapticHoverExitIntensity");
             m_HapticHoverExitDuration = serializedObject.FindProperty("m_HapticHoverExitDuration");
             m_MaxRaycastDistance = serializedObject.FindProperty("m_MaxRaycastDistance");
@@ -165,134 +177,201 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_Acceleration = serializedObject.FindProperty("m_Acceleration");
             m_AdditionalFlightTime = serializedObject.FindProperty("m_AdditionalFlightTime");
 
-            m_OnHoverEnter = serializedObject.FindProperty("m_OnHoverEnter");
-            m_OnHoverExit = serializedObject.FindProperty("m_OnHoverExit");
-            m_OnSelectEnter = serializedObject.FindProperty("m_OnSelectEnter");
-            m_OnSelectExit = serializedObject.FindProperty("m_OnSelectExit");
+            m_OnHoverEntered = serializedObject.FindProperty("m_OnHoverEntered");
+            m_OnHoverExited = serializedObject.FindProperty("m_OnHoverExited");
+            m_OnSelectEntered = serializedObject.FindProperty("m_OnSelectEntered");
+            m_OnSelectExited = serializedObject.FindProperty("m_OnSelectExited");
+
+            m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
+            m_AllowAnchorControl = serializedObject.FindProperty("m_AllowAnchorControl");
+            m_UseForceGrab = serializedObject.FindProperty("m_UseForceGrab");
+            m_AnchorRotateSpeed = serializedObject.FindProperty("m_RotateSpeed");
+            m_AnchorTranslateSpeed = serializedObject.FindProperty("m_TranslateSpeed");
+
+            // Set default expanded for some foldouts
+            const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
+            if (!SessionState.GetBool(initializedKey, false))
+            {
+                SessionState.SetBool(initializedKey, true);
+                m_LineType.isExpanded = true;
+                m_SelectActionTrigger.isExpanded = true;
+            }
         }
 
         public override void OnInspectorGUI()
         {
-
-            GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRRayInteractor)target), typeof(XRRayInteractor), false);
-            GUI.enabled = true;
-
             serializedObject.Update();
 
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((XRRayInteractor)target), typeof(XRRayInteractor), false);
+            EditorGUI.EndDisabledGroup();
+
+            foreach (var targetObject in serializedObject.targetObjects)
+            {
+                var interactor = (XRRayInteractor)targetObject;
+                if (interactor.GetComponent<XRBaseController>() == null)
+                {
+                    EditorGUILayout.HelpBox(Tooltips.missingRequiredController, MessageType.Warning, true);
+                    break;
+                }
+            }
+
+            // Interaction Management
             EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
-            EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
-            EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
-            EditorGUILayout.PropertyField(m_SelectActionTrigger, Tooltips.selectActionTrigger);
-            if (m_StartingSelectedInteractable.objectReferenceValue != null 
-                && (m_SelectActionTrigger.enumValueIndex == 2 || m_SelectActionTrigger.enumValueIndex == 3))
-            {
-                EditorGUILayout.HelpBox(Tooltips.startingInteractableWarning, MessageType.Warning, true);
-            }
-            EditorGUILayout.PropertyField(m_HideControllerOnSelect, Tooltips.hideControllerOnSelect);
 
             EditorGUILayout.Space();
+            // End of Interaction Management
 
-            EditorGUILayout.PropertyField(m_LineType, Tooltips.lineType);
-
+            // Interactable
+            EditorGUILayout.PropertyField(m_EnableUIInteraction, Tooltips.enableUIInteraction);
+            EditorGUILayout.PropertyField(m_UseForceGrab, Tooltips.forceGrab);
+            EditorGUILayout.PropertyField(m_AllowAnchorControl, Tooltips.allowAnchorControl);
             EditorGUI.indentLevel++;
-            if(m_LineType.enumValueIndex  == 0) // straight line
+            if (m_AllowAnchorControl.boolValue)
             {
-                 EditorGUILayout.PropertyField(m_MaxRaycastDistance, Tooltips.maxRaycastDistance);
-            }
-            else if (m_LineType.enumValueIndex == 1) // projectile
-            {
-                EditorGUILayout.PropertyField(m_ReferenceFrame, Tooltips.referenceFrame);
-                EditorGUILayout.PropertyField(m_Velocity, Tooltips.velocity);
-                EditorGUILayout.PropertyField(m_Acceleration, Tooltips.acceleration);
-                EditorGUILayout.PropertyField(m_AdditionalFlightTime, Tooltips.additionalFlightTime);
-                EditorGUILayout.PropertyField(m_SampleFrequency, Tooltips.sampleFrequency);
-            }
-
-            else if (m_LineType.enumValueIndex == 2) // bezier
-            {
-                EditorGUILayout.PropertyField(m_EndPointDistance, Tooltips.endPointDistance);
-                EditorGUILayout.PropertyField(m_EndPointHeight, Tooltips.endPointHeight);
-                EditorGUILayout.PropertyField(m_ControlPointDistance, Tooltips.controlPointDistance);
-                EditorGUILayout.PropertyField(m_ControlPointHeight, Tooltips.controlPointHeight);
-                EditorGUILayout.PropertyField(m_SampleFrequency, Tooltips.sampleFrequency);
+                EditorGUILayout.PropertyField(m_AnchorRotateSpeed, Tooltips.anchorRotateSpeed);
+                EditorGUILayout.PropertyField(m_AnchorTranslateSpeed, Tooltips.anchorTranslateSpeed);
             }
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
 
-            EditorGUILayout.PropertyField(m_HitDetectionType, Tooltips.hitDetectionType);
-            using (new EditorGUI.DisabledScope(m_HitDetectionType.enumValueIndex != (int)XRRayInteractor.HitDetectionType.SphereCast))
+            EditorGUILayout.Space();
+            // End of Interactable
+
+            // Raycast Configuration
+            m_LineType.isExpanded = EditorGUILayout.Foldout(m_LineType.isExpanded, EditorGUIUtility.TrTempContent("Raycast Configuration"), true);
+            if (m_LineType.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_SphereCastRadius, Tooltips.sphereCastRadius);
+
+                // Line type
+                EditorGUILayout.PropertyField(m_LineType, Tooltips.lineType);
+
+                EditorGUI.indentLevel++;
+                switch (m_LineType.enumValueIndex)
+                {
+                    case (int)XRRayInteractor.LineType.StraightLine:
+                        EditorGUILayout.PropertyField(m_MaxRaycastDistance, Tooltips.maxRaycastDistance);
+                        break;
+                    case (int)XRRayInteractor.LineType.ProjectileCurve:
+                        EditorGUILayout.PropertyField(m_ReferenceFrame, Tooltips.referenceFrame);
+                        EditorGUILayout.PropertyField(m_Velocity, Tooltips.velocity);
+                        EditorGUILayout.PropertyField(m_Acceleration, Tooltips.acceleration);
+                        EditorGUILayout.PropertyField(m_AdditionalFlightTime, Tooltips.additionalFlightTime);
+                        EditorGUILayout.PropertyField(m_SampleFrequency, Tooltips.sampleFrequency);
+                        break;
+                    case (int)XRRayInteractor.LineType.BezierCurve:
+                        EditorGUILayout.PropertyField(m_EndPointDistance, Tooltips.endPointDistance);
+                        EditorGUILayout.PropertyField(m_EndPointHeight, Tooltips.endPointHeight);
+                        EditorGUILayout.PropertyField(m_ControlPointDistance, Tooltips.controlPointDistance);
+                        EditorGUILayout.PropertyField(m_ControlPointHeight, Tooltips.controlPointHeight);
+                        EditorGUILayout.PropertyField(m_SampleFrequency, Tooltips.sampleFrequency);
+                        break;
+                }
+                EditorGUI.indentLevel--;
+
+                EditorGUILayout.Space();
+                // End of Line type
+
+                EditorGUILayout.PropertyField(m_RaycastMask, Tooltips.raycastMask);
+                EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Tooltips.raycastTriggerInteraction);
+                EditorGUILayout.PropertyField(m_HitDetectionType, Tooltips.hitDetectionType);
+                if (m_HitDetectionType.enumValueIndex == (int)XRRayInteractor.HitDetectionType.SphereCast)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_SphereCastRadius, Tooltips.sphereCastRadius);
+                    EditorGUI.indentLevel--;
+                }
+
                 EditorGUI.indentLevel--;
             }
-        
-            EditorGUILayout.Space();
-
-
-            EditorGUILayout.PropertyField(m_RaycastMask, Tooltips.raycastMask);
-            EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Tooltips.raycastTriggerInteraction);
 
             EditorGUILayout.Space();
+            // End of Raycast Configuration
 
-            EditorGUILayout.PropertyField(m_HoverToSelect, Tooltips.hoverToSelect);
-            if (m_HoverToSelect.boolValue)
+            // Selection Configuration
+            m_SelectActionTrigger.isExpanded = EditorGUILayout.Foldout(m_SelectActionTrigger.isExpanded, EditorGUIUtility.TrTempContent("Selection Configuration"), true);
+            if (m_SelectActionTrigger.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_HoverTimeToSelect, Tooltips.hoverTimeToSelect);
+
+                EditorGUILayout.PropertyField(m_SelectActionTrigger, Tooltips.selectActionTrigger);
+                if (m_StartingSelectedInteractable.objectReferenceValue != null
+                    && (m_SelectActionTrigger.enumValueIndex == (int)XRBaseControllerInteractor.InputTriggerType.Sticky
+                     || m_SelectActionTrigger.enumValueIndex == (int)XRBaseControllerInteractor.InputTriggerType.Toggle))
+                {
+                    EditorGUILayout.HelpBox(Tooltips.startingInteractableWarning, MessageType.Warning, true);
+                }
+
+                EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, Tooltips.keepSelectedTargetValid);
+                EditorGUILayout.PropertyField(m_HideControllerOnSelect, Tooltips.hideControllerOnSelect);
+                EditorGUILayout.PropertyField(m_HoverToSelect, Tooltips.hoverToSelect);
+                if (m_HoverToSelect.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_HoverTimeToSelect, Tooltips.hoverTimeToSelect);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
+
+                EditorGUI.indentLevel--;
+
+            }
+
+            EditorGUILayout.Space();
+            // End of Selection Configuration
+
+            m_PlayAudioClipOnSelectEntered.isExpanded = EditorGUILayout.Foldout(m_PlayAudioClipOnSelectEntered.isExpanded, EditorGUIUtility.TrTempContent("Audio Events"), true);
+            if (m_PlayAudioClipOnSelectEntered.isExpanded)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectEntered, Tooltips.playAudioClipOnSelectEntered);
+                if (m_PlayAudioClipOnSelectEntered.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectEntered, Tooltips.audioClipForOnSelectEntered);
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectExited, Tooltips.playAudioClipOnSelectExited);
+                if (m_PlayAudioClipOnSelectExited.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectExited, Tooltips.audioClipForOnSelectExited);
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverEntered, Tooltips.playAudioClipOnHoverEntered);
+                if (m_PlayAudioClipOnHoverEntered.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverEntered, Tooltips.audioClipForOnHoverEntered);
+                    EditorGUI.indentLevel--;
+                }
+
+                EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverExited, Tooltips.playAudioClipOnHoverExited);
+                if (m_PlayAudioClipOnHoverExited.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverExited, Tooltips.audioClipForOnHoverExited);
+                    EditorGUI.indentLevel--;
+                }
+
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(m_EnableUIInteraction, Tooltips.enableUIInteraction);
-
             EditorGUILayout.Space();
 
-            m_ShowSoundEvents = EditorGUILayout.Foldout(m_ShowSoundEvents, "Sound Events");
-            if (m_ShowSoundEvents)
+            m_PlayHapticsOnSelectEntered.isExpanded = EditorGUILayout.Foldout(m_PlayHapticsOnSelectEntered.isExpanded, EditorGUIUtility.TrTempContent("Haptic Events"), true);
+            if (m_PlayHapticsOnSelectEntered.isExpanded)
             {
-                EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectEnter, Tooltips.PlayAudioClipOnSelectEnter);
-                if (m_PlayAudioClipOnSelectEnter.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectEnter, Tooltips.AudioClipForOnSelectEnter);
-                    EditorGUI.indentLevel--;
-                }
+                EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectExit, Tooltips.PlayAudioClipOnSelectExit);
-                if (m_PlayAudioClipOnSelectExit.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectExit, Tooltips.AudioClipForOnSelectExit);
-                    EditorGUI.indentLevel--;
-                }
-
-                EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverEnter, Tooltips.PlayAudioClipOnHoverEnter);
-                if (m_PlayAudioClipOnHoverEnter.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverEnter, Tooltips.AudioClipForOnHoverEnter);
-                    EditorGUI.indentLevel--;
-                }
-
-                EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverExit, Tooltips.PlayAudioClipOnHoverExit);
-                if (m_PlayAudioClipOnHoverExit.boolValue)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverExit, Tooltips.AudioClipForOnHoverExit);
-                    EditorGUI.indentLevel--;
-                }
-            }
-
-            EditorGUILayout.Space();
-
-            m_ShowHapticEvents = EditorGUILayout.Foldout(m_ShowHapticEvents, "Haptic Events");
-            if (m_ShowHapticEvents)
-            {
-                EditorGUILayout.PropertyField(m_PlayHapticsOnSelectEnter, Tooltips.playHapticsOnSelectEnter);
-                if (m_PlayHapticsOnSelectEnter.boolValue)
+                EditorGUILayout.PropertyField(m_PlayHapticsOnSelectEntered, Tooltips.playHapticsOnSelectEntered);
+                if (m_PlayHapticsOnSelectEntered.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_HapticSelectEnterIntensity, Tooltips.hapticSelectEnterIntensity);
@@ -300,8 +379,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUI.indentLevel--;
                 }
 
-                EditorGUILayout.PropertyField(m_PlayHapticsOnSelectExit, Tooltips.playHapticsOnSelectExit);
-                if (m_PlayHapticsOnSelectExit.boolValue)
+                EditorGUILayout.PropertyField(m_PlayHapticsOnSelectExited, Tooltips.playHapticsOnSelectExited);
+                if (m_PlayHapticsOnSelectExited.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_HapticSelectExitIntensity, Tooltips.hapticSelectExitIntensity);
@@ -309,8 +388,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUI.indentLevel--;
                 }
 
-                EditorGUILayout.PropertyField(m_PlayHapticsOnHoverEnter, Tooltips.playHapticsOnHoverEnter);
-                if (m_PlayHapticsOnHoverEnter.boolValue)
+                EditorGUILayout.PropertyField(m_PlayHapticsOnHoverEntered, Tooltips.playHapticsOnHoverEntered);
+                if (m_PlayHapticsOnHoverEntered.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_HapticHoverEnterIntensity, Tooltips.hapticHoverEnterIntensity);
@@ -318,27 +397,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUI.indentLevel--;
                 }
 
-                EditorGUILayout.PropertyField(m_PlayHapticsOnHoverExit, Tooltips.playHapticsOnHoverExit);
-                if (m_PlayHapticsOnHoverExit.boolValue)
+                EditorGUILayout.PropertyField(m_PlayHapticsOnHoverExited, Tooltips.playHapticsOnHoverExited);
+                if (m_PlayHapticsOnHoverExited.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(m_HapticHoverExitIntensity, Tooltips.hapticHoverExitIntensity);
                     EditorGUILayout.PropertyField(m_HapticHoverExitDuration, Tooltips.hapticHoverExitDuration);
                     EditorGUI.indentLevel--;
                 }
+
+                EditorGUI.indentLevel--;
             }
 
             EditorGUILayout.Space();
 
-            m_ShowInteractorEvents = EditorGUILayout.Foldout(m_ShowInteractorEvents, "Interactor Events");
-
-            if (m_ShowInteractorEvents)
+            m_OnHoverEntered.isExpanded = EditorGUILayout.Foldout(m_OnHoverEntered.isExpanded, EditorGUIUtility.TrTempContent("Interactor Events"), true);
+            if (m_OnHoverEntered.isExpanded)
             {
-                // UnityEvents have not yet supported Tooltips
-                EditorGUILayout.PropertyField(m_OnHoverEnter);
-                EditorGUILayout.PropertyField(m_OnHoverExit);
-                EditorGUILayout.PropertyField(m_OnSelectEnter);
-                EditorGUILayout.PropertyField(m_OnSelectExit);
+                EditorGUILayout.PropertyField(m_OnHoverEntered);
+                EditorGUILayout.PropertyField(m_OnHoverExited);
+                EditorGUILayout.PropertyField(m_OnSelectEntered);
+                EditorGUILayout.PropertyField(m_OnSelectExited);
             }
 
             serializedObject.ApplyModifiedProperties();

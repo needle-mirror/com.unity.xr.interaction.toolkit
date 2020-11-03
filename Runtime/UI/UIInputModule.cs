@@ -1,26 +1,96 @@
 using System;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// Base class for <see cref="BaseInputModule">input modules</see> that send
-    /// UI input.
+    /// Base class for input modules that send UI input.
     /// </summary>
     /// <remarks>
     /// Multiple input modules may be placed on the same event system. In such a setup,
-    /// the modules will synchronize with each other to not send
+    /// the modules will synchronize with each other.
     /// </remarks>
     public abstract class UIInputModule : BaseInputModule
     {
-        Camera m_Camera;
+        [SerializeField, FormerlySerializedAs("clickSpeed")]
+        [Tooltip("The maximum time (in seconds) between two mouse presses for it to be consecutive click.")]
+        float m_ClickSpeed = 0.3f;
         /// <summary>
-        /// The camera that is used to perform 2D raycasts when determining the screen space location of a tracked device cursor.
+        /// The maximum time (in seconds) between two mouse presses for it to be consecutive click.
         /// </summary>
-        public Camera uiCamera { get { return m_Camera; } set { m_Camera = value; } }
+        public float clickSpeed
+        {
+            get => m_ClickSpeed;
+            set => m_ClickSpeed = value;
+        }
 
+        [SerializeField, FormerlySerializedAs("moveDeadzone")]
+        [Tooltip("The absolute value required by a move action on either axis required to trigger a move event.")]
+        float m_MoveDeadzone = 0.6f;
+        /// <summary>
+        /// The absolute value required by a move action on either axis required to trigger a move event.
+        /// </summary>
+        public float moveDeadzone
+        {
+            get => m_MoveDeadzone;
+            set => m_MoveDeadzone = value;
+        }
+
+        [SerializeField, FormerlySerializedAs("repeatDelay")]
+        [Tooltip("The Initial delay (in seconds) between an initial move action and a repeated move action.")]
+        float m_RepeatDelay = 0.5f;
+        /// <summary>
+        /// The Initial delay (in seconds) between an initial move action and a repeated move action.
+        /// </summary>
+        public float repeatDelay
+        {
+            get => m_RepeatDelay;
+            set => m_RepeatDelay = value;
+        }
+
+        [FormerlySerializedAs("repeatRate")]
+        [SerializeField, Tooltip("The speed (in seconds) that the move action repeats itself once repeating.")]
+        float m_RepeatRate = 0.1f;
+        /// <summary>
+        /// The speed (in seconds) that the move action repeats itself once repeating.
+        /// </summary>
+        public float repeatRate
+        {
+            get => m_RepeatRate;
+            set => m_RepeatRate = value;
+        }
+
+        [FormerlySerializedAs("trackedDeviceDragThresholdMultiplier")]
+        [SerializeField, Tooltip("Scales the EventSystem.pixelDragThreshold, for tracked devices, to make selection easier.")]
+        float m_TrackedDeviceDragThresholdMultiplier = 2f;
+        /// <summary>
+        /// Scales the <see cref="EventSystem.pixelDragThreshold"/>, for tracked devices, to make selection easier.
+        /// </summary>
+        public float trackedDeviceDragThresholdMultiplier
+        {
+            get => m_TrackedDeviceDragThresholdMultiplier;
+            set => m_TrackedDeviceDragThresholdMultiplier = value;
+        }
+
+        /// <summary>
+        /// The <see cref="Camera"/> that is used to perform 2D raycasts when determining the screen space location of a tracked device cursor.
+        /// </summary>
+        public Camera uiCamera { get; set; }
+
+        AxisEventData m_CachedAxisEvent;
+        PointerEventData m_CachedPointerEvent;
+        TrackedDeviceEventData m_CachedTrackedDeviceEventData;
+
+        /// <summary>
+        /// Process the current tick for the module.
+        /// </summary>
+        /// <remarks>
+        /// Executed once per Update call.
+        /// </remarks>
         protected abstract void DoProcess();
 
+        /// <inheritdoc />
         public override void Process()
         {
             if (eventSystem.currentSelectedGameObject != null)
@@ -28,14 +98,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 var data = GetBaseEventData();
                 ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);
             }
-            
+
             DoProcess();
         }
 
-        private RaycastResult PerformRaycast(PointerEventData eventData)
+        RaycastResult PerformRaycast(PointerEventData eventData)
         {
             if (eventData == null)
-                throw new ArgumentNullException("eventData");
+                throw new ArgumentNullException(nameof(eventData));
 
             eventSystem.RaycastAll(eventData, m_RaycastResultCache);
             var result = FindFirstRaycast(m_RaycastResultCache);
@@ -44,10 +114,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Takes an existing MouseModel and dispatches all relevant changes through the event system.
-        /// It also updates the internal data of the MouseModel.
+        /// Takes an existing <see cref="MouseModel"/> and dispatches all relevant changes through the event system.
+        /// It also updates the internal data of the <see cref="MouseModel"/>.
         /// </summary>
-        /// <param name="mouseState">The mouse state you want to forward into the UI Event System</param>
+        /// <param name="mouseState">The mouse state you want to forward into the UI Event System.</param>
         internal void ProcessMouse(ref MouseModel mouseState)
         {
             if (!mouseState.changedThisFrame)
@@ -60,7 +130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
 
-            /// Left Mouse Button
+            // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
             var buttonState = mouseState.leftButton;
             buttonState.CopyTo(eventData);
@@ -76,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             buttonState.CopyFrom(eventData);
             mouseState.leftButton = buttonState;
 
-            /// Right Mouse Button
+            // Right Mouse Button
             buttonState = mouseState.rightButton;
             buttonState.CopyTo(eventData);
 
@@ -86,7 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             buttonState.CopyFrom(eventData);
             mouseState.rightButton = buttonState;
 
-            /// Middle Mouse Button
+            // Middle Mouse Button
             buttonState = mouseState.middleButton;
             buttonState.CopyTo(eventData);
 
@@ -99,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             mouseState.OnFrameFinished();
         }
 
-        private void ProcessMouseMovement(PointerEventData eventData)
+        void ProcessMouseMovement(PointerEventData eventData)
         {
             var currentPointerTarget = eventData.pointerCurrentRaycast.gameObject;
 
@@ -108,8 +178,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // and then exit.
             if (currentPointerTarget == null || eventData.pointerEnter == null)
             {
-                for (var i = 0; i < eventData.hovered.Count; ++i)
-                    ExecuteEvents.Execute(eventData.hovered[i], eventData, ExecuteEvents.pointerExitHandler);
+                foreach (var go in eventData.hovered)
+                    ExecuteEvents.Execute(go, eventData, ExecuteEvents.pointerExitHandler);
 
                 eventData.hovered.Clear();
 
@@ -160,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        private void ProcessMouseButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
+        void ProcessMouseButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
         {
             var currentOverGo = eventData.pointerCurrentRaycast.gameObject;
 
@@ -190,7 +260,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 var time = Time.unscaledTime;
 
-                if (newPressed == eventData.lastPress && ((time - eventData.clickTime) < clickSpeed))
+                if (newPressed == eventData.lastPress && ((time - eventData.clickTime) < m_ClickSpeed))
                     ++eventData.clickCount;
                 else
                     eventData.clickCount = 1;
@@ -228,12 +298,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        private void ProcessMouseButtonDrag(PointerEventData eventData, float pixelDragThresholdMultiplier = 1.0f)
+        void ProcessMouseButtonDrag(PointerEventData eventData, float pixelDragThresholdMultiplier = 1.0f)
         {
             if (!eventData.IsPointerMoving() ||
                 Cursor.lockState == CursorLockMode.Locked ||
                 eventData.pointerDrag == null)
+            {
                 return;
+            }
 
             if (!eventData.dragging)
             {
@@ -259,7 +331,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        private void ProcessMouseScroll(PointerEventData eventData)
+        void ProcessMouseScroll(PointerEventData eventData)
         {
             var scrollDelta = eventData.scrollDelta;
             if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0.0f))
@@ -301,21 +373,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             deviceState.CopyTo(eventData);
 
             eventData.button = PointerEventData.InputButton.Left;
-    
+
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
 
             // Get associated camera, or main-tagged camera, or camera from raycast, and if *nothing* exists, then abort processing this frame.
-            Camera camera = uiCamera ?? Camera.main ?? eventData.pointerCurrentRaycast.module?.eventCamera ?? null;
+            var camera = uiCamera ? uiCamera : Camera.main;
+            if (camera == null)
+            {
+                var module = eventData.pointerCurrentRaycast.module;
+                if (module)
+                    camera = module.eventCamera;
+            }
+
             if (camera != null)
             {
-                var screenPosition = Vector2.zero;
+                Vector2 screenPosition;
                 if (eventData.pointerCurrentRaycast.isValid)
                 {
                     screenPosition = camera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
                 }
                 else
                 {
-                    Vector3 endPosition = eventData.rayPoints.Count > 0 ? eventData.rayPoints[eventData.rayPoints.Count - 1] : Vector3.zero;
+                    var endPosition = eventData.rayPoints.Count > 0 ? eventData.rayPoints[eventData.rayPoints.Count - 1] : Vector3.zero;
                     screenPosition = camera.WorldToScreenPoint(endPosition);
                     eventData.position = screenPosition;
                 }
@@ -326,14 +405,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 ProcessMouseButton(deviceState.selectDelta, eventData);
                 ProcessMouseMovement(eventData);
-                ProcessMouseButtonDrag(eventData, trackedDeviceDragThresholdMultiplier);
+                ProcessMouseButtonDrag(eventData, m_TrackedDeviceDragThresholdMultiplier);
 
                 deviceState.CopyFrom(eventData);
-            }  
+            }
 
             deviceState.OnFrameFinished();
         }
 
+        // TODO Update UIInputModule to make use of unused ProcessJoystick method
         /// <summary>
         /// Takes an existing JoystickModel and dispatches all relevant changes through the event system.
         /// It also updates the internal data of the JoystickModel.
@@ -363,7 +443,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 var moveVector = joystickState.move;
 
                 var moveDirection = MoveDirection.None;
-                if (moveVector.sqrMagnitude > moveDeadzone * moveDeadzone)
+                if (moveVector.sqrMagnitude > m_MoveDeadzone * m_MoveDeadzone)
                 {
                     if (Mathf.Abs(moveVector.x) > Mathf.Abs(moveVector.y))
                         moveDirection = (moveVector.x > 0) ? MoveDirection.Right : MoveDirection.Left;
@@ -382,9 +462,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     if (implementationData.consecutiveMoveCount != 0)
                     {
                         if (implementationData.consecutiveMoveCount > 1)
-                            allow = (time > (implementationData.lastMoveTime + repeatRate));
+                            allow = (time > (implementationData.lastMoveTime + m_RepeatRate));
                         else
-                            allow = (time > (implementationData.lastMoveTime + repeatDelay));
+                            allow = (time > (implementationData.lastMoveTime + m_RepeatDelay));
                     }
 
                     if (allow)
@@ -398,7 +478,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, eventData, ExecuteEvents.moveHandler);
                         usedSelectionChange = eventData.used;
 
-                        implementationData.consecutiveMoveCount = implementationData.consecutiveMoveCount + 1;
+                        implementationData.consecutiveMoveCount++;
                         implementationData.lastMoveTime = time;
                         implementationData.lastMoveDirection = moveDirection;
                     }
@@ -426,7 +506,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             joystickState.OnFrameFinished();
         }
 
-        private PointerEventData GetOrCreateCachedPointerEvent()
+        PointerEventData GetOrCreateCachedPointerEvent()
         {
             var result = m_CachedPointerEvent;
             if (result == null)
@@ -438,7 +518,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return result;
         }
 
-        private TrackedDeviceEventData GetOrCreateCachedTrackedDeviceEvent()
+        TrackedDeviceEventData GetOrCreateCachedTrackedDeviceEvent()
         {
             var result = m_CachedTrackedDeviceEventData;
             if (result == null)
@@ -450,7 +530,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return result;
         }
 
-        private AxisEventData GetOrCreateCachedAxisEvent()
+        AxisEventData GetOrCreateCachedAxisEvent()
         {
             var result = m_CachedAxisEvent;
             if (result == null)
@@ -461,24 +541,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return result;
         }
-
-        [Tooltip("The maximum time (in seconds) between two mouse presses for it to be consecutive click.")]
-        public float clickSpeed = 0.3f;
-
-        [Tooltip("The absolute value required by a move action on either axis required to trigger a move event.")]
-        public float moveDeadzone = 0.6f;
-
-        [Tooltip("The Initial delay (in seconds) between an initial move action and a repeated move action.")]
-        public float repeatDelay = 0.5f;
-
-        [Tooltip("The speed (in seconds) that the move action repeats itself once repeating.")]
-        public float repeatRate = 0.1f;
-
-        [Tooltip("Scales the Eventsystem.DragThreshold, for tracked devices, to make selection easier.")]
-        public float trackedDeviceDragThresholdMultiplier = 2.0f;
-
-        private AxisEventData m_CachedAxisEvent;
-        private PointerEventData m_CachedPointerEvent;
-        private TrackedDeviceEventData m_CachedTrackedDeviceEventData;
     }
 }

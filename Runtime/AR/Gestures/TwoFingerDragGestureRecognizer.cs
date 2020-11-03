@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -32,21 +34,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         const float k_SlopInches = 0.1f;
         const float k_AngleThresholdRadians = Mathf.PI / 6;
 
-        internal float m_SlopInches
-        {
-            get
-            {
-                return k_SlopInches;
-            }
-        }
+        internal float m_SlopInches => k_SlopInches;
 
-        internal float m_AngleThresholdRadians
-        {
-            get
-            {
-                return k_AngleThresholdRadians;
-            }
-        }
+        internal float m_AngleThresholdRadians => k_AngleThresholdRadians;
 
         /// <summary>
         /// Creates a two finger drag gesture with the given touches.

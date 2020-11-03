@@ -1,13 +1,12 @@
-﻿#if UNITY_EDITOR
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
-using UnityEngine.XR;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    // Multi-column TreeView that shows Input Devices
+    /// <summary>
+    /// Multi-column <see cref="TreeView"/> that shows Input Devices.
+    /// </summary>
     class XRInputDevicesTreeView : TreeView
     {
         public static XRInputDevicesTreeView Create(ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
@@ -24,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return new XRInputDevicesTreeView(treeState, header);
         }
 
-        const float kRowHeight = 20f;
+        const float k_RowHeight = 20f;
 
         class Item : TreeViewItem
         {
@@ -40,7 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Type,
             Value,
 
-            COUNT
+            COUNT,
         }
 
         static MultiColumnHeaderState CreateHeaderState()
@@ -50,21 +49,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
             columns[(int)ColumnId.Name] =
                 new MultiColumnHeaderState.Column
                 {
-                    width = 240,
-                    minWidth = 60,
-                    headerContent = new GUIContent("Name")
+                    width = 240f,
+                    minWidth = 60f,
+                    headerContent = new GUIContent("Name"),
                 };
             columns[(int)ColumnId.Role] =
                 new MultiColumnHeaderState.Column
                 {
-                    width = 200,
-                    minWidth = 60,
-                    headerContent = new GUIContent("Role")
+                    width = 200f,
+                    minWidth = 60f,
+                    headerContent = new GUIContent("Role"),
                 };
             columns[(int)ColumnId.Type] =
-                new MultiColumnHeaderState.Column { width = 200, headerContent = new GUIContent("Type") };
+                new MultiColumnHeaderState.Column
+                {
+                    width = 200f,
+                    headerContent = new GUIContent("Type"),
+                };
             columns[(int)ColumnId.Value] =
-                new MultiColumnHeaderState.Column { width = 200, headerContent = new GUIContent("Value") };
+                new MultiColumnHeaderState.Column
+                {
+                    width = 200f,
+                    headerContent = new GUIContent("Value"),
+                };
 
             return new MultiColumnHeaderState(columns);
         }
@@ -73,85 +80,69 @@ namespace UnityEngine.XR.Interaction.Toolkit
             : base(state, header)
         {
             showBorder = false;
-            rowHeight = kRowHeight;
+            rowHeight = k_RowHeight;
             Reload();
         }
 
         protected override TreeViewItem BuildRoot()
         {
-            var rootItem = BuildInputDevicesTree();
-
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
-                displayName = "Input Devices",
                 id = 0,
-                children = new List<TreeViewItem> { rootItem },
-                depth = -1
+                children = new List<TreeViewItem> { BuildInputDevicesTree() },
+                depth = -1,
             };
         }
 
-        string GetFeatureValue(InputDevice device, InputFeatureUsage featureUsage)
+        static string GetFeatureValue(InputDevice device, InputFeatureUsage featureUsage)
         {
             switch (featureUsage.type.ToString())
             {
                 case "System.Boolean":
-                    bool boolValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<bool>(), out boolValue))
+                    if (device.TryGetFeatureValue(featureUsage.As<bool>(), out var boolValue))
                         return boolValue.ToString();
                     break;
                 case "System.UInt32":
-                    uint uintValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<uint>(), out uintValue))
+                    if (device.TryGetFeatureValue(featureUsage.As<uint>(), out var uintValue))
                         return uintValue.ToString();
                     break;
                 case "System.Single":
-                    float floatValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<float>(), out floatValue))
+                    if (device.TryGetFeatureValue(featureUsage.As<float>(), out var floatValue))
                         return floatValue.ToString();
                     break;
                 case "UnityEngine.Vector2":
-                    Vector2 Vector2Value;
-                    if (device.TryGetFeatureValue(featureUsage.As<Vector2>(), out Vector2Value))
-                        return Vector2Value.ToString();
+                    if (device.TryGetFeatureValue(featureUsage.As<Vector2>(), out var vector2Value))
+                        return vector2Value.ToString();
                     break;
                 case "UnityEngine.Vector3":
-                    Vector3 Vector3Value;
-                    if (device.TryGetFeatureValue(featureUsage.As<Vector3>(), out Vector3Value))
-                        return Vector3Value.ToString();
+                    if (device.TryGetFeatureValue(featureUsage.As<Vector3>(), out var vector3Value))
+                        return vector3Value.ToString();
                     break;
                 case "UnityEngine.Quaternion":
-                    Quaternion QuaternionValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<Quaternion>(), out QuaternionValue))
-                        return QuaternionValue.ToString();
+                    if (device.TryGetFeatureValue(featureUsage.As<Quaternion>(), out var quaternionValue))
+                        return quaternionValue.ToString();
                     break;
                 case "UnityEngine.XR.Hand":
-                    Hand HandValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<Hand>(), out HandValue))
-                        return HandValue.ToString();
+                    if (device.TryGetFeatureValue(featureUsage.As<Hand>(), out var handValue))
+                        return handValue.ToString();
                     break;
                 case "UnityEngine.XR.Bone":
-                    Bone BoneValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<Bone>(), out BoneValue))
+                    if (device.TryGetFeatureValue(featureUsage.As<Bone>(), out var boneValue))
                     {
-                        Vector3 bonePosition;
-                        Quaternion boneRotation;
-                        if (BoneValue.TryGetPosition(out bonePosition) && BoneValue.TryGetRotation(out boneRotation))
-                            return string.Format("{0}, {1}", bonePosition.ToString(), boneRotation.ToString());
+                        if (boneValue.TryGetPosition(out var bonePosition) && boneValue.TryGetRotation(out var boneRotation))
+                            return $"{bonePosition}, {boneRotation}";
                     }
                     break;
                 case "UnityEngine.XR.Eyes":
-                    Eyes EyesValue;
-                    if (device.TryGetFeatureValue(featureUsage.As<Eyes>(), out EyesValue))
+                    if (device.TryGetFeatureValue(featureUsage.As<Eyes>(), out var eyesValue))
                     {
-                        Vector3 fixation, left, right;
-                        float leftOpen, rightOpen;
-                        if (EyesValue.TryGetFixationPoint(out fixation) &&
-                            EyesValue.TryGetLeftEyePosition(out left) &&
-                            EyesValue.TryGetRightEyePosition(out right) && 
-                            EyesValue.TryGetLeftEyeOpenAmount(out leftOpen) &&
-                            EyesValue.TryGetRightEyeOpenAmount(out rightOpen))
-                            return string.Format("{0}, {1}, {2}, {3}, {4}", fixation.ToString(), left.ToString(), right.ToString(), leftOpen, rightOpen);
+                        if (eyesValue.TryGetFixationPoint(out var fixation) &&
+                            eyesValue.TryGetLeftEyePosition(out var left) &&
+                            eyesValue.TryGetRightEyePosition(out var right) && 
+                            eyesValue.TryGetLeftEyeOpenAmount(out var leftOpen) &&
+                            eyesValue.TryGetRightEyeOpenAmount(out var rightOpen))
+                            return $"{fixation}, {left}, {right}, {leftOpen}, {rightOpen}";
                     }
                     break;
             }
@@ -159,14 +150,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return "";
         }
 
-        TreeViewItem BuildInputDevicesTree()
+        static TreeViewItem BuildInputDevicesTree()
         {
-            int id = 0;
             var rootItem = new Item
             {
-                id = id++,
+                id = 1,
                 displayName = "Devices",
-                depth = 0
+                depth = 0,
             };
 
             // Build children.
@@ -182,30 +172,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     id = device.GetHashCode(),
                     displayName = device.name,
-                    // TODO: need to display new characteristics API here.
-#pragma warning disable 612, 618                    
+                    // TODO Need to display new characteristics API here.
+#pragma warning disable 612, 618
                     deviceRole = device.role.ToString(),
 #pragma warning restore 612, 618
-                    depth = 1
+                    depth = 1,
+                    parent = rootItem,
                 };
-                deviceItem.parent = rootItem;
-                
-                List<InputFeatureUsage> featureUsages = new List<InputFeatureUsage>();
+
+                var featureUsages = new List<InputFeatureUsage>();
                 device.TryGetFeatureUsages(featureUsages);
                 
                 var featureChildren = new List<TreeViewItem>();
                 foreach (var featureUsage in featureUsages)
                 {
-                    Type featureType = featureUsage.type;
                     var featureItem = new Item
                     {
                         id = device.GetHashCode() ^ (featureUsage.GetHashCode() >> 1),
                         displayName = featureUsage.name,
-                        featureType = featureType.ToString(),
+                        featureType = featureUsage.type.ToString(),
                         featureValue = GetFeatureValue(device, featureUsage),
-                        depth = 2
+                        depth = 2,
+                        parent = deviceItem,
                     };
-                    featureItem.parent = deviceItem;
                     featureChildren.Add(featureItem);
                 }
 
@@ -258,4 +247,3 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
     }
 }
-#endif // UNITY_EDITOR

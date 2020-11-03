@@ -1,12 +1,11 @@
-#if UNITY_EDITOR
-using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    // Multi-column TreeView that shows Interactors
+    /// <summary>
+    /// Multi-column <see cref="TreeView"/> that shows Interactors.
+    /// </summary>
     class XRInteractorsTreeView : TreeView
     {
         public static XRInteractorsTreeView Create(XRInteractionManager interactionManager, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
@@ -23,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return new XRInteractorsTreeView(interactionManager, treeState, header);
         }
 
-        const float kRowHeight = 20f;
+        const float k_RowHeight = 20f;
 
         class Item : TreeViewItem
         {
@@ -42,34 +41,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
             COUNT
         }
 
-        XRInteractionManager m_InteractionManager;
+        readonly XRInteractionManager m_InteractionManager;
+
+        readonly List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
 
         static MultiColumnHeaderState CreateHeaderState()
         {
             var columns = new MultiColumnHeaderState.Column[(int)ColumnId.COUNT];
 
-            columns[(int)ColumnId.Name] =
-                new MultiColumnHeaderState.Column
+            columns[(int)ColumnId.Name] = new MultiColumnHeaderState.Column
             {
-                width = 180,
-                minWidth = 60,
-                headerContent = new GUIContent("Name")
+                width = 180f,
+                minWidth = 60f,
+                headerContent = new GUIContent("Name"),
             };
-            columns[(int)ColumnId.Type] =
-                new MultiColumnHeaderState.Column
+            columns[(int)ColumnId.Type] = new MultiColumnHeaderState.Column
             {
-                width = 120,
-                minWidth = 60,
-                headerContent = new GUIContent("Type")
+                width = 120f,
+                minWidth = 60f,
+                headerContent = new GUIContent("Type"),
             };
-            columns[(int)ColumnId.HoverActive] =
-                new MultiColumnHeaderState.Column { width = 120, headerContent = new GUIContent("Hover Active") };
-            columns[(int)ColumnId.SelectActive] =
-                new MultiColumnHeaderState.Column { width = 120, headerContent = new GUIContent("Select Active") };
-            columns[(int)ColumnId.HoverInteractable] =
-                new MultiColumnHeaderState.Column {width = 140, headerContent = new GUIContent("Hover Interactable")};
-            columns[(int)ColumnId.SelectInteractable] =
-                new MultiColumnHeaderState.Column {width = 140, headerContent = new GUIContent("Select Interactable")};
+            columns[(int)ColumnId.HoverActive] = new MultiColumnHeaderState.Column
+            {
+                width = 120f,
+                headerContent = new GUIContent("Hover Active"),
+            };
+            columns[(int)ColumnId.SelectActive] = new MultiColumnHeaderState.Column
+            {
+                width = 120f,
+                headerContent = new GUIContent("Select Active"),
+            };
+            columns[(int)ColumnId.HoverInteractable] = new MultiColumnHeaderState.Column
+            {
+                width = 140f,
+                headerContent = new GUIContent("Hover Interactable"),
+            };
+            columns[(int)ColumnId.SelectInteractable] = new MultiColumnHeaderState.Column
+            {
+                width = 140f,
+                headerContent = new GUIContent("Select Interactable"),
+            };
 
             return new MultiColumnHeaderState(columns);
         }
@@ -79,32 +90,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_InteractionManager = manager;
             showBorder = false;
-            rowHeight = kRowHeight;
+            rowHeight = k_RowHeight;
             Reload();
         }
 
         protected override TreeViewItem BuildRoot()
         {
-            var rootItem = BuildInteractableTree();
-
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
-                displayName = "Interaction Manager",
                 id = 0,
-                children = new List<TreeViewItem> {rootItem},
-                depth = -1
+                children = new List<TreeViewItem> { BuildInteractableTree() },
+                depth = -1,
             };
         }
 
         TreeViewItem BuildInteractableTree()
         {
-            int id = 0;
-            var rootItem = new Item
+            var rootTreeItem = new Item
             {
-                id = id++,
-                displayName = m_InteractionManager == null ? "-" : m_InteractionManager.name,
-                depth = 0
+                id = m_InteractionManager != null ? m_InteractionManager.GetInstanceID() : 1,
+                displayName = m_InteractionManager != null ? m_InteractionManager.name : "-",
+                depth = 0,
             };
 
             // Build children.
@@ -115,21 +122,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     var childItem = new Item
                     {
-                        id = id,
+                        id = interactor.GetInstanceID(),
                         displayName = interactor.name,
                         interactor = interactor,
-                        depth = 1
+                        depth = 1,
+                        parent = rootTreeItem,
                     };
-                    childItem.parent = rootItem;
                     children.Add(childItem);
                 }
 
                 // Sort children by name.
                 children.Sort((a, b) => string.Compare(a.displayName, b.displayName));
-                rootItem.children = children;
+                rootTreeItem.children = children;
             }
 
-            return rootItem;
+            return rootTreeItem;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -143,7 +150,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
         void ColumnGUI(Rect cellRect, Item item, int column, ref RowGUIArgs args)
         {
             CenterRectUsingSingleLineHeight(ref cellRect);
@@ -184,4 +190,3 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
     }
 }
-#endif // UNITY_EDITOR

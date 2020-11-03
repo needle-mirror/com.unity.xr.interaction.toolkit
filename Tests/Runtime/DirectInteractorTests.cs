@@ -44,7 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
                 recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                    true, false, false); 
                 recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
                     true, false, false);
             });
@@ -73,7 +73,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     true, false, false);
                 recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
                     true, false, false);
-                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
+                recording.AddRecordingFrame(0.3f, Vector3.zero, Quaternion.identity,
                     true, false, false);
             });
 
@@ -101,7 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor1), "In first frame, controller 1 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
 
             // Wait for the proper interaction that signifies the handoff
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.2f);
             
             // directInteractor2 grabs the interactable from directInteractor1
             Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor2), "In second frame, controller 2 should grab the interactable. Instead got " + interactable.selectingInteractor.name);

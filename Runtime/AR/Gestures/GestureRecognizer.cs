@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using System;
@@ -41,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// List of current active gestures.
         /// </summary>
-        protected List<T> m_Gestures = new List<T>();
+        protected List<T> m_Gestures = new List<T>(); // TODO Convert to property
 
         /// <summary>
         /// Event fired when a gesture is started.
@@ -78,8 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Helper function for creating one finger gestures when a touch begins.
         /// </summary>
-        /// <typeparam name="createGestureFunction">Function to be executed to create the
-        /// gesture.</param>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
         protected internal void TryCreateOneFingerGestureOnTouchBegan(
             Func<Touch, T> createGestureFunction)
         {
@@ -101,8 +102,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Helper function for creating two finger gestures when a touch begins.
         /// </summary>
-        /// <typeparam name="createGestureFunction">Function to be executed to create the
-        /// gesture.</param>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
         protected internal void TryCreateTwoFingerGestureOnTouchBegan(
             Func<Touch, Touch, T> createGestureFunction)
         {
@@ -126,14 +126,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return;
             }
 
-            Touch touch = GestureTouchesUtility.Touches[touchIndex];
+            var touch = GestureTouchesUtility.Touches[touchIndex];
             if (GestureTouchesUtility.IsFingerIdRetained(touch.fingerId)
                 || GestureTouchesUtility.IsTouchOffScreenEdge(touch))
             {
                 return;
             }
 
-            for (int i = 0; i < GestureTouchesUtility.Touches.Length; i++)
+            for (var i = 0; i < GestureTouchesUtility.Touches.Length; i++)
             {
                 if (i == touchIndex)
                 {
@@ -147,14 +147,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     continue;
                 }
 
-                Touch otherTouch = GestureTouchesUtility.Touches[i];
+                var otherTouch = GestureTouchesUtility.Touches[i];
                 if (GestureTouchesUtility.IsFingerIdRetained(otherTouch.fingerId)
                     || GestureTouchesUtility.IsTouchOffScreenEdge(otherTouch))
                 {
                     continue;
                 }
 
-                T gesture = createGestureFunction(touch, otherTouch);
+                var gesture = createGestureFunction(touch, otherTouch);
                 gesture.onStart += OnStart;
                 gesture.onFinished += OnFinished;
                 m_Gestures.Add(gesture);
@@ -163,10 +163,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         void OnStart(T gesture)
         {
-            if (onGestureStarted != null)
-            {
-                onGestureStarted(gesture);
-            }
+            onGestureStarted?.Invoke(gesture);
         }
 
         void OnFinished(T gesture)

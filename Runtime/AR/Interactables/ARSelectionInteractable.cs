@@ -18,14 +18,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if !AR_FOUNDATION_PRESENT
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
 namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARSelectionInteractable {} }
 
 #else
-
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -34,53 +34,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class ARSelectionInteractable : ARBaseGestureInteractable
     {
+        [SerializeField, Tooltip("The visualization GameObject that will become active when the object is selected.")]
+        GameObject m_SelectionVisualization;
+        /// <summary>
+        /// The visualization <see cref="GameObject"/> that will become active when the object is selected.
+        /// </summary>
+        public GameObject selectionVisualization
+        {
+            get => m_SelectionVisualization;
+            set => m_SelectionVisualization = value;
+        }
 
         bool m_GestureSelected;
 
-        /// <summary>
-        /// The visualization game object that will become active when the object is selected.
-        /// </summary>        
-        [SerializeField, Tooltip("The GameObject that will become active when the object is selected.")]
-        GameObject m_SelectionVisualization;
-        public GameObject selectionVisualization { get { return m_SelectionVisualization; } set { m_SelectionVisualization = value; } }
-
-
-        /// <summary>
-        /// The Unity Update() method.
-        /// </summary>
-        void Update()
-        {
-        }
-        
-        /// <summary>
-        /// Determines if this interactable can be selected by a given interactor.
-        /// </summary>
-        /// <param name="interactor">Interactor to check for a valid selection with.</param>
-        /// <returns>True if selection is valid this frame, False if not.</returns>
+        /// <inheritdoc />
         public override bool IsSelectableBy(XRBaseInteractor interactor)
         {
             if (!(interactor is ARGestureInteractor))
                 return false;
-            
+
             return m_GestureSelected;
         }
 
-        /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
-        protected override bool CanStartManipulationForGesture(TapGesture gesture)
-        {
-            return true;
-        }
+        /// <inheritdoc />
+        protected override bool CanStartManipulationForGesture(TapGesture gesture) => true;
 
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnEndManipulation(TapGesture gesture)
         {
+            base.OnEndManipulation(gesture);
+
             if (gesture.WasCancelled)
                 return;
             if (gestureInteractor == null)
@@ -95,24 +78,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 m_GestureSelected = false;
         }
 
-        /// <summary>This method is called by the interaction manager 
-        /// when the interactor first initiates selection of an interactable.</summary>
-        /// <param name="interactor">Interactor that is initiating the selection.</param>
-        protected internal override void OnSelectEnter(XRBaseInteractor interactor) 
+        /// <inheritdoc />
+        protected internal override void OnSelectEntering(XRBaseInteractor interactor)
         {
-            base.OnSelectEnter(interactor);
-            
+            base.OnSelectEntering(interactor);
             if (m_SelectionVisualization != null)
                 m_SelectionVisualization.SetActive(true);
         }
 
-        /// <summary>This method is called by the interaction manager 
-        /// when the interactor ends selection of an interactable.</summary>
-        /// <param name="interactor">Interactor that is ending the selection.</param>
-        protected internal override void OnSelectExit(XRBaseInteractor interactor) 
+        /// <inheritdoc />
+        protected internal override void OnSelectExiting(XRBaseInteractor interactor)
         {
-            base.OnSelectExit(interactor);
-            
+            base.OnSelectExiting(interactor);
+
+            if (m_SelectionVisualization != null)
+                m_SelectionVisualization.SetActive(false);
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnSelectCanceling(XRBaseInteractor interactor)
+        {
+            base.OnSelectCanceling(interactor);
             if (m_SelectionVisualization != null)
                 m_SelectionVisualization.SetActive(false);
         }

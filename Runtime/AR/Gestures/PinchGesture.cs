@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -38,59 +40,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public PinchGesture(PinchGestureRecognizer recognizer, Touch touch1, Touch touch2) :
             base(recognizer)
         {
-            FingerId1 = touch1.fingerId;
-            FingerId2 = touch2.fingerId;
-            StartPosition1 = touch1.position;
-            StartPosition2 = touch2.position;
+            fingerId1 = touch1.fingerId;
+            fingerId2 = touch2.fingerId;
+            startPosition1 = touch1.position;
+            startPosition2 = touch2.position;
         }
 
         /// <summary>
-        /// Gets the id of the first finger used in this gesture.
+        /// (Read Only) The id of the first finger used in this gesture.
         /// </summary>
-        public int FingerId1 { get; private set; }
+        public int fingerId1 { get; }
 
         /// <summary>
-        /// Gets the id of the second finger used in this gesture.
+        /// (Read Only) The id of the second finger used in this gesture.
         /// </summary>
-        public int FingerId2 { get; private set; }
+        public int fingerId2 { get; }
 
         /// <summary>
-        /// Gets the screen position of the first finger where the gesture started.
+        /// (Read Only) The screen position of the first finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition1 { get; private set; }
+        public Vector2 startPosition1 { get; }
 
         /// <summary>
-        /// Gets the screen position of the second finger where the gesture started.
+        /// (Read Only) The screen position of the second finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition2 { get; private set; }
+        public Vector2 startPosition2 { get; }
 
         /// <summary>
-        /// Gets the gap between then position of the first and second fingers.
+        /// (Read Only) The gap between then position of the first and second fingers.
         /// </summary>
-        public float Gap { get; private set; }
+        public float gap { get; private set; }
 
         /// <summary>
-        /// Gets the gap delta between then position of the first and second fingers.
+        /// (Read Only) The gap delta between then position of the first and second fingers.
         /// </summary>
-        public float GapDelta { get; private set; }
+        public float gapDelta { get; private set; }
 
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>True if the gesture can start.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool CanStart()
         {
-            if (GestureTouchesUtility.IsFingerIdRetained(FingerId1) ||
-                GestureTouchesUtility.IsFingerIdRetained(FingerId2))
+            if (GestureTouchesUtility.IsFingerIdRetained(fingerId1) ||
+                GestureTouchesUtility.IsFingerIdRetained(fingerId2))
             {
                 Cancel();
                 return false;
             }
 
-            Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
+            var foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(FingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(fingerId2, out var touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -104,13 +105,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            PinchGestureRecognizer pinchRecognizer = m_Recognizer as PinchGestureRecognizer;
+            var pinchRecognizer = m_Recognizer as PinchGestureRecognizer;
 
-            Vector3 firstToSecondDirection = (StartPosition1 - StartPosition2).normalized;
-            float dot1 = Vector3.Dot(touch1.deltaPosition.normalized, -firstToSecondDirection);
-            float dot2 = Vector3.Dot(touch2.deltaPosition.normalized, firstToSecondDirection);
-            float dotThreshold =
-                Mathf.Cos(pinchRecognizer.m_SlopMotionDirectionDegrees * Mathf.Deg2Rad);
+            Vector3 firstToSecondDirection = (startPosition1 - startPosition2).normalized;
+            var dot1 = Vector3.Dot(touch1.deltaPosition.normalized, -firstToSecondDirection);
+            var dot2 = Vector3.Dot(touch2.deltaPosition.normalized, firstToSecondDirection);
+            var dotThreshold = Mathf.Cos(pinchRecognizer.m_SlopMotionDirectionDegrees * Mathf.Deg2Rad);
 
             // Check angle of motion for the first touch.
             if (touch1.deltaPosition != Vector2.zero && Mathf.Abs(dot1) < dotThreshold)
@@ -124,15 +124,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            float startgap = (StartPosition1 - StartPosition2).magnitude;
-            Gap = (touch1.position - touch2.position).magnitude;
-            float separation = GestureTouchesUtility.PixelsToInches(Mathf.Abs(Gap - startgap));
-            if (separation < pinchRecognizer.m_SlopInches)
-            {
-                return false;
-            }
-
-            return true;
+            var startgap = (startPosition1 - startPosition2).magnitude;
+            gap = (touch1.position - touch2.position).magnitude;
+            var separation = GestureTouchesUtility.PixelsToInches(Mathf.Abs(gap - startgap));
+            return !(separation < pinchRecognizer.m_SlopInches);
         }
 
         /// <summary>
@@ -140,8 +135,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected internal override void OnStart()
         {
-            GestureTouchesUtility.LockFingerId(FingerId1);
-            GestureTouchesUtility.LockFingerId(FingerId2);
+            GestureTouchesUtility.LockFingerId(fingerId1);
+            GestureTouchesUtility.LockFingerId(fingerId2);
         }
 
         /// <summary>
@@ -151,9 +146,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected internal override bool UpdateGesture()
         {
             Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
+            bool foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(FingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(fingerId2, out touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -176,8 +171,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             if (touch1.phase == TouchPhase.Moved || touch2.phase == TouchPhase.Moved)
             {
                 float newgap = (touch1.position - touch2.position).magnitude;
-                GapDelta = newgap - Gap;
-                Gap = newgap;
+                gapDelta = newgap - gap;
+                gap = newgap;
                 return true;
             }
 
@@ -196,8 +191,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected internal override void OnFinish()
         {
-            GestureTouchesUtility.ReleaseFingerId(FingerId1);
-            GestureTouchesUtility.ReleaseFingerId(FingerId2);
+            GestureTouchesUtility.ReleaseFingerId(fingerId1);
+            GestureTouchesUtility.ReleaseFingerId(fingerId2);
         }
     }
 }

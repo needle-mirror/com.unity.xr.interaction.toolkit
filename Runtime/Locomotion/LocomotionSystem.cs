@@ -1,124 +1,83 @@
 using System;
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// The result of a locomotion request
+    /// The result of a locomotion request.
     /// </summary>
+    /// <seealso cref="LocomotionSystem.RequestExclusiveOperation"/>
+    /// <seealso cref="LocomotionSystem.FinishExclusiveOperation"/>
     public enum RequestResult
     {
         /// <summary>
-        /// The locomotion request was successful
+        /// The locomotion request was successful.
         /// </summary>
         Success,
+
         /// <summary>
-        /// The locomotion request failed due to the system being currently busy
+        /// The locomotion request failed due to the system being currently busy.
         /// </summary>
         Busy,
+
         /// <summary>
-        /// The locomotion request failed due to an unknown error
+        /// The locomotion request failed due to an unknown error.
         /// </summary>
         Error,
     }
 
     /// <summary>
-    /// The LocomotionSystem object is used to control access to the XR Rig. This system enforces that only one
+    /// The <see cref="LocomotionSystem"/> object is used to control access to the XR Rig. This system enforces that only one
     /// Locomotion Provider can move the XR Rig at one time. This is the only place that access to an XR Rig is controlled,
-    /// having multiple LocomotionSystems drive a single XR Rig is not recommended.
+    /// having multiple instances of a <see cref="LocomotionSystem"/> drive a single XR Rig is not recommended.
     /// </summary>
     public class LocomotionSystem : MonoBehaviour
-    {       
-        const float Timeout = 10.0f;
-        
-        LocomotionProvider m_CurrentExclusiveProvider = null;
-        float m_TimeMadeExclusive = 0.0f;
+    {
+        LocomotionProvider m_CurrentExclusiveProvider;
+        float m_TimeMadeExclusive;
 
         [SerializeField]
-        [Tooltip("The timeout for exclusive access to the XR Rig.")]
-        float m_Timeout = Timeout; 
+        [Tooltip("The timeout (in seconds) for exclusive access to the XR Rig.")]
+        float m_Timeout = 10f;
+
         /// <summary>
-        /// The timeout for exclusive access to the XR Rig
+        /// The timeout (in seconds) for exclusive access to the XR Rig.
         /// </summary>
-        public float timeout { get { return m_Timeout; } set { m_Timeout = value;}}
-        
+        public float timeout
+        {
+            get => m_Timeout;
+            set => m_Timeout = value;
+        }
+
         [SerializeField]
         [Tooltip("The XR Rig object to provide access control to.")]
         XRRig m_XRRig;
+
         /// <summary>
         /// The XR Rig object to provide access control to.
         /// </summary>
-        public XRRig xrRig { get { return m_XRRig; } set { m_XRRig = value;}}
-
-        /// <summary>
-        /// Is a locomotion request already being performed
-        /// </summary>
-        /// <returns>true if there is already a locomotion in progress</returns>
-        public bool Busy
+        public XRRig xrRig
         {
-            get
-            {
-                return m_CurrentExclusiveProvider != null;
-            }
+            get => m_XRRig;
+            set => m_XRRig = value;
         }
 
         /// <summary>
-        /// The RequestExclusiveOperation function will attempt to "lock" access to the XR Rig for the Locomotion Provider passed
+        /// (Read Only) Whether a locomotion request is already being performed.
         /// </summary>
-        /// <param name="provider">The locomotion provider that is requesting access</param>
-        /// <returns>A RequestResult that reflects the status of the request</returns>
-        public RequestResult RequestExclusiveOperation(LocomotionProvider provider)
+        public bool busy => m_CurrentExclusiveProvider != null;
+
+#pragma warning disable IDE1006 // Naming Styles
+        [Obsolete("Busy has been deprecated. Use busy instead. (UnityUpgradable) -> busy")]
+        public bool Busy => busy;
+#pragma warning restore IDE1006
+
+        protected void Awake()
         {
-
-            if(provider == null)
-                return RequestResult.Error;
-
-            if(m_CurrentExclusiveProvider == null)
-            {
-                m_CurrentExclusiveProvider = provider;
-                m_TimeMadeExclusive = Time.time;
-                return RequestResult.Success;
-            }
-
-            if(m_CurrentExclusiveProvider != provider)
-            {
-                return RequestResult.Busy;
-            }
-
-            return RequestResult.Error;
+            if (m_XRRig == null)
+                m_XRRig = FindObjectOfType<XRRig>();
         }
 
-        internal void ResetExclusivity()
-        {
-            m_CurrentExclusiveProvider = null;
-            m_TimeMadeExclusive = 0.0f;
-        }
-
-        /// <summary>
-        /// This function informs the LocomotionSystem that Exclusive Access to the XR Rig is no longer required.
-        /// </summary>
-        /// <param name="provider">The LocomtionProvider that is relinquishing access.</param>
-        /// <returns>A RequestResult that reflects the status of the request</returns>
-        public RequestResult FinishExclusiveOperation(LocomotionProvider provider)
-        {
-            if(provider == null || m_CurrentExclusiveProvider == null)
-                return RequestResult.Error;
-
-            if(m_CurrentExclusiveProvider == provider)
-            {
-                ResetExclusivity();
-                return RequestResult.Success;
-            }
-            else
-            {
-                return RequestResult.Error;
-            }        
-        }
-
-        /// <summary>
-        /// The standard update function
-        /// </summary>
-        public void Update()
+        protected void Update()
         {
             if (m_CurrentExclusiveProvider != null && Time.time > m_TimeMadeExclusive + m_Timeout)
             {
@@ -126,10 +85,49 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        private void Awake()
+        /// <summary>
+        /// Attempt to "lock" access to the XR Rig for the <paramref name="provider"/>.
+        /// </summary>
+        /// <param name="provider">The locomotion provider that is requesting access.</param>
+        /// <returns>Returns a <see cref="RequestResult"/> that reflects the status of the request.</returns>
+        public RequestResult RequestExclusiveOperation(LocomotionProvider provider)
         {
-            if(m_XRRig == null)
-                m_XRRig = Object.FindObjectOfType<XRRig>();
+            if (provider == null)
+                return RequestResult.Error;
+
+            if (m_CurrentExclusiveProvider == null)
+            {
+                m_CurrentExclusiveProvider = provider;
+                m_TimeMadeExclusive = Time.time;
+                return RequestResult.Success;
+            }
+
+            return m_CurrentExclusiveProvider != provider ? RequestResult.Busy : RequestResult.Error;
+        }
+
+        internal void ResetExclusivity()
+        {
+            m_CurrentExclusiveProvider = null;
+            m_TimeMadeExclusive = 0f;
+        }
+
+        /// <summary>
+        /// Informs the <see cref="LocomotionSystem"/> that exclusive access to the XR Rig is no longer required.
+        /// </summary>
+        /// <param name="provider">The locomotion provider that is relinquishing access.</param>
+        /// <returns>Returns a <see cref="RequestResult"/> that reflects the status of the request.</returns>
+        public RequestResult FinishExclusiveOperation(LocomotionProvider provider)
+        {
+            if(provider == null || m_CurrentExclusiveProvider == null)
+                return RequestResult.Error;
+
+            if (m_CurrentExclusiveProvider == provider)
+            {
+                ResetExclusivity();
+                return RequestResult.Success;
+            }
+
+            return RequestResult.Error;
         }
     }
 }

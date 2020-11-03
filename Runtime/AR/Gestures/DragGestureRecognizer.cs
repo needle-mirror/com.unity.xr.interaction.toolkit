@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -29,21 +31,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class DragGestureRecognizer : GestureRecognizer<DragGesture>
     {
-        private const float k_SlopInches = 0.1f;
+        const float k_SlopInches = 0.1f;
 
-        internal float m_SlopInches
-        {
-            get
-            {
-                return k_SlopInches;
-            }
-        }
+        internal float m_SlopInches => k_SlopInches;
 
         /// <summary>
         /// Creates a Drag gesture with the given touch.
         /// </summary>
         /// <param name="touch">The touch that started this gesture.</param>
-        /// <returns>The created Drag gesture.</returns>
+        /// <returns>Returns the created Drag gesture.</returns>
         internal DragGesture CreateGesture(Touch touch)
         {
             return new DragGesture(this, touch);

@@ -1,27 +1,26 @@
-using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// Represents the state of a joystick in the uGUI system. Keeps track of various book-keeping regarding UI selection, and move and button states.
+    /// Represents the state of a joystick in the Unity UI (UGUI) system. Keeps track of various book-keeping regarding UI selection, and move and button states.
     /// </summary>
-    internal struct JoystickModel
+    struct JoystickModel
     {
         public struct ImplementationData
         {
             /// <summary>
-            /// Bookkeeping values for uGUI that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
+            /// Bookkeeping values for Unity UI (UGUI) that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
             /// </summary>
             public int consecutiveMoveCount { get; set; }
 
             /// <summary>
-            /// Bookkeeping values for uGUI that tracks the direction of the last move command.  Used to handle proper repeat timing.
+            /// Bookkeeping values for Unity UI (UGUI) that tracks the direction of the last move command.  Used to handle proper repeat timing.
             /// </summary>
             public MoveDirection lastMoveDirection { get; set; }
 
             /// <summary>
-            /// Bookkeeping values for uGUI that tracks the last time a move command was sent.  Used to handle proper repeat timing.
+            /// Bookkeeping values for Unity UI (UGUI) that tracks the last time a move command was sent.  Used to handle proper repeat timing.
             /// </summary>
             public float lastMoveTime { get; set; }
 
@@ -46,10 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public bool submitButtonDown
         {
-            get
-            {
-                return m_SubmitButtonDown;
-            }
+            get => m_SubmitButtonDown;
             set
             {
                 if (m_SubmitButtonDown != value)
@@ -61,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Tracks the changes in <see cref="submitButtonDown"/> between calls to <see cref="OnFrameFinished"/>
+        /// Tracks the changes in <see cref="submitButtonDown"/> between calls to <see cref="OnFrameFinished"/>.
         /// </summary>
         internal ButtonDeltaState submitButtonDelta { get; private set; }
 
@@ -70,13 +66,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public bool cancelButtonDown
         {
-            get
-            {
-                return m_CancelButtonDown;
-            }
+            get => m_CancelButtonDown;
             set
             {
-                if (cancelButtonDown != value)
+                if (m_CancelButtonDown != value)
                 {
                     cancelButtonDelta = value ? ButtonDeltaState.Pressed : ButtonDeltaState.Released;
                     m_CancelButtonDown = value;
@@ -85,17 +78,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Tracks the changes in <see cref="cancelButtonDown"/> between calls to <see cref="OnFrameFinished"/>
+        /// Tracks the changes in <see cref="cancelButtonDown"/> between calls to <see cref="OnFrameFinished"/>.
         /// </summary>
         internal ButtonDeltaState cancelButtonDelta { get; private set; }
 
         /// <summary>
-        /// Internal bookkeeping data used by the uGUI system.
+        /// Internal bookkeeping data used by the Unity UI (UGUI) system.
         /// </summary>
         internal ImplementationData implementationData { get; set; }
 
         /// <summary>
-        /// Resets this object to it's default, unused state.
+        /// Resets this object to its default, unused state.
         /// </summary>
         public void Reset()
         {
@@ -115,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             cancelButtonDelta = ButtonDeltaState.NoChange;
         }
 
-        private bool m_SubmitButtonDown;
-        private bool m_CancelButtonDown;
+        bool m_SubmitButtonDown;
+        bool m_CancelButtonDown;
     }
 }

@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -47,39 +49,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Gets the id of the first finger used in this gesture.
+        /// (Read Only) The id of the first finger used in this gesture.
         /// </summary>
-        public int FingerId1 { get; private set; }
+        public int FingerId1 { get; }
 
         /// <summary>
-        /// Gets the id of the second finger used in this gesture.
+        /// (Read Only) The id of the second finger used in this gesture.
         /// </summary>
-        public int FingerId2 { get; private set; }
+        public int FingerId2 { get; }
 
         /// <summary>
-        /// Gets the screen position of the first finger where the gesture started.
+        /// (Read Only) The screen position of the first finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition1 { get; private set; }
+        public Vector2 StartPosition1 { get; }
 
         /// <summary>
-        /// Gets the screen position of the second finger where the gesture started.
+        /// (Read Only) The screen position of the second finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition2 { get; private set; }
+        public Vector2 StartPosition2 { get; }
 
         /// <summary>
-        /// Gets the current screen position of the gesture.
+        /// (Read Only) The current screen position of the gesture.
         /// </summary>
         public Vector2 Position { get; private set; }
 
         /// <summary>
-        /// Gets the delta screen position of the gesture.
+        /// (Read Only) The delta screen position of the gesture.
         /// </summary>
         public Vector2 Delta { get; private set; }
 
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>True if the gesture can start.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool CanStart()
         {
             if (GestureTouchesUtility.IsFingerIdRetained(FingerId1) ||
@@ -106,29 +108,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            Vector2 pos1 = touch1.position;
-            float diff1 = (pos1 - StartPosition1).magnitude;
-            Vector2 pos2 = touch2.position;
-            float diff2 = (pos2 - StartPosition2).magnitude;
-            float slopInches = (m_Recognizer as TwoFingerDragGestureRecognizer).m_SlopInches;
+            var pos1 = touch1.position;
+            var diff1 = (pos1 - StartPosition1).magnitude;
+            var pos2 = touch2.position;
+            var diff2 = (pos2 - StartPosition2).magnitude;
+            var slopInches = (m_Recognizer as TwoFingerDragGestureRecognizer).m_SlopInches;
             if (GestureTouchesUtility.PixelsToInches(diff1) < slopInches ||
                 GestureTouchesUtility.PixelsToInches(diff2) < slopInches)
             {
                 return false;
             }
 
-            TwoFingerDragGestureRecognizer recognizer =
-                m_Recognizer as TwoFingerDragGestureRecognizer;
+            var recognizer = m_Recognizer as TwoFingerDragGestureRecognizer;
 
             // Check both fingers move in the same direction.
-            float dot =
-                Vector3.Dot(touch1.deltaPosition.normalized, touch2.deltaPosition.normalized);
-            if (dot < Mathf.Cos(recognizer.m_AngleThresholdRadians))
-            {
-                return false;
-            }
-
-            return true;
+            var dot = Vector3.Dot(touch1.deltaPosition.normalized, touch2.deltaPosition.normalized);
+            return !(dot < Mathf.Cos(recognizer.m_AngleThresholdRadians));
         }
 
         /// <summary>
@@ -139,42 +134,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             GestureTouchesUtility.LockFingerId(FingerId1);
             GestureTouchesUtility.LockFingerId(FingerId2);
 
-            RaycastHit hit1;
-            RaycastHit hit2;
-            if (GestureTouchesUtility.RaycastFromCamera(StartPosition1, out hit1))
+            if (GestureTouchesUtility.RaycastFromCamera(StartPosition1, out var hit1))
             {
                 var gameObject = hit1.transform.gameObject;
-                if (gameObject != null && gameObject.GetComponentInParent<ARGestureInteractor>() != null)
-                {
-                    TargetObject = gameObject.GetComponentInParent<ARGestureInteractor>().gameObject;
-                }
+                var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
+                if (interactableObject != null)
+                    TargetObject = interactableObject.gameObject;
             }
-            else if (GestureTouchesUtility.RaycastFromCamera(StartPosition2, out hit2))
+            else if (GestureTouchesUtility.RaycastFromCamera(StartPosition2, out var hit2))
             {
                 var gameObject = hit2.transform.gameObject;
-                if (gameObject != null && gameObject.GetComponentInParent<ARGestureInteractor>() != null)
-                {
-                    TargetObject = gameObject.GetComponentInParent<ARGestureInteractor>().gameObject;
-                }
+                var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
+                if (interactableObject != null)
+                    TargetObject = interactableObject.gameObject;
             }
 
-            Touch touch1;
-            GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
-            Touch touch2;
-            GestureTouchesUtility.TryFindTouch(FingerId2, out touch2);
+            GestureTouchesUtility.TryFindTouch(FingerId1, out var touch1);
+            GestureTouchesUtility.TryFindTouch(FingerId2, out var touch2);
             Position = (touch1.position + touch2.position) / 2;
         }
 
         /// <summary>
         /// Updates this gesture.
         /// </summary>
-        /// <returns>True if the update was successful.</returns>
+        /// <returns>Returns <see langword="true"/> if the update was successful. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool UpdateGesture()
         {
-            Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
+            var foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out var touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(FingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(FingerId2, out var touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -207,9 +195,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Action to be performed when this gesture is cancelled.
         /// </summary>
-        protected internal override void OnCancel()
-        {
-        }
+        protected internal override void OnCancel() { }
 
         /// <summary>
         /// Action to be performed when this gesture is finished.

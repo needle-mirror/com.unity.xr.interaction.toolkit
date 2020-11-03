@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if !AR_FOUNDATION_PRESENT
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
@@ -25,36 +27,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARGestureInterac
 
 #else
 
-using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// The ARGestureInteractor allows the user to manipulate virtual objects (select, translate,
+    /// The <see cref="ARGestureInteractor"/> allows the user to manipulate virtual objects (select, translate,
     /// rotate, scale and elevate) through gestures (tap, drag, twist, swipe).
-    /// The ARGestureInteractor also handles the current selected object and its visualization.
-    ///
-    /// To enable it add one ARGestureInteractor to your scene and one ARGestureInteractabl as parent of each
+    /// The <see cref="ARGestureInteractor"/> also handles the current selected object and its visualization.
+    /// <br />
+    /// To enable it add one <see cref="ARGestureInteractor"/> to your scene and one <see cref="ARBaseGestureInteractable"/> as parent of each
     /// of your virtual objects.
     /// </summary>
     public class ARGestureInteractor : XRBaseInteractor
     {
-        private static ARGestureInteractor s_Instance = null;
-
-        private DragGestureRecognizer m_DragGestureRecognizer = new DragGestureRecognizer();
-        private PinchGestureRecognizer m_PinchGestureRecognizer = new PinchGestureRecognizer();
-        private TwoFingerDragGestureRecognizer m_TwoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
-        private TapGestureRecognizer m_TapGestureRecognizer = new TapGestureRecognizer();
-        private TwistGestureRecognizer m_TwistGestureRecognizer = new TwistGestureRecognizer();
-
+        static ARGestureInteractor s_Instance;
         /// <summary>
-        /// Gets the ARGestureInteractor instance.
+        /// (Read Only) The <see cref="ARGestureInteractor"/> instance.
         /// </summary>
-        public static ARGestureInteractor Instance
+        public static ARGestureInteractor instance
         {
             get
             {
@@ -75,76 +67,52 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
-        /// <summary>
-        /// Gets the Drag gesture recognizer.
-        /// </summary>
-        public DragGestureRecognizer DragGestureRecognizer
-        {
-            get
-            {
-                return m_DragGestureRecognizer;
-            }
-        }
+#pragma warning disable IDE1006 // Naming Styles
+        [Obsolete("Instance has been deprecated. Use instance instead. (UnityUpgradable) -> instance", true)]
+        public static ARGestureInteractor Instance => instance;
+#pragma warning restore IDE1006
 
+        DragGestureRecognizer m_DragGestureRecognizer = new DragGestureRecognizer();
         /// <summary>
-        /// Gets the Pinch gesture recognizer.
+        /// (Read Only) The Drag gesture recognizer.
         /// </summary>
-        public PinchGestureRecognizer PinchGestureRecognizer
-        {
-            get
-            {
-                return m_PinchGestureRecognizer;
-            }
-        }
+        public DragGestureRecognizer DragGestureRecognizer => m_DragGestureRecognizer;
 
+        PinchGestureRecognizer m_PinchGestureRecognizer = new PinchGestureRecognizer();
         /// <summary>
-        /// Gets the two finger drag gesture recognizer.
+        /// (Read Only) The Pinch gesture recognizer.
         /// </summary>
-        public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer
-        {
-            get
-            {
-                return m_TwoFingerDragGestureRecognizer;
-            }
-        }
+        public PinchGestureRecognizer PinchGestureRecognizer => m_PinchGestureRecognizer;
 
+        TwoFingerDragGestureRecognizer m_TwoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
         /// <summary>
-        /// Gets the Tap gesture recognizer.
+        /// (Read Only) The two finger drag gesture recognizer.
         /// </summary>
-        public TapGestureRecognizer TapGestureRecognizer
-        {
-            get
-            {
-                return m_TapGestureRecognizer;
-            }
-        }
+        public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer => m_TwoFingerDragGestureRecognizer;
 
+        TapGestureRecognizer m_TapGestureRecognizer = new TapGestureRecognizer();
         /// <summary>
-        /// Gets the Twist gesture recognizer.
+        /// (Read Only) The Tap gesture recognizer.
         /// </summary>
-        public TwistGestureRecognizer TwistGestureRecognizer
-        {
-            get
-            {
-                return m_TwistGestureRecognizer;
-            }
-        }
-        
+        public TapGestureRecognizer TapGestureRecognizer => m_TapGestureRecognizer;
+
+        TwistGestureRecognizer m_TwistGestureRecognizer = new TwistGestureRecognizer();
         /// <summary>
-        /// The Unity Awake() method.
+        /// (Read Only) The Twist gesture recognizer.
         /// </summary>
+        public TwistGestureRecognizer TwistGestureRecognizer => m_TwistGestureRecognizer;
+
         protected override void Awake()
         {
             base.Awake();
 
-            if (Instance != this)
+            if (instance != this)
             {
-                // TODO: We should support multiple ARGestureInteractors eventually
-                Debug.LogWarning("Multiple instances of ARGestureInteractor detected in the scene." +
+                // TODO We should support multiple ARGestureInteractors eventually
+                Debug.LogWarning($"Multiple instances of {nameof(ARGestureInteractor)} detected in the scene." +
                                  " Only one instance can exist at a time. The duplicate instances" +
-                                 " will be destroyed.");
+                                 " will be destroyed.", this);
                 DestroyImmediate(gameObject);
-                return;
             }
         }
 
@@ -160,10 +128,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             TwistGestureRecognizer.Update();
         }
 
-        float GetHorizontalFOV(Camera camera)
+        static float GetHorizontalFOV(Camera camera)
         {
-            float vFOV = camera.fieldOfView * Mathf.Deg2Rad;
-            float cameraHeight = Mathf.Tan(vFOV * .5f);
+            var vFOV = camera.fieldOfView * Mathf.Deg2Rad;
+            var cameraHeight = Mathf.Tan(vFOV * .5f);
             return Mathf.Atan(cameraHeight * camera.aspect);
         }
 
@@ -174,8 +142,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public override void GetValidTargets(List<XRBaseInteractable> validTargets)
         {
             validTargets.Clear();
-            
-            float hFOV = GetHorizontalFOV(Camera.main);
+
+            var cameraBehaviour = Camera.main;
+            if (cameraBehaviour == null)
+                return;
+
+            var hFOV = GetHorizontalFOV(cameraBehaviour);
 
             foreach (var interactable in interactionManager.interactables)
             {
@@ -184,13 +156,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     validTargets.Add(interactable);
                 else if (interactable is ARBaseGestureInteractable)
                 {
-                    // Check if angle off of camera's forward axis is less than hFOV (more or less in camera frustrum).
+                    // Check if angle off of camera's forward axis is less than hFOV (more or less in camera frustum).
                     // Note: this does not take size of object into consideration.
                     // Note: this will fall down when directly over/under object (we should also check for dot
                     // product with up/down.
-                    Vector3 toTarget =
-                        Vector3.Normalize(interactable.transform.position - Camera.main.transform.position);
-                    float dotForwardToTarget = Vector3.Dot(Camera.main.transform.forward, toTarget);
+                    var toTarget =
+                        Vector3.Normalize(interactable.transform.position - cameraBehaviour.transform.position);
+                    var dotForwardToTarget = Vector3.Dot(cameraBehaviour.transform.forward, toTarget);
                     if (Mathf.Acos(dotForwardToTarget) < hFOV)
                         validTargets.Add(interactable);
                 }

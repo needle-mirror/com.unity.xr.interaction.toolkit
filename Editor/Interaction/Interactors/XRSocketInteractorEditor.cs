@@ -3,8 +3,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRSocketInteractor))]
-    internal class XRSocketInteractorEditor : Editor
+    [CustomEditor(typeof(XRSocketInteractor)), CanEditMultipleObjects]
+    public class XRSocketInteractorEditor : Editor
     {
         SerializedProperty m_InteractionManager;
         SerializedProperty m_InteractionLayerMask;
@@ -13,14 +13,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         SerializedProperty m_ShowInteractableHoverMeshes;
         SerializedProperty m_InteractableHoverMeshMaterial;
+        SerializedProperty m_InteractableCantHoverMeshMaterial;
         SerializedProperty m_SocketActive;
         SerializedProperty m_InteractableHoverScale;
 
-        SerializedProperty m_OnHoverEnter;
-        SerializedProperty m_OnHoverExit;
-        SerializedProperty m_OnSelectEnter;
-        SerializedProperty m_OnSelectExit;
-        bool m_ShowInteractorEvents;
+        SerializedProperty m_OnHoverEntered;
+        SerializedProperty m_OnHoverExited;
+        SerializedProperty m_OnSelectEntered;
+        SerializedProperty m_OnSelectExited;
 
         static class Tooltips
         {
@@ -28,15 +28,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent interactionLayerMask = new GUIContent("Interaction Layer Mask", "Only interactables with this Layer Mask will respond to this interactor.");
             public static readonly GUIContent attachTransform = new GUIContent("Attach Transform", "Attach Transform to use for this Interactor.  Will create empty GameObject if none set.");
             public static readonly GUIContent startingSelectedInteractable = new GUIContent("Starting Selected Interactable", "Interactable that will be selected upon start.");
-            public static readonly GUIContent toggleSelect = new GUIContent("Toggle Select", "Toggle select on button press instead of hold.");
 
             public static readonly GUIContent showInteractableHoverMeshes = new GUIContent("Show Interactable Hover Meshes", "Show interactable's meshes at socket's attach point on hover.");
             public static readonly GUIContent interactableHoverMeshMaterial = new GUIContent("Interactable Hover Mesh Material", "Material used for rendering interactable meshes on hover (a default material will be created if none is supplied).");
-            public static readonly GUIContent socketActive = new GUIContent("Socket Active", "Turn socket interaction on/off");
+            public static readonly GUIContent interactableCantHoverMeshMaterial = new GUIContent("Interactable Cant Hover Mesh Material", "Material used for rendering interactable meshes on hover when there is already a selected object in the socket (a default material will be created if none is supplied).");
+            public static readonly GUIContent socketActive = new GUIContent("Socket Active", "Turn socket interaction on/off.");
             public static readonly GUIContent interactableHoverScale = new GUIContent("Interactable Hover Scale", "Scale at which to render hovered interactable.");
         }
 
-        void OnEnable()
+        protected void OnEnable()
         {
             m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
@@ -45,23 +45,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_ShowInteractableHoverMeshes = serializedObject.FindProperty("m_ShowInteractableHoverMeshes");
             m_InteractableHoverMeshMaterial = serializedObject.FindProperty("m_InteractableHoverMeshMaterial");
+            m_InteractableCantHoverMeshMaterial = serializedObject.FindProperty("m_InteractableCantHoverMeshMaterial");
             m_SocketActive = serializedObject.FindProperty("m_SocketActive");
             m_InteractableHoverScale = serializedObject.FindProperty("m_InteractableHoverScale");
 
-            m_OnHoverEnter = serializedObject.FindProperty("m_OnHoverEnter");
-            m_OnHoverExit = serializedObject.FindProperty("m_OnHoverExit");
-            m_OnSelectEnter = serializedObject.FindProperty("m_OnSelectEnter");
-            m_OnSelectExit = serializedObject.FindProperty("m_OnSelectExit");
+            m_OnHoverEntered = serializedObject.FindProperty("m_OnHoverEntered");
+            m_OnHoverExited = serializedObject.FindProperty("m_OnHoverExited");
+            m_OnSelectEntered = serializedObject.FindProperty("m_OnSelectEntered");
+            m_OnSelectExited = serializedObject.FindProperty("m_OnSelectExited");
         }
 
         public override void OnInspectorGUI()
         {
-
-            GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRSocketInteractor)target), typeof(XRSocketInteractor), false);
-            GUI.enabled = true;
-
             serializedObject.Update();
+
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((XRSocketInteractor)target), typeof(XRSocketInteractor), false);
+            EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
@@ -69,19 +69,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, Tooltips.startingSelectedInteractable);
 
             EditorGUILayout.PropertyField(m_ShowInteractableHoverMeshes, Tooltips.showInteractableHoverMeshes);
-            EditorGUILayout.PropertyField(m_InteractableHoverMeshMaterial, Tooltips.interactableHoverMeshMaterial);
+            EditorGUI.indentLevel++;
+            if (m_ShowInteractableHoverMeshes.boolValue)
+            {
+                EditorGUILayout.PropertyField(m_InteractableHoverMeshMaterial, Tooltips.interactableHoverMeshMaterial);
+                EditorGUILayout.PropertyField(m_InteractableCantHoverMeshMaterial, Tooltips.interactableCantHoverMeshMaterial);
+            }
+            EditorGUI.indentLevel--;
             EditorGUILayout.PropertyField(m_SocketActive, Tooltips.socketActive);
             EditorGUILayout.PropertyField(m_InteractableHoverScale, Tooltips.interactableHoverScale);
 
-            m_ShowInteractorEvents = EditorGUILayout.Toggle("Show Interactor Events", m_ShowInteractorEvents);
-            if (m_ShowInteractorEvents)
+            EditorGUILayout.Space();
+
+            m_OnHoverEntered.isExpanded = EditorGUILayout.Foldout(m_OnHoverEntered.isExpanded, EditorGUIUtility.TrTempContent("Interactor Events"), true);
+            if (m_OnHoverEntered.isExpanded)
             {
-                // UnityEvents have not yet supported Tooltips
-                EditorGUILayout.PropertyField(m_OnHoverEnter);
-                EditorGUILayout.PropertyField(m_OnHoverExit);
-                EditorGUILayout.PropertyField(m_OnSelectEnter);
-                EditorGUILayout.PropertyField(m_OnSelectExit);
+                EditorGUILayout.PropertyField(m_OnHoverEntered);
+                EditorGUILayout.PropertyField(m_OnHoverExited);
+                EditorGUILayout.PropertyField(m_OnSelectEntered);
+                EditorGUILayout.PropertyField(m_OnSelectExited);
             }
+
             serializedObject.ApplyModifiedProperties();
         }
     }

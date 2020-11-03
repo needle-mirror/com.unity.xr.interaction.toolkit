@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using System.Collections.Generic;
@@ -59,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// reduce how much the object hovers.
         /// </summary>
         const float k_HoverDistanceThreshold = 1.0f;
-        
+
         static ARRaycastManager s_ARRaycastManager;
         static ARPlaneManager s_ARPlaneManager;
         static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
@@ -94,7 +96,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="screenPoint">The point, in device screen pixels, from which to cast.</param>
         /// <param name="hitResults">Contents are replaced with the raycast results, if successful.</param>
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
-        /// <returns>True if the raycast hit a trackable in the <paramref name="trackableTypes"/></returns>
+        /// <returns>Returns <see langword="true"/> if the raycast hit a trackable in the <paramref name="trackableTypes"/>.
+        ///     Returns <see langword="false"/> otherwise.</returns>
         public static bool Raycast(Vector2 screenPoint, List<ARRaycastHit> hitResults,
             TrackableType trackableTypes = TrackableType.All)
         {
@@ -102,13 +105,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             if (CheckDependentManagers() && s_ARRaycastManager.Raycast(screenPoint, hitResults, trackableTypes))
                 return true;
-            
+
             // No hits or managers, try debug planes
             var sessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
-            
-            RaycastHit hit;
+
             var ray = Camera.main.ScreenPointToRay(screenPoint);
-            if (Physics.Raycast(ray, out hit, float.MaxValue, 1 << 9))
+            if (Physics.Raycast(ray, out var hit, float.MaxValue, 1 << 9))
             {
                 hitResults.Add(new ARRaycastHit(
                     new XRRaycastHit(TrackableId.invalidId,
@@ -152,25 +154,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             float maxTranslationDistance,
             GestureTranslationMode gestureTranslationMode)
         {
-            Placement result = new Placement();
+            var result = new Placement();
             if (!CheckDependentManagers())
                 return result;
-            
+
             result.UpdatedGroundingPlaneHeight = groundingPlaneHeight;
 
             // Get the angle between the camera and the object's down direction.
-            float angle = Vector3.Angle(Camera.main.transform.forward, Vector3.down);
+            var angle = Vector3.Angle(Camera.main.transform.forward, Vector3.down);
             angle = 90.0f - angle;
 
-            float touchOffsetRatio = Mathf.Clamp01(angle / 90.0f);
-            float screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
+            var touchOffsetRatio = Mathf.Clamp01(angle / 90.0f);
+            var screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
             screenPos.y += GestureTouchesUtility.InchesToPixels(screenTouchOffset);
 
-            float hoverRatio = Mathf.Clamp01(angle / 45.0f);
+            var hoverRatio = Mathf.Clamp01(angle / 45.0f);
             hoverOffset *= hoverRatio;
 
-            float distance = (Camera.main.transform.position - currentAnchorPosition).magnitude;
-            float distanceHoverRatio = Mathf.Clamp01(distance / k_HoverDistanceThreshold);
+            var distance = (Camera.main.transform.position - currentAnchorPosition).magnitude;
+            var distanceHoverRatio = Mathf.Clamp01(distance / k_HoverDistanceThreshold);
             hoverOffset *= distanceHoverRatio;
 
             // The best estimate of the point in the plane where the object will be placed:
@@ -228,14 +230,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             // If the grounding point is lower than the current grounding plane height, or if the
             // raycast did not return a hit, then we extend the grounding plane to infinity, and do
             // a new raycast into the scene from the perspective of the camera.
-            Ray cameraRay = Camera.main.ScreenPointToRay(screenPos);
-            Plane groundingPlane =
+            var cameraRay = Camera.main.ScreenPointToRay(screenPos);
+            var groundingPlane =
                 new Plane(Vector3.up, new Vector3(0.0f, groundingPlaneHeight, 0.0f));
 
             // Find the hovering position by casting from the camera onto the grounding plane
             // and offsetting the result by the hover offset.
-            float enter;
-            if (groundingPlane.Raycast(cameraRay, out enter))
+            if (groundingPlane.Raycast(cameraRay, out var enter))
             {
                 groundingPoint = LimitTranslation(
                     cameraRay.GetPoint(enter), currentAnchorPosition, maxTranslationDistance);
@@ -301,11 +302,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public struct Placement
         {
+            // TODO Modify encapsulation of AR Placement position struct: no public fields
+
             /// <summary>
             /// True if this Placement has a hovering position, else false;
             /// </summary>
             public bool HasHoveringPosition;
-            
+
             /// <summary>
             /// The position that the object should be displayed at before the placement has been
             /// confirmed.
@@ -316,7 +319,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             /// True if this Placement has a placement position, else false.
             /// </summary>
             public bool HasPlacementPosition;
-            
+
             /// <summary>
             /// The resulting position that the object should be placed at.
             /// </summary>

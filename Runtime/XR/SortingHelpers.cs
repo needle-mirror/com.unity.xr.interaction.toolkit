@@ -1,25 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    internal static class SortingHelpers
+    static class SortingHelpers
     {
         public static void Sort<T>(IList<T> hits, IComparer<T> comparer) where T : struct
         {
-            T temp;
-
-            bool fullPass = true;
+            bool fullPass;
             do
             {
                 fullPass = true;
-                for (int i = 1; i < hits.Count; i++)
+                for (var i = 1; i < hits.Count; ++i)
                 {
-                    int result = comparer.Compare(hits[i - 1], hits[i]);
+                    var result = comparer.Compare(hits[i - 1], hits[i]);
                     if (result > 0)
                     {
-                        temp = hits[i - 1];
+                        var temp = hits[i - 1];
                         hits[i - 1] = hits[i];
                         hits[i] = temp;
                         fullPass = false;

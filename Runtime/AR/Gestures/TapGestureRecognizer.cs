@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -33,26 +35,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         const float k_TimeSeconds = 0.3f;
 
         /// <summary>
-        /// Gets the edge slop distance to filter tap gestures.
+        /// (Read Only) The edge slop distance to filter tap gestures.
         /// </summary>
-        internal float m_SlopInches
-        {
-            get
-            {
-                return k_SlopInches;
-            }
-        }
+        internal float m_SlopInches => k_SlopInches;
 
         /// <summary>
-        /// Gets the max time to be considered a Tap gesture.
+        /// (Read Only) The max time to be considered a Tap gesture.
         /// </summary>
-        internal float m_TimeSeconds
-        {
-            get
-            {
-                return k_TimeSeconds;
-            }
-        }
+        internal float m_TimeSeconds => k_TimeSeconds;
 
         /// <summary>
         /// Creates a Tap gesture with the given touch.

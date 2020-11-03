@@ -7,8 +7,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     public class TrackedDeviceGraphicRaycaster : BaseRaycaster
     {
-        static readonly int k_MaxRaycastHits = 10;
-        private struct RaycastHitData
+        const int k_MaxRaycastHits = 10;
+
+        readonly struct RaycastHitData
         {
             public RaycastHitData(Graphic graphic, Vector3 worldHitPosition, Vector2 screenPosition, float distance)
             {
@@ -18,40 +19,73 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 this.distance = distance;
             }
 
-            public Graphic graphic { get; set; }
-            public Vector3 worldHitPosition { get; set; }
-            public Vector2 screenPosition { get; set; }
-            public float distance { get; set; }
+            public Graphic graphic { get; }
+            public Vector3 worldHitPosition { get; }
+            public Vector2 screenPosition { get; }
+            public float distance { get; }
         }
 
-        private class RaycastHitComparer : IComparer<RaycastHitData>
+        class RaycastHitComparer : IComparer<RaycastHitData>
         {
             public int Compare(RaycastHitData a, RaycastHitData b)
+                => b.graphic.depth.CompareTo(a.graphic.depth);
+        }
+
+        [SerializeField]
+        bool m_IgnoreReversedGraphics;
+
+        public bool ignoreReversedGraphics
+        {
+            get => m_IgnoreReversedGraphics;
+            set => m_IgnoreReversedGraphics = value;
+        }
+
+        [SerializeField]
+        bool m_CheckFor2DOcclusion;
+
+        public bool checkFor2DOcclusion
+        {
+            get => m_CheckFor2DOcclusion;
+            set => m_CheckFor2DOcclusion = value;
+        }
+
+        [SerializeField]
+        bool m_CheckFor3DOcclusion;
+
+        public bool checkFor3DOcclusion
+        {
+            get => m_CheckFor3DOcclusion;
+            set => m_CheckFor3DOcclusion = value;
+        }
+
+        [SerializeField]
+        LayerMask m_BlockingMask = int.MaxValue;
+
+        public LayerMask blockingMask
+        {
+            get => m_BlockingMask;
+            set => m_BlockingMask = value;
+        }
+
+        /// <inheritdoc />
+#pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
+        public override Camera eventCamera => canvas != null ? canvas.worldCamera : null;
+#pragma warning restore IDE0031
+
+        /// <summary>Perform a raycast against objects within this Raycaster's domain.</summary>
+        /// <param name="eventData">Data containing where and how to raycast.</param>
+        /// <param name="resultAppendList">The resultant hits from the raycast.</param>
+        public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
+        {
+            if (eventData is TrackedDeviceEventData trackedEventData)
             {
-                int result = b.graphic.depth.CompareTo(a.graphic.depth);
-                return result;
+                PerformRaycasts(trackedEventData, resultAppendList);
             }
         }
 
-        [SerializeField]
-        private bool m_IgnoreReversedGraphics = false;
+        Canvas m_Canvas;
 
-        [SerializeField]
-        private bool m_CheckFor2DOcclusion = false;
-
-        [SerializeField]
-        private bool m_CheckFor3DOcclusion = false;
-
-        [SerializeField]
-        private LayerMask m_BlockingMask = int.MaxValue;
-
-        private Canvas m_Canvas;
-
-        private RaycastHit[] occlusionHits3D = new RaycastHit[k_MaxRaycastHits];
-        private RaycastHit2D[] occlusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
-        private RaycastHitComparer m_raycastHitComparer = new RaycastHitComparer();
-
-        private Canvas canvas
+        Canvas canvas
         {
             get
             {
@@ -63,36 +97,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
+        readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
+        readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
 
-        public override Camera eventCamera
-        {
-            get
-            {
-                var myCanvas = canvas;
-                return myCanvas != null ? myCanvas.worldCamera : null;
-            }
-        }
-
-        /// <summary>Perform a raycast against objects within this Raycaster's domain.</summary>
-        /// <param name="eventData">Data containing where and how to raycast.</param>
-        /// <param name="resultAppendList">The resultant hits from the raycast.</param>
-        public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
-        {
-            var trackedEventData = eventData as TrackedDeviceEventData;
-            if (trackedEventData != null)
-            {
-                PerformRaycasts(trackedEventData, resultAppendList);
-            }
-        }
+        static readonly Vector3[] s_Corners = new Vector3[4];
 
         // Use this list on each raycast to avoid continually allocating.
-        private List<RaycastHitData> m_RaycastResultsCache = new List<RaycastHitData>();
+        readonly List<RaycastHitData> m_RaycastResultsCache = new List<RaycastHitData>();
+
+        [NonSerialized]
+        static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
 
         static RaycastHit FindClosestHit(RaycastHit[] hits, int count)
         {
-            int index = 0;
+            var index = 0;
             var distance = float.MaxValue;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (hits[i].distance < distance)
                 {
@@ -106,9 +127,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         static RaycastHit2D FindClosestHit(RaycastHit2D[] hits, int count)
         {
-            int index = 0;
+            var index = 0;
             var distance = float.MaxValue;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (hits[i].distance < distance)
                 {
@@ -119,7 +140,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return hits[index];
         }
-        private void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
+
+        void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
         {
             if (canvas == null)
                 return;
@@ -129,7 +151,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             var rayPoints = eventData.rayPoints;
             var layerMask = eventData.layerMask;
-            for(int i = 1; i < rayPoints.Count; i++)
+            for(var i = 1; i < rayPoints.Count; i++)
             {
                 var from = rayPoints[i - 1];
                 var to = rayPoints[i];
@@ -141,34 +163,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        private RaycastHit[] physicsHits = new RaycastHit[1];
-        private RaycastHit2D[] graphicHits = new RaycastHit2D[1];
-
         bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, List<RaycastResult> resultAppendList)
         {
-            bool hitSomething = false;
+            var hitSomething = false;
 
-            float rayDistance = Vector3.Distance(to, from);
-            Ray ray = new Ray(from, (to - from).normalized * rayDistance);
-             
+            var rayDistance = Vector3.Distance(to, from);
+            var ray = new Ray(from, (to - from).normalized * rayDistance);
+
             var hitDistance = rayDistance;
             if (m_CheckFor3DOcclusion)
             {
-                var hitCount = Physics.RaycastNonAlloc(ray, occlusionHits3D, hitDistance, m_BlockingMask);
+                var hitCount = Physics.RaycastNonAlloc(ray, m_OcclusionHits3D, hitDistance, m_BlockingMask);
 
                 if (hitCount > 0)
-                {                    var hit = FindClosestHit(occlusionHits3D, hitCount);
+                {
+                    var hit = FindClosestHit(m_OcclusionHits3D, hitCount);
                     hitDistance = hit.distance;
-                    hitSomething = true;                }
+                    hitSomething = true;
+                }
             }
 
             if (m_CheckFor2DOcclusion)
             {
-                var raycastDistance = hitDistance;
-                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, occlusionHits2D, m_BlockingMask);
-                
+                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, m_BlockingMask);
+
                 if (hitCount > 0)
-                {                    var hit = FindClosestHit(occlusionHits2D, hitCount);
+                {
+                    var hit = FindClosestHit(m_OcclusionHits2D, hitCount);
                     hitDistance = hit.distance > hitDistance ? hitDistance : hit.distance;
                     hitSomething = true;
                 }
@@ -177,12 +198,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_RaycastResultsCache.Clear();
             SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, m_RaycastResultsCache);
 
-            //Now that we have a list of sorted hits, process any extra settings and filters.
-            for (var i = 0; i < m_RaycastResultsCache.Count; i++)
+            // Now that we have a list of sorted hits, process any extra settings and filters.
+            foreach (var hitData in m_RaycastResultsCache)
             {
                 var validHit = true;
-
-                var hitData = m_RaycastResultsCache[i];
 
                 var go = hitData.graphic.gameObject;
                 if (m_IgnoreReversedGraphics)
@@ -196,8 +215,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 if (validHit)
                 {
-                    Transform trans = go.transform;
-                    Vector3 transForward = trans.forward;
+                    var trans = go.transform;
+                    var transForward = trans.forward;
                     var castResult = new RaycastResult
                     {
                         gameObject = go,
@@ -219,28 +238,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hitSomething;
         }
 
-        [NonSerialized]
-        static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
-        private void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, List<RaycastHitData> results)
+        void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, List<RaycastHitData> results)
         {
             var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
 
             s_SortedGraphics.Clear();
             for (int i = 0; i < graphics.Count; ++i)
             {
-                Graphic graphic = graphics[i];
+                var graphic = graphics[i];
 
-                if (graphic.depth == -1)
+                // -1 means it hasn't been processed by the canvas, which means it isn't actually drawn
+                if (graphic.depth == -1 || !graphic.raycastTarget || graphic.canvasRenderer.cull)
                     continue;
 
                 if (((1 << graphic.gameObject.layer) & layerMask) == 0)
                     continue;
 
-                Vector3 worldPos;
-                float distance;
-                if (RayIntersectsRectTransform(graphic.rectTransform, ray, out worldPos, out distance))
+                if (RayIntersectsRectTransform(graphic.rectTransform, ray, out var worldPos, out var distance))
                 {
-                    if(distance <= maxDistance)
+                    if (distance <= maxDistance)
                     {
                         Vector2 screenPos = eventCamera.WorldToScreenPoint(worldPos);
                         // mask/image intersection - See Unity docs on eventAlphaThreshold for when this does anything
@@ -248,22 +264,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         {
                             s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance));
                         }
-                    }      
+                    }
                 }
             }
-            SortingHelpers.Sort(s_SortedGraphics, m_raycastHitComparer);
+
+            SortingHelpers.Sort(s_SortedGraphics, m_RaycastHitComparer);
             results.AddRange(s_SortedGraphics);
         }
 
-        static Vector3[] s_Corners = new Vector3[4];
-
-        private bool RayIntersectsRectTransform(RectTransform transform, Ray ray, out Vector3 worldPosition, out float distance)
+        static bool RayIntersectsRectTransform(RectTransform transform, Ray ray, out Vector3 worldPosition, out float distance)
         {
             transform.GetWorldCorners(s_Corners);
             var plane = new Plane(s_Corners[0], s_Corners[1], s_Corners[2]);
 
-            float enter;
-            if (plane.Raycast(ray, out enter))
+            if (plane.Raycast(ray, out var enter))
             {
                 var intersection = ray.GetPoint(enter);
 
@@ -273,7 +287,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 var leftDot = Vector3.Dot(intersection - s_Corners[0], leftEdge);
 
                 // If the intersection is right of the left edge and above the bottom edge.
-                if (leftDot >= 0 && bottomDot >= 0)
+                if (leftDot >= 0f && bottomDot >= 0f)
                 {
                     var topEdge = s_Corners[1] - s_Corners[2];
                     var rightEdge = s_Corners[3] - s_Corners[2];
@@ -281,7 +295,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var rightDot = Vector3.Dot(intersection - s_Corners[2], rightEdge);
 
                     //If the intersection is left of the right edge, and below the top edge
-                    if (topDot >= 0 && rightDot >= 0)
+                    if (topDot >= 0f && rightDot >= 0f)
                     {
                         worldPosition = intersection;
                         distance = enter;
@@ -289,8 +303,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     }
                 }
             }
+
             worldPosition = Vector3.zero;
-            distance = 0;
+            distance = 0f;
             return false;
         }
     }

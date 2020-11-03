@@ -1,134 +1,185 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
-   public interface IUIInteractable : ILineRenderable
+    // TODO Why does this interface inherit from ILineRenderable? XRRayInteractor should just implement both interfaces.
+    public interface IUIInteractor : ILineRenderable
     {
+        /// <summary>
+        /// Updates the current UI Model to match the state of the Interactor.
+        /// </summary>
+        /// <param name="model">The returned model that will match this Interactor.</param>
         void UpdateUIModel(ref TrackedDeviceModel model);
+
+        /// <summary>
+        /// Attempts to retrieve the current UI Model.
+        /// </summary>
+        /// <param name="model">The returned model that reflects the UI state of this Interactor.</param>
+        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Returns <see langword="false"/> otherwise.</returns>
         bool TryGetUIModel(out TrackedDeviceModel model);
     }
 
     public class XRUIInputModule : UIInputModule
     {
-        const float k_DefaultMaxTrackedDeviceRaycastDistance = 1000.0f;
-
-        struct RegisteredInteractable
+        struct RegisteredInteractor
         {
-            public RegisteredInteractable(IUIInteractable interactable, int deviceIndex)
+            public IUIInteractor interactor;
+            public TrackedDeviceModel model;
+
+            public RegisteredInteractor(IUIInteractor interactor, int deviceIndex)
             {
-                this.interactable = interactable;
+                this.interactor = interactor;
                 model = new TrackedDeviceModel(deviceIndex);
             }
-
-            public IUIInteractable interactable;
-            public TrackedDeviceModel model;
         }
 
         struct RegisteredTouch
         {
+            public bool isValid;
+            public int touchId;
+            public TouchModel model;
+
             public RegisteredTouch(Touch touch, int deviceIndex)
             {
                 touchId = touch.fingerId;
                 model = new TouchModel(deviceIndex);
                 isValid = true;
             }
-
-            public bool isValid;
-            public int touchId;
-            public TouchModel model;
-
         }
 
         [SerializeField]
         [Tooltip("The maximum distance to raycast with tracked devices to find hit objects.")]
-        float m_MaxTrackedDeviceRaycastDistance = k_DefaultMaxTrackedDeviceRaycastDistance;
-        public float maxRaycastDistance { get { return m_MaxTrackedDeviceRaycastDistance;} set { m_MaxTrackedDeviceRaycastDistance = value;} }
+        float m_MaxTrackedDeviceRaycastDistance = 1000f;
+
+        /// <summary>
+        /// The maximum distance to raycast with tracked devices to find hit objects.
+        /// </summary>
+        public float maxRaycastDistance
+        {
+            get => m_MaxTrackedDeviceRaycastDistance;
+            set => m_MaxTrackedDeviceRaycastDistance = value;
+        }
 
         [SerializeField]
-        [Tooltip("If true, will forward 3D tracked device data to UI elements")]
+        [Tooltip("If true, will forward 3D tracked device data to UI elements.")]
         bool m_EnableXRInput = true;
+
+        /// <summary>
+        /// If <see langword="true"/>, will forward 3D tracked device data to UI elements.
+        /// </summary>
+        public bool enableXRInput
+        {
+            get => m_EnableXRInput;
+            set => m_EnableXRInput = value;
+        }
+
         [SerializeField]
-        [Tooltip("If true, will forward 2D mouse data to UI elements")]
+        [Tooltip("If true, will forward 2D mouse data to UI elements.")]
         bool m_EnableMouseInput = true;
+
+        /// <summary>
+        /// If <see langword="true"/>, will forward 2D mouse data to UI elements.
+        /// </summary>
+        public bool enableMouseInput
+        {
+            get => m_EnableMouseInput;
+            set => m_EnableMouseInput = value;
+        }
+
         [SerializeField]
         [Tooltip("If true, will forward 2D touch data to UI elements.")]
         bool m_EnableTouchInput = true;
 
+        /// <summary>
+        /// If <see langword="true"/>, will forward 2D touch data to UI elements.
+        /// </summary>
+        public bool enableTouchInput
+        {
+            get => m_EnableTouchInput;
+            set => m_EnableTouchInput = value;
+        }
+
         MouseModel m_Mouse;
-        List<RegisteredTouch> m_RegisteredTouches;
-        int m_RollingInteractableIndex;
-        List<RegisteredInteractable> m_RegisteredInteractables;
 
-        void EnsureInitialized()
-        {
-            if (m_RegisteredInteractables == null)
-                m_RegisteredInteractables = new List<RegisteredInteractable>();
+        readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
 
-            if (m_RegisteredTouches == null)
-                m_RegisteredTouches = new List<RegisteredTouch>();
-        }
+        int m_RollingInteractorIndex;
 
-        protected override void Awake()
-        {
-            base.Awake();
-            EnsureInitialized();
-        }
+        readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
+        /// <inheritdoc />
         protected override void OnEnable()
         {
             base.OnEnable();
-            m_Mouse = new MouseModel(m_RollingInteractableIndex++);
+            m_Mouse = new MouseModel(m_RollingInteractorIndex++);
         }
 
-        /// <summary>Register an Interactable with the UI system.  Calling this will enable it to start interacting with UI.</summary>
-        /// <param name="interactable">The IUIInteractable to use.</param>
-        public void RegisterInteractable(IUIInteractable interactable)
+        /// <summary>
+        /// Register an <see cref="IUIInteractor"/> with the UI system.
+        /// Calling this will enable it to start interacting with UI.
+        /// </summary>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to use.</param>
+        public void RegisterInteractor(IUIInteractor interactor)
         {
-            EnsureInitialized();
-
-            for (int i = 0; i < m_RegisteredInteractables.Count; i++)
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractables[i].interactable == interactable)
+                if (m_RegisteredInteractors[i].interactor == interactor)
                     return;
             }
 
-            m_RegisteredInteractables.Add(new RegisteredInteractable(interactable, m_RollingInteractableIndex++));
+            m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, m_RollingInteractorIndex++));
         }
 
-        /// <summary>Unregisters an Interactable with the UI system.  This cancels all UI Interaction and makes the IUIInteractable no longer able to affect UI.</summary>
-        /// <param name="interactable">The IUIInteractable to stop using.</param>
-        public void UnregisterInteractable(IUIInteractable interactable)
+        /// <summary>
+        /// Unregisters an <see cref="IUIInteractor"/> with the UI system.
+        /// This cancels all UI Interaction and makes the <see cref="IUIInteractor"/> no longer able to affect UI.
+        /// </summary>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to stop using.</param>
+        public void UnregisterInteractor(IUIInteractor interactor)
         {
-            EnsureInitialized();
-
-            for (int i = 0; i < m_RegisteredInteractables.Count; i++)
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractables[i].interactable == interactable)
+                if (m_RegisteredInteractors[i].interactor == interactor)
                 {
-                    RegisteredInteractable registeredInteractable = m_RegisteredInteractables[i];
-                    registeredInteractable.interactable = null;
-                    m_RegisteredInteractables[i] = registeredInteractable;
+                    var registeredInteractor = m_RegisteredInteractors[i];
+                    registeredInteractor.interactor = null;
+                    m_RegisteredInteractors[i] = registeredInteractor;
                     return;
                 }
             }
         }
 
-        /// <summary>Retrieves the UI Model for a selected Interactable.</summary>
-        /// <param name="interactable">The Interactable you want the model for.</param>
-        /// <param name="model">The returned model that reflects the UI state of the interactable.</param>
-        /// <returns>True if the model was able to retrieved, false otherwise.</returns>
-        public bool GetTrackedDeviceModel(IUIInteractable interactable, out TrackedDeviceModel model)
+        /// <summary>
+        /// Gets an <see cref="IUIInteractor"/> from it's corresponding Unity UI Pointer Id.
+        /// This can be used to identify individual Interactors from the underlying UI Events.
+        /// </summary>
+        /// <param name="pointerId">A unique integer representing an object that can point at UI.</param>
+        /// <returns>Returns the interactor associated with <paramref name="pointerId"/>.
+        /// Returns <see langword="null"/> if no Interactor is associated (e.g. if it's a mouse event).</returns>
+        public IUIInteractor GetInteractor(int pointerId)
         {
-            EnsureInitialized();
-
-            for (int i = 0; i < m_RegisteredInteractables.Count; i++)
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractables[i].interactable == interactable)
+                if (m_RegisteredInteractors[i].model.pointerId == pointerId)
                 {
-                    model = m_RegisteredInteractables[i].model;
+                    return m_RegisteredInteractors[i].interactor;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>Retrieves the UI Model for a selected <see cref="IUIInteractor"/>.</summary>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> you want the model for.</param>
+        /// <param name="model">The returned model that reflects the UI state of the <paramref name="interactor"/>.</param>
+        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Returns <see langword="false"/> otherwise.</returns>
+        public bool GetTrackedDeviceModel(IUIInteractor interactor, out TrackedDeviceModel model)
+        {
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
+            {
+                if (m_RegisteredInteractors[i].interactor == interactor)
+                {
+                    model = m_RegisteredInteractors[i].model;
                     return true;
                 }
             }
@@ -137,32 +188,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return false;
         }
 
+        /// <inheritdoc />
         protected override void DoProcess()
         {
-            EnsureInitialized();
-
             if (m_EnableXRInput)
             {
-                for (int i = 0; i < m_RegisteredInteractables.Count; i++)
+                for (var i = 0; i < m_RegisteredInteractors.Count; i++)
                 {
-                    RegisteredInteractable registeredInteractable = m_RegisteredInteractables[i];
+                    var registeredInteractor = m_RegisteredInteractors[i];
 
-                    //Update the raycast distance in case it's changed between frames
-                    registeredInteractable.model.maxRaycastDistance = m_MaxTrackedDeviceRaycastDistance;
+                    // Update the raycast distance in case it's changed between frames
+                    registeredInteractor.model.maxRaycastDistance = m_MaxTrackedDeviceRaycastDistance;
 
-                    //If device is removed, we send a default state to unclick any UI
-                    if (registeredInteractable.interactable == null)
+                    // If device is removed, we send a default state to unclick any UI
+                    if (registeredInteractor.interactor == null)
                     {
-                        registeredInteractable.model.Reset(false);
-                        registeredInteractable.model.maxRaycastDistance = 0;
-                        ProcessTrackedDevice(ref registeredInteractable.model, true);
-                        m_RegisteredInteractables.RemoveAt(i--);
+                        registeredInteractor.model.Reset(false);
+                        registeredInteractor.model.maxRaycastDistance = 0;
+                        ProcessTrackedDevice(ref registeredInteractor.model, true);
+                        m_RegisteredInteractors.RemoveAt(i--);
                     }
                     else
                     {
-                        registeredInteractable.interactable.UpdateUIModel(ref registeredInteractable.model);
-                        ProcessTrackedDevice(ref registeredInteractable.model);
-                        m_RegisteredInteractables[i] = registeredInteractable;
+                        registeredInteractor.interactor.UpdateUIModel(ref registeredInteractor.model);
+                        ProcessTrackedDevice(ref registeredInteractor.model);
+                        m_RegisteredInteractors[i] = registeredInteractor;
                     }
                 }
             }
@@ -176,7 +226,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         void ProcessMouse()
         {
-            if(Input.mousePresent)
+            if (Input.mousePresent)
             {
                 m_Mouse.position = Input.mousePosition;
                 m_Mouse.scrollPosition = Input.mouseScrollDelta;
@@ -190,16 +240,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         void ProcessTouches()
         {
-            if(Input.touchCount > 0)
+            if (Input.touchCount > 0)
             {
-                Touch[] touches = Input.touches;
-                for (int i = 0; i < touches.Length; i++)
+                var touches = Input.touches;
+                foreach (var touch in touches)
                 {
-                    Touch touch = touches[i];
-                    int registeredTouchIndex = -1;
+                    var registeredTouchIndex = -1;
 
-                    //Find if touch already exists
-                    for (int j = 0; j < m_RegisteredTouches.Count; j++)
+                    // Find if touch already exists
+                    for (var j = 0; j < m_RegisteredTouches.Count; j++)
                     {
                         if (touch.fingerId == m_RegisteredTouches[j].touchId)
                         {
@@ -210,13 +259,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                     if (registeredTouchIndex < 0)
                     {
-                        //Not found, search empty pool
-                        for (int j = 0; j < m_RegisteredTouches.Count; j++)
+                        // Not found, search empty pool
+                        for (var j = 0; j < m_RegisteredTouches.Count; j++)
                         {
                             if (!m_RegisteredTouches[j].isValid)
                             {
-                                //Re-use the Id
-                                int pointerId = m_RegisteredTouches[j].model.pointerId;
+                                // Re-use the Id
+                                var pointerId = m_RegisteredTouches[j].model.pointerId;
                                 m_RegisteredTouches[j] = new RegisteredTouch(touch, pointerId);
                                 registeredTouchIndex = j;
                                 break;
@@ -225,27 +274,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                         if (registeredTouchIndex < 0)
                         {
-                            //No Empty slots, add one
+                            // No Empty slots, add one
                             registeredTouchIndex = m_RegisteredTouches.Count;
-                            m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingInteractableIndex++));
+                            m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingInteractorIndex++));
                         }
                     }
 
-                    RegisteredTouch registeredTouch = m_RegisteredTouches[registeredTouchIndex];
+                    var registeredTouch = m_RegisteredTouches[registeredTouchIndex];
                     registeredTouch.model.selectPhase = touch.phase;
                     registeredTouch.model.position = touch.position;
                     m_RegisteredTouches[registeredTouchIndex] = registeredTouch;
                 }
 
-                for (int i = 0; i < m_RegisteredTouches.Count; i++)
+                for (var i = 0; i < m_RegisteredTouches.Count; i++)
                 {
-                    RegisteredTouch registeredTouch = m_RegisteredTouches[i];
+                    var registeredTouch = m_RegisteredTouches[i];
                     ProcessTouch(ref registeredTouch.model);
                     if (registeredTouch.model.selectPhase == TouchPhase.Ended || registeredTouch.model.selectPhase == TouchPhase.Canceled)
                         registeredTouch.isValid = false;
                     m_RegisteredTouches[i] = registeredTouch;
                 }
-            }       
+            }
         }
     }
 }

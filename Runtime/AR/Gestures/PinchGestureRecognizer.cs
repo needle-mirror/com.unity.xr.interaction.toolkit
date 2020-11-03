@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -32,21 +34,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         const float k_SlopInches = 0.05f;
         const float k_SlopMotionDirectionDegrees = 30.0f;
 
-        internal float m_SlopInches
-        {
-            get
-            {
-                return k_SlopInches;
-            }
-        }
+        internal float m_SlopInches => k_SlopInches;
 
-        internal float m_SlopMotionDirectionDegrees
-        {
-            get
-            {
-                return k_SlopMotionDirectionDegrees;
-            }
-        }
+        internal float m_SlopMotionDirectionDegrees => k_SlopMotionDirectionDegrees;
 
         /// <summary>
         /// Creates a Pinch gesture with the given touches.

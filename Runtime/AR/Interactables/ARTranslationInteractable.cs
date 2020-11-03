@@ -18,14 +18,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if !AR_FOUNDATION_PRESENT
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
 namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARTranslationInteractable {} }
 
 #else
-
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -39,51 +39,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         [SerializeField]
         [Tooltip("Controls whether the object will be constrained vertically, horizontally, or free to move in all axis.")]
         GestureTransformationUtility.GestureTranslationMode m_ObjectGestureTranslationMode;
+
         /// <summary>
-        /// The translation mode of this object.
+        /// Controls whether the object will be constrained vertically, horizontally, or free to move in all axis.
         /// </summary>
-        public GestureTransformationUtility.GestureTranslationMode objectGestureTranslationMode {  get { return m_ObjectGestureTranslationMode; } set { m_ObjectGestureTranslationMode = value; } }
+        public GestureTransformationUtility.GestureTranslationMode objectGestureTranslationMode
+        {
+            get => m_ObjectGestureTranslationMode;
+            set => m_ObjectGestureTranslationMode = value;
+        }
 
         [SerializeField]
         [Tooltip("The maximum translation distance of this object.")]
-        float m_MaxTranslationDistance = 10.0f;
+        float m_MaxTranslationDistance = 10f;
+
         /// <summary>
         /// The maximum translation distance of this object.
         /// </summary>
-        public float maxTranslationDistance {  get { return m_MaxTranslationDistance; } set { m_MaxTranslationDistance = value; } }
+        public float maxTranslationDistance
+        {
+            get => m_MaxTranslationDistance;
+            set => m_MaxTranslationDistance = value;
+        }
 
-        const float k_PositionSpeed = 12.0f;
+        const float k_PositionSpeed = 12f;
         const float k_DiffThreshold = 0.0001f;
 
-        bool m_IsActive = false;
-        
+        bool m_IsActive;
+
         Vector3 m_DesiredLocalPosition;
         float m_GroundingPlaneHeight;
         Vector3 m_DesiredAnchorPosition;
         Quaternion m_DesiredRotation;
         GestureTransformationUtility.Placement m_LastPlacement;
 
-        /// <summary>
-        /// The Unity's Start method.
-        /// </summary>
-        protected void Start()
-        {
-            m_DesiredLocalPosition = new Vector3(0, 0, 0);
-        }
-
-        /// <summary>
-        /// The Unity's Update method.
-        /// </summary>
-        void Update()
+        protected void Update()
         {
             UpdatePosition();
         }
 
-        /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>True if the manipulation can be started.</returns>
+        /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(DragGesture gesture)
         {
             if (gesture.TargetObject == null)
@@ -100,27 +95,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return true;
         }
 
-        /// <summary>
-        /// Function called when the manipulation is started.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnStartManipulation(DragGesture gesture)
         {
             m_GroundingPlaneHeight = transform.parent.position.y;
         }
 
-        /// <summary>
-        /// Continues the translation.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnContinueManipulation(DragGesture gesture)
         {
             Debug.Assert(transform.parent != null, "Translate interactable needs a parent object.");
             m_IsActive = true;
 
-            GestureTransformationUtility.Placement desiredPlacement =
+            var desiredPlacement =
                 GestureTransformationUtility.GetBestPlacementPosition(
-                    transform.parent.position, gesture.Position, m_GroundingPlaneHeight, 0.03f,
+                    transform.parent.position, gesture.position, m_GroundingPlaneHeight, 0.03f,
                     maxTranslationDistance, objectGestureTranslationMode);
 
             if (desiredPlacement.HasHoveringPosition && desiredPlacement.HasPlacementPosition)
@@ -130,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 m_DesiredAnchorPosition = desiredPlacement.PlacementPosition;
 
                 m_GroundingPlaneHeight = desiredPlacement.UpdatedGroundingPlaneHeight;
-                
+
                 // Rotate if the plane direction has changed.
                 if (((desiredPlacement.PlacementRotation * Vector3.up) - transform.up).magnitude > k_DiffThreshold)
                     m_DesiredRotation = desiredPlacement.PlacementRotation;
@@ -142,30 +131,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
-        /// <summary>
-        /// Finishes the translation.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnEndManipulation(DragGesture gesture)
         {
             if (!m_LastPlacement.HasPlacementPosition)
                 return;
-            
-            GameObject oldAnchor = transform.parent.gameObject;
-            Pose desiredPose = new Pose(m_DesiredAnchorPosition, m_LastPlacement.PlacementRotation);
 
-            Vector3 desiredLocalPosition = transform.parent.InverseTransformPoint(desiredPose.position);
+            var oldAnchor = transform.parent.gameObject;
+            var desiredPose = new Pose(m_DesiredAnchorPosition, m_LastPlacement.PlacementRotation);
+
+            var desiredLocalPosition = transform.parent.InverseTransformPoint(desiredPose.position);
 
             if (desiredLocalPosition.magnitude > maxTranslationDistance)
                 desiredLocalPosition = desiredLocalPosition.normalized * maxTranslationDistance;
             desiredPose.position = transform.parent.TransformPoint(desiredLocalPosition);
 
-            //Anchor newAnchor = m_LastPlacement.Trackable.CreateAnchor(desiredPose);
             var anchorGO = new GameObject("PlacementAnchor");
             anchorGO.transform.position = m_LastPlacement.PlacementPosition;
             anchorGO.transform.rotation = m_LastPlacement.PlacementRotation;
             transform.parent = anchorGO.transform;
-            
+
             Destroy(oldAnchor);
 
             m_DesiredLocalPosition = Vector3.zero;
@@ -186,12 +171,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return;
 
             // Lerp position.
-            Vector3 oldLocalPosition = transform.localPosition;
-            Vector3 newLocalPosition = Vector3.Lerp(
+            var oldLocalPosition = transform.localPosition;
+            var newLocalPosition = Vector3.Lerp(
                 oldLocalPosition, m_DesiredLocalPosition, Time.deltaTime * k_PositionSpeed);
 
-            float diffLenght = (m_DesiredLocalPosition - newLocalPosition).magnitude;
-            if (diffLenght < k_DiffThreshold)
+            var diffLength = (m_DesiredLocalPosition - newLocalPosition).magnitude;
+            if (diffLength < k_DiffThreshold)
             {
                 newLocalPosition = m_DesiredLocalPosition;
                 m_IsActive = false;
@@ -200,8 +185,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             transform.localPosition = newLocalPosition;
 
             // Lerp rotation.
-            Quaternion oldRotation = transform.rotation;
-            Quaternion newRotation =
+            var oldRotation = transform.rotation;
+            var newRotation =
                 Quaternion.Lerp(oldRotation, m_DesiredRotation, Time.deltaTime * k_PositionSpeed);
             transform.rotation = newRotation;
         }

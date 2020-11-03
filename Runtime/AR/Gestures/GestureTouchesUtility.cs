@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using System.Collections.Generic;
@@ -52,8 +54,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 fields.Add(f.Name, f);
         }
     }
-    
-    
+
+
     /// <summary>
     /// Singleton used by Gesture's and GestureRecognizer's to interact with touch input.
     ///
@@ -66,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     static class GestureTouchesUtility
     {
         const float k_EdgeThresholdInches = 0.1f;
-        
+
         static List<Touch> s_Touches = new List<Touch>();
         internal static List<MockTouch> s_MockTouches = new List<MockTouch>();
         static HashSet<int> s_RetainedFingerIds = new HashSet<int>();
@@ -77,18 +79,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="fingerId">The finger id to find the touch.</param>
         /// <param name="touch">The output touch.</param>
         /// <returns>True if a touch was found.</returns>
-        public static bool TryFindTouch(int fingerId, out Touch touch)
+        public static bool TryFindTouch(int fingerId, out Touch touchOut)
         {
-            for (int i = 0; i < Touches.Length; i++)
+            foreach (var touch in Touches)
             {
-                if (Touches[i].fingerId == fingerId)
+                if (touch.fingerId == fingerId)
                 {
-                    touch = Touches[i];
+                    touchOut = touch;
                     return true;
                 }
             }
 
-            touch = new Touch();
+            touchOut = new Touch();
             return false;
         }
 
@@ -97,20 +99,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="pixels">The amount to convert in pixels.</param>
         /// <returns>The converted amount in inches.</returns>
-        public static float PixelsToInches(float pixels)
-        {
-            return pixels / Screen.dpi;
-        }
+        public static float PixelsToInches(float pixels) => pixels / Screen.dpi;
 
         /// <summary>
         /// Converts Inches to Pixels.
         /// </summary>
         /// <param name="inches">The amount to convert in inches.</param>
         /// <returns>The converted amount in pixels.</returns>
-        public static float InchesToPixels(float inches)
-        {
-            return inches * Screen.dpi;
-        }
+        public static float InchesToPixels(float inches) => inches * Screen.dpi;
 
         /// <summary>
         /// Used to determine if a touch is off the edge of the screen based on some slop.
@@ -121,9 +117,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>True if the touch is off screen edge.</returns>
         public static bool IsTouchOffScreenEdge(Touch touch)
         {
-            float slopPixels = InchesToPixels(k_EdgeThresholdInches);
+            var slopPixels = InchesToPixels(k_EdgeThresholdInches);
 
-            bool result = touch.position.x <= slopPixels;
+            var result = touch.position.x <= slopPixels;
             result |= touch.position.y <= slopPixels;
             result |= touch.position.x >= Screen.width - slopPixels;
             result |= touch.position.y >= Screen.height - slopPixels;
@@ -139,15 +135,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>True if an object was hit.</returns>
         public static bool RaycastFromCamera(Vector2 screenPos, out RaycastHit result)
         {
-            if (Camera.main == null)
+            var mainCamera = Camera.main;
+            if (mainCamera == null)
             {
                 result = new RaycastHit();
                 return false;
             }
 
-            Ray ray = Camera.main.ScreenPointToRay(screenPos);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            var ray = mainCamera.ScreenPointToRay(screenPos);
+            if (Physics.Raycast(ray, out var hit))
             {
                 result = hit;
                 return true;
@@ -185,7 +181,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Returns true if the finger Id is retained.
         /// </summary>
         /// <param name="fingerId">The finger id to check.</param>
-        /// <returns>True if the finger is retained.</returns>
+        /// <returns>Returns <see langword="true"/> if the finger is retained. Returns <see langword="false"/> otherwise.</returns>
         public static bool IsFingerIdRetained(int fingerId)
         {
             return s_RetainedFingerIds.Contains(fingerId);
@@ -197,7 +193,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 s_Touches.Clear();
                 s_Touches.AddRange(Input.touches);
-        
+
                 foreach (var mockTouch in s_MockTouches)
                     s_Touches.Add(mockTouch.Touch);
 

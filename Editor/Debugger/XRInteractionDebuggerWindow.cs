@@ -1,7 +1,4 @@
-#if UNITY_EDITOR
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
@@ -11,9 +8,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         static XRInteractionDebuggerWindow s_Instance;
         [SerializeField] Vector2 m_ScrollPosition;
-        [SerializeField] bool m_ShowInputDevices;
-        [SerializeField] bool m_ShowInteractors;
-        [SerializeField] bool m_ShowInteractables;
+        [SerializeField] bool m_ShowInputDevices = true;
+        [SerializeField] bool m_ShowInteractors = true;
+        [SerializeField] bool m_ShowInteractables = true;
 
         [SerializeField] Vector2 m_InputDevicesTreeScrollPosition;
         [NonSerialized] XRInputDevicesTreeView m_InputDevicesTree;
@@ -30,10 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField] TreeViewState m_InteractorsTreeState;
         [SerializeField] MultiColumnHeaderState m_InteractorsTreeHeaderState;
 
-        [SerializeField] XRInteractionManager m_InteractionManager { set; get; }
-
         [MenuItem("Window/Analysis/XR Interaction Debugger", false, 2100)]
-
         public static void Init()
         {
             if (s_Instance == null)
@@ -59,27 +53,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void SetupInteractorsTree()
         {
-            m_InteractionManager = UnityEngine.Object.FindObjectOfType<XRInteractionManager>();
-            if (m_InteractionManager)
+            var interactionManager = FindObjectOfType<XRInteractionManager>();
+            if (interactionManager != null)
             {
-                m_InteractorsTree = XRInteractorsTreeView.Create(m_InteractionManager, ref m_InteractorsTreeState, ref m_InteractorsTreeHeaderState);
+                m_InteractorsTree = XRInteractorsTreeView.Create(interactionManager, ref m_InteractorsTreeState, ref m_InteractorsTreeHeaderState);
                 m_InteractorsTree.ExpandAll();
             }
         }
 
         void SetupInteractablesTree()
         {
-            m_InteractionManager = UnityEngine.Object.FindObjectOfType<XRInteractionManager>();
-            if (m_InteractionManager)
+            var interactionManager = FindObjectOfType<XRInteractionManager>();
+            if (interactionManager != null)
             {
-                m_InteractablesTree = XRInteractablesTreeView.Create(m_InteractionManager, ref m_InteractablesTreeState, ref m_InteractablesTreeHeaderState);
+                m_InteractablesTree = XRInteractablesTreeView.Create(interactionManager, ref m_InteractablesTreeState, ref m_InteractablesTreeHeaderState);
                 m_InteractablesTree.ExpandAll();
             }
         }
 
         public void OnInspectorUpdate()
         {
-            // TODO: Only do this when devices or interaction manager updates
+            // TODO Only do this when devices or interaction manager updates
             SetupInputDevicesTree();
             SetupInteractorsTree();
             SetupInteractablesTree();
@@ -89,8 +83,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_InputDevicesTree.Reload();
                 m_InputDevicesTree.Repaint();
             }
-            if (m_InteractablesTree != null)
-                m_InteractablesTree.Repaint();
+
+            m_InteractablesTree?.Repaint();
             Repaint();
         }
         
@@ -129,7 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            ////REVIEW: I'm not sure tree view needs a scroll view or whether it does that automatically
+            // TODO I'm not sure tree view needs a scroll view or whether it does that automatically
             m_InteractorsTreeScrollPosition = EditorGUILayout.BeginScrollView(m_InteractorsTreeScrollPosition);
             var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
             m_InteractorsTree.OnGUI(rect);
@@ -143,7 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            ////REVIEW: I'm not sure tree view needs a scroll view or whether it does that automatically
+            // TODO I'm not sure tree view needs a scroll view or whether it does that automatically
             m_InteractablesTreeScrollPosition = EditorGUILayout.BeginScrollView(m_InteractablesTreeScrollPosition);
             var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
             m_InteractablesTree.OnGUI(rect);
@@ -165,18 +159,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             EditorGUILayout.EndHorizontal();
         }
 
-        static class Styles
-        {
-        }
-
         static class Contents
         {
-            public static GUIContent noneContent = new GUIContent("None");
             public static GUIContent showInputDevices = new GUIContent("Input Devices");
             public static GUIContent showInteractablesContent = new GUIContent("Interactables");
             public static GUIContent showInteractorsContent = new GUIContent("Interactors");
         }
     }
 }
-
-#endif // UNITY_EDITOR

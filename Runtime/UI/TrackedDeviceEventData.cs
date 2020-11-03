@@ -10,13 +10,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     {
         public TrackedDeviceEventData(EventSystem eventSystem)
             : base(eventSystem)
-        { }
+        {
+        }
 
-        /// <summary>A series of interconnected points used to track hovered and selected UI.</summary>
+        /// <summary>
+        /// A series of interconnected points used to track hovered and selected UI.
+        /// </summary>
         public List<Vector3> rayPoints { get; set; }
-        /// <summary>Set by the raycaster, this is the index within the raypoints list that recieved the hit.</summary>
+
+        /// <summary>
+        /// Set by the raycaster, this is the index within the raypoints list that received the hit.
+        /// </summary>
         public int rayHitIndex { get; set; }
-        /// <summary>The physics layer mask to use when checking for hits, both in occlusion and UI objects</summary>
+
+        /// <summary>
+        /// The physics layer mask to use when checking for hits, both in occlusion and UI objects.
+        /// </summary>
         public LayerMask layerMask { get; set; }
+
+        /// <summary>
+        /// (Read Only) The Interactor that triggered this event, or <see langword="null"/> if no interactor was responsible.
+        /// </summary>
+        public IUIInteractor interactor
+        {
+            get
+            {
+                var xrInputModule = currentInputModule as XRUIInputModule;
+                if (xrInputModule != null)
+                {
+                    return xrInputModule.GetInteractor(pointerId);
+                }
+
+                return null;
+            }
+        }
     }
 }

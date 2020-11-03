@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -41,36 +43,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public TwistGesture(TwistGestureRecognizer recognizer, Touch touch1, Touch touch2) :
             base(recognizer)
         {
-            FingerId1 = touch1.fingerId;
-            FingerId2 = touch2.fingerId;
-            StartPosition1 = touch1.position;
-            StartPosition2 = touch2.position;
+            fingerId1 = touch1.fingerId;
+            fingerId2 = touch2.fingerId;
+            startPosition1 = touch1.position;
+            startPosition2 = touch2.position;
         }
 
         /// <summary>
-        /// Gets the id of the first finger used in this gesture.
+        /// (Read Only) The id of the first finger used in this gesture.
         /// </summary>
-        public int FingerId1 { get; private set; }
+        public int fingerId1 { get; }
 
         /// <summary>
-        /// Gets the id of the second finger used in this gesture.
+        /// (Read Only) The id of the second finger used in this gesture.
         /// </summary>
-        public int FingerId2 { get; private set; }
+        public int fingerId2 { get; }
 
         /// <summary>
-        /// Gets the screen position of the first finger where the gesture started.
+        /// (Read Only) The screen position of the first finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition1 { get; private set; }
+        public Vector2 startPosition1 { get; }
 
         /// <summary>
-        /// Gets the screen position of the second finger where the gesture started.
+        /// (Read Only) The screen position of the second finger where the gesture started.
         /// </summary>
-        public Vector2 StartPosition2 { get; private set; }
+        public Vector2 startPosition2 { get; }
 
         /// <summary>
-        /// Gets the delta rotation of the gesture.
+        /// (Read Only) The delta rotation of the gesture.
         /// </summary>
-        public float DeltaRotation { get; private set; }
+        public float deltaRotation { get; private set; }
 
         /// <summary>
         /// Returns true if this gesture can start.
@@ -78,17 +80,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>True if the gesture can start.</returns>
         protected internal override bool CanStart()
         {
-            if (GestureTouchesUtility.IsFingerIdRetained(FingerId1) ||
-                GestureTouchesUtility.IsFingerIdRetained(FingerId2))
+            if (GestureTouchesUtility.IsFingerIdRetained(fingerId1) ||
+                GestureTouchesUtility.IsFingerIdRetained(fingerId2))
             {
                 Cancel();
                 return false;
             }
 
-            Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
+            var foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(FingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(fingerId2, out var touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -102,16 +103,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            TwistGestureRecognizer twistRecognizer = m_Recognizer as TwistGestureRecognizer;
+            var twistRecognizer = m_Recognizer as TwistGestureRecognizer;
 
-            float rotation = CalculateDeltaRotation(
-                touch1.position, touch2.position, StartPosition1, StartPosition2);
-            if (Mathf.Abs(rotation) < twistRecognizer.m_SlopRotation)
-            {
-                return false;
-            }
-
-            return true;
+            var rotation = CalculateDeltaRotation(
+                touch1.position, touch2.position, startPosition1, startPosition2);
+            return !(Mathf.Abs(rotation) < twistRecognizer.m_SlopRotation);
         }
 
         /// <summary>
@@ -119,12 +115,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected internal override void OnStart()
         {
-            GestureTouchesUtility.LockFingerId(FingerId1);
-            GestureTouchesUtility.LockFingerId(FingerId2);
+            GestureTouchesUtility.LockFingerId(fingerId1);
+            GestureTouchesUtility.LockFingerId(fingerId2);
 
-            Touch touch1, touch2;
-            GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
-            GestureTouchesUtility.TryFindTouch(FingerId2, out touch2);
+            GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);
+            GestureTouchesUtility.TryFindTouch(fingerId2, out var touch2);
             m_PreviousPosition1 = touch1.position;
             m_PreviousPosition2 = touch2.position;
         }
@@ -135,10 +130,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>True if the update was successful.</returns>
         protected internal override bool UpdateGesture()
         {
-            Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(FingerId1, out touch1);
+            var foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(FingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(fingerId2, out var touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -166,7 +160,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                                      m_PreviousPosition1,
                                      m_PreviousPosition2);
 
-                DeltaRotation = rotation;
+                deltaRotation = rotation;
                 m_PreviousPosition1 = touch1.position;
                 m_PreviousPosition2 = touch2.position;
                 return true;
@@ -174,7 +168,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             m_PreviousPosition1 = touch1.position;
             m_PreviousPosition2 = touch2.position;
-            DeltaRotation = 0.0f;
+            deltaRotation = 0.0f;
             return false;
         }
 
@@ -190,20 +184,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected internal override void OnFinish()
         {
-            GestureTouchesUtility.ReleaseFingerId(FingerId1);
-            GestureTouchesUtility.ReleaseFingerId(FingerId2);
+            GestureTouchesUtility.ReleaseFingerId(fingerId1);
+            GestureTouchesUtility.ReleaseFingerId(fingerId2);
         }
 
-        private static float CalculateDeltaRotation(
+        protected static float CalculateDeltaRotation(
             Vector2 currentPosition1,
             Vector2 currentPosition2,
             Vector2 previousPosition1,
             Vector2 previousPosition2)
         {
-            Vector2 currentDirection = (currentPosition1 - currentPosition2).normalized;
-            Vector2 previousDirection = (previousPosition1 - previousPosition2).normalized;
+            var currentDirection = (currentPosition1 - currentPosition2).normalized;
+            var previousDirection = (previousPosition1 - previousPosition2).normalized;
 
-            float sign = Mathf.Sign((previousDirection.x * currentDirection.y) -
+            var sign = Mathf.Sign((previousDirection.x * currentDirection.y) -
                                     (previousDirection.y * currentDirection.x));
             return Vector2.Angle(currentDirection, previousDirection) * sign;
         }

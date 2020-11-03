@@ -1,48 +1,76 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRControllerRecorder))]
-    class XRControllerRecorderEditor : Editor
+    [CustomEditor(typeof(XRControllerRecorder)), CanEditMultipleObjects]
+    public class XRControllerRecorderEditor : Editor
     {
+        List<XRControllerRecorder> m_ControllerRecorders;
+
+        static readonly GUIContent s_MixedValueContent = EditorGUIUtility.TrTextContent("\u2014", "Mixed Values");
+
+        protected void OnEnable()
+        {
+            m_ControllerRecorders = targets.Cast<XRControllerRecorder>().ToList();
+        }
+
         public override void OnInspectorGUI()
         {
-            GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRControllerRecorder)target), typeof(XRControllerRecorder), false);
-            GUI.enabled = true;
-
-            var controllerRecorder = (XRControllerRecorder)target;
             DrawDefaultInspector();
 
-            // show playback controls
+            // Show playback controls
             if (Application.isPlaying)
             {
                 EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
-                if (controllerRecorder.isRecording)
+
+                if (m_ControllerRecorders.All(controllerRecorder => controllerRecorder.isRecording))
                 {
                     if (GUILayout.Button("Stop Recording"))
-                        controllerRecorder.isRecording = false;
+                        m_ControllerRecorders.ForEach(controllerRecorder => controllerRecorder.isRecording = false);
                 }
-                else
+                else if (m_ControllerRecorders.All(controllerRecorder => !controllerRecorder.isRecording))
                 {
                     if (GUILayout.Button("Record Input"))
-                        controllerRecorder.isRecording = true;
-                }
-
-                if (controllerRecorder.isPlaying)
-                {
-                    if (GUILayout.Button("Stop"))
-                        controllerRecorder.isPlaying = false;
+                        m_ControllerRecorders.ForEach(controllerRecorder => controllerRecorder.isRecording = true);
                 }
                 else
                 {
-                    if (GUILayout.Button("Play"))
-                        controllerRecorder.isPlaying = true;
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Button(s_MixedValueContent);
+                    EditorGUI.EndDisabledGroup();
                 }
+
+                if (m_ControllerRecorders.All(controllerRecorder => controllerRecorder.isPlaying))
+                {
+                    if (GUILayout.Button("Stop"))
+                        m_ControllerRecorders.ForEach(controllerRecorder => controllerRecorder.isPlaying = false);
+                }
+                else if (m_ControllerRecorders.All(controllerRecorder => !controllerRecorder.isPlaying))
+                {
+                    if (GUILayout.Button("Play"))
+                        m_ControllerRecorders.ForEach(controllerRecorder => controllerRecorder.isPlaying = true);
+                }
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Button(s_MixedValueContent);
+                    EditorGUI.EndDisabledGroup();
+                }
+
                 EditorGUILayout.EndHorizontal();
-                GUILayout.HorizontalSlider((float)controllerRecorder.currentTime, 0.0f, (float)controllerRecorder.duration);
+
+                var currentTime = (float)((XRControllerRecorder)target).currentTime;
+                var duration = (float)((XRControllerRecorder)target).duration;
+                if (!serializedObject.isEditingMultipleObjects ||
+                    m_ControllerRecorders.All(controllerRecorder => Mathf.Approximately((float)controllerRecorder.currentTime, currentTime)) &&
+                    m_ControllerRecorders.All(controllerRecorder => Mathf.Approximately((float)controllerRecorder.duration, duration)))
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Slider(currentTime, 0f, duration);
+                    EditorGUI.EndDisabledGroup();
+                }
             }
         }
     }

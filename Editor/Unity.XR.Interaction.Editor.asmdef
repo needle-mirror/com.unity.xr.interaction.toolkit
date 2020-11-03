@@ -4,7 +4,8 @@
         "Unity.XR.Interaction.Toolkit",
         "Unity.ugui",
         "UnityEngine.SpatialTracking",
-        "Unity.XR.ARFoundation"
+        "Unity.XR.ARFoundation",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

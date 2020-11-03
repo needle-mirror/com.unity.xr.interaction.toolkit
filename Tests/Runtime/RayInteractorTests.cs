@@ -61,5 +61,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
         }
+
+        [UnityTest]
+        public IEnumerator ManualInteractorSelection()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.right * 5.0f;
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+
+            interactor.StartManualInteraction(interactable);
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+
+            interactor.EndManualInteraction();
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+        }
+
+        [UnityTest]
+        public IEnumerator RayInteractorCanResetOnInteractableDestroy()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            var controller = interactor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+            });
+            controllerRecorder.isPlaying = true;
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+
+            // The above part is the same test for selecting a grab interactable.
+
+            var attachPosition = interactor.attachTransform.position;
+
+            Object.Destroy(interactable.gameObject);
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactor.attachTransform.position, Is.EqualTo(attachPosition));
+
+        }
+
     }
 }

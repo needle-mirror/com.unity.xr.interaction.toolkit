@@ -18,8 +18,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
+using System;
 using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
@@ -36,38 +39,49 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch">The touch that started this gesture.</param>
         public DragGesture(DragGestureRecognizer recognizer, Touch touch) : base(recognizer)
         {
-            FingerId = touch.fingerId;
-            StartPosition = touch.position;
-            Position = StartPosition;
+            fingerId = touch.fingerId;
+            startPosition = touch.position;
+            position = startPosition;
         }
 
         /// <summary>
-        /// Gets the id of the finger used in this gesture.
+        /// (Read Only) The id of the finger used in this gesture.
         /// </summary>
-        public int FingerId { get; private set; }
+        public int fingerId { get; }
 
         /// <summary>
-        /// Gets the screen position where the gesture started.
+        /// (Read Only) The screen position where the gesture started.
         /// </summary>
-        public Vector2 StartPosition { get; private set; }
+        public Vector2 startPosition { get; }
 
         /// <summary>
-        /// Gets the current screen position of the gesture.
+        /// (Read Only) The current screen position of the gesture.
         /// </summary>
-        public Vector2 Position { get; private set; }
+        public Vector2 position { get; private set; }
 
         /// <summary>
-        /// Gets the delta screen position of the gesture.
+        /// (Read Only) The delta screen position of the gesture.
         /// </summary>
-        public Vector2 Delta { get; private set; }
+        public Vector2 delta { get; private set; }
+
+#pragma warning disable IDE1006 // Naming Styles
+        [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId")]
+        public int FingerId => fingerId;
+        [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition")]
+        public Vector2 StartPosition => startPosition;
+        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
+        public Vector2 Position => position;
+        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
+        public Vector2 Delta => delta;
+#pragma warning restore IDE1006
 
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>True if the gesture can start.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool CanStart()
         {
-            if (GestureTouchesUtility.IsFingerIdRetained(FingerId))
+            if (GestureTouchesUtility.IsFingerIdRetained(fingerId))
             {
                 Cancel();
                 return false;
@@ -77,8 +91,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 for (int i = 0; i < GestureTouchesUtility.Touches.Length; i++)
                 {
-                    Touch currentTouch = GestureTouchesUtility.Touches[i];
-                    if (currentTouch.fingerId != FingerId
+                    var currentTouch = GestureTouchesUtility.Touches[i];
+                    if (currentTouch.fingerId != fingerId
                         && !GestureTouchesUtility.IsFingerIdRetained(currentTouch.fingerId))
                     {
                         return false;
@@ -86,13 +100,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 }
             }
 
-            Touch touch;
-            if (GestureTouchesUtility.TryFindTouch(FingerId, out touch))
+            if (GestureTouchesUtility.TryFindTouch(fingerId, out var touch))
             {
-                Vector2 pos = touch.position;
-                float diff = (pos - StartPosition).magnitude;
-                if (GestureTouchesUtility.PixelsToInches(diff) >=
-                    (m_Recognizer as DragGestureRecognizer).m_SlopInches)
+                var pos = touch.position;
+                var diff = (pos - startPosition).magnitude;
+                if (GestureTouchesUtility.PixelsToInches(diff) >= (m_Recognizer as DragGestureRecognizer).m_SlopInches)
                 {
                     return true;
                 }
@@ -110,10 +122,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected internal override void OnStart()
         {
-            GestureTouchesUtility.LockFingerId(FingerId);
+            GestureTouchesUtility.LockFingerId(fingerId);
 
-            RaycastHit hit;
-            if (GestureTouchesUtility.RaycastFromCamera(StartPosition, out hit))
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, out var hit))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
@@ -124,24 +135,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 }
             }
 
-            Touch touch;
-            GestureTouchesUtility.TryFindTouch(FingerId, out touch);
-            Position = touch.position;
+            GestureTouchesUtility.TryFindTouch(fingerId, out var touch);
+            position = touch.position;
         }
 
         /// <summary>
         /// Updates this gesture.
         /// </summary>
-        /// <returns>True if the update was successful.</returns>
+        /// <returns>Returns <see langword="true"/> if the update was successful. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool UpdateGesture()
         {
-            Touch touch;
-            if (GestureTouchesUtility.TryFindTouch(FingerId, out touch))
+            if (GestureTouchesUtility.TryFindTouch(fingerId, out var touch))
             {
                 if (touch.phase == TouchPhase.Moved)
                 {
-                    Delta = touch.position - Position;
-                    Position = touch.position;
+                    delta = touch.position - position;
+                    position = touch.position;
                     return true;
                 }
                 else if (touch.phase == TouchPhase.Ended)
@@ -164,17 +173,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Action to be performed when this gesture is cancelled.
         /// </summary>
-        protected internal override void OnCancel()
-        {
-        }
+        protected internal override void OnCancel() { }
 
         /// <summary>
         /// Action to be performed when this gesture is finished.
         /// </summary>
-        protected internal override void OnFinish()
-        {
-            GestureTouchesUtility.ReleaseFingerId(FingerId);
-        }
+        protected internal override void OnFinish() => GestureTouchesUtility.ReleaseFingerId(fingerId);
     }
 }
 

@@ -3,52 +3,52 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
-    internal struct TouchModel
+    struct TouchModel
     {
         internal struct ImplementationData
         {
             /// <summary>
-            /// This tracks the current GUI targets being hovered over.  Syncs up to <see cref="PointerEventData.hovered"/>.
+            /// This tracks the current GUI targets being hovered over. Syncs up to <see cref="PointerEventData.hovered"/>.
             /// </summary>
             public List<GameObject> hoverTargets { get; set; }
 
             /// <summary>
-            ///  Tracks the current enter/exit target being hovered over at any given moment. Syncs up to <see cref="PointerEventData.pointerEnter"/>.
+            /// Tracks the current enter/exit target being hovered over at any given moment. Syncs up to <see cref="PointerEventData.pointerEnter"/>.
             /// </summary>
             public GameObject pointerTarget { get; set; }
 
             /// <summary>
-            /// Used to cache whether or not the current mouse button is being dragged.  See <see cref="PointerEventData.dragging"/> for more details.
+            /// Used to cache whether or not the current mouse button is being dragged. See <see cref="PointerEventData.dragging"/> for more details.
             /// </summary>
             public bool isDragging { get; set; }
 
             /// <summary>
-            /// Used to cache the last time this button was pressed.  See <see cref="PointerEventData.clickTime"/> for more details.
+            /// Used to cache the last time this button was pressed. See <see cref="PointerEventData.clickTime"/> for more details.
             /// </summary>
             public float pressedTime { get; set; }
 
             /// <summary>
-            /// The position on the screen that this button was last pressed.  In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
+            /// The position on the screen that this button was last pressed. In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
             /// </summary>
             public Vector2 pressedPosition { get; set; }
 
             /// <summary>
-            /// The Raycast data from the time it was pressed.  See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
+            /// The Raycast data from the time it was pressed. See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
             /// </summary>
             public RaycastResult pressedRaycast { get; set; }
 
             /// <summary>
-            /// The last gameobject pressed on that can handle press or click events.  See <see cref="PointerEventData.pointerPress"/> for more details.
+            /// The last GameObject pressed on that can handle press or click events. See <see cref="PointerEventData.pointerPress"/> for more details.
             /// </summary>
             public GameObject pressedGameObject { get; set; }
 
             /// <summary>
-            /// The last gameobject pressed on regardless of whether it can handle events or not.  See <see cref="PointerEventData.rawPointerPress"/> for more details.
+            /// The last GameObject pressed on regardless of whether it can handle events or not.  See <see cref="PointerEventData.rawPointerPress"/> for more details.
             /// </summary>
             public GameObject pressedGameObjectRaw { get; set; }
 
             /// <summary>
-            /// The gameobject currently being dragged if any.  See <see cref="PointerEventData.pointerDrag"/> for more details.
+            /// The GameObject currently being dragged if any. See <see cref="PointerEventData.pointerDrag"/> for more details.
             /// </summary>
             public GameObject draggedGameObject { get; set; }
 
@@ -58,7 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public void Reset()
             {
                 isDragging = false;
-                pressedTime = 0.0f;
+                pressedTime = 0f;
                 pressedPosition = Vector2.zero;
                 pressedRaycast = new RaycastResult();
                 pressedGameObject = pressedGameObjectRaw = draggedGameObject = null;
@@ -74,14 +74,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        public int pointerId { get; private set; }
+        public int pointerId { get; }
 
         public TouchPhase selectPhase
         {
-            get
-            {
-                return m_SelectPhase;
-            }
+            get => m_SelectPhase;
             set
             {
                 if (m_SelectPhase != value)
@@ -108,10 +105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Vector2 position
         {
-            get
-            {
-                return m_Position;
-            }
+            get => m_Position;
             set
             {
                 if (m_Position != value)
@@ -127,6 +121,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// The pixel-space change in <see cref="position"/> since the last call to <see cref="OnFrameFinished"/>.
         /// </summary>
         public Vector2 deltaPosition { get; private set; }
+
+        TouchPhase m_SelectPhase;
+        Vector2 m_Position;
+        ImplementationData m_ImplementationData;
 
         public TouchModel(int pointerId)
         {
@@ -190,10 +188,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_ImplementationData.hoverTargets.Clear();
             m_ImplementationData.hoverTargets.AddRange(eventData.hovered);
         }
-
-        private TouchPhase m_SelectPhase;
-        private Vector2 m_Position;
-
-        private ImplementationData m_ImplementationData;
     }
 }

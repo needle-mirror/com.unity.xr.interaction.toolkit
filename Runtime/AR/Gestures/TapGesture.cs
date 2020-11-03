@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -38,27 +40,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch">The touch that started this gesture.</param>
         internal TapGesture(TapGestureRecognizer recognizer, Touch touch) : base(recognizer)
         {
-            FingerId = touch.fingerId;
-            StartPosition = touch.position;
+            fingerId = touch.fingerId;
+            startPosition = touch.position;
         }
 
         /// <summary>
-        /// Gets the id of the finger used in this gesture.
+        /// (Read Only) The id of the finger used in this gesture.
         /// </summary>
-        public int FingerId { get; private set; }
+        public int fingerId { get; }
 
         /// <summary>
-        /// Gets the screen position where the gesture started.
+        /// (Read Only) The screen position where the gesture started.
         /// </summary>
-        public Vector2 StartPosition { get; private set; }
+        public Vector2 startPosition { get; }
 
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>True if the gesture can start.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool CanStart()
         {
-            if (GestureTouchesUtility.IsFingerIdRetained(FingerId))
+            if (GestureTouchesUtility.IsFingerIdRetained(fingerId))
             {
                 Cancel();
                 return false;
@@ -73,7 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected internal override void OnStart()
         {
             RaycastHit hit;
-            if (GestureTouchesUtility.RaycastFromCamera(StartPosition, out hit))
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, out hit))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
@@ -90,13 +92,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Updates this gesture.
         /// </summary>
-        /// <returns>True if the update was successful.</returns>
+        /// <returns>Returns <see langword="true"/> if the update was successful. Returns <see langword="false"/> otherwise.</returns>
         protected internal override bool UpdateGesture()
         {
-            Touch touch;
-            if (GestureTouchesUtility.TryFindTouch(FingerId, out touch))
+            if (GestureTouchesUtility.TryFindTouch(fingerId, out var touch))
             {
-                TapGestureRecognizer tapRecognizer = m_Recognizer as TapGestureRecognizer;
+                var tapRecognizer = m_Recognizer as TapGestureRecognizer;
                 m_ElapsedTime += touch.deltaTime;
                 if (m_ElapsedTime > tapRecognizer.m_TimeSeconds)
                 {
@@ -104,8 +105,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 }
                 else if (touch.phase == TouchPhase.Moved)
                 {
-                    float diff = (touch.position - StartPosition).magnitude;
-                    float diffInches = GestureTouchesUtility.PixelsToInches(diff);
+                    var diff = (touch.position - startPosition).magnitude;
+                    var diffInches = GestureTouchesUtility.PixelsToInches(diff);
                     if (diffInches > tapRecognizer.m_SlopInches)
                     {
                         Cancel();

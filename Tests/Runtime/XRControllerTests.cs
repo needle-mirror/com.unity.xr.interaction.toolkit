@@ -21,8 +21,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             public void FakeUpdate()
             {
-                UpdateTrackingInput();
+                XRControllerState controllerState = new XRControllerState();
+                UpdateTrackingInput(controllerState);
+                ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase.Dynamic, controllerState);
             }
+
         }
 
         static Vector3 testpos = new Vector3(1.0f, 2.0f, 3.0f);
@@ -53,15 +56,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
         }
 #endif
-
-
-        internal static void CreateGOSphereCollider(GameObject go, bool isTrigger = true)
-        {
-            SphereCollider collider = go.AddComponent<SphereCollider>();
-            collider.radius = 1.0f;
-            collider.isTrigger = isTrigger;
-        }
-
         internal static XRDirectInteractor CreateDirectInteractorWithWrappedXRController()
         {
             GameObject interactorGO = new GameObject();
@@ -75,35 +69,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
-
-
-        [TearDown]
-        public void TearDown()
-        {
-            TestUtilities.DestroyAllInteractionObjects();
-        }
-
-
         [UnityTest]
         public IEnumerator XRControllerPoseProviderTest()
         {
-            TestUtilities.CreateInteractionManager();            
+            TestUtilities.CreateInteractionManager();
             var directInteractor = CreateDirectInteractorWithWrappedXRController();
 #if LIH_PRESENT
             var controllerWrapper = directInteractor.GetComponent<XRControllerWrapper>();
-            if(controllerWrapper)
+            if (controllerWrapper)
             {
                 var tpp = directInteractor.GetComponent<TestPoseProvider>();
                 Assert.That(controllerWrapper.poseProvider, Is.EqualTo(tpp));
 
                 controllerWrapper.FakeUpdate();
-                                
+
+                yield return new WaitForSeconds(0.1f);
+                
                 Assert.That(controllerWrapper.gameObject.transform.position, Is.EqualTo(testpos));
                 Assert.That(controllerWrapper.gameObject.transform.rotation.Equals(testrot));
             }
 #endif
 
             yield return new WaitForSeconds(0.1f);
+        }
+
+        internal static void CreateGOSphereCollider(GameObject go, bool isTrigger = true)
+        {
+            SphereCollider collider = go.AddComponent<SphereCollider>();
+            collider.radius = 1.0f;
+            collider.isTrigger = isTrigger;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            TestUtilities.DestroyAllInteractionObjects();
         }
     }
 }

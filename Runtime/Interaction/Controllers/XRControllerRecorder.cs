@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// MonoBehaviour that drives interaction recording and playback (via XRControllerRecording assets).
+    /// <see cref="MonoBehaviour"/> that drives interaction recording and playback (via <see cref="XRControllerRecording"/> assets).
     /// </summary>
     [DisallowMultipleComponent, AddComponentMenu("XR/XR Controller Recorder")]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_ControllerRecorder)]
@@ -12,42 +12,55 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         [Header("Input Recording/Playback")]
 
-        [SerializeField, Tooltip("Play back recording upon start.")]
+        [SerializeField, Tooltip("Controls whether this recording will start playing when the component is started.")]
         bool m_PlayOnStart;
-        /// <summary>Gets or sets whether this recording will start playing when the component is started.</summary>
-        public bool playOnStart { get { return m_PlayOnStart; } set { m_PlayOnStart = value; } }
+
+        /// <summary>
+        /// Controls whether this recording will start playing when the component is started.
+        /// </summary>
+        public bool playOnStart
+        {
+            get => m_PlayOnStart;
+            set => m_PlayOnStart = value;
+        }
 
         [SerializeField, Tooltip("Controller Recording asset for recording and playback of controller events.")]
         XRControllerRecording m_Recording;
 
-        [SerializeField, Tooltip("Controller Recording asset for recording and playback of controller events.")]
-        XRController m_Controller;
-        /// <summary>Gets or sets whether the controller that this recording uses for recording and playback.</summary>
-        public XRController controller { get { return m_Controller; } set { m_Controller = value; } }
-
-        double m_CurrentTime;
-        bool m_IsRecording;
-        bool m_IsPlaying;
-        double m_LastPlaybackTime;
-        int m_LastFrameIdx;
-
-        /// <summary>Gets or sets recording asset for this recorder.</summary>
+        /// <summary>
+        /// Controller Recording asset for recording and playback of controller events.
+        /// </summary>
         internal XRControllerRecording recording
         {
-            get { return m_Recording; }
-            set { m_Recording = value; }
+            get => m_Recording;
+            set => m_Recording = value;
         }
 
-        /// <summary>Gets or sets whether the XRControllerRecorder is currently recording interaction state.</summary>
+        [SerializeField, Tooltip("XR Controller who's output will be recorded and played back")]
+        XRBaseController m_XRController;
+
+        /// <summary>
+        /// Whether the controller that this recording uses for recording and playback.
+        /// </summary>
+        public XRBaseController xrController
+        {
+            get => m_XRController;
+            set => m_XRController = value;
+        }
+
+        /// <summary>
+        /// Whether the <see cref="XRControllerRecorder"/> is currently recording interaction state.
+        /// </summary>
         public bool isRecording
         {
-            get { return m_IsRecording; }
+            get => m_IsRecording;
             set
             {
                 if (m_IsRecording != value)
                 {
+                    recordingStartTime = Time.time;
                     isPlaying = false;
-                    m_CurrentTime = 0.0;
+                    m_CurrentTime = 0d;
                     if (m_Recording)
                     {
                         if (value)
@@ -60,58 +73,89 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        /// <summary>Gets or sets whether the XRControllerRecorder is currently playing back interaction state.</summary>
+        /// <summary>
+        /// Whether the XRControllerRecorder is currently playing back interaction state.
+        /// </summary>
         public bool isPlaying
         {
-            get { return m_IsPlaying; }
+            get => m_IsPlaying;
             set
             {
                 if (m_IsPlaying != value)
                 {
-                    if (m_Controller)
-                        m_Controller.enableInputTracking = !value;
                     isRecording = false;
-                    if (m_Recording) ResetPlayback();
-                    m_CurrentTime = 0.0;
+                    if (m_Recording)
+                        ResetPlayback();
+                    m_CurrentTime = 0d;
                     m_IsPlaying = value;
+
+                    // Cache the previous state of the XRController, or put it back
+                    if (value && m_XRController != null)
+                    {
+                        m_PrevEnableInputActions = m_XRController.enableInputActions;
+                        m_PrevEnableInputTracking = m_XRController.enableInputTracking;
+                        m_XRController.enableInputActions = false;
+                        m_XRController.enableInputTracking = false;
+                    }
+                    else if (m_XRController != null)
+                    {
+                        m_XRController.enableInputActions = m_PrevEnableInputActions;
+                        m_XRController.enableInputTracking = m_PrevEnableInputTracking;
+                    }
                 }
             }
         }
 
-        /// <summary>Gets current recording/playback time.</summary>
-        public double currentTime { get { return m_CurrentTime; } }
+        double m_CurrentTime;
 
-        /// <summary>Gets total playback time (or 0.0f if no recording).</summary>
-        public double duration { get { return (m_Recording) ? m_Recording.duration : 0.0f; } }
+        /// <summary>
+        /// (Read Only) The current recording/playback time.
+        /// </summary>
+        public double currentTime => m_CurrentTime;
 
-        void Awake()
+        /// <summary>
+        /// (Read Only) The total playback time (or 0 if no recording).
+        /// </summary>
+        public double duration => m_Recording != null ? m_Recording.duration : 0d;
+
+        /// <summary>
+        /// The time we last toggled recording.
+        /// </summary>
+        protected float recordingStartTime { get; set; }
+
+        bool m_IsRecording;
+        bool m_IsPlaying;
+        double m_LastPlaybackTime;
+        int m_LastFrameIdx;
+
+        bool m_PrevEnableInputActions;
+        bool m_PrevEnableInputTracking;
+
+        protected void Awake()
         {
-            m_CurrentTime = 0.0;
+            if (m_XRController == null)
+                m_XRController = GetComponent<XRBaseController>();
+
+            m_CurrentTime = 0d;
 
             if (m_PlayOnStart)
                 isPlaying = true;
         }
 
-        void OnDestroy()
+        protected virtual void Update()
         {
-            isPlaying = isRecording = false;
-        }
-
-        void ToggleRecording()
-        {
-            isRecording = !isRecording;
-        }
-
-        void Update()
-        {
-            if (isRecording && m_Controller)
+            if (isRecording && m_XRController != null)
             {
-                m_Recording.AddRecordingFrame(m_CurrentTime,
-                    m_Controller.transform.position, m_Controller.transform.rotation,
-                    m_Controller.selectInteractionState.active, m_Controller.activateInteractionState.active, m_Controller.uiPressInteractionState.active);
+                m_XRController.GetControllerState(out var state);
+
+                state.time = Time.time - recordingStartTime;
+
+                m_Recording.AddRecordingFrame(state);
             }
             else if (isPlaying)
+            {
                 UpdatePlaybackTime(m_CurrentTime);
+            }
 
             if (isRecording || isPlaying)
                 m_CurrentTime += Time.deltaTime;
@@ -119,15 +163,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 isPlaying = false;
         }
 
-        void UpdateControllerRecordingUpdate(XRControllerRecording.Frame recordingFrame)
+        protected void OnDestroy()
         {
-            if (m_Controller)
-            {
-                m_Controller.UpdateControllerPose(recordingFrame.position, recordingFrame.rotation);
-                m_Controller.UpdateInteractionType(XRController.InteractionTypes.select, recordingFrame.selectActive);
-                m_Controller.UpdateInteractionType(XRController.InteractionTypes.activate, recordingFrame.activateActive);
-                m_Controller.UpdateInteractionType(XRController.InteractionTypes.uiPress, recordingFrame.pressActive);
-            }
+            isRecording = false;
+            isPlaying = false;
         }
 
         /// <summary>
@@ -135,21 +174,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public void ResetPlayback()
         {
-            m_LastPlaybackTime = 0.0f;
+            m_LastPlaybackTime = 0d;
             m_LastFrameIdx = 0;
         }
 
         void UpdatePlaybackTime(double playbackTime)
         {
-            if (!m_Recording)
+            if (!m_Recording || m_Recording == null || m_Recording.frames.Count == 0 || m_LastFrameIdx >= m_Recording.frames.Count  )
                 return;
 
-
-
-            // look for next frame in order (binary search would be faster but we are only searching from last cached frame index)
+            // Look for next frame in order (binary search would be faster but we are only searching from last cached frame index)
             var prevFrame = m_Recording.frames[m_LastFrameIdx];
             var frameIdx = m_LastFrameIdx;
-            if(prevFrame.time < playbackTime)
+            if (prevFrame.time < playbackTime)
             {
                 for (; frameIdx < m_Recording.frames.Count &&
                     m_Recording.frames[frameIdx].time >= m_LastPlaybackTime &&
@@ -157,20 +194,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 ++frameIdx) { }
             }
 
-
-            // past last frame or on the same frame, don't do anything
+            // Past last frame or on the same frame, don't do anything
             if (frameIdx >= m_Recording.frames.Count)
                 return;
 
-            // we passed a valid frame, update our controller
-            if (m_Controller)
+            if (m_XRController != null)
             {
                 var recordingFrame = m_Recording.frames[frameIdx];
-                UpdateControllerRecordingUpdate(recordingFrame);
+                m_XRController.SetControllerState(recordingFrame);
             }
 
             m_LastFrameIdx = frameIdx;
             m_LastPlaybackTime = playbackTime;
+        }
+
+        public virtual bool GetControllerState(out XRControllerState controllerState)
+        {
+            if (isPlaying)
+            {
+                // Return the current frame we're playing back
+                if (m_Recording.frames.Count > m_LastFrameIdx)
+                {
+                    controllerState = m_Recording.frames[m_LastFrameIdx];
+                    return true;
+                }
+            }
+            else if (isRecording)
+            {
+                // Relay the last frame we got
+                if (m_Recording.frames.Count > 0)
+                {
+                    controllerState = m_Recording.frames[m_Recording.frames.Count - 1];
+                    return true;
+                }
+            }
+            else if (m_XRController != null)
+            {
+                // Pass through as we're not recording or playing
+                return m_XRController.GetControllerState(out controllerState);
+            }
+
+            controllerState = new XRControllerState();
+            return false;
         }
     }
 }

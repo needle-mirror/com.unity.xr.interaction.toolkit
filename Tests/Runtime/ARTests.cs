@@ -125,14 +125,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.GetComponent<ARPlacementInteractable>().placementPrefab = new GameObject();
             CreateTestPlane();
 
+            // This makes sure that the simulated touch is over the plane regardless of screen size.
+            Camera camera = GameObject.Find("Camera").GetComponent<Camera>();
+            Vector3 screenPos = camera.WorldToScreenPoint(interactable.transform.position);
+
             yield return SimulateTouches(
-                new Vector2[] { new Vector2(Screen.width / 2, Screen.height / 2) },
+                new Vector2[] { screenPos },
                 new Vector2[] { },
-                new Vector2[] { new Vector2(Screen.width / 2, Screen.height / 2) });
+                new Vector2[] { screenPos });
 
             Assert.NotNull(GameObject.Find("PlacementAnchor"));
         }
-        
+
         [UnityTest]
         public IEnumerator GestureInteractor_SelectSelectionInteractable_Selects()
         {

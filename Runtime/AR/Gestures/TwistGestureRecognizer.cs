@@ -18,6 +18,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+// Modifications copyright © 2020 Unity Technologies ApS
+
 #if AR_FOUNDATION_PRESENT
 
 using UnityEngine;
@@ -31,13 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     {
         const float k_SlopRotation = 10.0f;
 
-        internal float m_SlopRotation
-        {
-            get
-            {
-                return k_SlopRotation;
-            }
-        } 
+        internal float m_SlopRotation => k_SlopRotation;
 
         /// <summary>
         /// Creates a Twist gesture with the given touches.
