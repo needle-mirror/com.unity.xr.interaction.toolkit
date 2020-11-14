@@ -801,6 +801,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         protected virtual void RotateAnchor(Transform anchor, float directionAmount)
         {
+            if (Mathf.Approximately(directionAmount, 0f))
+                return;
+
             var axis = m_XRRig != null && m_XRRig.rig != null
                 ? m_XRRig.rig.transform.up // TODO Why not just use m_ReferenceFrame.up?
                 : attachTransform.transform.up; // TODO Why not just use anchor.up?
@@ -809,6 +812,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         protected virtual void TranslateAnchor(Transform originalAnchor, Transform anchor, float directionAmount)
         {
+            if (Mathf.Approximately(directionAmount, 0f))
+                return;
+
             var originalAnchorPosition = originalAnchor.position;
             var originalAnchorForward = originalAnchor.forward;
 
@@ -856,20 +862,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
                         {
-                            if (Math.Abs(rotateAmt.x) > actionBasedController.anchorControlDeadzone &&
-                                Math.Abs(rotateAmt.y) < actionBasedController.anchorControlOffAxisDeadzone)
-                            {
-                                RotateAnchor(attachTransform, rotateAmt.x);
-                            }
+                            RotateAnchor(attachTransform, rotateAmt.x);
                         }
 
                         if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
                         {
-                            if (Math.Abs(translateAmt.y) > actionBasedController.anchorControlDeadzone &&
-                                Math.Abs(translateAmt.x) < actionBasedController.anchorControlOffAxisDeadzone)
-                            {
-                                TranslateAnchor(m_OriginalAttachTransform, attachTransform, translateAmt.y);
-                            }
+                            TranslateAnchor(m_OriginalAttachTransform, attachTransform, translateAmt.y);
                         }
                     }
                 }

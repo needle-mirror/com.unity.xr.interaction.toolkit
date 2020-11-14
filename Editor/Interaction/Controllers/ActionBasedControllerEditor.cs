@@ -15,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             public static GUIContent animateModelLabel = EditorGUIUtility.TrTextContent("Animate Model", "Whether this model animates in response to interaction events.");
             public static GUIContent modelSelectTransitionLabel = EditorGUIUtility.TrTextContent("Model Select Transition", "The animation transition to enable when selecting.");
             public static GUIContent modelDeSelectTransitionLabel = EditorGUIUtility.TrTextContent("Model Deselect Transition", "The animation transition to enable when de-selecting.");
-                  
+
             public static GUIContent positionActionLabel = EditorGUIUtility.TrTextContent("Position Action", "The Input System action to use for Position Tracking for this GameObject. Must be a Vector3 Control.");
             public static GUIContent rotationActionLabel = EditorGUIUtility.TrTextContent("Rotation Action", "The Input System action to use for Rotation Tracking for this GameObject. Must be a Quaternion Control.");
             public static GUIContent selectActionLabel = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for Selecting an Interactable. Must be a Button Control.");
@@ -25,9 +25,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             public static GUIContent rotateAnchorUsageLabel = EditorGUIUtility.TrTextContent("Rotate Anchor Action", "The Input System action to use for rotating the interactor's attach point. Must be a Vector2 Control. Will use the X-axis as the rotation input.");
             public static GUIContent translateAnchorUsageLabel = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a Vector2 Control. Will use the Y-axis as the translation input.");
-
-            public static GUIContent deadzoneUsageLabel = EditorGUIUtility.TrTextContent("Anchor Deadzone", "The vector component magnitude of the primary axis the input must be above for translating or rotating the interactor's attach point.");
-            public static GUIContent offAxisDeadzoneUsageLabel = EditorGUIUtility.TrTextContent("Off-Axis Anchor Deadzone", "The vector component magnitude of the opposite axis the input must be below for translating or rotating the interactor's attach point.");
         }
 
         SerializedProperty m_UpdateTrackingType;
@@ -49,9 +46,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         SerializedProperty m_RotateAnchorAction;
         SerializedProperty m_TranslateAnchorAction;
 
-        SerializedProperty m_Deadzone;
-        SerializedProperty m_OffAxisDeadzone;
-
         protected void OnEnable()
         {
             m_UpdateTrackingType = serializedObject.FindProperty("m_UpdateTrackingType");
@@ -72,9 +66,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
             m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
-
-            m_Deadzone = serializedObject.FindProperty("m_AnchorControlDeadzone");
-            m_OffAxisDeadzone = serializedObject.FindProperty("m_AnchorControlOffAxisDeadzone");
         }
 
         public override void OnInspectorGUI()
@@ -100,9 +91,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             EditorGUILayout.PropertyField(m_RotateAnchorAction, Styles.rotateAnchorUsageLabel);
             EditorGUILayout.PropertyField(m_TranslateAnchorAction, Styles.translateAnchorUsageLabel);
-
-            EditorGUILayout.PropertyField(m_Deadzone, Styles.deadzoneUsageLabel);
-            EditorGUILayout.PropertyField(m_OffAxisDeadzone, Styles.offAxisDeadzoneUsageLabel);
 
             EditorGUILayout.PropertyField(m_ModelPrefab, Styles.modelPrefabLabel);
             EditorGUILayout.PropertyField(m_ModelTransform, Styles.modelTransformLabel);

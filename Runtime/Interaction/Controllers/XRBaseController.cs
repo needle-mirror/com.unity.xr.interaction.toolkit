@@ -1,4 +1,5 @@
-﻿#if LIH_PRESENT
+﻿using System;
+#if LIH_PRESENT
 using UnityEngine.SpatialTracking;
 #endif
 
@@ -151,23 +152,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ModelDeSelectTransition = value;
         }
 
-        [SerializeField]
-        float m_AnchorControlDeadzone = 0.75f;
+        [Obsolete("anchorControlDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlDeadzone { get; set; }
 
-        public float anchorControlDeadzone
-        {
-            get => m_AnchorControlDeadzone;
-            set => m_AnchorControlDeadzone = value;
-        }
-
-        [SerializeField]
-        float m_AnchorControlOffAxisDeadzone = 0.3f;
-
-        public float anchorControlOffAxisDeadzone
-        {
-            get => m_AnchorControlOffAxisDeadzone;
-            set => m_AnchorControlOffAxisDeadzone = value;
-        }
+        [Obsolete("anchorControlOffAxisDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlOffAxisDeadzone { get; set; }
 
         InteractionState m_SelectInteractionState;
         /// <summary>

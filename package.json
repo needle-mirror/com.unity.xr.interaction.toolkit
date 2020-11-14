@@ -1,9 +1,9 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "0.10.0-preview.7",
+  "version": "1.0.0-pre.1",
   "unity": "2019.3",
-  "description": "XR Interaction toolkit for creating VR and AR experiences.",
+  "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains helper components that you can use to extend functionality for drawing visuals and hooking in your own interaction events.",
   "keywords": [
     "XR",
     "VR",
@@ -29,11 +29,11 @@
     }
   ],
   "upmCi": {
-    "footprint": "b0535717bf75c50211dd1325fc15f72bc5600fb0"
+    "footprint": "078a780438729b7b4f524ead5f7258e9272164cc"
   },
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "e3497384909d90ca79c628e5de8c94526e7b6e03"
+    "revision": "5a694db6913530996204bc27509d34e601c1bac8"
   }
 }
