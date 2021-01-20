@@ -7,9 +7,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     public enum MatchOrientation
     {
+        /// <summary>
+        /// After teleporting the XR Rig will be positioned such that its up vector matches world space up.
+        /// </summary>
         WorldSpaceUp,
+
+        /// <summary>
+        /// After teleporting the XR Rig will be positioned such that its up vector matches target up.
+        /// </summary>
         TargetUp,
+
+        /// <summary>
+        /// After teleporting the XR Rig will be positioned such that its up vector matches target up and forward.
+        /// </summary>
         TargetUpAndForward,
+
+        /// <summary>
+        /// After teleporting the XR Rig will not attempt to match any orientation.
+        /// </summary>
         None,
     }
 
@@ -42,16 +57,54 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     public abstract class BaseTeleportationInteractable : XRBaseInteractable
     {
+        /// <summary>
+        /// Indicates when the teleportation action happens.
+        /// </summary>
         public enum TeleportTrigger
         {
+            /// <summary>
+            /// Teleportation occurs once selection is released without being canceled.
+            /// </summary>
             OnSelectExited,
+
+            /// <summary>
+            /// Teleportation occurs right when area is selected.
+            /// </summary>
             OnSelectEntered,
-            OnActivate,
-            OnDeactivate,
+
+            /// <summary>
+            /// Teleportation occurs on activate.
+            /// </summary>
+            OnActivated,
+
+            /// <summary>
+            /// Teleportation occurs on deactivate.
+            /// </summary>
+            OnDeactivated,
+
+            /// <summary>
+            /// Teleportation occurs once selection is released without being canceled.
+            /// </summary>
             [Obsolete("OnSelectExit has been deprecated. Use OnSelectExited instead. (UnityUpgradable) -> OnSelectExited")]
             OnSelectExit = OnSelectExited,
+
+            /// <summary>
+            /// Teleportation occurs right when area is selected.
+            /// </summary>
             [Obsolete("OnSelectEnter has been deprecated. Use OnSelectEntered instead. (UnityUpgradable) -> OnSelectEntered")]
             OnSelectEnter = OnSelectEntered,
+
+            /// <summary>
+            /// Teleportation occurs on activate.
+            /// </summary>
+            [Obsolete("OnActivate has been deprecated. Use OnActivated instead. (UnityUpgradable) -> OnActivated")]
+            OnActivate = OnActivated,
+
+            /// <summary>
+            /// Teleportation occurs on deactivate.
+            /// </summary>
+            [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated")]
+            OnDeactivate = OnDeactivated,
         }
 
         [SerializeField]
@@ -119,6 +172,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Generates a teleport request.
+        /// </summary>
+        /// <param name="interactor">The interactor generating the teleport request.</param>
+        /// <param name="raycastHit">The raycast hit where user will be teleported to.</param>
+        /// <param name="teleportRequest">The teleport request.</param>
+        /// <returns>Returns <see langword="true"/> if button teleportation was successful. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
             => false;
 
@@ -160,39 +220,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntered(XRBaseInteractor interactor)
+        protected internal override void OnSelectEntered(SelectEnterEventArgs args)
         {
             if (m_TeleportTrigger == TeleportTrigger.OnSelectEntered)
-                SendTeleportRequest(interactor);
+                SendTeleportRequest(args.interactor);
 
-            base.OnSelectEntered(interactor);
+            base.OnSelectEntered(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExited(XRBaseInteractor interactor)
+        protected internal override void OnSelectExited(SelectExitEventArgs args)
         {
-            if (m_TeleportTrigger == TeleportTrigger.OnSelectExited)
-                SendTeleportRequest(interactor);
+            if (m_TeleportTrigger == TeleportTrigger.OnSelectExited && !args.isCanceled)
+                SendTeleportRequest(args.interactor);
 
-            base.OnSelectExited(interactor);
+            base.OnSelectExited(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnActivate(XRBaseInteractor interactor)
+        protected internal override void OnActivated(ActivateEventArgs args)
         {
-            if (m_TeleportTrigger == TeleportTrigger.OnActivate)
-                SendTeleportRequest(interactor);
+            if (m_TeleportTrigger == TeleportTrigger.OnActivated)
+                SendTeleportRequest(args.interactor);
 
-            base.OnActivate(interactor);
+            base.OnActivated(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnDeactivate(XRBaseInteractor interactor)
+        protected internal override void OnDeactivated(DeactivateEventArgs args)
         {
-            if (m_TeleportTrigger == TeleportTrigger.OnDeactivate)
-                SendTeleportRequest(interactor);
+            if (m_TeleportTrigger == TeleportTrigger.OnDeactivated)
+                SendTeleportRequest(args.interactor);
 
-            base.OnDeactivate(interactor);
+            base.OnDeactivated(args);
         }
     }
 }

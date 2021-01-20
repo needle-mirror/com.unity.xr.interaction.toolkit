@@ -3,71 +3,100 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRGrabInteractable)), CanEditMultipleObjects]
-    public class XRGrabInteractableEditor : Editor
+    /// <summary>
+    /// Custom editor for an <see cref="XRGrabInteractable"/>.
+    /// </summary>
+    [CustomEditor(typeof(XRGrabInteractable), true), CanEditMultipleObjects]
+    public class XRGrabInteractableEditor : XRBaseInteractableEditor
     {
-        SerializedProperty m_InteractionManager;
-        SerializedProperty m_AttachTransform;
-        SerializedProperty m_AttachEaseInTime;
-        SerializedProperty m_MovementType;
-        SerializedProperty m_TrackPosition;
-        SerializedProperty m_SmoothPosition;
-        SerializedProperty m_SmoothPositionAmount;
-        SerializedProperty m_TightenPosition;
-        SerializedProperty m_TrackRotation;
-        SerializedProperty m_SmoothRotation;
-        SerializedProperty m_SmoothRotationAmount;
-        SerializedProperty m_TightenRotation;
-        SerializedProperty m_ThrowOnDetach;
-        SerializedProperty m_ThrowSmoothingDuration;
-        SerializedProperty m_ThrowSmoothingCurve;
-        SerializedProperty m_ThrowVelocityScale;
-        SerializedProperty m_ThrowAngularVelocityScale;
-        SerializedProperty m_GravityOnDetach;
-        SerializedProperty m_RetainTransformParent;
-        SerializedProperty m_OnFirstHoverEntered;
-        SerializedProperty m_OnHoverEntered;
-        SerializedProperty m_OnHoverExited;
-        SerializedProperty m_OnLastHoverExited;
-        SerializedProperty m_OnSelectEntered;
-        SerializedProperty m_OnSelectExited;
-        SerializedProperty m_OnSelectCanceled;
-        SerializedProperty m_OnActivate;
-        SerializedProperty m_OnDeactivate;
-        SerializedProperty m_Colliders;
-        SerializedProperty m_InteractionLayerMask;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachTransform"/>.</summary>
+        protected SerializedProperty m_AttachTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachEaseInTime"/>.</summary>
+        protected SerializedProperty m_AttachEaseInTime;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.movementType"/>.</summary>
+        protected SerializedProperty m_MovementType;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.trackPosition"/>.</summary>
+        protected SerializedProperty m_TrackPosition;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothPosition"/>.</summary>
+        protected SerializedProperty m_SmoothPosition;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothPositionAmount"/>.</summary>
+        protected SerializedProperty m_SmoothPositionAmount;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.tightenPosition"/>.</summary>
+        protected SerializedProperty m_TightenPosition;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.trackRotation"/>.</summary>
+        protected SerializedProperty m_TrackRotation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothRotation"/>.</summary>
+        protected SerializedProperty m_SmoothRotation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothRotationAmount"/>.</summary>
+        protected SerializedProperty m_SmoothRotationAmount;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.tightenRotation"/>.</summary>
+        protected SerializedProperty m_TightenRotation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
+        protected SerializedProperty m_ThrowOnDetach;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
+        protected SerializedProperty m_ThrowSmoothingDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwSmoothingCurve"/>.</summary>
+        protected SerializedProperty m_ThrowSmoothingCurve;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwVelocityScale"/>.</summary>
+        protected SerializedProperty m_ThrowVelocityScale;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwAngularVelocityScale"/>.</summary>
+        protected SerializedProperty m_ThrowAngularVelocityScale;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.forceGravityOnDetach"/>.</summary>
+        protected SerializedProperty m_ForceGravityOnDetach;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
+        protected SerializedProperty m_RetainTransformParent;
 
-        static class Tooltips
+        /// <summary>
+        /// Contents of GUI elements used by this editor.
+        /// </summary>
+        protected static class Contents
         {
-            public static readonly GUIContent interactionManager = new GUIContent("Interaction Manager", "Manager to handle all interaction management (will find one if empty).");
-            public static readonly GUIContent attachTransform = new GUIContent("Attach Transform", "Attach point to use on this Interactable (will use transform.position as center if none set).");
-            public static readonly GUIContent attachEaseInTime = new GUIContent("Attach Ease In Time", "Time it takes to ease in the attach (time of 0.0 indicates no easing).");
-            public static readonly GUIContent movementType = new GUIContent("Movement Type", "Type of movement for RigidBody.");
-            public static readonly GUIContent trackPosition = new GUIContent("Track Position", "Whether the this interactable should track the position of the interactor.");
-            public static readonly GUIContent smoothPosition = new GUIContent("Smooth Position", "Apply smoothing to the follow position of the object.");
-            public static readonly GUIContent smoothPositionAmount = new GUIContent("Smooth Position Amount", "Smoothing applied to the object's position when following.");
-            public static readonly GUIContent tightenPosition = new GUIContent("Tighten Position", "Reduces the maximum follow position difference when using smoothing.");
-            public static readonly GUIContent trackRotation = new GUIContent("Track Rotation", "Whether the this interactable should track the rotation of the interactor.");
-            public static readonly GUIContent smoothRotation = new GUIContent("Smooth Rotation", "Apply smoothing to the follow rotation of the object.");
-            public static readonly GUIContent smoothRotationAmount = new GUIContent("Smooth Rotation Amount", "Smoothing multiple applied to the object's rotation when following.");
-            public static readonly GUIContent tightenRotation = new GUIContent("Tighten Rotation", "Reduces the maximum follow rotation difference when using smoothing.");
-            public static readonly GUIContent throwOnDetach = new GUIContent("Throw On Detach", "Object inherits the interactor's velocity when released.");
-            public static readonly GUIContent throwSmoothingDuration = new GUIContent("Throw Smoothing Duration", "Time period to average thrown velocity over");
-            public static readonly GUIContent throwSmoothingCurve = new GUIContent("Throw Smoothing Curve", "The curve to use to weight velocity smoothing (most recent frames to the right.");
-            public static readonly GUIContent throwVelocityScale = new GUIContent("Throw Velocity Scale", "Scale the velocity used when throwing.");
-            public static readonly GUIContent throwAngularVelocityScale = new GUIContent("Throw Angular Velocity Scale", "Scale the angular velocity used when throwing");
-            public static readonly GUIContent gravityOnDetach = new GUIContent("Gravity On Detach", "Object has gravity when released (will still use pre-grab value if this is false).");
-            public static readonly GUIContent colliders = new GUIContent("Colliders", "Colliders to include when selecting/interacting with an interactable");
-            public static readonly GUIContent interactionLayerMask = new GUIContent("Interaction Layer Mask", "Only Interactors with this LayerMask will interact with this Interactable.");
-            public static readonly GUIContent retainTransformParent = new GUIContent("Retain Transform Parent", "If enabled, this Interactable have its parent retained after it is released from an interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachTransform"/>.</summary>
+            public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The attachment point to use on this Interactable (will use this object's position as center if none set).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachEaseInTime"/>.</summary>
+            public static readonly GUIContent attachEaseInTime = EditorGUIUtility.TrTextContent("Attach Ease In Time", "Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.movementType"/>.</summary>
+            public static readonly GUIContent movementType = EditorGUIUtility.TrTextContent("Movement Type", "Specifies how this object is moved when selected, either through setting the velocity of the Rigidbody, moving the kinematic Rigidbody during Fixed Update, or by directly updating the Transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.trackPosition"/>.</summary>
+            public static readonly GUIContent trackPosition = EditorGUIUtility.TrTextContent("Track Position", "Whether this object should follow the position of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothPosition"/>.</summary>
+            public static readonly GUIContent smoothPosition = EditorGUIUtility.TrTextContent("Smooth Position", "Apply smoothing while following the position of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothPositionAmount"/>.</summary>
+            public static readonly GUIContent smoothPositionAmount = EditorGUIUtility.TrTextContent("Smooth Position Amount", "Scale factor for how much smoothing is applied while following the position of the Interactor when selected. The larger the value, the closer this object will remain to the position of the Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.tightenPosition"/>.</summary>
+            public static readonly GUIContent tightenPosition = EditorGUIUtility.TrTextContent("Tighten Position", "Reduces the maximum follow position difference when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow distance, to 1 meaning effectively no smoothing at all.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.trackRotation"/>.</summary>
+            public static readonly GUIContent trackRotation = EditorGUIUtility.TrTextContent("Track Rotation", "Whether this object should follow the rotation of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothRotation"/>.</summary>
+            public static readonly GUIContent smoothRotation = EditorGUIUtility.TrTextContent("Smooth Rotation", "Apply smoothing while following the rotation of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothRotationAmount"/>.</summary>
+            public static readonly GUIContent smoothRotationAmount = EditorGUIUtility.TrTextContent("Smooth Rotation Amount", "Scale factor for how much smoothing is applied while following the rotation of the Interactor when selected. The larger the value, the closer this object will remain to the rotation of the Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.tightenRotation"/>.</summary>
+            public static readonly GUIContent tightenRotation = EditorGUIUtility.TrTextContent("Tighten Rotation", "Reduces the maximum follow rotation difference when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow rotation, to 1 meaning effectively no smoothing at all.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
+            public static readonly GUIContent throwOnDetach = EditorGUIUtility.TrTextContent("Throw On Detach", "Whether this object inherits the velocity of the Interactor when released.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
+            public static readonly GUIContent throwSmoothingDuration = EditorGUIUtility.TrTextContent("Throw Smoothing Duration", "Time period to average thrown velocity over.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingCurve"/>.</summary>
+            public static readonly GUIContent throwSmoothingCurve = EditorGUIUtility.TrTextContent("Throw Smoothing Curve", "The curve to use to weight thrown velocity smoothing (most recent frames to the right).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwVelocityScale"/>.</summary>
+            public static readonly GUIContent throwVelocityScale = EditorGUIUtility.TrTextContent("Throw Velocity Scale", "Scale factor applied to this object's inherited velocity of the Interactor when released.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwAngularVelocityScale"/>.</summary>
+            public static readonly GUIContent throwAngularVelocityScale = EditorGUIUtility.TrTextContent("Throw Angular Velocity Scale", "Scale factor applied to this object's inherited angular velocity of the Interactor when released.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.forceGravityOnDetach"/>.</summary>
+            public static readonly GUIContent forceGravityOnDetach = EditorGUIUtility.TrTextContent("Force Gravity On Detach", "Force this object to have gravity when released (will still use pre-grab value if this is false).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
+            public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.");
         }
 
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
-            m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
+            base.OnEnable();
+
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
-            m_MovementType = serializedObject.FindProperty("m_MovementType");
             m_AttachEaseInTime = serializedObject.FindProperty("m_AttachEaseInTime");
+            m_MovementType = serializedObject.FindProperty("m_MovementType");
             m_TrackPosition = serializedObject.FindProperty("m_TrackPosition");
             m_SmoothPosition = serializedObject.FindProperty("m_SmoothPosition");
             m_SmoothPositionAmount = serializedObject.FindProperty("m_SmoothPositionAmount");
@@ -81,103 +110,99 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ThrowSmoothingCurve = serializedObject.FindProperty("m_ThrowSmoothingCurve");
             m_ThrowVelocityScale = serializedObject.FindProperty("m_ThrowVelocityScale");
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
-            m_GravityOnDetach = serializedObject.FindProperty("m_GravityOnDetach");
+            m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
-            m_OnFirstHoverEntered = serializedObject.FindProperty("m_OnFirstHoverEntered");
-            m_OnHoverEntered = serializedObject.FindProperty("m_OnHoverEntered");
-            m_OnHoverExited = serializedObject.FindProperty("m_OnHoverExited");
-            m_OnLastHoverExited = serializedObject.FindProperty("m_OnLastHoverExited");
-            m_OnSelectEntered = serializedObject.FindProperty("m_OnSelectEntered");
-            m_OnSelectExited = serializedObject.FindProperty("m_OnSelectExited");
-            m_OnSelectCanceled = serializedObject.FindProperty("m_OnSelectCanceled");
-            m_OnActivate = serializedObject.FindProperty("m_OnActivate");
-            m_OnDeactivate = serializedObject.FindProperty("m_OnDeactivate");
-            m_Colliders = serializedObject.FindProperty("m_Colliders");
-            m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
         }
 
-        public override void OnInspectorGUI()
+        /// <inheritdoc />
+        protected override void DrawProperties()
         {
-            serializedObject.Update();
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((XRGrabInteractable)target), typeof(XRGrabInteractable), false);
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUILayout.PropertyField(m_InteractionManager, Tooltips.interactionManager);
-            EditorGUILayout.PropertyField(m_InteractionLayerMask, Tooltips.interactionLayerMask);
-            EditorGUILayout.PropertyField(m_Colliders, Tooltips.colliders, true);
+            base.DrawProperties();
 
             EditorGUILayout.Space();
 
-            // Grab Configuration
-            EditorGUILayout.PropertyField(m_MovementType, Tooltips.movementType);
+            DrawGrabConfiguration();
+            DrawTrackConfiguration();
+            DrawDetachConfiguration();
+            DrawAttachConfiguration();
+        }
 
-            EditorGUILayout.PropertyField(m_RetainTransformParent, Tooltips.retainTransformParent);
+        /// <summary>
+        /// Draw the property fields related to grab configuration.
+        /// </summary>
+        protected virtual void DrawGrabConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_MovementType, Contents.movementType);
+            EditorGUILayout.PropertyField(m_RetainTransformParent, Contents.retainTransformParent);
+        }
 
-            EditorGUILayout.PropertyField(m_TrackPosition, Tooltips.trackPosition);
+        /// <summary>
+        /// Draw the property fields related to tracking configuration.
+        /// </summary>
+        protected virtual void DrawTrackConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_TrackPosition, Contents.trackPosition);
             if (m_TrackPosition.boolValue)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_SmoothPosition, Tooltips.smoothPosition);
-                if (m_SmoothPosition.boolValue)
+                using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_SmoothPositionAmount, Tooltips.smoothPositionAmount);
-                    EditorGUILayout.PropertyField(m_TightenPosition, Tooltips.tightenPosition);
-                    EditorGUI.indentLevel--;
+                    EditorGUILayout.PropertyField(m_SmoothPosition, Contents.smoothPosition);
+                    if (m_SmoothPosition.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_SmoothPositionAmount, Contents.smoothPositionAmount);
+                            EditorGUILayout.PropertyField(m_TightenPosition, Contents.tightenPosition);
+                        }
+                    }
                 }
-                EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(m_TrackRotation, Tooltips.trackRotation);
+            EditorGUILayout.PropertyField(m_TrackRotation, Contents.trackRotation);
             if (m_TrackRotation.boolValue)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_SmoothRotation, Tooltips.smoothRotation);
-                if (m_SmoothRotation.boolValue)
+                using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_SmoothRotationAmount, Tooltips.smoothRotationAmount);
-                    EditorGUILayout.PropertyField(m_TightenRotation, Tooltips.tightenRotation);
-                    EditorGUI.indentLevel--;
+                    EditorGUILayout.PropertyField(m_SmoothRotation, Contents.smoothRotation);
+                    if (m_SmoothRotation.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_SmoothRotationAmount, Contents.smoothRotationAmount);
+                            EditorGUILayout.PropertyField(m_TightenRotation, Contents.tightenRotation);
+                        }
+                    }
                 }
-                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.PropertyField(m_ThrowOnDetach, Tooltips.throwOnDetach);
+        }
+
+        /// <summary>
+        /// Draw property fields related to detach configuration.
+        /// </summary>
+        protected virtual void DrawDetachConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_ThrowOnDetach, Contents.throwOnDetach);
             if (m_ThrowOnDetach.boolValue)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_ThrowSmoothingDuration, Tooltips.throwSmoothingDuration);
-                EditorGUILayout.PropertyField(m_ThrowSmoothingCurve, Tooltips.throwSmoothingCurve);
-                EditorGUILayout.PropertyField(m_ThrowVelocityScale, Tooltips.throwVelocityScale);
-                EditorGUILayout.PropertyField(m_ThrowAngularVelocityScale, Tooltips.throwAngularVelocityScale);
-                EditorGUILayout.PropertyField(m_GravityOnDetach, Tooltips.gravityOnDetach);
-                EditorGUI.indentLevel--;
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_ThrowSmoothingDuration, Contents.throwSmoothingDuration);
+                    EditorGUILayout.PropertyField(m_ThrowSmoothingCurve, Contents.throwSmoothingCurve);
+                    EditorGUILayout.PropertyField(m_ThrowVelocityScale, Contents.throwVelocityScale);
+                    EditorGUILayout.PropertyField(m_ThrowAngularVelocityScale, Contents.throwAngularVelocityScale);
+                }
             }
 
+            EditorGUILayout.PropertyField(m_ForceGravityOnDetach, Contents.forceGravityOnDetach);
+        }
 
-            EditorGUILayout.PropertyField(m_AttachTransform, Tooltips.attachTransform);
-            EditorGUILayout.PropertyField(m_AttachEaseInTime, Tooltips.attachEaseInTime);
-
-            EditorGUILayout.Space();
-
-            m_OnFirstHoverEntered.isExpanded = EditorGUILayout.Foldout(m_OnFirstHoverEntered.isExpanded, EditorGUIUtility.TrTempContent("Interactable Events"), true);
-
-            if (m_OnFirstHoverEntered.isExpanded)
-            {
-                EditorGUILayout.PropertyField(m_OnFirstHoverEntered);
-                EditorGUILayout.PropertyField(m_OnHoverEntered);
-                EditorGUILayout.PropertyField(m_OnHoverExited);
-                EditorGUILayout.PropertyField(m_OnLastHoverExited);
-                EditorGUILayout.PropertyField(m_OnSelectEntered);
-                EditorGUILayout.PropertyField(m_OnSelectExited);
-                EditorGUILayout.PropertyField(m_OnSelectCanceled);
-                EditorGUILayout.PropertyField(m_OnActivate);
-                EditorGUILayout.PropertyField(m_OnDeactivate);
-            }
-
-            serializedObject.ApplyModifiedProperties();
+        /// <summary>
+        /// Draw property fields related to attach configuration.
+        /// </summary>
+        protected virtual void DrawAttachConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_AttachTransform, Contents.attachTransform);
+            EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
         }
     }
 }

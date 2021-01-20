@@ -1,13 +1,11 @@
-﻿using System;
-using UnityEngine;
-
-namespace UnityEngine.XR.Interaction.Toolkit
+﻿namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// <see cref="MonoBehaviour"/> that drives interaction recording and playback (via <see cref="XRControllerRecording"/> assets).
     /// </summary>
     [DisallowMultipleComponent, AddComponentMenu("XR/XR Controller Recorder")]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_ControllerRecorder)]
+    [HelpURL(XRHelpURLConstants.k_XRControllerRecorder)]
     public class XRControllerRecorder : MonoBehaviour
     {
         [Header("Input Recording/Playback")]
@@ -131,6 +129,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_PrevEnableInputActions;
         bool m_PrevEnableInputTracking;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             if (m_XRController == null)
@@ -142,6 +143,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 isPlaying = true;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void Update()
         {
             if (isRecording && m_XRController != null)
@@ -163,6 +167,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 isPlaying = false;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDestroy()
         {
             isRecording = false;
@@ -208,6 +215,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_LastPlaybackTime = playbackTime;
         }
 
+        /// <summary>
+        /// Gets the state of the controller.
+        /// </summary>
+        /// <param name="controllerState">When this method returns, contains the <see cref="XRControllerState"/> object representing the state of the controller.</param>
+        /// <returns>Returns <see langword="true"/> when playing or recording. Otherwise, returns <see langword="false"/>.</returns>
         public virtual bool GetControllerState(out XRControllerState controllerState)
         {
             if (isPlaying)

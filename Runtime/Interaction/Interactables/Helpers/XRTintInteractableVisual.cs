@@ -8,6 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [AddComponentMenu("XR/Helpers/XR Tint Interactable Visual")]
     [DisallowMultipleComponent]
+    [HelpURL(XRHelpURLConstants.k_XRTintInteractableVisual)]
     public class XRTintInteractableVisual : MonoBehaviour
     {
         [SerializeField, Tooltip("Tint color for interactable.")]
@@ -71,15 +72,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         static readonly List<Material> s_Materials = new List<Material>();
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             m_Interactable = GetComponent<XRBaseInteractable>();
             if (m_Interactable != null)
             {
-                m_Interactable.onFirstHoverEntered.AddListener(OnFirstHoverEntered);
-                m_Interactable.onLastHoverExited.AddListener(OnLastHoverExited);
-                m_Interactable.onSelectEntered.AddListener(OnSelectEntered);
-                m_Interactable.onSelectExited.AddListener(OnSelectExited);
+                m_Interactable.firstHoverEntered.AddListener(OnFirstHoverEntered);
+                m_Interactable.lastHoverExited.AddListener(OnLastHoverExited);
+                m_Interactable.selectEntered.AddListener(OnSelectEntered);
+                m_Interactable.selectExited.AddListener(OnSelectExited);
             }
             else
                 Debug.LogWarning($"Could not find required interactable component on {gameObject} for tint visual." +
@@ -99,14 +103,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TintPropertyBlock = new MaterialPropertyBlock();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDestroy()
         {
             if (m_Interactable != null)
             {
-                m_Interactable.onFirstHoverEntered.RemoveListener(OnFirstHoverEntered);
-                m_Interactable.onLastHoverExited.RemoveListener(OnLastHoverExited);
-                m_Interactable.onSelectEntered.RemoveListener(OnSelectEntered);
-                m_Interactable.onSelectExited.RemoveListener(OnSelectExited);
+                m_Interactable.firstHoverEntered.RemoveListener(OnFirstHoverEntered);
+                m_Interactable.lastHoverExited.RemoveListener(OnLastHoverExited);
+                m_Interactable.selectEntered.RemoveListener(OnSelectEntered);
+                m_Interactable.selectExited.RemoveListener(OnSelectExited);
             }
         }
 
@@ -152,7 +159,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets whether all shared materials on the Renderers used for tinting have emission enabled.
         /// </summary>
-        /// <returns>Returns <see langword="true"/> if all materials used for tinting have emission enabled. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if all materials used for tinting have emission enabled. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool GetEmissionEnabled()
         {
             foreach (var render in m_TintRenderers)
@@ -175,25 +182,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
-        void OnFirstHoverEntered(XRBaseInteractor interactor)
+        void OnFirstHoverEntered(HoverEnterEventArgs args)
         {
             if (m_TintOnHover)
                 SetTint(true);
         }
 
-        void OnLastHoverExited(XRBaseInteractor interactor)
+        void OnLastHoverExited(HoverExitEventArgs args)
         {
             if (m_TintOnHover)
                 SetTint(false);
         }
 
-        void OnSelectEntered(XRBaseInteractor interactor)
+        void OnSelectEntered(SelectEnterEventArgs args)
         {
             if (m_TintOnSelection)
                 SetTint(true);
         }
 
-        void OnSelectExited(XRBaseInteractor interactor)
+        void OnSelectExited(SelectExitEventArgs args)
         {
             if (m_TintOnSelection)
                 SetTint(false);

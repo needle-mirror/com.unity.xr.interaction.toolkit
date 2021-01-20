@@ -18,12 +18,23 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright Â© 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARGestureInteractor {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// The <see cref="ARGestureInteractor"/> allows the user to manipulate virtual objects (select, translate,
+    /// rotate, scale and elevate) through gestures (tap, drag, twist, swipe).
+    /// The <see cref="ARGestureInteractor"/> also handles the current selected object and its visualization.
+    /// <br />
+    /// To enable it add an <see cref="ARGestureInteractor"/> to your scene and an <see cref="ARBaseGestureInteractable"/> to any
+    /// of your virtual objects.
+    /// </summary>
+    public class ARGestureInteractor {}
+}
 
 #else
 
@@ -37,9 +48,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// rotate, scale and elevate) through gestures (tap, drag, twist, swipe).
     /// The <see cref="ARGestureInteractor"/> also handles the current selected object and its visualization.
     /// <br />
-    /// To enable it add one <see cref="ARGestureInteractor"/> to your scene and one <see cref="ARBaseGestureInteractable"/> as parent of each
+    /// To enable it add an <see cref="ARGestureInteractor"/> to your scene and an <see cref="ARBaseGestureInteractable"/> to any
     /// of your virtual objects.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
     public class ARGestureInteractor : XRBaseInteractor
     {
         static ARGestureInteractor s_Instance;
@@ -102,6 +114,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public TwistGestureRecognizer TwistGestureRecognizer => m_TwistGestureRecognizer;
 
+        /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
@@ -117,7 +130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// The Unity Update() method.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         public void Update()
         {

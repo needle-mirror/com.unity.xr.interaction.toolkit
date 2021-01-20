@@ -5,6 +5,10 @@ using UnityEngine.SpatialTracking;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
+    /// <summary>
+    /// Interprets feature values on an input controller device in the XR input subsystem into
+    /// XR Interaction Interactor position, rotation, and interaction states.
+    /// </summary>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Controllers)]
     [DisallowMultipleComponent]
     public abstract class XRBaseController : MonoBehaviour
@@ -33,7 +37,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             BeforeRender,
         }
 
-        [Header("Tracking")]
         [SerializeField]
         [Tooltip("The time within the frame that the controller will sample input.")]
         UpdateType m_UpdateTrackingType = UpdateType.UpdateAndBeforeRender;
@@ -61,7 +64,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_EnableInputTracking = value;
         }
 
-        [Header("Input")]
         [SerializeField]
         [Tooltip("Used to disable an input state changing in the interactor. Useful for swapping to a different interactor on the same object.")]
         bool m_EnableInputActions = true;
@@ -75,7 +77,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_EnableInputActions = value;
         }
 
-        [Header("Model")]
         [SerializeField]
         [Tooltip("The model prefab to show for this controller.")]
         Transform m_ModelPrefab;
@@ -152,9 +153,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ModelDeSelectTransition = value;
         }
 
+        /// <summary>
+        /// Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="XRRayInteractor.TranslateAnchor"/>
+        /// <seealso cref="XRRayInteractor.RotateAnchor"/>
         [Obsolete("anchorControlDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
         public float anchorControlDeadzone { get; set; }
 
+        /// <summary>
+        /// Defines the off-axis deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="Application.onBeforeRender"/>
         [Obsolete("anchorControlOffAxisDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
         public float anchorControlOffAxisDeadzone { get; set; }
 
@@ -204,6 +214,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         bool m_PerformSetup = true;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void Awake()
         {
             // Create empty model transform if none specified
@@ -217,16 +230,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void OnEnable()
         {
             Application.onBeforeRender += OnBeforeRender;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void OnDisable()
         {
             Application.onBeforeRender -= OnBeforeRender;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             UpdateController();
@@ -253,6 +275,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Updates the controller every frame.
+        /// </summary>
         protected virtual void UpdateController()
         {
             if (m_PerformSetup)
@@ -292,17 +317,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Gets the state of the controller.
+        /// </summary>
+        /// <param name="controllerState">When this method returns, contains the <see cref="XRControllerState"/> object representing the state of the controller.</param>
+        /// <returns>Returns <see langword="false"/>.</returns>
         public virtual bool GetControllerState(out XRControllerState controllerState)
         {
             controllerState = m_ControllerState;
             return false;
         }
 
+        /// <summary>
+        /// Sets the state of the controller.
+        /// </summary>
+        /// <param name="controllerState">The state of the controller to set.</param>
         public virtual void SetControllerState(XRControllerState controllerState)
         {
             m_ControllerState = controllerState;
         }
 
+        /// <summary>
+        /// Applies the controller state to this <see cref="XRBaseController"/>.
+        /// </summary>
+        /// <param name="updatePhase"> The type of update phase to apply it in.</param>
+        /// <param name="controllerState">The state of the controller to apply.</param>
         protected virtual void ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase updatePhase, XRControllerState controllerState)
         {
             if (controllerState == null)
@@ -331,6 +370,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Updates tracking input.
+        /// </summary>
+        /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateTrackingInput(XRControllerState controllerState) {}
 
         internal void UpdateInputInternal(XRControllerState controllerState)
@@ -339,6 +382,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateControllerModelAnimation();
         }
 
+        /// <summary>
+        /// Updates input.
+        /// </summary>
+        /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateInput(XRControllerState controllerState) {}
 
         /// <summary>
@@ -378,7 +425,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="amplitude">Amplitude (from 0.0 to 1.0) to play impulse at.</param>
         /// <param name="duration">Duration (in seconds) to play haptic impulse.</param>
-        /// <returns>Returns <see langword="true"/> if successful. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         public virtual bool SendHapticImpulse(float amplitude, float duration) => false;
     }
 }

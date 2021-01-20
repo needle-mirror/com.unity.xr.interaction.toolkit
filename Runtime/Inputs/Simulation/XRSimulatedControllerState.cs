@@ -10,20 +10,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// </summary>
     public enum ControllerButton
     {
+        /// <summary>
+        /// The primary face button being pressed on a device, or sole button if only one is available.
+        /// </summary>
         PrimaryButton,
+
+         /// <summary>
+        /// The primary face button being touched on a device.
+        /// </summary>
         PrimaryTouch,
+
+        /// <summary>
+        /// The secondary face button being pressed on a device.
+        /// </summary>
         SecondaryButton,
+
+        /// <summary>
+        /// The secondary face button being touched on a device.
+        /// </summary>
         SecondaryTouch,
+
+        /// <summary>
+        /// A binary measure of whether the device is being gripped.
+        /// </summary>
         GripButton,
+
+        /// <summary>
+        /// A binary measure of whether the index finger is activating the trigger.
+        /// </summary>
         TriggerButton,
+
+        /// <summary>
+        /// Represents a menu button, used to pause, go back, or otherwise exit gameplay.
+        /// </summary>
         MenuButton,
+
+        /// <summary>
+        /// Represents the primary 2D axis being clicked or otherwise depressed.
+        /// </summary>
         Primary2DAxisClick,
+
+        /// <summary>
+        /// Represents the primary 2D axis being touched.
+        /// </summary>
         Primary2DAxisTouch,
+
+        /// <summary>
+        /// Represents the secondary 2D axis being clicked or otherwise depressed.
+        /// </summary>
         Secondary2DAxisClick,
+
+        /// <summary>
+        /// Represents the secondary 2D axis being touched.
+        /// </summary>
         Secondary2DAxisTouch,
+
+        /// <summary>
+        /// Indicates whether the user is present and interacting with the device.
+        /// </summary>
         UserPresence,
     }
 
+    /// <summary>
+    /// State for input device representing a simulated XR handed controller.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 63)]
     public struct XRSimulatedControllerState : IInputStateTypeInfo
     {
@@ -36,22 +86,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <inheritdoc />
         public FourCC format => formatId;
 
+        /// <summary>
+        /// The primary touchpad or joystick on a device.
+        /// </summary>
         [InputControl(usage = "Primary2DAxis", aliases = new[] { "thumbstick", "joystick" })]
         [FieldOffset(0)]
         public Vector2 primary2DAxis;
 
+        /// <summary>
+        /// A trigger-like control, pressed with the index finger.
+        /// </summary>
         [InputControl(usage = "Trigger", layout = "Axis")]
         [FieldOffset(8)]
         public float trigger;
 
+        /// <summary>
+        /// Represents the user's grip on the controller.
+        /// </summary>
         [InputControl(usage = "Grip", layout = "Axis")]
         [FieldOffset(12)]
         public float grip;
 
+        /// <summary>
+        /// A secondary touchpad or joystick on a device.
+        /// </summary>
         [InputControl(usage = "Secondary2DAxis")]
         [FieldOffset(16)]
         public Vector2 secondary2DAxis;
 
+        /// <summary>
+        /// All the buttons on this device.
+        /// </summary>
         [InputControl(name = nameof(XRSimulatedController.primaryButton), usage = "PrimaryButton", layout = "Button", bit = (uint)ControllerButton.PrimaryButton)]
         [InputControl(name = nameof(XRSimulatedController.primaryTouch), usage = "PrimaryTouch", layout = "Button", bit = (uint)ControllerButton.PrimaryTouch)]
         [InputControl(name = nameof(XRSimulatedController.secondaryButton), usage = "SecondaryButton", layout = "Button", bit = (uint)ControllerButton.SecondaryButton)]
@@ -67,22 +132,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         [FieldOffset(24)]
         public ushort buttons;
 
+        /// <summary>
+        /// Value representing the current battery life of this device.
+        /// </summary>
         [InputControl(usage = "BatteryLevel", layout = "Axis")]
         [FieldOffset(26)]
         public float batteryLevel;
 
+        /// <summary>
+        /// Represents the values being tracked for this device.
+        /// </summary>
         [InputControl(usage = "TrackingState", layout = "Integer")]
         [FieldOffset(30)]
         public int trackingState;
 
+        /// <summary>
+        /// Informs to the developer whether the device is currently being tracked.
+        /// </summary>
         [InputControl(usage = "IsTracked", layout = "Button")]
         [FieldOffset(34)]
         public bool isTracked;
 
+        /// <summary>
+        /// The position of the device.
+        /// </summary>
         [InputControl(usage = "DevicePosition")]
         [FieldOffset(35)]
         public Vector3 devicePosition;
 
+        /// <summary>
+        /// The rotation of this device.
+        /// </summary>
         [InputControl(usage = "DeviceRotation")]
         [FieldOffset(47)]
         public Quaternion deviceRotation;
@@ -104,6 +184,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             return this;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         public void Reset()
         {
             primary2DAxis = default;

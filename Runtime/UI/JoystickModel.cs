@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public float lastMoveTime { get; set; }
 
             /// <summary>
-            /// Resets this object to it's default, unused state.
+            /// Resets this object to its default, unused state.
             /// </summary>
             public void Reset()
             {
@@ -88,7 +88,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal ImplementationData implementationData { get; set; }
 
         /// <summary>
-        /// Resets this object to its default, unused state.
+        /// Resets this object to it's default, unused state.
         /// </summary>
         public void Reset()
         {

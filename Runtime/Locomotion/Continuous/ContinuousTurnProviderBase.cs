@@ -22,6 +22,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_TurnSpeed = value;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             // Use the input amount to scale the turn speed.

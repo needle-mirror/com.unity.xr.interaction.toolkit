@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -53,33 +54,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 width = 180f,
                 minWidth = 60f,
-                headerContent = new GUIContent("Name"),
+                headerContent = EditorGUIUtility.TrTextContent("Name"),
             };
             columns[(int)ColumnId.Type] = new MultiColumnHeaderState.Column
             {
                 width = 120f,
                 minWidth = 60f,
-                headerContent = new GUIContent("Type"),
+                headerContent = EditorGUIUtility.TrTextContent("Type"),
             };
             columns[(int)ColumnId.HoverActive] = new MultiColumnHeaderState.Column
             {
                 width = 120f,
-                headerContent = new GUIContent("Hover Active"),
+                headerContent = EditorGUIUtility.TrTextContent("Hover Active"),
             };
             columns[(int)ColumnId.SelectActive] = new MultiColumnHeaderState.Column
             {
                 width = 120f,
-                headerContent = new GUIContent("Select Active"),
+                headerContent = EditorGUIUtility.TrTextContent("Select Active"),
             };
             columns[(int)ColumnId.HoverInteractable] = new MultiColumnHeaderState.Column
             {
                 width = 140f,
-                headerContent = new GUIContent("Hover Interactable"),
+                headerContent = EditorGUIUtility.TrTextContent("Hover Interactable"),
             };
             columns[(int)ColumnId.SelectInteractable] = new MultiColumnHeaderState.Column
             {
                 width = 140f,
-                headerContent = new GUIContent("Select Interactable"),
+                headerContent = EditorGUIUtility.TrTextContent("Select Interactable"),
             };
 
             return new MultiColumnHeaderState(columns);

@@ -30,6 +30,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Locomotion Provider can move the XR Rig at one time. This is the only place that access to an XR Rig is controlled,
     /// having multiple instances of a <see cref="LocomotionSystem"/> drive a single XR Rig is not recommended.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_LocomotionSystem)]
     public class LocomotionSystem : MonoBehaviour
     {
         LocomotionProvider m_CurrentExclusiveProvider;
@@ -62,21 +63,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// (Read Only) Whether a locomotion request is already being performed.
+        /// (Read Only) If this value is true, the XR Rig's position should not be modified until this false.
         /// </summary>
         public bool busy => m_CurrentExclusiveProvider != null;
 
+        /// <summary>
+        /// (Read Only) If this value is true, the XR Rig's position should not be modified until this false.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Busy has been deprecated. Use busy instead. (UnityUpgradable) -> busy")]
         public bool Busy => busy;
 #pragma warning restore IDE1006
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             if (m_XRRig == null)
                 m_XRRig = FindObjectOfType<XRRig>();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             if (m_CurrentExclusiveProvider != null && Time.time > m_TimeMadeExclusive + m_Timeout)

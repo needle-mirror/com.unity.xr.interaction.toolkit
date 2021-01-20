@@ -20,7 +20,7 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using UnityEngine;
 
@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>Returns <see langword="true"/> if the gesture can start. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Otherwise, returns <see langword="false"/>.</returns>
         protected internal override bool CanStart()
         {
             if (GestureTouchesUtility.IsFingerIdRetained(fingerId1) ||
@@ -139,16 +139,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             GestureTouchesUtility.LockFingerId(fingerId2);
         }
 
-        /// <summary>
-        /// Updates this gesture.
-        /// </summary>
-        /// <returns>True if the update was successful.</returns>
+        /// <inheritdoc />
         protected internal override bool UpdateGesture()
         {
-            Touch touch1, touch2;
-            bool foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out touch1);
+            var foundTouches = GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);
             foundTouches =
-                GestureTouchesUtility.TryFindTouch(fingerId2, out touch2) && foundTouches;
+                GestureTouchesUtility.TryFindTouch(fingerId2, out var touch2) && foundTouches;
 
             if (!foundTouches)
             {
@@ -179,16 +175,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return false;
         }
 
-        /// <summary>
-        /// Action to be performed when this gesture is cancelled.
-        /// </summary>
+        /// <inheritdoc />
         protected internal override void OnCancel()
         {
         }
 
-        /// <summary>
-        /// Action to be performed when this gesture is finished.
-        /// </summary>
+        /// <inheritdoc />
         protected internal override void OnFinish()
         {
             GestureTouchesUtility.ReleaseFingerId(fingerId1);

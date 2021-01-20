@@ -166,7 +166,7 @@ The Interaction system has three common states: Hover, Select, and Activate. The
 | - | - |
 | **Hover** | If an Interactable is a valid target for the Interactor its state changes to Hover. Hovering on an object signifies an intention to interact with it, but doesn’t typically change the behavior of that object, though it might create a visual indicator for this change of state, like how a hovered button changes tint. |
 | **Select** | Selection requires an action such as a button or trigger press from the user to enable the Selection state. When an Interactable is in the Selection state, Unity considers the selected Interactor to be interacting with it. For example, Selection can simulate picking up a grabbable object, holding a lever, or preparing to push a door that has focus via hovering. |
-| **Activate** | Activation is an extra action, typically mapped to a button or trigger that affects the currently selected object. This lets the user further interact with an object they’ve selected. The Activate action depends on the Interactable. For example, you can use Activate to fire a gun that an Interactor has currently selected. You can hook the component to process Activate into an action without any additional code by hooking an existing callback using the Inspector window under **Interactable Events** and then add to **On Activate** via UnityEvents. |
+| **Activate** | Activation is an extra action, typically mapped to a button or trigger that affects the currently selected object. This lets the user further interact with an object they’ve selected. The Activate action depends on the Interactable. For example, you can use Activate to fire a gun that an Interactor has currently selected. You can hook the component to process Activate into an action without any additional code by hooking an existing callback using the Inspector window under **Interactable Events** and then add to **Activated** via UnityEvents. |
 
 ### Components
 
@@ -177,7 +177,7 @@ Interactor components handle the actions of hovering and selecting objects in th
 Interactables are objects in a Scene that an Interactor can hover, select, and activate. By default, all Interactables can be affected by all Interactors. You can change this behavior by grouping Interactors and Interactables into complementary Interaction Managers. The Interactable defines the behavior of Hover, Select, and Activate. The same Interactor might be able to pick up and throw a ball, shoot a gun, or press a 3D button on a keypad.
 
 #### Interaction Manager
-The Interaction Manager acts as an intermediary between Interactors and Interactables. You can have multiple Interaction Managers, each with their own valid set of Interactors and Interactables. On `Awake`, both Interactors and Interactables register with the first found Interaction Manager, unless you already assigned them a specific Interaction Manager in the Inspector. The collection of loaded Scenes needs to have at least one Interaction Manager for the system to work.
+The Interaction Manager acts as an intermediary between Interactors and Interactables. You can have multiple Interaction Managers, each with their own valid set of Interactors and Interactables. On `OnEnable`, both Interactors and Interactables register with the first found Interaction Manager, unless you already assigned them a specific Interaction Manager in the Inspector. On `OnDisable`, both Interactors and Interactables unregister from the Interaction Manager they are registered with. The collection of loaded Scenes needs to have at least one Interaction Manager for the system to work.
 
 #### Controllers
 The XR Controller component provides a way to abstract input data and translate it into Interaction states, notably for selection and activation. Position, Rotation, Selection, and Activation events are bound via input actions to a specific device's controls, which Interactors then query.
@@ -226,6 +226,36 @@ Use the AR Annotation Interactable to place annotations alongside virtual object
 You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the Interaction Manager to provide your own functionality. Additionally, you can use helpers, in particular event callbacks, to add functionality to the existing components.
 ![class-hierarchy](images/class-hierarchy.svg)
 
+Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes are used to change the appearance and order of properties that appear in the Inspector, particularly for Interactors and Interactables. Derived classes that add additional serialized fields may need to have a custom Editor class created for those properties to appear in the Inspector window. The custom Editor class can derive from the associated Editor class of the base class being extended, and override methods to append the additional properties. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. The [`Editor.DrawDefaultInspector`](https://docs.unity3d.com/ScriptReference/Editor.DrawDefaultInspector.html) method can be used to draw the built-in Inspector instead.
+
+  ```csharp
+  // ExampleInteractable.cs in Assets.
+  public class ExampleInteractable : XRBaseInteractable
+  {
+      [SerializeField]
+      bool m_AdditionalField;
+  }
+
+  // ExampleInteractableEditor.cs in an Editor folder in Assets.
+  [CustomEditor(typeof(ExampleInteractable), true), CanEditMultipleObjects]
+  public class ExampleInteractableEditor : XRBaseInteractableEditor
+  {
+      protected SerializedProperty m_AdditionalField;
+
+      protected override void OnEnable()
+      {
+          base.OnEnable();
+          m_AdditionalField = serializedObject.FindProperty("m_AdditionalField");
+      }
+
+      protected override void DrawProperties()
+      {
+          base.DrawProperties();
+          EditorGUILayout.PropertyField(m_AdditionalField);
+      }
+  }
+  ```
+
 ### Interactor and Interactable event callbacks
 
 Interactors and Interactables both have various event callbacks that can be used to drive reactions to interaction state changes. You can use these events to define your own behavior to hover, selection, and activation state changes with no additional coding.
@@ -245,16 +275,13 @@ In addition to standard Unity callbacks, you can override the following methods 
 |`isSelectActive`|Gets whether this interactor is in a state where it could select.|
 |`CanHover`|Returns true if this Interactor is in a state where it could select, false otherwise.|
 |`CanSelect`|Returns true if the Interactable is valid for selection this frame, false otherwise.|
-|`isSelectExclusive`|Returns true if this Interactor requires exclusive selection of an Interactable, false otherwise.|
+|`requireSelectExclusive`|Indicates whether this interactor requires exclusive selection of an interactable to select it.|
 |`selectedInteractableMovementTypeOverride`|Gets the movement type to use when overriding the selected Interactable's movement.|
-|`OnHoverEntering`|The Interaction Manager calls this method right before the Interactor first initiates hovering over an Interactable.|
-|`OnHoverEntered`|The Interaction Manager calls this method when the Interactor first initiates hovering over an Interactable.|
-|`OnHoverExiting`|The Interaction Manager calls this method right before the Interactor ends hovering over an Interactable.|
-|`OnHoverExited`|The Interaction Manager calls this method when the Interactor ends hovering over an Interactable.|
-|`OnSelectEntering`|The Interaction Manager calls this method right before the Interactor first initiates selection of an Interactable.|
-|`OnSelectEntered`|The Interaction Manager calls this method when the Interactor first initiates selection of an Interactable.|
-|`OnSelectExiting`|The Interaction Manager calls this method right before the Interactor ends selection of an Interactable.|
-|`OnSelectExited`|The Interaction Manager calls this method when the Interactor ends selection of an Interactable.|
+|`OnRegistered` and `OnUnregistered`|The Interaction Manager calls these methods when the Interactor is registered and unregistered from it.|
+|`OnHoverEntering` and `OnHoverEntered`|The Interaction Manager calls these methods when the Interactor first initiates hovering over an Interactable.|
+|`OnHoverExiting` and `OnHoverExited`|The Interaction Manager calls these methods when the Interactor ends hovering over an Interactable. The event arguments will describe whether the hover was canceled, such as from either being unregistered due to being disabled or destroyed.|
+|`OnSelectEntering` and `OnSelectEntered`|The Interaction Manager calls these methods when the Interactor first initiates selection of an Interactable.|
+|`OnSelectExiting` and `OnSelectExited`|The Interaction Manager calls these methods when the Interactor ends selection of an Interactable. The event arguments will describe whether the selection was canceled, such as from either being unregistered due to being disabled or destroyed.|
 
 ### Extending Interactables
 
@@ -266,18 +293,14 @@ In addition to standard Unity callbacks, you can override the following methods:
 |---|---|
 |`IsHoverableBy`|Determines if this Interactable can be hovered by a given Interactor.|
 |`IsSelectableBy`|Determines if this Interactable can be selected by a given Interactor.|
-|`OnHoverEntering`|The Interaction Manager calls this method right before the Interactor first initiates hovering over an Interactable.|
-|`OnHoverEntered`|The Interaction Manager calls this method when the Interactor first initiates hovering over an Interactable.|
-|`OnHoverExiting`|The Interaction Manager calls this method right before the Interactor ends hovering over an Interactable.|
-|`OnHoverExited`|The Interaction Manager calls this method when the Interactor ends hovering over an Interactable.|
-|`OnSelectEntering`|The Interaction Manager calls this method right before the Interactor first initiates selection of an Interactable.|
-|`OnSelectEntered`|The Interaction Manager calls this method when the Interactor first initiates selection of an Interactable.|
-|`OnSelectExiting`|The Interaction Manager calls this method right before the Interactor ends selection of an Interactable.|
-|`OnSelectExited`|The Interaction Manager calls this method when the Interactor ends selection of an Interactable.|
-|`OnSelectCanceled`|The Interaction Manager calls this method when the Interactor targeting this Interactable is disabled or destroyed.|
-|`OnActivate`|The Interaction Manager calls this method when the Interactor sends an activation event down to an Interactable.|
+|`OnRegistered` and `OnUnregistered`|The Interaction Manager calls these methods when the Interactable is registered and unregistered from it.|
+|`OnHoverEntering` and `OnHoverEntered`|The Interaction Manager calls these methods when an Interactor first initiates hovering over the Interactable.|
+|`OnHoverExiting` and `OnHoverExited`|The Interaction Manager calls these methods when an Interactor ends hovering over the Interactable. The event arguments will describe whether the hover was canceled, such as from either being unregistered due to being disabled or destroyed.|
+|`OnSelectEntering` and `OnSelectEntered`|The Interaction Manager calls these methods when an Interactor first initiates selection of the Interactable.|
+|`OnSelectExiting` and `OnSelectExited`|The Interaction Manager calls these methods when an Interactor ends selection of the Interactable. The event arguments will describe whether the selection was canceled, such as from either being unregistered due to being disabled or destroyed.|
+|`OnActivated` and `OnDeactivated`|The Controller Interactor calls these methods when the Interactor begins an activation event on the selected Interactable, or ends the activation.|
 
-The `onFirstHoverEntered` and `onLastHoverExited` events can be used to control highlight states of objects as they will correctly fire when the first highlight is detected, and when no other interactor is highlighting an object.
+The `firstHoverEntered` and `lastHoverExited` events can be used to control highlight states of objects as they will correctly fire when the first hover is detected, and when no other Interactor is hovering an object.
 
 ## Locomotion
 
@@ -303,6 +326,7 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 |Date|Reason|
 |---|---|
+|December 14, 2020|Documentation updated to reflect change to when registration with Interaction Manager occurs and for changes to event signatures. Matches package version 1.0.0-pre.2.|
 |October 20, 2020|Documentation updated. Matches package version 0.10.0.|
 |January 10, 2020|Removed private github link.|
 |December 12, 2019|Fixed image linking.|

@@ -6,6 +6,100 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.2] - 2021-01-20
+
+### Added
+- Added registration events to `XRInteractionManager` and `OnRegistered`/`OnUnregistered` methods to `XRBaseInteractable` and `XRBaseInteractor`.
+- Added and improved XML documentation comments and tooltips.
+- Added warnings to XR Controller (Action-based) when referenced Input Actions have not been enabled.
+- Added warning to Tracked Device Graphic Raycaster when the Event Camera is not set on the World Space Canvas.
+
+### Changed
+- Changed `XRBaseInteractable` and `XRBaseInteractor` to no longer register with `XRInteractionManager` in `Awake` and instead register and unregister in `OnEnable` and `OnDisable`, respectively.
+- Changed the signature of all interaction event methods (e.g. `OnSelectEntering`) to take event data through a class argument rather than being passed the `XRBaseInteractable` or `XRBaseInteractor` directly. This was done to allow for additional related data to be provided by the Interaction Manager without requiring users to handle additional methods. This also makes it easier to handle the case when the selection or hover is canceled (due to either the Interactor or Interactable being unregistered as a result of being disabled or destroyed) without needing to duplicate code in an `OnSelectCanceling` and `OnSelectCanceled`.
+  |Old Signature|New Signature|
+  |---|---|
+  |`OnHoverEnter*(XRBaseInteractor interactor)`<br/>-and-<br/>`OnHoverEnter*(XRBaseInteractable interactable)`|`OnHoverEnter*(HoverEnterEventArgs args)`|
+  |`OnHoverExit*(XRBaseInteractor interactor)`<br/>-and-<br/>`OnHoverExit*(XRBaseInteractable interactable)`|`OnHoverExit*(HoverExitEventArgs args)`|
+  |`OnSelectEnter*(XRBaseInteractor interactor)`<br/>-and-<br/>`OnSelectEnter*(XRBaseInteractable interactable)`|`OnSelectEnter*(SelectEnterEventArgs args)`|
+  |`OnSelectExit*(XRBaseInteractor interactor)`<br/>-and-<br/>`OnSelectExit*(XRBaseInteractable interactable)`|`OnSelectExit*(SelectExitEventArgs args)` and using `!args.isCanceled`|
+  |`OnSelectCancel*(XRBaseInteractor interactor)`|`OnSelectExit*(SelectExitEventArgs args)` and using `args.isCanceled`|
+  |`OnActivate(XRBaseInteractor interactor)`|`OnActivated(ActivateEventArgs args)`|
+  |`OnDeactivate(XRBaseInteractor interactor)`|`OnDeactivated(DeactivateEventArgs args)`|
+  ```csharp
+  // Example Interactable that overrides an interaction event method.
+  public class ExampleInteractable : XRBaseInteractable
+  {
+      // Old code -- delete after migrating to new method signature
+      protected override void OnSelectEntering(XRBaseInteractor interactor)
+      {
+          base.OnSelectEntering(interactor);
+          // Do something with interactor
+      }
+
+      // New code
+      protected override void OnSelectEntering(SelectEnterEventArgs args)
+      {
+          base.OnSelectEntering(args);
+          var interactor = args.interactor;
+          // Do something with interactor
+      }
+  }
+
+  // Example behavior that is the target of an Interactable Event set in the Inspector with a Dynamic binding.
+  public class ExampleListener : MonoBehaviour
+  {
+      // Old code -- delete after migrating to new method signature and fixing reference in Inspector
+      public void OnSelectEntered(XRBaseInteractor interactor)
+      {
+          // Do something with interactor
+      }
+
+      // New code
+      public void OnSelectEntered(SelectEnterEventArgs args)
+      {
+          var interactor = args.interactor;
+          // Do something with interactor
+      }
+  }
+  ```
+- Changed which methods are called by the Interaction Manager when either the Interactor or Interactable is unregistered. Previously `XRBaseInteractable` had `OnSelectCanceling` and `OnSelectCanceled` called on select cancel, and `OnSelectExiting` and `OnSelectExited` called when not canceled. This has been combined into `OnSelectExiting(SelectExitEventArgs)` and `OnSelectExited(SelectExitEventArgs)` and the `isCanceled` property is used to distinguish as needed. The **Select Exited** event in the Inspector is invoked in either case.
+  ```csharp
+  public class ExampleInteractable : XRBaseInteractable
+  {
+      protected override void OnSelectExiting(SelectExitEventArgs args)
+      {
+          base.OnSelectExiting(args);
+          // Do something common to both.
+          if (args.isCanceled)
+              // Do something when canceled only.
+          else
+              // Do something when not canceled.
+      }
+
+  }
+  ```
+- Changed many custom Editors to also apply to child classes so they inherit the custom layout of the Inspector. If your derived class adds a `SerializeField` or public field, you will need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. See [Extending the XR Interaction Toolkit](../manual/index.html#extending-the-xr-interaction-toolkit) in the manual for a code example.
+- Changed `XRInteractionManager.SelectCancel` to call `OnSelectExiting` and `OnSelectExited` on both the `XRBaseInteractable` and `XRBaseInteractor` in a similar interleaved order to other interaction state changes and when either is unregistered.
+- Changed order of `XRInteractionManager.UnregisterInteractor` to first cancel the select state before canceling hover state for consistency with the normal update loop which exits select before exiting hover.
+- Changed `XRBaseInteractor.StartManualInteraction` and `XRBaseInteractor.EndManualInteraction` to go through `XRInteractionManager` rather than bypassing constraints and events on the Interactable.
+- Changed the **GameObject > XR > Grab Interactable** menu item to create a visible cube and use a Box Collider so that it is easier to use.
+- Renamed `LocomotionProvider.startLocomotion` to `LocomotionProvider.beginLocomotion` for consistency with method name.
+
+### Fixed
+- Fixed Direct Interactor and Socket Interactor causing exceptions when a valid target was unregistered, such as from being destroyed.
+- Fixed Ray Interactor clearing custom direction when initializing (fixed initialization of the Original Attach Transform so it copies values from the Attach Transform instead of setting position and rotation values to defaults). ([1291523](https://issuetracker.unity3d.com/product/unity/issues/guid/1291523))
+- Fixed Socket Interactor so only an enabled Renderer is drawn while drawing meshes for hovered Interactables.
+- Fixed Grab Interactable to respect Interaction Layer Mask for whether it can be hovered by an Interactor instead of always allowing it.
+- Fixed Grab Interactable so it restores the Rigidbody's drag and angular drag values on drop.
+- Fixed mouse input not working with Unity UI when Active Input Handling was set to Input System Package.
+- Fixed issue where Interactables in AR were translated at the height of the highest plane regardless of where the ray is cast.
+- Fixed so steps to setup camera in `XRRig` only occurs in Play mode in the Editor.
+- Fixed file names of .asmdef files to match assembly name.
+- Fixed broken links for the help button (?) in the Inspector so it opens Scripting API documentation for each behavior in the package. ([1291475](https://issuetracker.unity3d.com/product/unity/issues/guid/1291475))
+- Fixed XR Rig so it handles the Tracking Origin Mode changing on the device.
+- Fixed XR Controller so it only sets position and rotation while the controller device is being tracked instead of resetting to the origin (such as from the device disconnecting or opening a system menu).
+
 ## [1.0.0-pre.1] - 2020-11-14
 
 ### Removed

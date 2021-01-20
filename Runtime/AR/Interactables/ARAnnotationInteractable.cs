@@ -1,7 +1,13 @@
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARAnnotationInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Controls displaying one or more annotations when hovering over the <see cref="GameObject"/> this component is attached to.
+    /// </summary>
+    public class ARAnnotationInteractable {}
+}
 
 #else
 
@@ -10,6 +16,9 @@ using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
+    /// <summary>
+    /// An annotation that appears when hovering over the GameObject this component is attached to.
+    /// </summary>
     [Serializable]
     public class ARAnnotation
     {
@@ -66,17 +75,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
     }
 
+    /// <summary>
+    /// Controls displaying one or more annotations when hovering over the <see cref="GameObject"/> this component is attached to.
+    /// </summary>
+    [HelpURL(XRHelpURLConstants.k_ARAnnotationInteractable)]
     public class ARAnnotationInteractable : ARBaseGestureInteractable
     {
         [SerializeField]
         List<ARAnnotation> m_Annotations = new List<ARAnnotation>();
 
+        /// <summary>
+        /// The list of annotations.
+        /// </summary>
         public List<ARAnnotation> annotations
         {
             get => m_Annotations;
             set => m_Annotations = value;
         }
 
+        /// <summary>
+        /// Update is called every frame, if the <see cref="MonoBehaviour"/> is enabled.
+        /// </summary>
+        /// <seealso cref="MonoBehaviour"/>
         void Update()
         {
             // Disable all annotations if not hovered.

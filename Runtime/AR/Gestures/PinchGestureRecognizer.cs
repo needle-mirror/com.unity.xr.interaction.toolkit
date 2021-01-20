@@ -20,7 +20,7 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using UnityEngine;
 

@@ -20,18 +20,25 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARSelectionInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Controls the selection of an object through a Tap gesture.
+    /// </summary>
+    public class ARSelectionInteractable {}
+}
 
 #else
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// Controls the selection of an object through Tap gesture.
+    /// Controls the selection of an object through a Tap gesture.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_ARSelectionInteractable)]
     public class ARSelectionInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("The visualization GameObject that will become active when the object is selected.")]
@@ -79,26 +86,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(XRBaseInteractor interactor)
+        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            base.OnSelectEntering(interactor);
+            base.OnSelectEntering(args);
             if (m_SelectionVisualization != null)
                 m_SelectionVisualization.SetActive(true);
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(XRBaseInteractor interactor)
+        protected internal override void OnSelectExiting(SelectExitEventArgs args)
         {
-            base.OnSelectExiting(interactor);
-
-            if (m_SelectionVisualization != null)
-                m_SelectionVisualization.SetActive(false);
-        }
-
-        /// <inheritdoc />
-        protected internal override void OnSelectCanceling(XRBaseInteractor interactor)
-        {
-            base.OnSelectCanceling(interactor);
+            base.OnSelectExiting(args);
             if (m_SelectionVisualization != null)
                 m_SelectionVisualization.SetActive(false);
         }

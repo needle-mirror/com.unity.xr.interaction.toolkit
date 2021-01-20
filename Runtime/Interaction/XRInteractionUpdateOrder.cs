@@ -1,3 +1,5 @@
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
@@ -9,21 +11,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     public static class XRInteractionUpdateOrder
     {
+        /// <summary>
+        /// Order when instances of type <see cref="XRControllerRecorder"/> are updated.
+        /// </summary>
         public const int k_ControllerRecorder = -30000;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRDeviceSimulator"/> are updated.
+        /// </summary>
         public const int k_DeviceSimulator = k_Controllers - 1;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRBaseController"/> are updated.
+        /// </summary>
         public const int k_Controllers = k_ControllerRecorder + 10;
+
+        /// <summary>
+        /// Order when <see cref="XRInteractionManager"/> is updated.
+        /// </summary>
         public const int k_InteractionManager = -100;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRBaseInteractor"/> are updated.
+        /// </summary>
         public const int k_Interactors = k_InteractionManager + 1;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRBaseInteractable"/> are updated.
+        /// </summary>
         public const int k_Interactables = k_Interactors + 1;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRInteractorLineVisual"/> are updated.
+        /// </summary>
         public const int k_LineVisual = 100;
+
+        /// <summary>
+        /// Order when <see cref="XRInteractionManager.OnBeforeRender"/> is called.
+        /// </summary>
         public const int k_BeforeRenderOrder = 100;
+
+        /// <summary>
+        /// Order when <see cref="XRInteractorLineVisual.OnBeforeRenderLineVisual"/> is called.
+        /// </summary>
         public const int k_BeforeRenderLineVisual = k_BeforeRenderOrder + 1;
 
+        /// <summary>
+        /// The phase in which updates happen.
+        /// </summary>
         public enum UpdatePhase
         {
+            /// <summary>
+            /// Frame-rate independent.
+            /// </summary>
             Fixed,
+
+            /// <summary>
+            /// Called every frame.
+            /// </summary>
             Dynamic,
+
+            /// <summary>
+            /// Called at the end of every frame.
+            /// </summary>
             Late,
+
+             /// <summary>
+            /// Called just before render.
+            /// </summary>
             OnBeforeRender,
         }
     }

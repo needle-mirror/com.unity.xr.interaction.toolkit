@@ -20,10 +20,18 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARRotationInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Manipulates the rotation of an object via a drag or a twist gesture.
+    /// If an object is selected, then dragging along the horizontal axis
+    /// or performing a twist gesture will rotate along the y-axis of the item.
+    /// </summary>
+    public class ARRotationInteractable {}
+}
 
 #else
 
@@ -36,6 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then dragging along the horizontal axis
     /// or performing a twist gesture will rotate along the y-axis of the item.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_ARRotationInteractable)]
     public class ARRotationInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("Rate at which to rotate object with a drag.")]
@@ -62,7 +71,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Returns true if the manipulation can be started for the given Drag gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected override bool CanStartManipulationForGesture(DragGesture gesture)
         {
             if (!IsGameObjectSelected())
@@ -75,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Returns true if the manipulation can be started for the given Twist gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected override bool CanStartManipulationForGesture(TwistGesture gesture)
         {
             if (!IsGameObjectSelected())

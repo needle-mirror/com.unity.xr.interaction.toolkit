@@ -6,11 +6,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interactor used for directly interacting with interactables that are touching. This is handled via trigger volumes
-    /// that update the current set of valid targets for this interactor. This component must have a collision volume that is 
+    /// that update the current set of valid targets for this interactor. This component must have a collision volume that is
     /// set to be a trigger to work.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Direct Interactor")]
+    [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
     public class XRDirectInteractor : XRBaseControllerInteractor
     {
         readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
@@ -27,6 +28,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         Comparison<XRBaseInteractable> m_InteractableSortComparison;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected override void Awake()
         {
             base.Awake();
@@ -36,16 +40,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 Debug.LogWarning("Direct Interactor does not have required Collider set as a trigger.", this);
         }
 
-        protected void OnTriggerEnter(Collider col)
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
+        protected void OnTriggerEnter(Collider other)
         {
-            var interactable = interactionManager.TryGetInteractableForCollider(col);
+            if (interactionManager == null)
+                return;
+
+            var interactable = interactionManager.TryGetInteractableForCollider(other);
             if (interactable != null && !m_ValidTargets.Contains(interactable))
                 m_ValidTargets.Add(interactable);
         }
 
-        protected void OnTriggerExit(Collider col)
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
+        protected void OnTriggerExit(Collider other)
         {
-            var interactable = interactionManager.TryGetInteractableForCollider(col);
+            if (interactionManager == null)
+                return;
+
+            var interactable = interactionManager.TryGetInteractableForCollider(other);
             if (interactable != null)
                 m_ValidTargets.Remove(interactable);
         }
@@ -80,6 +98,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override bool CanSelect(XRBaseInteractable interactable)
         {
             return base.CanSelect(interactable) && (selectTarget == null || selectTarget == interactable);
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        {
+            base.OnRegistered(args);
+            args.manager.interactableUnregistered += OnInteractableUnregistered;
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            base.OnUnregistered(args);
+            args.manager.interactableUnregistered -= OnInteractableUnregistered;
+        }
+
+        void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            m_ValidTargets.Remove(args.interactable);
         }
 
         int InteractableSortComparison(XRBaseInteractable x, XRBaseInteractable y)

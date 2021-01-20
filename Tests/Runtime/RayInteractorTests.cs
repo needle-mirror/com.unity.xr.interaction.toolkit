@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.TestTools;
-using NUnit.Framework;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.XR.Interaction.Toolkit;
+using NUnit.Framework;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {

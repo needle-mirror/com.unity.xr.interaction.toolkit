@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     // TODO Why does this interface inherit from ILineRenderable? XRRayInteractor should just implement both interfaces.
+    /// <summary>
+    /// Matches the UI Model to the state of the Interactor.
+    /// </summary>
     public interface IUIInteractor : ILineRenderable
     {
         /// <summary>
@@ -15,10 +19,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Attempts to retrieve the current UI Model.
         /// </summary>
         /// <param name="model">The returned model that reflects the UI state of this Interactor.</param>
-        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Otherwise, returns <see langword="false"/>.</returns>
         bool TryGetUIModel(out TrackedDeviceModel model);
     }
 
+    /// <summary>
+    /// Custom class for input modules that send UI input in XR.
+    /// </summary>
+    [HelpURL(XRHelpURLConstants.k_XRUIInputModule)]
     public class XRUIInputModule : UIInputModule
     {
         struct RegisteredInteractor
@@ -172,7 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>Retrieves the UI Model for a selected <see cref="IUIInteractor"/>.</summary>
         /// <param name="interactor">The <see cref="IUIInteractor"/> you want the model for.</param>
         /// <param name="model">The returned model that reflects the UI state of the <paramref name="interactor"/>.</param>
-        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Otherwise, returns <see langword="false"/>.</returns>
         public bool GetTrackedDeviceModel(IUIInteractor interactor, out TrackedDeviceModel model)
         {
             for (var i = 0; i < m_RegisteredInteractors.Count; i++)
@@ -226,7 +234,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         void ProcessMouse()
         {
-            if (Input.mousePresent)
+            if (Mouse.current != null)
+            {
+                m_Mouse.position = Mouse.current.position.ReadValue();
+                m_Mouse.scrollPosition = Mouse.current.scroll.ReadValue();
+                m_Mouse.leftButtonPressed = Mouse.current.leftButton.isPressed;
+                m_Mouse.rightButtonPressed = Mouse.current.rightButton.isPressed;
+                m_Mouse.middleButtonPressed = Mouse.current.middleButton.isPressed;
+
+                ProcessMouse(ref m_Mouse);
+            }
+            else if (Input.mousePresent)
             {
                 m_Mouse.position = Input.mousePosition;
                 m_Mouse.scrollPosition = Input.mouseScrollDelta;

@@ -20,7 +20,7 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public event Action<T> onGestureStarted;
 
         /// <summary>
-        /// Updates this gesture recognizer.
+        /// Instantiate and update all gestures.
         /// </summary>
         public void Update()
         {

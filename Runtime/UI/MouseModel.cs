@@ -11,8 +11,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     [Flags]
     public enum ButtonDeltaState
     {
+        /// <summary>
+        /// No change since last time checked.
+        /// </summary>
         NoChange = 0,
+
+        /// <summary>
+        /// Button pressed since last time checked.
+        /// </summary>
         Pressed = 1 << 0,
+
+        /// <summary>
+        /// Button released since last time checked.
+        /// </summary>
         Released = 1 << 1,
     }
 
@@ -94,7 +105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal ButtonDeltaState lastFrameDelta { get; private set; }
 
         /// <summary>
-        /// Set's this object to it's default, unused state.
+        /// Resets this object to it's default, unused state.
         /// </summary>
         public void Reset()
         {

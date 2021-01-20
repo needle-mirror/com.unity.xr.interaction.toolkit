@@ -2,48 +2,127 @@ using UnityEditor;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(XRControllerRecording))]
+    /// <summary>
+    /// Custom editor for an <see cref="XRControllerRecording"/>.
+    /// </summary>
+    [CustomEditor(typeof(XRControllerRecording), true)]
     class XRControllerRecordingEditor : Editor
     {
-        XRControllerRecording m_ControllerRecording;
-
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.frames"/>.</summary>
         SerializedProperty m_Frames;
 
-        protected void OnEnable()
+        XRControllerRecording m_ControllerRecording;
+
+        /// <summary>
+        /// Contents of GUI elements used by this editor.
+        /// </summary>
+        protected static class Contents
         {
-            m_ControllerRecording = (XRControllerRecording)target;
-            m_Frames = serializedObject.FindProperty("m_Frames");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRControllerRecording.frames"/>.</summary>
+            public static readonly GUIContent frames = EditorGUIUtility.TrTextContent("Frames", "Frames stored in this recording.");
+
+            /// <summary><see cref="GUIContent"/> for the button to remove all <see cref="XRControllerRecording.frames"/>.</summary>
+            public static readonly GUIContent clearRecording = EditorGUIUtility.TrTextContent("Clear Recording");
         }
 
+        /// <summary>
+        /// This function is called when the object becomes enabled and active.
+        /// </summary>
+        /// <seealso cref="MonoBehaviour"/>
+        protected virtual void OnEnable()
+        {
+            m_Frames = serializedObject.FindProperty("m_Frames");
+            m_ControllerRecording = (XRControllerRecording)target;
+        }
+
+        /// <inheritdoc />
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            if (GUILayout.Button("Clear Recording"))
-                m_Frames.ClearArray();
-
-            GUILayout.Label("Frames");
-            GUILayout.BeginVertical();
-            DisplayRecordingFrames();
-            GUILayout.Space(5);
-            GUILayout.EndVertical();
+            DrawInspector();
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        void DisplayRecordingFrames()
+        /// <summary>
+        /// This method is automatically called by <see cref="OnInspectorGUI"/> to
+        /// draw the custom inspector. Override this method to customize the
+        /// inspector as a whole.
+        /// </summary>
+        /// <seealso cref="DrawBeforeProperties"/>
+        /// <seealso cref="DrawProperties"/>
+        protected virtual void DrawInspector()
+        {
+            DrawBeforeProperties();
+            DrawProperties();
+        }
+
+        /// <summary>
+        /// This method is automatically called by <see cref="DrawInspector"/> to
+        /// draw the section of the custom inspector before <see cref="DrawProperties"/>.
+        /// By default, this draws the read-only Script property.
+        /// </summary>
+        protected virtual void DrawBeforeProperties()
+        {
+            DrawScript();
+        }
+
+        /// <summary>
+        /// This method is automatically called by <see cref="DrawInspector"/> to
+        /// draw the property fields. Override this method to customize the
+        /// properties shown in the Inspector. This is typically the method overridden
+        /// when a derived behavior adds additional serialized properties
+        /// that should be displayed in the Inspector.
+        /// </summary>
+        protected virtual void DrawProperties()
+        {
+            if (GUILayout.Button(Contents.clearRecording))
+                m_Frames.ClearArray();
+
+            EditorGUILayout.LabelField(Contents.frames);
+            using (new EditorGUILayout.VerticalScope())
+            {
+                DrawRecordingFrames();
+                GUILayout.Space(5);
+            }
+        }
+
+        /// <summary>
+        /// Draw the standard read-only Script property.
+        /// </summary>
+        protected virtual void DrawScript()
+        {
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromScriptableObject((ScriptableObject)target), typeof(ScriptableObject), false);
+            EditorGUI.EndDisabledGroup();
+        }
+
+        /// <summary>
+        /// Draw the frames stored in the recording.
+        /// </summary>
+        protected virtual void DrawRecordingFrames()
         {
             foreach (var frame in m_ControllerRecording.frames)
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.FloatField((float)frame.time, GUILayout.ExpandWidth(true));
-                EditorGUILayout.TextField(frame.position.ToString(), GUILayout.Width(120));
-                EditorGUILayout.TextField(frame.rotation.ToString(), GUILayout.Width(160));
-                EditorGUILayout.Toggle(frame.selectInteractionState.active, GUILayout.MaxWidth(14));
-                EditorGUILayout.Toggle(frame.activateInteractionState.active, GUILayout.MaxWidth(14));
-                EditorGUILayout.Toggle(frame.uiPressInteractionState.active, GUILayout.MaxWidth(14));
-                EditorGUILayout.EndHorizontal();
+                DrawRecordingFrame(frame);
             }
+        }
+
+        /// <summary>
+        /// Draw the <paramref name="frame"/> stored in the recording.
+        /// </summary>
+        /// <param name="frame">The controller frame to draw.</param>
+        protected virtual void DrawRecordingFrame(XRControllerState frame)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.FloatField((float)frame.time, GUILayout.ExpandWidth(true));
+            EditorGUILayout.TextField(frame.position.ToString(), GUILayout.Width(120));
+            EditorGUILayout.TextField(frame.rotation.ToString(), GUILayout.Width(160));
+            EditorGUILayout.Toggle(frame.selectInteractionState.active, GUILayout.MaxWidth(14));
+            EditorGUILayout.Toggle(frame.activateInteractionState.active, GUILayout.MaxWidth(14));
+            EditorGUILayout.Toggle(frame.uiPressInteractionState.active, GUILayout.MaxWidth(14));
+            EditorGUILayout.EndHorizontal();
         }
     }
 }

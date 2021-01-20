@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Resets the helper to the state before a package installation request.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         public void Reset()
         {
@@ -85,7 +85,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// </summary>
         /// <param name="messageContent">The message text.</param>
         /// <param name="buttonContent">The button text.</param>
-        /// <returns>Returns <see langword="true"/> if button was pressed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if button was pressed. Otherwise, returns <see langword="false"/>.</returns>
         /// <seealso cref="MaterialEditor.HelpBoxWithButton"/>
         static bool HelpBoxWithButton(GUIContent messageContent, GUIContent buttonContent)
         {

@@ -12,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// XR Interaction Interactor position, rotation, and interaction states.
     /// </summary>
     [AddComponentMenu("XR/XR Controller (Action-based)")]
+    [HelpURL(XRHelpURLConstants.k_ActionBasedController)]
     public class ActionBasedController : XRBaseController
     {
         [SerializeField]
@@ -119,6 +120,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ButtonPressPoint = value;
         }
 
+        bool m_HasCheckedDisabledTrackingInputReferenceActions;
+        bool m_HasCheckedDisabledInputReferenceActions;
+
         /// <inheritdoc />
         protected override void OnEnable()
         {
@@ -139,18 +143,44 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (controllerState == null)
                 return;
 
-            if (m_PositionAction.action != null)
+            // Warn the user if using referenced actions and they are disabled
+            if (!m_HasCheckedDisabledTrackingInputReferenceActions &&
+                (m_PositionAction.action != null || m_RotationAction.action != null))
             {
-                var pos = m_PositionAction.action.ReadValue<Vector3>();
-                controllerState.position = pos;
-                controllerState.poseDataFlags |= PoseDataFlags.Position;
+                if (IsDisabledReferenceAction(m_PositionAction) || IsDisabledReferenceAction(m_RotationAction))
+                {
+                    Debug.LogWarning("'Enable Input Tracking' is enabled, but Position and/or Rotation Action is disabled." +
+                        " The pose of the controller will not be updated correctly until the Input Actions are enabled." +
+                        " Input Actions in an Input Action Asset must be explicitly enabled to read the current value of the action." +
+                        " The Input Action Manager behavior can be added to a GameObject in a Scene and used to enable all Input Actions in a referenced Input Action Asset.",
+                        this);
+                }
+
+                m_HasCheckedDisabledTrackingInputReferenceActions = true;
             }
 
-            if (m_RotationAction.action != null)
+            controllerState.poseDataFlags = PoseDataFlags.NoData;
+
+            if (m_PositionAction.action?.activeControl?.device is TrackedDevice positionTrackedDevice)
             {
-                var rot = m_RotationAction.action.ReadValue<Quaternion>();
-                controllerState.rotation = rot;
-                controllerState.poseDataFlags |= PoseDataFlags.Rotation;
+                var trackingState = (InputTrackingState)positionTrackedDevice.trackingState.ReadValue();
+                if ((trackingState & InputTrackingState.Position) != 0)
+                {
+                    var pos = m_PositionAction.action.ReadValue<Vector3>();
+                    controllerState.position = pos;
+                    controllerState.poseDataFlags |= PoseDataFlags.Position;
+                }
+            }
+
+            if (m_RotationAction.action?.activeControl?.device is TrackedDevice rotationTrackedDevice)
+            {
+                var trackingState = (InputTrackingState)rotationTrackedDevice.trackingState.ReadValue();
+                if ((trackingState & InputTrackingState.Rotation) != 0)
+                {
+                    var rot = m_RotationAction.action.ReadValue<Quaternion>();
+                    controllerState.rotation = rot;
+                    controllerState.poseDataFlags |= PoseDataFlags.Rotation;
+                }
             }
         }
 
@@ -159,6 +189,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (controllerState == null)
                 return;
+
+            // Warn the user if using referenced actions and they are disabled
+            if (!m_HasCheckedDisabledInputReferenceActions &&
+                (m_SelectAction.action != null || m_ActivateAction.action != null || m_UIPressAction.action != null))
+            {
+                if (IsDisabledReferenceAction(m_SelectAction) || IsDisabledReferenceAction(m_ActivateAction) || IsDisabledReferenceAction(m_UIPressAction))
+                {
+                    Debug.LogWarning("'Enable Input Actions' is enabled, but Select, Activate, and/or UI Press Action is disabled." +
+                        " The controller input will not be handled correctly until the Input Actions are enabled." +
+                        " Input Actions in an Input Action Asset must be explicitly enabled to read the current value of the action." +
+                        " The Input Action Manager behavior can be added to a GameObject in a Scene and used to enable all Input Actions in a referenced Input Action Asset.",
+                        this);
+                }
+
+                m_HasCheckedDisabledInputReferenceActions = true;
+            }
 
             controllerState.ResetFrameDependentStates();
 
@@ -242,5 +288,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
         }
+
+        static bool IsDisabledReferenceAction(InputActionProperty property) =>
+            property.reference != null && property.reference.action != null && !property.reference.action.enabled;
     }
 }

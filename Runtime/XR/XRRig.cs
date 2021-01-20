@@ -15,6 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [AddComponentMenu("XR/XR Rig")]
     [DisallowMultipleComponent]
+    [HelpURL(XRHelpURLConstants.k_XRRig)]
     public class XRRig : MonoBehaviour
     {
         const float k_DefaultCameraYOffset = 1.36144f;
@@ -47,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set
             {
                 m_CameraFloorOffsetObject = value;
-                SetupCamera();
+                MoveOffsetHeight();
             }
         }
 
@@ -64,7 +65,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_CameraGameObject = value;
         }
 
-#if UNITY_2019_3_OR_NEWER
         [SerializeField]
         [Tooltip("The type of tracking origin to use for this Rig. Tracking origins identify where (0, 0, 0) is in the world of tracking.")]
         TrackingOriginModeFlags m_TrackingOriginMode = TrackingOriginModeFlags.Unknown;
@@ -83,7 +83,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 TryInitializeCamera();
             }
         }
-#endif // UNITY_2019_3_OR_NEWER
 
 #pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to read in old data and upgrade.
         [SerializeField]
@@ -91,12 +90,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         TrackingSpaceType m_TrackingSpace = TrackingSpaceType.Stationary;
 
         /// <summary>
-        /// Whether the experience is rooms scale or stationary. Not all devices support all tracking spaces; if the
+        /// Whether the experience is Room Scale or Stationary. Not all devices support all tracking spaces; if the
         /// selected tracking space is not set it will fall back to Stationary.
         /// </summary>
-#if UNITY_2019_3_OR_NEWER
         [Obsolete("XRRig.trackingSpace is obsolete.  Please use XRRig.trackingOriginMode.")]
-#endif
         public TrackingSpaceType trackingSpace
         {
             get => m_TrackingSpace;
@@ -109,11 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning restore 0618
 
         [SerializeField]
-#if UNITY_2019_3_OR_NEWER
         [Tooltip("Camera Height to be used when in \"Device\" tracking origin mode to define the height of the user from the floor.")]
-#else
-        [Tooltip("Camera Height to be used when in \"Stationary\" tracking space to define the height of the user from the floor.")]
-#endif
         float m_CameraYOffset = k_DefaultCameraYOffset;
 
 
@@ -126,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set
             {
                 m_CameraYOffset = value;
-                TryInitializeCamera();
+                MoveOffsetHeight();
             }
         }
 
@@ -154,6 +147,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_CameraInitialized;
         bool m_CameraInitializing;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnValidate()
         {
             UpgradeTrackingSpaceToTrackingOriginMode();
@@ -161,9 +157,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_RigBaseGameObject == null)
                 m_RigBaseGameObject = gameObject;
 
-            TryInitializeCamera();
+            if (Application.isPlaying && isActiveAndEnabled)
+            {
+                // Respond to the mode changing by re-initializing the camera,
+                // or just update the offset height in order to avoid recentering.
+                if (IsModeStale())
+                    TryInitializeCamera();
+                else
+                    MoveOffsetHeight();
+            }
+
+            bool IsModeStale()
+            {
+                if (s_InputSubsystems.Count > 0)
+                {
+                    foreach (var inputSubsystem in s_InputSubsystems)
+                    {
+                        if (inputSubsystem != null && inputSubsystem.GetTrackingOriginMode() != m_TrackingOriginMode)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, Input Subsystems not present.
+                    switch (m_TrackingOriginMode)
+                    {
+                        case TrackingOriginModeFlags.Floor:
+                            return XRDevice.GetTrackingSpaceType() != TrackingSpaceType.RoomScale;
+                        case TrackingOriginModeFlags.Device:
+                            return XRDevice.GetTrackingSpaceType() != TrackingSpaceType.Stationary;
+                    }
+#pragma warning restore 0618
+                }
+
+                return false;
+            }
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             if (m_CameraFloorOffsetObject == null)
@@ -182,11 +217,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Start()
         {
             TryInitializeCamera();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void OnDestroy()
+        {
+            foreach (var inputSubsystem in s_InputSubsystems)
+            {
+                if (inputSubsystem != null)
+                    inputSubsystem.trackingOriginUpdated -= OnInputSubsystemTrackingOriginUpdated;
+            }
+        }
+
+        /// <summary>
+        /// Called when gizmos are drawn.
+        /// </summary>
         protected virtual void OnDrawGizmos()
         {
             if (m_RigBaseGameObject != null)
@@ -209,9 +262,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 GizmoHelpers.DrawWireCubeOriented(cameraPosition, m_CameraGameObject.transform.rotation, 0.1f);
                 GizmoHelpers.DrawAxisArrows(m_CameraGameObject.transform, 0.5f);
 
-                var floorPos = cameraPosition;
-                floorPos.y = m_RigBaseGameObject.transform.position.y;
-                Gizmos.DrawLine(floorPos, cameraPosition);
+                if (m_RigBaseGameObject != null)
+                {
+                    var floorPos = cameraPosition;
+                    floorPos.y = m_RigBaseGameObject.transform.position.y;
+                    Gizmos.DrawLine(floorPos, cameraPosition);
+                }
             }
         }
 
@@ -220,7 +276,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         void UpgradeTrackingSpaceToTrackingOriginMode()
         {
-#if UNITY_2019_3_OR_NEWER
 #pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to allow a proper upgrade path.
             if (m_TrackingOriginMode == TrackingOriginModeFlags.Unknown && m_TrackingSpace <= TrackingSpaceType.RoomScale)
             {
@@ -241,27 +296,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #endif // UNITY_EDITOR
 #pragma warning restore 0618
             }
-#endif // UNITY_2019_3_OR_NEWER
-        }
-
-        void TryInitializeCamera()
-        {
-            m_CameraInitialized = SetupCamera();
-            if (!m_CameraInitialized & !m_CameraInitializing)
-                StartCoroutine(RepeatInitializeCamera());
         }
 
         /// <summary>
         /// Repeatedly attempt to initialize the camera.
         /// </summary>
+        void TryInitializeCamera()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            m_CameraInitialized = SetupCamera();
+            if (!m_CameraInitialized & !m_CameraInitializing)
+                StartCoroutine(RepeatInitializeCamera());
+        }
+
         IEnumerator RepeatInitializeCamera()
         {
             m_CameraInitializing = true;
-            yield return null;
             while (!m_CameraInitialized)
             {
-                m_CameraInitialized = SetupCamera();
                 yield return null;
+                if (!m_CameraInitialized)
+                    m_CameraInitialized = SetupCamera();
             }
             m_CameraInitializing = false;
         }
@@ -269,32 +326,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Handles re-centering and off-setting the camera in space depending on which tracking space it is setup in.
         /// </summary>
-#if UNITY_2019_3_OR_NEWER
         bool SetupCamera()
         {
-            SubsystemManager.GetInstances(s_InputSubsystems);
-
             var initialized = true;
+
+            SubsystemManager.GetInstances(s_InputSubsystems);
             if (s_InputSubsystems.Count > 0)
             {
                 foreach (var inputSubsystem in s_InputSubsystems)
                 {
-                    initialized &= SetupCamera(inputSubsystem);
+                    if (SetupCamera(inputSubsystem))
+                    {
+                        // It is possible this could happen more than
+                        // once so unregister the callback first just in case.
+                        inputSubsystem.trackingOriginUpdated -= OnInputSubsystemTrackingOriginUpdated;
+                        inputSubsystem.trackingOriginUpdated += OnInputSubsystemTrackingOriginUpdated;
+                    }
+                    else
+                    {
+                        initialized = false;
+                    }
                 }
             }
             else
             {
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to allow a proper upgrade path.
-                // TODO Enum type name ends with Flags but checking for value instead of HasFlags?
-                // TODO Enum does not have Flags attribute, but has values like it should?
-                if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
+#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, Input Subsystems not present.
+                switch (m_TrackingOriginMode)
                 {
-                    SetupCameraLegacy(TrackingSpaceType.RoomScale);
-                }
-                // TODO Unreachable code, condition is same as above
-                else if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
-                {
-                    SetupCameraLegacy(TrackingSpaceType.Stationary);
+                    case TrackingOriginModeFlags.Floor:
+                        initialized = SetupCameraLegacy(TrackingSpaceType.RoomScale);
+                        break;
+                    case TrackingOriginModeFlags.Device:
+                        initialized = SetupCameraLegacy(TrackingSpaceType.Stationary);
+                        break;
                 }
 #pragma warning restore 0618
             }
@@ -302,98 +366,97 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return initialized;
         }
 
-        bool SetupCamera(XRInputSubsystem subsystem)
+        void OnInputSubsystemTrackingOriginUpdated(XRInputSubsystem inputSubsystem)
         {
-            if (subsystem == null)
+            m_TrackingOriginMode = inputSubsystem.GetTrackingOriginMode();
+            MoveOffsetHeight();
+        }
+
+        bool SetupCamera(XRInputSubsystem inputSubsystem)
+        {
+            if (inputSubsystem == null)
                 return false;
 
-            var trackingSettingsSet = false;
-
-            var desiredOffset = m_CameraYOffset;
-            if (m_TrackingOriginMode == TrackingOriginModeFlags.Floor)
+            switch (m_TrackingOriginMode)
             {
-                var supportedModes = subsystem.GetSupportedTrackingOriginModes();
-                // We need to check for Unknown because we may not be in a state where we can read this data yet.
-                // TODO TrackingOriginModeFlags.Unknown has a value of 0, so the warning would be triggered anyway?
-                if ((supportedModes & (TrackingOriginModeFlags.Floor | TrackingOriginModeFlags.Unknown)) == 0)
+                case TrackingOriginModeFlags.Floor:
+                case TrackingOriginModeFlags.Device:
                 {
-                    Debug.LogWarning("Attempting to set the tracking space to Room, but that is not supported by the SDK." +
-                        $" Supported types: {supportedModes}.", this);
-                    return true;
-                }
+                    var supportedModes = inputSubsystem.GetSupportedTrackingOriginModes();
 
-                if (subsystem.TrySetTrackingOriginMode(m_TrackingOriginMode))
-                {
-                    desiredOffset = 0f;
-                    trackingSettingsSet = true;
+                    // We need to check for Unknown because we may not be in a state where we can read this data yet.
+                    if (supportedModes == TrackingOriginModeFlags.Unknown)
+                        return false;
+
+                    // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags -- Treated like Flags enum when querying supported modes
+                    if ((supportedModes & m_TrackingOriginMode) == 0)
+                    {
+                        Debug.LogWarning($"Attempting to set the tracking space to {m_TrackingOriginMode}, but that is not supported by the SDK." +
+                            $" Supported types: {supportedModes:F}.", this);
+                        return true;
+                    }
+
+                    var trackingSettingsSet = inputSubsystem.TrySetTrackingOriginMode(m_TrackingOriginMode);
+                    if (m_TrackingOriginMode == TrackingOriginModeFlags.Device)
+                        trackingSettingsSet = inputSubsystem.TryRecenter();
+
+                    if (trackingSettingsSet)
+                        MoveOffsetHeight();
+
+                    return trackingSettingsSet;
                 }
+                default:
+                    return false;
             }
-
-            if (m_TrackingOriginMode == TrackingOriginModeFlags.Device)
-            {
-                var supportedModes = subsystem.GetSupportedTrackingOriginModes();
-                // We need to check for Unknown because we may not be in a state where we can read this data yet.
-                // TODO TrackingOriginModeFlags.Unknown has a value of 0, so the warning would be triggered anyway?
-                if ((supportedModes & (TrackingOriginModeFlags.Device | TrackingOriginModeFlags.Unknown)) == 0)
-                {
-                    Debug.LogWarning("Attempting to set the tracking space to Stationary, but that is not supported by the SDK." +
-                        $" Supported types: {supportedModes}.", this);
-                    return true;
-                }
-
-                if (subsystem.TrySetTrackingOriginMode(m_TrackingOriginMode))
-                {
-                    trackingSettingsSet = subsystem.TryRecenter();
-                }
-            }
-
-            if (trackingSettingsSet)
-            {
-                // Move camera to correct height
-                MoveCameraHeight(desiredOffset);
-            }
-
-            return trackingSettingsSet;
         }
-#else
-        bool SetupCamera()
-        {
-            SetupCameraLegacy(m_TrackingSpace);
-            return true;
-        }
-#endif // UNITY_2019_3_OR_NEWER
 
 #pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to allow for using legacy data if available.
-        void SetupCameraLegacy(TrackingSpaceType trackingSpaceType)
+        bool SetupCameraLegacy(TrackingSpaceType trackingSpaceType)
         {
-            var desiredOffset = m_CameraYOffset;
-            XRDevice.SetTrackingSpaceType(trackingSpaceType);
-            switch (trackingSpaceType)
-            {
-                case TrackingSpaceType.Stationary:
-                    InputTracking.Recenter();
-                    break;
-                case TrackingSpaceType.RoomScale:
-                    desiredOffset = 0f;
-                    break;
-            }
+            var trackingSettingsSet = XRDevice.SetTrackingSpaceType(trackingSpaceType);
+            if (trackingSpaceType == TrackingSpaceType.Stationary)
+                InputTracking.Recenter();
 
-            // Move camera to correct height
-            MoveCameraHeight(desiredOffset);
+            if (trackingSettingsSet)
+                MoveOffsetHeight();
+
+            return trackingSettingsSet;
         }
 #pragma warning restore 0618
 
         /// <summary>
-        /// Sets the height of the camera to the given <paramref name="y"/> value.
+        /// Sets the height of the camera based on the current tracking origin mode by updating the <see cref="cameraFloorOffsetObject"/>.
+        /// </summary>
+        void MoveOffsetHeight()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            switch (m_TrackingOriginMode)
+            {
+                case TrackingOriginModeFlags.Floor:
+                    MoveOffsetHeight(0f);
+                    break;
+                case TrackingOriginModeFlags.Device:
+                    MoveOffsetHeight(m_CameraYOffset);
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        /// <summary>
+        /// Sets the height of the camera to the given <paramref name="y"/> value by updating the <see cref="cameraFloorOffsetObject"/>.
         /// </summary>
         /// <param name="y">The local y-position to set.</param>
-        void MoveCameraHeight(float y)
+        void MoveOffsetHeight(float y)
         {
             if (m_CameraFloorOffsetObject != null)
             {
-                var desiredPosition = m_CameraFloorOffsetObject.transform.localPosition;
+                var offsetTransform = m_CameraFloorOffsetObject.transform;
+                var desiredPosition = offsetTransform.localPosition;
                 desiredPosition.y = y;
-                m_CameraFloorOffsetObject.transform.localPosition = desiredPosition;
+                offsetTransform.localPosition = desiredPosition;
             }
         }
 
@@ -402,7 +465,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// This rotation only occurs around the rig's Up vector
         /// </summary>
         /// <param name="angleDegrees">The amount of rotation in degrees.</param>
-        /// <returns>Returns <see langword="true"/> if the rotation is performed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the rotation is performed. Otherwise, returns <see langword="false"/>.</returns>
         public bool RotateAroundCameraUsingRigUp(float angleDegrees)
         {
             return RotateAroundCameraPosition(m_RigBaseGameObject.transform.up, angleDegrees);
@@ -414,7 +477,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="vector">The axis of the rotation.</param>
         /// <param name="angleDegrees">The amount of rotation in degrees.</param>
-        /// <returns>Returns <see langword="true"/> if the rotation is performed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the rotation is performed. Otherwise, returns <see langword="false"/>.</returns>
         public bool RotateAroundCameraPosition(Vector3 vector, float angleDegrees)
         {
             if (m_CameraGameObject == null || m_RigBaseGameObject == null)
@@ -433,7 +496,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="destinationUp">the vector to which the rig object's up vector will be matched.</param>
         /// <returns>Returns <see langword="true"/> if the rotation is performed or the vectors have already been matched.
-        /// Returns <see langword="false"/> otherwise.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         public bool MatchRigUp(Vector3 destinationUp)
         {
             if (m_RigBaseGameObject == null)
@@ -446,7 +509,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var rigUp = Quaternion.FromToRotation(m_RigBaseGameObject.transform.up, destinationUp);
             m_RigBaseGameObject.transform.rotation = rigUp * transform.rotation;
-            
+
             return true;
         }
 
@@ -460,7 +523,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="destinationUp">The up vector that the rig's up vector will be matched to.</param>
         /// <param name="destinationForward">The forward vector that will be matched to the projection of the camera's forward vector on the plane with the normal <paramref name="destinationUp"/>.</param>
-        /// <returns>Returns <see langword="true"/> if the rotation is performed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the rotation is performed. Otherwise, returns <see langword="false"/>.</returns>
         public bool MatchRigUpCameraForward(Vector3 destinationUp, Vector3 destinationForward)
         {
             if (m_CameraGameObject != null && MatchRigUp(destinationUp))
@@ -489,7 +552,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="destinationUp">The up vector that the rig's up vector will be matched to.</param>
         /// <param name="destinationForward">The forward vector that will be matched to the forward vector of the rig object,
         /// which is the direction the player moves in Unity when walking forward in the physical world.</param>
-        /// <returns>Returns <see langword="true"/> if the rotation is performed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the rotation is performed. Otherwise, returns <see langword="false"/>.</returns>
         public bool MatchRigUpRigForward (Vector3 destinationUp, Vector3 destinationForward)
         {
             if (m_RigBaseGameObject != null && MatchRigUp(destinationUp))
@@ -510,7 +573,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// It does this by moving the rig object so that the camera's world location matches the desiredWorldLocation
         /// </summary>
         /// <param name="desiredWorldLocation">the position in world space that the camera should be moved to</param>
-        /// <returns>Returns <see langword="true"/> if the move is performed. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the move is performed. Otherwise, returns <see langword="false"/>.</returns>
         public bool MoveCameraToWorldLocation(Vector3 desiredWorldLocation)
         {
             if (m_CameraGameObject == null)

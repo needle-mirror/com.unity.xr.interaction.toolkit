@@ -23,6 +23,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             RegisterInputLayouts();
         }
 
+        /// <summary>
+        /// See <see cref="RuntimeInitializeLoadType.BeforeSceneLoad"/>.
+        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad), Preserve]
         public static void Initialize()
         {

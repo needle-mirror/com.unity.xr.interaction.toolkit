@@ -20,10 +20,16 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARBaseGestureInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Base class that manipulates an object via a gesture.
+    /// </summary>
+    public class ARBaseGestureInteractable {}
+}
 
 #else
 
@@ -40,42 +46,42 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Determines if this interactable can be selected by a given interactor.
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid selection with.</param>
-        /// <returns>Returns <see langword="true"/> if selection is valid this frame. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if selection is valid this frame. Otherwise, returns <see langword="false"/>.</returns>
         public override bool IsSelectableBy(XRBaseInteractor interactor) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(DragGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(PinchGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TapGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwistGesture gesture) => false;
 
         /// <summary>
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture) => false;
 
         /// <summary>

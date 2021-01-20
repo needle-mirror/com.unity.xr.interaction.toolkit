@@ -5,6 +5,10 @@ using UnityEngine.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
+    /// <summary>
+    /// Custom implementation of <see cref="GraphicRaycaster"/> for XR Interaction Toolkit.
+    /// </summary>
+    [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
     public class TrackedDeviceGraphicRaycaster : BaseRaycaster
     {
         const int k_MaxRaycastHits = 10;
@@ -34,6 +38,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         bool m_IgnoreReversedGraphics;
 
+        /// <summary> Whether or not reversed graphics are ignored.</summary>
         public bool ignoreReversedGraphics
         {
             get => m_IgnoreReversedGraphics;
@@ -43,6 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         bool m_CheckFor2DOcclusion;
 
+        /// <summary>  Whether or not 2D occlusion is checked when performing raycasts.</summary>
         public bool checkFor2DOcclusion
         {
             get => m_CheckFor2DOcclusion;
@@ -52,6 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         bool m_CheckFor3DOcclusion;
 
+        /// <summary> Whether or not 3D occlusion is checked when performing raycasts.</summary>
         public bool checkFor3DOcclusion
         {
             get => m_CheckFor3DOcclusion;
@@ -61,6 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         LayerMask m_BlockingMask = int.MaxValue;
 
+        /// <summary> The blocking layer mask.</summary>
         public LayerMask blockingMask
         {
             get => m_BlockingMask;
@@ -96,6 +104,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return m_Canvas;
             }
         }
+
+        bool m_HasWarnedEventCameraNull;
 
         readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
         readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
@@ -147,7 +157,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return;
 
             if (eventCamera == null)
+            {
+                if (!m_HasWarnedEventCameraNull)
+                {
+                    Debug.LogWarning("Event Camera must be set on World Space Canvas to perform raycasts with tracked device." +
+                        " UI events will not function correctly until it is set.",
+                        this);
+                    m_HasWarnedEventCameraNull = true;
+                }
+
                 return;
+            }
 
             var rayPoints = eventData.rayPoints;
             var layerMask = eventData.layerMask;

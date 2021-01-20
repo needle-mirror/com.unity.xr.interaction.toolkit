@@ -9,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="LocomotionProvider"/>
     /// <seealso cref="DeviceBasedSnapTurnProvider"/>
     [AddComponentMenu("XR/Locomotion/Continuous Turn Provider (Device-based)")]
+    [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousTurnProvider)]
     public class DeviceBasedContinuousTurnProvider : ContinuousTurnProviderBase
     {
         /// <summary>
@@ -107,6 +108,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return input;
         }
 
+        /// <summary>
+        /// Get value adjusted based on deadzone thresholds.
+        /// </summary>
+        /// <param name="value">The value to be adjusted.</param>
+        /// <returns>Returns adjusted 2D vector.</returns>
         protected Vector2 GetDeadzoneAdjustedValue(Vector2 value)
         {
             var magnitude = value.magnitude;
@@ -118,6 +124,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return value;
         }
 
+        /// <summary>
+        /// Get value adjusted based on deadzone thresholds.
+        /// </summary>
+        /// <param name="value">The value to be adjusted.</param>
+        /// <returns>Returns adjusted value.</returns>
         protected float GetDeadzoneAdjustedValue(float value)
         {
             var min = m_DeadzoneMin;

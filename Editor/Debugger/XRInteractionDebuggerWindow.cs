@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 s_Instance = GetWindow<XRInteractionDebuggerWindow>();
                 s_Instance.Show();
-                s_Instance.titleContent = new GUIContent("XR Interaction Debugger");
+                s_Instance.titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");
             }
             else
             {
@@ -161,9 +161,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         static class Contents
         {
-            public static GUIContent showInputDevices = new GUIContent("Input Devices");
-            public static GUIContent showInteractablesContent = new GUIContent("Interactables");
-            public static GUIContent showInteractorsContent = new GUIContent("Interactors");
+            public static GUIContent showInputDevices = EditorGUIUtility.TrTextContent("Input Devices");
+            public static GUIContent showInteractablesContent = EditorGUIUtility.TrTextContent("Interactables");
+            public static GUIContent showInteractorsContent = EditorGUIUtility.TrTextContent("Interactors");
         }
     }
 }

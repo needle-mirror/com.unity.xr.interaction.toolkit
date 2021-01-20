@@ -2,109 +2,91 @@
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
-    [CustomEditor(typeof(ActionBasedController)), CanEditMultipleObjects]
-    public class ActionBasedControllerEditor : Editor
+    /// <summary>
+    /// Custom editor for an <see cref="ActionBasedController"/>.
+    /// </summary>
+    [CustomEditor(typeof(ActionBasedController), true), CanEditMultipleObjects]
+    public class ActionBasedControllerEditor : XRBaseControllerEditor
     {
-        static class Styles
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.positionAction"/>.</summary>
+        protected SerializedProperty m_PositionAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotationAction"/>.</summary>
+        protected SerializedProperty m_RotationAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.selectAction"/>.</summary>
+        protected SerializedProperty m_SelectAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.activateAction"/>.</summary>
+        protected SerializedProperty m_ActivateAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.uiPressAction"/>.</summary>
+        protected SerializedProperty m_UIPressAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
+        protected SerializedProperty m_HapticDeviceAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
+        protected SerializedProperty m_RotateAnchorAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
+        protected SerializedProperty m_TranslateAnchorAction;
+
+        /// <summary>
+        /// Contents of GUI elements used by this editor.
+        /// </summary>
+        protected static class Contents
         {
-            public static GUIContent updateTrackingTypeLabel = EditorGUIUtility.TrTextContent("Update Tracking Type", "The time within the frame that the controller will sample input.");
-            public static GUIContent enableInputTrackingLabel = EditorGUIUtility.TrTextContent("Enable Input Tracking", "Whether input tracking is enabled for this controller.");
-            public static GUIContent enableInputActionsLabel = EditorGUIUtility.TrTextContent("Enable Input Actions", "Used to disable an input state changing in the interactor. Useful for swapping to a different interactor on the same object.");
-            public static GUIContent modelPrefabLabel = EditorGUIUtility.TrTextContent("Model Prefab", "The model prefab to show for this controller.");
-            public static GUIContent modelTransformLabel = EditorGUIUtility.TrTextContent("Model Transform", "The model transform that is used as the parent for the controller model.");
-            public static GUIContent animateModelLabel = EditorGUIUtility.TrTextContent("Animate Model", "Whether this model animates in response to interaction events.");
-            public static GUIContent modelSelectTransitionLabel = EditorGUIUtility.TrTextContent("Model Select Transition", "The animation transition to enable when selecting.");
-            public static GUIContent modelDeSelectTransitionLabel = EditorGUIUtility.TrTextContent("Model Deselect Transition", "The animation transition to enable when de-selecting.");
-
-            public static GUIContent positionActionLabel = EditorGUIUtility.TrTextContent("Position Action", "The Input System action to use for Position Tracking for this GameObject. Must be a Vector3 Control.");
-            public static GUIContent rotationActionLabel = EditorGUIUtility.TrTextContent("Rotation Action", "The Input System action to use for Rotation Tracking for this GameObject. Must be a Quaternion Control.");
-            public static GUIContent selectActionLabel = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for Selecting an Interactable. Must be a Button Control.");
-            public static GUIContent activateUsageLabel = EditorGUIUtility.TrTextContent("Activate Action", "The Input System action to use for Activating a selected Interactable. Must be a Button Control.");
-            public static GUIContent uiPressUsageLabel = EditorGUIUtility.TrTextContent("UI Press Action", "The Input System action to use for UI interaction. Must be a Button Control.");
-            public static GUIContent hapticDeviceActionLabel = EditorGUIUtility.TrTextContent("Haptic Device Action", "The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action.");
-
-            public static GUIContent rotateAnchorUsageLabel = EditorGUIUtility.TrTextContent("Rotate Anchor Action", "The Input System action to use for rotating the interactor's attach point. Must be a Vector2 Control. Will use the X-axis as the rotation input.");
-            public static GUIContent translateAnchorUsageLabel = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a Vector2 Control. Will use the Y-axis as the translation input.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.positionAction"/>.</summary>
+            public static GUIContent positionAction = EditorGUIUtility.TrTextContent("Position Action", "The Input System action to use for Position Tracking for this GameObject. Must be a Vector3 Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotationAction"/>.</summary>
+            public static GUIContent rotationAction = EditorGUIUtility.TrTextContent("Rotation Action", "The Input System action to use for Rotation Tracking for this GameObject. Must be a Quaternion Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.selectAction"/>.</summary>
+            public static GUIContent selectAction = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for Selecting an Interactable. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.activateAction"/>.</summary>
+            public static GUIContent activateAction = EditorGUIUtility.TrTextContent("Activate Action", "The Input System action to use for Activating a selected Interactable. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.uiPressAction"/>.</summary>
+            public static GUIContent uiPressAction = EditorGUIUtility.TrTextContent("UI Press Action", "The Input System action to use for UI interaction. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
+            public static GUIContent hapticDeviceAction = EditorGUIUtility.TrTextContent("Haptic Device Action", "The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
+            public static GUIContent rotateAnchorAction = EditorGUIUtility.TrTextContent("Rotate Anchor Action", "The Input System action to use for rotating the interactor's attach point. Must be a Vector2 Control. Will use the X-axis as the rotation input.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
+            public static GUIContent translateAnchorAction = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a Vector2 Control. Will use the Y-axis as the translation input.");
         }
 
-        SerializedProperty m_UpdateTrackingType;
-        SerializedProperty m_EnableInputTracking;
-        SerializedProperty m_EnableInputActions;
-        SerializedProperty m_ModelPrefab;
-        SerializedProperty m_ModelTransform;
-        SerializedProperty m_AnimateModel;
-        SerializedProperty m_ModelSelectTransition;
-        SerializedProperty m_ModelDeSelectTransition;
-
-        SerializedProperty m_PositionAction;
-        SerializedProperty m_RotationAction;
-        SerializedProperty m_SelectAction;
-        SerializedProperty m_ActivateAction;
-        SerializedProperty m_UiPressAction;
-        SerializedProperty m_HapticDeviceAction;
-
-        SerializedProperty m_RotateAnchorAction;
-        SerializedProperty m_TranslateAnchorAction;
-
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
-            m_UpdateTrackingType = serializedObject.FindProperty("m_UpdateTrackingType");
-            m_EnableInputTracking = serializedObject.FindProperty("m_EnableInputTracking");
-            m_EnableInputActions = serializedObject.FindProperty("m_EnableInputActions");
-            m_ModelPrefab = serializedObject.FindProperty("m_ModelPrefab");
-            m_ModelTransform = serializedObject.FindProperty("m_ModelTransform");
-            m_AnimateModel = serializedObject.FindProperty("m_AnimateModel");
-            m_ModelSelectTransition = serializedObject.FindProperty("m_ModelSelectTransition");
-            m_ModelDeSelectTransition = serializedObject.FindProperty("m_ModelDeSelectTransition");
+            base.OnEnable();
 
             m_PositionAction = serializedObject.FindProperty("m_PositionAction");
             m_RotationAction = serializedObject.FindProperty("m_RotationAction");
             m_SelectAction = serializedObject.FindProperty("m_SelectAction");
             m_ActivateAction = serializedObject.FindProperty("m_ActivateAction");
-            m_UiPressAction = serializedObject.FindProperty("m_UIPressAction");
+            m_UIPressAction = serializedObject.FindProperty("m_UIPressAction");
             m_HapticDeviceAction = serializedObject.FindProperty("m_HapticDeviceAction");
-
             m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
             m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
         }
 
-        public override void OnInspectorGUI()
+        /// <inheritdoc />
+        protected override void DrawTrackingConfiguration()
         {
-            serializedObject.Update();
+            base.DrawTrackingConfiguration();
+            EditorGUILayout.PropertyField(m_PositionAction, Contents.positionAction);
+            EditorGUILayout.PropertyField(m_RotationAction, Contents.rotationAction);
+        }
 
-            GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((XRBaseController)target), typeof(ActionBasedController), false);
-            GUI.enabled = true;
+        /// <inheritdoc />
+        protected override void DrawInputConfiguration()
+        {
+            base.DrawInputConfiguration();
+            EditorGUILayout.PropertyField(m_SelectAction, Contents.selectAction);
+            EditorGUILayout.PropertyField(m_ActivateAction, Contents.activateAction);
+            EditorGUILayout.PropertyField(m_UIPressAction, Contents.uiPressAction);
+        }
 
-            EditorGUILayout.PropertyField(m_UpdateTrackingType, Styles.updateTrackingTypeLabel);
-            EditorGUILayout.PropertyField(m_EnableInputTracking, Styles.enableInputTrackingLabel);
-            EditorGUILayout.PropertyField(m_EnableInputActions, Styles.enableInputActionsLabel);
-
-            EditorGUILayout.PropertyField(m_PositionAction, Styles.positionActionLabel);
-            EditorGUILayout.PropertyField(m_RotationAction, Styles.rotationActionLabel);
-            EditorGUILayout.PropertyField(m_SelectAction, Styles.selectActionLabel);
-            EditorGUILayout.PropertyField(m_ActivateAction, Styles.activateUsageLabel);
-            EditorGUILayout.PropertyField(m_UiPressAction, Styles.uiPressUsageLabel);
-            EditorGUILayout.PropertyField(m_HapticDeviceAction, Styles.hapticDeviceActionLabel);
-
-            EditorGUILayout.Space();
-
-            EditorGUILayout.PropertyField(m_RotateAnchorAction, Styles.rotateAnchorUsageLabel);
-            EditorGUILayout.PropertyField(m_TranslateAnchorAction, Styles.translateAnchorUsageLabel);
-
-            EditorGUILayout.PropertyField(m_ModelPrefab, Styles.modelPrefabLabel);
-            EditorGUILayout.PropertyField(m_ModelTransform, Styles.modelTransformLabel);
-            EditorGUILayout.PropertyField(m_AnimateModel, Styles.animateModelLabel);
-
-            if (m_AnimateModel.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_ModelSelectTransition, Styles.modelSelectTransitionLabel);
-                EditorGUILayout.PropertyField(m_ModelDeSelectTransition, Styles.modelDeSelectTransitionLabel);
-                EditorGUI.indentLevel--;
-            }
-
-            serializedObject.ApplyModifiedProperties();
+        /// <inheritdoc />
+        protected override void DrawOtherActions()
+        {
+            base.DrawOtherActions();
+            EditorGUILayout.PropertyField(m_HapticDeviceAction, Contents.hapticDeviceAction);
+            EditorGUILayout.PropertyField(m_RotateAnchorAction, Contents.rotateAnchorAction);
+            EditorGUILayout.PropertyField(m_TranslateAnchorAction, Contents.translateAnchorAction);
         }
     }
 }

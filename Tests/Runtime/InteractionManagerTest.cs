@@ -1,14 +1,12 @@
-using UnityEngine;
-using UnityEngine.TestTools;
-using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.XR.Interaction.Toolkit;
 using System.Linq;
+using NUnit.Framework;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
-	[TestFixture]
+    [TestFixture]
     public class InteractionManagerTests
     {
         [TearDown]
@@ -18,17 +16,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [Test]
-        public void InteractorRegisteredOnAwake()
+        public void InteractorRegisteredOnEnable()
         {
             var manager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractor registeredInteractor = null;
+            manager.interactorRegistered += args => registeredInteractor = args.interactor;
             var interactor = TestUtilities.CreateDirectInteractor();
 
-            Assert.That(manager.interactors, Has.Count.EqualTo(1));
-            Assert.That(manager.interactors[0], Is.EqualTo(interactor));
+            Assert.That(manager.interactors, Is.EquivalentTo(new[] { interactor }));
+            Assert.That(registeredInteractor, Is.SameAs(interactor));
         }
 
         [Test]
-        public void InteractableRegisteredOnAwakeWithColliders()
+        public void InteractorUnregisteredOnDisable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractor unregisteredInteractor = null;
+            manager.interactorUnregistered += args => unregisteredInteractor = args.interactor;
+            var interactor = TestUtilities.CreateDirectInteractor();
+            interactor.enabled = false;
+
+            Assert.That(manager.interactors, Is.Empty);
+            Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+        }
+
+        [Test]
+        public void InteractableRegisteredOnEnable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractable registeredInteractable = null;
+            manager.interactableRegistered += args => registeredInteractable = args.interactable;
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(manager.interactables, Is.EquivalentTo(new[] { interactable }));
+            Assert.That(registeredInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableUnregisteredOnDisable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractable unregisteredInteractable = null;
+            manager.interactableUnregistered += args => unregisteredInteractable = args.interactable;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.enabled = false;
+
+            Assert.That(manager.interactables, Is.Empty);
+            Assert.That(unregisteredInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableRegisteredOnEnableWithColliders()
         {
             var manager = TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();
@@ -47,9 +85,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Object.Destroy(interactor);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
-            Assert.That(manager.interactors, Has.Count.EqualTo(0));
+            Assert.That(manager.interactors, Is.Empty);
         }
 
         [UnityTest]
@@ -60,9 +98,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Object.Destroy(interactable);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
-            Assert.That(manager.interactables, Has.Count.EqualTo(0));
+            Assert.That(manager.interactables, Is.Empty);
         }
 
         [UnityTest]
@@ -82,13 +120,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
-            List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<XRBaseInteractable>();
             managerA.GetValidTargets(interactorA, validTargets);
             Assert.That(validTargets, Has.Exactly(1).EqualTo(interactableA));
             managerB.GetValidTargets(interactorA, validTargets);
             Assert.That(validTargets, Is.Empty);
 
-            List<XRBaseInteractable> hoverTargetList = new List<XRBaseInteractable>();
+            var hoverTargetList = new List<XRBaseInteractable>();
             interactorA.GetHoverTargets(hoverTargetList);
             Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactableA));
             interactorB.GetHoverTargets(hoverTargetList);

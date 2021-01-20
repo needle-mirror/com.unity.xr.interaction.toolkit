@@ -42,6 +42,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_DeactivatedThisFrame = value;
         }
 
+        /// <summary>
+        /// Whether the interaction state was deactivated this frame.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("deActivatedThisFrame has been deprecated. Use deactivatedThisFrame instead. (UnityUpgradable) -> deactivatedThisFrame")]
         public bool deActivatedThisFrame
@@ -62,21 +65,57 @@ namespace UnityEngine.XR.Interaction.Toolkit
             deactivatedThisFrame = false;
         }
 
+        /// <summary>
+        ///  Resets the interaction states that are based on whether they occurred "this frame".
+        /// </summary>
         [Obsolete("Reset has been renamed. Use ResetFrameDependent instead. (UnityUpgradable) -> ResetFrameDependent()")]
         public void Reset() => ResetFrameDependent();
     }
 
+    /// <summary>
+    /// Represents the current state of the <see cref="XRBaseController"/>.
+    /// </summary>
     [Serializable]
     public class XRControllerState
     {
+        /// <summary>
+        /// The time value for this controller.
+        /// </summary>
         public double time;
+
+        /// <summary>
+        /// The pose data flags of the controller.
+        /// </summary>
         public PoseDataFlags poseDataFlags;
+
+        /// <summary>
+        /// The position of the controller.
+        /// </summary>
         public Vector3 position;
+
+        /// <summary>
+        /// The rotation of the controller.
+        /// </summary>
         public Quaternion rotation;
+
+        /// <summary>
+        /// State of selection interaction state.
+        /// </summary>
         public InteractionState selectInteractionState;
+
+        /// <summary>
+        /// State of activate interaction state.
+        /// </summary>
         public InteractionState activateInteractionState;
+
+        /// <summary>
+        /// State of UI press interaction state.
+        /// </summary>
         public InteractionState uiPressInteractionState;
 
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
         public XRControllerState()
         {
             this.time = 0d;
@@ -85,6 +124,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             this.rotation = Quaternion.identity;
         }
 
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="value"> The <see cref="XRControllerState"/> object used to create this object.</param>
         public XRControllerState(XRControllerState value)
         {
             this.time = value.time;
@@ -96,7 +139,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             this.uiPressInteractionState = value.uiPressInteractionState;
         }
 
-        // Constructor compatibility with the input recorder.
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="selectActive">Whether select is active or not.</param>
+        /// <param name="activateActive">Whether activate is active or not.</param>
+        /// <param name="pressActive">Whether press is active or not.</param>
         public XRControllerState(double time, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
         {
             this.time = time;
@@ -143,9 +194,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
             uiPressInteractionState.ResetFrameDependent();
         }
 
+        /// <summary>
+        /// Resets all the interaction states that are based on whether they occurred "this frame".
+        /// </summary>
         [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()")]
         public void ResetInputs() => ResetFrameDependentStates();
 
+        /// <summary>
+        /// Converts state data to a string.
+        /// </summary>
+        /// <returns>A string representation.</returns>
         public override string ToString() => $"time: {time}, position: {position}, rotation: {rotation}, selectActive: {selectInteractionState.active}, activateActive: {activateInteractionState.active}, pressActive: {uiPressInteractionState.active}";
     }
 }

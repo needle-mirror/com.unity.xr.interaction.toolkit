@@ -101,6 +101,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         Vector3 m_VerticalVelocity;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             var xrRig = system.xrRig;

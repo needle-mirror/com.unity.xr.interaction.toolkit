@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -48,12 +49,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             var columns = new MultiColumnHeaderState.Column[(int)ColumnId.COUNT];
 
-            columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = new GUIContent("Name") };
-            columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Type") };
-            columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Layer Mask") };
-            columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = new GUIContent("Colliders") };
-            columns[(int)ColumnId.Hover]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = new GUIContent("Hover") };
-            columns[(int)ColumnId.Select]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = new GUIContent("Select") };
+            columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Name") };
+            columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Type") };
+            columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask") };
+            columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Colliders") };
+            columns[(int)ColumnId.Hover]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hover") };
+            columns[(int)ColumnId.Select]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Select") };
 
             return new MultiColumnHeaderState(columns);
         }

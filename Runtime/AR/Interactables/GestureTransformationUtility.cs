@@ -18,9 +18,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright Â© 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System.Collections.Generic;
 using UnityEngine.XR.ARFoundation;
@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="hitResults">Contents are replaced with the raycast results, if successful.</param>
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
         /// <returns>Returns <see langword="true"/> if the raycast hit a trackable in the <paramref name="trackableTypes"/>.
-        ///     Returns <see langword="false"/> otherwise.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         public static bool Raycast(Vector2 screenPoint, List<ARRaycastHit> hitResults,
             TrackableType trackableTypes = TrackableType.All)
         {
@@ -179,7 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Vector3 groundingPoint;
 
             // Get the ray to cast into the scene from the perspective of the camera.
-            if (Raycast(new Vector2(screenPos.x, screenPos.y), s_Hits, TrackableType.Planes))
+            if (Raycast(new Vector2(screenPos.x, screenPos.y), s_Hits, TrackableType.PlaneWithinPolygon))
             {
                 var firstHit = s_Hits[0];
                 var plane = s_ARPlaneManager.GetPlane(firstHit.trackableId);

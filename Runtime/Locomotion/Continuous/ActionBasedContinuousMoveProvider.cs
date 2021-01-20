@@ -10,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
     [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Action-based)")]
+    [HelpURL(XRHelpURLConstants.k_ActionBasedContinuousMoveProvider)]
     public class ActionBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {
         [SerializeField]
@@ -36,12 +37,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => SetInputActionProperty(ref m_RightHandMoveAction, value);
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             m_LeftHandMoveAction.EnableDirectAction();
             m_RightHandMoveAction.EnableDirectAction();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             m_LeftHandMoveAction.DisableDirectAction();
@@ -69,4 +76,3 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
     }
 }
-

@@ -5,6 +5,7 @@
     /// </summary>
     [AddComponentMenu("XR/Helpers/XR Interactor Reticle Visual")]
     [DisallowMultipleComponent]
+    [HelpURL(XRHelpURLConstants.k_XRInteractorReticleVisual)]
     public class XRInteractorReticleVisual : MonoBehaviour
     {
         const int k_MaxRaycastHits = 10;
@@ -128,18 +129,24 @@
 
         bool m_HasSelectedInteractable;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             m_Interactor = GetComponent<XRBaseInteractor>();
             if (m_Interactor != null)
             {
-                m_Interactor.onSelectEntered.AddListener(OnSelectEntered);
-                m_Interactor.onSelectExited.AddListener(OnSelectExited);
+                m_Interactor.selectEntered.AddListener(OnSelectEntered);
+                m_Interactor.selectExited.AddListener(OnSelectExited);
             }
             SetupReticlePrefab();
             reticleActive = false;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             if (m_Interactor != null && UpdateReticleTarget())
@@ -148,12 +155,15 @@
                 reticleActive = false;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDestroy()
         {
             if (m_Interactor != null)
             {
-                m_Interactor.onSelectEntered.RemoveListener(OnSelectEntered);
-                m_Interactor.onSelectExited.RemoveListener(OnSelectExited);
+                m_Interactor.selectEntered.RemoveListener(OnSelectEntered);
+                m_Interactor.selectExited.RemoveListener(OnSelectExited);
             }
         }
 
@@ -235,13 +245,13 @@
             }
         }
 
-        void OnSelectEntered(XRBaseInteractable interactable)
+        void OnSelectEntered(SelectEnterEventArgs args)
         {
             m_HasSelectedInteractable = true;
             reticleActive = false;
         }
 
-        void OnSelectExited(XRBaseInteractable interactable)
+        void OnSelectExited(SelectExitEventArgs args)
         {
             m_HasSelectedInteractable = false;
         }

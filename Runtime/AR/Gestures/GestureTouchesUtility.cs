@@ -20,7 +20,7 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System.Collections.Generic;
 using System.Reflection;
@@ -181,7 +181,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Returns true if the finger Id is retained.
         /// </summary>
         /// <param name="fingerId">The finger id to check.</param>
-        /// <returns>Returns <see langword="true"/> if the finger is retained. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the finger is retained. Otherwise, returns <see langword="false"/>.</returns>
         public static bool IsFingerIdRetained(int fingerId)
         {
             return s_RetainedFingerIds.Contains(fingerId);

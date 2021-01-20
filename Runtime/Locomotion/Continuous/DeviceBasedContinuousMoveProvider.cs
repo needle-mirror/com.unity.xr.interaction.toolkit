@@ -8,6 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
     [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Device-based)")]
+    [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousMoveProvider)]
     public class DeviceBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {
         /// <summary>
@@ -106,6 +107,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return input;
         }
 
+        /// <summary>
+        /// Get value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
+        /// </summary>
+        /// <param name="value">The value to be adjusted.</param>
+        /// <returns>Returns adjusted 2D vector.</returns>
         protected Vector2 GetDeadzoneAdjustedValue(Vector2 value)
         {
             var magnitude = value.magnitude;
@@ -117,6 +123,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return value;
         }
 
+        /// <summary>
+        /// Get value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
+        /// </summary>
+        /// <param name="value">The value to be adjusted.</param>
+        /// <returns>Returns adjusted value.</returns>
         protected float GetDeadzoneAdjustedValue(float value)
         {
             var min = m_DeadzoneMin;

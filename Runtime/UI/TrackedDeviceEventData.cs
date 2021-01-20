@@ -8,6 +8,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// </summary>
     public class TrackedDeviceEventData : PointerEventData
     {
+        /// <summary>
+        /// Created with event system.
+        /// </summary>
+        /// <param name="eventSystem"> The event system associated with the UI.</param>
         public TrackedDeviceEventData(EventSystem eventSystem)
             : base(eventSystem)
         {

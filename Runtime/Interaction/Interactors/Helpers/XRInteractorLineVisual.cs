@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="linePoints">When this method returns, contains the sample points if successful.</param>
         /// <param name="numPoints">When this method returns, contains the number of sample points if successful.</param>
         /// <returns>Returns <see langword="true"/> if the sample points form a valid line, such as by having at least two points.
-        /// Returns <see langword="false"/> otherwise.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         bool GetLinePoints(ref Vector3[] linePoints, out int numPoints);
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="normal">When this method returns, contains the world normal of the surface the ray hit if the raycast result is valid.</param>
         /// <param name="positionInLine">When this method returns, contains the index within the list of raycast points returned by <see cref="GetLinePoints"/>.</param>
         /// <param name="isValidTarget">When this method returns, contains whether both the raycast result is valid and a valid target for interaction.</param>
-        /// <returns>Returns <see langword="true"/> if the raycast result is valid. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the raycast result is valid. Otherwise, returns <see langword="false"/>.</returns>
         bool TryGetHitInfo(out Vector3 position, out Vector3 normal, out int positionInLine, out bool isValidTarget);
     }
 
@@ -36,6 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [RequireComponent(typeof(LineRenderer))]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_LineVisual)]
+    [HelpURL(XRHelpURLConstants.k_XRInteractorLineVisual)]
     public class XRInteractorLineVisual : MonoBehaviour, IXRCustomReticleProvider
     {
         const float k_MinLineWidth = 0.0001f;
@@ -234,6 +235,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         GameObject m_CustomReticle;
         bool m_CustomReticleAttached;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Reset()
         {
             if (TryFindLineRenderer())
@@ -243,11 +247,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnValidate()
         {
             UpdateSettings();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             m_LineRenderable = GetComponent<ILineRenderable>();
@@ -258,6 +268,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateSettings();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             m_SnapCurve = true;
@@ -268,6 +281,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Application.onBeforeRender += OnBeforeRenderLineVisual;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             if (m_LineRenderer != null)
@@ -513,6 +529,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
+        /// <summary>
+        /// Attaches a custom reticle.
+        /// </summary>
+        /// <param name="reticleInstance"> Reticle GameObject that is attached.</param>
+        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         public bool AttachCustomReticle(GameObject reticleInstance)
         {
             if (!m_CustomReticleAttached)
@@ -540,6 +561,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return false;
         }
 
+        /// <summary>
+        /// Removes a custom reticle.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         public bool RemoveCustomReticle()
         {
             if (m_CustomReticle != null)

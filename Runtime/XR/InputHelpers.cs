@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.XR;
 
+ /// <summary>
+ /// Helper class for different kinds of input.
+ /// </summary>
 public static class InputHelpers
 {
     /// <summary>
@@ -9,27 +12,114 @@ public static class InputHelpers
     /// </summary>
     public enum Button
     {
+        /// <summary>
+        /// Represents and invalid button.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Represents a menu button, used to pause, go back, or otherwise exit gameplay.
+        /// </summary>
         MenuButton,
+
+        /// <summary>
+        /// A binary measure of whether the index finger is activating the trigger.
+        /// </summary>
         Trigger,
+
+        /// <summary>
+        /// Represents the user's grip on the controller.
+        /// </summary>
         Grip,
+
+        /// <summary>
+        /// A binary measure of whether the index finger is activating the trigger.
+        /// </summary>
         TriggerPressed,
+
+        /// <summary>
+        /// A binary measure of whether the device is being gripped.
+        /// </summary>
         GripPressed,
+
+        /// <summary>
+        /// The primary face button being pressed on a device, or sole button if only one is available.
+        /// </summary>
         PrimaryButton,
+
+        /// <summary>
+        /// The primary face button being touched on a device.
+        /// </summary>
         PrimaryTouch,
+
+        /// <summary>
+        /// The secondary face button being pressed on a device.
+        /// </summary>
         SecondaryButton,
+
+        /// <summary>
+        /// The secondary face button being touched on a device.
+        /// </summary>
         SecondaryTouch,
+
+        /// <summary>
+        /// Represents the primary 2D axis being touched.
+        /// </summary>
         Primary2DAxisTouch,
+
+        /// <summary>
+        /// Represents the primary 2D axis being clicked or otherwise depressed.
+        /// </summary>
         Primary2DAxisClick,
+
+        /// <summary>
+        /// Represents the primary 2D axis being touched.
+        /// </summary>
         Secondary2DAxisTouch,
+
+        /// <summary>
+        /// Represents the secondary 2D axis being clicked or otherwise depressed.
+        /// </summary>
         Secondary2DAxisClick,
+
+        /// <summary>
+        /// Represents an upwards motion on the primary touchpad or joystick on a device.
+        /// </summary>
         PrimaryAxis2DUp,
+
+        /// <summary>
+        /// Represents a downwards motion on the primary touchpad or joystick on a device.
+        /// </summary>
         PrimaryAxis2DDown,
+
+        /// <summary>
+        /// Represents a leftwards motion on the primary touchpad or joystick on a device.
+        /// </summary>
         PrimaryAxis2DLeft,
+
+        /// <summary>
+        /// Represents a rightwards motion on the primary touchpad or joystick on a device.
+        /// </summary>
         PrimaryAxis2DRight,
+
+        /// <summary>
+        /// Represents an upwards motion on the secondary touchpad or joystick on a device.
+        /// </summary>
         SecondaryAxis2DUp,
+
+        /// <summary>
+        /// Represents a downwards motion on the secondary touchpad or joystick on a device.
+        /// </summary>
         SecondaryAxis2DDown,
+
+        /// <summary>
+        /// Represents a leftwards motion on the secondary touchpad or joystick on a device.
+        /// </summary>
         SecondaryAxis2DLeft,
+
+        /// <summary>
+        /// Represents a rightwards motion on the secondary touchpad or joystick on a device.
+        /// </summary>
         SecondaryAxis2DRight,
     };
 
@@ -84,6 +174,14 @@ public static class InputHelpers
 
     const float k_DefaultPressThreshold = 0.1f;
 
+    /// <summary>
+    /// Checks whether button is pressed or not.
+    /// </summary>
+    /// <param name="device"> The input device.</param>
+    /// <param name="button"> The button that is being checked.</param>
+    /// <param name="isPressed"> A boolean that will be true if button is pressed and false if not.</param>
+    /// <param name="pressThreshold"> The threshold of what defines a press.</param>
+    /// <returns>Returns <see langword="true"/> if device and button are valid. Otherwise, returns <see langword="false"/>.</returns>
     public static bool IsPressed(this InputDevice device, Button button, out bool isPressed, float pressThreshold = -1.0f)
     {
         if ((int)button >= s_ButtonData.Length)

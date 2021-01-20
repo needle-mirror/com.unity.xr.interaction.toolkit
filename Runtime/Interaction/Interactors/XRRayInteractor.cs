@@ -13,10 +13,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Ray Interactor")]
+    [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
     public class XRRayInteractor : XRBaseControllerInteractor, IUIInteractor
     {
+        /// <summary>
+        /// Sort raycast hits by distance.
+        /// </summary>
         protected class RaycastHitComparer : IComparer<RaycastHit>
         {
+            /// <summary>
+            /// Compares raycast hits by distance.
+            /// </summary>
+            /// <param name="a">The first raycast hit to compare.</param>
+            /// <param name="b">The second raycast hit to compare.</param>
+            /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
             {
                 var aDistance = a.collider != null ? a.distance : float.MaxValue;
@@ -35,8 +45,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public enum LineType
         {
+            /// <summary>
+            /// Performs a single raycast into the Scene with a set ray length.
+            /// </summary>
             StraightLine,
+
+            /// <summary>
+            /// Samples the trajectory of a projectile to generate a projectile curve.
+            /// </summary>
             ProjectileCurve,
+
+            /// <summary>
+            /// Uses a control point and an end point.
+            /// </summary>
             BezierCurve,
         }
 
@@ -45,7 +66,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public enum HitDetectionType
         {
+            /// <summary>
+            /// Uses <see cref="Physics.Raycast"/> to detect collisions.
+            /// </summary>
             Raycast,
+
+            /// <summary>
+            /// Uses <see cref="Physics.Spherecast"/> to detect collisions.
+            /// </summary>
             SphereCast,
         }
 
@@ -90,7 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_Velocity = 16f;
         /// <summary>
-        /// Initial velocity of the projectile. Increase this value will make the curve reach further.
+        /// Initial velocity of the projectile. Increasing this value will make the curve reach further.
         /// </summary>
         public float velocity
         {
@@ -98,6 +126,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Velocity = value;
         }
 
+        /// <summary>
+        /// Initial velocity of the projectile. Increasing this value will make the curve reach further.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Velocity has been deprecated. Use velocity instead. (UnityUpgradable) -> velocity")]
         public float Velocity
@@ -118,6 +149,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Acceleration = value;
         }
 
+        /// <summary>
+        /// Gravity of the projectile in the reference frame.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Acceleration has been deprecated. Use acceleration instead. (UnityUpgradable) -> acceleration")]
         public float Acceleration
@@ -139,6 +173,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AdditionalFlightTime = value;
         }
 
+        /// <summary>
+        /// Additional flight time after the projectile lands at the same height of the start point in the tracking space.
+        /// Increase this value will make the end point drop lower in height.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("AdditionalFlightTime has been deprecated. Use additionalFlightTime instead. (UnityUpgradable) -> additionalFlightTime")]
         public float AdditionalFlightTime
@@ -380,6 +418,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Gets the signed angle between the controller's forward direction and the tracking space.
+        /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Angle has been deprecated. Use angle instead. (UnityUpgradable) -> angle")]
         public float Angle => angle;
@@ -454,6 +495,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         // Used by UpdateUIModel to retrieve the line points to pass along to Unity UI.
         static Vector3[] s_CachedLinePoints;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnValidate()
         {
             RegisterOrUnregisterXRUIInputModule();
@@ -475,11 +519,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_OriginalAttachTransform == null)
             {
-                var originalAttach = new GameObject($"[{gameObject.name}] Original Attach");
-                m_OriginalAttachTransform = originalAttach.transform;
+                m_OriginalAttachTransform = new GameObject($"[{gameObject.name}] Original Attach").transform;
                 m_OriginalAttachTransform.SetParent(transform);
-                m_OriginalAttachTransform.localPosition = Vector3.zero;
-                m_OriginalAttachTransform.localRotation = Quaternion.identity;
+                CaptureAttachTransform();
             }
         }
 
@@ -717,7 +759,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="raycastHit">When this method returns, contains the raycast result if available; otherwise, the default value.</param>
         /// <returns>Returns <see langword="true"/> if the <paramref name="raycastHit"/> parameter contains a valid raycast result.
-        /// Returns <see langword="false"/> otherwise.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         public bool GetCurrentRaycastHit(out RaycastHit raycastHit)
         {
             if (m_HitCount > 0 && m_RaycastHits.Length > 0)
@@ -799,6 +841,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return false;
         }
 
+        /// <summary>
+        /// Rotates the attach anchor for this interactor. This can be useful to rotate a held object.
+        /// </summary>
+        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="directionAmount">The rotation amount.</param>
         protected virtual void RotateAnchor(Transform anchor, float directionAmount)
         {
             if (Mathf.Approximately(directionAmount, 0f))
@@ -810,6 +857,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             anchor.Rotate(axis, directionAmount * (m_RotateSpeed * Time.deltaTime));
         }
 
+        /// <summary>
+        /// Translates the attach anchor for this interactor. This can be useful to move a held object closer or further away from the interactor.
+        /// </summary>
+        /// <param name="originalAnchor">The original attach transform of the interactor.</param>
+        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="directionAmount">The translation amount.</param>
         protected virtual void TranslateAnchor(Transform originalAnchor, Transform anchor, float directionAmount)
         {
             if (Mathf.Approximately(directionAmount, 0f))
@@ -1044,30 +1097,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(XRBaseInteractable interactable)
+        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            base.OnSelectExiting(interactable);
+            base.OnSelectEntering(args);
 
-            attachTransform.position = m_OriginalAttachTransform.position;
-            attachTransform.rotation = m_OriginalAttachTransform.rotation;
-            attachTransform.localScale = m_OriginalAttachTransform.localScale;
+            CaptureAttachTransform();
+
+            if (!m_UseForceGrab && GetCurrentRaycastHit(out var raycastHit))
+                attachTransform.position = raycastHit.point;
         }
 
-        protected internal override void OnSelectEntering(XRBaseInteractable interactable)
+        /// <inheritdoc />
+        protected internal override void OnSelectExiting(SelectExitEventArgs args)
         {
-            base.OnSelectEntering(interactable);
+            base.OnSelectExiting(args);
+            RestoreAttachTransform();
+        }
 
+        void CaptureAttachTransform()
+        {
             m_OriginalAttachTransform.position = attachTransform.position;
             m_OriginalAttachTransform.rotation = attachTransform.rotation;
-            m_OriginalAttachTransform.localScale = attachTransform.localScale;
+        }
 
-            if (!m_UseForceGrab)
-            {
-                if (GetCurrentRaycastHit(out var raycastHit))
-                {
-                    attachTransform.position = raycastHit.point;
-                }
-            }
+        void RestoreAttachTransform()
+        {
+            attachTransform.position = m_OriginalAttachTransform.position;
+            attachTransform.rotation = m_OriginalAttachTransform.rotation;
         }
     }
 }

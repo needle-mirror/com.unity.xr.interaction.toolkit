@@ -232,7 +232,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         /// Determines whether the control is pointing towards the configured North, South, East, or West direction(s).
         /// </summary>
         /// <param name="context">The input control information context.</param>
-        /// <returns>Returns <see langword="true"/> if pointing in "this" direction. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if pointing in "this" direction. Otherwise, returns <see langword="false"/>.</returns>
         bool IsValidDirection(ref InputInteractionContext context)
         {
             var value = context.ReadValue<Vector2>();
@@ -287,13 +287,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
 #if UNITY_EDITOR
     class SectorInteractionEditor : InputParameterEditor<SectorInteraction>
     {
-        readonly GUIContent m_DirectionsLabel = new GUIContent("Directions", 
+        readonly GUIContent m_DirectionsLabel = EditorGUIUtility.TrTextContent("Directions", 
             "Determines cardinal direction(s) that the action should perform when crossing the press threshold towards.");
-        readonly GUIContent m_SweepBehaviorLabel = new GUIContent("Sweep Behavior", 
+        readonly GUIContent m_SweepBehaviorLabel = EditorGUIUtility.TrTextContent("Sweep Behavior", 
             "Determines when the action should perform or cancel when sweeping the stick around the cardinal directions without returning to center.");
-        readonly GUIContent m_PressPointLabel = new GUIContent("Press Point",
+        readonly GUIContent m_PressPointLabel = EditorGUIUtility.TrTextContent("Press Point",
             "Magnitude threshold that must be crossed by an actuated control for the control to be considered pressed.");
-        readonly GUIContent m_DefaultToggleLabel = new GUIContent("Default", 
+        readonly GUIContent m_DefaultToggleLabel = EditorGUIUtility.TrTextContent("Default", 
             "If enabled, the default value is used.");
 
         public override void OnGUI()

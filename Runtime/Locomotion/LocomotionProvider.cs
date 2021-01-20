@@ -10,9 +10,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public abstract class LocomotionProvider : MonoBehaviour
     {
         /// <summary>
-        /// The <see cref="startLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
+        /// (Deprecated) The <see cref="startLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
         /// </summary>
+        /// <seealso cref="beginLocomotion"/>
+        [Obsolete("startLocomotion has been deprecated. Use beginLocomotion instead. (UnityUpgradable) -> beginLocomotion", true)]
+#pragma warning disable 67 // Never invoked, kept for API Updater
         public event Action<LocomotionSystem> startLocomotion;
+#pragma warning restore 67
+
+        /// <summary>
+        /// The <see cref="beginLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
+        /// </summary>
+        public event Action<LocomotionSystem> beginLocomotion;
 
         /// <summary>
         /// The <see cref="endLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully ends a locomotion event.
@@ -34,12 +43,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_System = value;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void Awake()
         {
             if (m_System == null)
                 m_System = FindObjectOfType<LocomotionSystem>();
         }
 
+        /// <summary>
+        /// Checks if locomotion can begin.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if locomotion can start. Otherwise, returns <see langword="false"/>.</returns>
         protected bool CanBeginLocomotion()
         {
             if (m_System == null)
@@ -48,6 +64,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return !m_System.busy;
         }
 
+        /// <summary>
+        /// Invokes begin locomotion events.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         protected bool BeginLocomotion()
         {
             if (m_System == null)
@@ -55,11 +75,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var success = m_System.RequestExclusiveOperation(this) == RequestResult.Success;
             if (success)
-                startLocomotion?.Invoke(m_System);
+                beginLocomotion?.Invoke(m_System);
 
             return success;
         }
 
+        /// <summary>
+        /// Invokes end locomotion events.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         protected bool EndLocomotion()
         {
             if (m_System == null)

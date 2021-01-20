@@ -20,10 +20,18 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARScaleInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Controls the scale of an object via a Pinch gesture.
+    /// If an object is selected, then doing a pinch/zoom will modify the scale
+    /// of the object.
+    /// </summary>
+    public class ARScaleInteractable {}
+}
 
 #else
 
@@ -33,9 +41,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
     /// Controls the scale of an object via a Pinch gesture.
-    /// If an object is selected, then doing a pinch/zoom modify the scale
+    /// If an object is selected, then doing a pinch/zoom will modify the scale
     /// of the object.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_ARScaleInteractable)]
     public class ARScaleInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("The minimum scale of the object.")]
@@ -127,20 +136,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         float m_CurrentScaleRatio;
         bool m_IsScaling;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnValidate()
         {
             minScale = Mathf.Max(0f, minScale);
             maxScale = Mathf.Max(Mathf.Max(0f, minScale), maxScale);
         }
 
-        /// <summary>
-        /// Enabled the scale controller.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
             m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void LateUpdate()
         {
             if (!m_IsScaling)
@@ -155,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Returns true if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected override bool CanStartManipulationForGesture(PinchGesture gesture)
         {
             if (!IsGameObjectSelected())

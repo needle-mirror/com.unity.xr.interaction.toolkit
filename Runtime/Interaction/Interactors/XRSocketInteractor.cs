@@ -11,10 +11,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Socket Interactor")]
+    [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]
     public class XRSocketInteractor : XRBaseInteractor
     {
-        [Header("Socket")]
-
         [SerializeField]
         bool m_ShowInteractableHoverMeshes = true;
         /// <summary>
@@ -95,7 +94,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         readonly Dictionary<XRBaseInteractable, float> m_InteractableDistanceSqrMap = new Dictionary<XRBaseInteractable, float>();
 
-        readonly Dictionary<XRBaseInteractable, MeshFilter[]> m_MeshFilterCache = new Dictionary<XRBaseInteractable, MeshFilter[]>();
+        readonly Dictionary<XRBaseInteractable, ValueTuple<MeshFilter, Renderer>[]> m_MeshFilterCache = new Dictionary<XRBaseInteractable, ValueTuple<MeshFilter, Renderer>[]>();
+
+        /// <summary>
+        /// Reusable list of type <see cref="MeshFilter"/> to reduce allocations.
+        /// </summary>
+        static readonly List<MeshFilter> s_MeshFilters = new List<MeshFilter>();
 
         /// <summary>
         /// Sort comparison function used by <see cref="GetValidTargets"/>.
@@ -122,17 +126,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             CreateDefaultHoverMaterials();
         }
 
-        protected void OnTriggerEnter(Collider col)
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
+        protected void OnTriggerEnter(Collider other)
         {
-            var interactable = interactionManager.TryGetInteractableForCollider(col);
-            if (interactable && !m_ValidTargets.Contains(interactable) && selectTarget != interactable)
+            if (interactionManager == null)
+                return;
+
+            var interactable = interactionManager.TryGetInteractableForCollider(other);
+            if (interactable != null && selectTarget != interactable && !m_ValidTargets.Contains(interactable))
                 m_ValidTargets.Add(interactable);
         }
 
-        protected void OnTriggerExit(Collider col)
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
+        protected void OnTriggerExit(Collider other)
         {
-            var interactable = interactionManager.TryGetInteractableForCollider(col);
-            if (interactable && m_ValidTargets.Contains(interactable) && selectTarget != interactable)
+            if (interactionManager == null)
+                return;
+
+            var interactable = interactionManager.TryGetInteractableForCollider(other);
+            if (interactable != null && selectTarget != interactable)
                 m_ValidTargets.Remove(interactable);
         }
 
@@ -191,27 +209,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverEntering(XRBaseInteractable interactable)
+        protected internal override void OnHoverEntering(HoverEnterEventArgs args)
         {
-            base.OnHoverEntering(interactable);
-            MeshFilter[] interactableMeshFilters = interactable.GetComponentsInChildren<MeshFilter>();
-            if (interactableMeshFilters.Length > 0)
+            base.OnHoverEntering(args);
+
+            s_MeshFilters.Clear();
+            args.interactable.GetComponentsInChildren(true, s_MeshFilters);
+            if (s_MeshFilters.Count == 0)
+                return;
+
+            var interactableTuples = new ValueTuple<MeshFilter, Renderer>[s_MeshFilters.Count];
+            for (var i = 0; i < s_MeshFilters.Count; ++i)
             {
-                m_MeshFilterCache.Add(interactable, interactableMeshFilters);
+                var meshFilter = s_MeshFilters[i];
+                interactableTuples[i] = (meshFilter, meshFilter.GetComponent<Renderer>());
             }
+            m_MeshFilterCache.Add(args.interactable, interactableTuples);
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverExiting(XRBaseInteractable interactable)
+        protected internal override void OnHoverExiting(HoverExitEventArgs args)
         {
-            base.OnHoverExiting(interactable);
-            m_MeshFilterCache.Remove(interactable);
+            base.OnHoverExiting(args);
+            m_MeshFilterCache.Remove(args.interactable);
         }
 
-         /// <inheritdoc />
-        protected internal override void OnSelectExiting(XRBaseInteractable interactable)
+        /// <inheritdoc />
+        protected internal override void OnSelectExiting(SelectExitEventArgs args)
         {
-            base.OnSelectExiting(interactable);
+            base.OnSelectExiting(args);
             m_LastRemoveTime = Time.time;
         }
 
@@ -248,17 +274,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return Matrix4x4.TRS(finalPosition, finalRotation, scale);
         }
 
+        /// <summary>
+        /// This method is called automatically in order to draw the interactables that are currently being hovered over.
+        /// </summary>
         protected virtual void DrawHoveredInteractables()
         {
             var materialToDrawWith = selectTarget == null ? m_InteractableHoverMeshMaterial : m_InteractableCantHoverMeshMaterial;
             if (materialToDrawWith == null)
                 return;
 
-            var cam = Camera.main;
-            if (cam == null)
+            var mainCamera = Camera.main;
+            if (mainCamera == null)
                 return;
-
-            var cullingMask = cam.cullingMask;
 
             var hoveredScale = Mathf.Max(0f, m_InteractableHoverScale);
 
@@ -268,18 +295,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (grabTarget == null || grabTarget == selectTarget)
                     continue;
 
-                if (!m_MeshFilterCache.TryGetValue(grabTarget, out var interactableMeshFilters))
+                if (!m_MeshFilterCache.TryGetValue(grabTarget, out var interactableTuples))
                     continue;
 
-                if (interactableMeshFilters == null || interactableMeshFilters.Length == 0)
+                if (interactableTuples == null || interactableTuples.Length == 0)
                     continue;
 
-                foreach (var meshFilter in interactableMeshFilters)
+                foreach (var tuple in interactableTuples)
                 {
-                    // TODO By only checking the main camera culling flags, but drawing the mesh in all cameras,
-                    // aren't we ignoring the culling mask of non-main cameras? Or does DrawMesh handle culling
-                    // automatically, making this early continue unnecessary?
-                    if (meshFilter == null || (cullingMask & (1 << meshFilter.gameObject.layer)) == 0)
+                    var meshFilter = tuple.Item1;
+                    var meshRenderer = tuple.Item2;
+                    if (!ShouldDrawHoverMesh(meshFilter, meshRenderer, mainCamera))
                         continue;
 
                     for (var submeshIndex = 0; submeshIndex < meshFilter.sharedMesh.subMeshCount; ++submeshIndex)
@@ -349,6 +375,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override bool CanHover(XRBaseInteractable interactable)
         {
             return base.CanHover(interactable) && Time.time > m_LastRemoveTime + m_RecycleDelayTime;
+        }
+
+        /// <summary>
+        /// This method is called automatically in order to determine whether the Mesh should be drawn.
+        /// </summary>
+        /// <param name="meshFilter">The <see cref="MeshFilter"/> which will be drawn when returning <see langword="true"/>.</param>
+        /// <param name="meshRenderer">The <see cref="Renderer"/> on the same <see cref="GameObject"/> as the <paramref name="meshFilter"/>.</param>
+        /// <param name="mainCamera">The Main Camera.</param>
+        /// <returns>Returns <see langword="true"/> if the Mesh should be drawn. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="DrawHoveredInteractables"/>
+        protected virtual bool ShouldDrawHoverMesh(MeshFilter meshFilter, Renderer meshRenderer, Camera mainCamera)
+        {
+            // TODO By only checking the main camera culling flags, but drawing the mesh in all cameras,
+            // aren't we ignoring the culling mask of non-main cameras? Or does DrawMesh handle culling
+            // automatically, making some of this evaluation unnecessary?
+            var cullingMask = mainCamera.cullingMask;
+            return meshFilter != null && (cullingMask & (1 << meshFilter.gameObject.layer)) != 0 && meshRenderer != null && meshRenderer.enabled;
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        {
+            base.OnRegistered(args);
+            args.manager.interactableUnregistered += OnInteractableUnregistered;
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            base.OnUnregistered(args);
+            args.manager.interactableUnregistered -= OnInteractableUnregistered;
+        }
+
+        void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            m_ValidTargets.Remove(args.interactable);
         }
 
         struct ShaderPropertyLookup

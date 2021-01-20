@@ -13,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     /// is used to mass enable actions so that they actively listen for input and run callbacks.
     /// </remarks>
     /// <seealso cref="InputAction"/>
+    [HelpURL(XRHelpURLConstants.k_InputActionManager)]
     public class InputActionManager : MonoBehaviour
     {
         [SerializeField]
@@ -27,11 +28,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             set => m_ActionAssets = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             EnableInput();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             DisableInput();

@@ -274,12 +274,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject interactorGo = new GameObject("Interactor", typeof(XRController), typeof(XRRayInteractor), typeof(XRControllerRecorder));
             interactorGo.transform.parent = rigGo.transform;
             testObjects.controllerRecorder = interactorGo.GetComponent<XRControllerRecorder>();
-            var controller = interactorGo.AddComponent<XRController>();            
+            var controller = interactorGo.AddComponent<XRController>();
             testObjects.controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
             testObjects.interactor = interactorGo.GetComponent<XRRayInteractor>();
             testObjects.interactor.maxRaycastDistance = int.MaxValue;
             testObjects.interactor.referenceFrame = rigGo.transform;
-            
+
 
             GameObject canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
             Canvas canvas = canvasGo.GetComponent<Canvas>();

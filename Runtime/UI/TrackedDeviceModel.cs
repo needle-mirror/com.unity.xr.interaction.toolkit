@@ -3,6 +3,9 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
+    /// <summary>
+    /// Models a tracked device.
+    /// </summary>
     public struct TrackedDeviceModel
     {
         const float k_DefaultMaxRaycastDistance = 1000f;
@@ -184,6 +187,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         LayerMask m_RaycastLayerMask;
 
+        /// <summary>
+        /// Layer mask for raycasts.
+        /// </summary>
         public LayerMask raycastLayerMask
         {
             get => m_RaycastLayerMask;
@@ -197,6 +203,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="TrackedDeviceModel"/>.
+        /// </summary>
+        /// <param name="pointerId">The pointer id.</param>
         public TrackedDeviceModel(int pointerId)
         {
             this.pointerId = pointerId;

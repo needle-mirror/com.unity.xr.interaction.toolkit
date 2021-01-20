@@ -11,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="LocomotionProvider"/>
     /// <seealso cref="ActionBasedSnapTurnProvider"/>
     [AddComponentMenu("XR/Locomotion/Continuous Turn Provider (Action-based)")]
+    [HelpURL(XRHelpURLConstants.k_ActionBasedContinuousTurnProvider)]
     public class ActionBasedContinuousTurnProvider : ContinuousTurnProviderBase
     {
         [SerializeField]
@@ -37,12 +38,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => SetInputActionProperty(ref m_RightHandTurnAction, value);
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             m_LeftHandTurnAction.EnableDirectAction();
             m_RightHandTurnAction.EnableDirectAction();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             m_LeftHandTurnAction.DisableDirectAction();

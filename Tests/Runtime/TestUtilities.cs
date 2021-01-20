@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 if (gameObject != null)
                     Object.DestroyImmediate(gameObject.transform.root.gameObject);
             }
-            foreach (var gameObject in Object.FindObjectsOfType<XRController>())
+            foreach (var gameObject in Object.FindObjectsOfType<XRBaseController>())
             {
                 if (gameObject != null)
                     Object.DestroyImmediate(gameObject.transform.root.gameObject);

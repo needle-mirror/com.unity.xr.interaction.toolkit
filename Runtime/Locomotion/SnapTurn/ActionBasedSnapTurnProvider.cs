@@ -9,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// from an input system action.
     /// </summary>
     [AddComponentMenu("XR/Locomotion/Snap Turn Provider (Action-based)")]
+    [HelpURL(XRHelpURLConstants.k_ActionBasedSnapTurnProvider)]
     public class ActionBasedSnapTurnProvider : SnapTurnProviderBase
     {
         [SerializeField]
@@ -35,12 +36,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => SetInputActionProperty(ref m_RightHandSnapTurnAction, value);
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             m_LeftHandSnapTurnAction.EnableDirectAction();
             m_RightHandSnapTurnAction.EnableDirectAction();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             m_LeftHandSnapTurnAction.DisableDirectAction();

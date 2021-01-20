@@ -5,6 +5,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     public static class GizmoHelpers
     {
+        /// <summary>
+        /// Draws oriented wire plane.
+        /// </summary>
+        /// <param name="position"> Position of the plane.</param>
+        /// <param name="rotation"> Rotation of the plane.</param>
+        /// <param name="size"> Size of the plane.</param>
         public static void DrawWirePlaneOriented(Vector3 position, Quaternion rotation, float size)
         {
             var halfSize = size / 2f;
@@ -26,6 +32,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 (rotation * tl) + position);
         }
 
+        /// <summary>
+        /// Draws oriented wire cube.
+        /// </summary>
+        /// <param name="position"> Position of the cube.</param>
+        /// <param name="rotation"> Rotation of the cube.</param>
+        /// <param name="size"> Size of the cube.</param>
         public static void DrawWireCubeOriented(Vector3 position, Quaternion rotation, float size)
         {
 

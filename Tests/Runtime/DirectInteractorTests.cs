@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.TestTools;
-using NUnit.Framework;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.XR.Interaction.Toolkit;
+using NUnit.Framework;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -25,13 +23,42 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
-            List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
             Assert.That(validTargets, Has.Exactly(1).EqualTo(interactable));
 
-            List<XRBaseInteractable> hoverTargetList = new List<XRBaseInteractable>();
+            var hoverTargetList = new List<XRBaseInteractable>();
             directInteractor.GetHoverTargets(hoverTargetList);
             Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorHandlesUnregisteredInteractable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            var directInteractor = TestUtilities.CreateDirectInteractor();
+
+            yield return new WaitForSeconds(0.1f);
+
+            var validTargets = new List<XRBaseInteractable>();
+            manager.GetValidTargets(directInteractor, validTargets);
+            Assert.That(validTargets, Has.Exactly(1).EqualTo(interactable));
+
+            var hoverTargetList = new List<XRBaseInteractable>();
+            directInteractor.GetHoverTargets(hoverTargetList);
+            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable));
+
+            Object.Destroy(interactable);
+
+            yield return null;
+            Assert.That(interactable == null, Is.True);
+
+            manager.GetValidTargets(directInteractor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            directInteractor.GetHoverTargets(hoverTargetList);
+            Assert.That(hoverTargetList, Is.Empty);
         }
 
         [UnityTest]
@@ -53,6 +80,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForSeconds(0.1f);
 
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorHandlesCanceledInteractable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            var directInteractor = TestUtilities.CreateDirectInteractor();
+            var controller = directInteractor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
+                    true, false, false); 
+                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+            });
+            controllerRecorder.isPlaying = true;
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
+
+            XRBaseInteractor canceledInteractor = null;
+            XRBaseInteractable canceledInteractable = null;
+            interactable.selectExited.AddListener(args => canceledInteractor = args.isCanceled ? args.interactor : null);
+            directInteractor.selectExited.AddListener(args => canceledInteractable = args.isCanceled ? args.interactable : null);
+
+            Object.Destroy(interactable);
+
+            yield return null;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse -- overloaded Object operator==
+            Assert.That(interactable == null, Is.True);
+            Assert.That(directInteractor.selectTarget, Is.Null);
+
+            Assert.That(canceledInteractor, Is.SameAs(directInteractor));
+            Assert.That(canceledInteractable, Is.SameAs(interactable));
+
+            var validTargets = new List<XRBaseInteractable>();
+            manager.GetValidTargets(directInteractor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            var hoverTargetList = new List<XRBaseInteractable>();
+            directInteractor.GetHoverTargets(hoverTargetList);
+            Assert.That(hoverTargetList, Is.Empty);
         }
 
         [UnityTest]

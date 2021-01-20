@@ -6,6 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// The <see cref="TeleportationProvider"/> is responsible for moving the XR Rig
     /// to the desired location on the user's request.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_TeleportationProvider)]
     public class TeleportationProvider : LocomotionProvider
     {
         /// <summary>
@@ -22,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// This function will queue a teleportation request within the provider.
         /// </summary>
         /// <param name="teleportRequest">The teleportation request to queue.</param>
-        /// <returns>Returns <see langword="true"/> if successfully queued. Returns <see langword="false"/> otherwise.</returns>
+        /// <returns>Returns <see langword="true"/> if successfully queued. Otherwise, returns <see langword="false"/>.</returns>
         public virtual bool QueueTeleportRequest(TeleportRequest teleportRequest)
         {
             currentRequest = teleportRequest;
@@ -31,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Update function for the <see cref="TeleportationProvider"/>.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Update()
         {

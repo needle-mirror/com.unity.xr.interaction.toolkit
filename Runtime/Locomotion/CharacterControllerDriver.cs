@@ -4,6 +4,7 @@
     /// Drives a <see cref="CharacterController"/> height
     /// upon locomotion events of a <see cref="LocomotionProvider"/>.
     /// </summary>
+    [HelpURL(XRHelpURLConstants.k_CharacterControllerDriver)]
     public class CharacterControllerDriver : MonoBehaviour
     {
         [SerializeField]
@@ -66,22 +67,34 @@
         /// </summary>
         protected CharacterController characterController => m_CharacterController;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Awake()
         {
             if (m_LocomotionProvider == null)
                 m_LocomotionProvider = GetComponent<ContinuousMoveProviderBase>();
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnEnable()
         {
             Subscribe(m_LocomotionProvider);
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDisable()
         {
             Unsubscribe(m_LocomotionProvider);
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Start()
         {
             SetupCharacterController();
@@ -110,7 +123,7 @@
         {
             if (provider != null)
             {
-                provider.startLocomotion += OnStartLocomotion;
+                provider.beginLocomotion += OnBeginLocomotion;
                 provider.endLocomotion += OnEndLocomotion;
             }
         }
@@ -119,7 +132,7 @@
         {
             if (provider != null)
             {
-                provider.startLocomotion -= OnStartLocomotion;
+                provider.beginLocomotion -= OnBeginLocomotion;
                 provider.endLocomotion -= OnEndLocomotion;
             }
         }
@@ -142,7 +155,7 @@
             }
         }
 
-        void OnStartLocomotion(LocomotionSystem system)
+        void OnBeginLocomotion(LocomotionSystem system)
         {
             UpdateCharacterController();
         }

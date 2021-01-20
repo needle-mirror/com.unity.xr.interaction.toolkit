@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -51,26 +52,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     width = 240f,
                     minWidth = 60f,
-                    headerContent = new GUIContent("Name"),
+                    headerContent = EditorGUIUtility.TrTextContent("Name"),
                 };
             columns[(int)ColumnId.Role] =
                 new MultiColumnHeaderState.Column
                 {
                     width = 200f,
                     minWidth = 60f,
-                    headerContent = new GUIContent("Role"),
+                    headerContent = EditorGUIUtility.TrTextContent("Role"),
                 };
             columns[(int)ColumnId.Type] =
                 new MultiColumnHeaderState.Column
                 {
                     width = 200f,
-                    headerContent = new GUIContent("Type"),
+                    headerContent = EditorGUIUtility.TrTextContent("Type"),
                 };
             columns[(int)ColumnId.Value] =
                 new MultiColumnHeaderState.Column
                 {
                     width = 200f,
-                    headerContent = new GUIContent("Value"),
+                    headerContent = EditorGUIUtility.TrTextContent("Value"),
                 };
 
             return new MultiColumnHeaderState(columns);

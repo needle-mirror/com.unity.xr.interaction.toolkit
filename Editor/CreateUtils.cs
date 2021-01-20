@@ -85,7 +85,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var sphereCollider = socketInteractableGO.GetComponent<SphereCollider>();
             Undo.RecordObject(sphereCollider, "Configure Sphere Collider");
             sphereCollider.isTrigger = true;
-            sphereCollider.radius = 0.1f;
+            sphereCollider.radius = GetScaledRadius(sphereCollider, 0.1f);
         }
 
         [MenuItem("GameObject/XR/Grab Interactable", false, 10), UsedImplicitly]
@@ -95,14 +95,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             CreateInteractionManager();
 
-            var grabInteractableGO = CreateAndPlaceGameObject("Grab Interactable", menuCommand.GetContextTransform(),
-                typeof(XRGrabInteractable),
-                typeof(SphereCollider));
+            var grabInteractableGO = CreateAndPlacePrimitive("Grab Interactable", menuCommand.GetContextTransform(),
+                PrimitiveType.Cube,
+                typeof(XRGrabInteractable));
 
-            var sphereCollider = grabInteractableGO.GetComponent<SphereCollider>();
-            Undo.RecordObject(sphereCollider, "Configure Sphere Collider");
-            sphereCollider.isTrigger = false;
-            sphereCollider.radius = 0.1f;
+            var transform = grabInteractableGO.transform;
+            Undo.RecordObject(transform, "Configure Transform");
+            var localScale = InverseTransformScale(transform, new Vector3(0.1f, 0.1f, 0.1f));
+            transform.localScale = Abs(localScale);
+
+            var boxCollider = grabInteractableGO.GetComponent<BoxCollider>();
+            Undo.RecordObject(boxCollider, "Configure Box Collider");
+            // BoxCollider does not support a negative effective size,
+            // so ensure the size accounts for any negative scaling.
+            boxCollider.size = Vector3.Scale(boxCollider.size, Sign(localScale));
         }
 
         [MenuItem("GameObject/XR/Interaction Manager", false, 10), UsedImplicitly]
@@ -455,7 +461,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var sphereCollider = directInteractorGO.GetComponent<SphereCollider>();
             Undo.RecordObject(sphereCollider, "Configure Sphere Collider");
             sphereCollider.isTrigger = true;
-            sphereCollider.radius = 0.1f;
+            sphereCollider.radius = GetScaledRadius(sphereCollider, 0.1f);
 
             return directInteractorGO;
         }
@@ -608,6 +614,57 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     rectTransform.sizeDelta = Vector2.zero;
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the absolute value of each component of the vector.
+        /// </summary>
+        /// <param name="value">The vector.</param>
+        /// <returns>Returns the absolute value of each component of the vector.</returns>
+        /// <seealso cref="Mathf.Abs(float)"/>
+        static Vector3 Abs(Vector3 value) => new Vector3(Mathf.Abs(value.x), Mathf.Abs(value.y), Mathf.Abs(value.z));
+
+        /// <summary>
+        /// Returns the sign of each component of the vector.
+        /// </summary>
+        /// <param name="value">The vector.</param>
+        /// <returns>Returns the sign of each component of the vector; 1 when the component is positive or zero, -1 when the component is negative.</returns>
+        /// <seealso cref="Mathf.Sign"/>
+        static Vector3 Sign(Vector3 value) => new Vector3(Mathf.Sign(value.x), Mathf.Sign(value.y), Mathf.Sign(value.z));
+
+        /// <summary>
+        /// Transforms a vector from world space to local space.
+        /// Differs from <see cref="Transform.InverseTransformVector(Vector3)"/> in that
+        /// this operation is unaffected by rotation.
+        /// </summary>
+        /// <param name="transform">The <see cref="Transform"/> the operation is relative to.</param>
+        /// <param name="scale">The scale to transform.</param>
+        /// <returns>Returns the scale in local space.</returns>
+        static Vector3 InverseTransformScale(Transform transform, Vector3 scale)
+        {
+            var lossyScale = transform.lossyScale;
+            return new Vector3(
+                !Mathf.Approximately(lossyScale.x, 0f) ? scale.x / lossyScale.x : scale.x,
+                !Mathf.Approximately(lossyScale.y, 0f) ? scale.y / lossyScale.y : scale.y,
+                !Mathf.Approximately(lossyScale.z, 0f) ? scale.z / lossyScale.z : scale.z);
+        }
+
+        static float GetRadiusScaleFactor(SphereCollider collider)
+        {
+            // Copied from SphereColliderEditor
+            var result = 0f;
+            var lossyScale = collider.transform.lossyScale;
+
+            for (var axis = 0; axis < 3; ++axis)
+                result = Mathf.Max(result, Mathf.Abs(lossyScale[axis]));
+
+            return result;
+        }
+
+        static float GetScaledRadius(SphereCollider collider, float radius)
+        {
+            var scaleFactor = GetRadiusScaleFactor(collider);
+            return !Mathf.Approximately(scaleFactor, 0f) ? radius / scaleFactor : 0f;
         }
 
 #if AR_FOUNDATION_PRESENT

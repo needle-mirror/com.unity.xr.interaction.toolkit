@@ -20,7 +20,7 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
 using UnityEngine;
@@ -112,7 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Returns true if this gesture can start.
         /// </summary>
-        /// <returns>True if the gesture can start.</returns>
+        /// <returns>Returns <see langword="true"/> if the gesture can start. Otherwise, returns <see langword="false"/>.</returns>
         protected internal abstract bool CanStart();
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Updates this gesture.
         /// </summary>
-        /// <returns>True if the update was successful.</returns>
+        /// <returns>Returns <see langword="true"/> if the update was successful. Otherwise, returns <see langword="false"/>.</returns>
         protected internal abstract bool UpdateGesture();
 
         /// <summary>

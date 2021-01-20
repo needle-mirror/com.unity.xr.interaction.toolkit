@@ -5,6 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// specific position and/or rotation.
     /// </summary>
     /// <seealso cref="TeleportationArea"/>
+    [HelpURL(XRHelpURLConstants.k_TeleportationAnchor)]
     public class TeleportationAnchor : BaseTeleportationInteractable
     {
         [SerializeField]
@@ -20,12 +21,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_TeleportAnchorTransform = value;
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnValidate()
         {
             if (m_TeleportAnchorTransform == null)
                 m_TeleportAnchorTransform = transform;
         }
 
+        /// <summary>
+        /// Called when gizmos are drawn.
+        /// </summary>
         protected void OnDrawGizmos()
         {
             Gizmos.color = Color.blue;

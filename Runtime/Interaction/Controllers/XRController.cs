@@ -12,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// XR Interaction Interactor position, rotation, and interaction states.
     /// </summary>
     [AddComponentMenu("XR/XR Controller (Device-based)")]
+    [HelpURL(XRHelpURLConstants.k_XRController)]
     public class XRController : XRBaseController
     {
         [SerializeField]
@@ -184,14 +185,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
             else
 #endif
             {
-                if (inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out controllerState.position))
+                if (inputDevice.TryGetFeatureValue(CommonUsages.trackingState, out var trackingState))
                 {
-                    controllerState.poseDataFlags |= PoseDataFlags.Position;
-                }
+                    if ((trackingState & InputTrackingState.Position) != 0 &&
+                        inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out var devicePosition))
+                    {
+                        controllerState.position = devicePosition;
+                        controllerState.poseDataFlags |= PoseDataFlags.Position;
+                    }
 
-                if (inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out controllerState.rotation))
-                {
-                    controllerState.poseDataFlags |= PoseDataFlags.Rotation;
+                    if ((trackingState & InputTrackingState.Rotation) != 0 &&
+                        inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out var deviceRotation))
+                    {
+                        controllerState.rotation = deviceRotation;
+                        controllerState.poseDataFlags |= PoseDataFlags.Rotation;
+                    }
                 }
             }
         }

@@ -33,6 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// <seealso cref="XRSimulatedHMD"/>
     /// <seealso cref="SimulatedInputLayoutLoader"/>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_DeviceSimulator)]
+    [HelpURL(XRHelpURLConstants.k_XRDeviceSimulator)]
     public class XRDeviceSimulator : MonoBehaviour
     {
         /// <summary>
@@ -584,7 +585,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/>.
         /// </summary>
         /// <remarks>
-        /// Typically bound to Q & E on a keyboard for the horizontal component, and controls the opposite hand's
+        /// Typically bound to Q and E on a keyboard for the horizontal component, and controls the opposite hand's
         /// 2D Axis controls when manipulating one (and only one) controller. Can be used to quickly and simultaneously
         /// control the 2D Axis on the other hand's controller. In a typical setup of continuous movement bound on the left-hand
         /// controller stick, and turning bound on the right-hand controller stick, while exclusively manipulating the left-hand
@@ -1079,9 +1080,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         XRSimulatedController m_RightControllerDevice;
 
         /// <summary>
-        /// Awake is called when the script instance is being loaded.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        /// <seealso cref="MonoBehaviour"/>
         protected virtual void Awake()
         {
             m_HMDState.Reset();
@@ -1090,9 +1090,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
-        /// This function is called when the object becomes enabled and active.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        /// <seealso cref="MonoBehaviour"/>
         protected virtual void OnEnable()
         {
             // Find the Camera if necessary
@@ -1142,9 +1141,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
-        /// This function is called when the behaviour becomes disabled.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        /// <seealso cref="MonoBehaviour"/>
         protected virtual void OnDisable()
         {
             RemoveDevices();
@@ -1186,9 +1184,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
-        /// Update is called every frame, if the <see cref="MonoBehaviour"/> is enabled.
+        /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        /// <seealso cref="MonoBehaviour"/>
         protected virtual void Update()
         {
             ProcessPoseInput();
@@ -1216,6 +1213,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void ProcessPoseInput()
         {
+            // Set tracked states
+            m_LeftControllerState.isTracked = true;
+            m_RightControllerState.isTracked = true;
+            m_HMDState.isTracked = true;
+            m_LeftControllerState.trackingState = (int)(InputTrackingState.Position | InputTrackingState.Rotation);
+            m_RightControllerState.trackingState = (int)(InputTrackingState.Position | InputTrackingState.Rotation);
+            m_HMDState.trackingState = (int)(InputTrackingState.Position | InputTrackingState.Rotation);
+
             if (!m_ManipulateLeftInput && !m_ManipulateRightInput && !m_ManipulateHeadInput)
                 return;
 
@@ -1333,10 +1338,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     var resetScale = GetResetScale();
 
                     if (m_ManipulateLeftInput)
-                        m_LeftControllerState.devicePosition = Vector3.Scale(m_LeftControllerState.devicePosition, resetScale);
+                    {
+                        var devicePosition = Vector3.Scale(m_LeftControllerState.devicePosition, resetScale);
+                        // The active control for the InputAction will be null while the Action is in waiting at (0, 0, 0)
+                        // so use a small value to reset the position to near origin.
+                        if (devicePosition.magnitude <= 0f)
+                            devicePosition = new Vector3(Mathf.Epsilon, Mathf.Epsilon, Mathf.Epsilon);
+
+                        m_LeftControllerState.devicePosition = devicePosition;
+                    }
 
                     if (m_ManipulateRightInput)
-                        m_RightControllerState.devicePosition = Vector3.Scale(m_RightControllerState.devicePosition, resetScale);
+                    {
+                        var devicePosition = Vector3.Scale(m_RightControllerState.devicePosition, resetScale);
+                        // The active control for the InputAction will be null while the Action is in waiting at (0, 0, 0)
+                        // so use a small value to reset the position to near origin.
+                        if (devicePosition.magnitude <= 0f)
+                            devicePosition = new Vector3(Mathf.Epsilon, Mathf.Epsilon, Mathf.Epsilon);
+
+                        m_RightControllerState.devicePosition = devicePosition;
+                    }
 
                     if (m_ManipulateHeadInput)
                     {
@@ -1521,6 +1542,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Process input from the user and update the state of manipulated controller device(s)
         /// related to button input controls.
         /// </summary>
+        /// <param name="controllerState">The controller state that will be processed.</param>
         protected virtual void ProcessButtonControlInput(ref XRSimulatedControllerState controllerState)
         {
             controllerState.grip = m_GripInput ? 1f : 0f;

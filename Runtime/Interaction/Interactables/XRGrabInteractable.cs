@@ -1,15 +1,17 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interactable component that allows basic "grab" functionality.
-    /// Can attach to selecting interactor and follow it around while obeying physics (and inherit velocity when released).
+    /// Can attach to a selecting Interactor and follow it around while obeying physics (and inherit velocity when released).
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody))]
     [AddComponentMenu("XR/XR Grab Interactable")]
+    [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
     public class XRGrabInteractable : XRBaseInteractable
     {
         const float k_DefaultTighteningAmount = 0.5f;
@@ -23,11 +25,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const float k_DefaultThrowAngularVelocityScale = 1f;
 
         [SerializeField]
-        [Tooltip("The attachment point to use on this Interactable (will use transform.position as center if none set).")]
         Transform m_AttachTransform;
 
         /// <summary>
-        /// The attachment point to use on this Interactable (will use transform.position as center if none set).
+        /// The attachment point to use on this Interactable (will use this object's position as center if none set).
         /// </summary>
         public Transform attachTransform
         {
@@ -36,11 +37,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Time it takes to ease in the attach (a value of 0 indicates no easing).")]
         float m_AttachEaseInTime = k_DefaultAttachEaseInTime;
 
         /// <summary>
-        /// Time it takes to ease in the attach (a value of 0 indicates no easing).
+        /// Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).
         /// </summary>
         public float attachEaseInTime
         {
@@ -49,11 +49,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The movement type for the Rigidbody.")]
         MovementType m_MovementType = MovementType.Kinematic;
 
         /// <summary>
-        /// The movement type for the <see cref="Rigidbody"/>.
+        /// Specifies how this object is moved when selected, either through setting the velocity of the <see cref="Rigidbody"/>,
+        /// moving the kinematic <see cref="Rigidbody"/> during Fixed Update, or by directly updating the <see cref="Transform"/>.
         /// </summary>
         /// <seealso cref="XRBaseInteractable.MovementType"/>
         public MovementType movementType
@@ -63,12 +63,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Whether this interactable should track the position of the interactor.")]
         bool m_TrackPosition = true;
 
         /// <summary>
-        /// Whether this interactable should track the position of the interactor.
+        /// Whether this object should follow the position of the Interactor when selected.
         /// </summary>
+        /// <seealso cref="trackRotation"/>
         public bool trackPosition
         {
             get => m_TrackPosition;
@@ -76,11 +76,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Whether smoothing is applied to the position of the object.")]
         bool m_SmoothPosition;
 
         /// <summary>
-        /// Whether smoothing is applied to the position of the object.
+        /// Apply smoothing while following the position of the Interactor when selected.
         /// </summary>
         /// <seealso cref="smoothPositionAmount"/>
         /// <seealso cref="tightenPosition"/>
@@ -91,11 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField, Range(0f, 20f)]
-        [Tooltip("The smoothing applied to the object's position when following.")]
         float m_SmoothPositionAmount = k_DefaultSmoothingAmount;
 
         /// <summary>
-        /// The smoothing applied to the object's position when following.
+        /// Scale factor for how much smoothing is applied while following the position of the Interactor when selected.
+        /// The larger the value, the closer this object will remain to the position of the Interactor.
         /// </summary>
         /// <seealso cref="smoothPosition"/>
         /// <seealso cref="tightenPosition"/>
@@ -106,12 +105,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("The maximum follow position difference when using smoothing.")]
         float m_TightenPosition = k_DefaultTighteningAmount;
 
         /// <summary>
-        /// The maximum follow position difference when using smoothing.
+        /// Reduces the maximum follow position difference when using smoothing.
         /// </summary>
+        /// <remarks>
+        /// Fractional amount of how close the smoothed position should remain to the position of the Interactor when using smoothing.
+        /// The value ranges from 0 meaning no bias in the smoothed follow distance,
+        /// to 1 meaning effectively no smoothing at all.
+        /// </remarks>
         /// <seealso cref="smoothPosition"/>
         /// <seealso cref="smoothPositionAmount"/>
         public float tightenPosition
@@ -121,12 +124,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Whether this interactable should track the rotation of the interactor.")]
         bool m_TrackRotation = true;
 
         /// <summary>
-        /// Whether this interactable should track the rotation of the interactor.
+        /// Whether this object should follow the rotation of the Interactor when selected.
         /// </summary>
+        /// <seealso cref="trackPosition"/>
         public bool trackRotation
         {
             get => m_TrackRotation;
@@ -134,11 +137,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Apply smoothing to the follow rotation of the object.")]
         bool m_SmoothRotation;
 
         /// <summary>
-        /// Apply smoothing to the follow rotation of the object.
+        /// Apply smoothing while following the rotation of the Interactor when selected.
         /// </summary>
         /// <seealso cref="smoothRotationAmount"/>
         /// <seealso cref="tightenRotation"/>
@@ -149,11 +151,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField, Range(0f, 20f)]
-        [Tooltip("The smoothing applied to the object's rotation when following.")]
         float m_SmoothRotationAmount = k_DefaultSmoothingAmount;
 
         /// <summary>
-        /// The smoothing applied to the object's rotation when following.
+        /// Scale factor for how much smoothing is applied while following the rotation of the Interactor when selected.
+        /// The larger the value, the closer this object will remain to the rotation of the Interactor.
         /// </summary>
         /// <seealso cref="smoothRotation"/>
         /// <seealso cref="tightenRotation"/>
@@ -164,12 +166,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("The maximum follow rotation difference when using smoothing.")]
         float m_TightenRotation = k_DefaultTighteningAmount;
 
         /// <summary>
-        /// The maximum follow rotation difference when using smoothing.
+        /// Reduces the maximum follow rotation difference when using smoothing.
         /// </summary>
+        /// <remarks>
+        /// Fractional amount of how close the smoothed rotation should remain to the rotation of the Interactor when using smoothing.
+        /// The value ranges from 0 meaning no bias in the smoothed follow rotation,
+        /// to 1 meaning effectively no smoothing at all.
+        /// </remarks>
         /// <seealso cref="smoothRotation"/>
         /// <seealso cref="smoothRotationAmount"/>
         public float tightenRotation
@@ -179,11 +185,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Whether the object inherits the interactor's velocity when released.")]
         bool m_ThrowOnDetach = true;
 
         /// <summary>
-        /// Whether the object inherits the interactor's velocity when released.
+        /// Whether this object inherits the velocity of the Interactor when released.
         /// </summary>
         public bool throwOnDetach
         {
@@ -192,12 +197,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The time period to average thrown velocity over.")]
         float m_ThrowSmoothingDuration = k_DefaultThrowSmoothingDuration;
 
         /// <summary>
-        /// The time period to average thrown velocity over.
+        /// Time period to average thrown velocity over.
         /// </summary>
+        /// <seealso cref="throwOnDetach"/>
         public float throwSmoothingDuration
         {
             get => m_ThrowSmoothingDuration;
@@ -205,14 +210,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The curve to use to weight velocity smoothing (most recent frames to the right).")]
-#pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
         AnimationCurve m_ThrowSmoothingCurve = AnimationCurve.Linear(1f, 1f, 1f, 0f);
-#pragma warning restore IDE0044
 
         /// <summary>
-        /// The curve to use to weight velocity smoothing (most recent frames to the right).
+        /// The curve to use to weight thrown velocity smoothing (most recent frames to the right).
         /// </summary>
+        /// <seealso cref="throwOnDetach"/>
         public AnimationCurve throwSmoothingCurve
         {
             get => m_ThrowSmoothingCurve;
@@ -220,12 +223,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The velocity scale used when throwing.")]
         float m_ThrowVelocityScale = k_DefaultThrowVelocityScale;
 
         /// <summary>
-        /// The velocity scale used when throwing.
+        /// Scale factor applied to this object's inherited velocity of the Interactor when released.
         /// </summary>
+        /// <seealso cref="throwOnDetach"/>
         public float throwVelocityScale
         {
             get => m_ThrowVelocityScale;
@@ -233,37 +236,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The angular velocity scale used when throwing.")]
         float m_ThrowAngularVelocityScale = k_DefaultThrowAngularVelocityScale;
 
         /// <summary>
-        /// The angular velocity scale used when throwing.
+        /// Scale factor applied to this object's inherited angular velocity of the Interactor when released.
         /// </summary>
+        /// <seealso cref="throwOnDetach"/>
         public float throwAngularVelocityScale
         {
             get => m_ThrowAngularVelocityScale;
             set => m_ThrowAngularVelocityScale = value;
         }
 
-        [SerializeField]
-        [Tooltip("Whether object has gravity when released.")]
-        bool m_GravityOnDetach;
+        [SerializeField, FormerlySerializedAs("m_GravityOnDetach")]
+        bool m_ForceGravityOnDetach;
 
         /// <summary>
-        /// Whether object has gravity when released.
+        /// Force this object to have gravity when released
+        /// (will still use pre-grab value if this is <see langword="false"/>).
         /// </summary>
+        public bool forceGravityOnDetach
+        {
+            get => m_ForceGravityOnDetach;
+            set => m_ForceGravityOnDetach = value;
+        }
+
+        /// <summary>
+        /// Force this object to have gravity when released
+        /// (will still use pre-grab value if this is <see langword="false"/>).
+        /// </summary>
+        [Obsolete("gravityOnDetach has been deprecated. Use forceGravityOnDetach instead. (UnityUpgradable) -> forceGravityOnDetach")]
         public bool gravityOnDetach
         {
-            get => m_GravityOnDetach;
-            set => m_GravityOnDetach = value;
+            get => forceGravityOnDetach;
+            set => forceGravityOnDetach = value;
         }
 
         [SerializeField]
-        [Tooltip("Whether to retain the transform's location in the scene hierarchy when the object is dropped.")]
         bool m_RetainTransformParent = true;
 
         /// <summary>
-        /// Whether to retain the transform's location in the scene hierarchy when the object is dropped.
+        /// Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.
         /// </summary>
         public bool retainTransformParent
         {
@@ -271,14 +284,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_RetainTransformParent = value;
         }
 
-        XRBaseInteractor m_SelectingInteractor;
-
-        /// <summary>
-        /// (Read Only) The current selecting interactor for this interactable.
-        /// </summary>
-        public XRBaseInteractor selectingInteractor => m_SelectingInteractor;
-
-        // Point we are attaching to on this Interactable (in interactor's attach's coordinate space)
+        // Point we are attaching to on this Interactable (in Interactor's attach coordinate space)
         Vector3 m_InteractorLocalPosition;
         Quaternion m_InteractorLocalRotation;
 
@@ -302,9 +308,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Vector3 m_LastPosition;
         Quaternion m_LastRotation;
 
-        // Rigidbody's previous settings
+        // Rigidbody's settings upon select, kept to restore these values when dropped
         bool m_WasKinematic;
         bool m_UsedGravity;
+        float m_OldDrag;
+        float m_OldAngularDrag;
+
         Transform m_OriginalSceneParent;
 
         /// <inheritdoc />
@@ -313,10 +322,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             m_CurrentMovementType = m_MovementType;
+            m_Rigidbody = GetComponent<Rigidbody>();
             if (m_Rigidbody == null)
-                m_Rigidbody = GetComponent<Rigidbody>();
-            if (m_Rigidbody == null)
-                Debug.LogWarning("Grab Interactable does not have a required Rigidbody.", this);
+                Debug.LogError("Grab Interactable does not have a required Rigidbody.", this);
         }
 
         /// <inheritdoc />
@@ -374,7 +382,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case XRInteractionUpdateOrder.UpdatePhase.Late:
                     if (m_DetachInLateUpdate)
                     {
-                        if (m_SelectingInteractor == null)
+                        if (selectingInteractor == null)
                             Detach();
                         m_DetachInLateUpdate = false;
                     }
@@ -406,8 +414,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void UpdateTarget(float timeDelta)
         {
             // Compute the unsmoothed target world position and rotation
-            var rawTargetWorldPosition = GetWorldAttachPosition(m_SelectingInteractor);
-            var rawTargetWorldRotation = GetWorldAttachRotation(m_SelectingInteractor);
+            var rawTargetWorldPosition = GetWorldAttachPosition(selectingInteractor);
+            var rawTargetWorldRotation = GetWorldAttachRotation(selectingInteractor);
 
             // Apply smoothing (if configured)
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
@@ -442,11 +450,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
             {
-                if (trackPosition)
+                if (m_TrackPosition)
                 {
                     transform.position = m_TargetWorldPosition;
                 }
-                if (trackRotation)
+                if (m_TrackRotation)
                 {
                     transform.rotation = m_TargetWorldRotation;
                 }
@@ -457,13 +465,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
-                if (trackPosition)
+                if (m_TrackPosition)
                 {
                     var positionDelta = m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
                     m_Rigidbody.velocity = Vector3.zero;
                     m_Rigidbody.MovePosition(m_Rigidbody.position + positionDelta);
                 }
-                if (trackRotation)
+                if (m_TrackRotation)
                 {
                     m_Rigidbody.angularVelocity = Vector3.zero;
                     m_Rigidbody.MoveRotation(m_TargetWorldRotation);
@@ -476,7 +484,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
                 // Do velocity tracking
-                if (trackPosition)
+                if (m_TrackPosition)
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.velocity *= k_VelocityPredictionFactor;
@@ -488,7 +496,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
 
                 // Do angular velocity tracking
-                if (trackRotation)
+                if (m_TrackRotation)
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.angularVelocity *= k_VelocityPredictionFactor;
@@ -504,15 +512,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             m_Rigidbody.angularVelocity += angularVelocity * k_AngularVelocityDamping;
                     }
                 }
-            }
-        }
-
-        void Detach()
-        {
-            if (m_ThrowOnDetach)
-            {
-                m_Rigidbody.velocity = m_DetachVelocity;
-                m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
         }
 
@@ -537,37 +536,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(XRBaseInteractor interactor)
+        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            if (interactor == null)
-                return;
-            base.OnSelectEntering(interactor);
+            base.OnSelectEntering(args);
+            Grab();
+        }
 
-            // Only do this on the first select, because otherwise the original parent will be overwritten as null.
-            if (m_SelectingInteractor == null)
-            {
-                m_OriginalSceneParent = transform.parent;
-                transform.parent = null;
-            }
+        /// <inheritdoc />
+        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        {
+            base.OnSelectExiting(args);
+            Drop();
+        }
 
-            m_SelectingInteractor = interactor;
+        /// <summary>
+        /// Updates the state of the object due to being grabbed.
+        /// Automatically called when entering the Select state.
+        /// </summary>
+        /// <seealso cref="Drop"/>
+        protected virtual void Grab()
+        {
+            m_OriginalSceneParent = transform.parent;
+            transform.SetParent(null);
 
             // Special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors)
-            m_CurrentMovementType = interactor.selectedInteractableMovementTypeOverride ?? m_MovementType;
+            m_CurrentMovementType = selectingInteractor.selectedInteractableMovementTypeOverride ?? m_MovementType;
 
-            // Remember Rigidbody settings and setup to move
-            m_WasKinematic = m_Rigidbody.isKinematic;
-            m_UsedGravity = m_Rigidbody.useGravity;
-            m_Rigidbody.isKinematic = (m_CurrentMovementType == MovementType.Kinematic);
-            m_Rigidbody.useGravity = false;
-            m_Rigidbody.drag = 0f;
-            m_Rigidbody.angularDrag = 0f;
+            SetupRigidbodyGrab(m_Rigidbody);
 
-            // Forget if we have previous detach velocities
-            m_DetachAngularVelocity = Vector3.zero;
+            // Reset detach velocities
             m_DetachVelocity = Vector3.zero;
+            m_DetachAngularVelocity = Vector3.zero;
 
-            UpdateInteractorLocalPose(interactor);
+            UpdateInteractorLocalPose(selectingInteractor);
 
             if (m_AttachEaseInTime > 0f)
             {
@@ -579,55 +580,96 @@ namespace UnityEngine.XR.Interaction.Toolkit
             SmoothVelocityStart();
         }
 
-        /// <inheritdoc />
-        protected internal override void OnSelectEntered(XRBaseInteractor interactor)
+        /// <summary>
+        /// Updates the state of the object due to being dropped and schedule to finish the detach during the end of the frame.
+        /// Automatically called when exiting the Select state.
+        /// </summary>
+        /// <seealso cref="Detach"/>
+        /// <seealso cref="Grab"/>
+        protected virtual void Drop()
         {
-            if (interactor == null)
-                return;
-            base.OnSelectEntered(interactor);
-        }
-
-        /// <inheritdoc />
-        protected internal override void OnSelectExiting(XRBaseInteractor interactor)
-        {
-            base.OnSelectExiting(interactor);
-            Drop();
-        }
-
-        /// <inheritdoc />
-        protected internal override void OnSelectCanceling(XRBaseInteractor interactor)
-        {
-            base.OnSelectCanceling(interactor);
-            Drop();
-        }
-
-        protected internal void Drop()
-        {
-            if(m_RetainTransformParent && m_OriginalSceneParent != null && !m_OriginalSceneParent.gameObject.activeInHierarchy)
-                Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. "+
-                    "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
+            if (m_RetainTransformParent && m_OriginalSceneParent != null && !m_OriginalSceneParent.gameObject.activeInHierarchy)
+            {
+                bool exitingPlayMode;
+#if UNITY_EDITOR
+                // Suppress the warning when exiting Play mode to avoid confusing the user
+                exitingPlayMode = UnityEditor.EditorApplication.isPlaying && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
+#else
+                exitingPlayMode = false;
+#endif
+                if (!exitingPlayMode)
+                    Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. " +
+                        "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
+            }
             else if (m_RetainTransformParent && gameObject.activeInHierarchy)
-                transform.parent = m_OriginalSceneParent;
+                transform.SetParent(m_OriginalSceneParent);
 
-            // Reset Rigidbody settings
-            m_Rigidbody.isKinematic = m_WasKinematic;
-            m_Rigidbody.useGravity = m_UsedGravity | m_GravityOnDetach;
+            SetupRigidbodyDrop(m_Rigidbody);
 
             m_CurrentMovementType = m_MovementType;
-            m_SelectingInteractor = null;
             m_DetachInLateUpdate = true;
             SmoothVelocityEnd();
         }
 
-        /// <inheritdoc />
-        public override bool IsHoverableBy(XRBaseInteractor interactor) => true;
+        /// <summary>
+        /// Updates the state of the object to finish the detach after being dropped.
+        /// Automatically called during the end of the frame after being dropped.
+        /// </summary>
+        /// <remarks>
+        /// This method will update the velocity of the Rigidbody if configured to do so.
+        /// </remarks>
+        /// <seealso cref="Drop"/>
+        protected virtual void Detach()
+        {
+            if (m_ThrowOnDetach)
+            {
+                m_Rigidbody.velocity = m_DetachVelocity;
+                m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
+            }
+        }
+
+        /// <summary>
+        /// Setup the <see cref="Rigidbody"/> on this object due to being grabbed.
+        /// Automatically called when entering the Select state.
+        /// </summary>
+        /// <param name="rigidbody">The <see cref="Rigidbody"/> on this object.</param>
+        /// <seealso cref="SetupRigidbodyDrop"/>
+        // ReSharper disable once ParameterHidesMember
+        protected virtual void SetupRigidbodyGrab(Rigidbody rigidbody)
+        {
+            // Remember Rigidbody settings and setup to move
+            m_WasKinematic = rigidbody.isKinematic;
+            m_UsedGravity = rigidbody.useGravity;
+            m_OldDrag = rigidbody.drag;
+            m_OldAngularDrag = rigidbody.angularDrag;
+            rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic;
+            rigidbody.useGravity = false;
+            rigidbody.drag = 0f;
+            rigidbody.angularDrag = 0f;
+        }
+
+        /// <summary>
+        /// Setup the <see cref="Rigidbody"/> on this object due to being dropped.
+        /// Automatically called when exiting the Select state.
+        /// </summary>
+        /// <param name="rigidbody">The <see cref="Rigidbody"/> on this object.</param>
+        /// <seealso cref="SetupRigidbodyGrab"/>
+        // ReSharper disable once ParameterHidesMember
+        protected virtual void SetupRigidbodyDrop(Rigidbody rigidbody)
+        {
+            // Restore Rigidbody settings
+            rigidbody.isKinematic = m_WasKinematic;
+            rigidbody.useGravity = m_UsedGravity | m_ForceGravityOnDetach;
+            rigidbody.drag = m_OldDrag;
+            rigidbody.angularDrag = m_OldAngularDrag;
+        }
 
         void SmoothVelocityStart()
         {
-            if (m_SelectingInteractor == null)
+            if (selectingInteractor == null)
                 return;
-            m_LastPosition = m_SelectingInteractor.attachTransform.position;
-            m_LastRotation = m_SelectingInteractor.attachTransform.rotation;
+            m_LastPosition = selectingInteractor.attachTransform.position;
+            m_LastRotation = selectingInteractor.attachTransform.rotation;
             Array.Clear(m_ThrowSmoothingFrameTimes, 0, m_ThrowSmoothingFrameTimes.Length);
             Array.Clear(m_ThrowSmoothingVelocityFrames, 0, m_ThrowSmoothingVelocityFrames.Length);
             Array.Clear(m_ThrowSmoothingAngularVelocityFrames, 0, m_ThrowSmoothingAngularVelocityFrames.Length);
@@ -647,26 +689,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void SmoothVelocityUpdate()
         {
-            if (m_SelectingInteractor == null)
+            if (selectingInteractor == null)
                 return;
             m_ThrowSmoothingFrameTimes[m_ThrowSmoothingCurrentFrame] = Time.time;
-            m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (m_SelectingInteractor.attachTransform.position - m_LastPosition) / Time.deltaTime;
+            m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (selectingInteractor.attachTransform.position - m_LastPosition) / Time.deltaTime;
 
-            var velocityDiff = (m_SelectingInteractor.attachTransform.rotation * Quaternion.Inverse(m_LastRotation));
+            var velocityDiff = (selectingInteractor.attachTransform.rotation * Quaternion.Inverse(m_LastRotation));
             m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] = (new Vector3(Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.x), Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.y), Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.z))
                 / Time.deltaTime) * Mathf.Deg2Rad;
 
             m_ThrowSmoothingCurrentFrame = (m_ThrowSmoothingCurrentFrame + 1) % k_ThrowSmoothingFrameCount;
-            m_LastPosition = m_SelectingInteractor.attachTransform.position;
-            m_LastRotation = m_SelectingInteractor.attachTransform.rotation;
+            m_LastPosition = selectingInteractor.attachTransform.position;
+            m_LastRotation = selectingInteractor.attachTransform.rotation;
         }
 
         Vector3 GetSmoothedVelocityValue(Vector3[] velocityFrames)
         {
             var calcVelocity = new Vector3();
-            var frameCounter = 0;
             var totalWeights = 0f;
-            for (; frameCounter < k_ThrowSmoothingFrameCount; frameCounter++)
+            for (var frameCounter = 0; frameCounter < k_ThrowSmoothingFrameCount; ++frameCounter)
             {
                 var frameIdx = (((m_ThrowSmoothingCurrentFrame - frameCounter - 1) % k_ThrowSmoothingFrameCount) + k_ThrowSmoothingFrameCount) % k_ThrowSmoothingFrameCount;
                 if (m_ThrowSmoothingFrameTimes[frameIdx] == 0f)

@@ -37,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("Controls whether to enable left & right snap turns.")]
         bool m_EnableTurnLeftRight = true;
         /// <summary>
-        /// Controls whether to enable left & right snap turns.
+        /// Controls whether to enable left and right snap turns.
         /// </summary>
         /// <seealso cref="enableTurnAround"/>
         public bool enableTurnLeftRight
@@ -62,6 +62,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_CurrentTurnAmount;
         float m_TimeStarted;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             // Wait for a certain amount of time before allowing another turn.
@@ -131,6 +134,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return 0f;
         }
 
+        /// <summary>
+        /// Begins turning locomotion.
+        /// </summary>
+        /// <param name="amount">Amount to turn.</param>
         protected void StartTurn(float amount)
         {
             if (m_TimeStarted > 0f)

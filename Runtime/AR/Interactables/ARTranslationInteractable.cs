@@ -20,10 +20,17 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
-#if !AR_FOUNDATION_PRESENT
+#if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
 // Stub class definition used to fool version defines that this MonoScript exists (fixed in 19.3)
-namespace UnityEngine.XR.Interaction.Toolkit.AR {  public class ARTranslationInteractable {} }
+namespace UnityEngine.XR.Interaction.Toolkit.AR
+{
+    /// <summary>
+    /// Manipulates the position of an object via a drag gesture.
+    /// If not selected, the object will be selected when the drag gesture starts.
+    /// </summary>
+    public class ARTranslationInteractable {}
+}
 
 #else
 
@@ -34,6 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If not selected, the object will be selected when the drag gesture starts.
     /// </summary>
     [RequireComponent(typeof(ARSelectionInteractable))]
+    [HelpURL(XRHelpURLConstants.k_ARTranslationInteractable)]
     public class ARTranslationInteractable : ARBaseGestureInteractable
     {
         [SerializeField]
@@ -73,6 +81,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         Quaternion m_DesiredRotation;
         GestureTransformationUtility.Placement m_LastPlacement;
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             UpdatePosition();
