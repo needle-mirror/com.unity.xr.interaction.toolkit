@@ -190,7 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var rayInt = interactor as XRRayInteractor;
             if (rayInt != null)
             {
-                if (rayInt.GetCurrentRaycastHit(out var raycastHit))
+                if (rayInt.TryGetCurrent3DRaycastHit(out var raycastHit))
                 {
                     // Are we still selecting this object?
                     var found = false;

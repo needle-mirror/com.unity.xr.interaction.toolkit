@@ -1,8 +1,9 @@
 using System;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     class XRInteractionDebuggerWindow : EditorWindow
     {

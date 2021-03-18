@@ -48,9 +48,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class ARRotationInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("Rate at which to rotate object with a drag.")]
-        float m_RotationRateDegreesDrag = 100.0f;
+        float m_RotationRateDegreesDrag = 100f;
 
-        /// <summary>The rate at which to rotate object with a drag.</summary>
+        /// <summary>
+        /// The rate at which to rotate object with a drag.
+        /// </summary>
         public float rotationRateDegreesDrag
         {
             get => m_RotationRateDegreesDrag;
@@ -60,62 +62,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         [SerializeField, Tooltip("Rate at which to rotate object with a twist.")]
         float m_RotationRateDegreesTwist = 2.5f;
 
-        /// <summary>The rate at which to rotate object with a twist.</summary>
+        /// <summary>
+        /// The rate at which to rotate object with a twist.
+        /// </summary>
         public float rotationRateDegreesTwist
         {
             get => m_RotationRateDegreesTwist;
             set => m_RotationRateDegreesTwist = value;
         }
 
-        /// <summary>
-        /// Returns true if the manipulation can be started for the given Drag gesture.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(DragGesture gesture)
         {
-            if (!IsGameObjectSelected())
-                return false;
-
-            return gesture.TargetObject == null;
+            return IsGameObjectSelected() && gesture.targetObject == null;
         }
 
-        /// <summary>
-        /// Returns true if the manipulation can be started for the given Twist gesture.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(TwistGesture gesture)
         {
-            if (!IsGameObjectSelected())
-                return false;
-
-            return gesture.TargetObject == null;
+            return IsGameObjectSelected() && gesture.targetObject == null;
         }
 
         /// <summary>
         /// Rotates the object around the y-axis via a Drag gesture.
         /// </summary>
         /// <param name="gesture">The current drag gesture.</param>
+        /// <inheritdoc />
         protected override void OnContinueManipulation(DragGesture gesture)
         {
-            var forward = Camera.main.transform.forward;
+            // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
+            var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+            if (camera == null)
+                return;
+
+            var forward = camera.transform.forward;
             var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(forward, Vector3.up));
-            var deviceToWorld = Camera.main.transform.rotation;
+            var deviceToWorld = camera.transform.rotation;
             var rotatedDelta = worldToVerticalOrientedDevice * deviceToWorld * gesture.delta;
 
-            var rotationAmount = -1.0f * (rotatedDelta.x / Screen.dpi) * m_RotationRateDegreesDrag;
-            transform.Rotate(0.0f, rotationAmount, 0.0f);
+            var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * m_RotationRateDegreesDrag;
+            transform.Rotate(0f, rotationAmount, 0f);
         }
 
         /// <summary>
         /// Rotates the object around the y-axis via a Twist gesture.
         /// </summary>
         /// <param name="gesture">The current twist gesture.</param>
+        /// <inheritdoc />
         protected override void OnContinueManipulation(TwistGesture gesture)
         {
             var rotationAmount = -gesture.deltaRotation * m_RotationRateDegreesTwist;
-            transform.Rotate(0.0f, rotationAmount, 0.0f);
+            transform.Rotate(0f, rotationAmount, 0f);
         }
     }
 }

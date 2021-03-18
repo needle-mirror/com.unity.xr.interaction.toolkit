@@ -29,29 +29,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture Recognizer for when the user performs a two-finger twist motion on the touch screen.
     /// </summary>
+    /// <inheritdoc />
     public class TwistGestureRecognizer : GestureRecognizer<TwistGesture>
     {
-        const float k_SlopRotation = 10.0f;
-
-        internal float m_SlopRotation => k_SlopRotation;
+        /// <summary>
+        /// Rotation in degrees a user's touches must twist from the start positions
+        /// before the twist gesture is interpreted as started.
+        /// </summary>
+        public float slopRotation { get; set; } = 10f;
 
         /// <summary>
         /// Creates a Twist gesture with the given touches.
         /// </summary>
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
-        /// <returns>The created Tap gesture.</returns>
+        /// <returns>The created Twist gesture.</returns>
         internal TwistGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new TwistGesture(this, touch1, touch2);
         }
 
         /// <summary>
-        /// Tries to create a Twist Gesture.
+        /// Creates a Twist gesture with the given touches.
         /// </summary>
-        protected internal override void TryCreateGestures()
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        /// <returns>The created Twist gesture.</returns>
+        internal TwistGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
+            return new TwistGesture(this, touch1, touch2);
+        }
+
+        /// <inheritdoc />
+        protected override void TryCreateGestures()
+        {
+            if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
+                TryCreateTwoFingerGestureOnTouchBegan(CreateEnhancedGesture);
+            else
+                TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
         }
     }
 }

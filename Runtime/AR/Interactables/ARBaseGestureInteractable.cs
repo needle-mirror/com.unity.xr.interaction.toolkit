@@ -33,6 +33,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #else
 
+using UnityEngine.Assertions;
+using UnityEngine.XR.ARFoundation;
+
+#if UNITY_EDITOR
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
@@ -40,233 +47,516 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public abstract class ARBaseGestureInteractable : XRBaseInteractable
     {
+        [SerializeField]
+        ARSessionOrigin m_ARSessionOrigin;
+
+        /// <summary>
+        /// The <see cref="ARSessionOrigin"/> that this Interactable will use
+        /// (such as to get the <see cref="Camera"/> or to transform from Session space).
+        /// Will find one if <see langword="null"/>.
+        /// </summary>
+        public ARSessionOrigin arSessionOrigin
+        {
+            get => m_ARSessionOrigin;
+            set => m_ARSessionOrigin = value;
+        }
+
+        /// <summary>
+        /// The <see cref="ARGestureInteractor"/> whose gestures are listened to by this Interactable
+        /// when connected.
+        /// </summary>
+        /// <seealso cref="ConnectGestureInteractor"/>
+        /// <seealso cref="DisconnectGestureInteractor"/>
+        protected ARGestureInteractor gestureInteractor { get; private set; }
+
         bool m_IsManipulating;
 
         /// <summary>
-        /// Determines if this interactable can be selected by a given interactor.
+        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
         /// </summary>
-        /// <param name="interactor">Interactor to check for a valid selection with.</param>
-        /// <returns>Returns <see langword="true"/> if selection is valid this frame. Otherwise, returns <see langword="false"/>.</returns>
+        static ARSessionOrigin s_ARSessionOriginCache;
+
+        /// <inheritdoc />
+        protected override void Reset()
+        {
+            base.Reset();
+#if UNITY_EDITOR
+            m_ARSessionOrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<ARSessionOrigin>(gameObject);
+#endif
+        }
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            FindARSessionOrigin();
+        }
+
+        /// <inheritdoc />
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            FindARSessionOrigin();
+        }
+
+        /// <inheritdoc />
+        public override bool IsHoverableBy(XRBaseInteractor interactor) => interactor is ARGestureInteractor;
+
+        /// <inheritdoc />
         public override bool IsSelectableBy(XRBaseInteractor interactor) => false;
 
         /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(DragGesture gesture) => false;
 
         /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(PinchGesture gesture) => false;
 
         /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TapGesture gesture) => false;
 
         /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwistGesture gesture) => false;
 
         /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can be started for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture) => false;
 
         /// <summary>
-        /// Function called when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation is started.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(DragGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is started.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(PinchGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is started.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TapGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is started.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TwistGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is started.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnStartManipulation(TwoFingerDragGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is continued.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(DragGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is continued.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(PinchGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is continued.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TapGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is continued.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TwistGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is continued.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnContinueManipulation(TwoFingerDragGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(DragGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(PinchGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TapGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TwistGesture gesture) { }
-
-        /// <summary>
-        /// Function called when the manipulation is ended.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        protected virtual void OnEndManipulation(TwoFingerDragGesture gesture) { }
-
-        static ARGestureInteractor s_GestureInteractor;
-
-        protected static ARGestureInteractor gestureInteractor => s_GestureInteractor;
-
-        static bool UpdateGestureInteractor()
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        protected virtual void OnStartManipulation(DragGesture gesture)
         {
-            if (s_GestureInteractor == null)
-            {
-                var gestureInteractors = FindObjectsOfType<ARGestureInteractor>();
-                if (gestureInteractors.Length == 0)
-                {
-                    Debug.LogWarning("No gesture interactor in scene.");
-                    return false;
-                }
-                else if (gestureInteractors.Length > 1)
-                {
-                    Debug.LogWarning("Multiple gesture interactors in scene.  Ensure there is only one");
-                }
-
-                s_GestureInteractor = gestureInteractors[0];
-            }
-
-            return true;
         }
 
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is started.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        protected virtual void OnStartManipulation(PinchGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is started.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        protected virtual void OnStartManipulation(TapGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is started.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        protected virtual void OnStartManipulation(TwistGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is started.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        protected virtual void OnStartManipulation(TwoFingerDragGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        protected virtual void OnContinueManipulation(DragGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        protected virtual void OnContinueManipulation(PinchGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        protected virtual void OnContinueManipulation(TapGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        protected virtual void OnContinueManipulation(TwistGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        protected virtual void OnContinueManipulation(TwoFingerDragGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        protected virtual void OnEndManipulation(DragGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        protected virtual void OnEndManipulation(PinchGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        protected virtual void OnEndManipulation(TapGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        protected virtual void OnEndManipulation(TwistGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        protected virtual void OnEndManipulation(TwoFingerDragGesture gesture)
+        {
+        }
+
+        /// <summary>
+        /// Determines if the Gesture Interactor is selecting the <see cref="GameObject"/> this Interactable is attached to.
+        /// </summary>
+        /// <returns>Returns <seealso langword="true"/> if the Gesture Interactor is selecting the <see cref="GameObject"/> this Interactable is attached to.
+        /// Otherwise, returns <seealso langword="false"/>.</returns>
         protected virtual bool IsGameObjectSelected()
         {
-            if (!UpdateGestureInteractor())
+            if (gestureInteractor == null)
                 return false;
 
-            var selectedInteractable = s_GestureInteractor.selectTarget;
+            var selectedInteractable = gestureInteractor.selectTarget;
             if (selectedInteractable == null)
                 return false;
 
-            return (selectedInteractable.gameObject == gameObject);
+            return selectedInteractable.gameObject == gameObject;
         }
 
         /// <summary>
-        /// Determines if this interactable can be hovered by a given interactor.
+        /// Connect an interactor's gestures to this interactable.
         /// </summary>
-        /// <param name="interactor">Interactor to check for a valid hover state with.</param>
-        /// <returns>True if hovering is valid this frame, False if not.</returns>
-        public override bool IsHoverableBy(XRBaseInteractor interactor) => interactor is ARGestureInteractor;
-
-        /// <summary>
-        /// Connect an interactor's gestures to this interactable
-        /// </summary>
-        protected internal void ConnectGestureInteractor()
+        protected virtual void ConnectGestureInteractor()
         {
-            if (!UpdateGestureInteractor())
+            if (gestureInteractor == null)
                 return;
 
-            if (s_GestureInteractor.DragGestureRecognizer != null)
-                s_GestureInteractor.DragGestureRecognizer.onGestureStarted += OnGestureStarted;
+            if (gestureInteractor.dragGestureRecognizer != null)
+                gestureInteractor.dragGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            if (s_GestureInteractor.PinchGestureRecognizer != null)
-                s_GestureInteractor.PinchGestureRecognizer.onGestureStarted += OnGestureStarted;
+            if (gestureInteractor.pinchGestureRecognizer != null)
+                gestureInteractor.pinchGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            if (s_GestureInteractor.TapGestureRecognizer != null)
-                s_GestureInteractor.TapGestureRecognizer.onGestureStarted += OnGestureStarted;
+            if (gestureInteractor.tapGestureRecognizer != null)
+                gestureInteractor.tapGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            if (s_GestureInteractor.TwistGestureRecognizer != null)
-                s_GestureInteractor.TwistGestureRecognizer.onGestureStarted += OnGestureStarted;
+            if (gestureInteractor.twistGestureRecognizer != null)
+                gestureInteractor.twistGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            if (s_GestureInteractor.TwoFingerDragGestureRecognizer != null)
-                s_GestureInteractor.TwoFingerDragGestureRecognizer.onGestureStarted += OnGestureStarted;
+            if (gestureInteractor.twoFingerDragGestureRecognizer != null)
+                gestureInteractor.twoFingerDragGestureRecognizer.onGestureStarted += OnGestureStarted;
         }
 
         /// <summary>
-        /// Disconnect an interactor's gestures from this interactable
+        /// Disconnect an interactor's gestures from this interactable.
         /// </summary>
-        protected internal void DisconnectGestureInteractor()
+        protected virtual void DisconnectGestureInteractor()
         {
-            if (!UpdateGestureInteractor())
+            if (gestureInteractor == null)
                 return;
 
-            if (s_GestureInteractor.DragGestureRecognizer != null)
-                s_GestureInteractor.DragGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            if (gestureInteractor.dragGestureRecognizer != null)
+                gestureInteractor.dragGestureRecognizer.onGestureStarted -= OnGestureStarted;
 
-            if (s_GestureInteractor.PinchGestureRecognizer != null)
-                s_GestureInteractor.PinchGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            if (gestureInteractor.pinchGestureRecognizer != null)
+                gestureInteractor.pinchGestureRecognizer.onGestureStarted -= OnGestureStarted;
 
-            if (s_GestureInteractor.TapGestureRecognizer != null)
-                s_GestureInteractor.TapGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            if (gestureInteractor.tapGestureRecognizer != null)
+                gestureInteractor.tapGestureRecognizer.onGestureStarted -= OnGestureStarted;
 
-            if (s_GestureInteractor.TwistGestureRecognizer != null)
-                s_GestureInteractor.TwistGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            if (gestureInteractor.twistGestureRecognizer != null)
+                gestureInteractor.twistGestureRecognizer.onGestureStarted -= OnGestureStarted;
 
-            if (s_GestureInteractor.TwoFingerDragGestureRecognizer != null)
-                s_GestureInteractor.TwoFingerDragGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            if (gestureInteractor.twoFingerDragGestureRecognizer != null)
+                gestureInteractor.twoFingerDragGestureRecognizer.onGestureStarted -= OnGestureStarted;
         }
 
-        void OnGestureStarted(DragGesture gesture)
+        /// <inheritdoc />
+        protected internal override void OnRegistered(InteractableRegisteredEventArgs args)
+        {
+            base.OnRegistered(args);
+
+            FindAndConnectGestureInteractor(args.manager);
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            base.OnUnregistered(args);
+
+            if (gestureInteractor != null)
+            {
+                DisconnectGestureInteractor();
+                gestureInteractor.unregistered -= OnGestureInteractorUnregistered;
+                gestureInteractor = null;
+            }
+            else
+            {
+                args.manager.interactorRegistered -= OnInteractorRegistered;
+            }
+        }
+
+        void FindAndConnectGestureInteractor(XRInteractionManager manager)
+        {
+            // Find the Gesture Interactor registered to the same Interaction Manager,
+            // warning if there is more than one. To simplify the API, this Interactable
+            // can only listen to one at a time.
+            // If the Gesture Interactor exists, need to handle it being unregistered.
+            // Otherwise, listen on the Interaction Manager until one is registered.
+            gestureInteractor = GetGestureInteractor(manager);
+            if (gestureInteractor != null)
+            {
+                ConnectGestureInteractor();
+                gestureInteractor.unregistered += OnGestureInteractorUnregistered;
+            }
+            else
+            {
+                manager.interactorRegistered += OnInteractorRegistered;
+            }
+        }
+
+        void OnGestureInteractorUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            Assert.AreEqual(gestureInteractor, args.interactor as ARGestureInteractor);
+
+            DisconnectGestureInteractor();
+            gestureInteractor.unregistered -= OnGestureInteractorUnregistered;
+            gestureInteractor = null;
+
+            // Try to find another or start listening until one is registered
+            FindAndConnectGestureInteractor(args.manager);
+        }
+
+        void OnInteractorRegistered(InteractorRegisteredEventArgs args)
+        {
+            Assert.IsNull(gestureInteractor);
+
+            if (args.interactor is ARGestureInteractor registeredGestureInteractor)
+            {
+                gestureInteractor = registeredGestureInteractor;
+                ConnectGestureInteractor();
+                gestureInteractor.unregistered += OnGestureInteractorUnregistered;
+                args.manager.interactorRegistered -= OnInteractorRegistered;
+            }
+        }
+
+        ARGestureInteractor GetGestureInteractor(XRInteractionManager manager)
+        {
+            ARGestureInteractor result = null;
+            var numRegisteredGestureInteractors = 0;
+
+            foreach (var interactor in manager.interactors)
+            {
+                if (interactor is ARGestureInteractor registeredGestureInteractor)
+                {
+                    result = registeredGestureInteractor;
+                    ++numRegisteredGestureInteractors;
+                }
+            }
+
+            if (numRegisteredGestureInteractors > 1)
+            {
+                Debug.LogWarning($"More than one {nameof(ARGestureInteractor)} is registered with {manager}," +
+                    $" but only one can be listened to at a time. Choosing to listen to {result}.", this);
+            }
+
+            return result;
+        }
+
+        void FindARSessionOrigin()
+        {
+            if (m_ARSessionOrigin != null)
+                return;
+
+            if (s_ARSessionOriginCache == null)
+                s_ARSessionOriginCache = FindObjectOfType<ARSessionOrigin>();
+
+            m_ARSessionOrigin = s_ARSessionOriginCache;
+        }
+
+        /// <summary>
+        /// Determines if the manipulation can be started for the given gesture.
+        /// </summary>
+        /// <typeparam name="T">The gesture type.</typeparam>
+        /// <param name="gesture">The current gesture.</param>
+        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        // TODO Consider making this protected virtual and deprecating non-generic methods
+        bool CanStartManipulationForGesture<T>(Gesture<T> gesture) where T : Gesture<T>
+        {
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    return CanStartManipulationForGesture(dragGesture);
+                case PinchGesture pinchGesture:
+                    return CanStartManipulationForGesture(pinchGesture);
+                case TapGesture tapGesture:
+                    return CanStartManipulationForGesture(tapGesture);
+                case TwistGesture twistGesture:
+                    return CanStartManipulationForGesture(twistGesture);
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    return CanStartManipulationForGesture(twoFingerDragGesture);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is started.
+        /// </summary>
+        /// <typeparam name="T">The gesture type.</typeparam>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
+        // TODO Consider making this protected virtual and deprecating non-generic methods
+        void OnStartManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
+        {
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    OnStartManipulation(dragGesture);
+                    break;
+                case PinchGesture pinchGesture:
+                    OnStartManipulation(pinchGesture);
+                    break;
+                case TapGesture tapGesture:
+                    OnStartManipulation(tapGesture);
+                    break;
+                case TwistGesture twistGesture:
+                    OnStartManipulation(twistGesture);
+                    break;
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    OnStartManipulation(twoFingerDragGesture);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is continued.
+        /// </summary>
+        /// <typeparam name="T">The gesture type.</typeparam>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onUpdated"/>
+        // TODO Consider making this protected virtual and deprecating non-generic methods
+        void OnContinueManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
+        {
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    OnContinueManipulation(dragGesture);
+                    break;
+                case PinchGesture pinchGesture:
+                    OnContinueManipulation(pinchGesture);
+                    break;
+                case TapGesture tapGesture:
+                    OnContinueManipulation(tapGesture);
+                    break;
+                case TwistGesture twistGesture:
+                    OnContinueManipulation(twistGesture);
+                    break;
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    OnContinueManipulation(twoFingerDragGesture);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the manipulation is ended.
+        /// </summary>
+        /// <typeparam name="T">The gesture type.</typeparam>
+        /// <param name="gesture">The current gesture.</param>
+        /// <seealso cref="Gesture{T}.onFinished"/>
+        // TODO Consider making this protected virtual and deprecating non-generic methods
+        void OnEndManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
+        {
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    OnEndManipulation(dragGesture);
+                    break;
+                case PinchGesture pinchGesture:
+                    OnEndManipulation(pinchGesture);
+                    break;
+                case TapGesture tapGesture:
+                    OnEndManipulation(tapGesture);
+                    break;
+                case TwistGesture twistGesture:
+                    OnEndManipulation(twistGesture);
+                    break;
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    OnEndManipulation(twoFingerDragGesture);
+                    break;
+            }
+        }
+
+        void OnGestureStarted<T>(Gesture<T> gesture) where T : Gesture<T>
         {
             if (m_IsManipulating)
                 return;
@@ -280,63 +570,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
-        void OnGestureStarted(PinchGesture gesture)
-        {
-            if (m_IsManipulating)
-                return;
-
-            if (CanStartManipulationForGesture(gesture))
-            {
-                m_IsManipulating = true;
-                gesture.onUpdated += OnUpdated;
-                gesture.onFinished += OnFinished;
-                OnStartManipulation(gesture);
-            }
-        }
-
-        void OnGestureStarted(TapGesture gesture)
-        {
-            if (m_IsManipulating)
-                return;
-
-            if (CanStartManipulationForGesture(gesture))
-            {
-                m_IsManipulating = true;
-                gesture.onUpdated += OnUpdated;
-                gesture.onFinished += OnFinished;
-                OnStartManipulation(gesture);
-            }
-        }
-
-        void OnGestureStarted(TwistGesture gesture)
-        {
-            if (m_IsManipulating)
-                return;
-
-            if (CanStartManipulationForGesture(gesture))
-            {
-                m_IsManipulating = true;
-                gesture.onUpdated += OnUpdated;
-                gesture.onFinished += OnFinished;
-                OnStartManipulation(gesture);
-            }
-        }
-
-        void OnGestureStarted(TwoFingerDragGesture gesture)
-        {
-            if (m_IsManipulating)
-                return;
-
-            if (CanStartManipulationForGesture(gesture))
-            {
-                m_IsManipulating = true;
-                gesture.onUpdated += OnUpdated;
-                gesture.onFinished += OnFinished;
-                OnStartManipulation(gesture);
-            }
-        }
-
-        void OnUpdated(DragGesture gesture)
+        void OnUpdated<T>(Gesture<T> gesture) where T : Gesture<T>
         {
             if (!m_IsManipulating)
                 return;
@@ -352,95 +586,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             OnContinueManipulation(gesture);
         }
 
-        void OnUpdated(PinchGesture gesture)
-        {
-            if (!m_IsManipulating)
-                return;
-
-            // Can only transform selected Items.
-            if (!IsGameObjectSelected())
-            {
-                m_IsManipulating = false;
-                OnEndManipulation(gesture);
-                return;
-            }
-
-            OnContinueManipulation(gesture);
-        }
-
-        void OnUpdated(TapGesture gesture)
-        {
-            if (!m_IsManipulating)
-                return;
-
-            // Can only transform selected Items.
-            if (!IsGameObjectSelected())
-            {
-                m_IsManipulating = false;
-                OnEndManipulation(gesture);
-                return;
-            }
-
-            OnContinueManipulation(gesture);
-        }
-
-        void OnUpdated(TwistGesture gesture)
-        {
-            if (!m_IsManipulating)
-                return;
-
-            // Can only transform selected Items.
-            if (!IsGameObjectSelected())
-            {
-                m_IsManipulating = false;
-                OnEndManipulation(gesture);
-                return;
-            }
-
-            OnContinueManipulation(gesture);
-        }
-
-        void OnUpdated(TwoFingerDragGesture gesture)
-        {
-            if (!m_IsManipulating)
-                return;
-
-            // Can only transform selected Items.
-            if (!IsGameObjectSelected())
-            {
-                m_IsManipulating = false;
-                OnEndManipulation(gesture);
-                return;
-            }
-
-            OnContinueManipulation(gesture);
-        }
-
-        void OnFinished(DragGesture gesture)
-        {
-            m_IsManipulating = false;
-            OnEndManipulation(gesture);
-        }
-
-        void OnFinished(PinchGesture gesture)
-        {
-            m_IsManipulating = false;
-            OnEndManipulation(gesture);
-        }
-
-        void OnFinished(TapGesture gesture)
-        {
-            m_IsManipulating = false;
-            OnEndManipulation(gesture);
-        }
-
-        void OnFinished(TwistGesture gesture)
-        {
-            m_IsManipulating = false;
-            OnEndManipulation(gesture);
-        }
-
-        void OnFinished(TwoFingerDragGesture gesture)
+        void OnFinished<T>(Gesture<T> gesture) where T : Gesture<T>
         {
             m_IsManipulating = false;
             OnEndManipulation(gesture);

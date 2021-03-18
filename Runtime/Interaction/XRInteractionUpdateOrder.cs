@@ -1,4 +1,5 @@
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -25,6 +26,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Order when instances of type <see cref="XRBaseController"/> are updated.
         /// </summary>
         public const int k_Controllers = k_ControllerRecorder + 10;
+
+        /// <summary>
+        /// Order when instances of type <see cref="LocomotionProvider"/> are updated.
+        /// </summary>
+        public const int k_LocomotionProviders = k_UIInputModule - 10;
+
+        /// <summary>
+        /// Order when instances of type <see cref="UIInputModule"/> are updated.
+        /// </summary>
+        public const int k_UIInputModule = -200;
 
         /// <summary>
         /// Order when <see cref="XRInteractionManager"/> is updated.

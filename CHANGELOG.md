@@ -6,6 +6,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.3] - 2021-03-18
+
+### Added
+- Added ability for serialized fields added in derived behaviors to automatically appear in the Inspector. Users will no longer need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. See [Extending the XR Interaction Toolkit](../manual/index.html#extending-the-xr-interaction-toolkit) in the manual for details about customizing how they are drawn.
+- Added support for `EnhancedTouch` from the Input System for AR gesture classes. This means AR interaction is functional when the Active Input Handling project setting is set to Input System Package (New).
+- Added registration events to `XRBaseInteractable` and `XRBaseInteractor` which work like those in `XRInteractionManager` but for just that object.
+- Added new methods in `ARPlacementInteractable` to divide the logic in `OnEndManipulation` into `TryGetPlacementPose`, `PlaceObject`, and `OnObjectPlaced`.
+- Added `XRRayInteractor.hitClosestOnly` property to limit the number of valid targets. Enable this to make only the closest Interactable receive hover events rather than all Interactables in the full length of the raycast.
+- Added new methods in `XRRayInteractor` for getting information about UI hits, and made more methods `virtual` or `public`.
+- Added several properties to Grab Interactable (Damping and Scale) to allow for tweaking the velocity and angular velocity when the Movement Type is Velocity Tracking. These values can be adjusted to reduce oscillation and latency from the Interactor.
+
+### Changed
+- Changed script execution order so `LocomotionProvider` occurs before Interactors are processed, fixing Ray Interactor from casting with stale controller poses when moving or turning the rig and causing visual flicker of the line.
+- Changed script execution order so `XRUIInputModule` processing occurs after `LocomotionProvider` and before Interactors are processed to fix the frame delay with UI hits due to using stale raycast rays. `XRUIInputModule.Process` now does nothing, override `XRUIInputModule.DoProcess` which is called directly from `Update`.
+- Changed `XRUIInputModule.DoProcess` from `abstract` to `virtual`. Overriding methods in derived classes should call `base.DoProcess` to ensure `IUpdateSelectedHandler` event sending occurs as before.
+- Changed Ray Interactor's Reference Frame property to use global up as a fallback when not set instead of the Interactor's up.
+- Changed Ray Interactor Projectile Curve to end at ground height rather than controller height. Additional Ground Height and Additional Flight Time properties can be adjusted to control how long the curve travels, but this change means the curve will be longer than it was in previous versions.
+- Changed `TrackedDeviceGraphicRaycaster` to ignore Trigger Colliders by default when checking for 3D occlusion. Added `raycastTriggerInteraction` property to control this.
+- Changed `XRBaseInteractor.allowHover` and `XRBaseInteractor.allowSelect` to retain their value instead of getting changed to `true` during `OnEnable`. Their initial values are unchanged, remaining `true`.
+- Changed some AR behaviors to be more configurable rather than using some hardcoded values or requiring using MainCamera. AR Placement Interactable and AR Translation Interactable must now specify a Fallback Layer Mask to support non-trackables instead of always using Layer 9.
+- Changed `IUIInteractor` to not inherit from `ILineRenderable`.
+
+### Deprecated
+- Deprecated `XRBaseInteractor.enableInteractions`, use `XRBaseInteractor.allowHover` and `XRBaseInteractor.allowSelect` instead.
+
+### Removed
+- Removed several MonoBehaviour message functions in AR behaviors to use `ProcessInteractable` and `ProcessInteractor` instead.
+
+### Fixed
+- Fixed issue where the end of a Projectile or Bezier Curve lags behind and appears bent when the controller is moved too fast. ([1291060](https://issuetracker.unity3d.com/product/unity/issues/guid/1291060))
+- Fixed Ray Interactor interacting with Interactables that are behind UI. ([1312217](https://issuetracker.unity3d.com/product/unity/issues/guid/1312217))
+- Fixed `XRRayInteractor.hoverToSelect` not being functional. ([1301630](https://issuetracker.unity3d.com/product/unity/issues/guid/1301630))
+- Fixed Ray Interactor not allowing for valid targets behind an Interactable with multiple Collider objects when the ray hits more than one of those Colliders.
+- Fixed Ray Interactor performance to only perform raycasts once per frame instead of each time `GetValidTargets` is called by doing it during `ProcessInteractor` instead.
+- Fixed exception in `XRInteractorLineVisual` when changing the Sample Frequency or Line Type of a Ray Interactor.
+- Fixed Ray Interactor anchor control rotation when the Rig plane was not up. Added a property `anchorRotateReferenceFrame` to control the rotation axis.
+- Fixed Reference Frame missing from the Ray Interactor Inspector when the Line Type was Bezier Curve.
+- Fixed mouse scroll amount being too large in `XRUIInputModule` when using Input System.
+- Fixed Scrollbar initially scrolling to incorrect position at XR pointer down when using `TrackedDeviceGraphicRaycaster`, which was caused by `RaycastResult.screenPosition` never being set.
+- Fixed `GestureRecognizer` skipping updating some gestures during the same frame when another gesture finished.
+- Fixed namespace of several Editor classes to be in `UnityEditor.XR.Interaction.Toolkit` instead of `UnityEngine.XR.Interaction.Toolkit`.
+- Fixed default value of Blocking Mask on Tracked Device Graphic Raycaster to be Everything (was skipping Layer 31).
+
 ## [1.0.0-pre.2] - 2021-01-20
 
 ### Added

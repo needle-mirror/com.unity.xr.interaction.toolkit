@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Interactors.

@@ -1,13 +1,9 @@
-﻿using NUnit.Framework;
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-
-using UnityEngine;
+using NUnit.Framework;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
@@ -47,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Move,
             Submit,
             Cancel,
-            Scroll
+            Scroll,
         }
 
         internal struct TestObjects
@@ -169,21 +165,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 events.Add(new Event(EventType.Scroll, ClonePointerEventData(eventData)));
             }
 
-            private AxisEventData CloneAxisEventData(AxisEventData eventData)
+            static AxisEventData CloneAxisEventData(AxisEventData eventData)
             {
                 return new AxisEventData(EventSystem.current)
                 {
                     moveVector = eventData.moveVector,
-                    moveDir = eventData.moveDir
+                    moveDir = eventData.moveDir,
                 };
             }
 
-            private PointerEventData ClonePointerEventData(PointerEventData eventData)
+            static PointerEventData ClonePointerEventData(PointerEventData eventData)
             {
-                if(eventData is TrackedDeviceEventData)
+                if (eventData is TrackedDeviceEventData trackedEventData)
                 {
-                    TrackedDeviceEventData trackedEventData = eventData as TrackedDeviceEventData;
-
                     return new TrackedDeviceEventData(EventSystem.current)
                     {
                         pointerId = eventData.pointerId,
@@ -207,7 +201,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
                         layerMask = trackedEventData.layerMask,
                         rayHitIndex = trackedEventData.rayHitIndex,
-                        rayPoints = new List<Vector3>(trackedEventData.rayPoints)
+                        rayPoints = new List<Vector3>(trackedEventData.rayPoints),
                     };
                 }
                 else
@@ -248,43 +242,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static TestObjects SetupUIScene()
         {
-            TestObjects testObjects = new TestObjects();
+            var testObjects = new TestObjects();
 
-            GameObject interactionManagerGo = new GameObject("InteractionManager", typeof(XRInteractionManager));
+            var interactionManagerGo = new GameObject("InteractionManager", typeof(XRInteractionManager));
 
-            GameObject rigGo = new GameObject("XrRig", typeof(XRRig));
-            XRRig rig = rigGo.GetComponent<XRRig>();
+            var rigGo = new GameObject("XrRig");
+            rigGo.SetActive(false);
+            var rig = rigGo.AddComponent<XRRig>();
+
+            // Add camera offset
+            var cameraOffsetGo = new GameObject();
+            cameraOffsetGo.name = "CameraOffset";
+            cameraOffsetGo.transform.SetParent(rig.transform,false);
+            rig.cameraFloorOffsetObject = cameraOffsetGo;
 
             // Set up camera and canvas on which we can perform raycasts.
-            GameObject cameraGo = new GameObject("Camera");
+            var cameraGo = new GameObject("Camera");
             cameraGo.transform.parent = rigGo.transform;
-            Camera camera = cameraGo.AddComponent<Camera>();
+            var camera = cameraGo.AddComponent<Camera>();
             camera.stereoTargetEye = StereoTargetEyeMask.None;
             camera.pixelRect = new Rect(0, 0, 640, 480);
 
-            rig.cameraFloorOffsetObject = cameraGo;
+            rig.cameraGameObject = cameraGo;
+            rigGo.SetActive(true);
 
-            GameObject eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(XRUIInputModule));
+            var eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(XRUIInputModule));
+            var inputModule = eventSystemGo.GetComponent<XRUIInputModule>();
+            inputModule.uiCamera = camera;
+            inputModule.enableXRInput = true;
+            inputModule.enableMouseInput = false;
+            inputModule.enableTouchInput = false;
             testObjects.eventSystem = eventSystemGo.GetComponent<TestEventSystem>();
             testObjects.eventSystem.UpdateModules();
             testObjects.eventSystem.InvokeUpdate(); // Initial update only sets current module.
-            XRUIInputModule inputModule = eventSystemGo.GetComponent<XRUIInputModule>();
-            inputModule.uiCamera = camera;
 
-            GameObject interactorGo = new GameObject("Interactor", typeof(XRController), typeof(XRRayInteractor), typeof(XRControllerRecorder));
+            var interactorGo = new GameObject("Interactor", typeof(XRController), typeof(XRRayInteractor), typeof(XRControllerRecorder));
             interactorGo.transform.parent = rigGo.transform;
             testObjects.controllerRecorder = interactorGo.GetComponent<XRControllerRecorder>();
-            var controller = interactorGo.AddComponent<XRController>();
             testObjects.controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
             testObjects.interactor = interactorGo.GetComponent<XRRayInteractor>();
             testObjects.interactor.maxRaycastDistance = int.MaxValue;
             testObjects.interactor.referenceFrame = rigGo.transform;
 
 
-            GameObject canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
-            Canvas canvas = canvasGo.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
+            var canvas = canvasGo.GetComponent<Canvas>();
             canvas.worldCamera = camera;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
 
             // Set up a GameObject hierarchy that we send events to. In a real setup,
             // this would be a hierarchy involving UI components.
@@ -345,7 +349,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
             Assert.That(leftUIReceiver.events[0].data, Is.TypeOf<TrackedDeviceEventData>());
 
-            TrackedDeviceEventData eventData = leftUIReceiver.events[0].data as TrackedDeviceEventData;
+            TrackedDeviceEventData eventData = (TrackedDeviceEventData)leftUIReceiver.events[0].data;
             Assert.That(eventData.interactor, Is.EqualTo(testObjects.interactor));
             leftUIReceiver.Reset();
 
@@ -413,6 +417,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rightUIReceiver.events, Has.Count.EqualTo(1));
             Assert.That(rightUIReceiver.events[0].type, Is.EqualTo(EventType.Drop));
             rightUIReceiver.Reset();
+
+            // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
+            Object.Destroy(testObjects.eventSystem.gameObject);
         }
     }
 }

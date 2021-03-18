@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// Custom editor for an <see cref="ARScaleInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(ARScaleInteractable), true), CanEditMultipleObjects]
-    public class ARScaleInteractableEditor : XRBaseInteractableEditor
+    public class ARScaleInteractableEditor : ARBaseGestureInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARScaleInteractable.minScale"/>.</summary>
         protected SerializedProperty m_MinScale;

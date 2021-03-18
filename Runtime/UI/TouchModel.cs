@@ -8,48 +8,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal struct ImplementationData
         {
             /// <summary>
-            /// This tracks the current GUI targets being hovered over. Syncs up to <see cref="PointerEventData.hovered"/>.
+            /// This tracks the current GUI targets being hovered over.
             /// </summary>
+            /// <seealso cref="PointerEventData.hovered"/>
             public List<GameObject> hoverTargets { get; set; }
 
             /// <summary>
-            /// Tracks the current enter/exit target being hovered over at any given moment. Syncs up to <see cref="PointerEventData.pointerEnter"/>.
+            /// Tracks the current enter/exit target being hovered over at any given moment.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerEnter"/>
             public GameObject pointerTarget { get; set; }
 
             /// <summary>
-            /// Used to cache whether or not the current mouse button is being dragged. See <see cref="PointerEventData.dragging"/> for more details.
+            /// Used to cache whether or not the current mouse button is being dragged.
             /// </summary>
+            /// <seealso cref="PointerEventData.dragging"/>
             public bool isDragging { get; set; }
 
             /// <summary>
-            /// Used to cache the last time this button was pressed. See <see cref="PointerEventData.clickTime"/> for more details.
+            /// Used to cache the last time this button was pressed.
             /// </summary>
+            /// <seealso cref="PointerEventData.clickTime"/>
             public float pressedTime { get; set; }
 
             /// <summary>
-            /// The position on the screen that this button was last pressed. In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
+            /// The position on the screen that this button was last pressed.
+            /// In the same scale as <see cref="position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
             /// </summary>
+            /// <seealso cref="PointerEventData.pressPosition"/>
             public Vector2 pressedPosition { get; set; }
 
             /// <summary>
-            /// The Raycast data from the time it was pressed. See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
+            /// The Raycast data from the time it was pressed.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerPressRaycast"/>
             public RaycastResult pressedRaycast { get; set; }
 
             /// <summary>
-            /// The last GameObject pressed on that can handle press or click events. See <see cref="PointerEventData.pointerPress"/> for more details.
+            /// The last GameObject pressed on that can handle press or click events.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerPress"/>
             public GameObject pressedGameObject { get; set; }
 
             /// <summary>
-            /// The last GameObject pressed on regardless of whether it can handle events or not.  See <see cref="PointerEventData.rawPointerPress"/> for more details.
+            /// The last GameObject pressed on regardless of whether it can handle events or not.
             /// </summary>
+            /// <seealso cref="PointerEventData.rawPointerPress"/>
             public GameObject pressedGameObjectRaw { get; set; }
 
             /// <summary>
-            /// The GameObject currently being dragged if any. See <see cref="PointerEventData.pointerDrag"/> for more details.
+            /// The GameObject currently being dragged if any.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerDrag"/>
             public GameObject draggedGameObject { get; set; }
 
             /// <summary>
@@ -64,13 +74,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 pressedGameObject = pressedGameObjectRaw = draggedGameObject = null;
 
                 if (hoverTargets == null)
-                {
                     hoverTargets = new List<GameObject>();
-                }
                 else
-                {
                     hoverTargets.Clear();
-                }
             }
         }
 

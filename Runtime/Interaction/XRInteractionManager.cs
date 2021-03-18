@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-#if AR_FOUNDATION_PRESENT
-using UnityEngine.XR.Interaction.Toolkit.AR;
-#endif
-
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
@@ -32,6 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// do not hold a reference to it.
         /// </remarks>
         /// <seealso cref="RegisterInteractor"/>
+        /// <seealso cref="XRBaseInteractor.registered"/>
         public event Action<InteractorRegisteredEventArgs> interactorRegistered;
 
         /// <summary>
@@ -42,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// do not hold a reference to it.
         /// </remarks>
         /// <seealso cref="UnregisterInteractor"/>
+        /// <seealso cref="XRBaseInteractor.unregistered"/>
         public event Action<InteractorUnregisteredEventArgs> interactorUnregistered;
 
         /// <summary>
@@ -52,6 +50,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// do not hold a reference to it.
         /// </remarks>
         /// <seealso cref="RegisterInteractable"/>
+        /// <seealso cref="XRBaseInteractable.registered"/>
         public event Action<InteractableRegisteredEventArgs> interactableRegistered;
 
         /// <summary>
@@ -62,6 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// do not hold a reference to it.
         /// </remarks>
         /// <seealso cref="UnregisterInteractable"/>
+        /// <seealso cref="XRBaseInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
         // TODO Expose as a read-only wrapper without using ReadOnlyCollection since that class causes allocations when enumerating
@@ -117,13 +117,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly InteractableRegisteredEventArgs m_InteractableRegisteredEventArgs = new InteractableRegisteredEventArgs();
         readonly InteractableUnregisteredEventArgs m_InteractableUnregisteredEventArgs = new InteractableUnregisteredEventArgs();
 
-#if AR_FOUNDATION_PRESENT
-        /// <summary>
-        /// A boolean value that indicates that interactables should be reconnected to gestures next frame.
-        /// </summary>
-        bool m_GestureInteractablesNeedReconnect;
-#endif
-
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -158,25 +151,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
-
-#if AR_FOUNDATION_PRESENT
-            // Check if gesture interactors/interactables have been updated
-            // (in which case we need to reconnect gestures).
-            if (m_GestureInteractablesNeedReconnect)
-            {
-                foreach (var interactable in m_Interactables)
-                {
-                    var gestureInteractable = interactable as ARBaseGestureInteractable;
-                    if (gestureInteractable != null)
-                    {
-                        gestureInteractable.DisconnectGestureInteractor();
-                        gestureInteractable.ConnectGestureInteractor();
-                    }
-                }
-
-                m_GestureInteractablesNeedReconnect = false;
-            }
-#endif
         }
 
         /// <summary>
@@ -243,11 +217,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_Interactors.Add(interactor);
 
-#if AR_FOUNDATION_PRESENT
-            if (interactor is ARGestureInteractor)
-                m_GestureInteractablesNeedReconnect = true;
-#endif
-
             m_InteractorRegisteredEventArgs.manager = this;
             m_InteractorRegisteredEventArgs.interactor = interactor;
             interactor.OnRegistered(m_InteractorRegisteredEventArgs);
@@ -267,11 +236,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             CancelInteractorHover(interactor);
 
             m_Interactors.Remove(interactor);
-
-#if AR_FOUNDATION_PRESENT
-            if (interactor is ARGestureInteractor)
-                m_GestureInteractablesNeedReconnect = true;
-#endif
 
             m_InteractorUnregisteredEventArgs.manager = this;
             m_InteractorUnregisteredEventArgs.interactor = interactor;
@@ -295,11 +259,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (interactableCollider != null && !m_ColliderToInteractableMap.ContainsKey(interactableCollider))
                     m_ColliderToInteractableMap.Add(interactableCollider, interactable);
             }
-
-#if AR_FOUNDATION_PRESENT
-            if (interactable is ARBaseGestureInteractable)
-                m_GestureInteractablesNeedReconnect = true;
-#endif
 
             m_InteractableRegisteredEventArgs.manager = this;
             m_InteractableRegisteredEventArgs.interactable = interactable;
@@ -327,14 +286,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_ColliderToInteractableMap.Remove(interactableCollider);
             }
 
-#if AR_FOUNDATION_PRESENT
-            if (interactable is ARBaseGestureInteractable gestureInteractable)
-            {
-                gestureInteractable.DisconnectGestureInteractor();
-                m_GestureInteractablesNeedReconnect = true;
-            }
-#endif
-
             m_InteractableUnregisteredEventArgs.manager = this;
             m_InteractableUnregisteredEventArgs.interactable = interactable;
             interactable.OnUnregistered(m_InteractableUnregisteredEventArgs);
@@ -342,11 +293,60 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Return all registered Interactors into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive registered Interactors.</param>
+        /// <remarks>
+        /// This method populates the list with the registered Interactors at the time the
+        /// method is called. It is not a live view, meaning Interactors
+        /// registered or unregistered afterward will not be reflected in the
+        /// results of this method.
+        /// </remarks>
+        /// <seealso cref="GetRegisteredInteractables"/>
+        public void GetRegisteredInteractors(List<XRBaseInteractor> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            results.Clear();
+            foreach (var interactor in m_Interactors)
+                results.Add(interactor);
+        }
+
+        /// <summary>
+        /// Return all registered Interactables into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive registered Interactables.</param>
+        /// <remarks>
+        /// This method populates the list with the registered Interactables at the time the
+        /// method is called. It is not a live view, meaning Interactables
+        /// registered or unregistered afterward will not be reflected in the
+        /// results of this method.
+        /// </remarks>
+        /// <seealso cref="GetRegisteredInteractors"/>
+        public void GetRegisteredInteractables(List<XRBaseInteractable> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            results.Clear();
+            foreach (var interactable in m_Interactables)
+                results.Add(interactable);
+        }
+
+        /// <inheritdoc cref="GetInteractableForCollider"/>
+        [Obsolete("TryGetInteractableForCollider has been deprecated. Use GetInteractableForCollider instead. (UnityUpgradable) -> GetInteractableForCollider(*)")]
+        public XRBaseInteractable TryGetInteractableForCollider(Collider interactableCollider)
+        {
+            return GetInteractableForCollider(interactableCollider);
+        }
+
+        /// <summary>
         /// Gets the Interactable a specific collider is attached to.
         /// </summary>
         /// <param name="interactableCollider">The collider of the Interactable to retrieve.</param>
-        /// <returns> The Interactable that the collider is attached to. Otherwise returns <see langword="null"/> if no such Interactable exists.</returns>
-        public XRBaseInteractable TryGetInteractableForCollider(Collider interactableCollider)
+        /// <returns>The Interactable that the collider is attached to. Otherwise returns <see langword="null"/> if no such Interactable exists.</returns>
+        public XRBaseInteractable GetInteractableForCollider(Collider interactableCollider)
         {
             if (interactableCollider != null && m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var interactable))
                 return interactable;
@@ -672,7 +672,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (interactor.isHoverActive)
             {
-                for (var i=0; i < validTargets.Count && interactor.isHoverActive; ++i)
+                for (var i = 0; i < validTargets.Count && interactor.isHoverActive; ++i)
                 {
                     interactor.GetHoverTargets(m_HoverTargetList);
                     if (interactor.CanHover(validTargets[i]) && validTargets[i].IsHoverableBy(interactor) &&

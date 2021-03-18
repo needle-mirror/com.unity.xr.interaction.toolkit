@@ -29,11 +29,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture Recognizer for when the user performs a drag motion on the touch screen.
     /// </summary>
+    /// <inheritdoc />
     public class DragGestureRecognizer : GestureRecognizer<DragGesture>
     {
-        const float k_SlopInches = 0.1f;
-
-        internal float m_SlopInches => k_SlopInches;
+        /// <summary>
+        /// Distance in inches a user's touch can drift from the start position
+        /// before the drag gesture is interpreted as started.
+        /// </summary>
+        public float slopInches { get; set; } = 0.1f;
 
         /// <summary>
         /// Creates a Drag gesture with the given touch.
@@ -46,11 +49,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Tries to create a Drag Gesture.
+        /// Creates a Drag gesture with the given touch.
         /// </summary>
-        protected internal override void TryCreateGestures()
+        /// <param name="touch">The touch that started this gesture.</param>
+        /// <returns>Returns the created Drag gesture.</returns>
+        internal DragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
         {
-            TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
+            return new DragGesture(this, touch);
+        }
+
+        /// <inheritdoc />
+        protected override void TryCreateGestures()
+        {
+            if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
+                TryCreateOneFingerGestureOnTouchBegan(CreateEnhancedGesture);
+            else
+                TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
         }
     }
 }

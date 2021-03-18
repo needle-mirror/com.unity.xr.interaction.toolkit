@@ -22,39 +22,136 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.XR.ARFoundation;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     class MockTouch
     {
-        static Dictionary<string, FieldInfo> fields;
-        object m_Touch;
-
-        public float deltaTime { get { return ((Touch)m_Touch).deltaTime; } set { fields["m_TimeDelta"].SetValue(m_Touch, value); } }
-        public int tapCount { get { return ((Touch)m_Touch).tapCount; } set { fields["m_TapCount"].SetValue(m_Touch, value); } }
-        public TouchPhase phase { get { return ((Touch)m_Touch).phase; } set { fields["m_Phase"].SetValue(m_Touch, value); } }
-        public Vector2 deltaPosition { get { return ((Touch)m_Touch).deltaPosition; } set { fields["m_PositionDelta"].SetValue(m_Touch, value); } }
-        public int fingerId { get { return ((Touch)m_Touch).fingerId; } set { fields["m_FingerId"].SetValue(m_Touch, value); } }
-        public Vector2 position { get { return ((Touch)m_Touch).position; } set { fields["m_Position"].SetValue(m_Touch, value); } }
-        public Vector2 rawPosition { get { return ((Touch)m_Touch).rawPosition; } set { fields["m_RawPosition"].SetValue(m_Touch, value); } }
-
-        public Touch Touch { get { return (Touch)m_Touch; } }
-
-        public MockTouch()
+        public float deltaTime
         {
-            m_Touch = new Touch();
+            get => ((Touch)m_Touch).deltaTime;
+            set => s_Fields["m_TimeDelta"].SetValue(m_Touch, value);
         }
+
+        public int tapCount
+        {
+            get => ((Touch)m_Touch).tapCount;
+            set => s_Fields["m_TapCount"].SetValue(m_Touch, value);
+        }
+
+        public TouchPhase phase
+        {
+            get => ((Touch)m_Touch).phase;
+            set => s_Fields["m_Phase"].SetValue(m_Touch, value);
+        }
+
+        public Vector2 deltaPosition
+        {
+            get => ((Touch)m_Touch).deltaPosition;
+            set => s_Fields["m_PositionDelta"].SetValue(m_Touch, value);
+        }
+
+        public int fingerId
+        {
+            get => ((Touch)m_Touch).fingerId;
+            set => s_Fields["m_FingerId"].SetValue(m_Touch, value);
+        }
+
+        public Vector2 position
+        {
+            get => ((Touch)m_Touch).position;
+            set => s_Fields["m_Position"].SetValue(m_Touch, value);
+        }
+
+        public Vector2 rawPosition
+        {
+            get => ((Touch)m_Touch).rawPosition;
+            set => s_Fields["m_RawPosition"].SetValue(m_Touch, value);
+        }
+
+        static readonly Dictionary<string, FieldInfo> s_Fields = new Dictionary<string, FieldInfo>();
+        readonly object m_Touch = new Touch();
 
         static MockTouch()
         {
-            fields = new Dictionary<string, FieldInfo>();
             foreach (var f in typeof(Touch).GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
-                fields.Add(f.Name, f);
+                s_Fields.Add(f.Name, f);
         }
+
+        public Touch ToTouch() => (Touch)m_Touch;
     }
 
+    /// <summary>
+    /// An adapter struct that wraps a <c>Touch</c> from either the Input System package or the Input Manager.
+    /// </summary>
+    /// <seealso cref="Touch"/>
+    /// <seealso cref="InputSystem.EnhancedTouch.Touch"/>
+    readonly struct CommonTouch
+    {
+        public float deltaTime => m_IsEnhancedTouch ? (float)(m_EnhancedTouch.time - m_EnhancedTouch.startTime) : m_Touch.deltaTime;
+
+        public int tapCount => m_IsEnhancedTouch ? m_EnhancedTouch.tapCount : m_Touch.tapCount;
+
+        public bool isPhaseBegan => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Began : m_Touch.phase == TouchPhase.Began;
+        public bool isPhaseMoved => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Moved : m_Touch.phase == TouchPhase.Moved;
+        public bool isPhaseStationary => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Stationary : m_Touch.phase == TouchPhase.Stationary;
+        public bool isPhaseEnded => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Ended : m_Touch.phase == TouchPhase.Ended;
+        public bool isPhaseCanceled => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Canceled : m_Touch.phase == TouchPhase.Canceled;
+
+        public Vector2 deltaPosition => m_IsEnhancedTouch ? m_EnhancedTouch.delta : m_Touch.deltaPosition;
+
+        /// <summary>
+        /// Unique ID of the touch used to identify it across multiple frames.
+        /// Not to be confused with <see cref="InputSystem.EnhancedTouch.Finger.index"/>.
+        /// </summary>
+        /// <seealso cref="Touch.fingerId"/>
+        /// <seealso cref="InputSystem.EnhancedTouch.Touch.touchId"/>
+        public int fingerId => m_IsEnhancedTouch ? m_EnhancedTouch.touchId : m_Touch.fingerId;
+
+        public Vector2 position => m_IsEnhancedTouch ? m_EnhancedTouch.screenPosition : m_Touch.position;
+
+        readonly Touch m_Touch;
+        readonly InputSystem.EnhancedTouch.Touch m_EnhancedTouch;
+        readonly bool m_IsEnhancedTouch;
+
+        public CommonTouch(Touch touch)
+        {
+            m_Touch = touch;
+            m_EnhancedTouch = default;
+            m_IsEnhancedTouch = false;
+        }
+
+        public CommonTouch(InputSystem.EnhancedTouch.Touch touch)
+        {
+            m_Touch = default;
+            m_EnhancedTouch = touch;
+            m_IsEnhancedTouch = true;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Touch"/> if constructed with <see cref="CommonTouch(Touch)"/>.
+        /// </summary>
+        /// <returns>Returns the <see cref="Touch"/> used to construct this object. Otherwise, throws an exception.</returns>
+        /// <exception cref="InvalidOperationException">Throws when this object was constructed with an Input System <see cref="InputSystem.EnhancedTouch.Touch"/>.</exception>
+        public Touch GetTouch() =>
+            !m_IsEnhancedTouch
+                ? m_Touch
+                : throw new InvalidOperationException($"Cannot convert to {typeof(Touch).FullName} since this was sourced from the Input System package.");
+
+        /// <summary>
+        /// Gets the <see cref="InputSystem.EnhancedTouch.Touch"/> if constructed with <see cref="CommonTouch(InputSystem.EnhancedTouch.Touch)"/>.
+        /// </summary>
+        /// <returns>Returns the <see cref="InputSystem.EnhancedTouch.Touch"/> used to construct this object. Otherwise, throws an exception.</returns>
+        /// <exception cref="InvalidOperationException">Throws when this object was constructed with an Input Manager <see cref="Touch"/>.</exception>
+        public InputSystem.EnhancedTouch.Touch GetEnhancedTouch() =>
+            m_IsEnhancedTouch
+                ? m_EnhancedTouch
+                : throw new InvalidOperationException($"Cannot convert to {typeof(InputSystem.EnhancedTouch.Touch).FullName} since this was sourced from Input Manager Input.");
+    }
 
     /// <summary>
     /// Singleton used by Gesture's and GestureRecognizer's to interact with touch input.
@@ -67,21 +164,74 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     static class GestureTouchesUtility
     {
+        public enum TouchInputSource
+        {
+            Legacy,
+            Enhanced,
+            Mock,
+        }
+
         const float k_EdgeThresholdInches = 0.1f;
 
-        static List<Touch> s_Touches = new List<Touch>();
-        internal static List<MockTouch> s_MockTouches = new List<MockTouch>();
-        static HashSet<int> s_RetainedFingerIds = new HashSet<int>();
+        /// <summary>
+        /// The default source of <c>Touch</c> input used by this class.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to use legacy Input Manager Touch input when the <b>Active Input Handling</b> mode of the Unity project
+        /// is set to <b>Both</b> for backwards compatibility with existing projects.
+        /// </remarks>
+        public static readonly TouchInputSource defaultTouchInputSource =
+#if ENABLE_LEGACY_INPUT_MANAGER
+            TouchInputSource.Legacy;
+#else
+            TouchInputSource.Enhanced;
+#endif
+
+        public static TouchInputSource touchInputSource { get; set; } = defaultTouchInputSource;
+
+        /// <summary>
+        /// The list of the status of all touches.
+        /// Does not return a copy in order to avoid allocation.
+        /// </summary>
+        public static List<CommonTouch> touches
+        {
+            get
+            {
+                s_Touches.Clear();
+
+                switch (touchInputSource)
+                {
+                    case TouchInputSource.Legacy:
+                        for (int index = 0, touchCount = Input.touchCount; index < touchCount; ++index)
+                            s_Touches.Add(new CommonTouch(Input.GetTouch(index)));
+                        break;
+                    case TouchInputSource.Enhanced:
+                        foreach (var touch in InputSystem.EnhancedTouch.Touch.activeTouches)
+                            s_Touches.Add(new CommonTouch(touch));
+                        break;
+                    case TouchInputSource.Mock:
+                        foreach (var touch in mockTouches)
+                            s_Touches.Add(new CommonTouch(touch.ToTouch()));
+                        break;
+                }
+
+                return s_Touches;
+            }
+        }
+
+        static readonly List<CommonTouch> s_Touches = new List<CommonTouch>();
+        internal static readonly List<MockTouch> mockTouches = new List<MockTouch>();
+        static readonly HashSet<int> s_RetainedFingerIds = new HashSet<int>();
 
         /// <summary>
         /// Try to find a touch for a particular finger id.
         /// </summary>
         /// <param name="fingerId">The finger id to find the touch.</param>
-        /// <param name="touch">The output touch.</param>
+        /// <param name="touchOut">The output touch.</param>
         /// <returns>True if a touch was found.</returns>
-        public static bool TryFindTouch(int fingerId, out Touch touchOut)
+        public static bool TryFindTouch(int fingerId, out CommonTouch touchOut)
         {
-            foreach (var touch in Touches)
+            foreach (var touch in touches)
             {
                 if (touch.fingerId == fingerId)
                 {
@@ -90,7 +240,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 }
             }
 
-            touchOut = new Touch();
+            touchOut = default;
             return false;
         }
 
@@ -115,7 +265,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="touch">The touch to check.</param>
         /// <returns>True if the touch is off screen edge.</returns>
-        public static bool IsTouchOffScreenEdge(Touch touch)
+        public static bool IsTouchOffScreenEdge(CommonTouch touch)
         {
             var slopPixels = InchesToPixels(k_EdgeThresholdInches);
 
@@ -131,26 +281,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Performs a Raycast from the camera.
         /// </summary>
         /// <param name="screenPos">The screen position to perform the raycast from.</param>
-        /// <param name="result">The RaycastHit result.</param>
-        /// <returns>True if an object was hit.</returns>
-        public static bool RaycastFromCamera(Vector2 screenPos, out RaycastHit result)
+        /// <param name="sessionOrigin">The <see cref="ARSessionOrigin"/> whose Camera is used for raycasting.</param>
+        /// <param name="result">When this method returns, contains the <see cref="RaycastHit"/> result.</param>
+        /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
+        public static bool RaycastFromCamera(Vector2 screenPos, ARSessionOrigin sessionOrigin, out RaycastHit result)
         {
-            var mainCamera = Camera.main;
-            if (mainCamera == null)
+            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
+            if (camera == null)
             {
-                result = new RaycastHit();
+                result = default;
                 return false;
             }
 
-            var ray = mainCamera.ScreenPointToRay(screenPos);
-            if (Physics.Raycast(ray, out var hit))
-            {
-                result = hit;
-                return true;
-            }
-
-            result = hit;
-            return false;
+            var ray = camera.ScreenPointToRay(screenPos);
+            return Physics.Raycast(ray, out result);
         }
 
         /// <summary>
@@ -159,10 +303,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="fingerId">The finger id to lock.</param>
         public static void LockFingerId(int fingerId)
         {
-            if (!IsFingerIdRetained(fingerId))
-            {
-                s_RetainedFingerIds.Add(fingerId);
-            }
+            s_RetainedFingerIds.Add(fingerId);
         }
 
         /// <summary>
@@ -171,10 +312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="fingerId">The finger id to release.</param>
         public static void ReleaseFingerId(int fingerId)
         {
-            if (IsFingerIdRetained(fingerId))
-            {
-                s_RetainedFingerIds.Remove(fingerId);
-            }
+            s_RetainedFingerIds.Remove(fingerId);
         }
 
         /// <summary>
@@ -185,20 +323,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public static bool IsFingerIdRetained(int fingerId)
         {
             return s_RetainedFingerIds.Contains(fingerId);
-        }
-
-        public static Touch[] Touches
-        {
-            get
-            {
-                s_Touches.Clear();
-                s_Touches.AddRange(Input.touches);
-
-                foreach (var mockTouch in s_MockTouches)
-                    s_Touches.Add(mockTouch.Touch);
-
-                return s_Touches.ToArray();
-            }
         }
     }
 }

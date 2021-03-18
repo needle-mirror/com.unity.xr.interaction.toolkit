@@ -6,6 +6,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public abstract partial class XRBaseInteractor
     {
 #pragma warning disable 618
+        /// <summary>
+        /// (Deprecated) Defines whether interactions are enabled or not.
+        /// </summary>
+        /// <remarks>
+        /// <example>
+        /// <c>enableInteractions = value;</c> is a convenience property for:
+        /// <code>
+        /// allowHover = value;
+        /// allowSelect = value;
+        /// </code>
+        /// </example>
+        /// </remarks>
+        [Obsolete("enableInteractions has been deprecated. Use allowHover and allowSelect instead.")]
+        public bool enableInteractions
+        {
+            get => m_AllowHover && m_AllowSelect;
+            set
+            {
+                m_AllowHover = value;
+                m_AllowSelect = value;
+            }
+        }
+
         [SerializeField, FormerlySerializedAs("m_OnHoverEnter")]
         XRInteractorEvent m_OnHoverEntered = new XRInteractorEvent();
         /// <summary>

@@ -1,13 +1,15 @@
 ﻿using System;
-using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.XR.Interaction.Toolkit.Utilities
+namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Helper utility class for Inspector <see cref="Editor"/> classes to warn about a package dependency.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit.Utilities")]
     public class PackageManagerEditorHelper
     {
         static class Contents

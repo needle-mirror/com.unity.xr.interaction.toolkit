@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
-    // TODO Why does this interface inherit from ILineRenderable? XRRayInteractor should just implement both interfaces.
     /// <summary>
     /// Matches the UI Model to the state of the Interactor.
     /// </summary>
-    public interface IUIInteractor : ILineRenderable
+    public interface IUIInteractor
     {
         /// <summary>
         /// Updates the current UI Model to match the state of the Interactor.
@@ -55,13 +55,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         [Tooltip("The maximum distance to raycast with tracked devices to find hit objects.")]
         float m_MaxTrackedDeviceRaycastDistance = 1000f;
 
         /// <summary>
         /// The maximum distance to raycast with tracked devices to find hit objects.
         /// </summary>
+        [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
         public float maxRaycastDistance
         {
             get => m_MaxTrackedDeviceRaycastDistance;
@@ -158,7 +159,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Gets an <see cref="IUIInteractor"/> from it's corresponding Unity UI Pointer Id.
+        /// Gets an <see cref="IUIInteractor"/> from its corresponding Unity UI Pointer Id.
         /// This can be used to identify individual Interactors from the underlying UI Events.
         /// </summary>
         /// <param name="pointerId">A unique integer representing an object that can point at UI.</param>
@@ -199,20 +200,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <inheritdoc />
         protected override void DoProcess()
         {
+            base.DoProcess();
+
             if (m_EnableXRInput)
             {
                 for (var i = 0; i < m_RegisteredInteractors.Count; i++)
                 {
                     var registeredInteractor = m_RegisteredInteractors[i];
 
-                    // Update the raycast distance in case it's changed between frames
-                    registeredInteractor.model.maxRaycastDistance = m_MaxTrackedDeviceRaycastDistance;
-
                     // If device is removed, we send a default state to unclick any UI
                     if (registeredInteractor.interactor == null)
                     {
                         registeredInteractor.model.Reset(false);
-                        registeredInteractor.model.maxRaycastDistance = 0;
                         ProcessTrackedDevice(ref registeredInteractor.model, true);
                         m_RegisteredInteractors.RemoveAt(i--);
                     }
@@ -236,8 +235,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (Mouse.current != null)
             {
+                // The Input System reports scroll in pixels, whereas the old Input class reported in lines.
+                // Example, scrolling down by one notch of a mouse wheel for Input would be (0, -1),
+                // but would be (0, -120) from Input System.
+                // For consistency between the two Active Input Handling modes and with StandaloneInputModule,
+                // scale the scroll value to the range expected by UI.
+                const float kPixelsPerLine = 120f;
                 m_Mouse.position = Mouse.current.position.ReadValue();
-                m_Mouse.scrollPosition = Mouse.current.scroll.ReadValue();
+                m_Mouse.scrollDelta = Mouse.current.scroll.ReadValue() * (1 / kPixelsPerLine);
                 m_Mouse.leftButtonPressed = Mouse.current.leftButton.isPressed;
                 m_Mouse.rightButtonPressed = Mouse.current.rightButton.isPressed;
                 m_Mouse.middleButtonPressed = Mouse.current.middleButton.isPressed;
@@ -247,7 +252,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             else if (Input.mousePresent)
             {
                 m_Mouse.position = Input.mousePosition;
-                m_Mouse.scrollPosition = Input.mouseScrollDelta;
+                m_Mouse.scrollDelta = Input.mouseScrollDelta;
                 m_Mouse.leftButtonPressed = Input.GetMouseButton(0);
                 m_Mouse.rightButtonPressed = Input.GetMouseButton(1);
                 m_Mouse.middleButtonPressed = Input.GetMouseButton(2);

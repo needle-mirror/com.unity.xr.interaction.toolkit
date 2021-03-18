@@ -58,11 +58,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // wait for 1s to make sure the recorder simulates the action
             yield return new WaitForSeconds(1f);
             Vector3 cameraPosAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
-            Assert.That(xrRig.cameraGameObject.transform.position == teleAnchor.transform.position + cameraPosAdjustment);
-            Assert.That(xrRig.rig.transform.up == teleAnchor.transform.up);
+            Assert.That(xrRig.cameraGameObject.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(xrRig.rig.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
             Vector3 projectedCameraForward = Vector3.ProjectOnPlane(xrRig.cameraGameObject.transform.forward, teleAnchor.transform.up);
-            Assert.That(projectedCameraForward.normalized == teleAnchor.transform.forward);
-
+            Assert.That(projectedCameraForward.normalized, Is.EqualTo(teleAnchor.transform.forward).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [UnityTest]
@@ -109,11 +108,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // wait for 1s to make sure the recorder simulates the action
             yield return new WaitForSeconds(1f);
             Vector3 cameraPosAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
-            Assert.AreEqual(teleAnchor.transform.position + cameraPosAdjustment, xrRig.cameraGameObject.transform.position, "XR Rig position");
-            Assert.AreEqual(Vector3.up, xrRig.rig.transform.up, "XR Rig up vector");
-            Vector3 projectedCameraForward = Vector3.ProjectOnPlane(xrRig.cameraGameObject.transform.forward, teleAnchor.transform.up);
-            Assert.AreEqual(Vector3.forward, xrRig.cameraGameObject.transform.forward, "Projected forward");
-
+            Assert.That(xrRig.cameraGameObject.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance), "XR Rig position");
+            Assert.That(xrRig.rig.transform.up, Is.EqualTo(Vector3.up).Using(Vector3ComparerWithEqualsOperator.Instance), "XR Rig up vector");
+            Assert.That(xrRig.cameraGameObject.transform.forward, Is.EqualTo(Vector3.forward).Using(Vector3ComparerWithEqualsOperator.Instance), "Projected forward");
         }
 
         [UnityTest]
@@ -160,11 +157,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // wait for 1s to make sure the recorder simulates the action
             yield return new WaitForSeconds(1f);
             Vector3 cameraPosAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
-            Assert.That(xrRig.cameraGameObject.transform.position == teleAnchor.transform.position + cameraPosAdjustment);
-            Assert.That(xrRig.rig.transform.up == teleAnchor.transform.up);
+            Assert.That(xrRig.cameraGameObject.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(xrRig.rig.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
             Vector3 projectedCameraForward = Vector3.ProjectOnPlane(xrRig.cameraGameObject.transform.forward, teleAnchor.transform.up);
-            Assert.That(projectedCameraForward.normalized == teleAnchor.transform.forward);
-
+            Assert.That(projectedCameraForward.normalized, Is.EqualTo(teleAnchor.transform.forward).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [UnityTest]
@@ -212,8 +208,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForSeconds(1f);
 
             Vector3 cameraPosAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
-            Assert.That(xrRig.cameraGameObject.transform.position == teleAnchor.transform.position + cameraPosAdjustment);
-            Assert.That(xrRig.rig.transform.up == teleAnchor.transform.up);
+            Assert.That(xrRig.cameraGameObject.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(xrRig.rig.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [UnityTest]
@@ -263,8 +259,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForSeconds(1f);
 
             Vector3 cameraPosAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
-            Assert.That(xrRig.cameraGameObject.transform.position == teleAnchor.transform.position + cameraPosAdjustment);
-            Assert.That(xrRig.rig.transform.up == teleAnchor.transform.up);
+            Assert.That(xrRig.cameraGameObject.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(xrRig.rig.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [UnityTest]

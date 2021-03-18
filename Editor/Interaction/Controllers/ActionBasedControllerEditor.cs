@@ -1,11 +1,14 @@
-﻿using UnityEditor;
+﻿using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Custom editor for an <see cref="ActionBasedController"/>.
     /// </summary>
     [CustomEditor(typeof(ActionBasedController), true), CanEditMultipleObjects]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class ActionBasedControllerEditor : XRBaseControllerEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.positionAction"/>.</summary>

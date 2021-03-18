@@ -226,7 +226,7 @@ Use the AR Annotation Interactable to place annotations alongside virtual object
 You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the Interaction Manager to provide your own functionality. Additionally, you can use helpers, in particular event callbacks, to add functionality to the existing components.
 ![class-hierarchy](images/class-hierarchy.svg)
 
-Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes are used to change the appearance and order of properties that appear in the Inspector, particularly for Interactors and Interactables. Derived classes that add additional serialized fields may need to have a custom Editor class created for those properties to appear in the Inspector window. The custom Editor class can derive from the associated Editor class of the base class being extended, and override methods to append the additional properties. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. The [`Editor.DrawDefaultInspector`](https://docs.unity3d.com/ScriptReference/Editor.DrawDefaultInspector.html) method can be used to draw the built-in Inspector instead.
+Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes are used to change the appearance and order of properties that appear in the Inspector, particularly for Interactors and Interactables. Derived behaviors that add additional serialized fields (those that are `public` or have the `SerializeField` attribute) will automatically have those appear in the Inspector. The Editor classes can be extended to further customize the Inspector, at which point any declared `SerializedProperty` fields that are assigned will no longer be automatically drawn during `DrawDerivedProperties`. Within those derived Editor classes, you will typically only need to override methods such as `DrawProperties` in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`.
 
   ```csharp
   // ExampleInteractable.cs in Assets.
@@ -236,7 +236,10 @@ Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes ar
       bool m_AdditionalField;
   }
 
-  // ExampleInteractableEditor.cs in an Editor folder in Assets.
+  // ExampleInteractableEditor.cs in an Editor folder in Assets
+  // which explicitly defines a SerializedProperty to choose
+  // where to display it in the Inspector rather than using
+  // the default location.
   [CustomEditor(typeof(ExampleInteractable), true), CanEditMultipleObjects]
   public class ExampleInteractableEditor : XRBaseInteractableEditor
   {
@@ -255,6 +258,7 @@ Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes ar
       }
   }
   ```
+The [`Editor.DrawDefaultInspector`](https://docs.unity3d.com/ScriptReference/Editor.DrawDefaultInspector.html) method can be used to draw the built-in Inspector instead. The [`PropertyDrawer`](https://docs.unity3d.com/ScriptReference/PropertyDrawer.html) class can also be utilized rather than creating custom `Editor` classes.
 
 ### Interactor and Interactable event callbacks
 
@@ -326,6 +330,7 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 |Date|Reason|
 |---|---|
+|March 15, 2020|Documentation updated to reflect change that custom Editor classes are no longer needed to show additional serialized fields. Matches package version 1.0.0-pre.3.|
 |December 14, 2020|Documentation updated to reflect change to when registration with Interaction Manager occurs and for changes to event signatures. Matches package version 1.0.0-pre.2.|
 |October 20, 2020|Documentation updated. Matches package version 0.10.0.|
 |January 10, 2020|Removed private github link.|

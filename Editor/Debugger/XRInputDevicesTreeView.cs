@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+using UnityEngine.XR;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Input Devices.

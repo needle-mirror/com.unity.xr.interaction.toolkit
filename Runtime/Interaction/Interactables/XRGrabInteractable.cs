@@ -16,8 +16,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         const float k_DefaultTighteningAmount = 0.5f;
         const float k_DefaultSmoothingAmount = 5f;
-        const float k_VelocityPredictionFactor = 0.6f;
-        const float k_AngularVelocityDamping = 0.95f;
+        const float k_VelocityDamping = 0.4f;
+        const float k_VelocityScale = 1f;
+        const float k_AngularVelocityDamping = 0.4f;
+        const float k_AngularVelocityScale = 0.95f;
         const int k_ThrowSmoothingFrameCount = 20;
         const float k_DefaultAttachEaseInTime = 0.15f;
         const float k_DefaultThrowSmoothingDuration = 0.25f;
@@ -60,6 +62,78 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_MovementType;
             set => m_MovementType = value;
+        }
+
+        [SerializeField, Range(0f, 1f)]
+        float m_VelocityDamping = k_VelocityDamping;
+
+        /// <summary>
+        /// Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor.
+        /// The smaller the value, the longer it takes for the velocity to decay.
+        /// </summary>
+        /// <remarks>
+        /// Only applies when in <see cref="XRBaseInteractable.MovementType.VelocityTracking"/> mode.
+        /// </remarks>
+        /// <seealso cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// <seealso cref="trackPosition"/>
+        public float velocityDamping
+        {
+            get => m_VelocityDamping;
+            set => m_VelocityDamping = value;
+        }
+
+        [SerializeField]
+        float m_VelocityScale = k_VelocityScale;
+
+        /// <summary>
+        /// Scale factor applied to the tracked velocity while updating the <see cref="Rigidbody"/>
+        /// when tracking the position of the Interactor.
+        /// </summary>
+        /// <remarks>
+        /// Only applies when in <see cref="XRBaseInteractable.MovementType.VelocityTracking"/> mode.
+        /// </remarks>
+        /// <seealso cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// <seealso cref="trackPosition"/>
+        public float velocityScale
+        {
+            get => m_VelocityScale;
+            set => m_VelocityScale = value;
+        }
+
+        [SerializeField, Range(0f, 1f)]
+        float m_AngularVelocityDamping = k_AngularVelocityDamping;
+
+        /// <summary>
+        /// Scale factor of how much to dampen the existing angular velocity when tracking the rotation of the Interactor.
+        /// The smaller the value, the longer it takes for the angular velocity to decay.
+        /// </summary>
+        /// <remarks>
+        /// Only applies when in <see cref="XRBaseInteractable.MovementType.VelocityTracking"/> mode.
+        /// </remarks>
+        /// <seealso cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// <seealso cref="trackRotation"/>
+        public float angularVelocityDamping
+        {
+            get => m_AngularVelocityDamping;
+            set => m_AngularVelocityDamping = value;
+        }
+
+        [SerializeField]
+        float m_AngularVelocityScale = k_AngularVelocityScale;
+
+        /// <summary>
+        /// Scale factor applied to the tracked angular velocity while updating the <see cref="Rigidbody"/>
+        /// when tracking the rotation of the Interactor.
+        /// </summary>
+        /// <remarks>
+        /// Only applies when in <see cref="XRBaseInteractable.MovementType.VelocityTracking"/> mode.
+        /// </remarks>
+        /// <seealso cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// <seealso cref="trackRotation"/>
+        public float angularVelocityScale
+        {
+            get => m_AngularVelocityScale;
+            set => m_AngularVelocityScale = value;
         }
 
         [SerializeField]
@@ -330,6 +404,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
+            base.ProcessInteractable(updatePhase);
+
             switch (updatePhase)
             {
                 // During Fixed update we want to perform any physics based updates (e.g., Kinematic or VelocityTracking).
@@ -487,19 +563,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_TrackPosition)
                 {
                     // Scale initialized velocity by prediction factor
-                    m_Rigidbody.velocity *= k_VelocityPredictionFactor;
+                    m_Rigidbody.velocity *= (1f - m_VelocityDamping);
                     var posDelta = m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
                     var velocity = posDelta / timeDelta;
 
                     if (!float.IsNaN(velocity.x))
-                        m_Rigidbody.velocity += velocity;
+                        m_Rigidbody.velocity += (velocity * m_VelocityScale);
                 }
 
                 // Do angular velocity tracking
                 if (m_TrackRotation)
                 {
                     // Scale initialized velocity by prediction factor
-                    m_Rigidbody.angularVelocity *= k_VelocityPredictionFactor;
+                    m_Rigidbody.angularVelocity *= (1f - m_AngularVelocityDamping);
                     var rotationDelta = m_TargetWorldRotation * Quaternion.Inverse(m_Rigidbody.rotation);
                     rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
                     if (angleInDegrees > 180f)
@@ -509,7 +585,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         var angularVelocity = (rotationAxis * angleInDegrees * Mathf.Deg2Rad) / timeDelta;
                         if (!float.IsNaN(angularVelocity.x))
-                            m_Rigidbody.angularVelocity += angularVelocity * k_AngularVelocityDamping;
+                            m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
                     }
                 }
             }

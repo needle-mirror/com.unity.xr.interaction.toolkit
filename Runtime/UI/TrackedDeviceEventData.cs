@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public List<Vector3> rayPoints { get; set; }
 
         /// <summary>
-        /// Set by the raycaster, this is the index within the raypoints list that received the hit.
+        /// Set by the raycaster, this is the index of the endpoint within the <see cref="rayPoints"/> list that received the hit.
         /// </summary>
         public int rayHitIndex { get; set; }
 

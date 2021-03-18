@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// Custom editor for an <see cref="ARSelectionInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(ARSelectionInteractable), true), CanEditMultipleObjects]
-    public class ARSelectionInteractableEditor : XRBaseInteractableEditor
+    public class ARSelectionInteractableEditor : ARBaseGestureInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARSelectionInteractable.selectionVisualization"/>.</summary>
         protected SerializedProperty m_SelectionVisualization;

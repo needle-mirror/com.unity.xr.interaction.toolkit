@@ -11,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// Multiple input modules may be placed on the same event system. In such a setup,
     /// the modules will synchronize with each other.
     /// </remarks>
+    [DefaultExecutionOrder(XRInteractionUpdateOrder.k_UIInputModule)]
     public abstract class UIInputModule : BaseInputModule
     {
         [SerializeField, FormerlySerializedAs("clickSpeed")]
@@ -83,23 +84,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         TrackedDeviceEventData m_CachedTrackedDeviceEventData;
 
         /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <remarks>
+        /// Processing is postponed from earlier in the frame (<see cref="EventSystem"/> has a
+        /// script execution order of <c>-1000</c>) until this Update to allow other systems to
+        /// update the poses that will be used to generate the raycasts used by this input module.
+        /// <br />
+        /// For Ray Interactor, it must wait until after the Controller pose updates and Locomotion
+        /// moves the Rig in order to generate the current sample points used to create the rays used
+        /// for this frame. Those positions will be determined during <see cref="DoProcess"/>.
+        /// Ray Interactor needs the UI raycasts to be completed by the time <see cref="XRInteractionManager"/>
+        /// calls into <see cref="XRBaseInteractor.GetValidTargets"/> since that is dependent on
+        /// whether a UI hit was closer than a 3D hit. This processing must therefore be done
+        /// between Locomotion and <see cref="XRBaseInteractor.ProcessInteractor"/> to minimize latency.
+        /// </remarks>
+        protected virtual void Update()
+        {
+            // Check to make sure that Process should still be called.
+            // It would likely cause unexpected results if processing was done
+            // when this module is no longer the current one.
+            if (eventSystem.IsActive() && eventSystem.currentInputModule == this && eventSystem == EventSystem.current)
+            {
+                DoProcess();
+            }
+        }
+
+        /// <summary>
         /// Process the current tick for the module.
         /// </summary>
         /// <remarks>
-        /// Executed once per Update call.
+        /// Executed once per Update call. Override for custom processing.
         /// </remarks>
-        protected abstract void DoProcess();
+        /// <seealso cref="Process"/>
+        protected virtual void DoProcess()
+        {
+            SendUpdateEventToSelectedObject();
+        }
 
         /// <inheritdoc />
         public override void Process()
         {
-            if (eventSystem.currentSelectedGameObject != null)
-            {
-                var data = GetBaseEventData();
-                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);
-            }
+            // Postpone processing until later in the frame
+        }
 
-            DoProcess();
+        /// <summary>
+        /// Sends an update event to the currently selected object.
+        /// </summary>
+        /// <returns>Returns whether the update event was used by the selected object.</returns>
+        protected bool SendUpdateEventToSelectedObject()
+        {
+            if (eventSystem.currentSelectedGameObject == null)
+                return false;
+
+            var data = GetBaseEventData();
+            ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);
+            return data.used;
         }
 
         RaycastResult PerformRaycast(PointerEventData eventData)
@@ -190,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
-            if (eventData.pointerEnter == currentPointerTarget && currentPointerTarget)
+            if (eventData.pointerEnter == currentPointerTarget)
                 return;
 
             var commonRoot = FindCommonRoot(eventData.pointerEnter, currentPointerTarget);
@@ -215,6 +255,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             eventData.pointerEnter = currentPointerTarget;
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse -- Could be null if it was destroyed immediately after executing above
             if (currentPointerTarget != null)
             {
                 var t = currentPointerTarget.transform;
@@ -334,7 +375,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         void ProcessMouseScroll(PointerEventData eventData)
         {
             var scrollDelta = eventData.scrollDelta;
-            if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0.0f))
+            if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0f))
             {
                 var scrollHandler = ExecuteEvents.GetEventHandler<IScrollHandler>(eventData.pointerEnter);
                 ExecuteEvents.ExecuteHierarchy(scrollHandler, eventData, ExecuteEvents.scrollHandler);
@@ -374,14 +415,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             eventData.button = PointerEventData.InputButton.Left;
 
+            // Demolish the screen position so we don't trigger any hits from a GraphicRaycaster component on a Canvas.
+            // The position value is not used by the TrackedDeviceGraphicRaycaster.
+            // Restore the original value after the Raycast is complete.
+            var savedPosition = eventData.position;
+            eventData.position = new Vector2(float.MinValue, float.MinValue);
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
+            eventData.position = savedPosition;
 
             // Get associated camera, or main-tagged camera, or camera from raycast, and if *nothing* exists, then abort processing this frame.
-            var camera = uiCamera ? uiCamera : Camera.main;
+            // ReSharper disable once LocalVariableHidesMember
+            var camera = uiCamera != null ? uiCamera : (uiCamera = Camera.main);
             if (camera == null)
             {
                 var module = eventData.pointerCurrentRaycast.module;
-                if (module)
+                if (module != null)
                     camera = module.eventCamera;
             }
 
@@ -405,6 +453,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 ProcessMouseButton(deviceState.selectDelta, eventData);
                 ProcessMouseMovement(eventData);
+                ProcessMouseScroll(eventData);
                 ProcessMouseButtonDrag(eventData, m_TrackedDeviceDragThresholdMultiplier);
 
                 deviceState.CopyFrom(eventData);

@@ -27,12 +27,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
     /// The <see cref="ARGestureInteractor"/> allows the user to manipulate virtual objects (select, translate,
-    /// rotate, scale and elevate) through gestures (tap, drag, twist, swipe).
-    /// The <see cref="ARGestureInteractor"/> also handles the current selected object and its visualization.
-    /// <br />
-    /// To enable it add an <see cref="ARGestureInteractor"/> to your scene and an <see cref="ARBaseGestureInteractable"/> to any
-    /// of your virtual objects.
+    /// rotate, scale, and elevate) through gestures (tap, drag, twist, and pinch).
     /// </summary>
+    /// <remarks>
+    /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
+    /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
+    /// </remarks>
     public class ARGestureInteractor {}
 }
 
@@ -40,36 +40,85 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
+#endif
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem.EnhancedTouch;
+#endif
+using UnityEngine.XR.ARFoundation;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
     /// The <see cref="ARGestureInteractor"/> allows the user to manipulate virtual objects (select, translate,
-    /// rotate, scale and elevate) through gestures (tap, drag, twist, swipe).
-    /// The <see cref="ARGestureInteractor"/> also handles the current selected object and its visualization.
-    /// <br />
-    /// To enable it add an <see cref="ARGestureInteractor"/> to your scene and an <see cref="ARBaseGestureInteractable"/> to any
-    /// of your virtual objects.
+    /// rotate, scale, and elevate) through gestures (tap, drag, twist, and pinch).
     /// </summary>
+    /// <remarks>
+    /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
+    /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
+    /// </remarks>
     [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
     public class ARGestureInteractor : XRBaseInteractor
     {
+        [SerializeField]
+        ARSessionOrigin m_ARSessionOrigin;
+
+        /// <summary>
+        /// The <see cref="ARSessionOrigin"/> that this Interactor will use
+        /// (such as to get the <see cref="Camera"/> or to transform from Session space).
+        /// Will find one if <see langword="null"/>.
+        /// </summary>
+        public ARSessionOrigin arSessionOrigin
+        {
+            get => m_ARSessionOrigin;
+            set
+            {
+                m_ARSessionOrigin = value;
+                if (Application.isPlaying)
+                    PushARSessionOrigin();
+            }
+        }
+
+        /// <summary>
+        /// (Read Only) The Drag gesture recognizer.
+        /// </summary>
+        public DragGestureRecognizer dragGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Pinch gesture recognizer.
+        /// </summary>
+        public PinchGestureRecognizer pinchGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The two finger drag gesture recognizer.
+        /// </summary>
+        public TwoFingerDragGestureRecognizer twoFingerDragGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Tap gesture recognizer.
+        /// </summary>
+        public TapGestureRecognizer tapGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Twist gesture recognizer.
+        /// </summary>
+        public TwistGestureRecognizer twistGestureRecognizer { get; private set; }
+
+#pragma warning disable IDE1006 // Naming Styles
         static ARGestureInteractor s_Instance;
         /// <summary>
         /// (Read Only) The <see cref="ARGestureInteractor"/> instance.
         /// </summary>
+        [Obsolete("instance has been deprecated. Use ARBaseGestureInteractable.gestureInteractor instead of singleton.")]
         public static ARGestureInteractor instance
         {
             get
             {
                 if (s_Instance == null)
                 {
-                    var xrGestureInteractors = FindObjectsOfType<ARGestureInteractor>();
-                    if (xrGestureInteractors.Length > 0)
-                    {
-                        s_Instance = xrGestureInteractors[0];
-                    }
-                    else
+                    s_Instance = FindObjectOfType<ARGestureInteractor>();
+                    if (s_Instance == null)
                     {
                         Debug.LogError("No instance of ARGestureInteractor exists in the scene.");
                     }
@@ -79,88 +128,122 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
-#pragma warning disable IDE1006 // Naming Styles
-        [Obsolete("Instance has been deprecated. Use instance instead. (UnityUpgradable) -> instance", true)]
+        /// <inheritdoc cref="instance"/>
+        [Obsolete("Instance has been deprecated. Use instance instead. (UnityUpgradable) -> instance")]
         public static ARGestureInteractor Instance => instance;
+
+        /// <inheritdoc cref="dragGestureRecognizer"/>
+        [Obsolete("DragGestureRecognizer has been deprecated. Use dragGestureRecognizer instead. (UnityUpgradable) -> dragGestureRecognizer")]
+        public DragGestureRecognizer DragGestureRecognizer => dragGestureRecognizer;
+
+        /// <inheritdoc cref="pinchGestureRecognizer"/>
+        [Obsolete("PinchGestureRecognizer has been deprecated. Use pinchGestureRecognizer instead. (UnityUpgradable) -> pinchGestureRecognizer")]
+        public PinchGestureRecognizer PinchGestureRecognizer => pinchGestureRecognizer;
+
+        /// <inheritdoc cref="twoFingerDragGestureRecognizer"/>
+        [Obsolete("TwoFingerDragGestureRecognizer has been deprecated. Use twoFingerDragGestureRecognizer instead. (UnityUpgradable) -> twoFingerDragGestureRecognizer")]
+        public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer => twoFingerDragGestureRecognizer;
+
+        /// <inheritdoc cref="tapGestureRecognizer"/>
+        [Obsolete("TapGestureRecognizer has been deprecated. Use tapGestureRecognizer instead. (UnityUpgradable) -> tapGestureRecognizer")]
+        public TapGestureRecognizer TapGestureRecognizer => tapGestureRecognizer;
+
+        /// <inheritdoc cref="twistGestureRecognizer"/>
+        [Obsolete("TwistGestureRecognizer has been deprecated. Use twistGestureRecognizer instead. (UnityUpgradable) -> twistGestureRecognizer")]
+        public TwistGestureRecognizer TwistGestureRecognizer => twistGestureRecognizer;
 #pragma warning restore IDE1006
 
-        DragGestureRecognizer m_DragGestureRecognizer = new DragGestureRecognizer();
         /// <summary>
-        /// (Read Only) The Drag gesture recognizer.
+        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
         /// </summary>
-        public DragGestureRecognizer DragGestureRecognizer => m_DragGestureRecognizer;
+        static ARSessionOrigin s_ARSessionOriginCache;
 
-        PinchGestureRecognizer m_PinchGestureRecognizer = new PinchGestureRecognizer();
-        /// <summary>
-        /// (Read Only) The Pinch gesture recognizer.
-        /// </summary>
-        public PinchGestureRecognizer PinchGestureRecognizer => m_PinchGestureRecognizer;
-
-        TwoFingerDragGestureRecognizer m_TwoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
-        /// <summary>
-        /// (Read Only) The two finger drag gesture recognizer.
-        /// </summary>
-        public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer => m_TwoFingerDragGestureRecognizer;
-
-        TapGestureRecognizer m_TapGestureRecognizer = new TapGestureRecognizer();
-        /// <summary>
-        /// (Read Only) The Tap gesture recognizer.
-        /// </summary>
-        public TapGestureRecognizer TapGestureRecognizer => m_TapGestureRecognizer;
-
-        TwistGestureRecognizer m_TwistGestureRecognizer = new TwistGestureRecognizer();
-        /// <summary>
-        /// (Read Only) The Twist gesture recognizer.
-        /// </summary>
-        public TwistGestureRecognizer TwistGestureRecognizer => m_TwistGestureRecognizer;
+        /// <inheritdoc />
+        protected override void Reset()
+        {
+            base.Reset();
+#if UNITY_EDITOR
+            m_ARSessionOrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<ARSessionOrigin>(gameObject);
+#endif
+        }
 
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
 
-            if (instance != this)
-            {
-                // TODO We should support multiple ARGestureInteractors eventually
-                Debug.LogWarning($"Multiple instances of {nameof(ARGestureInteractor)} detected in the scene." +
-                                 " Only one instance can exist at a time. The duplicate instances" +
-                                 " will be destroyed.", this);
-                DestroyImmediate(gameObject);
-            }
+            dragGestureRecognizer = new DragGestureRecognizer();
+            pinchGestureRecognizer = new PinchGestureRecognizer();
+            twoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
+            tapGestureRecognizer = new TapGestureRecognizer();
+            twistGestureRecognizer = new TwistGestureRecognizer();
+
+            FindARSessionOrigin();
+            PushARSessionOrigin();
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        public void Update()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
-            DragGestureRecognizer.Update();
-            PinchGestureRecognizer.Update();
-            TwoFingerDragGestureRecognizer.Update();
-            TapGestureRecognizer.Update();
-            TwistGestureRecognizer.Update();
+            base.OnEnable();
+
+#if ENABLE_INPUT_SYSTEM
+            EnhancedTouchSupport.Enable();
+#endif
+            FindARSessionOrigin();
+            PushARSessionOrigin();
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+#if AR_FOUNDATION_PRESENT && ENABLE_INPUT_SYSTEM
+            EnhancedTouchSupport.Disable();
+#endif
+        }
+
+        /// <inheritdoc />
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractor(updatePhase);
+
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                UpdateGestureRecognizers();
+        }
+
+        void FindARSessionOrigin()
+        {
+            if (m_ARSessionOrigin != null)
+                return;
+
+            if (s_ARSessionOriginCache == null)
+                s_ARSessionOriginCache = FindObjectOfType<ARSessionOrigin>();
+
+            m_ARSessionOrigin = s_ARSessionOriginCache;
         }
 
         static float GetHorizontalFOV(Camera camera)
         {
+            // Calculate the half horizontal FOV in radians
             var vFOV = camera.fieldOfView * Mathf.Deg2Rad;
             var cameraHeight = Mathf.Tan(vFOV * .5f);
             return Mathf.Atan(cameraHeight * camera.aspect);
         }
 
-        /// <summary>
-        /// Retrieve the list of interactables that this interactor could possibly interact with this frame.
-        /// </summary>
-        /// <param name="validTargets">Populated List of interactables that are valid for selection or hover.</param>
+        /// <inheritdoc />
         public override void GetValidTargets(List<XRBaseInteractable> validTargets)
         {
             validTargets.Clear();
 
-            var cameraBehaviour = Camera.main;
-            if (cameraBehaviour == null)
+            // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
+            var camera = m_ARSessionOrigin != null ? m_ARSessionOrigin.camera : Camera.main;
+            if (camera == null)
                 return;
 
-            var hFOV = GetHorizontalFOV(cameraBehaviour);
+            var cameraPosition = camera.transform.position;
+            var cameraForward = camera.transform.forward;
+            var hFOV = GetHorizontalFOV(camera);
 
             foreach (var interactable in interactionManager.interactables)
             {
@@ -173,13 +256,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     // Note: this does not take size of object into consideration.
                     // Note: this will fall down when directly over/under object (we should also check for dot
                     // product with up/down.
-                    var toTarget =
-                        Vector3.Normalize(interactable.transform.position - cameraBehaviour.transform.position);
-                    var dotForwardToTarget = Vector3.Dot(cameraBehaviour.transform.forward, toTarget);
+                    var toTarget = Vector3.Normalize(interactable.transform.position - cameraPosition);
+                    var dotForwardToTarget = Vector3.Dot(cameraForward, toTarget);
                     if (Mathf.Acos(dotForwardToTarget) < hFOV)
                         validTargets.Add(interactable);
                 }
             }
+        }
+
+        /// <summary>
+        /// Update all Gesture Recognizers.
+        /// </summary>
+        /// <seealso cref="GestureRecognizer{T}.Update"/>
+        protected virtual void UpdateGestureRecognizers()
+        {
+            dragGestureRecognizer.Update();
+            pinchGestureRecognizer.Update();
+            twoFingerDragGestureRecognizer.Update();
+            tapGestureRecognizer.Update();
+            twistGestureRecognizer.Update();
+        }
+
+        /// <summary>
+        /// Passes the <see cref="arSessionOrigin"/> to the Gesture Recognizers.
+        /// </summary>
+        /// <seealso cref="GestureRecognizer{T}.arSessionOrigin"/>
+        protected virtual void PushARSessionOrigin()
+        {
+            dragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
+            pinchGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
+            twoFingerDragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
+            tapGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
+            twistGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
         }
     }
 }

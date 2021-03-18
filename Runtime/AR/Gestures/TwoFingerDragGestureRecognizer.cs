@@ -18,7 +18,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright Â© 2020 Unity Technologies ApS
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
@@ -29,32 +29,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture Recognizer for when the user performs a two finger drag motion on the touch screen.
     /// </summary>
+    /// <inheritdoc />
     public class TwoFingerDragGestureRecognizer : GestureRecognizer<TwoFingerDragGesture>
     {
-        const float k_SlopInches = 0.1f;
-        const float k_AngleThresholdRadians = Mathf.PI / 6;
+        /// <summary>
+        /// Distance in inches a user's touches can drift from the start position
+        /// before the drag gesture is interpreted as started.
+        /// </summary>
+        public float slopInches { get; set; } = 0.1f;
 
-        internal float m_SlopInches => k_SlopInches;
-
-        internal float m_AngleThresholdRadians => k_AngleThresholdRadians;
+        /// <summary>
+        /// Angle that both fingers must move in the same direction
+        /// before the drag gesture is interpreted as started.
+        /// </summary>
+        public float angleThresholdRadians { get; set; } = Mathf.PI / 6;
 
         /// <summary>
         /// Creates a two finger drag gesture with the given touches.
         /// </summary>
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
-        /// <returns>The created Swipe gesture.</returns>
+        /// <returns>The created Two Finger Drag gesture.</returns>
         internal TwoFingerDragGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new TwoFingerDragGesture(this, touch1, touch2);
         }
 
         /// <summary>
-        /// Tries to create a two finger drag gesture.
+        /// Creates a two finger drag gesture with the given touches.
         /// </summary>
-        protected internal override void TryCreateGestures()
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        /// <returns>The created Two Finger Drag gesture.</returns>
+        internal TwoFingerDragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
+            return new TwoFingerDragGesture(this, touch1, touch2);
+        }
+
+        /// <inheritdoc />
+        protected override void TryCreateGestures()
+        {
+            if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
+                TryCreateTwoFingerGestureOnTouchBegan(CreateEnhancedGesture);
+            else
+                TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
         }
     }
 }

@@ -7,10 +7,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// Custom editor for an <see cref="ARPlacementInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(ARPlacementInteractable), true), CanEditMultipleObjects]
-    public class ARPlacementInteractableEditor : XRBaseInteractableEditor
+    public class ARPlacementInteractableEditor : ARBaseGestureInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARPlacementInteractable.placementPrefab"/>.</summary>
         protected SerializedProperty m_PlacementPrefab;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARPlacementInteractable.fallbackLayerMask"/>.</summary>
+        protected SerializedProperty m_FallbackLayerMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARPlacementInteractable.objectPlaced"/>.</summary>
         protected SerializedProperty m_ObjectPlaced;
 
@@ -34,6 +36,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
             base.OnEnable();
 
             m_PlacementPrefab = serializedObject.FindProperty("m_PlacementPrefab");
+            m_FallbackLayerMask = serializedObject.FindProperty("m_FallbackLayerMask");
             m_ObjectPlaced = serializedObject.FindProperty("m_ObjectPlaced");
 
             m_OnObjectPlaced = serializedObject.FindProperty("m_OnObjectPlaced");
@@ -45,6 +48,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         {
             base.DrawProperties();
             EditorGUILayout.PropertyField(m_PlacementPrefab);
+            EditorGUILayout.PropertyField(m_FallbackLayerMask);
         }
 
         /// <inheritdoc />

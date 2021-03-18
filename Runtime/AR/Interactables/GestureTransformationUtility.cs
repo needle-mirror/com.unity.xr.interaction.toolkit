@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="GestureTransformationUtility.cs" company="Google">
+// <copyright file="TransformationUtility.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
 //
@@ -22,7 +22,9 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -34,59 +36,100 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public static class GestureTransformationUtility
     {
         /// <summary>
-        /// Translation mode.
+        /// Represents the alignment of a plane where translation is allowed.
         /// </summary>
+        /// <seealso cref="GetBestPlacementPosition(Vector3, Vector2, float, float, float, GestureTranslationMode, ARSessionOrigin, TrackableType, int)"/>
+        /// <seealso cref="PlaneAlignment"/>
         public enum GestureTranslationMode
         {
+            /// <summary>
+            /// Allow translation when the plane is horizontal.
+            /// </summary>
             Horizontal,
+
+            /// <summary>
+            /// Allow translation when the plane is vertical.
+            /// </summary>
             Vertical,
+
+            /// <summary>
+            /// Allow translation on any plane.
+            /// </summary>
             Any,
         }
 
         /// <summary>
-        /// Slight offset of the down ray used in GetBestPlacementPosition to ensure that the
-        /// current groundingPlane is included in the hit results.
-        /// </summary>
-        const float k_DownRayOffset = 0.01f;
-
-        /// <summary>
-        /// Max amount (inches) to offset the screen touch in GetBestPlacementPosition.
+        /// Max amount (inches) to offset the screen touch in <see cref="GetBestPlacementPosition(Vector3, Vector2, float, float, float, GestureTranslationMode, ARSessionOrigin, TrackableType, int)"/>.
         /// The actual amount if dependent on the angle of the camera relative.
         /// The further downward the camera is angled, the more the screen touch is offset.
         /// </summary>
         const float k_MaxScreenTouchOffset = 0.4f;
 
         /// <summary>
-        /// In GetBestPlacementPosition, when the camera is closer than this value to the object,
+        /// In <see cref="GetBestPlacementPosition(Vector3, Vector2, float, float, float, GestureTranslationMode, ARSessionOrigin, TrackableType, int)"/>, when the camera is closer than this value to the object,
         /// reduce how much the object hovers.
         /// </summary>
-        const float k_HoverDistanceThreshold = 1.0f;
+        const float k_HoverDistanceThreshold = 1f;
 
+        static ARSessionOrigin s_ARSessionOrigin;
         static ARRaycastManager s_ARRaycastManager;
         static ARPlaneManager s_ARPlaneManager;
-        static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
-        static bool CheckDependentManagers()
+        static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
+
+        static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARRaycastManager raycastManager) =>
+            TryGetTrackableManager(sessionOrigin, ref s_ARRaycastManager, out raycastManager);
+
+        static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARPlaneManager planeManager) =>
+            TryGetTrackableManager(sessionOrigin, ref s_ARPlaneManager, out planeManager);
+
+        static bool TryGetTrackableManager<T>([CanBeNull] ARSessionOrigin sessionOrigin, ref T cachedManager, out T manager)
         {
-            if (s_ARRaycastManager == null)
+            // This method is used to get the Trackable Manager component on the ARSessionOrigin GameObject
+            // by caching the manager component from the most recently used ARSessionOrigin.
+            // There is typically only one ARSessionOrigin, so this serves as a simple cache to avoid
+            // doing a GetComponent call to get the manager component each time.
+            if (sessionOrigin == null)
             {
-                s_ARRaycastManager = Object.FindObjectOfType<ARRaycastManager>();
-                if (s_ARRaycastManager == null)
+                if (s_ARSessionOrigin == null)
                 {
-                    Debug.LogWarning("Could not find ARRaycastManager in scene.");
-                    return false;
+                    s_ARSessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
+                    cachedManager = default;
+                    if (s_ARSessionOrigin == null)
+                    {
+                        Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
+                        manager = default;
+                        return false;
+                    }
                 }
             }
-            if (s_ARPlaneManager == null)
+            else if (sessionOrigin != s_ARSessionOrigin)
             {
-                s_ARPlaneManager = Object.FindObjectOfType<ARPlaneManager>();
-                if (s_ARPlaneManager == null)
+                s_ARSessionOrigin = sessionOrigin;
+                cachedManager = default;
+            }
+
+            // The cached Trackable Managers are associated with an ARSessionOrigin.
+            // Update and use cached version
+            var found = cachedManager != null || s_ARSessionOrigin.TryGetComponent(out cachedManager);
+            manager = cachedManager;
+            return found;
+        }
+
+        static bool TryGetSessionOrigin(out ARSessionOrigin sessionOrigin)
+        {
+            if (s_ARSessionOrigin == null)
+            {
+                s_ARSessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
+                if (s_ARSessionOrigin == null)
                 {
-                    Debug.LogWarning("Could not find ARPlaneManager in scene.");
+                    Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
+                    sessionOrigin = s_ARSessionOrigin;
                     return false;
                 }
             }
 
+            sessionOrigin = s_ARSessionOrigin;
             return true;
         }
 
@@ -98,25 +141,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
         /// <returns>Returns <see langword="true"/> if the raycast hit a trackable in the <paramref name="trackableTypes"/>.
         /// Otherwise, returns <see langword="false"/>.</returns>
-        public static bool Raycast(Vector2 screenPoint, List<ARRaycastHit> hitResults,
-            TrackableType trackableTypes = TrackableType.All)
+        /// <seealso cref="ARRaycastManager.Raycast(Vector2, List{ARRaycastHit}, TrackableType)"/>
+        [Obsolete("Raycast has been deprecated. Use Raycast with updated signature instead.")]
+        public static bool Raycast(Vector2 screenPoint, List<ARRaycastHit> hitResults, TrackableType trackableTypes = TrackableType.All)
         {
-            hitResults.Clear();
+            // For backwards compatibility, use the TestPlanes layer value from the AR examples project.
+            const int fallbackLayerMask = 1 << 9;
+            return Raycast(screenPoint, hitResults, null, trackableTypes, fallbackLayerMask);
+        }
 
-            if (CheckDependentManagers() && s_ARRaycastManager.Raycast(screenPoint, hitResults, trackableTypes))
+        /// <summary>
+        /// Cast a ray from a point in screen space against trackables, i.e., detected features such as planes.
+        /// Can optionally fallback to hit test against Colliders in the loaded Scenes when no trackables were hit.
+        /// </summary>
+        /// <param name="screenPoint">The point, in device screen pixels, from which to cast.</param>
+        /// <param name="hitResults">Contents are replaced with the raycast results, if successful.</param>
+        /// <param name="sessionOrigin">The <see cref="ARSessionOrigin"/> used for raycasting.</param>
+        /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
+        /// <param name="fallbackLayerMask">(Optional) The <see cref="LayerMask"/> that is used during an additional raycast when no trackables are hit.
+        /// Defaults to Nothing which skips the fallback raycast.</param>
+        /// <returns>Returns <see langword="true"/> if the raycast hit a trackable in the <paramref name="trackableTypes"/> or if the fallback raycast hit.
+        /// Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="ARRaycastManager.Raycast(Vector2, List{ARRaycastHit}, TrackableType)"/>
+        public static bool Raycast(
+            Vector2 screenPoint,
+            List<ARRaycastHit> hitResults,
+            ARSessionOrigin sessionOrigin,
+            TrackableType trackableTypes = TrackableType.All,
+            int fallbackLayerMask = 0)
+        {
+            if ((sessionOrigin != null || TryGetSessionOrigin(out sessionOrigin)) &&
+                TryGetTrackableManager(sessionOrigin, out ARRaycastManager raycastManager) &&
+                raycastManager.Raycast(screenPoint, hitResults, trackableTypes))
+            {
                 return true;
+            }
 
-            // No hits or managers, try debug planes
-            var sessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
+            // No hits on trackables, try debug planes
+            hitResults.Clear();
+            const TrackableType hitType = TrackableType.PlaneWithinPolygon;
+            if (fallbackLayerMask == 0 || (trackableTypes & hitType) == 0)
+                return false;
 
-            var ray = Camera.main.ScreenPointToRay(screenPoint);
-            if (Physics.Raycast(ray, out var hit, float.MaxValue, 1 << 9))
+            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
+            if (camera == null)
+                return false;
+
+            var ray = camera.ScreenPointToRay(screenPoint);
+            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, fallbackLayerMask))
             {
                 hitResults.Add(new ARRaycastHit(
-                    new XRRaycastHit(TrackableId.invalidId,
+                    new XRRaycastHit(
+                        TrackableId.invalidId,
                         new Pose(hit.point, Quaternion.LookRotation(Vector3.forward, hit.normal)),
-                        hit.distance, TrackableType.PlaneWithinPolygon),
-                    hit.distance, sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform));
+                        hit.distance,
+                        hitType),
+                    hit.distance,
+                    sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform));
                 return true;
             }
 
@@ -127,14 +208,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Calculates the best position to place an object in AR based on screen position.
         /// Could be used for tapping a location on the screen, dragging an object, or using a fixed
         /// cursor in the center of the screen for placing and moving objects.
-        ///
-        /// Objects are placed along the x/z of the grounding plane. When placed on an AR plane
-        /// below the grounding plane, the object will drop straight down onto it in world space.
-        /// This prevents the object from being pushed deeper into the scene when moving from a
-        /// higher plane to a lower plane. When moving from a lower plane to a higher plane, this
-        /// function returns a new groundingPlane to replace the old one.
         /// </summary>
-        /// <returns>The best placement position.</returns>
+        /// <returns>Returns the best placement position.</returns>
         /// <param name="currentAnchorPosition">Position of the parent anchor, i.e., where the
         /// object is before translation starts.</param>
         /// <param name="screenPos">Location on the screen in pixels to place the object at.</param>
@@ -146,6 +221,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// translated.</param>
         /// <param name="gestureTranslationMode">The translation mode, indicating the plane types allowed.
         /// </param>
+        /// <remarks>
+        /// Objects are placed along the x/z of the grounding plane. When placed on an AR plane
+        /// below the grounding plane, the object will drop straight down onto it in world space.
+        /// This prevents the object from being pushed deeper into the scene when moving from a
+        /// higher plane to a lower plane. When moving from a lower plane to a higher plane, this
+        /// function returns a new groundingPlane to replace the old one.
+        /// </remarks>
+        [Obsolete("GetBestPlacementPosition has been deprecated. Use GetBestPlacementPosition with updated signature instead.")]
         public static Placement GetBestPlacementPosition(
             Vector3 currentAnchorPosition,
             Vector2 screenPos,
@@ -154,24 +237,81 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             float maxTranslationDistance,
             GestureTranslationMode gestureTranslationMode)
         {
+            // For backwards compatibility, use the TestPlanes layer value from the AR examples project.
+            const int fallbackLayerMask = 1 << 9;
+            return GetBestPlacementPosition(currentAnchorPosition,
+                screenPos,
+                groundingPlaneHeight,
+                hoverOffset,
+                maxTranslationDistance,
+                gestureTranslationMode,
+                null,
+                fallbackLayerMask: fallbackLayerMask);
+        }
+
+        /// <summary>
+        /// Calculates the best position to place an object in AR based on screen position.
+        /// Could be used for tapping a location on the screen, dragging an object, or using a fixed
+        /// cursor in the center of the screen for placing and moving objects.
+        /// </summary>
+        /// <returns>Returns the best placement position.</returns>
+        /// <param name="currentAnchorPosition">Position of the parent anchor, i.e., where the
+        /// object is before translation starts.</param>
+        /// <param name="screenPosition">Location on the screen in pixels to place the object at.</param>
+        /// <param name="groundingPlaneHeight">The starting height of the plane that the object is
+        /// being placed along.</param>
+        /// <param name="hoverOffset">How much should the object hover above the groundingPlane
+        /// before it has been placed.</param>
+        /// <param name="maxTranslationDistance">The maximum distance that the object can be
+        /// translated.</param>
+        /// <param name="gestureTranslationMode">The translation mode, indicating the plane types allowed.
+        /// </param>
+        /// <param name="sessionOrigin">The <see cref="ARSessionOrigin"/> used for raycasting.</param>
+        /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
+        /// <param name="fallbackLayerMask">(Optional) The <see cref="LayerMask"/> that is used during
+        /// an additional raycast when no trackables are hit. Defaults to Nothing which skips the fallback raycast.</param>
+        /// <remarks>
+        /// Objects are placed along the x/z of the grounding plane. When placed on an AR plane
+        /// below the grounding plane, the object will drop straight down onto it in world space.
+        /// This prevents the object from being pushed deeper into the scene when moving from a
+        /// higher plane to a lower plane. When moving from a lower plane to a higher plane, this
+        /// function returns a new groundingPlane to replace the old one.
+        /// </remarks>
+        public static Placement GetBestPlacementPosition(
+            Vector3 currentAnchorPosition,
+            Vector2 screenPosition,
+            float groundingPlaneHeight,
+            float hoverOffset,
+            float maxTranslationDistance,
+            GestureTranslationMode gestureTranslationMode,
+            ARSessionOrigin sessionOrigin,
+            TrackableType trackableTypes = TrackableType.PlaneWithinPolygon,
+            int fallbackLayerMask = 0)
+        {
             var result = new Placement();
-            if (!CheckDependentManagers())
+
+            if (sessionOrigin == null)
+                TryGetSessionOrigin(out sessionOrigin);
+
+            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
+            if (camera == null)
                 return result;
 
-            result.UpdatedGroundingPlaneHeight = groundingPlaneHeight;
+            var cameraTransform = camera.transform;
+
+            result.updatedGroundingPlaneHeight = groundingPlaneHeight;
 
             // Get the angle between the camera and the object's down direction.
-            var angle = Vector3.Angle(Camera.main.transform.forward, Vector3.down);
-            angle = 90.0f - angle;
+            var angle = 90f - Vector3.Angle(cameraTransform.forward, Vector3.down);
 
-            var touchOffsetRatio = Mathf.Clamp01(angle / 90.0f);
+            var touchOffsetRatio = Mathf.Clamp01(angle / 90f);
             var screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
-            screenPos.y += GestureTouchesUtility.InchesToPixels(screenTouchOffset);
+            screenPosition.y += GestureTouchesUtility.InchesToPixels(screenTouchOffset);
 
-            var hoverRatio = Mathf.Clamp01(angle / 45.0f);
+            var hoverRatio = Mathf.Clamp01(angle / 45f);
             hoverOffset *= hoverRatio;
 
-            var distance = (Camera.main.transform.position - currentAnchorPosition).magnitude;
+            var distance = (cameraTransform.position - currentAnchorPosition).magnitude;
             var distanceHoverRatio = Mathf.Clamp01(distance / k_HoverDistanceThreshold);
             hoverOffset *= distanceHoverRatio;
 
@@ -179,38 +319,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Vector3 groundingPoint;
 
             // Get the ray to cast into the scene from the perspective of the camera.
-            if (Raycast(new Vector2(screenPos.x, screenPos.y), s_Hits, TrackableType.PlaneWithinPolygon))
+            if (Raycast(screenPosition, s_Hits, sessionOrigin, trackableTypes, fallbackLayerMask))
             {
+                if (!TryGetTrackableManager(sessionOrigin, out ARPlaneManager planeManager))
+                    return result;
+
                 var firstHit = s_Hits[0];
-                var plane = s_ARPlaneManager.GetPlane(firstHit.trackableId);
+                var plane = planeManager.GetPlane(firstHit.trackableId);
                 if (plane == null || IsPlaneTypeAllowed(gestureTranslationMode, plane.alignment))
                 {
                     // Avoid detecting the back of existing planes.
-                    if (Vector3.Dot(Camera.main.transform.position - firstHit.pose.position,
-                                    firstHit.pose.rotation * Vector3.up) < 0)
+                    if (Vector3.Dot(cameraTransform.position - firstHit.pose.position,
+                                    firstHit.pose.rotation * Vector3.up) < 0f)
                         return result;
 
                     // Don't allow hovering for vertical or horizontal downward facing planes.
                     if (plane == null ||
-                        (plane.alignment == PlaneAlignment.Vertical ||
+                        plane.alignment == PlaneAlignment.Vertical ||
                         plane.alignment == PlaneAlignment.HorizontalDown ||
-                        plane.alignment == PlaneAlignment.HorizontalUp))
+                        plane.alignment == PlaneAlignment.HorizontalUp)
                     {
                         groundingPoint = LimitTranslation(
                             firstHit.pose.position, currentAnchorPosition, maxTranslationDistance);
 
                         if (plane != null)
                         {
-                            result.PlacementPlane = plane;
-                            result.HasPlane = true;
+                            result.placementPlane = plane;
+                            result.hasPlane = true;
                         }
 
-                        result.HasPlacementPosition = true;
-                        result.PlacementPosition = groundingPoint;
-                        result.HasHoveringPosition = true;
-                        result.HoveringPosition = groundingPoint;
-                        result.UpdatedGroundingPlaneHeight = groundingPoint.y;
-                        result.PlacementRotation = firstHit.pose.rotation;
+                        result.hasPlacementPosition = true;
+                        result.placementPosition = groundingPoint;
+                        result.hasHoveringPosition = true;
+                        result.hoveringPosition = groundingPoint;
+                        result.updatedGroundingPlaneHeight = groundingPoint.y;
+                        result.placementRotation = firstHit.pose.rotation;
                         return result;
                     }
                 }
@@ -230,9 +373,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             // If the grounding point is lower than the current grounding plane height, or if the
             // raycast did not return a hit, then we extend the grounding plane to infinity, and do
             // a new raycast into the scene from the perspective of the camera.
-            var cameraRay = Camera.main.ScreenPointToRay(screenPos);
+            var cameraRay = camera.ScreenPointToRay(screenPosition);
             var groundingPlane =
-                new Plane(Vector3.up, new Vector3(0.0f, groundingPlaneHeight, 0.0f));
+                new Plane(Vector3.up, new Vector3(0f, groundingPlaneHeight, 0f));
 
             // Find the hovering position by casting from the camera onto the grounding plane
             // and offsetting the result by the hover offset.
@@ -241,8 +384,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 groundingPoint = LimitTranslation(
                     cameraRay.GetPoint(enter), currentAnchorPosition, maxTranslationDistance);
 
-                result.HasHoveringPosition = true;
-                result.HoveringPosition = groundingPoint + (Vector3.up * hoverOffset);
+                result.hasHoveringPosition = true;
+                result.hoveringPosition = groundingPoint + (Vector3.up * hoverOffset);
             }
             else
             {
@@ -256,15 +399,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Limits the translation to the maximum distance allowed.
         /// </summary>
-        /// <returns>The new target position, limited so that the object does not tranlsate more
+        /// <returns>Returns the new target position, limited so that the object does not translate more
         /// than the maximum allowed distance.</returns>
         /// <param name="desiredPosition">Desired position.</param>
         /// <param name="currentPosition">Current position.</param>
         /// <param name="maxTranslationDistance">Max translation distance.</param>
-        static Vector3 LimitTranslation(Vector3 desiredPosition, Vector3 currentPosition,
-                                                float maxTranslationDistance)
+        static Vector3 LimitTranslation(Vector3 desiredPosition, Vector3 currentPosition, float maxTranslationDistance)
         {
-            if ((desiredPosition - currentPosition).sqrMagnitude > Mathf.Pow(maxTranslationDistance, 2.0f))
+            if ((desiredPosition - currentPosition).sqrMagnitude > Mathf.Pow(maxTranslationDistance, 2f))
             {
                 return currentPosition + (
                     (desiredPosition - currentPosition).normalized * maxTranslationDistance);
@@ -281,14 +423,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
 
             if (gestureTranslationMode == GestureTranslationMode.Horizontal &&
-               (planeAlignment == PlaneAlignment.HorizontalDown ||
-                planeAlignment == PlaneAlignment.HorizontalUp))
+                (planeAlignment == PlaneAlignment.HorizontalDown ||
+                    planeAlignment == PlaneAlignment.HorizontalUp))
             {
                 return true;
             }
 
             if (gestureTranslationMode == GestureTranslationMode.Vertical &&
-               planeAlignment == PlaneAlignment.Vertical)
+                planeAlignment == PlaneAlignment.Vertical)
             {
                 return true;
             }
@@ -297,53 +439,124 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Result of the function GetBestPlacementPosition that indicates if a placementPosition
+        /// Result of the function <see cref="GetBestPlacementPosition(Vector3, Vector2, float, float, float, GestureTranslationMode, ARSessionOrigin, TrackableType, int)"/>
+        /// that indicates if a placement position
         /// was found and information about the placement position.
         /// </summary>
         public struct Placement
         {
-            // TODO Modify encapsulation of AR Placement position struct: no public fields
-
             /// <summary>
-            /// True if this Placement has a hovering position, else false;
+            /// <see langword="true"/> if this Placement has a valid <see cref="hoveringPosition"/> value, otherwise <see langword="false"/>.
             /// </summary>
-            public bool HasHoveringPosition;
+            /// <seealso cref="hoveringPosition"/>
+            public bool hasHoveringPosition { get; set; }
 
             /// <summary>
             /// The position that the object should be displayed at before the placement has been
             /// confirmed.
             /// </summary>
-            public Vector3 HoveringPosition;
+            /// <seealso cref="hasHoveringPosition"/>
+            public Vector3 hoveringPosition { get; set; }
 
             /// <summary>
-            /// True if this Placement has a placement position, else false.
+            /// <see langword="true"/> if this Placement has a valid <see cref="placementPosition"/> value, otherwise <see langword="false"/>.
             /// </summary>
-            public bool HasPlacementPosition;
+            /// <seealso cref="placementPosition"/>
+            public bool hasPlacementPosition { get; set; }
 
             /// <summary>
             /// The resulting position that the object should be placed at.
             /// </summary>
-            public Vector3 PlacementPosition;
+            /// <seealso cref="hasPlacementPosition"/>
+            public Vector3 placementPosition { get; set; }
 
             /// <summary>
             /// The resulting rotation that the object should have.
             /// </summary>
-            public Quaternion PlacementRotation;
+            public Quaternion placementRotation { get; set; }
 
             /// <summary>
-            /// True if this Placement has a plane, else false.
+            /// <see langword="true"/> if this Placement has a <see cref="placementPlane"/>, otherwise <see langword="false"/>.
             /// </summary>
-            public bool HasPlane;
+            /// <seealso cref="placementPlane"/>
+            public bool hasPlane { get; set; }
 
             /// <summary>
-            /// The AR Plane that the object is being placed on.
+            /// The <see cref="ARPlane"/> that the object is being placed on.
             /// </summary>
-            public ARPlane PlacementPlane;
+            /// <seealso cref="hasPlane"/>
+            public ARPlane placementPlane { get; set; }
 
             /// <summary>
-            /// This is the updated groundingPlaneHeight resulting from this hit detection.
+            /// The resulting starting height of the plane that the object is being placed along.
             /// </summary>
-            public float UpdatedGroundingPlaneHeight;
+            public float updatedGroundingPlaneHeight { get; set; }
+
+#pragma warning disable IDE1006 // Naming Styles
+            /// <inheritdoc cref="hasHoveringPosition"/>
+            [Obsolete("HasHoveringPosition has been deprecated. Use hasHoveringPosition instead. (UnityUpgradable) -> hasHoveringPosition")]
+            public bool HasHoveringPosition
+            {
+                get => hasHoveringPosition;
+                set => hasHoveringPosition = value;
+            }
+
+            /// <inheritdoc cref="hoveringPosition"/>
+            [Obsolete("HoveringPosition has been deprecated. Use hoveringPosition instead. (UnityUpgradable) -> hoveringPosition")]
+            public Vector3 HoveringPosition
+            {
+                get => hoveringPosition;
+                set => hoveringPosition = value;
+            }
+
+            /// <inheritdoc cref="hasPlacementPosition"/>
+            [Obsolete("HasPlacementPosition has been deprecated. Use hasPlacementPosition instead. (UnityUpgradable) -> hasPlacementPosition")]
+            public bool HasPlacementPosition
+            {
+                get => hasPlacementPosition;
+                set => hasPlacementPosition = value;
+            }
+
+            /// <inheritdoc cref="placementPosition"/>
+            [Obsolete("PlacementPosition has been deprecated. Use placementPosition instead. (UnityUpgradable) -> placementPosition")]
+            public Vector3 PlacementPosition
+            {
+                get => placementPosition;
+                set => placementPosition = value;
+            }
+
+            /// <inheritdoc cref="placementRotation"/>
+            [Obsolete("PlacementRotation has been deprecated. Use placementRotation instead. (UnityUpgradable) -> placementRotation")]
+            public Quaternion PlacementRotation
+            {
+                get => placementRotation;
+                set => placementRotation = value;
+            }
+
+            /// <inheritdoc cref="hasPlane"/>
+            [Obsolete("HasPlane has been deprecated. Use hasPlane instead. (UnityUpgradable) -> hasPlane")]
+            public bool HasPlane
+            {
+                get => hasPlane;
+                set => hasPlane = value;
+            }
+
+            /// <inheritdoc cref="placementPlane"/>
+            [Obsolete("PlacementPlane has been deprecated. Use placementPlane instead. (UnityUpgradable) -> placementPlane")]
+            public ARPlane PlacementPlane
+            {
+                get => placementPlane;
+                set => placementPlane = value;
+            }
+
+            /// <inheritdoc cref="updatedGroundingPlaneHeight"/>
+            [Obsolete("UpdatedGroundingPlaneHeight has been deprecated. Use updatedGroundingPlaneHeight instead. (UnityUpgradable) -> updatedGroundingPlaneHeight")]
+            public float UpdatedGroundingPlaneHeight
+            {
+                get => updatedGroundingPlaneHeight;
+                set => updatedGroundingPlaneHeight = value;
+            }
+#pragma warning restore IDE1006 // Naming Styles
         }
     }
 }

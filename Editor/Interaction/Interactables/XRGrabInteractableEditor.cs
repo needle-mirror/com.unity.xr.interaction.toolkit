@@ -15,6 +15,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_AttachEaseInTime;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.movementType"/>.</summary>
         protected SerializedProperty m_MovementType;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.velocityDamping"/>.</summary>
+        protected SerializedProperty m_VelocityDamping;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.velocityScale"/>.</summary>
+        protected SerializedProperty m_VelocityScale;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.angularVelocityDamping"/>.</summary>
+        protected SerializedProperty m_AngularVelocityDamping;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.angularVelocityScale"/>.</summary>
+        protected SerializedProperty m_AngularVelocityScale;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.trackPosition"/>.</summary>
         protected SerializedProperty m_TrackPosition;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothPosition"/>.</summary>
@@ -57,6 +65,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent attachEaseInTime = EditorGUIUtility.TrTextContent("Attach Ease In Time", "Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.movementType"/>.</summary>
             public static readonly GUIContent movementType = EditorGUIUtility.TrTextContent("Movement Type", "Specifies how this object is moved when selected, either through setting the velocity of the Rigidbody, moving the kinematic Rigidbody during Fixed Update, or by directly updating the Transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityDamping"/>.</summary>
+            public static readonly GUIContent velocityDamping = EditorGUIUtility.TrTextContent("Velocity Damping", "Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityScale"/>.</summary>
+            public static readonly GUIContent velocityScale = EditorGUIUtility.TrTextContent("Velocity Scale", "Scale factor applied to the tracked velocity while updating the Rigidbody when tracking the position of the Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.angularVelocityDamping"/>.</summary>
+            public static readonly GUIContent angularVelocityDamping = EditorGUIUtility.TrTextContent("Angular Velocity Damping", "Scale factor of how much to dampen the existing angular velocity when tracking the rotation of the Interactor. The smaller the value, the longer it takes for the angular velocity to decay.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.angularVelocityScale"/>.</summary>
+            public static readonly GUIContent angularVelocityScale = EditorGUIUtility.TrTextContent("Angular Velocity Scale", "Scale factor applied to the tracked angular velocity while updating the Rigidbody when tracking the rotation of the Interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.trackPosition"/>.</summary>
             public static readonly GUIContent trackPosition = EditorGUIUtility.TrTextContent("Track Position", "Whether this object should follow the position of the Interactor when selected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothPosition"/>.</summary>
@@ -97,6 +113,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_AttachEaseInTime = serializedObject.FindProperty("m_AttachEaseInTime");
             m_MovementType = serializedObject.FindProperty("m_MovementType");
+            m_VelocityDamping = serializedObject.FindProperty("m_VelocityDamping");
+            m_VelocityScale = serializedObject.FindProperty("m_VelocityScale");
+            m_AngularVelocityDamping = serializedObject.FindProperty("m_AngularVelocityDamping");
+            m_AngularVelocityScale = serializedObject.FindProperty("m_AngularVelocityScale");
             m_TrackPosition = serializedObject.FindProperty("m_TrackPosition");
             m_SmoothPosition = serializedObject.FindProperty("m_SmoothPosition");
             m_SmoothPositionAmount = serializedObject.FindProperty("m_SmoothPositionAmount");
@@ -155,6 +175,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
                             EditorGUILayout.PropertyField(m_TightenPosition, Contents.tightenPosition);
                         }
                     }
+
+                    if (m_MovementType.intValue == (int)XRBaseInteractable.MovementType.VelocityTracking)
+                    {
+                        EditorGUILayout.PropertyField(m_VelocityDamping, Contents.velocityDamping);
+                        EditorGUILayout.PropertyField(m_VelocityScale, Contents.velocityScale);
+                    }
                 }
             }
 
@@ -171,6 +197,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
                             EditorGUILayout.PropertyField(m_SmoothRotationAmount, Contents.smoothRotationAmount);
                             EditorGUILayout.PropertyField(m_TightenRotation, Contents.tightenRotation);
                         }
+                    }
+
+                    if (m_MovementType.intValue == (int)XRBaseInteractable.MovementType.VelocityTracking)
+                    {
+                        EditorGUILayout.PropertyField(m_AngularVelocityDamping, Contents.angularVelocityDamping);
+                        EditorGUILayout.PropertyField(m_AngularVelocityScale, Contents.angularVelocityScale);
                     }
                 }
             }

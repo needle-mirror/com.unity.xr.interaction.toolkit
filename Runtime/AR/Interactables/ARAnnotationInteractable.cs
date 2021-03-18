@@ -63,7 +63,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         [SerializeField]
         [Tooltip("Maximum range to show annotation at.")]
-        float m_MaxAnnotationRange = 10.0f;
+        float m_MaxAnnotationRange = 10f;
 
         /// <summary>
         /// Maximum range to show annotation at.
@@ -93,11 +93,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             set => m_Annotations = value;
         }
 
-        /// <summary>
-        /// Update is called every frame, if the <see cref="MonoBehaviour"/> is enabled.
-        /// </summary>
-        /// <seealso cref="MonoBehaviour"/>
-        void Update()
+        /// <inheritdoc />
+        public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractable(updatePhase);
+
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                UpdateVisualizations();
+        }
+
+        void UpdateVisualizations()
         {
             // Disable all annotations if not hovered.
             if (!isHovered)
@@ -109,19 +114,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
             else
             {
-                var cameraTransform = Camera.main.transform;
+                // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
+                var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+                if (camera == null)
+                    return;
+
+                var cameraTransform = camera.transform;
                 var fromCamera = transform.position - cameraTransform.position;
-                float distSquare = fromCamera.sqrMagnitude;
-                fromCamera.y = 0.0f;
+                var distSquare = fromCamera.sqrMagnitude;
+                fromCamera.y = 0f;
                 fromCamera.Normalize();
-                float dotProd = Vector3.Dot(fromCamera, cameraTransform.forward);
+                var dotProd = Vector3.Dot(fromCamera, cameraTransform.forward);
 
                 foreach (var annotation in m_Annotations)
                 {
-                    bool enableThisFrame =
+                    var enableThisFrame =
                         (Mathf.Acos(dotProd) < annotation.maxFOVCenterOffsetAngle &&
-                        distSquare >= Mathf.Pow(annotation.minAnnotationRange, 2.0f) &&
-                        distSquare < Mathf.Pow(annotation.maxAnnotationRange, 2.0f));
+                        distSquare >= Mathf.Pow(annotation.minAnnotationRange, 2f) &&
+                        distSquare < Mathf.Pow(annotation.maxAnnotationRange, 2f));
                     if (annotation.annotationVisualization != null)
                     {
                         if (enableThisFrame && !annotation.annotationVisualization.activeSelf)

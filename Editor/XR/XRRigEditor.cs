@@ -1,12 +1,17 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Custom editor for an <see cref="XRRig"/>.
     /// </summary>
     [CustomEditor(typeof(XRRig), true), CanEditMultipleObjects]
-    public class XRRigEditor : Editor
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
+    public class XRRigEditor : BaseInteractionEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.rig"/>.</summary>
         protected SerializedProperty m_RigBaseGameObject;
@@ -66,26 +71,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override void OnInspectorGUI()
+        protected override List<string> GetDerivedSerializedPropertyNames()
         {
-            serializedObject.Update();
-
-            DrawInspector();
-
-            serializedObject.ApplyModifiedProperties();
+            var propertyNames = base.GetDerivedSerializedPropertyNames();
+            // Ignore m_TrackingSpace since it is deprecated and only kept around for data migration
+            propertyNames.Add("m_TrackingSpace");
+            return propertyNames;
         }
 
-        /// <summary>
-        /// This method is automatically called by <see cref="OnInspectorGUI"/> to
-        /// draw the custom inspector. Override this method to customize the
-        /// inspector as a whole.
-        /// </summary>
+        /// <inheritdoc />
         /// <seealso cref="DrawBeforeProperties"/>
         /// <seealso cref="DrawProperties"/>
-        protected virtual void DrawInspector()
+        /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
+        protected override void DrawInspector()
         {
             DrawBeforeProperties();
             DrawProperties();
+            DrawDerivedProperties();
         }
 
         /// <summary>
@@ -125,16 +127,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_CameraYOffset, Contents.cameraYOffset);
                 }
             }
-        }
-
-        /// <summary>
-        /// Draw the standard read-only Script property.
-        /// </summary>
-        protected virtual void DrawScript()
-        {
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((MonoBehaviour)target), typeof(MonoBehaviour), false);
-            EditorGUI.EndDisabledGroup();
         }
     }
 }

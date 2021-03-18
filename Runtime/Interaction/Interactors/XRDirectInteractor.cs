@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (interactionManager == null)
                 return;
 
-            var interactable = interactionManager.TryGetInteractableForCollider(other);
+            var interactable = interactionManager.GetInteractableForCollider(other);
             if (interactable != null && !m_ValidTargets.Contains(interactable))
                 m_ValidTargets.Add(interactable);
         }
@@ -63,29 +63,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (interactionManager == null)
                 return;
 
-            var interactable = interactionManager.TryGetInteractableForCollider(other);
+            var interactable = interactionManager.GetInteractableForCollider(other);
             if (interactable != null)
                 m_ValidTargets.Remove(interactable);
         }
 
-        /// <summary>
-        /// Retrieve the list of interactables that this interactor could possibly interact with this frame.
-        /// This list is sorted by priority (in this case distance).
-        /// </summary>
-        /// <param name="validTargets">Populated List of interactables that are valid for selection or hover.</param>
-        public override void GetValidTargets(List<XRBaseInteractable> validTargets)
+        /// <inheritdoc />
+        public override void GetValidTargets(List<XRBaseInteractable> targets)
         {
-            validTargets.Clear();
+            targets.Clear();
             m_InteractableDistanceSqrMap.Clear();
 
-            // Calculate distance squared to interactor's attach transform and add to validTargets (which is sorted before returning)
+            // Calculate distance squared to interactor's attach transform and add to targets (which is sorted before returning)
             foreach (var interactable in m_ValidTargets)
             {
                 m_InteractableDistanceSqrMap[interactable] = interactable.GetDistanceSqrToInteractor(this);
-                validTargets.Add(interactable);
+                targets.Add(interactable);
             }
 
-            validTargets.Sort(m_InteractableSortComparison);
+            targets.Sort(m_InteractableSortComparison);
         }
 
         /// <inheritdoc />

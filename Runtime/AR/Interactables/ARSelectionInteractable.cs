@@ -71,12 +71,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             base.OnEndManipulation(gesture);
 
-            if (gesture.WasCancelled)
+            if (gesture.isCanceled)
                 return;
             if (gestureInteractor == null)
                 return;
 
-            if (gesture.TargetObject == gameObject)
+            if (gesture.targetObject == gameObject)
             {
                 // Toggle selection
                 m_GestureSelected = !m_GestureSelected;

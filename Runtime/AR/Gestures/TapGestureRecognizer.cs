@@ -29,20 +29,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture Recognizer for when the user performs a tap on the touch screen.
     /// </summary>
+    /// <inheritdoc />
     public class TapGestureRecognizer : GestureRecognizer<TapGesture>
     {
-        const float k_SlopInches = 0.1f;
-        const float k_TimeSeconds = 0.3f;
+        /// <summary>
+        /// Distance in inches a user's touch can drift from the start position
+        /// before the tap gesture is canceled.
+        /// </summary>
+        public float slopInches { get; set; } = 0.1f;
 
         /// <summary>
-        /// (Read Only) The edge slop distance to filter tap gestures.
+        /// Time (in seconds) within which a touch and release has to occur for it
+        /// to be registered as a tap.
         /// </summary>
-        internal float m_SlopInches => k_SlopInches;
-
-        /// <summary>
-        /// (Read Only) The max time to be considered a Tap gesture.
-        /// </summary>
-        internal float m_TimeSeconds => k_TimeSeconds;
+        public float durationSeconds { get; set; } = 0.3f;
 
         /// <summary>
         /// Creates a Tap gesture with the given touch.
@@ -55,11 +55,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Tries to create a Tap Gesture.
+        /// Creates a Tap gesture with the given touch.
         /// </summary>
-        protected internal override void TryCreateGestures()
+        /// <param name="touch">The touch that started this gesture.</param>
+        /// <returns>The created Tap gesture.</returns>
+        internal TapGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
         {
-            TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
+            return new TapGesture(this, touch);
+        }
+
+        /// <inheritdoc />
+        protected override void TryCreateGestures()
+        {
+            if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
+                TryCreateOneFingerGestureOnTouchBegan(CreateEnhancedGesture);
+            else
+                TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
         }
     }
 }

@@ -29,32 +29,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture Recognizer for when the user performs a two-finger pinch motion on the touch screen.
     /// </summary>
+    /// <inheritdoc />
     public class PinchGestureRecognizer : GestureRecognizer<PinchGesture>
     {
-        const float k_SlopInches = 0.05f;
-        const float k_SlopMotionDirectionDegrees = 30.0f;
+        /// <summary>
+        /// Distance in inches a user's touch gap can drift from the start position
+        /// before the pinch gesture is interpreted as started.
+        /// </summary>
+        public float slopInches { get; set; } = 0.05f;
 
-        internal float m_SlopInches => k_SlopInches;
-
-        internal float m_SlopMotionDirectionDegrees => k_SlopMotionDirectionDegrees;
+        /// <summary>
+        /// Threshold angle of motion of a user's touches used when determining
+        /// if the pinch gesture is able to start.
+        /// </summary>
+        public float slopMotionDirectionDegrees { get; set; } = 30f;
 
         /// <summary>
         /// Creates a Pinch gesture with the given touches.
         /// </summary>
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
-        /// <returns>The created Tap gesture.</returns>
+        /// <returns>The created Pinch gesture.</returns>
         internal PinchGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new PinchGesture(this, touch1, touch2);
         }
 
         /// <summary>
-        /// Tries to create a Pinch Gesture.
+        /// Creates a Pinch gesture with the given touches.
         /// </summary>
-        protected internal override void TryCreateGestures()
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        /// <returns>The created Pinch gesture.</returns>
+        internal PinchGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
+            return new PinchGesture(this, touch1, touch2);
+        }
+
+        /// <inheritdoc />
+        protected override void TryCreateGestures()
+        {
+            if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
+                TryCreateTwoFingerGestureOnTouchBegan(CreateEnhancedGesture);
+            else
+                TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
         }
     }
 }

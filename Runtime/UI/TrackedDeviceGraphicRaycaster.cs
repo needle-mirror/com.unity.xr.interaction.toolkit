@@ -7,6 +7,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
     /// Custom implementation of <see cref="GraphicRaycaster"/> for XR Interaction Toolkit.
+    /// This behavior is used to raycast against a <see cref="Canvas"/>. The Raycaster looks
+    /// at all Graphics on the canvas and determines if any of them have been hit by a ray
+    /// from a tracked device.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
     public class TrackedDeviceGraphicRaycaster : BaseRaycaster
@@ -15,18 +18,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly struct RaycastHitData
         {
-            public RaycastHitData(Graphic graphic, Vector3 worldHitPosition, Vector2 screenPosition, float distance)
+            public RaycastHitData(Graphic graphic, Vector3 worldHitPosition, Vector2 screenPosition, float distance, int displayIndex)
             {
                 this.graphic = graphic;
                 this.worldHitPosition = worldHitPosition;
                 this.screenPosition = screenPosition;
                 this.distance = distance;
+                this.displayIndex = displayIndex;
             }
 
             public Graphic graphic { get; }
             public Vector3 worldHitPosition { get; }
             public Vector2 screenPosition { get; }
             public float distance { get; }
+            public int displayIndex { get; }
         }
 
         class RaycastHitComparer : IComparer<RaycastHitData>
@@ -36,9 +41,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
+        [Tooltip("Whether Graphics facing away from the raycaster are checked for raycasts. Enable this to ignore backfacing Graphics.")]
         bool m_IgnoreReversedGraphics;
 
-        /// <summary> Whether or not reversed graphics are ignored.</summary>
+        /// <summary>
+        /// Whether Graphics facing away from the raycaster are checked for raycasts.
+        /// Enable this to ignore backfacing Graphics.
+        /// </summary>
         public bool ignoreReversedGraphics
         {
             get => m_IgnoreReversedGraphics;
@@ -46,9 +55,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
+        [Tooltip("Whether or not 2D occlusion is checked when performing raycasts. Enable to make Graphics be blocked by 2D objects that exist in front of it.")]
         bool m_CheckFor2DOcclusion;
 
-        /// <summary>  Whether or not 2D occlusion is checked when performing raycasts.</summary>
+        /// <summary>
+        /// Whether or not 2D occlusion is checked when performing raycasts.
+        /// Enable to make Graphics be blocked by 2D objects that exist in front of it.
+        /// </summary>
         public bool checkFor2DOcclusion
         {
             get => m_CheckFor2DOcclusion;
@@ -56,9 +69,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
+        [Tooltip("Whether or not 3D occlusion is checked when performing raycasts. Enable to make Graphics be blocked by 3D objects that exist in front of it.")]
         bool m_CheckFor3DOcclusion;
 
-        /// <summary> Whether or not 3D occlusion is checked when performing raycasts.</summary>
+        /// <summary>
+        /// Whether or not 3D occlusion is checked when performing raycasts.
+        /// Enable to make Graphics be blocked by 3D objects that exist in front of it.
+        /// </summary>
         public bool checkFor3DOcclusion
         {
             get => m_CheckFor3DOcclusion;
@@ -66,13 +83,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        LayerMask m_BlockingMask = int.MaxValue;
+        [Tooltip("The layers of objects that are checked to determine if they block Graphic raycasts when checking for 2D or 3D occlusion.")]
+        LayerMask m_BlockingMask = -1;
 
-        /// <summary> The blocking layer mask.</summary>
+        /// <summary>
+        /// The layers of objects that are checked to determine if they block Graphic raycasts
+        /// when checking for 2D or 3D occlusion.
+        /// </summary>
         public LayerMask blockingMask
         {
             get => m_BlockingMask;
             set => m_BlockingMask = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Specifies whether the raycast should hit Triggers when checking for 3D occlusion.")]
+        QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
+
+        /// <summary>
+        /// Specifies whether the raycast should hit Triggers when checking for 3D occlusion.
+        /// </summary>
+        public QueryTriggerInteraction raycastTriggerInteraction
+        {
+            get => m_RaycastTriggerInteraction;
+            set => m_RaycastTriggerInteraction = value;
         }
 
         /// <inheritdoc />
@@ -193,7 +227,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var hitDistance = rayDistance;
             if (m_CheckFor3DOcclusion)
             {
-                var hitCount = Physics.RaycastNonAlloc(ray, m_OcclusionHits3D, hitDistance, m_BlockingMask);
+                var hitCount = Physics.RaycastNonAlloc(ray, m_OcclusionHits3D, hitDistance, m_BlockingMask, m_RaycastTriggerInteraction);
 
                 if (hitCount > 0)
                 {
@@ -205,7 +239,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (m_CheckFor2DOcclusion)
             {
-                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, m_BlockingMask);
+                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, hitDistance, m_BlockingMask);
 
                 if (hitCount > 0)
                 {
@@ -241,13 +275,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         gameObject = go,
                         module = this,
-                        index = resultAppendList.Count,
                         distance = hitData.distance,
+                        index = resultAppendList.Count,
                         depth = hitData.graphic.depth,
                         sortingLayer = canvas.sortingLayerID,
                         sortingOrder = canvas.sortingOrder,
                         worldPosition = hitData.worldHitPosition,
-                        worldNormal = -transForward
+                        worldNormal = -transForward,
+                        screenPosition = hitData.screenPosition,
+                        displayIndex = hitData.displayIndex,
                     };
                     resultAppendList.Add(castResult);
 
@@ -282,7 +318,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         // mask/image intersection - See Unity docs on eventAlphaThreshold for when this does anything
                         if (graphic.Raycast(screenPos, eventCamera))
                         {
-                            s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance));
+                            s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
                         }
                     }
                 }

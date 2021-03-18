@@ -70,6 +70,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             set => m_MaxTranslationDistance = value;
         }
 
+        [SerializeField]
+        [Tooltip("The LayerMask that is used during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        LayerMask m_FallbackLayerMask;
+
+        /// <summary>
+        /// The <see cref="LayerMask"/> that is used during an additional raycast
+        /// when a user touch does not hit any AR trackable planes.
+        /// </summary>
+        public LayerMask fallbackLayerMask
+        {
+            get => m_FallbackLayerMask;
+            set => m_FallbackLayerMask = value;
+        }
+
         const float k_PositionSpeed = 12f;
         const float k_DiffThreshold = 0.0001f;
 
@@ -81,29 +95,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         Quaternion m_DesiredRotation;
         GestureTransformationUtility.Placement m_LastPlacement;
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void Update()
+        /// <inheritdoc />
+        public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            UpdatePosition();
+            base.ProcessInteractable(updatePhase);
+
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                UpdatePosition();
         }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(DragGesture gesture)
         {
-            if (gesture.TargetObject == null)
-            {
-                return false;
-            }
-
             // If the gesture isn't targeting this item, don't start manipulating.
-            if (gesture.TargetObject != gameObject)
-            {
-                return false;
-            }
-
-            return true;
+            return gesture.targetObject != null && gesture.targetObject == gameObject && transform.parent != null;
         }
 
         /// <inheritdoc />
@@ -115,29 +120,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(DragGesture gesture)
         {
-            Debug.Assert(transform.parent != null, "Translate interactable needs a parent object.");
+            if (transform.parent == null)
+            {
+                Debug.LogError("Translation Interactable needs a parent object.", this);
+                return;
+            }
+
             m_IsActive = true;
 
             var desiredPlacement =
                 GestureTransformationUtility.GetBestPlacementPosition(
                     transform.parent.position, gesture.position, m_GroundingPlaneHeight, 0.03f,
-                    maxTranslationDistance, objectGestureTranslationMode);
+                    maxTranslationDistance, objectGestureTranslationMode, arSessionOrigin, fallbackLayerMask: m_FallbackLayerMask);
 
-            if (desiredPlacement.HasHoveringPosition && desiredPlacement.HasPlacementPosition)
+            if (desiredPlacement.hasHoveringPosition && desiredPlacement.hasPlacementPosition)
             {
                 // If desired position is lower than current position, don't drop it until it's finished.
-                m_DesiredLocalPosition = transform.parent.InverseTransformPoint(desiredPlacement.HoveringPosition);
-                m_DesiredAnchorPosition = desiredPlacement.PlacementPosition;
+                m_DesiredLocalPosition = transform.parent.InverseTransformPoint(desiredPlacement.hoveringPosition);
+                m_DesiredAnchorPosition = desiredPlacement.placementPosition;
 
-                m_GroundingPlaneHeight = desiredPlacement.UpdatedGroundingPlaneHeight;
+                m_GroundingPlaneHeight = desiredPlacement.updatedGroundingPlaneHeight;
 
                 // Rotate if the plane direction has changed.
-                if (((desiredPlacement.PlacementRotation * Vector3.up) - transform.up).magnitude > k_DiffThreshold)
-                    m_DesiredRotation = desiredPlacement.PlacementRotation;
+                if (((desiredPlacement.placementRotation * Vector3.up) - transform.up).magnitude > k_DiffThreshold)
+                    m_DesiredRotation = desiredPlacement.placementRotation;
                 else
                     m_DesiredRotation = transform.rotation;
 
-                if (desiredPlacement.HasPlane)
+                if (desiredPlacement.hasPlane)
                     m_LastPlacement = desiredPlacement;
             }
         }
@@ -145,11 +155,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEndManipulation(DragGesture gesture)
         {
-            if (!m_LastPlacement.HasPlacementPosition)
+            if (!m_LastPlacement.hasPlacementPosition)
                 return;
 
             var oldAnchor = transform.parent.gameObject;
-            var desiredPose = new Pose(m_DesiredAnchorPosition, m_LastPlacement.PlacementRotation);
+            var desiredPose = new Pose(m_DesiredAnchorPosition, m_LastPlacement.placementRotation);
 
             var desiredLocalPosition = transform.parent.InverseTransformPoint(desiredPose.position);
 
@@ -157,10 +167,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 desiredLocalPosition = desiredLocalPosition.normalized * maxTranslationDistance;
             desiredPose.position = transform.parent.TransformPoint(desiredLocalPosition);
 
-            var anchorGO = new GameObject("PlacementAnchor");
-            anchorGO.transform.position = m_LastPlacement.PlacementPosition;
-            anchorGO.transform.rotation = m_LastPlacement.PlacementRotation;
-            transform.parent = anchorGO.transform;
+            var anchor = new GameObject("PlacementAnchor").transform;
+            anchor.position = m_LastPlacement.placementPosition;
+            anchor.rotation = m_LastPlacement.placementRotation;
+            transform.parent = anchor;
 
             Destroy(oldAnchor);
 

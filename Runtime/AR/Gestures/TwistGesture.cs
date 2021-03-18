@@ -40,8 +40,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
-        public TwistGesture(TwistGestureRecognizer recognizer, Touch touch1, Touch touch2) :
-            base(recognizer)
+        public TwistGesture(TwistGestureRecognizer recognizer, Touch touch1, Touch touch2)
+            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a PinchGesture gesture.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        public TwistGesture(TwistGestureRecognizer recognizer, InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
+        {
+        }
+
+        TwistGesture(TwistGestureRecognizer recognizer, CommonTouch touch1, CommonTouch touch2) : base(recognizer)
         {
             fingerId1 = touch1.fingerId;
             fingerId2 = touch2.fingerId;
@@ -74,6 +89,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public float deltaRotation { get; private set; }
 
+        /// <summary>
+        /// (Read Only) The gesture recognizer.
+        /// </summary>
+        protected TwistGestureRecognizer twistRecognizer => (TwistGestureRecognizer)recognizer;
+
         /// <inheritdoc />
         protected internal override bool CanStart()
         {
@@ -100,11 +120,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            var twistRecognizer = m_Recognizer as TwistGestureRecognizer;
-
             var rotation = CalculateDeltaRotation(
                 touch1.position, touch2.position, startPosition1, startPosition2);
-            return !(Mathf.Abs(rotation) < twistRecognizer.m_SlopRotation);
+            return Mathf.Abs(rotation) >= twistRecognizer.slopRotation;
         }
 
         /// <inheritdoc />
@@ -132,19 +150,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Canceled || touch2.phase == TouchPhase.Canceled)
+            if (touch1.isPhaseCanceled || touch2.isPhaseCanceled)
             {
                 Cancel();
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Ended || touch2.phase == TouchPhase.Ended)
+            if (touch1.isPhaseEnded || touch2.isPhaseEnded)
             {
                 Complete();
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Moved || touch2.phase == TouchPhase.Moved)
+            if (touch1.isPhaseMoved || touch2.isPhaseMoved)
             {
                 float rotation = CalculateDeltaRotation(
                                      touch1.position,

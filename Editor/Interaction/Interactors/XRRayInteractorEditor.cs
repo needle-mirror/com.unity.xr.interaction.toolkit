@@ -19,6 +19,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_RaycastMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
         protected SerializedProperty m_RaycastTriggerInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
+        protected SerializedProperty m_HitClosestOnly;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
         protected SerializedProperty m_HoverToSelect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hoverTimeToSelect"/>.</summary>
@@ -28,6 +30,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.lineType"/>.</summary>
         protected SerializedProperty m_LineType;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.blendVisualLinePoints"/>.</summary>
+        protected SerializedProperty m_BlendVisualLinePoints;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.endPointDistance"/>.</summary>
         protected SerializedProperty m_EndPointDistance;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.endPointHeight"/>.</summary>
@@ -43,6 +47,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_Velocity;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.acceleration"/>.</summary>
         protected SerializedProperty m_Acceleration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.additionalGroundHeight"/>.</summary>
+        protected SerializedProperty m_AdditionalGroundHeight;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.additionalFlightTime"/>.</summary>
         protected SerializedProperty m_AdditionalFlightTime;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.referenceFrame"/>.</summary>
@@ -59,6 +65,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_RotateSpeed;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.translateSpeed"/>.</summary>
         protected SerializedProperty m_TranslateSpeed;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
+        protected SerializedProperty m_AnchorRotateReferenceFrame;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -73,14 +81,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting raycast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
             public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via raycast.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
+            public static readonly GUIContent hitClosestOnly = EditorGUIUtility.TrTextContent("Hit Closest Only", "Consider only the closest Interactable as a valid target for interaction. Enable this to make only the closest Interactable receive hover events.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
-            public static readonly GUIContent hoverToSelect = EditorGUIUtility.TrTextContent("Hover To Select", "If true, this interactor will simulate a Select event if hovered over an Interactable for some amount of time. Selection will be exited when the Interactor is no longer hovering over the Interactable.");
+            public static readonly GUIContent hoverToSelect = EditorGUIUtility.TrTextContent("Hover To Select", "Automatically select an Interactable after hovering over it for a period of time.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverTimeToSelect"/>.</summary>
-            public static readonly GUIContent hoverTimeToSelect = EditorGUIUtility.TrTextContent("Hover Time To Select", "Number of seconds for which this interactor must hover over an object to select it.");
+            public static readonly GUIContent hoverTimeToSelect = EditorGUIUtility.TrTextContent("Hover Time To Select", "Number of seconds for which this Interactor must hover over an Interactable to select it.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.lineType"/>.</summary>
             public static readonly GUIContent lineType = EditorGUIUtility.TrTextContent("Line Type", "Line type of the ray cast.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blendVisualLinePoints"/>.</summary>
+            public static readonly GUIContent blendVisualLinePoints = EditorGUIUtility.TrTextContent("Blend Visual Line Points", "Blend the line sample points used for raycasting with the current pose of the controller. Use this to make the line visual stay connected with the controller instead of lagging behind.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.endPointDistance"/>.</summary>
             public static readonly GUIContent endPointDistance = EditorGUIUtility.TrTextContent("End Point Distance", "Increase this value distance will make the end of curve further from the start point.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.controlPointDistance"/>.</summary>
@@ -90,15 +102,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.controlPointHeight"/>.</summary>
             public static readonly GUIContent controlPointHeight = EditorGUIUtility.TrTextContent("Control Point Height", "Increase this value will make the peak of the curve higher relative to the start point.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.sampleFrequency"/>.</summary>
-            public static readonly GUIContent sampleFrequency = EditorGUIUtility.TrTextContent("Sample Frequency", "Gets or sets the number of sample points of the curve, should be at least 3, the higher the better quality.");
+            public static readonly GUIContent sampleFrequency = EditorGUIUtility.TrTextContent("Sample Frequency", "The number of sample points used to approximate curved paths. Larger values produce a better quality approximate at the cost of reduced performance due to the number of raycasts.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.velocity"/>.</summary>
             public static readonly GUIContent velocity = EditorGUIUtility.TrTextContent("Velocity", "Initial velocity of the projectile. Increase this value will make the curve reach further.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.acceleration"/>.</summary>
             public static readonly GUIContent acceleration = EditorGUIUtility.TrTextContent("Acceleration", "Gravity of the projectile in the reference frame.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.additionalGroundHeight"/>.</summary>
+            public static readonly GUIContent additionalGroundHeight = EditorGUIUtility.TrTextContent("Additional Ground Height", "Additional height below ground level that the projectile will continue to. Increasing this value will make the end point drop lower in height.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.additionalFlightTime"/>.</summary>
-            public static readonly GUIContent additionalFlightTime = EditorGUIUtility.TrTextContent("Additional Flight Time", "Additional flight time after the projectile lands at the same height of the start point in the tracking space. Increase this value will make the end point drop lower in height.");
+            public static readonly GUIContent additionalFlightTime = EditorGUIUtility.TrTextContent("Additional Flight Time", "Additional flight time after the projectile lands at the adjusted ground level. Increasing this value will make the end point drop lower in height.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.referenceFrame"/>.</summary>
-            public static readonly GUIContent referenceFrame = EditorGUIUtility.TrTextContent("Reference Frame", "The reference frame of the projectile. If not set it will try to find the XRRig GameObject, and if that does not exist it will use its own Transform.");
+            public static readonly GUIContent referenceFrame = EditorGUIUtility.TrTextContent("Reference Frame", "The reference frame of the curve to define the ground plane and up. If not set at startup it will try to find the Rig GameObject, and if that does not exist it will use global up and origin by default.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitDetectionType"/>.</summary>
             public static readonly GUIContent hitDetectionType = EditorGUIUtility.TrTextContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.keepSelectedTargetValid"/>.</summary>
@@ -111,6 +125,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent rotateSpeed = EditorGUIUtility.TrTextContent("Rotate Speed", "Speed that the anchor is rotated.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.translateSpeed"/>.</summary>
             public static readonly GUIContent translateSpeed = EditorGUIUtility.TrTextContent("Translate Speed", "Speed that the anchor is translated.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
+            public static readonly GUIContent anchorRotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform.");
         }
 
         /// <inheritdoc />
@@ -123,11 +139,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_SphereCastRadius = serializedObject.FindProperty("m_SphereCastRadius");
             m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
+            m_HitClosestOnly = serializedObject.FindProperty("m_HitClosestOnly");
             m_HoverToSelect = serializedObject.FindProperty("m_HoverToSelect");
             m_HoverTimeToSelect = serializedObject.FindProperty("m_HoverTimeToSelect");
             m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
 
             m_LineType = serializedObject.FindProperty("m_LineType");
+            m_BlendVisualLinePoints = serializedObject.FindProperty("m_BlendVisualLinePoints");
             m_EndPointDistance = serializedObject.FindProperty("m_EndPointDistance");
             m_EndPointHeight = serializedObject.FindProperty("m_EndPointHeight");
             m_ControlPointDistance = serializedObject.FindProperty("m_ControlPointDistance");
@@ -136,6 +154,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_Velocity = serializedObject.FindProperty("m_Velocity");
             m_Acceleration = serializedObject.FindProperty("m_Acceleration");
+            m_AdditionalGroundHeight = serializedObject.FindProperty("m_AdditionalGroundHeight");
             m_AdditionalFlightTime = serializedObject.FindProperty("m_AdditionalFlightTime");
             m_ReferenceFrame = serializedObject.FindProperty("m_ReferenceFrame");
 
@@ -145,6 +164,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_RotateSpeed = serializedObject.FindProperty("m_RotateSpeed");
             m_TranslateSpeed = serializedObject.FindProperty("m_TranslateSpeed");
+            m_AnchorRotateReferenceFrame = serializedObject.FindProperty("m_AnchorRotateReferenceFrame");
 
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
@@ -176,6 +196,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawSelectionConfiguration();
         }
 
+        /// <inheritdoc />
+        protected override void DrawDerivedProperties()
+        {
+            EditorGUILayout.Space();
+            base.DrawDerivedProperties();
+        }
+
         /// <summary>
         /// Draw the property fields related to interaction configuration.
         /// </summary>
@@ -190,6 +217,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 {
                     EditorGUILayout.PropertyField(m_RotateSpeed, Contents.rotateSpeed);
                     EditorGUILayout.PropertyField(m_TranslateSpeed, Contents.translateSpeed);
+                    EditorGUILayout.PropertyField(m_AnchorRotateReferenceFrame, Contents.anchorRotateReferenceFrame);
                 }
             }
 
@@ -231,10 +259,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         EditorGUILayout.PropertyField(m_ReferenceFrame, Contents.referenceFrame);
                         EditorGUILayout.PropertyField(m_Velocity, Contents.velocity);
                         EditorGUILayout.PropertyField(m_Acceleration, Contents.acceleration);
+                        EditorGUILayout.PropertyField(m_AdditionalGroundHeight, Contents.additionalGroundHeight);
                         EditorGUILayout.PropertyField(m_AdditionalFlightTime, Contents.additionalFlightTime);
                         EditorGUILayout.PropertyField(m_SampleFrequency, Contents.sampleFrequency);
                         break;
                     case (int)XRRayInteractor.LineType.BezierCurve:
+                        EditorGUILayout.PropertyField(m_ReferenceFrame, Contents.referenceFrame);
                         EditorGUILayout.PropertyField(m_EndPointDistance, Contents.endPointDistance);
                         EditorGUILayout.PropertyField(m_EndPointHeight, Contents.endPointHeight);
                         EditorGUILayout.PropertyField(m_ControlPointDistance, Contents.controlPointDistance);
@@ -256,6 +286,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
                 }
             }
+            EditorGUILayout.PropertyField(m_HitClosestOnly, Contents.hitClosestOnly);
+            EditorGUILayout.PropertyField(m_BlendVisualLinePoints, Contents.blendVisualLinePoints);
         }
 
         /// <summary>

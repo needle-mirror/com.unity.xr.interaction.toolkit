@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 #if UNITY_EDITOR
-using UnityEditor.SceneManagement;
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -17,6 +17,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactors)]
     public abstract partial class XRBaseInteractor : MonoBehaviour
     {
+        /// <summary>
+        /// Calls the methods in its invocation list when this Interactor is registered with an Interaction Manager.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractorRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRInteractionManager.interactorRegistered"/>
+        public event Action<InteractorRegisteredEventArgs> registered;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when this Interactor is unregistered from an Interaction Manager.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractorUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRInteractionManager.interactorUnregistered"/>
+        public event Action<InteractorUnregisteredEventArgs> unregistered;
         [SerializeField]
         XRInteractionManager m_InteractionManager;
 
@@ -167,36 +186,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AllowSelect = value;
         }
 
-        bool m_EnableInteractions;
-
-        /// <summary>
-        /// Defines whether interactions are enabled or not.
-        /// </summary>
-        public bool enableInteractions
-        {
-            get => m_EnableInteractions;
-            set
-            {
-                m_EnableInteractions = value;
-                EnableInteractions(value);
-            }
-        }
-
         bool m_IsPerformingManualInteraction;
 
         /// <summary>
         /// Defines whether this interactor is performing a manual interaction or not.
         /// </summary>
+        /// <seealso cref="StartManualInteraction"/>
+        /// <seealso cref="EndManualInteraction"/>
         public bool isPerformingManualInteraction => m_IsPerformingManualInteraction;
 
         /// <summary>
         /// Selected interactable for this interactor (may be <see langword="null"/>).
         /// </summary>
+        /// <seealso cref="XRBaseInteractable.selectingInteractor"/>
         public XRBaseInteractable selectTarget { get; protected set; }
 
         /// <summary>
         /// Target interactables that are currently being hovered over (may by empty).
         /// </summary>
+        /// <seealso cref="XRBaseInteractable.hoveringInteractors"/>
         protected List<XRBaseInteractable> hoverTargets { get; } = new List<XRBaseInteractable>();
 
         XRInteractionManager m_RegisteredInteractionManager;
@@ -212,7 +220,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Conditional("UNITY_EDITOR")]
         protected virtual void Reset()
         {
-            FindInteractionManagerEditTime();
+#if UNITY_EDITOR
+            m_InteractionManager = EditorComponentLocatorUtility.FindSceneComponentOfType<XRInteractionManager>(gameObject);
+#endif
         }
 
         /// <summary>
@@ -251,8 +261,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             FindCreateInteractionManager();
             RegisterWithInteractionManager();
-
-            EnableInteractions(true);
         }
 
         /// <summary>
@@ -283,37 +291,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Retrieves a copy of the list of target interactables that are currently being hovered over.
         /// </summary>
-        /// <param name="targets">The list to store hover targets into.</param>
+        /// <param name="targets">The results list to store hover targets into.</param>
         /// <remarks>
         /// Clears <paramref name="targets"/> before adding to it.
         /// </remarks>
         public void GetHoverTargets(List<XRBaseInteractable> targets)
         {
             targets.Clear();
-            foreach (var target in hoverTargets)
-            {
-                targets.Add(target);
-            }
+            targets.AddRange(hoverTargets);
         }
 
-        [Conditional("UNITY_EDITOR")]
-        void FindInteractionManagerEditTime()
-        {
-#if UNITY_EDITOR
-            // Find the interaction manager in the same scene
-            // (since serialization of cross scene references are not supported).
-            var currentStage = StageUtility.GetCurrentStageHandle();
-            var interactionManagers = currentStage.FindComponentsOfType<XRInteractionManager>();
-            foreach (var manager in interactionManagers)
-            {
-                if (manager.gameObject.scene == gameObject.scene)
-                {
-                    m_InteractionManager = manager;
-                    break;
-                }
-            }
-#endif
-        }
+        /// <summary>
+        /// Retrieve the list of Interactables that this Interactor could possibly interact with this frame.
+        /// This list is sorted by priority (with highest priority first).
+        /// </summary>
+        /// <param name="targets">The results list to populate with Interactables that are valid for selection or hover.</param>
+        public abstract void GetValidTargets(List<XRBaseInteractable> targets);
 
         void FindCreateInteractionManager()
         {
@@ -360,18 +353,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return (m_InteractionLayerMask & interactable.interactionLayerMask) != 0;
         }
 
-        void EnableInteractions(bool enable)
-        {
-            m_AllowHover = enable;
-            m_AllowSelect = enable;
-        }
-
-        /// <summary>
-        /// Retrieve the list of interactables that this interactor could possibly interact with this frame.
-        /// </summary>
-        /// <param name="validTargets">Populated List of interactables that are valid for selection or hover.</param>
-        public abstract void GetValidTargets(List<XRBaseInteractable> validTargets);
-
         /// <summary>
         /// (Read Only) Indicates whether this interactor is in a state where it could hover.
         /// </summary>
@@ -387,6 +368,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactable">Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if the interactable can be hovered over this frame.</returns>
+        /// <seealso cref="XRBaseInteractable.IsHoverableBy"/>
         public virtual bool CanHover(XRBaseInteractable interactable) => m_AllowHover && IsOnValidLayerMask(interactable);
 
         /// <summary>
@@ -394,6 +376,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactable">Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if the interactable can be selected this frame.</returns>
+        /// <seealso cref="XRBaseInteractable.IsSelectableBy"/>
         public virtual bool CanSelect(XRBaseInteractable interactable) => m_AllowSelect && IsOnValidLayerMask(interactable);
 
         /// <summary>
@@ -424,6 +407,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (args.manager != m_InteractionManager)
                 Debug.LogWarning($"An Interactor was registered with an unexpected {nameof(XRInteractionManager)}." +
                     $" {this} was expecting to communicate with \"{m_InteractionManager}\" but was registered with \"{args.manager}\".", this);
+
+            registered?.Invoke(args);
         }
 
         /// <summary>
@@ -440,6 +425,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (args.manager != m_RegisteredInteractionManager)
                 Debug.LogWarning($"An Interactor was unregistered from an unexpected {nameof(XRInteractionManager)}." +
                     $" {this} was expecting to communicate with \"{m_RegisteredInteractionManager}\" but was unregistered from \"{args.manager}\".", this);
+
+            unregistered?.Invoke(args);
         }
 
         /// <summary>

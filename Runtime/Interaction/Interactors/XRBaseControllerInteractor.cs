@@ -463,15 +463,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// (Read Only) A list of targets that can be selected.
+        /// (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
         /// </summary>
+        /// <seealso cref="XRBaseInteractor.GetValidTargets"/>
         protected abstract List<XRBaseInteractable> validTargets { get; }
 
         readonly ActivateEventArgs m_ActivateEventArgs = new ActivateEventArgs();
         readonly DeactivateEventArgs m_DeactivateEventArgs = new DeactivateEventArgs();
 
         bool m_ToggleSelectActive;
-        bool m_WaitingForSecondDeactivate;
+        bool m_WaitingForSelectDeactivate;
         AudioSource m_EffectsAudioSource;
 
         /// <inheritdoc />
@@ -498,37 +499,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
+            base.ProcessInteractor(updatePhase);
+
             // Perform toggling of selection state
             // and activation of selected object on activate.
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                if (m_Controller != null)
+                if (m_Controller == null)
+                    return;
+
+                if (m_SelectActionTrigger == InputTriggerType.Toggle ||
+                    m_SelectActionTrigger == InputTriggerType.Sticky)
                 {
                     if (m_Controller.selectInteractionState.activatedThisFrame)
                     {
-                        if (m_ToggleSelectActive && m_SelectActionTrigger == InputTriggerType.Sticky)
-                            m_WaitingForSecondDeactivate = true;
+                        if (m_ToggleSelectActive)
+                            m_WaitingForSelectDeactivate = true;
 
                         if (m_ToggleSelectActive || validTargets.Count > 0)
                             m_ToggleSelectActive = !m_ToggleSelectActive;
                     }
 
-                    if (m_Controller.selectInteractionState.deactivatedThisFrame && m_WaitingForSecondDeactivate)
-                        m_WaitingForSecondDeactivate = false;
+                    if (m_Controller.selectInteractionState.deactivatedThisFrame)
+                        m_WaitingForSelectDeactivate = false;
+                }
 
-                    if (selectTarget != null && m_Controller.activateInteractionState.activatedThisFrame)
-                    {
-                        m_ActivateEventArgs.interactor = this;
-                        m_ActivateEventArgs.interactable = selectTarget;
-                        selectTarget.OnActivated(m_ActivateEventArgs);
-                    }
+                if (selectTarget != null && m_Controller.activateInteractionState.activatedThisFrame)
+                {
+                    m_ActivateEventArgs.interactor = this;
+                    m_ActivateEventArgs.interactable = selectTarget;
+                    selectTarget.OnActivated(m_ActivateEventArgs);
+                }
 
-                    if (selectTarget != null && m_Controller.activateInteractionState.deactivatedThisFrame)
-                    {
-                        m_DeactivateEventArgs.interactor = this;
-                        m_DeactivateEventArgs.interactable = selectTarget;
-                        selectTarget.OnDeactivated(m_DeactivateEventArgs);
-                    }
+                if (selectTarget != null && m_Controller.activateInteractionState.deactivatedThisFrame)
+                {
+                    m_DeactivateEventArgs.interactor = this;
+                    m_DeactivateEventArgs.interactable = selectTarget;
+                    selectTarget.OnDeactivated(m_DeactivateEventArgs);
                 }
             }
         }
@@ -553,14 +560,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         return m_Controller != null && m_Controller.selectInteractionState.active;
 
                     case InputTriggerType.StateChange:
-                        return (m_Controller != null && m_Controller.selectInteractionState.activatedThisFrame)
-                            || (selectTarget != null && !(m_Controller == null || m_Controller.selectInteractionState.deactivatedThisFrame));
+                        return (m_Controller != null && m_Controller.selectInteractionState.activatedThisFrame) ||
+                            (selectTarget != null && m_Controller != null && !m_Controller.selectInteractionState.deactivatedThisFrame);
 
                     case InputTriggerType.Toggle:
                         return m_ToggleSelectActive;
 
                     case InputTriggerType.Sticky:
-                        return m_ToggleSelectActive || m_WaitingForSecondDeactivate;
+                        return m_ToggleSelectActive || m_WaitingForSelectDeactivate;
 
                     default:
                         return false;
@@ -569,7 +576,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Whether or not the interactor is currently interacting with UI.
+        /// Whether or not the UI Press controller input is considered pressed.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if active. Otherwise, returns <see langword="false"/>.</returns>
         protected bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
@@ -688,6 +695,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectEntering"/>
         void HandleSelecting()
         {
+            m_ToggleSelectActive = true;
+            m_WaitingForSelectDeactivate = false;
+
             if (m_HideControllerOnSelect && m_Controller != null)
                 m_Controller.hideControllerModel = true;
         }
@@ -698,9 +708,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectExiting"/>
         void HandleDeselecting()
         {
-            // If another interactable takes this one, make sure toggle select state is set false
+            // Reset toggle values when no longer selecting
+            // (can happen by another Interactor taking the Interactable or through method calls).
             m_ToggleSelectActive = false;
-            m_WaitingForSecondDeactivate = false;
+            m_WaitingForSelectDeactivate = false;
 
             if (m_Controller != null)
                 m_Controller.hideControllerModel = false;

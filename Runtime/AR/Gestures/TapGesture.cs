@@ -31,14 +31,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     public class TapGesture : Gesture<TapGesture>
     {
-        float m_ElapsedTime = 0.0f;
+        /// <summary>
+        /// Constructs a Tap gesture.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch">The touch that started this gesture.</param>
+        public TapGesture(TapGestureRecognizer recognizer, Touch touch)
+            : this(recognizer, new CommonTouch(touch))
+        {
+        }
 
         /// <summary>
         /// Constructs a Tap gesture.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
-        internal TapGesture(TapGestureRecognizer recognizer, Touch touch) : base(recognizer)
+        public TapGesture(TapGestureRecognizer recognizer, InputSystem.EnhancedTouch.Touch touch)
+            : this(recognizer, new CommonTouch(touch))
+        {
+        }
+
+        TapGesture(TapGestureRecognizer recognizer, CommonTouch touch) : base(recognizer)
         {
             fingerId = touch.fingerId;
             startPosition = touch.position;
@@ -53,6 +66,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// (Read Only) The screen position where the gesture started.
         /// </summary>
         public Vector2 startPosition { get; }
+
+        /// <summary>
+        /// (Read Only) The gesture recognizer.
+        /// </summary>
+        protected TapGestureRecognizer tapRecognizer => (TapGestureRecognizer)recognizer;
+
+        float m_ElapsedTime;
 
         /// <inheritdoc />
         protected internal override bool CanStart()
@@ -69,17 +89,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected internal override void OnStart()
         {
-            RaycastHit hit;
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, out hit))
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.arSessionOrigin, out var hit))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
                 {
                     var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
                     if (interactableObject != null)
-                        TargetObject = interactableObject.gameObject;
-                    else if (gameObject.layer == 9)
-                        TargetObject = gameObject;
+                        targetObject = interactableObject.gameObject;
                 }
             }
         }
@@ -89,22 +106,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (GestureTouchesUtility.TryFindTouch(fingerId, out var touch))
             {
-                var tapRecognizer = m_Recognizer as TapGestureRecognizer;
                 m_ElapsedTime += touch.deltaTime;
-                if (m_ElapsedTime > tapRecognizer.m_TimeSeconds)
+                if (m_ElapsedTime > tapRecognizer.durationSeconds)
                 {
                     Cancel();
                 }
-                else if (touch.phase == TouchPhase.Moved)
+                else if (touch.isPhaseMoved)
                 {
                     var diff = (touch.position - startPosition).magnitude;
                     var diffInches = GestureTouchesUtility.PixelsToInches(diff);
-                    if (diffInches > tapRecognizer.m_SlopInches)
+                    if (diffInches > tapRecognizer.slopInches)
                     {
                         Cancel();
                     }
                 }
-                else if (touch.phase == TouchPhase.Ended)
+                else if (touch.isPhaseEnded)
                 {
                     Complete();
                 }

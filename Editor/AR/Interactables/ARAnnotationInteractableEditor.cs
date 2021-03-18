@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// Custom editor for an <see cref="ARAnnotationInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(ARAnnotationInteractable), true), CanEditMultipleObjects]
-    public class ARAnnotationInteractableEditor : XRBaseInteractableEditor
+    public class ARAnnotationInteractableEditor : ARBaseGestureInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARAnnotationInteractable.annotations"/>.</summary>
         protected SerializedProperty m_Annotations;

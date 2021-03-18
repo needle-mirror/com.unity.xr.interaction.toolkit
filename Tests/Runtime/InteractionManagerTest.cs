@@ -23,6 +23,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.interactorRegistered += args => registeredInteractor = args.interactor;
             var interactor = TestUtilities.CreateDirectInteractor();
 
+            var interactors = new List<XRBaseInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.EquivalentTo(new[] { interactor }));
             Assert.That(manager.interactors, Is.EquivalentTo(new[] { interactor }));
             Assert.That(registeredInteractor, Is.SameAs(interactor));
         }
@@ -36,8 +39,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateDirectInteractor();
             interactor.enabled = false;
 
+            var interactors = new List<XRBaseInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.Empty);
             Assert.That(manager.interactors, Is.Empty);
             Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+        }
+
+        [Test]
+        public void InteractorRegistrationEventsInvoked()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            XRBaseInteractor registeredInteractor = null;
+            XRBaseInteractor unregisteredInteractor = null;
+            interactor.registered += args => registeredInteractor = args.interactor;
+            interactor.unregistered += args => unregisteredInteractor = args.interactor;
+            interactor.enabled = false;
+
+            Assert.That(manager.interactors, Is.Empty);
+            Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+
+            interactor.enabled = true;
+
+            Assert.That(manager.interactors, Is.EquivalentTo(new[] { interactor }));
+            Assert.That(registeredInteractor, Is.SameAs(interactor));
         }
 
         [Test]
@@ -48,6 +74,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.interactableRegistered += args => registeredInteractable = args.interactable;
             var interactable = TestUtilities.CreateGrabInteractable();
 
+            var interactables = new List<XRBaseInteractable>();
+            manager.GetRegisteredInteractables(interactables);
+            Assert.That(interactables, Is.EquivalentTo(new[] { interactable }));
             Assert.That(manager.interactables, Is.EquivalentTo(new[] { interactable }));
             Assert.That(registeredInteractable, Is.SameAs(interactable));
         }
@@ -61,8 +90,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.enabled = false;
 
+            var interactables = new List<XRBaseInteractable>();
+            manager.GetRegisteredInteractables(interactables);
+            Assert.That(interactables, Is.Empty);
             Assert.That(manager.interactables, Is.Empty);
             Assert.That(unregisteredInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableRegistrationEventsInvoked()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            XRBaseInteractable registeredInteractable = null;
+            XRBaseInteractable unregisteredInteractable = null;
+            interactable.registered += args => registeredInteractable = args.interactable;
+            interactable.unregistered += args => unregisteredInteractable = args.interactable;
+            interactable.enabled = false;
+
+            Assert.That(manager.interactables, Is.Empty);
+            Assert.That(unregisteredInteractable, Is.SameAs(interactable));
+
+            interactable.enabled = true;
+
+            Assert.That(manager.interactables, Is.EquivalentTo(new[] { interactable }));
+            Assert.That(registeredInteractable, Is.SameAs(interactable));
         }
 
         [Test]
@@ -74,7 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(manager.interactables, Has.Count.EqualTo(1));
             Assert.That(manager.interactables[0], Is.EqualTo(interactable));
             Assert.That(interactable.colliders, Has.Count.EqualTo(1));
-            Assert.That(manager.TryGetInteractableForCollider(interactable.colliders.First()), Is.EqualTo(interactable));
+            Assert.That(manager.GetInteractableForCollider(interactable.colliders.First()), Is.EqualTo(interactable));
         }
 
         [UnityTest]

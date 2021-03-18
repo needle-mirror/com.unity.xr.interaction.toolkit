@@ -94,6 +94,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         [SerializeField]
+        [Tooltip("The LayerMask that is used during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        LayerMask m_FallbackLayerMask;
+
+        /// <summary>
+        /// The <see cref="LayerMask"/> that is used during an additional raycast
+        /// when a user touch does not hit any AR trackable planes.
+        /// </summary>
+        public LayerMask fallbackLayerMask
+        {
+            get => m_FallbackLayerMask;
+            set => m_FallbackLayerMask = value;
+        }
+
+        [SerializeField]
         ARObjectPlacementEvent m_ObjectPlaced = new ARObjectPlacementEvent();
 
         /// <summary>
@@ -123,16 +137,72 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         readonly ARObjectPlacementEventArgs m_ObjectPlacementEventArgs = new ARObjectPlacementEventArgs();
 
         static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
-        static GameObject s_TrackablesObject;
+
+        /// <summary>
+        /// Gets the pose for the object to be placed from a raycast hit triggered by a <see cref="TapGesture"/>.
+        /// </summary>
+        /// <param name="gesture">The tap gesture that triggers the raycast.</param>
+        /// <param name="pose">When this method returns, contains the pose of the placement object based on the raycast hit.</param>
+        /// <returns>Returns <see langword="true"/> if there is a valid raycast hit that hit the front of a plane.
+        /// Otherwise, returns <see langword="false"/>.</returns>
+        protected virtual bool TryGetPlacementPose(TapGesture gesture, out Pose pose)
+        {
+            // Raycast against the location the player touched to search for planes.
+            if (GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, arSessionOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask))
+            {
+                pose = s_Hits[0].pose;
+
+                // Use hit pose and camera pose to check if hit test is from the
+                // back of the plane, if it is, no need to create the anchor.
+                // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
+                var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+                if (camera == null)
+                    return false;
+
+                return Vector3.Dot(camera.transform.position - pose.position, pose.rotation * Vector3.up) >= 0f;
+            }
+
+            pose = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Instantiates the placement object and positions it at the desired pose.
+        /// </summary>
+        /// <param name="pose">The pose at which the placement object will be instantiated.</param>
+        /// <returns>Returns the instantiated placement object at the input pose.</returns>
+        /// <seealso cref="placementPrefab"/>
+        protected virtual GameObject PlaceObject(Pose pose)
+        {
+            var placementObject = Instantiate(m_PlacementPrefab, pose.position, pose.rotation);
+
+            // Create anchor to track reference point and set it as the parent of placementObject.
+            var anchor = new GameObject("PlacementAnchor").transform;
+            anchor.position = pose.position;
+            anchor.rotation = pose.rotation;
+            placementObject.transform.parent = anchor;
+
+            // Use Trackables object in scene to use as parent
+            if (arSessionOrigin != null && arSessionOrigin.trackablesParent != null)
+                anchor.parent = arSessionOrigin.trackablesParent;
+
+            return placementObject;
+        }
+
+        /// <summary>
+        /// This method is called after an object has been placed.
+        /// </summary>
+        /// <param name="args">Event data containing a reference to the instantiated placement object.</param>
+        protected virtual void OnObjectPlaced(ARObjectPlacementEventArgs args)
+        {
+            m_ObjectPlaced?.Invoke(args);
+            m_OnObjectPlaced?.Invoke(args.placementInteractable, args.placementObject);
+        }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(TapGesture gesture)
         {
-            // Allow for test planes
-            if (gesture.TargetObject == null || gesture.TargetObject.layer == 9) // TODO Placement gesture layer check should be configurable
-                return true;
-
-            return false;
+            return gesture.targetObject == null;
         }
 
         /// <inheritdoc />
@@ -140,45 +210,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             base.OnEndManipulation(gesture);
 
-            if (gesture.WasCancelled)
+            if (gesture.isCanceled)
                 return;
 
-            // If gesture is targeting an existing object we are done.
-            // Allow for test planes
-            if (gesture.TargetObject != null && gesture.TargetObject.layer != 9) // TODO Placement gesture layer check should be configurable
+            if (arSessionOrigin == null)
                 return;
 
-            // Raycast against the location the player touched to search for planes.
-            if (GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, TrackableType.PlaneWithinPolygon))
+            if (TryGetPlacementPose(gesture, out var pose))
             {
-                var hit = s_Hits[0];
-
-                // Use hit pose and camera pose to check if hittest is from the
-                // back of the plane, if it is, no need to create the anchor.
-                if (Vector3.Dot(Camera.main.transform.position - hit.pose.position,
-                        hit.pose.rotation * Vector3.up) < 0)
-                    return;
-
-                // Instantiate placement prefab at the hit pose.
-                var placementObject = Instantiate(placementPrefab, hit.pose.position, hit.pose.rotation);
-
-                // Create anchor to track reference point and set it as the parent of placementObject.
-                // TODO This should update with a reference point for better tracking.
-                var anchorObject = new GameObject("PlacementAnchor");
-                anchorObject.transform.position = hit.pose.position;
-                anchorObject.transform.rotation = hit.pose.rotation;
-                placementObject.transform.parent = anchorObject.transform;
-
-                // Find trackables object in scene and use that as parent
-                if (s_TrackablesObject == null)
-                    s_TrackablesObject = GameObject.Find("Trackables");
-                if (s_TrackablesObject != null)
-                    anchorObject.transform.parent = s_TrackablesObject.transform;
+                var placementObject = PlaceObject(pose);
 
                 m_ObjectPlacementEventArgs.placementInteractable = this;
                 m_ObjectPlacementEventArgs.placementObject = placementObject;
-                m_ObjectPlaced?.Invoke(m_ObjectPlacementEventArgs);
-                m_OnObjectPlaced?.Invoke(this, placementObject);
+                OnObjectPlaced(m_ObjectPlacementEventArgs);
             }
         }
     }

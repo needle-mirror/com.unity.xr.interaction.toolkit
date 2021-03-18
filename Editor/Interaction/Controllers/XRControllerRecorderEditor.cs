@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Custom editor for an <see cref="XRControllerRecorder"/>.
     /// </summary>
     [CustomEditor(typeof(XRControllerRecorder), true), CanEditMultipleObjects]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class XRControllerRecorderEditor : Editor
     {
         List<XRControllerRecorder> m_ControllerRecorders;

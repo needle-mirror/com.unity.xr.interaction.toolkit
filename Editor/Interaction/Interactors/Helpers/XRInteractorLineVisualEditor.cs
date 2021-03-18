@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRInteractorLineVisual"/>.
     /// </summary>
     [CustomEditor(typeof(XRInteractorLineVisual), true), CanEditMultipleObjects]
-    public class XRInteractorLineVisualEditor : Editor
+    public class XRInteractorLineVisualEditor : BaseInteractionEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineWidth"/>.</summary>
         protected SerializedProperty m_LineWidth;
@@ -80,26 +80,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-
-            DrawInspector();
-
-            serializedObject.ApplyModifiedProperties();
-        }
-
-        /// <summary>
-        /// This method is automatically called by <see cref="OnInspectorGUI"/> to
-        /// draw the custom inspector. Override this method to customize the
-        /// inspector as a whole.
-        /// </summary>
         /// <seealso cref="DrawBeforeProperties"/>
         /// <seealso cref="DrawProperties"/>
-        protected virtual void DrawInspector()
+        /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
+        protected override void DrawInspector()
         {
             DrawBeforeProperties();
             DrawProperties();
+            DrawDerivedProperties();
         }
 
         /// <summary>
@@ -126,16 +114,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawLengthConfiguration();
             DrawSmoothMovement();
             DrawReticle();
-        }
-
-        /// <summary>
-        /// Draw the standard read-only Script property.
-        /// </summary>
-        protected virtual void DrawScript()
-        {
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ObjectField(EditorGUIUtility.TrTempContent("Script"), MonoScript.FromMonoBehaviour((MonoBehaviour)target), typeof(MonoBehaviour), false);
-            EditorGUI.EndDisabledGroup();
         }
 
         /// <summary>

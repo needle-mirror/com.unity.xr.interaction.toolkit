@@ -7,6 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// This class provides simple ways to interrogate the <see cref="LocomotionSystem"/> for whether a locomotion can begin
     /// and simple events for hooking into a start/end locomotion.
     /// </summary>
+    [DefaultExecutionOrder(XRInteractionUpdateOrder.k_LocomotionProviders)]
     public abstract class LocomotionProvider : MonoBehaviour
     {
         /// <summary>

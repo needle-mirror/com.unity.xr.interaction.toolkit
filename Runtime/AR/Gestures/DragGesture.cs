@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="DragGesture.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -37,7 +37,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
-        public DragGesture(DragGestureRecognizer recognizer, Touch touch) : base(recognizer)
+        public DragGesture(DragGestureRecognizer recognizer, Touch touch)
+            : this(recognizer, new CommonTouch(touch))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a DragGesture gesture.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch">The touch that started this gesture.</param>
+        public DragGesture(DragGestureRecognizer recognizer, InputSystem.EnhancedTouch.Touch touch)
+            : this(recognizer, new CommonTouch(touch))
+        {
+        }
+
+        DragGesture(DragGestureRecognizer recognizer, CommonTouch touch) : base(recognizer)
         {
             fingerId = touch.fingerId;
             startPosition = touch.position;
@@ -64,13 +79,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public Vector2 delta { get; private set; }
 
+        /// <summary>
+        /// (Read Only) The gesture recognizer.
+        /// </summary>
+        protected DragGestureRecognizer dragRecognizer => (DragGestureRecognizer)recognizer;
+
 #pragma warning disable IDE1006 // Naming Styles
+        /// <inheritdoc cref="fingerId"/>
         [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId")]
         public int FingerId => fingerId;
+
+        /// <inheritdoc cref="startPosition"/>
         [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition")]
         public Vector2 StartPosition => startPosition;
+
+        /// <inheritdoc cref="position"/>
         [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
         public Vector2 Position => position;
+
+        /// <inheritdoc cref="delta"/>
         [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
         public Vector2 Delta => delta;
 #pragma warning restore IDE1006
@@ -84,13 +111,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            if (GestureTouchesUtility.Touches.Length > 1)
+            var touches = GestureTouchesUtility.touches;
+            if (touches.Count > 1)
             {
-                for (int i = 0; i < GestureTouchesUtility.Touches.Length; i++)
+                foreach (var currentTouch in touches)
                 {
-                    var currentTouch = GestureTouchesUtility.Touches[i];
-                    if (currentTouch.fingerId != fingerId
-                        && !GestureTouchesUtility.IsFingerIdRetained(currentTouch.fingerId))
+                    if (currentTouch.fingerId != fingerId &&
+                        !GestureTouchesUtility.IsFingerIdRetained(currentTouch.fingerId))
                     {
                         return false;
                     }
@@ -101,7 +128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 var pos = touch.position;
                 var diff = (pos - startPosition).magnitude;
-                if (GestureTouchesUtility.PixelsToInches(diff) >= (m_Recognizer as DragGestureRecognizer).m_SlopInches)
+                if (GestureTouchesUtility.PixelsToInches(diff) >= dragRecognizer.slopInches)
                 {
                     return true;
                 }
@@ -119,14 +146,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             GestureTouchesUtility.LockFingerId(fingerId);
 
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, out var hit))
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.arSessionOrigin, out var hit))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
                 {
                     var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
                     if (interactableObject != null)
-                        TargetObject = interactableObject.gameObject;
+                        targetObject = interactableObject.gameObject;
                 }
             }
 
@@ -139,17 +166,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (GestureTouchesUtility.TryFindTouch(fingerId, out var touch))
             {
-                if (touch.phase == TouchPhase.Moved)
+                if (touch.isPhaseMoved)
                 {
                     delta = touch.position - position;
                     position = touch.position;
                     return true;
                 }
-                else if (touch.phase == TouchPhase.Ended)
+
+                if (touch.isPhaseEnded)
                 {
                     Complete();
                 }
-                else if (touch.phase == TouchPhase.Canceled)
+                else if (touch.isPhaseCanceled)
                 {
                     Cancel();
                 }

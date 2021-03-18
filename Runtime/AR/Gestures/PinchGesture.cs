@@ -37,8 +37,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
-        public PinchGesture(PinchGestureRecognizer recognizer, Touch touch1, Touch touch2) :
-            base(recognizer)
+        public PinchGesture(PinchGestureRecognizer recognizer, Touch touch1, Touch touch2)
+            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
+        {
+        }
+
+        /// <summary>
+        /// Constructs a PinchGesture gesture.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        public PinchGesture(PinchGestureRecognizer recognizer, InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
+        {
+        }
+
+        PinchGesture(PinchGestureRecognizer recognizer, CommonTouch touch1, CommonTouch touch2) : base(recognizer)
         {
             fingerId1 = touch1.fingerId;
             fingerId2 = touch2.fingerId;
@@ -77,9 +92,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public float gapDelta { get; private set; }
 
         /// <summary>
-        /// Returns true if this gesture can start.
+        /// (Read Only) The gesture recognizer.
         /// </summary>
-        /// <returns>Returns <see langword="true"/> if the gesture can start. Otherwise, returns <see langword="false"/>.</returns>
+        protected PinchGestureRecognizer pinchRecognizer => (PinchGestureRecognizer)recognizer;
+
+        /// <inheritdoc />
         protected internal override bool CanStart()
         {
             if (GestureTouchesUtility.IsFingerIdRetained(fingerId1) ||
@@ -105,12 +122,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            var pinchRecognizer = m_Recognizer as PinchGestureRecognizer;
-
             Vector3 firstToSecondDirection = (startPosition1 - startPosition2).normalized;
             var dot1 = Vector3.Dot(touch1.deltaPosition.normalized, -firstToSecondDirection);
             var dot2 = Vector3.Dot(touch2.deltaPosition.normalized, firstToSecondDirection);
-            var dotThreshold = Mathf.Cos(pinchRecognizer.m_SlopMotionDirectionDegrees * Mathf.Deg2Rad);
+            var dotThreshold = Mathf.Cos(pinchRecognizer.slopMotionDirectionDegrees * Mathf.Deg2Rad);
 
             // Check angle of motion for the first touch.
             if (touch1.deltaPosition != Vector2.zero && Mathf.Abs(dot1) < dotThreshold)
@@ -127,12 +142,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var startgap = (startPosition1 - startPosition2).magnitude;
             gap = (touch1.position - touch2.position).magnitude;
             var separation = GestureTouchesUtility.PixelsToInches(Mathf.Abs(gap - startgap));
-            return !(separation < pinchRecognizer.m_SlopInches);
+            return separation >= pinchRecognizer.slopInches;
         }
 
-        /// <summary>
-        /// Action to be performed when this gesture is started.
-        /// </summary>
+        /// <inheritdoc />
         protected internal override void OnStart()
         {
             GestureTouchesUtility.LockFingerId(fingerId1);
@@ -152,19 +165,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Canceled || touch2.phase == TouchPhase.Canceled)
+            if (touch1.isPhaseCanceled || touch2.isPhaseCanceled)
             {
                 Cancel();
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Ended || touch2.phase == TouchPhase.Ended)
+            if (touch1.isPhaseEnded || touch2.isPhaseEnded)
             {
                 Complete();
                 return false;
             }
 
-            if (touch1.phase == TouchPhase.Moved || touch2.phase == TouchPhase.Moved)
+            if (touch1.isPhaseMoved || touch2.isPhaseMoved)
             {
                 float newgap = (touch1.position - touch2.position).magnitude;
                 gapDelta = newgap - gap;

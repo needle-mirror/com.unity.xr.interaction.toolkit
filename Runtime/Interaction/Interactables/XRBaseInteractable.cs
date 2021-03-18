@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 #if UNITY_EDITOR
-using UnityEditor.SceneManagement;
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -40,6 +40,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// </summary>
             Instantaneous,
         }
+
+        /// <summary>
+        /// Calls the methods in its invocation list when this Interactable is registered with an Interaction Manager.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractableRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRInteractionManager.interactableRegistered"/>
+        public event Action<InteractableRegisteredEventArgs> registered;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when this Interactable is unregistered from an Interaction Manager.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractableUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRInteractionManager.interactableUnregistered"/>
+        public event Action<InteractableUnregisteredEventArgs> unregistered;
 
         [SerializeField]
         XRInteractionManager m_InteractionManager;
@@ -251,12 +271,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Read Only) The list of interactors that are hovering on this interactable.
         /// </summary>
         /// <seealso cref="isHovered"/>
+        /// <seealso cref="XRBaseInteractor.hoverTargets"/>
         public List<XRBaseInteractor> hoveringInteractors => m_HoveringInteractors;
 
         /// <summary>
         /// (Read Only) The interactor that is selecting this interactable (may be <see langword="null"/>).
         /// </summary>
         /// <seealso cref="isSelected"/>
+        /// <seealso cref="XRBaseInteractor.selectTarget"/>
         public XRBaseInteractor selectingInteractor { get; private set; }
 
         /// <summary>
@@ -286,7 +308,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Conditional("UNITY_EDITOR")]
         protected virtual void Reset()
         {
-            FindInteractionManagerEditTime();
+#if UNITY_EDITOR
+            m_InteractionManager = EditorComponentLocatorUtility.FindSceneComponentOfType<XRInteractionManager>(gameObject);
+#endif
         }
 
         /// <summary>
@@ -340,25 +364,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnDestroy()
         {
             // Don't need to do anything; method kept for backwards compatibility.
-        }
-
-        [Conditional("UNITY_EDITOR")]
-        void FindInteractionManagerEditTime()
-        {
-#if UNITY_EDITOR
-            // Find the Interaction Manager in the same scene
-            // (since serialization of cross scene references are not supported).
-            var currentStage = StageUtility.GetCurrentStageHandle();
-            var interactionManagers = currentStage.FindComponentsOfType<XRInteractionManager>();
-            foreach (var manager in interactionManagers)
-            {
-                if (manager.gameObject.scene == gameObject.scene)
-                {
-                    m_InteractionManager = manager;
-                    break;
-                }
-            }
-#endif
         }
 
         void FindCreateInteractionManager()
@@ -430,6 +435,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid hover state with.</param>
         /// <returns>Returns <see langword="true"/> if hovering is valid this frame. Returns <see langword="false"/> if not.</returns>
+        /// <seealso cref="XRBaseInteractor.CanHover"/>
         public virtual bool IsHoverableBy(XRBaseInteractor interactor) => IsOnValidLayerMask(interactor);
 
         /// <summary>
@@ -437,6 +443,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid selection with.</param>
         /// <returns>Returns <see langword="true"/> if selection is valid this frame. Returns <see langword="false"/> if not.</returns>
+        /// <seealso cref="XRBaseInteractor.CanSelect"/>
         public virtual bool IsSelectableBy(XRBaseInteractor interactor) => IsOnValidLayerMask(interactor);
 
         /// <summary>
@@ -512,6 +519,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (args.manager != m_InteractionManager)
                 Debug.LogWarning($"An Interactable was registered with an unexpected {nameof(XRInteractionManager)}." +
                     $" {this} was expecting to communicate with \"{m_InteractionManager}\" but was registered with \"{args.manager}\".", this);
+
+            registered?.Invoke(args);
         }
 
         /// <summary>
@@ -528,6 +537,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (args.manager != m_RegisteredInteractionManager)
                 Debug.LogWarning($"An Interactable was unregistered from an unexpected {nameof(XRInteractionManager)}." +
                     $" {this} was expecting to communicate with \"{m_RegisteredInteractionManager}\" but was unregistered from \"{args.manager}\".", this);
+
+            unregistered?.Invoke(args);
         }
 
         /// <summary>

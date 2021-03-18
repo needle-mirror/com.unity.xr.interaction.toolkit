@@ -5,11 +5,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Get line points and hit point info for rendering.
     /// </summary>
+    /// <seealso cref="XRInteractorLineVisual"/>
+    /// <seealso cref="XRRayInteractor"/>
     public interface ILineRenderable
     {
         /// <summary>
-        /// Performs the computation to convert the sample points from their local positions to world space
-        /// and outputs an array of those points to form a line.
+        /// Gets the polygonal chain represented by a list of endpoints which form line segments to approximate the curve.
+        /// Positions are in world space coordinates.
         /// </summary>
         /// <param name="linePoints">When this method returns, contains the sample points if successful.</param>
         /// <param name="numPoints">When this method returns, contains the number of sample points if successful.</param>
@@ -18,14 +20,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool GetLinePoints(ref Vector3[] linePoints, out int numPoints);
 
         /// <summary>
-        /// Gets the current raycast hit information., it will return the world position and the normal vector
+        /// Gets the current raycast hit information, if a hit occurred. It will return the world position and the normal vector
         /// of the hit point, and its position in linePoints.
         /// </summary>
-        /// <param name="position">When this method returns, contains the world position of the ray impact point if the raycast result is valid.</param>
-        /// <param name="normal">When this method returns, contains the world normal of the surface the ray hit if the raycast result is valid.</param>
-        /// <param name="positionInLine">When this method returns, contains the index within the list of raycast points returned by <see cref="GetLinePoints"/>.</param>
-        /// <param name="isValidTarget">When this method returns, contains whether both the raycast result is valid and a valid target for interaction.</param>
-        /// <returns>Returns <see langword="true"/> if the raycast result is valid. Otherwise, returns <see langword="false"/>.</returns>
+        /// <param name="position">When this method returns, contains the world position of the ray impact point if a hit occurred.</param>
+        /// <param name="normal">When this method returns, contains the world normal of the surface the ray hit if a hit occurred.</param>
+        /// <param name="positionInLine">When this method returns, contains the index of the sample endpoint within the list of points returned by <see cref="GetLinePoints"/>
+        /// where a hit occurred. Otherwise, a value of <c>0</c> if no hit occurred.</param>
+        /// <param name="isValidTarget">When this method returns, contains whether both a hit occurred and it is a valid target for interaction.</param>
+        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the raycast hit information is valid. Otherwise, returns <see langword="false"/>.</returns>
         bool TryGetHitInfo(out Vector3 position, out Vector3 normal, out int positionInLine, out bool isValidTarget);
     }
 
@@ -348,11 +351,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_RenderPoints == null || m_RenderPoints.Length < m_NoTargetPoints)
             {
                 m_RenderPoints = new Vector3[m_NoTargetPoints];
-                m_NoRenderPoints = 0;
-            }
-            if (m_PreviousRenderPoints == null)
-            {
                 m_PreviousRenderPoints = new Vector3[m_NoTargetPoints];
+                m_NoRenderPoints = 0;
                 m_NoPreviousRenderPoints = 0;
             }
 
@@ -385,7 +385,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_LineRenderable.TryGetHitInfo(out m_ReticlePos, out m_ReticleNormal, out m_EndPositionInLine, out var isValidTarget))
             {
                 // End the line at the current hit point.
-                if ((isValidTarget || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine <= m_NoTargetPoints)
+                if ((isValidTarget || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
                 {
                     m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
                     m_NoTargetPoints = m_EndPositionInLine + 1;

@@ -208,7 +208,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             if (m_CameraGameObject == null)
             {
-                Debug.LogWarning("No Camera GameObject specified for XR Rig, using the MainCamera GameObject if it is not null.", this);
                 var mainCamera = Camera.main;
                 if (mainCamera != null)
                     m_CameraGameObject = mainCamera.gameObject;

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+#if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -17,6 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         /// </summary>
         static readonly Type[] s_RuntimeTypes;
 
+#if UNITY_EDITOR
         /// <summary>
         /// <see cref="PackageInfo"/> for com.unity.xr.interaction.toolkit.
         /// </summary>
@@ -26,6 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         /// <c>major.minor</c> version of com.unity.xr.interaction.toolkit.
         /// </summary>
         string m_MajorMinorVersion;
+#endif
 
         static DocumentationTests()
         {
@@ -42,6 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [OneTimeSetUp]
         public void SetUp()
         {
+#if UNITY_EDITOR
             var assembly = Assembly.Load("Unity.XR.Interaction.Toolkit");
             Assert.That(assembly, Is.Not.Null);
 
@@ -54,6 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var secondDotIndex = m_PackageInfo.version.IndexOf('.', m_PackageInfo.version.IndexOf('.') + 1);
             Assert.That(secondDotIndex, Is.GreaterThan(0));
             m_MajorMinorVersion = m_PackageInfo.version.Substring(0, secondDotIndex);
+#endif
         }
 
         /// <summary>
@@ -73,7 +79,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(attribute.URL, Is.Not.Null);
             Assert.That(attribute.URL, Is.Not.Empty);
+#if UNITY_EDITOR
             Assert.That(attribute.URL, Does.Contain($"{m_PackageInfo.name}@{m_MajorMinorVersion}/"));
+#endif
             // Assumes Scripting API reference.
             Assert.That(attribute.URL, Does.EndWith($"{type.FullName}.html"));
 

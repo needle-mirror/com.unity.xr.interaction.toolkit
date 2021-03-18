@@ -36,38 +36,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal struct ImplementationData
         {
             /// <summary>
-            /// Used to cache whether or not the current mouse button is being dragged. See <see cref="PointerEventData.dragging"/> for more details.
+            /// Used to cache whether or not the current mouse button is being dragged.
             /// </summary>
+            /// <seealso cref="PointerEventData.dragging"/>
             public bool isDragging { get; set; }
 
             /// <summary>
-            /// Used to cache the last time this button was pressed. See <see cref="PointerEventData.clickTime"/> for more details.
+            /// Used to cache the last time this button was pressed.
             /// </summary>
+            /// <seealso cref="PointerEventData.clickTime"/>
             public float pressedTime { get; set; }
 
             /// <summary>
-            /// The position on the screen that this button was last pressed. In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
+            /// The position on the screen that this button was last pressed.
+            /// In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
             /// </summary>
+            /// <seealso cref="PointerEventData.pressPosition"/>
             public Vector2 pressedPosition { get; set; }
 
             /// <summary>
-            /// The Raycast data from the time it was pressed. See <see cref="PointerEventData.pointerPressRaycast"/> for more details.
+            /// The Raycast data from the time it was pressed.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerPressRaycast"/>
             public RaycastResult pressedRaycast { get; set; }
 
             /// <summary>
-            /// The last GameObject pressed on that can handle press or click events.  See <see cref="PointerEventData.pointerPress"/> for more details.
+            /// The last GameObject pressed on that can handle press or click events.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerPress"/>
             public GameObject pressedGameObject { get; set; }
 
             /// <summary>
-            /// The last GameObject pressed on regardless of whether it can handle events or not. See <see cref="PointerEventData.rawPointerPress"/> for more details.
+            /// The last GameObject pressed on regardless of whether it can handle events or not.
             /// </summary>
+            /// <seealso cref="PointerEventData.rawPointerPress"/>
             public GameObject pressedGameObjectRaw { get; set; }
 
             /// <summary>
-            /// The GameObject currently being dragged if any. See <see cref="PointerEventData.pointerDrag"/> for more details.
+            /// The GameObject currently being dragged if any.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerDrag"/>
             public GameObject draggedGameObject { get; set; }
 
             /// <summary>
@@ -100,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// A set of flags to identify the changes that have occured between calls of <see cref="OnFrameFinished"/>.
+        /// A set of flags to identify the changes that have occurred between calls of <see cref="OnFrameFinished"/>.
         /// </summary>
         internal ButtonDeltaState lastFrameDelta { get; private set; }
 
@@ -159,19 +167,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal struct InternalData
         {
             /// <summary>
-            /// This tracks the current GUI targets being hovered over.  Syncs up to <see cref="PointerEventData.hovered"/>.
+            /// This tracks the current GUI targets being hovered over.
             /// </summary>
+            /// <seealso cref="PointerEventData.hovered"/>
             public List<GameObject> hoverTargets { get; set; }
 
             /// <summary>
-            ///  Tracks the current enter/exit target being hovered over at any given moment. Syncs up to <see cref="PointerEventData.pointerEnter"/>.
+            ///  Tracks the current enter/exit target being hovered over at any given moment.
             /// </summary>
+            /// <seealso cref="PointerEventData.pointerEnter"/>
             public GameObject pointerTarget { get; set; }
 
             public void Reset()
             {
                 pointerTarget = null;
-                hoverTargets = new List<GameObject>();
+
+                if (hoverTargets == null)
+                    hoverTargets = new List<GameObject>();
+                else
+                    hoverTargets.Clear();
             }
         }
 
@@ -187,6 +201,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// This only checks for changes in mouse state (<see cref="position"/>, <see cref="leftButton"/>, <see cref="rightButton"/>, <see cref="middleButton"/>, or <see cref="scrollPosition"/>).
         /// </remarks>
         public bool changedThisFrame { get; private set; }
+
+        Vector2 m_Position;
 
         public Vector2 position
         {
@@ -207,24 +223,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Vector2 deltaPosition { get; private set; }
 
-        public Vector2 scrollPosition
+        Vector2 m_ScrollDelta;
+
+        /// <summary>
+        /// The amount of scroll since the last call to <see cref="OnFrameFinished"/>.
+        /// </summary>
+        public Vector2 scrollDelta
         {
-            get => m_ScrollPosition;
+            get => m_ScrollDelta;
             set
             {
-                if (m_ScrollPosition != value)
+                if (m_ScrollDelta != value)
                 {
+                    m_ScrollDelta = value;
                     changedThisFrame = true;
-                    scrollDelta = value + m_ScrollPosition;
-                    m_ScrollPosition = value;
                 }
             }
         }
 
-        /// <summary>
-        /// The change in <see cref="scrollPosition"/> since the last call to <see cref="OnFrameFinished"/>.
-        /// </summary>
-        public Vector2 scrollDelta { get; private set; }
+        MouseButtonModel m_LeftButton;
 
         /// <summary>
         /// Cached data and button state representing a left mouse button on a mouse.
@@ -252,6 +269,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        MouseButtonModel m_RightButton;
+
         /// <summary>
         /// Cached data and button state representing a right mouse button on a mouse.
         /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
@@ -277,6 +296,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 m_RightButton.isDown = value;
             }
         }
+
+        MouseButtonModel m_MiddleButton;
 
         /// <summary>
         /// Cached data and button state representing a middle mouse button on a mouse.
@@ -304,11 +325,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        InternalData m_InternalData;
+
         public MouseModel(int pointerId)
         {
             this.pointerId = pointerId;
             changedThisFrame = false;
-            m_Position = deltaPosition = m_ScrollPosition = scrollDelta = Vector2.zero;
+            m_Position = Vector2.zero;
+            deltaPosition = Vector2.zero;
+            m_ScrollDelta = Vector2.zero;
 
             m_LeftButton = new MouseButtonModel();
             m_RightButton = new MouseButtonModel();
@@ -319,8 +344,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             m_InternalData = new InternalData();
             m_InternalData.Reset();
-            m_InternalData.pointerTarget = null;
-            m_InternalData.hoverTargets = new List<GameObject>();
         }
 
         /// <summary>
@@ -329,7 +352,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public void OnFrameFinished()
         {
             changedThisFrame = false;
-            deltaPosition = scrollDelta = Vector2.zero;
+            deltaPosition = Vector2.zero;
+            m_ScrollDelta = Vector2.zero;
             m_LeftButton.OnFrameFinished();
             m_RightButton.OnFrameFinished();
             m_MiddleButton.OnFrameFinished();
@@ -358,12 +382,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_InternalData.hoverTargets = hoverTargets;
             m_InternalData.pointerTarget = eventData.pointerEnter;
         }
-
-        Vector2 m_Position;
-        Vector2 m_ScrollPosition;
-        MouseButtonModel m_LeftButton;
-        MouseButtonModel m_RightButton;
-        MouseButtonModel m_MiddleButton;
-        InternalData m_InternalData;
     }
 }

@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// Custom editor for an <see cref="ARRotationInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(ARRotationInteractable), true), CanEditMultipleObjects]
-    public class ARRotationInteractableEditor : XRBaseInteractableEditor
+    public class ARRotationInteractableEditor : ARBaseGestureInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARRotationInteractable.rotationRateDegreesDrag"/>.</summary>
         protected SerializedProperty m_RotationRateDegreesDrag;

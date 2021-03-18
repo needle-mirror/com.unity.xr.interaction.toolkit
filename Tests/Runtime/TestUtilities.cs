@@ -1,10 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.TestTools;
-using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.XR.Interaction.Toolkit;
-using System;
+﻿using System;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -33,6 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     Object.DestroyImmediate(gameObject.transform.root.gameObject);
             }
         }
+
         internal static void CreateGOSphereCollider(GameObject go, bool isTrigger = true)
         {
             SphereCollider collider = go.AddComponent<SphereCollider>();
@@ -51,8 +46,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             GameObject interactorGO = new GameObject();
             CreateGOSphereCollider(interactorGO);
-            XRDirectInteractor interactor = interactorGO.AddComponent<XRDirectInteractor>();
             XRController controller = interactorGO.AddComponent<XRController>();
+            XRDirectInteractor interactor = interactorGO.AddComponent<XRDirectInteractor>();
             interactor.xrController = controller;
             controller.enableInputTracking = false;
             controller.enableInputActions = false;
@@ -61,12 +56,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRRig CreateXRRig()
         {
-            GameObject xrRigGO = new GameObject();
+            var xrRigGO = new GameObject();
             xrRigGO.name = "XR Rig";
-            XRRig xrRig = xrRigGO.AddComponent<XRRig>();
+            xrRigGO.SetActive(false);
+            var xrRig = xrRigGO.AddComponent<XRRig>();
+            xrRig.rig = xrRigGO;
 
-            // add camera offset
-            GameObject cameraOffsetGO = new GameObject();
+            // Add camera offset
+            var cameraOffsetGO = new GameObject();
             cameraOffsetGO.name = "CameraOffset";
             cameraOffsetGO.transform.SetParent(xrRig.transform,false);
             xrRig.cameraFloorOffsetObject = cameraOffsetGO;
@@ -74,15 +71,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             xrRig.transform.position = Vector3.zero;
             xrRig.transform.rotation = Quaternion.identity;
 
-            // camera and track pose driver
-            GameObject cameraGO = new GameObject();
+            // Add camera
+            var cameraGO = new GameObject();
             cameraGO.name = "Camera";
             var camera = cameraGO.AddComponent<Camera>();
 
             cameraGO.transform.SetParent(cameraOffsetGO.transform, false);
             xrRig.cameraGameObject = cameraGO;
+            xrRigGO.SetActive(true);
 
-            XR.XRDevice.DisableAutoXRCameraTracking(camera, true);
+            XRDevice.DisableAutoXRCameraTracking(camera, true);
 
             return xrRig;
         }
@@ -99,8 +97,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             GameObject interactorGO = new GameObject();
             interactorGO.name = "Ray Interactor";
-            XRRayInteractor interactor = interactorGO.AddComponent<XRRayInteractor>();
             XRController controller = interactorGO.AddComponent<XRController>();
+            XRRayInteractor interactor = interactorGO.AddComponent<XRRayInteractor>();
             XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
             interactor.xrController = controller;
             controller.enableInputTracking = false;
@@ -108,6 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controller.enableInputActions = false;
             return interactor;
         }
+
         internal static XRSocketInteractor CreateSocketInteractor()
         {
             GameObject interactorGO = new GameObject();
@@ -115,14 +114,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRSocketInteractor interactor = interactorGO.AddComponent<XRSocketInteractor>();
             return interactor;
         }
+
         internal static XRGrabInteractable CreateGrabInteractable()
         {
             GameObject interactableGO = new GameObject();
             CreateGOSphereCollider(interactableGO, false);
             XRGrabInteractable interactable = interactableGO.AddComponent<XRGrabInteractable>();
-            var rididBody = interactableGO.GetComponent<Rigidbody>();
-            rididBody.useGravity = false;
-            rididBody.isKinematic = true;
+            var rigidBody = interactableGO.GetComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            return interactable;
+        }
+
+        internal static XRSimpleInteractable CreateSimpleInteractable()
+        {
+            GameObject interactableGO = new GameObject();
+            CreateGOSphereCollider(interactableGO, false);
+            XRSimpleInteractable interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+            Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
             return interactable;
         }
 

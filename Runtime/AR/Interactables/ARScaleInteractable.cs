@@ -113,7 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (minScale > maxScale)
                 {
-                    Debug.LogError("minScale must be smaller than maxScale.");
+                    Debug.LogError("minScale must be smaller than maxScale.", this);
                     return 0f;
                 }
 
@@ -152,43 +152,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void LateUpdate()
+        /// <inheritdoc />
+        public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            if (!m_IsScaling)
+            base.ProcessInteractable(updatePhase);
+
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Late)
             {
-                m_CurrentScaleRatio =
-                    Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
-                transform.localScale = currentScale;
+                if (!m_IsScaling)
+                {
+                    m_CurrentScaleRatio =
+                        Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
+                    transform.localScale = currentScale;
+                }
             }
         }
 
-        /// <summary>
-        /// Returns true if the manipulation can be started for the given gesture.
-        /// </summary>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(PinchGesture gesture)
         {
-            if (!IsGameObjectSelected())
-            {
-                return false;
-            }
-
-            if (gesture.TargetObject != null)
-            {
-                return false;
-            }
-
-            return true;
+            return IsGameObjectSelected() && gesture.targetObject == null;
         }
 
         /// <summary>
         /// Recalculates the current scale ratio in case local scale, min or max scale were changed.
         /// </summary>
         /// <param name="gesture">The gesture that started this transformation.</param>
+        /// <inheritdoc />
         protected override void OnStartManipulation(PinchGesture gesture)
         {
             m_IsScaling = true;
@@ -199,6 +189,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Continues the scaling of the object.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
             m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.gapDelta);
@@ -218,6 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Finishes the scaling of the object.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
+        /// <inheritdoc />
         protected override void OnEndManipulation(PinchGesture gesture)
         {
             m_IsScaling = false;
