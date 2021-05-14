@@ -1,7 +1,7 @@
 {
     "name": "Unity.XR.Interaction.Toolkit",
     "references": [
-        "Unity.ugui",
+        "UnityEngine.UI",
         "UnityEngine.SpatialTracking",
         "Unity.XR.ARSubsystems",
         "Unity.XR.ARFoundation",
@@ -16,6 +16,11 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.1.0-preview.2",
+            "define": "INPUT_SYSTEM_1_1_OR_NEWER"
+        },
         {
             "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",

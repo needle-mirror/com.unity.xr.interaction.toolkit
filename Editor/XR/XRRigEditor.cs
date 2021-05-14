@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR;
@@ -19,15 +21,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_CameraFloorOffsetObject;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.cameraGameObject"/>.</summary>
         protected SerializedProperty m_CameraGameObject;
-#if UNITY_2019_3_OR_NEWER
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.trackingOriginMode"/>.</summary>
+        [Obsolete("m_TrackingOriginMode has been deprecated. Use m_RequestedTrackingOriginMode instead.")]
         protected SerializedProperty m_TrackingOriginMode;
-#else
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.trackingSpace"/>.</summary>
-        protected SerializedProperty m_TrackingSpace;
-#endif
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.requestedTrackingOriginMode"/>.</summary>
+        protected SerializedProperty m_RequestedTrackingOriginMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRig.cameraYOffset"/>.</summary>
         protected SerializedProperty m_CameraYOffset;
+
+        List<XRRig> m_Rigs;
+
+        readonly GUIContent[] m_MixedValuesOptions = { Contents.mixedValues };
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -40,17 +44,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent cameraFloorOffsetObject = EditorGUIUtility.TrTextContent("Camera Floor Offset Object", "The GameObject to move to desired height off the floor (defaults to this object if none provided).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRig.cameraGameObject"/>.</summary>
             public static readonly GUIContent cameraGameObject = EditorGUIUtility.TrTextContent("Camera GameObject", "The GameObject that contains the camera, this is usually the \"Head\" of XR rigs.");
-#if UNITY_2019_3_OR_NEWER
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRig.trackingOriginMode"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRig.requestedTrackingOriginMode"/>.</summary>
             public static readonly GUIContent trackingOriginMode = EditorGUIUtility.TrTextContent("Tracking Origin Mode", "The type of tracking origin to use for this Rig. Tracking origins identify where (0, 0, 0) is in the world of tracking.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRig.currentTrackingOriginMode"/>.</summary>
+            public static readonly GUIContent currentTrackingOriginMode = EditorGUIUtility.TrTextContent("Current Tracking Origin Mode", "The Tracking Origin Mode that this Rig is in.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRig.cameraYOffset"/>.</summary>
-            public static readonly GUIContent cameraYOffset = EditorGUIUtility.TrTextContent("Camera Y Offset", "Camera Height to be used when in \"Device\" tracking origin mode to define the height of the user from the floor.");
-#else
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRig.trackingSpace"/>.</summary>
-            public static readonly GUIContent trackingSpace = EditorGUIUtility.TrTextContent("Tracking Space", "Set if the XR experience is Room Scale or Stationary.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRig.cameraYOffset"/>.</summary>
-            public static readonly GUIContent cameraYOffset = EditorGUIUtility.TrTextContent("Camera Y Offset", "Camera Height to be used when in \"Stationary\" tracking space to define the height of the user from the floor.");
-#endif
+            public static readonly GUIContent cameraYOffset = EditorGUIUtility.TrTextContent("Camera Y Offset", "Camera height to be used when in \"Device\" Tracking Origin Mode to define the height of the user from the floor.");
+            /// <summary><see cref="GUIContent"/> to indicate mixed values when multi-object editing.</summary>
+            public static readonly GUIContent mixedValues = EditorGUIUtility.TrTextContent("\u2014", "Mixed Values");
         }
 
         /// <summary>
@@ -62,20 +63,22 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_RigBaseGameObject = serializedObject.FindProperty("m_RigBaseGameObject");
             m_CameraFloorOffsetObject = serializedObject.FindProperty("m_CameraFloorOffsetObject");
             m_CameraGameObject = serializedObject.FindProperty("m_CameraGameObject");
-#if UNITY_2019_3_OR_NEWER
+#pragma warning disable 618 // Setting deprecated field to help with backwards compatibility with existing user code.
             m_TrackingOriginMode = serializedObject.FindProperty("m_TrackingOriginMode");
-#else
-            m_TrackingSpace = serializedObject.FindProperty("m_TrackingSpace");
-#endif
+#pragma warning restore 618
+            m_RequestedTrackingOriginMode = serializedObject.FindProperty("m_RequestedTrackingOriginMode");
             m_CameraYOffset = serializedObject.FindProperty("m_CameraYOffset");
+
+            m_Rigs = targets.Cast<XRRig>().ToList();
         }
 
         /// <inheritdoc />
         protected override List<string> GetDerivedSerializedPropertyNames()
         {
             var propertyNames = base.GetDerivedSerializedPropertyNames();
-            // Ignore m_TrackingSpace since it is deprecated and only kept around for data migration
+            // Ignore these fields since they are deprecated and only kept around for data migration
             propertyNames.Add("m_TrackingSpace");
+            propertyNames.Add("m_TrackingOriginMode");
             return propertyNames;
         }
 
@@ -113,19 +116,51 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_CameraFloorOffsetObject, Contents.cameraFloorOffsetObject);
             EditorGUILayout.PropertyField(m_CameraGameObject, Contents.cameraGameObject);
 
-#if UNITY_2019_3_OR_NEWER
-            EditorGUILayout.PropertyField(m_TrackingOriginMode, Contents.trackingOriginMode);
-            var showCameraYOffset = m_TrackingOriginMode.enumValueIndex == (int)TrackingOriginModeFlags.Device;
-#else
-            EditorGUILayout.PropertyField(m_TrackingSpace, Contents.trackingSpace);
-            var showCameraYOffset = m_TrackingSpace.enumValueIndex == (int)TrackingSpaceType.Stationary;
-#endif
+            EditorGUILayout.PropertyField(m_RequestedTrackingOriginMode, Contents.trackingOriginMode);
+
+            var showCameraYOffset =
+                m_RequestedTrackingOriginMode.enumValueIndex == (int)XRRig.TrackingOriginMode.NotSpecified ||
+                m_RequestedTrackingOriginMode.enumValueIndex == (int)XRRig.TrackingOriginMode.Device ||
+                m_RequestedTrackingOriginMode.hasMultipleDifferentValues;
             if (showCameraYOffset)
             {
+                // The property should be enabled when not playing since the default for the XR device
+                // may be Device, so the property should be editable to define the offset.
+                // When playing, disable the property to convey that it isn't having an effect,
+                // which is when the current mode is Floor.
+                var currentTrackingOriginMode = ((XRRig)target).currentTrackingOriginMode;
+                var allCurrentlyFloor = (m_Rigs.Count == 1 && currentTrackingOriginMode == TrackingOriginModeFlags.Floor) ||
+                    m_Rigs.All(rig => rig.currentTrackingOriginMode == TrackingOriginModeFlags.Floor);
+                var disabled = Application.isPlaying &&
+                    !m_RequestedTrackingOriginMode.hasMultipleDifferentValues &&
+                    m_RequestedTrackingOriginMode.enumValueIndex == (int)XRRig.TrackingOriginMode.NotSpecified &&
+                    allCurrentlyFloor;
                 using (new EditorGUI.IndentLevelScope())
+                using (new EditorGUI.DisabledScope(disabled))
                 {
                     EditorGUILayout.PropertyField(m_CameraYOffset, Contents.cameraYOffset);
                 }
+            }
+
+            DrawCurrentTrackingOriginMode();
+        }
+
+        /// <summary>
+        /// Draw the current Tracking Origin Mode while the application is playing.
+        /// </summary>
+        /// <seealso cref="XRRig.currentTrackingOriginMode"/>
+        protected void DrawCurrentTrackingOriginMode()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                var currentTrackingOriginMode = ((XRRig)target).currentTrackingOriginMode;
+                if (m_Rigs.Count == 1 || m_Rigs.All(rig => rig.currentTrackingOriginMode == currentTrackingOriginMode))
+                    EditorGUILayout.EnumPopup(Contents.currentTrackingOriginMode, currentTrackingOriginMode);
+                else
+                    EditorGUILayout.Popup(Contents.currentTrackingOriginMode, 0, m_MixedValuesOptions);
             }
         }
     }

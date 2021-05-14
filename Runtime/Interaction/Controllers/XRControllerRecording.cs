@@ -16,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_XRControllerRecording)]
     public class XRControllerRecording : ScriptableObject
     {
-        [SerializeField, Tooltip("Frames stored in this recording.")]
+        [SerializeField]
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
         List<XRControllerState> m_Frames = new List<XRControllerState>();
 #pragma warning restore IDE0044

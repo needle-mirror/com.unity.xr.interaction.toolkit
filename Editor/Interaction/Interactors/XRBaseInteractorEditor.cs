@@ -58,7 +58,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
             public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactables whose Interaction Layer Mask overlaps with any layer in this Interaction Layer Mask.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.attachTransform"/>.</summary>
-            public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables.  Will create an empty GameObject if None.");
+            public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables. Will create an empty GameObject if None.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>

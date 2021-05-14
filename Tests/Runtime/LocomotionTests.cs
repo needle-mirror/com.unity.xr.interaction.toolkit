@@ -6,12 +6,12 @@ using UnityEngine.TestTools.Utils;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class LocomotionTests
+    class LocomotionTests
     {
         [TearDown]
         public void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
+            TestUtilities.DestroyAllSceneObjects();
         }
 
         [UnityTest]

@@ -46,7 +46,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const float k_MaxLineWidth = 0.05f;
 
         [SerializeField, Range(k_MinLineWidth, k_MaxLineWidth)]
-        [Tooltip("Controls the width of the line.")]
         float m_LineWidth = 0.02f;
         /// <summary>
         /// Controls the width of the line.
@@ -62,7 +61,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls which source is used to determine the length of the line. Set to true to use the Line Length set by this behavior. Set to false have the length of the line determined by the interactor.")]
         bool m_OverrideInteractorLineLength = true;
         /// <summary>
         /// A boolean value that controls which source is used to determine the length of the line.
@@ -77,7 +75,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the length of the line when overriding.")]
         float m_LineLength = 10f;
         /// <summary>
         /// Controls the length of the line when overriding.
@@ -90,7 +87,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the relative width of the line from start to end.")]
         AnimationCurve m_WidthCurve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
         /// <summary>
         /// Controls the relative width of the line from start to end.
@@ -106,7 +102,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the color of the line as a gradient from start to end to indicate a valid state.")]
         Gradient m_ValidColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
@@ -122,7 +117,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the color of the line as a gradient from start to end to indicate an invalid state.")]
         Gradient m_InvalidColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.red, 0f), new GradientColorKey(Color.red, 1f) },
@@ -138,7 +132,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls whether the rendered segments will be delayed from and smoothly follow the target segments.")]
         bool m_SmoothMovement;
         /// <summary>
         /// Controls whether the rendered segments will be delayed from and smoothly follow the target segments.
@@ -152,7 +145,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the speed that the rendered segments will follow the target segments when Smooth Movement is enabled.")]
         float m_FollowTightness = 10f;
         /// <summary>
         /// Controls the speed that the rendered segments will follow the target segments when Smooth Movement is enabled.
@@ -166,7 +158,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls the threshold distance between line points at two consecutive frames to snap rendered segments to target segments when Smooth Movement is enabled.")]
         float m_SnapThresholdDistance = 10f;
         /// <summary>
         /// Controls the threshold distance between line points at two consecutive frames to snap rendered segments to target segments when Smooth Movement is enabled.
@@ -180,7 +171,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Stores the reticle that will appear at the end of the line when it is valid.")]
         GameObject m_Reticle;
         /// <summary>
         /// Stores the reticle that will appear at the end of the line when it is valid.
@@ -192,7 +182,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls whether the line will always be cut short by this behavior at the first raycast hit, even when invalid.")]
         bool m_StopLineAtFirstRaycastHit = true;
         /// <summary>
         /// Controls whether the line will always be cut short by this behavior at the first raycast hit, even when invalid.

@@ -8,10 +8,8 @@ using UnityEngine.TestTools.Utils;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class RayInteractorTests
+    class RayInteractorTests
     {
-        GameObject m_Plane;
-
         static readonly XRRayInteractor.LineType[] s_LineTypes =
         {
             XRRayInteractor.LineType.StraightLine,
@@ -30,9 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
-            if (m_Plane != null)
-                Object.Destroy(m_Plane);
+            TestUtilities.DestroyAllSceneObjects();
         }
 
         [UnityTest]
@@ -615,10 +611,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
 
             // Create and place a plane between sample index 1 and 2
-            m_Plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            m_Plane.transform.localPosition = new Vector3(0f, 0f, 13f);
-            m_Plane.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-            m_Plane.transform.localScale = new Vector3(10f, 1f, 10f);
+            var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            plane.transform.localPosition = new Vector3(0f, 0f, 13f);
+            plane.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+            plane.transform.localScale = new Vector3(10f, 1f, 10f);
 
             // Wait for Physics update for hit and onBeforeRender callback to be invoked in XRInteractorLineVisual
             yield return new WaitForFixedUpdate();
@@ -631,8 +627,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(isHitInfoValid, Is.True);
             Assert.That(isValidTarget, Is.False);
             Assert.That(hitPositionInLine, Is.EqualTo(lineType == XRRayInteractor.LineType.StraightLine ? 1 : 2));
-            Assert.That(hitPosition.z, Is.EqualTo(m_Plane.transform.position.z).Using(FloatEqualityComparer.Instance));
-            Assert.That(hitNormal, Is.EqualTo(m_Plane.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(hitPosition.z, Is.EqualTo(plane.transform.position.z).Using(FloatEqualityComparer.Instance));
+            Assert.That(hitNormal, Is.EqualTo(plane.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // The sample points should continue beyond the hit to allow the
             // Line Visual behavior to render them

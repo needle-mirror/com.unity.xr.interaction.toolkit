@@ -8,9 +8,17 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// <see cref="XRBaseController"/> <see cref="MonoBehaviour"/> that interprets Input System events into 
-    /// XR Interaction Interactor position, rotation, and interaction states.
+    /// Interprets feature values on a tracked input controller device using actions from the Input System
+    /// into XR Interaction states, such as Select. Additionally, it applies the current Pose value
+    /// of a tracked device to the transform of the GameObject.
     /// </summary>
+    /// <remarks>
+    /// This behavior requires that the Input System is enabled in the <b>Active Input Handling</b>
+    /// setting in <b>Edit &gt; Project Settings &gt; Player</b> for input values to be read.
+    /// Each input action must also be enabled to read the current value of the action. Referenced
+    /// input actions in an Input Action Asset are not enabled by default.
+    /// </remarks>
+    /// <seealso cref="XRBaseController"/>
     [AddComponentMenu("XR/XR Controller (Action-based)")]
     [HelpURL(XRHelpURLConstants.k_ActionBasedController)]
     public class ActionBasedController : XRBaseController
@@ -113,7 +121,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The value threshold for when a button is considered pressed to trigger an interaction event.
         /// If a button has a value equal to or greater than this value, it is considered pressed.
         /// </summary>
-        [Obsolete("Deprecated, this property will be removed when Input System dependency version is bumped to 1.1.0.")]
+#if INPUT_SYSTEM_1_1_OR_NEWER
+        [Obsolete("Deprecated, this obsolete property is not used when Input System version is 1.1.0 or higher. Configure press point on the action or binding instead.", true)]
+#else
+        [Obsolete("Marked for deprecation, this property will be removed when Input System dependency version is bumped to 1.1.0.")]
+#endif
         public float buttonPressPoint
         {
             get => m_ButtonPressPoint;
@@ -187,6 +199,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void UpdateInput(XRControllerState controllerState)
         {
+            base.UpdateInput(controllerState);
             if (controllerState == null)
                 return;
 
@@ -207,19 +220,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             controllerState.ResetFrameDependentStates();
+            controllerState.selectInteractionState.SetFrameState(IsPressed(m_SelectAction.action));
+            controllerState.activateInteractionState.SetFrameState(IsPressed(m_ActivateAction.action));
+            controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressAction.action));
+        }
 
-            ComputeInteractionActionStates(IsPressed(m_SelectAction), ref controllerState.selectInteractionState);
-            ComputeInteractionActionStates(IsPressed(m_ActivateAction), ref controllerState.activateInteractionState);
-            ComputeInteractionActionStates(IsPressed(m_UIPressAction), ref controllerState.uiPressInteractionState);
+        /// <summary>
+        /// Evaluates whether the given input action is considered pressed.
+        /// </summary>
+        /// <param name="action">The input action to check.</param>
+        /// <returns>Returns <see langword="true"/> when the input action is considered pressed. Otherwise, returns <see langword="false"/>.</returns>
+        protected virtual bool IsPressed(InputAction action)
+        {
+            if (action == null)
+                return false;
 
-            bool IsPressed(InputActionProperty property)
-            {
-                var action = property.action;
-                if (action == null)
-                    return false;
+#if INPUT_SYSTEM_1_1_OR_NEWER
+                return action.phase == InputActionPhase.Performed;
+#else
+            if (action.activeControl is ButtonControl buttonControl)
+                return buttonControl.isPressed;
 
-                return action.triggered || action.phase == InputActionPhase.Performed || action.ReadValue<float>() >= m_ButtonPressPoint;
-            }
+            if (action.activeControl is AxisControl)
+                return action.ReadValue<float>() >= m_ButtonPressPoint;
+
+            return action.triggered || action.phase == InputActionPhase.Performed;
+#endif
         }
 
         /// <inheritdoc />
@@ -267,26 +293,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (Application.isPlaying && isActiveAndEnabled)
                 property.EnableDirectAction();
-        }
-
-        static void ComputeInteractionActionStates(bool pressed, ref InteractionState interactionState)
-        {    
-            if (pressed)
-            {
-                if (!interactionState.active)
-                {
-                    interactionState.activatedThisFrame = true;
-                    interactionState.active = true;
-                }
-            }
-            else
-            {
-                if (interactionState.active)
-                {
-                    interactionState.deactivatedThisFrame = true;
-                    interactionState.active = false;
-                }
-            }
         }
 
         static bool IsDisabledReferenceAction(InputActionProperty property) =>

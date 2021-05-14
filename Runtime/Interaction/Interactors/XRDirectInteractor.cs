@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -18,15 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override List<XRBaseInteractable> validTargets => m_ValidTargets;
 
-        /// <summary>
-        /// Reusable map of interactables to their distance squared from this interactor (used for sort).
-        /// </summary>
-        readonly Dictionary<XRBaseInteractable, float> m_InteractableDistanceSqrMap = new Dictionary<XRBaseInteractable, float>();
-
-        /// <summary>
-        /// Sort comparison function used by <see cref="GetValidTargets"/>.
-        /// </summary>
-        Comparison<XRBaseInteractable> m_InteractableSortComparison;
+        readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -35,7 +27,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.Awake();
 
-            m_InteractableSortComparison = InteractableSortComparison;
+            m_TriggerContactMonitor.interactionManager = interactionManager;
+            m_TriggerContactMonitor.contactAdded += OnContactAdded;
+            m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
+
             if (!GetComponents<Collider>().Any(x => x.isTrigger))
                 Debug.LogWarning("Direct Interactor does not have required Collider set as a trigger.", this);
         }
@@ -46,12 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
         protected void OnTriggerEnter(Collider other)
         {
-            if (interactionManager == null)
-                return;
-
-            var interactable = interactionManager.GetInteractableForCollider(other);
-            if (interactable != null && !m_ValidTargets.Contains(interactable))
-                m_ValidTargets.Add(interactable);
+            m_TriggerContactMonitor.AddCollider(other);
         }
 
         /// <summary>
@@ -60,28 +50,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
         protected void OnTriggerExit(Collider other)
         {
-            if (interactionManager == null)
-                return;
-
-            var interactable = interactionManager.GetInteractableForCollider(other);
-            if (interactable != null)
-                m_ValidTargets.Remove(interactable);
+            m_TriggerContactMonitor.RemoveCollider(other);
         }
 
         /// <inheritdoc />
         public override void GetValidTargets(List<XRBaseInteractable> targets)
         {
-            targets.Clear();
-            m_InteractableDistanceSqrMap.Clear();
-
-            // Calculate distance squared to interactor's attach transform and add to targets (which is sorted before returning)
-            foreach (var interactable in m_ValidTargets)
-            {
-                m_InteractableDistanceSqrMap[interactable] = interactable.GetDistanceSqrToInteractor(this);
-                targets.Add(interactable);
-            }
-
-            targets.Sort(m_InteractableSortComparison);
+            SortingHelpers.SortByDistanceToInteractor(this, m_ValidTargets, targets);
         }
 
         /// <inheritdoc />
@@ -100,14 +75,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
         {
             base.OnRegistered(args);
+            args.manager.interactableRegistered += OnInteractableRegistered;
             args.manager.interactableUnregistered += OnInteractableUnregistered;
+
+            // Attempt to resolve any colliders that entered this trigger while this was not subscribed,
+            // and filter out any targets that were unregistered while this was not subscribed.
+            m_TriggerContactMonitor.interactionManager = args.manager;
+            m_TriggerContactMonitor.ResolveUnassociatedColliders();
+            XRInteractionManager.RemoveAllUnregistered(args.manager, m_ValidTargets);
         }
 
         /// <inheritdoc />
         protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
         {
             base.OnUnregistered(args);
+            args.manager.interactableRegistered -= OnInteractableRegistered;
             args.manager.interactableUnregistered -= OnInteractableUnregistered;
+        }
+
+        void OnInteractableRegistered(InteractableRegisteredEventArgs args)
+        {
+            m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactable);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
@@ -115,16 +103,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ValidTargets.Remove(args.interactable);
         }
 
-        int InteractableSortComparison(XRBaseInteractable x, XRBaseInteractable y)
+        void OnContactAdded(XRBaseInteractable interactable)
         {
-            var xDistance = m_InteractableDistanceSqrMap[x];
-            var yDistance = m_InteractableDistanceSqrMap[y];
-            if (xDistance > yDistance)
-                return 1;
-            if (xDistance < yDistance)
-                return -1;
+            if (!m_ValidTargets.Contains(interactable))
+                m_ValidTargets.Add(interactable);
+        }
 
-            return 0;
+        void OnContactRemoved(XRBaseInteractable interactable)
+        {
+            m_ValidTargets.Remove(interactable);
         }
     }
 }

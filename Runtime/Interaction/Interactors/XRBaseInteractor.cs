@@ -36,6 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         /// <seealso cref="XRInteractionManager.interactorUnregistered"/>
         public event Action<InteractorUnregisteredEventArgs> unregistered;
+
         [SerializeField]
         XRInteractionManager m_InteractionManager;
 
@@ -389,8 +390,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public virtual bool requireSelectExclusive => false;
 
         /// <summary>
-        /// (Read Only) Overriding movement type of the selected interactable's movement.
+        /// (Read Only) Overriding movement type of the selected Interactable's movement.
+        /// By default, this does not override the movement type.
         /// </summary>
+        /// <remarks>
+        /// This can be used to change the effective movement type of an Interactable for different
+        /// Interactors. An example would be having an Interactable use <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// so it does not move through geometry with a Collider when interacting with it using a Ray or Direct Interactor,
+        /// but have a Socket Interactor override the movement type to be <see cref="XRBaseInteractable.MovementType.Instantaneous"/>
+        /// for reduced movement latency.
+        /// </remarks>
+        /// <seealso cref="XRGrabInteractable.movementType"/>
         public virtual XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride => null;
 
         /// <summary>

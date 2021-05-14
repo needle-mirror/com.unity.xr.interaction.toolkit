@@ -6,12 +6,12 @@ using UnityEngine.TestTools;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class DirectInteractorTests
+    class DirectInteractorTests
     {
         [TearDown]
         public void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
+            TestUtilities.DestroyAllSceneObjects();
         }
 
         [UnityTest]
@@ -21,7 +21,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             var directInteractor = TestUtilities.CreateDirectInteractor();
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
@@ -39,15 +40,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             var directInteractor = TestUtilities.CreateDirectInteractor();
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
-            Assert.That(validTargets, Has.Exactly(1).EqualTo(interactable));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            directInteractor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
-            var hoverTargetList = new List<XRBaseInteractable>();
-            directInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable));
+            var hoverTargets = new List<XRBaseInteractable>();
+            directInteractor.GetHoverTargets(hoverTargets);
+            Assert.That(hoverTargets, Is.EqualTo(new[] { interactable }));
 
             Object.Destroy(interactable);
 
@@ -56,9 +60,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             manager.GetValidTargets(directInteractor, validTargets);
             Assert.That(validTargets, Is.Empty);
+            directInteractor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
 
-            directInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Is.Empty);
+            directInteractor.GetHoverTargets(hoverTargets);
+            Assert.That(hoverTargets, Is.Empty);
         }
 
         [UnityTest]
@@ -127,8 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator 
-            DirectInteractorCanPassToAnother()
+        public IEnumerator DirectInteractorCanPassToAnother()
         {
             TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();

@@ -7,16 +7,23 @@ using UnityEngine.Experimental.XR.Interaction;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// <see cref="XRBaseController"/> <see cref="MonoBehaviour"/> that interprets
-    /// feature values on an input device in the XR input subsystem into
-    /// XR Interaction Interactor position, rotation, and interaction states.
+    /// Interprets feature values on a tracked input controller device from the XR input subsystem
+    /// into XR Interaction states, such as Select. Additionally, it applies the current Pose value
+    /// of a tracked device to the transform of the GameObject.
     /// </summary>
+    /// <remarks>
+    /// It is recommended to use <see cref="ActionBasedController"/> instead of this behavior.
+    /// This behavior does not need as much initial setup as compared to <see cref="ActionBasedController"/>,
+    /// however input processing is less customizable and the XR Device Simulator cannot be used to drive
+    /// this behavior.
+    /// </remarks>
+    /// <seealso cref="XRBaseController"/>
+    /// <seealso cref="ActionBasedController"/>
     [AddComponentMenu("XR/XR Controller (Device-based)")]
     [HelpURL(XRHelpURLConstants.k_XRController)]
     public class XRController : XRBaseController
     {
         [SerializeField]
-        [Tooltip("The XRNode for this controller.")]
         XRNode m_ControllerNode = XRNode.RightHand;
 
         /// <summary>
@@ -29,7 +36,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input to use for detecting a select.")]
         InputHelpers.Button m_SelectUsage = InputHelpers.Button.Grip;
 
         /// <summary>
@@ -42,7 +48,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input to use for detecting activation.")]
         InputHelpers.Button m_ActivateUsage = InputHelpers.Button.Trigger;
 
         /// <summary>
@@ -55,7 +60,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input to use for detecting a UI press.")]
         InputHelpers.Button m_UIPressUsage = InputHelpers.Button.Trigger;
 
         /// <summary>
@@ -68,7 +72,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The amount an axis needs to be pressed to trigger an interaction event.")]
         float m_AxisToPressThreshold = 0.1f;
 
         /// <summary>
@@ -81,7 +84,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input to use to rotate an anchor to the Left.")]
         InputHelpers.Button m_RotateAnchorLeft = InputHelpers.Button.PrimaryAxis2DLeft;
 
         /// <summary>
@@ -94,7 +96,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input to use to rotate an anchor to the Right.")]
         InputHelpers.Button m_RotateAnchorRight = InputHelpers.Button.PrimaryAxis2DRight;
 
         /// <summary>
@@ -107,7 +108,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input that will be used to translate the anchor away from the interactor.")]
         InputHelpers.Button m_MoveObjectIn = InputHelpers.Button.PrimaryAxis2DUp;
 
         /// <summary>
@@ -120,7 +120,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The input that will be used to translate the anchor towards the interactor.")]
         InputHelpers.Button m_MoveObjectOut = InputHelpers.Button.PrimaryAxis2DDown;
 
         /// <summary>
@@ -133,7 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
 #if LIH_PRESENT
-        [SerializeField, Tooltip("Pose provider used to provide tracking data separate from the XR Node.")]
+        [SerializeField]
         BasePoseProvider m_PoseProvider;
 
         /// <summary>
@@ -207,33 +206,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void UpdateInput(XRControllerState controllerState)
         {
-            controllerState.ResetFrameDependentStates();
+            base.UpdateInput(controllerState);
+            if (controllerState == null)
+                return;
 
-            HandleInteractionAction(m_SelectUsage, ref controllerState.selectInteractionState);
-            HandleInteractionAction(m_ActivateUsage, ref controllerState.activateInteractionState);
-            HandleInteractionAction(m_UIPressUsage, ref controllerState.uiPressInteractionState);
+            controllerState.ResetFrameDependentStates();
+            controllerState.selectInteractionState.SetFrameState(IsPressed(m_SelectUsage));
+            controllerState.activateInteractionState.SetFrameState(IsPressed(m_ActivateUsage));
+            controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressUsage));
         }
 
-        void HandleInteractionAction(InputHelpers.Button button, ref InteractionState interactionState)
+        /// <summary>
+        /// Evaluates whether the button is considered pressed.
+        /// </summary>
+        /// <param name="button">The button to check.</param>
+        /// <returns>Returns <see langword="true"/> when the button is considered pressed. Otherwise, returns <see langword="false"/>.</returns>
+        protected virtual bool IsPressed(InputHelpers.Button button)
         {
             inputDevice.IsPressed(button, out var pressed, m_AxisToPressThreshold);
-
-            if (pressed)
-            {
-                if (!interactionState.active)
-                {
-                    interactionState.activatedThisFrame = true;
-                    interactionState.active = true;
-                }
-            }
-            else
-            {
-                if (interactionState.active)
-                {
-                    interactionState.deactivatedThisFrame = true;
-                    interactionState.active = false;
-                }
-            }
+            return pressed;
         }
 
         /// <inheritdoc />

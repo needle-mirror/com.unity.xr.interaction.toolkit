@@ -11,7 +11,7 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class DocumentationTests
+    class DocumentationTests
     {
         /// <summary>
         /// Runtime types that can appear in the Inspector.

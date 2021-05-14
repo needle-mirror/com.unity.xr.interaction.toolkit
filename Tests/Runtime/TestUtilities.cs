@@ -1,30 +1,18 @@
 ﻿using System;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     public static class TestUtilities
     {
-        internal static void DestroyAllInteractionObjects()
+        internal static void DestroyAllSceneObjects()
         {
-            foreach (var gameObject in Object.FindObjectsOfType<XRInteractionManager>())
+            var scene = SceneManager.GetActiveScene();
+            foreach (var go in scene.GetRootGameObjects())
             {
-                if (gameObject != null)
-                    Object.DestroyImmediate(gameObject.transform.root.gameObject);
-            }
-            foreach (var gameObject in Object.FindObjectsOfType<XRBaseInteractable>())
-            {
-                if (gameObject != null)
-                    Object.DestroyImmediate(gameObject.transform.root.gameObject);
-            }
-            foreach (var gameObject in Object.FindObjectsOfType<XRBaseInteractor>())
-            {
-                if (gameObject != null)
-                    Object.DestroyImmediate(gameObject.transform.root.gameObject);
-            }
-            foreach (var gameObject in Object.FindObjectsOfType<XRBaseController>())
-            {
-                if (gameObject != null)
-                    Object.DestroyImmediate(gameObject.transform.root.gameObject);
+                if (go.name.Contains("tests runner"))
+                    continue;
+                Object.DestroyImmediate(go);
             }
         }
 
@@ -37,14 +25,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRInteractionManager CreateInteractionManager()
         {
-            GameObject managerGO = new GameObject();
+            GameObject managerGO = new GameObject("Interaction Manager");
             XRInteractionManager manager = managerGO.AddComponent<XRInteractionManager>();
             return manager;
         }
 
         internal static XRDirectInteractor CreateDirectInteractor()
         {
-            GameObject interactorGO = new GameObject();
+            GameObject interactorGO = new GameObject("Direct Interactor");
             CreateGOSphereCollider(interactorGO);
             XRController controller = interactorGO.AddComponent<XRController>();
             XRDirectInteractor interactor = interactorGO.AddComponent<XRDirectInteractor>();
@@ -56,15 +44,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRRig CreateXRRig()
         {
-            var xrRigGO = new GameObject();
-            xrRigGO.name = "XR Rig";
+            var xrRigGO = new GameObject("XR Rig");
             xrRigGO.SetActive(false);
             var xrRig = xrRigGO.AddComponent<XRRig>();
             xrRig.rig = xrRigGO;
 
             // Add camera offset
-            var cameraOffsetGO = new GameObject();
-            cameraOffsetGO.name = "CameraOffset";
+            var cameraOffsetGO = new GameObject("CameraOffset");
             cameraOffsetGO.transform.SetParent(xrRig.transform,false);
             xrRig.cameraFloorOffsetObject = cameraOffsetGO;
 
@@ -72,8 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             xrRig.transform.rotation = Quaternion.identity;
 
             // Add camera
-            var cameraGO = new GameObject();
-            cameraGO.name = "Camera";
+            var cameraGO = new GameObject("Camera");
             var camera = cameraGO.AddComponent<Camera>();
 
             cameraGO.transform.SetParent(cameraOffsetGO.transform, false);
@@ -95,8 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRRayInteractor CreateRayInteractor()
         {
-            GameObject interactorGO = new GameObject();
-            interactorGO.name = "Ray Interactor";
+            GameObject interactorGO = new GameObject("Ray Interactor");
             XRController controller = interactorGO.AddComponent<XRController>();
             XRRayInteractor interactor = interactorGO.AddComponent<XRRayInteractor>();
             XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
@@ -109,7 +93,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRSocketInteractor CreateSocketInteractor()
         {
-            GameObject interactorGO = new GameObject();
+            GameObject interactorGO = new GameObject("Socket Interactor");
             CreateGOSphereCollider(interactorGO);
             XRSocketInteractor interactor = interactorGO.AddComponent<XRSocketInteractor>();
             return interactor;
@@ -117,7 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRGrabInteractable CreateGrabInteractable()
         {
-            GameObject interactableGO = new GameObject();
+            GameObject interactableGO = new GameObject("Grab Interactable");
             CreateGOSphereCollider(interactableGO, false);
             XRGrabInteractable interactable = interactableGO.AddComponent<XRGrabInteractable>();
             var rigidBody = interactableGO.GetComponent<Rigidbody>();
@@ -128,7 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal static XRSimpleInteractable CreateSimpleInteractable()
         {
-            GameObject interactableGO = new GameObject();
+            GameObject interactableGO = new GameObject("Simple Interactable");
             CreateGOSphereCollider(interactableGO, false);
             XRSimpleInteractable interactable = interactableGO.AddComponent<XRSimpleInteractable>();
             Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();

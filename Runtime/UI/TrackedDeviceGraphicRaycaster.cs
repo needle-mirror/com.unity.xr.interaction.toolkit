@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public int displayIndex { get; }
         }
 
-        class RaycastHitComparer : IComparer<RaycastHitData>
+        sealed class RaycastHitComparer : IComparer<RaycastHitData>
         {
             public int Compare(RaycastHitData a, RaycastHitData b)
                 => b.graphic.depth.CompareTo(a.graphic.depth);
@@ -110,9 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <inheritdoc />
-#pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
-        public override Camera eventCamera => canvas != null ? canvas.worldCamera : null;
-#pragma warning restore IDE0031
+        public override Camera eventCamera => canvas != null && canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
 
         /// <summary>Perform a raycast against objects within this Raycaster's domain.</summary>
         /// <param name="eventData">Data containing where and how to raycast.</param>
@@ -143,7 +141,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
         readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
-        readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
+        static readonly RaycastHitComparer s_RaycastHitComparer = new RaycastHitComparer();
 
         static readonly Vector3[] s_Corners = new Vector3[4];
 
@@ -190,7 +188,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (canvas == null)
                 return;
 
-            if (eventCamera == null)
+            // Property can call Camera.main, so cache the reference
+            var currentEventCamera = eventCamera;
+            if (currentEventCamera == null)
             {
                 if (!m_HasWarnedEventCameraNull)
                 {
@@ -209,7 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 var from = rayPoints[i - 1];
                 var to = rayPoints[i];
-                if (PerformRaycast(from, to, layerMask, resultAppendList))
+                if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList))
                 {
                     eventData.rayHitIndex = i;
                     break;
@@ -217,7 +217,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, List<RaycastResult> resultAppendList)
+        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
         {
             var hitSomething = false;
 
@@ -250,7 +250,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             m_RaycastResultsCache.Clear();
-            SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, m_RaycastResultsCache);
+            SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, currentEventCamera, m_RaycastResultsCache);
 
             // Now that we have a list of sorted hits, process any extra settings and filters.
             foreach (var hitData in m_RaycastResultsCache)
@@ -294,7 +294,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hitSomething;
         }
 
-        void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, List<RaycastHitData> results)
+        static void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, Camera eventCamera, List<RaycastHitData> results)
         {
             var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
 
@@ -324,7 +324,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
-            SortingHelpers.Sort(s_SortedGraphics, m_RaycastHitComparer);
+            SortingHelpers.Sort(s_SortedGraphics, s_RaycastHitComparer);
             results.AddRange(s_SortedGraphics);
         }
 

@@ -119,36 +119,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
             CreateInteractionManager(menuCommand.GetContextTransform());
         }
 
-        [MenuItem("GameObject/XR/Room-Scale XR Rig (Action-based)", false, 10), UsedImplicitly]
+        [MenuItem("GameObject/XR/XR Rig (Action-based)", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateRoomScaleXRRigActionBased(MenuCommand menuCommand)
+        static void CreateXRRigActionBased(MenuCommand menuCommand)
 #pragma warning restore IDE0051
         {
-            CreateRoomScaleXRRig(menuCommand.GetContextTransform(), InputType.ActionBased);
+            CreateXRRigWithHandControllers(menuCommand.GetContextTransform(), InputType.ActionBased);
         }
 
-        [MenuItem("GameObject/XR/Device-based/Room-Scale XR Rig", false, 10), UsedImplicitly]
+        [MenuItem("GameObject/XR/Device-based/XR Rig", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateRoomScaleXRRigDeviceBased(MenuCommand menuCommand)
+        static void CreateXRRigDeviceBased(MenuCommand menuCommand)
 #pragma warning restore IDE0051
         {
-            CreateRoomScaleXRRig(menuCommand.GetContextTransform(), InputType.DeviceBased);
-        }
-
-        [MenuItem("GameObject/XR/Stationary XR Rig (Action-based)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateStationaryXRRigActionBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateStationaryXRRig(menuCommand.GetContextTransform(), InputType.ActionBased);
-        }
-
-        [MenuItem("GameObject/XR/Device-based/Stationary XR Rig", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateStationaryXRRigDeviceBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateStationaryXRRig(menuCommand.GetContextTransform(), InputType.DeviceBased);
+            CreateXRRigWithHandControllers(menuCommand.GetContextTransform(), InputType.DeviceBased);
         }
 
         [MenuItem("GameObject/XR/Locomotion System (Action-based)", false, 10), UsedImplicitly]
@@ -387,22 +371,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Selection.activeGameObject = xrRig.gameObject;
 
             return xrRig;
-        }
-
-        static void CreateRoomScaleXRRig(Transform parentOfNewGameObject, InputType inputType)
-        {
-            var xrRig = CreateXRRigWithHandControllers(parentOfNewGameObject, inputType);
-
-            Undo.RecordObject(xrRig, "Configure XR Rig");
-            xrRig.trackingOriginMode = TrackingOriginModeFlags.Floor;
-        }
-
-        static void CreateStationaryXRRig(Transform parentOfNewGameObject, InputType inputType)
-        {
-            var xrRig = CreateXRRigWithHandControllers(parentOfNewGameObject, inputType);
-
-            Undo.RecordObject(xrRig, "Configure XR Rig");
-            xrRig.trackingOriginMode = TrackingOriginModeFlags.Device;
         }
 
         /// <summary>

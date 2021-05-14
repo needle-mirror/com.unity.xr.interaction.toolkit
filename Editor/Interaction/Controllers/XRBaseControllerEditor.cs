@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -20,8 +21,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_EnableInputActions;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelPrefab"/>.</summary>
         protected SerializedProperty m_ModelPrefab;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelTransform"/>.</summary>
-        protected SerializedProperty m_ModelTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelParent"/>.</summary>
+        protected SerializedProperty m_ModelParent;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.model"/>.</summary>
+        protected SerializedProperty m_Model;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.animateModel"/>.</summary>
         protected SerializedProperty m_AnimateModel;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelSelectTransition"/>.</summary>
@@ -29,27 +32,33 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelDeSelectTransition"/>.</summary>
         protected SerializedProperty m_ModelDeSelectTransition;
 
+        /// <inheritdoc cref="m_ModelParent"/>
+        [Obsolete("m_ModelTransform has been deprecated due to being renamed. Use m_ModelParent instead. (UnityUpgradable) -> m_ModelParent")]
+        protected SerializedProperty m_ModelTransform;
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
         protected static class BaseContents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.updateTrackingType"/>.</summary>
-            public static GUIContent updateTrackingType = EditorGUIUtility.TrTextContent("Update Tracking Type", "The time within the frame that the controller will sample input.");
+            public static GUIContent updateTrackingType = EditorGUIUtility.TrTextContent("Update Tracking Type", "The time within the frame that the controller will sample tracking input.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.enableInputTracking"/>.</summary>
-            public static GUIContent enableInputTracking = EditorGUIUtility.TrTextContent("Enable Input Tracking", "Whether input tracking is enabled for this controller.");
+            public static GUIContent enableInputTracking = EditorGUIUtility.TrTextContent("Enable Input Tracking", "Whether input pose tracking is enabled for this controller. When enabled, the current tracking pose input of the controller device will be read each frame.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.enableInputActions"/>.</summary>
-            public static GUIContent enableInputActions = EditorGUIUtility.TrTextContent("Enable Input Actions", "Used to disable an input state changing in the interactor. Useful for swapping to a different interactor on the same object.");
+            public static GUIContent enableInputActions = EditorGUIUtility.TrTextContent("Enable Input Actions", "Whether input for XR Interaction events is enabled for this controller. When enabled, the current input of the controller device will be read each frame.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.modelPrefab"/>.</summary>
-            public static GUIContent modelPrefab = EditorGUIUtility.TrTextContent("Model Prefab", "The model prefab to show for this controller.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.modelTransform"/>.</summary>
-            public static GUIContent modelTransform = EditorGUIUtility.TrTextContent("Model Transform", "The model transform that is used as the parent for the controller model.");
+            public static GUIContent modelPrefab = EditorGUIUtility.TrTextContent("Model Prefab", "The prefab of a controller model to show for this controller that will be automatically instantiated by this behavior.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.modelParent"/>.</summary>
+            public static GUIContent modelParent = EditorGUIUtility.TrTextContent("Model Parent", "The transform that is used as the parent for the model prefab when it is instantiated. Will be set to a new child GameObject if None.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.model"/>.</summary>
+            public static GUIContent model = EditorGUIUtility.TrTextContent("Model", "The instance of the controller model in the scene. This can be set to an existing object instead of using Model Prefab.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.animateModel"/>.</summary>
-            public static GUIContent animateModel = EditorGUIUtility.TrTextContent("Animate Model", "Whether this model animates in response to interaction events.");
+            public static GUIContent animateModel = EditorGUIUtility.TrTextContent("Animate Model", "Whether to animate the model in response to interaction events. When enabled, activates a named animation trigger upon selecting or deselecting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.modelSelectTransition"/>.</summary>
-            public static GUIContent modelSelectTransition = EditorGUIUtility.TrTextContent("Model Select Transition", "The animation transition to enable when selecting.");
+            public static GUIContent modelSelectTransition = EditorGUIUtility.TrTextContent("Model Select Transition", "The animation trigger name to activate upon selecting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseController.modelDeSelectTransition"/>.</summary>
-            public static GUIContent modelDeSelectTransition = EditorGUIUtility.TrTextContent("Model Deselect Transition", "The animation transition to enable when de-selecting.");
+            public static GUIContent modelDeSelectTransition = EditorGUIUtility.TrTextContent("Model Deselect Transition", "The animation trigger name to activate upon deselecting.");
 
             /// <summary><see cref="GUIContent"/> for the Tracking header label.</summary>
             public static readonly GUIContent trackingHeader = EditorGUIUtility.TrTextContent("Tracking");
@@ -57,6 +66,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent inputHeader = EditorGUIUtility.TrTextContent("Input");
             /// <summary><see cref="GUIContent"/> for the Model header label.</summary>
             public static readonly GUIContent modelHeader = EditorGUIUtility.TrTextContent("Model");
+
+            /// <summary>The help box message when Model Prefab and Model are both set.</summary>
+            public static readonly GUIContent modelPrefabIgnored = EditorGUIUtility.TrTextContent("Model Prefab will be ignored and not instantiated since Model is already set.");
+
+            /// <inheritdoc cref="modelParent"/>
+            [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead.")]
+            public static GUIContent modelTransform = modelParent;
         }
 
         /// <summary>
@@ -69,10 +85,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_EnableInputTracking = serializedObject.FindProperty("m_EnableInputTracking");
             m_EnableInputActions = serializedObject.FindProperty("m_EnableInputActions");
             m_ModelPrefab = serializedObject.FindProperty("m_ModelPrefab");
-            m_ModelTransform = serializedObject.FindProperty("m_ModelTransform");
+            m_ModelParent = serializedObject.FindProperty("m_ModelParent");
+            m_Model = serializedObject.FindProperty("m_Model");
             m_AnimateModel = serializedObject.FindProperty("m_AnimateModel");
             m_ModelSelectTransition = serializedObject.FindProperty("m_ModelSelectTransition");
             m_ModelDeSelectTransition = serializedObject.FindProperty("m_ModelDeSelectTransition");
+
+#pragma warning disable 618 // Setting deprecated field to help with backwards compatibility with existing user code.
+            m_ModelTransform = m_ModelParent;
+#pragma warning restore 618
         }
 
         /// <inheritdoc />
@@ -164,8 +185,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawModelProperties()
         {
             EditorGUILayout.LabelField(BaseContents.modelHeader, EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_ModelPrefab, BaseContents.modelPrefab);
-            EditorGUILayout.PropertyField(m_ModelTransform, BaseContents.modelTransform);
+
+            if (!Application.isPlaying && m_ModelPrefab.objectReferenceValue != null && m_Model.objectReferenceValue != null)
+                EditorGUILayout.HelpBox(BaseContents.modelPrefabIgnored.text, MessageType.Warning);
+
+            using (new EditorGUI.DisabledScope(!Application.isPlaying && m_Model.objectReferenceValue != null))
+            {
+                EditorGUILayout.PropertyField(m_ModelPrefab, BaseContents.modelPrefab);
+                EditorGUILayout.PropertyField(m_ModelParent, BaseContents.modelParent);
+            }
+
+            using (new EditorGUI.DisabledScope(!Application.isPlaying && m_ModelPrefab.objectReferenceValue != null && m_Model.objectReferenceValue == null))
+            {
+                EditorGUILayout.PropertyField(m_Model, BaseContents.model);
+            }
+
             EditorGUILayout.PropertyField(m_AnimateModel, BaseContents.animateModel);
 
             if (m_AnimateModel.boolValue)

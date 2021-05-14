@@ -33,6 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #else
 
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.XR.ARFoundation;
 
@@ -75,6 +76,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
         /// </summary>
         static ARSessionOrigin s_ARSessionOriginCache;
+
+        /// <summary>
+        /// Temporary, reusable list of registered Interactors.
+        /// </summary>
+        static readonly List<XRBaseInteractor> s_Interactors = new List<XRBaseInteractor>();
 
         /// <inheritdoc />
         protected override void Reset()
@@ -414,7 +420,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             ARGestureInteractor result = null;
             var numRegisteredGestureInteractors = 0;
 
-            foreach (var interactor in manager.interactors)
+            manager.GetRegisteredInteractors(s_Interactors);
+            foreach (var interactor in s_Interactors)
             {
                 if (interactor is ARGestureInteractor registeredGestureInteractor)
                 {
@@ -422,6 +429,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     ++numRegisteredGestureInteractors;
                 }
             }
+
+            s_Interactors.Clear();
 
             if (numRegisteredGestureInteractors > 1)
             {

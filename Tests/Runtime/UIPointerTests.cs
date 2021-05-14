@@ -48,6 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         internal struct TestObjects
         {
+            public Camera camera;
             public TestEventSystem eventSystem;
             public XRControllerRecorder controllerRecorder;
             public XRRayInteractor interactor;
@@ -240,7 +241,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
         }
 
-        internal static TestObjects SetupUIScene()
+        internal static TestObjects SetupRig()
         {
             var testObjects = new TestObjects();
 
@@ -259,7 +260,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Set up camera and canvas on which we can perform raycasts.
             var cameraGo = new GameObject("Camera");
             cameraGo.transform.parent = rigGo.transform;
-            var camera = cameraGo.AddComponent<Camera>();
+            Camera camera = testObjects.camera = cameraGo.AddComponent<Camera>();
             camera.stereoTargetEye = StereoTargetEyeMask.None;
             camera.pixelRect = new Rect(0, 0, 640, 480);
 
@@ -284,10 +285,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             testObjects.interactor.maxRaycastDistance = int.MaxValue;
             testObjects.interactor.referenceFrame = rigGo.transform;
 
+            return testObjects;
+        }
+
+        internal static TestObjects SetupUIScene()
+        {
+            var testObjects = SetupRig();
 
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
             var canvas = canvasGo.GetComponent<Canvas>();
-            canvas.worldCamera = camera;
+            canvas.worldCamera = testObjects.camera;
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
 
             // Set up a GameObject hierarchy that we send events to. In a real setup,
@@ -304,7 +311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var rightChildGameObject = new GameObject("Right Child");
             var rightChildTransform = rightChildGameObject.AddComponent<RectTransform>();
             rightChildGameObject.AddComponent<Image>();
-            testObjects.rightUIReceiver = rightChildGameObject.AddComponent<UICallbackReceiver>(); ;
+            testObjects.rightUIReceiver = rightChildGameObject.AddComponent<UICallbackReceiver>();
 
             parentTransform.SetParent(canvas.transform, worldPositionStays: false);
             leftChildTransform.SetParent(parentTransform, worldPositionStays: false);
@@ -324,11 +331,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return testObjects;
         }
 
-        [UnityTest]
-        public IEnumerator TrackedDevicesCanDriveUI()
+        TestObjects SetupPhysicsScene()
         {
-            TestObjects testObjects = SetupUIScene();
+            var testObjects = SetupRig();
 
+            var physicsRaycaster = new GameObject("PhysicsRaycaster", typeof(TrackedDevicePhysicsRaycaster)).GetComponent<TrackedDevicePhysicsRaycaster>();
+            physicsRaycaster.SetEventCamera(testObjects.camera);
+
+            var leftGameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            testObjects.leftUIReceiver = leftGameObject.AddComponent<UICallbackReceiver>();
+            var leftTransform = leftGameObject.transform;
+            leftTransform.position = new Vector3(-0.5f, 0.0f, 1.75f);
+            var rightGameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            testObjects.rightUIReceiver = rightGameObject.AddComponent<UICallbackReceiver>();
+            var rightTransform = rightGameObject.transform;
+            rightTransform.position = new Vector3(0.5f, 0.0f, 1.75f);
+
+            return testObjects;
+        }
+
+        IEnumerator CheckEvents(TestObjects testObjects)
+        {
             UICallbackReceiver leftUIReceiver = testObjects.leftUIReceiver;
             UICallbackReceiver rightUIReceiver = testObjects.rightUIReceiver;
 
@@ -417,6 +440,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rightUIReceiver.events, Has.Count.EqualTo(1));
             Assert.That(rightUIReceiver.events[0].type, Is.EqualTo(EventType.Drop));
             rightUIReceiver.Reset();
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDevicesCanDriveUIGraphics()
+        {
+            TestObjects testObjects = SetupUIScene();
+
+            yield return CheckEvents(testObjects);
+
+            // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
+            Object.Destroy(testObjects.eventSystem.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDevicesCanDriveUIPhysics()
+        {
+            var testObjects = SetupPhysicsScene();
+
+            yield return CheckEvents(testObjects);
 
             // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
             Object.Destroy(testObjects.eventSystem.gameObject);

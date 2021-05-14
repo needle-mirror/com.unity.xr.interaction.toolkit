@@ -15,12 +15,12 @@ This documentation outlines how to use and extend these components.
 
 | **Term** | **Meaning** |
 |-|-|
-| **XR Rig** | `MonoBehaviour` that specifies a Rig, a Camera Floor Offset Object, or a Camera. Also provides Stationary or Room-Scale options of tracking space to configure the XR Rig. |
+| **XR Rig** | `MonoBehaviour` that specifies a Rig, a Camera Floor Offset Object, and a Camera. Also provides options of tracking origin modes to configure the XR device. |
 | **Rig** | The base GameObject of the XR Rig. This is the GameObject that the application will manipulate via locomotion. By default, the Rig is the GameObject that the XR Rig is attached to.|
 | **Camera Floor Offset Object** | GameObject to move the Camera to the desired height off the floor. |
 | **Camera Object** | GameObject that contains a Camera component. This is usually the main Camera that renders what the user sees, and is usually the "head" of XR rigs. |
-| **Room-Scale** | A floor-relative tracking mode. When the Scene starts, the origin is the floor. |
-| **Stationary** | A device-relative tracking mode. When the Scene starts, the origin is the device, and the Camera moves to the height set by Camera Floor Offset Object. |
+| **Floor mode** | A floor-relative tracking mode. When the Scene starts, the origin is the floor. |
+| **Device mode** | A device-relative tracking mode. When the Scene starts, the origin is the device, and the Camera indirectly moves to the height set by the Camera Y Offset value by moving the Camera Floor Offset Object. |
 | **Locomotion System** | `MonoBehaviour` that controls which Locomotion Provider can move the Rig. |
 | **Locomotion Provider** | Base class for various locomotion implementations. |
 | **Teleportation** | A type of locomotion that teleports the rig from one position to another position. |
@@ -34,7 +34,7 @@ Before you follow the steps below, to streamline setup of Action-based behaviors
 
 ### 1. Set up the XR Rig 
 
-To set up an XR Rig, use one of the helper commands (**Room-Scale XR Rig** or **Stationary XR Rig**) from the **GameObject &gt; XR** menu. This creates an XR Rig GameObject in the Scene and sets the **Tracking Origin Mode** to **Floor** or **Device**, respectively. The command also creates an Interaction Manager if there isn't one in the Scene.
+To set up an XR Rig, click **GameObject &gt; XR &gt; XR Rig**. This creates an XR Rig GameObject in the Scene. You can set the **Tracking Origin Mode** to **Device** or **Floor** instead of using the default of the device. The command also creates an Interaction Manager if there isn't one in the Scene.
 
 This also creates two child GameObjects with an XR Controller on each to represent the motion controllers. For Action-based controllers, the Actions that you assign should use either the **XR Controller (LeftHand)** or **XR Controller (RightHand)** binding paths. For Device-based controllers, the **Controller Node** is set to **Left Hand** and **Right Hand** automatically.
 
@@ -159,7 +159,7 @@ The image below shows the XR Rig component.
 |**Rig Base Game Object**|Indicates which GameObject acts as the Transform from tracking space into world space. In the recommended hierarchy, this is the "XR Rig" GameObject.|
 |**Camera Floor Offset Object**|Sets which GameObject has a vertical offset applied if the device tracking origin doesn't contain the user's height.|
 |**Camera Game Object**|Indicates which GameObject holds the user's camera. This is important because the user's camera might not be at the origin of the tracking volume. In the suggested hierarchy, this is the "Camera" GameObject.|
-|**Tracking Space**|Sets the desired tracking space used by the application.|
+|**Tracking Origin Mode**|Sets the desired tracking origin used by the application.|
 |**Camera Y Offset**| Number of world space units by which the GameObject specified by the **Camera Floor Offset Object** is moved up vertically if the device tracking origin doesn't contain the user's height.|
 
 ### Locomotion System
@@ -393,5 +393,6 @@ The following image shows an example of the Character Controller Driver.
 
 |Date|Reason|
 |---|---|
-|October 20, 2020|Added continuous locomotion and updated for Inspector changes. Matches package version 0.10.0.|
+|May 12, 2021|Documentation updated for changes to tracking origin mode on the XR Rig. Matches package version 1.0.0-pre.4.|
 |January 10, 2020|Documentation fixes, adds revision history.|
+|October 20, 2020|Added continuous locomotion and updated for Inspector changes. Matches package version 0.10.0.|

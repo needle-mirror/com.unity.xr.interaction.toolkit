@@ -116,6 +116,10 @@ Note: For Input Actions to read from input devices correctly while running in th
 
 To streamline setup of behaviors that use Actions, a [Default Input Actions Sample](samples.md#default-input-actions) is included with the package.
 
+#### Limitations with input action interactions
+
+Depending on the version of [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/index.html) added to a project, Input Actions used by the XR Controller (Action-based) may not be able to use [Interactions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Interactions.html) on some types of input controls. When Input System version 1.1.0-preview.2 and above is used, interactions are fully supported. With older versions, the value of an axis control binding will be compared to a threshold to determine whether the action is triggered.
+
 ## Debugger window
 
 The XR Interaction Toolkit Debugger window displays a top-down view of all the Input Devices, Interactables, and Interactors in a Scene. It also displays their relationship to each other and their parent Interaction Managers. To open this window, go to **Window &gt; Analysis &gt; XR Interaction Debugger** from Unity's main menu.
@@ -145,7 +149,7 @@ The XR Interaction Toolkit package comes with menu items that perform basic setu
 
 ### Event System
 
-The Event System component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module to process input. Use the default configuration, pictured below, as a starting point. Only one Input Module can be active at one time.
+The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module to process input. Use the default configuration, pictured below, as a starting point. Only one Input Module can be active at one time. The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to recieve Event System events from tracked devices.
 
 Note: If you already created a Canvas or you created the Event System first, you might have a Standalone Input Module component which might block input processing. Remove it by clicking the **More menu (&#8942;)** and selecting **Remove Component**.
 

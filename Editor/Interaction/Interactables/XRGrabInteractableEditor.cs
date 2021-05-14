@@ -53,6 +53,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_ForceGravityOnDetach;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
         protected SerializedProperty m_RetainTransformParent;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
+        protected SerializedProperty m_AttachPointCompatibilityMode;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -60,11 +62,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected static class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachTransform"/>.</summary>
-            public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The attachment point to use on this Interactable (will use this object's position as center if none set).");
+            public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The attachment point to use on this Interactable (will use this object's position if none set).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachEaseInTime"/>.</summary>
             public static readonly GUIContent attachEaseInTime = EditorGUIUtility.TrTextContent("Attach Ease In Time", "Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.movementType"/>.</summary>
-            public static readonly GUIContent movementType = EditorGUIUtility.TrTextContent("Movement Type", "Specifies how this object is moved when selected, either through setting the velocity of the Rigidbody, moving the kinematic Rigidbody during Fixed Update, or by directly updating the Transform.");
+            public static readonly GUIContent movementType = EditorGUIUtility.TrTextContent("Movement Type", "Specifies how this object is moved when selected, either through setting the velocity of the Rigidbody, moving the kinematic Rigidbody during Fixed Update, or by directly updating the Transform each frame.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityDamping"/>.</summary>
             public static readonly GUIContent velocityDamping = EditorGUIUtility.TrTextContent("Velocity Damping", "Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityScale"/>.</summary>
@@ -103,6 +105,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent forceGravityOnDetach = EditorGUIUtility.TrTextContent("Force Gravity On Detach", "Force this object to have gravity when released (will still use pre-grab value if this is false).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
             public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
+            public static readonly GUIContent attachPointCompatibilityMode = EditorGUIUtility.TrTextContent("Attach Point Compatibility Mode", "Use Default for consistent attach points between all Movement Type values. Use Legacy for older projects that want to maintain the incorrect method which was partially based on center of mass.");
+
+            /// <summary>Array of type <see cref="GUIContent"/> for the options shown in the popup for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
+            public static readonly GUIContent[] attachPointCompatibilityModeOptions =
+            {
+                EditorGUIUtility.TrTextContent("Default (Recommended)"),
+                EditorGUIUtility.TrTextContent("Legacy (Obsolete)")
+            };
         }
 
         /// <inheritdoc />
@@ -132,6 +143,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
             m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
+            m_AttachPointCompatibilityMode = serializedObject.FindProperty("m_AttachPointCompatibilityMode");
         }
 
         /// <inheritdoc />
@@ -235,6 +247,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_AttachTransform, Contents.attachTransform);
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
+            EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
+        }
+
+        static void EnumPropertyField(SerializedProperty property, GUIContent label, GUIContent[] displayedOptions, params GUILayoutOption[] options)
+        {
+            // This is similar to EditorGUILayout.PropertyField but allows the displayed options of the popup to be specified
+            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, EditorStyles.popup, options);
+            using (var scope = new EditorGUI.PropertyScope(rect, label, property))
+            using (var change = new EditorGUI.ChangeCheckScope())
+            {
+                var enumValueIndex = property.hasMultipleDifferentValues ? -1 : property.enumValueIndex;
+                enumValueIndex = EditorGUI.Popup(rect, scope.content, enumValueIndex, displayedOptions);
+                if (change.changed)
+                {
+                    property.enumValueIndex = enumValueIndex;
+                }
+            }
         }
     }
 }

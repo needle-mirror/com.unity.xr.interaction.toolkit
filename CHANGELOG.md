@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.4] - 2021-05-14
+
+### Added
+- Added Tracked Device Physics Raycaster component to enable physics-based UI interaction through Unity's Event System. This is similar to Physics Raycaster from the Unity UI package, but with support for raycasts from XR Controllers.
+- Added `finalizeRaycastResults` event to `UIInputModule` that allows a callback to modify raycast results before they are used by the event system.
+- Added column to XR Interaction Debugger to show an Interactor's valid targets from `XRBaseInteractor.GetValidTargets`.
+- Added property to XR Controller to allow the model to be set to a child object instead of forcing it to be instantiated from prefab.
+
+### Changed
+- Changed Grab Interactable to have a consistent attach point between all Movement Type values, fixing it not attaching at the Attach Transform when using Instantaneous when the object's Transform position was different from the Rigidbody's center of mass. To use the old method of determining the attach point in order to avoid needing to modify the Attach Transform for existing projects, set Attach Point Compatibility Mode to Legacy. Legacy mode will be removed in a future version. ([1294410](https://issuetracker.unity3d.com/product/unity/issues/guid/1294410))
+- Changed Grab Interactable to also set the Rigidbody to kinematic upon being grabbed when the Movement Type is Instantaneous, not just when Kinematic. This improves how it collides with other Rigidbody objects.
+- Changed Grab Interactable to allow its Attach Transform to be updated while grabbed instead of only using its pose at the moment of being grabbed. This requires not using Legacy mode.
+- Changed Grab Interactable to no longer use the scale of the selecting Interactor's Attach Transform. This often caused unintended offsets when grabbing objects. The position of the Attach Transform should be used for this purpose rather than the scale. Projects that depended on that functionality can use Legacy mode to revert to the old method.
+- Changed Grab Interactable default Movement Type from Kinematic to Instantaneous.
+- Changed Grab Interactable default values for damping and scale so Velocity Tracking moves more similar to the other Movement Type values, making the distinguishing feature instead be how it collides with other Colliders without Rigidbodies. Changed `velocityDamping` from 0.4 to 1, `angularVelocityDamping` from 0.4 to 1, and `angularVelocityScale` from 0.95 to 1.
+- Changed Socket Interactor override of the Movement Type of Interactables from Kinematic to Instantaneous.
+- Changed XR Controller so it does not modify the Transform position, rotation, or scale of the instantiated model prefab upon startup instead of resetting those values.
+- Changed Controller Interactors to let the XR Controller be on a parent GameObject.
+- Changed so XR Interaction Debugger's Input Devices view is off by default.
+- Changed Tracked Device Graphic Raycaster to fallback to using `Camera.main` when the Canvas does not have an Event Camera set.
+- Changed XR Rig property for the Tracking Origin Mode to only contain supported modes. A value of Not Specified will use the default mode of the XR device.
+- Changed **GameObject &gt; XR** menu to only have a single XR Rig rather than separate menu items for Room-Scale and Stationary. Change the Tracking Origin Mode property on the created XR Rig to Floor or Device, respectively, for the same behavior as before.
+
+### Deprecated
+- Deprecated `XRBaseController.modelTransform` due to being renamed to `XRBaseController.modelParent`.
+- Deprecated `XRRig.trackingOriginMode` due to being replaced with an enum type that only contains supported modes. Use `XRRig.requestedTrackingOriginMode` and `XRRig.currentTrackingOriginMode` instead.
+
+### Fixed
+- Fixed Interaction Manager throwing exception `InvalidOperationException: Collection was modified; enumeration operation may not execute.` when an Interactor or Interactable was registered or unregistered during processing and events.
+- Fixed Windows Mixed Reality controllers having an incorrect pose when using the Default Input Actions sample. The Position and Rotation input actions will try to bind to `pointerPosition` and `pointerRotation`, and fallback to `devicePosition` and `deviceRotation`. If the sample has already been imported into your project, you will need to import again to get the update.
+- Fixed Input System actions such as Select not being recognized as pressed in `ActionBasedController` when it was bound to an Axis control (for example '<XRController>/grip') rather than a Button control (for example '<XRController>/gripPressed').
+- Fixed XR Interaction Debugger to display Interactors and Interactables from multiple Interaction Managers.
+- Fixed XR Interaction Debugger having overlapping text when an Interactor was hovering over multiple Interactables.
+- Fixed Tree View panels in the XR Interaction Debugger to be collapsable.
+- Fixed `TestFixture` classes in the test assembly to be `internal` instead of `public`.
+- Fixed Grab Interactable to use scaled time for easing and smoothing instead of unscaled time.
+- Fixed Direct and Socket Interactor not being able to interact with an Interactable with multiple Colliders when any of the Colliders leaves the trigger instead of only when all of them leave. ([1325375](https://issuetracker.unity3d.com/product/unity/issues/guid/1325375))
+- Fixed Direct and Socket Interactor not being able to interact with an Interactable when either were registered after the trigger collision occurred.
+- Fixed `XRSocketInteractor` to include the select target in its list of valid targets returned by `GetValidTargets`.
+- Fixed `XRBaseController` so it applies the controller state during Before Render even when Input Tracking is disabled.
+- Fixed missing namespace of `InputHelpers` to be `UnityEngine.XR.Interaction.Toolkit`.
+
 ## [1.0.0-pre.3] - 2021-03-18
 
 ### Added

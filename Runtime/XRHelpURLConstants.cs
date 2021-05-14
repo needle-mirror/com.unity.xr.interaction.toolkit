@@ -121,6 +121,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_TrackedDeviceGraphicRaycaster = k_BaseApi + k_BaseNamespace + "UI." + nameof(TrackedDeviceGraphicRaycaster) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="TrackedDevicePhysicsRaycaster"/>
+        /// </summary>
+        public const string k_TrackedDevicePhysicsRaycaster = k_BaseApi + k_BaseNamespace + "UI." + nameof(TrackedDevicePhysicsRaycaster) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRUIInputModule"/>.
         /// </summary>
         public const string k_XRUIInputModule = k_BaseApi + k_BaseNamespace + "UI." + nameof(XRUIInputModule) + ".html";

@@ -22,7 +22,7 @@ using UnityEngine.TestTools.Utils;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class LocomotionInputTests : InputTestFixture
+    class LocomotionInputTests : InputTestFixture
     {
         enum ForwardSource
         {
@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public override void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
+            TestUtilities.DestroyAllSceneObjects();
             base.TearDown();
         }
 

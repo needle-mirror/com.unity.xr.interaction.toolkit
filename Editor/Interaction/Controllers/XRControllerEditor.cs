@@ -41,7 +41,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected static class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.controllerNode"/>.</summary>
-            public static GUIContent controllerNode = EditorGUIUtility.TrTextContent("Controller Node", "The XRNode for this controller.");
+            public static GUIContent controllerNode = EditorGUIUtility.TrTextContent("Controller Node", "The XR Node for this controller.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.selectUsage"/>.</summary>
             public static GUIContent selectUsage = EditorGUIUtility.TrTextContent("Select Usage", "The input to use for detecting a select.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.activateUsage"/>.</summary>
@@ -51,9 +51,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.axisToPressThreshold"/>.</summary>
             public static GUIContent axisToPressThreshold = EditorGUIUtility.TrTextContent("Axis To Press Threshold", "The amount an axis needs to be pressed to trigger an interaction event.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.rotateObjectLeft"/>.</summary>
-            public static GUIContent rotateAnchorLeft = EditorGUIUtility.TrTextContent("Rotate Object Left", "The input to use to rotate an anchor to the Left.");
+            public static GUIContent rotateAnchorLeft = EditorGUIUtility.TrTextContent("Rotate Object Left", "The input to use to rotate an anchor to the left.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.rotateObjectRight"/>.</summary>
-            public static GUIContent rotateAnchorRight = EditorGUIUtility.TrTextContent("Rotate Object Right", "The input to use to rotate an anchor to the Right.");
+            public static GUIContent rotateAnchorRight = EditorGUIUtility.TrTextContent("Rotate Object Right", "The input to use to rotate an anchor to the right.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.moveObjectIn"/>.</summary>
             public static GUIContent moveObjectIn = EditorGUIUtility.TrTextContent("Move Object In", "The input that will be used to translate the anchor away from the interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.moveObjectOut"/>.</summary>

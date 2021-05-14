@@ -55,8 +55,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_HideControllerOnSelect;
         /// <summary>
-        /// Controls whether this interactor should hide the controller on selection.
+        /// Controls whether this interactor should hide the controller model on selection.
         /// </summary>
+        /// <seealso cref="XRBaseController.hideControllerModel"/>
         public bool hideControllerOnSelect
         {
             get => m_HideControllerOnSelect;
@@ -481,9 +482,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             // Setup interaction controller (for sending down selection state and input)
-            m_Controller = GetComponent<XRBaseController>();
+            m_Controller = GetComponentInParent<XRBaseController>();
             if (m_Controller == null)
-                Debug.LogWarning($"Could not find {nameof(XRBaseController)} component on {gameObject}.", this);
+                Debug.LogWarning($"Could not find {nameof(XRBaseController)} component on {gameObject} or any of its parents.", this);
 
             // If we are toggling selection and have a starting object, start out holding it
             if (m_SelectActionTrigger == InputTriggerType.Toggle && startingSelectedInteractable != null)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -9,7 +10,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         static XRInteractionDebuggerWindow s_Instance;
         [SerializeField] Vector2 m_ScrollPosition;
-        [SerializeField] bool m_ShowInputDevices = true;
+        [SerializeField] bool m_ShowInputDevices; // Default off since the focus of this window is XRI.
         [SerializeField] bool m_ShowInteractors = true;
         [SerializeField] bool m_ShowInteractables = true;
 
@@ -27,6 +28,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [NonSerialized] XRInteractorsTreeView m_InteractorsTree;
         [SerializeField] TreeViewState m_InteractorsTreeState;
         [SerializeField] MultiColumnHeaderState m_InteractorsTreeHeaderState;
+
+        [NonSerialized] static List<string> s_Names = new List<string>();
 
         [MenuItem("Window/Analysis/XR Interaction Debugger", false, 2100)]
         public static void Init()
@@ -52,32 +55,41 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InputDevicesTree.ExpandAll();
         }
 
-        void SetupInteractorsTree()
+        void UpdateInteractorsTree()
         {
-            var interactionManager = FindObjectOfType<XRInteractionManager>();
-            if (interactionManager != null)
+            var activeManagers = XRInteractionManager.activeInteractionManagers;
+            if (m_InteractorsTree == null)
             {
-                m_InteractorsTree = XRInteractorsTreeView.Create(interactionManager, ref m_InteractorsTreeState, ref m_InteractorsTreeHeaderState);
+                m_InteractorsTree = XRInteractorsTreeView.Create(activeManagers, ref m_InteractorsTreeState, ref m_InteractorsTreeHeaderState);
                 m_InteractorsTree.ExpandAll();
+            }
+            else
+            {
+                m_InteractorsTree.UpdateManagersList(activeManagers);
             }
         }
 
-        void SetupInteractablesTree()
+        void UpdateInteractablesTree()
         {
-            var interactionManager = FindObjectOfType<XRInteractionManager>();
-            if (interactionManager != null)
+            var activeManagers = XRInteractionManager.activeInteractionManagers;
+            if (m_InteractablesTree == null)
             {
-                m_InteractablesTree = XRInteractablesTreeView.Create(interactionManager, ref m_InteractablesTreeState, ref m_InteractablesTreeHeaderState);
+                m_InteractablesTree = XRInteractablesTreeView.Create(activeManagers, ref m_InteractablesTreeState, ref m_InteractablesTreeHeaderState);
                 m_InteractablesTree.ExpandAll();
+            }
+            else
+            {
+                m_InteractablesTree.UpdateManagersList(activeManagers);
             }
         }
 
         public void OnInspectorUpdate()
         {
-            // TODO Only do this when devices or interaction manager updates
+            // TODO Only do this when devices update
             SetupInputDevicesTree();
-            SetupInteractorsTree();
-            SetupInteractablesTree();
+
+            UpdateInteractorsTree();
+            UpdateInteractablesTree();
 
             if (m_InputDevicesTree != null)
             {
@@ -88,7 +100,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractablesTree?.Repaint();
             Repaint();
         }
-        
+
         public void OnGUI()
         {
             DrawToolbarGUI();
@@ -100,7 +112,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 DrawInteractorsGUI();
             if (m_ShowInteractables && m_InteractablesTree != null)
                 DrawInteractablesGUI();
-                
+
             EditorGUILayout.EndScrollView();
         }
 
@@ -149,15 +161,26 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            m_ShowInputDevices 
+            m_ShowInputDevices
                 = GUILayout.Toggle(m_ShowInputDevices, Contents.showInputDevices, EditorStyles.toolbarButton);
-            m_ShowInteractables 
-                = GUILayout.Toggle(m_ShowInteractables, Contents.showInteractablesContent, EditorStyles.toolbarButton);
-            m_ShowInteractors 
+            m_ShowInteractors
                 = GUILayout.Toggle(m_ShowInteractors, Contents.showInteractorsContent, EditorStyles.toolbarButton);
+            m_ShowInteractables
+                = GUILayout.Toggle(m_ShowInteractables, Contents.showInteractablesContent, EditorStyles.toolbarButton);
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        internal static string JoinNames<T>(string separator, List<T> objects) where T : UnityEngine.Object
+        {
+            s_Names.Clear();
+            foreach (var obj in objects)
+            {
+                s_Names.Add(obj.name);
+            }
+
+            return string.Join(separator, s_Names);
         }
 
         static class Contents

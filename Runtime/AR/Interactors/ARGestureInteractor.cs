@@ -158,6 +158,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         static ARSessionOrigin s_ARSessionOriginCache;
 
+        /// <summary>
+        /// Temporary, reusable list of registered Interactables.
+        /// </summary>
+        static readonly List<XRBaseInteractable> s_Interactables = new List<XRBaseInteractable>();
+
         /// <inheritdoc />
         protected override void Reset()
         {
@@ -245,7 +250,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var cameraForward = camera.transform.forward;
             var hFOV = GetHorizontalFOV(camera);
 
-            foreach (var interactable in interactionManager.interactables)
+            interactionManager.GetRegisteredInteractables(s_Interactables);
+            foreach (var interactable in s_Interactables)
             {
                 // We can always interact with placement interactables.
                 if (interactable is ARPlacementInteractable)
@@ -262,6 +268,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                         validTargets.Add(interactable);
                 }
             }
+
+            s_Interactables.Clear();
         }
 
         /// <summary>

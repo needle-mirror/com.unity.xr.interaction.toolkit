@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Serialization;
 #if LIH_PRESENT
 using UnityEngine.SpatialTracking;
 #endif
@@ -6,23 +7,24 @@ using UnityEngine.SpatialTracking;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Interprets feature values on an input controller device in the XR input subsystem into
-    /// XR Interaction Interactor position, rotation, and interaction states.
+    /// Interprets feature values on a tracked input controller device into XR Interaction states, such as Select.
+    /// Additionally, it applies the current pose value of a tracked device to the transform of the GameObject.
     /// </summary>
+    /// <seealso cref="ActionBasedController"/>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Controllers)]
     [DisallowMultipleComponent]
     public abstract class XRBaseController : MonoBehaviour
     {
         /// <summary>
-        /// The time within the frame that the controller will sample input.
+        /// The time within the frame that controller pose will be sampled.
         /// </summary>
         /// <seealso cref="updateTrackingType"/>
         public enum UpdateType
         {
             /// <summary>
-            /// Sample input at both update, and directly before rendering. For smooth head pose tracking,
+            /// Sample input at both update and directly before rendering. For smooth controller pose tracking,
             /// we recommend using this value as it will provide the lowest input latency for the device.
-            /// This is the default value for the UpdateType option
+            /// This is the default value for the UpdateType option.
             /// </summary>
             UpdateAndBeforeRender,
 
@@ -38,11 +40,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The time within the frame that the controller will sample input.")]
         UpdateType m_UpdateTrackingType = UpdateType.UpdateAndBeforeRender;
 
         /// <summary>
-        /// The time within the frame that the controller will sample input.
+        /// The time within the frame that the controller will sample tracking input.
         /// </summary>
         /// <seealso cref="UpdateType"/>
         public UpdateType updateTrackingType
@@ -52,12 +53,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Whether input tracking is enabled for this controller.")]
         bool m_EnableInputTracking = true;
 
         /// <summary>
-        /// Whether input tracking is enabled for this controller.
+        /// Whether input pose tracking is enabled for this controller.
+        /// When enabled, the current tracking pose input of the controller device will be read each frame.
         /// </summary>
+        /// <remarks>
+        /// This can be disabled in order to drive the controller state manually instead of from reading current inputs,
+        /// such as when playing back recorded pose inputs.
+        /// </remarks>
+        /// <seealso cref="enableInputActions"/>
         public bool enableInputTracking
         {
             get => m_EnableInputTracking;
@@ -65,12 +71,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Used to disable an input state changing in the interactor. Useful for swapping to a different interactor on the same object.")]
         bool m_EnableInputActions = true;
 
         /// <summary>
-        /// Used to disable an input state changing in the interactor. Useful for swapping to a different interactor on the same object.
+        /// Whether input for XR Interaction events is enabled for this controller.
+        /// When enabled, the current input of the controller device will be read each frame.
         /// </summary>
+        /// <remarks>
+        /// This can be disabled in order to drive the controller state manually instead of from reading current inputs,
+        /// such as when playing back recorded inputs.
+        /// </remarks>
+        /// <seealso cref="enableInputTracking"/>
         public bool enableInputActions
         {
             get => m_EnableInputActions;
@@ -78,49 +89,77 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The model prefab to show for this controller.")]
         Transform m_ModelPrefab;
 
-        /// <summary>The model prefab to show for this controller.</summary>
+        /// <summary>
+        /// The prefab of a controller model to show for this controller that will be automatically instantiated by this behavior.
+        /// </summary>
+        /// <remarks>
+        /// This behavior will automatically instantiate an instance of the prefab as a child
+        /// of <see cref="modelParent"/> upon startup unless <see cref="model"/> is already set,
+        /// in which case this value ignored.
+        /// </remarks>
+        /// <seealso cref="model"/>
         public Transform modelPrefab
         {
             get => m_ModelPrefab;
             set => m_ModelPrefab = value;
         }
 
-        [SerializeField]
-        [Tooltip("The model transform that is used as the parent for the controller model.")]
-        Transform m_ModelTransform;
+        [SerializeField, FormerlySerializedAs("m_ModelTransform")]
+        Transform m_ModelParent;
 
         /// <summary>
-        /// The model transform that is used as the parent for the controller model.
+        /// The transform that is used as the parent for the model prefab when it is instantiated.
         /// </summary>
         /// <remarks>
-        /// Automatically instantiated and set in <see cref="Awake"/>.
+        /// Automatically instantiated and set in <see cref="Awake"/> if not already set.
         /// Setting this will not automatically destroy the previous object.
         /// </remarks>
-        public Transform modelTransform
+        public Transform modelParent
         {
-            get => m_ModelTransform;
+            get => m_ModelParent;
             set
             {
-                m_ModelTransform = value;
+                m_ModelParent = value;
 
-                // Reparent the instantiated model, see SetupModel.
-                if (m_ModelGO != null)
-                {
-                    m_ModelGO.transform.parent = m_ModelTransform;
-                }
+                if (m_Model != null)
+                    m_Model.parent = m_ModelParent;
             }
         }
 
+        /// <inheritdoc cref="modelParent"/>
+        [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead. (UnityUpgradable) -> modelParent")]
+        public Transform modelTransform
+        {
+            get => modelParent;
+            set => modelParent = value;
+        }
+
         [SerializeField]
-        [Tooltip("Whether this model animates in response to interaction events.")]
+        Transform m_Model;
+
+        /// <summary>
+        /// The instance of the controller model in the scene. This can be set to an existing object instead of using <see cref="modelPrefab"/>.
+        /// </summary>
+        /// <remarks>
+        /// If set, it should reference a child GameObject of this behavior so it will update with the controller pose.
+        /// </remarks>
+        public Transform model
+        {
+            get => m_Model;
+            set => m_Model = value;
+        }
+
+        [SerializeField]
         bool m_AnimateModel;
 
         /// <summary>
-        /// Whether this model animates in response to interaction events.
+        /// Whether to animate the model in response to interaction events.
+        /// When enabled, activates a named animation trigger upon selecting or deselecting.
         /// </summary>
+        /// <seealso cref="modelSelectTransition"/>
+        /// <seealso cref="modelDeSelectTransition"/>
         public bool animateModel
         {
             get => m_AnimateModel;
@@ -128,12 +167,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The animation transition to enable when selecting.")]
         string m_ModelSelectTransition;
 
         /// <summary>
-        /// The animation transition to enable when selecting.
+        /// The animation trigger name to activate upon selecting.
         /// </summary>
+        /// <seealso cref="Animator.SetTrigger(string)"/>
         public string modelSelectTransition
         {
             get => m_ModelSelectTransition;
@@ -141,16 +180,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The animation transition to enable when de-selecting.")]
         string m_ModelDeSelectTransition;
 
         /// <summary>
-        /// The animation transition to enable when de-selecting.
+        /// The animation trigger name to activate upon deselecting.
         /// </summary>
+        /// <seealso cref="Animator.SetTrigger(string)"/>
         public string modelDeSelectTransition
         {
             get => m_ModelDeSelectTransition;
             set => m_ModelDeSelectTransition = value;
+        }
+
+        bool m_HideControllerModel;
+
+        /// <summary>
+        /// Whether the controller model should be hidden.
+        /// </summary>
+        /// <seealso cref="model"/>
+        /// <seealso cref="XRBaseControllerInteractor.hideControllerOnSelect"/>
+        public bool hideControllerModel
+        {
+            get => m_HideControllerModel;
+            set
+            {
+                m_HideControllerModel = value;
+                if (m_Model != null)
+                    m_Model.gameObject.SetActive(!m_HideControllerModel);
+            }
         }
 
         /// <summary>
@@ -186,31 +243,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public InteractionState uiPressInteractionState => m_UIPressInteractionState;
 
-        bool m_HideControllerModel;
-
-        /// <summary>
-        /// Whether the controller model should be hidden.
-        /// </summary>
-        public bool hideControllerModel
-        {
-            get => m_HideControllerModel;
-            set
-            {
-                m_HideControllerModel = value;
-                if (m_ModelGO != null)
-                    m_ModelGO.SetActive(!m_HideControllerModel);
-            }
-        }
-
         XRControllerState m_ControllerState = new XRControllerState();
 
         /// <summary>
-        /// The instantiated <see cref="modelPrefab"/>.
+        /// The <see cref="Animator"/> on <see cref="model"/>.
         /// </summary>
-        GameObject m_ModelGO;
+        Animator m_ModelAnimator;
+
+        bool m_HasWarnedAnimatorMissing;
 
         /// <summary>
-        /// A boolean value that indicates setup should be (re)performed on Update.
+        /// A boolean value that indicates setup should be performed on Update.
         /// </summary>
         bool m_PerformSetup = true;
 
@@ -219,14 +262,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void Awake()
         {
-            // Create empty model transform if none specified
-            if (m_ModelTransform == null)
+            // Create empty container transform for the model if none specified.
+            // This is not strictly necessary to create since this GameObject could be used
+            // as the parent for the instantiated prefab, but doing so anyway for backwards compatibility.
+            if (m_ModelParent == null)
             {
-                var modelGO = new GameObject($"[{gameObject.name}] Model");
-                m_ModelTransform = modelGO.transform;
-                m_ModelTransform.SetParent(transform);
-                m_ModelTransform.localPosition = Vector3.zero;
-                m_ModelTransform.localRotation = Quaternion.identity;
+                m_ModelParent = new GameObject($"[{gameObject.name}] Model Parent").transform;
+                m_ModelParent.SetParent(transform);
+                m_ModelParent.localPosition = Vector3.zero;
+                m_ModelParent.localRotation = Quaternion.identity;
             }
         }
 
@@ -254,25 +298,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateController();
         }
 
-        void PerformSetup()
-        {
-            SetupModel();
-        }
-
         void SetupModel()
         {
-            if (m_ModelGO != null)
-                Destroy(m_ModelGO);
-
-            if (m_ModelPrefab != null)
+            if (m_Model == null)
             {
-                m_ModelGO = Instantiate(m_ModelPrefab).gameObject;
-                m_ModelGO.transform.parent = m_ModelTransform;
-                m_ModelGO.transform.localPosition = Vector3.zero;
-                m_ModelGO.transform.localRotation = Quaternion.identity;
-                m_ModelGO.transform.localScale = Vector3.one;
-                m_ModelGO.transform.gameObject.SetActive(true);
+                var prefab = GetModelPrefab();
+                if (prefab != null)
+                    m_Model = Instantiate(prefab, m_ModelParent).transform;
             }
+
+            if (m_Model != null)
+                m_Model.gameObject.SetActive(!m_HideControllerModel);
+        }
+
+        /// <summary>
+        /// Gets the prefab that should be instantiated upon startup.
+        /// </summary>
+        /// <returns>Returns the prefab that should be instantiated upon startup.</returns>
+        protected virtual GameObject GetModelPrefab()
+        {
+            return m_ModelPrefab != null ? m_ModelPrefab.gameObject : null;
         }
 
         /// <summary>
@@ -282,7 +327,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_PerformSetup)
             {
-                PerformSetup();
+                SetupModel();
                 m_PerformSetup = false;
             }
 
@@ -295,10 +340,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_EnableInputActions)
             {
-                UpdateInputInternal(m_ControllerState);
+                UpdateInput(m_ControllerState);
+                UpdateControllerModelAnimation();
             }
 
-            // We expect that recorded input will update the controller state as needed.
             ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase.Dynamic, m_ControllerState);
         }
 
@@ -313,8 +358,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_UpdateTrackingType == UpdateType.UpdateAndBeforeRender))
             {
                 UpdateTrackingInput(m_ControllerState);
-                ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender, m_ControllerState);
             }
+
+            ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender, m_ControllerState);
         }
 
         /// <summary>
@@ -338,9 +384,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Applies the controller state to this <see cref="XRBaseController"/>.
+        /// Applies the given controller state to this <see cref="XRBaseController"/>.
+        /// Depending on the update phase, the XR Interaction states may be copied
+        /// and/or the pose value may be applied to the transform of the GameObject.
         /// </summary>
-        /// <param name="updatePhase"> The type of update phase to apply it in.</param>
+        /// <param name="updatePhase">The update phase this is called during.</param>
         /// <param name="controllerState">The state of the controller to apply.</param>
         protected virtual void ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase updatePhase, XRControllerState controllerState)
         {
@@ -371,53 +419,52 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Updates tracking input.
+        /// Updates the pose values in the given controller state based on the current tracking input of the controller device.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
-        protected virtual void UpdateTrackingInput(XRControllerState controllerState) {}
-
-        internal void UpdateInputInternal(XRControllerState controllerState)
+        protected virtual void UpdateTrackingInput(XRControllerState controllerState)
         {
-            UpdateInput(controllerState);
-            UpdateControllerModelAnimation();
         }
 
         /// <summary>
-        /// Updates input.
+        /// Updates the XR Interaction states in the given controller state based on the current inputs of the controller device.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
-        protected virtual void UpdateInput(XRControllerState controllerState) {}
+        protected virtual void UpdateInput(XRControllerState controllerState)
+        {
+        }
 
         /// <summary>
-        /// Update the animation on the instance of the <see cref="modelPrefab"/> (if the prefab contains an <see cref="Animator"/>).
+        /// Updates the animation on the model instance (if the model contains an <see cref="Animator"/>).
         /// </summary>
         /// <seealso cref="animateModel"/>
-        /// <seealso cref="modelPrefab"/>
+        /// <seealso cref="modelSelectTransition"/>
+        /// <seealso cref="modelDeSelectTransition"/>
         protected virtual void UpdateControllerModelAnimation()
         {
-            if (m_ModelGO != null && m_AnimateModel)
+            if (m_AnimateModel && m_Model != null)
             {
-                var animator = m_ModelGO.GetComponent<Animator>();
-                if (animator != null)
+                // Update the Animator reference if necessary
+                if (m_ModelAnimator == null || m_ModelAnimator.gameObject != m_Model.gameObject)
                 {
-                    if (m_SelectInteractionState.activatedThisFrame)
-                        animator.SetTrigger(modelSelectTransition);
-                    else if (m_SelectInteractionState.deactivatedThisFrame)
-                        animator.SetTrigger(modelDeSelectTransition);
-                }
-            }
-        }
+                    if (!m_Model.TryGetComponent(out m_ModelAnimator))
+                    {
+                        if (!m_HasWarnedAnimatorMissing)
+                        {
+                            Debug.LogWarning("Animate Model is enabled, but there is no Animator component on the model." +
+                                " Unable to activate named triggers to animate the model.", this);
+                            m_HasWarnedAnimatorMissing = true;
+                        }
 
-        /// <summary>
-        /// Override the current position and rotation (used for interaction state playback).
-        /// </summary>
-        /// <param name="localPosition">The local position of the transform to set.</param>
-        /// <param name="localRotation">The local rotation of the transform to set.</param>
-        internal void UpdateControllerPose(Vector3 localPosition, Quaternion localRotation)
-        {
-            var thisTransform = transform;
-            thisTransform.localPosition = localPosition;
-            thisTransform.localRotation = localRotation;
+                        return;
+                    }
+                }
+
+                if (m_SelectInteractionState.activatedThisFrame)
+                    m_ModelAnimator.SetTrigger(m_ModelSelectTransition);
+                else if (m_SelectInteractionState.deactivatedThisFrame)
+                    m_ModelAnimator.SetTrigger(m_ModelDeSelectTransition);
+            }
         }
 
         /// <summary>

@@ -84,7 +84,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
             public static readonly GUIContent selectActionTrigger = EditorGUIUtility.TrTextContent("Select Action Trigger", "Choose how the select action is triggered, either by current state, state transition, toggle when the select button is pressed, or sticky toggle when the select button is pressed and deselect the second time the select button is depressed.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.hideControllerOnSelect"/>.</summary>
-            public static readonly GUIContent hideControllerOnSelect = EditorGUIUtility.TrTextContent("Hide Controller On Select", "Hide controller on select.");
+            public static readonly GUIContent hideControllerOnSelect = EditorGUIUtility.TrTextContent("Hide Controller On Select", "Hide the controller model on select.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.playAudioClipOnSelectEntered"/>.</summary>
             public static readonly GUIContent playAudioClipOnSelectEntered = EditorGUIUtility.TrTextContent("On Select Entered", "Play an audio clip when the Select state is entered.");

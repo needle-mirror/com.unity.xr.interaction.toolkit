@@ -20,7 +20,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class SectorInteractionTests : InputTestFixture
+    class SectorInteractionTests : InputTestFixture
     {
         public override void Setup()
         {

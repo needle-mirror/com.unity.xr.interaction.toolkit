@@ -6,13 +6,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// The Interaction Manager acts as an intermediary between Interactors and Interactables.
     /// It is possible to have multiple Interaction Managers, each with their own valid set of Interactors and Interactables.
-    /// Upon Awake both Interactors and Interactables register themselves with a valid Interaction Manager
+    /// Upon being enabled, both Interactors and Interactables register themselves with a valid Interaction Manager
     /// (if a specific one has not already been assigned in the inspector). The loaded scenes must have at least one Interaction Manager
     /// for Interactors and Interactables to be able to communicate.
     /// </summary>
     /// <remarks>
-    /// Many of the methods on this class are designed to be internal such that they can be called by the abstract
-    /// base classes of the Interaction system (but are not called directly).
+    /// Many of the methods on the abstract base classes of Interactors and Interactables are designed to be internal
+    /// such that they can be called by this Interaction Manager rather than being called directly in order to maintain
+    /// consistency between both targets of an interaction event.
     /// </remarks>
     [AddComponentMenu("XR/XR Interaction Manager")]
     [DisallowMultipleComponent]
@@ -64,23 +65,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRBaseInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
-        // TODO Expose as a read-only wrapper without using ReadOnlyCollection since that class causes allocations when enumerating
         /// <summary>
-        /// (Read Only) List of registered interactors.
+        /// (Read Only) List of enabled Interaction Manager instances.
         /// </summary>
         /// <remarks>
-        /// Intended to be used by XR Interaction Debugger and tests.
+        /// Intended to be used by XR Interaction Debugger.
         /// </remarks>
-        internal List<XRBaseInteractor> interactors => m_Interactors;
-
-        // TODO Expose as a read-only wrapper without using ReadOnlyCollection since that class causes allocations when enumerating
-        /// <summary>
-        /// (Read Only) List of registered interactables.
-        /// </summary>
-        /// <remarks>
-        /// Intended to be used by XR Interaction Debugger and tests.
-        /// </remarks>
-        internal List<XRBaseInteractable> interactables => m_Interactables;
+        internal static List<XRInteractionManager> activeInteractionManagers { get; } = new List<XRInteractionManager>();
 
         /// <summary>
         /// Map of all registered objects to test for colliding.
@@ -88,17 +79,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly Dictionary<Collider, XRBaseInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, XRBaseInteractable>();
 
         /// <summary>
-        /// List of registered interactors.
+        /// List of registered Interactors.
         /// </summary>
-        readonly List<XRBaseInteractor> m_Interactors = new List<XRBaseInteractor>();
+        readonly RegistrationList<XRBaseInteractor> m_Interactors = new RegistrationList<XRBaseInteractor>();
 
         /// <summary>
-        /// List of registered interactables.
+        /// List of registered Interactables.
         /// </summary>
-        readonly List<XRBaseInteractable> m_Interactables = new List<XRBaseInteractable>();
+        readonly RegistrationList<XRBaseInteractable> m_Interactables = new RegistrationList<XRBaseInteractable>();
 
         /// <summary>
-        /// Reusable list of interactables for retrieving hover targets.
+        /// Reusable list of Interactables for retrieving hover targets.
         /// </summary>
         readonly List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
 
@@ -122,6 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnEnable()
         {
+            activeInteractionManagers.Add(this);
             Application.onBeforeRender += OnBeforeRender;
         }
 
@@ -131,6 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnDisable()
         {
             Application.onBeforeRender -= OnBeforeRender;
+            activeInteractionManagers.Remove(this);
         }
 
         /// <summary>
@@ -138,10 +131,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void Update()
         {
+            FlushRegistration();
+
             ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
-            foreach (var interactor in m_Interactors)
+            foreach (var interactor in m_Interactors.registeredSnapshot)
             {
+                if (!m_Interactors.IsStillRegistered(interactor))
+                    continue;
+
                 GetValidTargets(interactor, m_InteractorValidTargets);
 
                 ClearInteractorSelection(interactor);
@@ -158,6 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void LateUpdate()
         {
+            FlushRegistration();
             ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
         }
@@ -167,6 +166,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void FixedUpdate()
         {
+            FlushRegistration();
             ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
         }
@@ -178,6 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [BeforeRenderOrder(XRInteractionUpdateOrder.k_BeforeRenderOrder)]
         protected virtual void OnBeforeRender()
         {
+            FlushRegistration();
             ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
             ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
         }
@@ -188,8 +189,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="updatePhase">The update phase.</param>
         protected virtual void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            foreach (var interactor in m_Interactors)
+            foreach (var interactor in m_Interactors.registeredSnapshot)
             {
+                if (!m_Interactors.IsStillRegistered(interactor))
+                    continue;
+
                 interactor.ProcessInteractor(updatePhase);
             }
         }
@@ -200,8 +204,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="updatePhase">The update phase.</param>
         protected virtual void ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            foreach (var interactable in m_Interactables)
+            foreach (var interactable in m_Interactables.registeredSnapshot)
             {
+                if (!m_Interactables.IsStillRegistered(interactable))
+                    continue;
+
                 interactable.ProcessInteractable(updatePhase);
             }
         }
@@ -212,15 +219,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to be registered.</param>
         public virtual void RegisterInteractor(XRBaseInteractor interactor)
         {
-            if (m_Interactors.Contains(interactor))
-                return;
+            if (m_Interactors.Register(interactor))
+            {
+                m_InteractorRegisteredEventArgs.manager = this;
+                m_InteractorRegisteredEventArgs.interactor = interactor;
+                OnRegistered(m_InteractorRegisteredEventArgs);
+            }
+        }
 
-            m_Interactors.Add(interactor);
+        /// <summary>
+        /// Automatically called when an Interactor is registered with this Interaction Manager.
+        /// Notifies the Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the registered Interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractor"/>
+        protected virtual void OnRegistered(InteractorRegisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
 
-            m_InteractorRegisteredEventArgs.manager = this;
-            m_InteractorRegisteredEventArgs.interactor = interactor;
-            interactor.OnRegistered(m_InteractorRegisteredEventArgs);
-            interactorRegistered?.Invoke(m_InteractorRegisteredEventArgs);
+            args.interactor.OnRegistered(args);
+            interactorRegistered?.Invoke(args);
         }
 
         /// <summary>
@@ -229,18 +250,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to be unregistered.</param>
         public virtual void UnregisterInteractor(XRBaseInteractor interactor)
         {
-            if (!m_Interactors.Contains(interactor))
+            if (!IsRegistered(interactor))
                 return;
 
             CancelInteractorSelection(interactor);
             CancelInteractorHover(interactor);
 
-            m_Interactors.Remove(interactor);
+            if (m_Interactors.Unregister(interactor))
+            {
+                m_InteractorUnregisteredEventArgs.manager = this;
+                m_InteractorUnregisteredEventArgs.interactor = interactor;
+                OnUnregistered(m_InteractorUnregisteredEventArgs);
+            }
+        }
 
-            m_InteractorUnregisteredEventArgs.manager = this;
-            m_InteractorUnregisteredEventArgs.interactor = interactor;
-            interactor.OnUnregistered(m_InteractorUnregisteredEventArgs);
-            interactorUnregistered?.Invoke(m_InteractorUnregisteredEventArgs);
+        /// <summary>
+        /// Automatically called when an Interactor is unregistered from this Interaction Manager.
+        /// Notifies the Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the unregistered Interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractor"/>
+        protected virtual void OnUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.interactor.OnUnregistered(args);
+            interactorUnregistered?.Invoke(args);
         }
 
         /// <summary>
@@ -249,21 +287,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable to be registered.</param>
         public virtual void RegisterInteractable(XRBaseInteractable interactable)
         {
-            if (m_Interactables.Contains(interactable))
-                return;
-
-            m_Interactables.Add(interactable);
-
-            foreach (var interactableCollider in interactable.colliders)
+            if (m_Interactables.Register(interactable))
             {
-                if (interactableCollider != null && !m_ColliderToInteractableMap.ContainsKey(interactableCollider))
-                    m_ColliderToInteractableMap.Add(interactableCollider, interactable);
-            }
+                foreach (var interactableCollider in interactable.colliders)
+                {
+                    if (interactableCollider != null && !m_ColliderToInteractableMap.ContainsKey(interactableCollider))
+                        m_ColliderToInteractableMap.Add(interactableCollider, interactable);
+                }
 
-            m_InteractableRegisteredEventArgs.manager = this;
-            m_InteractableRegisteredEventArgs.interactable = interactable;
-            interactable.OnRegistered(m_InteractableRegisteredEventArgs);
-            interactableRegistered?.Invoke(m_InteractableRegisteredEventArgs);
+                m_InteractableRegisteredEventArgs.manager = this;
+                m_InteractableRegisteredEventArgs.interactable = interactable;
+                OnRegistered(m_InteractableRegisteredEventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an Interactable is registered with this Interaction Manager.
+        /// Notifies the Interactable, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the registered Interactable.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractable"/>
+        protected virtual void OnRegistered(InteractableRegisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.interactable.OnRegistered(args);
+            interactableRegistered?.Invoke(args);
         }
 
         /// <summary>
@@ -272,24 +324,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable to be unregistered.</param>
         public virtual void UnregisterInteractable(XRBaseInteractable interactable)
         {
-            if (!m_Interactables.Contains(interactable))
+            if (!IsRegistered(interactable))
                 return;
 
             CancelInteractableSelection(interactable);
             CancelInteractableHover(interactable);
 
-            m_Interactables.Remove(interactable);
-
-            foreach (var interactableCollider in interactable.colliders)
+            if (m_Interactables.Unregister(interactable))
             {
-                if (interactableCollider != null)
-                    m_ColliderToInteractableMap.Remove(interactableCollider);
-            }
+                foreach (var interactableCollider in interactable.colliders)
+                {
+                    if (interactableCollider != null)
+                        m_ColliderToInteractableMap.Remove(interactableCollider);
+                }
 
-            m_InteractableUnregisteredEventArgs.manager = this;
-            m_InteractableUnregisteredEventArgs.interactable = interactable;
-            interactable.OnUnregistered(m_InteractableUnregisteredEventArgs);
-            interactableUnregistered?.Invoke(m_InteractableUnregisteredEventArgs);
+                m_InteractableUnregisteredEventArgs.manager = this;
+                m_InteractableUnregisteredEventArgs.interactable = interactable;
+                OnUnregistered(m_InteractableUnregisteredEventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an Interactable is unregistered from this Interaction Manager.
+        /// Notifies the Interactable, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the unregistered Interactable.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractable"/>
+        protected virtual void OnUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.interactable.OnUnregistered(args);
+            interactableUnregistered?.Invoke(args);
         }
 
         /// <summary>
@@ -308,9 +377,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (results == null)
                 throw new ArgumentNullException(nameof(results));
 
-            results.Clear();
-            foreach (var interactor in m_Interactors)
-                results.Add(interactor);
+            m_Interactors.GetRegisteredItems(results);
         }
 
         /// <summary>
@@ -329,9 +396,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (results == null)
                 throw new ArgumentNullException(nameof(results));
 
-            results.Clear();
-            foreach (var interactable in m_Interactables)
-                results.Add(interactable);
+            m_Interactables.GetRegisteredItems(results);
+        }
+
+        /// <summary>
+        /// Checks whether the <paramref name="interactor"/> is registered with this Interaction Manager.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="RegisterInteractor"/>
+        public bool IsRegistered(XRBaseInteractor interactor)
+        {
+            return m_Interactors.IsRegistered(interactor);
+        }
+
+        /// <summary>
+        /// Checks whether the <paramref name="interactable"/> is registered with this Interaction Manager.
+        /// </summary>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="RegisterInteractable"/>
+        public bool IsRegistered(XRBaseInteractable interactable)
+        {
+            return m_Interactables.IsRegistered(interactable);
         }
 
         /// <inheritdoc cref="GetInteractableForCollider"/>
@@ -370,23 +457,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// For the provided <paramref name="interactor"/>, return a list of the valid interactables that can be hovered over or selected.
+        /// For the provided <paramref name="interactor"/>, return a list of the valid Interactables that can be hovered over or selected.
         /// </summary>
         /// <param name="interactor">The Interactor whose valid targets we want to find.</param>
         /// <param name="validTargets">List to be filled with valid targets of the Interactor.</param>
         /// <returns>The list of valid targets of the Interactor.</returns>
+        /// <seealso cref="XRBaseInteractor.GetValidTargets"/>
         public List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
             interactor.GetValidTargets(validTargets);
-
-            // Remove interactables that are not being handled by this manager.
-            for (var i = validTargets.Count - 1; i >= 0; --i)
-            {
-                if (!m_Interactables.Contains(validTargets[i]))
-                    validTargets.RemoveAt(i);
-            }
+            RemoveAllUnregistered(this, validTargets);
 
             return validTargets;
+        }
+
+        /// <summary>
+        /// Removes all the Interactables from the given list that are not being handled by the manager.
+        /// </summary>
+        /// <param name="manager">The Interaction Manager to check registration against.</param>
+        /// <param name="interactables">List of elements that will be filtered to exclude those not registered.</param>
+        /// <returns>Returns the number of elements removed from the list.</returns>
+        /// <remarks>
+        /// Does not modify the manager at all, just the list.
+        /// </remarks>
+        internal static int RemoveAllUnregistered(XRInteractionManager manager, List<XRBaseInteractable> interactables)
+        {
+            var numRemoved = 0;
+            for (var i = interactables.Count - 1; i >= 0; --i)
+            {
+                if (!manager.m_Interactables.IsRegistered(interactables[i]))
+                {
+                    interactables.RemoveAt(i);
+                    ++numRemoved;
+                }
+            }
+
+            return numRemoved;
         }
 
         /// <summary>
@@ -483,25 +589,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         public virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
         {
-            // If Exclusive Selection, is this the only Interactor trying to interact?
-            if (interactor.requireSelectExclusive)
+            if (interactable.isSelected && interactable.selectingInteractor != interactor)
             {
-                for (var i = 0; i < m_Interactors.Count; ++i)
-                {
-                    if (m_Interactors[i] != interactor
-                        && m_Interactors[i].selectTarget == interactable)
-                    {
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                for (var i = 0; i < m_Interactors.Count; ++i)
-                {
-                    if (m_Interactors[i].selectTarget == interactable)
-                        SelectExit(m_Interactors[i], interactable);
-                }
+                if (interactor.requireSelectExclusive)
+                    return;
+
+                SelectExit(interactable.selectingInteractor, interactable);
             }
 
             m_SelectEnterEventArgs.interactor = interactor;
@@ -650,15 +743,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         protected virtual void InteractorSelectValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            if (interactor.isSelectActive)
+            if (!interactor.isSelectActive)
+                return;
+
+            for (var i = 0; i < validTargets.Count && interactor.isSelectActive; ++i)
             {
-                for (var i = 0; i < validTargets.Count && interactor.isSelectActive; ++i)
+                var interactable = validTargets[i];
+                if (interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor) &&
+                    interactor.selectTarget != interactable)
                 {
-                    if (interactor.CanSelect(validTargets[i]) && validTargets[i].IsSelectableBy(interactor) &&
-                        interactor.selectTarget != validTargets[i])
-                    {
-                        SelectEnter(interactor, validTargets[i]);
-                    }
+                    SelectEnter(interactor, interactable);
                 }
             }
         }
@@ -670,17 +764,201 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         protected virtual void InteractorHoverValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            if (interactor.isHoverActive)
+            if (!interactor.isHoverActive)
+                return;
+
+            for (var i = 0; i < validTargets.Count && interactor.isHoverActive; ++i)
             {
-                for (var i = 0; i < validTargets.Count && interactor.isHoverActive; ++i)
+                var interactable = validTargets[i];
+                if (interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor))
                 {
                     interactor.GetHoverTargets(m_HoverTargetList);
-                    if (interactor.CanHover(validTargets[i]) && validTargets[i].IsHoverableBy(interactor) &&
-                        !m_HoverTargetList.Contains(validTargets[i]))
+                    if (!m_HoverTargetList.Contains(interactable))
                     {
-                        HoverEnter(interactor, validTargets[i]);
+                        HoverEnter(interactor, interactable);
                     }
                 }
+            }
+        }
+
+        void FlushRegistration()
+        {
+            m_Interactors.Flush();
+            m_Interactables.Flush();
+        }
+
+        /// <summary>
+        /// Use this class to maintain a registration of Interactors or Interactables. This maintains
+        /// a synchronized list that stays constant until buffered registration status changes are
+        /// explicitly committed.
+        /// </summary>
+        /// <typeparam name="T">The type of object to register, i.e. <see cref="XRBaseInteractor"/> or <see cref="XRBaseInteractable"/>.</typeparam>
+        /// <remarks>
+        /// Objects may be registered or unregistered from an Interaction Manager
+        /// at any time, including when processing objects.
+        /// For consistency with the functionality of Unity components which do not have
+        /// Update called the same frame in which they are enabled, disabled, or destroyed,
+        /// this class will maintain multiple lists to achieve that desired result with processing
+        /// Interactors and Interactables.
+        /// </remarks>
+        internal class RegistrationList<T>
+        {
+            /// <summary>
+            /// A snapshot of registered items that should potentially be processed this update phase of the current frame.
+            /// The count of items shall only change upon a call to <see cref="Flush"/>.
+            /// </summary>
+            /// <remarks>
+            /// Items being in this collection does not imply that the item is currently registered.
+            /// <br />
+            /// Logically this should be a <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/>
+            /// to avoid allocations when iterating. Use <see cref="Register"/> and <see cref="Unregister"/>
+            /// instead of directly changing this list.
+            /// </remarks>
+            public List<T> registeredSnapshot { get; } = new List<T>();
+
+            readonly List<T> m_BufferedAdd = new List<T>();
+            readonly List<T> m_BufferedRemove = new List<T>();
+
+            readonly HashSet<T> m_UnorderedBufferedAdd = new HashSet<T>();
+            readonly HashSet<T> m_UnorderedBufferedRemove = new HashSet<T>();
+            readonly HashSet<T> m_UnorderedRegisteredSnapshot = new HashSet<T>();
+            readonly HashSet<T> m_UnorderedRegisteredItems = new HashSet<T>();
+
+            /// <summary>
+            /// Checks the registration status of <paramref name="item"/>.
+            /// </summary>
+            /// <param name="item">The item to query.</param>
+            /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
+            /// <remarks>
+            /// This includes pending changes that have not yet been pushed to <see cref="registeredSnapshot"/>.
+            /// </remarks>
+            /// <seealso cref="IsStillRegistered"/>
+
+            public bool IsRegistered(T item) => m_UnorderedRegisteredItems.Contains(item);
+
+            /// <summary>
+            /// Faster variant of <see cref="IsRegistered"/> that assumes that the <paramref name="item"/> is in the snapshot.
+            /// It short circuits the check when there are no pending changes to unregister, which is usually the case.
+            /// </summary>
+            /// <param name="item">The item to query.</param>
+            /// <returns>Returns <see langword="true"/> if registered</returns>
+            /// <remarks>
+            /// This includes pending changes that have not yet been pushed to <see cref="registeredSnapshot"/>.
+            /// Use this method instead of <see cref="IsRegistered"/> when iterating over <see cref="registeredSnapshot"/>
+            /// for improved performance.
+            /// </remarks>
+            /// <seealso cref="IsRegistered"/>
+            public bool IsStillRegistered(T item) => m_UnorderedBufferedRemove.Count == 0 || !m_UnorderedBufferedRemove.Contains(item);
+
+            /// <summary>
+            /// Register <paramref name="item"/>.
+            /// </summary>
+            /// <param name="item">The item to register.</param>
+            /// <returns>Returns <see langword="true"/> if a change in registration status occurred. Otherwise, returns <see langword="false"/>.</returns>
+            public bool Register(T item)
+            {
+                if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Contains(item))
+                    return false;
+
+                if ((m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Remove(item)) || !m_UnorderedRegisteredSnapshot.Contains(item))
+                {
+                    m_BufferedRemove.Remove(item);
+                    m_BufferedAdd.Add(item);
+                    m_UnorderedBufferedAdd.Add(item);
+                    m_UnorderedRegisteredItems.Add(item);
+                    return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Unregister <paramref name="item"/>.
+            /// </summary>
+            /// <param name="item">The item to unregister.</param>
+            /// <returns>Returns <see langword="true"/> if a change in registration status occurred. Otherwise, returns <see langword="false"/>.</returns>
+            public bool Unregister(T item)
+            {
+                if (m_UnorderedBufferedRemove.Count > 0 && m_BufferedRemove.Contains(item))
+                    return false;
+
+                if ((m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item)) || m_UnorderedRegisteredSnapshot.Contains(item))
+                {
+                    m_BufferedAdd.Remove(item);
+                    m_BufferedRemove.Add(item);
+                    m_UnorderedBufferedRemove.Add(item);
+                    m_UnorderedRegisteredItems.Remove(item);
+                    return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Flush pending registration changes into <see cref="registeredSnapshot"/>.
+            /// </summary>
+            public void Flush()
+            {
+                // This method is called multiple times each frame,
+                // so additional explicit Count checks are done for
+                // performance.
+                if (m_BufferedRemove.Count > 0)
+                {
+                    foreach (var item in m_BufferedRemove)
+                    {
+                        registeredSnapshot.Remove(item);
+                        m_UnorderedRegisteredSnapshot.Remove(item);
+                    }
+
+                    m_BufferedRemove.Clear();
+                    m_UnorderedBufferedRemove.Clear();
+                }
+
+                if (m_BufferedAdd.Count > 0)
+                {
+                    foreach (var item in m_BufferedAdd)
+                    {
+                        if (!m_UnorderedRegisteredSnapshot.Contains(item))
+                        {
+                            registeredSnapshot.Add(item);
+                            m_UnorderedRegisteredSnapshot.Add(item);
+                        }
+                    }
+
+                    m_BufferedAdd.Clear();
+                    m_UnorderedBufferedAdd.Clear();
+                }
+            }
+
+            /// <summary>
+            /// Return all registered items into List <paramref name="results"/> in the order they were registered.
+            /// </summary>
+            /// <param name="results">List to receive registered items.</param>
+            /// <remarks>
+            /// Clears <paramref name="results"/> before adding to it.
+            /// </remarks>
+            public void GetRegisteredItems(List<T> results)
+            {
+                if (results == null)
+                    throw new ArgumentNullException(nameof(results));
+
+                results.Clear();
+                EnsureCapacity(results, registeredSnapshot.Count - m_BufferedRemove.Count + m_BufferedAdd.Count);
+                foreach (var item in registeredSnapshot)
+                {
+                    if (m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Contains(item))
+                        continue;
+
+                    results.Add(item);
+                }
+
+                results.AddRange(m_BufferedAdd);
+            }
+
+            static void EnsureCapacity(List<T> list, int capacity)
+            {
+                if (list.Capacity < capacity)
+                    list.Capacity = capacity;
             }
         }
     }

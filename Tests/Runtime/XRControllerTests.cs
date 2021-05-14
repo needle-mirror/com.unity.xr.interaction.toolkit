@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.TestTools;
+﻿using System.Collections;
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine;
+using UnityEngine.TestTools;
 #if LIH_PRESENT
 using UnityEngine.Experimental.XR.Interaction;
 #endif 
@@ -14,10 +12,10 @@ using UnityEngine.SpatialTracking;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class XRControllerTests
+    class XRControllerTests
     {
-
-        public class XRControllerWrapper : XRController
+        // ReSharper disable once ClassNeverInstantiated.Local -- MonoBehaviour class
+        class XRControllerWrapper : XRController
         {
             public void FakeUpdate()
             {
@@ -103,7 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
+            TestUtilities.DestroyAllSceneObjects();
         }
     }
 }

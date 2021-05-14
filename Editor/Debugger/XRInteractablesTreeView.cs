@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -11,7 +10,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// </summary>
     class XRInteractablesTreeView : TreeView
     {
-        public static XRInteractablesTreeView Create(XRInteractionManager interactionManager, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
+        public static XRInteractablesTreeView Create(List<XRInteractionManager> interactionManagers, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
         {
             if (treeState == null)
                 treeState = new TreeViewState();
@@ -22,7 +21,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             headerState = newHeaderState;
 
             var header = new MultiColumnHeader(headerState);
-            return new XRInteractablesTreeView(interactionManager, treeState, header);
+            return new XRInteractablesTreeView(interactionManagers, treeState, header);
         }
 
         const float k_RowHeight = 20f;
@@ -44,7 +43,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             COUNT
         }
 
-        readonly XRInteractionManager m_InteractionManager;
+        readonly List<XRInteractionManager> m_InteractionManagers = new List<XRInteractionManager>();
 
         static MultiColumnHeaderState CreateHeaderState()
         {
@@ -60,60 +59,136 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return new MultiColumnHeaderState(columns);
         }
 
-        XRInteractablesTreeView(XRInteractionManager manager, TreeViewState state, MultiColumnHeader header)
+        XRInteractablesTreeView(List<XRInteractionManager> managers, TreeViewState state, MultiColumnHeader header)
             : base(state, header)
         {
-            m_InteractionManager = manager;
+            foreach(var manager in managers)
+                AddManager(manager);
             showBorder = false;
             rowHeight = k_RowHeight;
             Reload();
         }
 
+        public void UpdateManagersList(List<XRInteractionManager> currentManagers)
+        {
+            bool managerListChanged = false;
+
+            // Check for Removal
+            for (int i = 0; i < m_InteractionManagers.Count; i++)
+            {
+                var manager = m_InteractionManagers[i];
+                if (!currentManagers.Contains(manager))
+                {
+                    RemoveManager(manager);
+                    managerListChanged = true;
+                    --i;
+                }
+            }
+
+            // Check for Add
+            foreach (var manager in currentManagers)
+            {
+                if (!m_InteractionManagers.Contains(manager))
+                {
+                    AddManager(manager);
+                    managerListChanged = true;
+                }
+            }
+
+            if(managerListChanged)
+                Reload();
+        }
+
+        void AddManager(XRInteractionManager manager)
+        {
+            if (m_InteractionManagers.Contains(manager))
+                return;
+
+            manager.interactableRegistered += OnInteractableRegistered;
+            manager.interactableUnregistered += OnInteractableUnregistered;
+
+            m_InteractionManagers.Add(manager);
+            Reload();
+        }
+
+        void RemoveManager(XRInteractionManager manager)
+        {
+            if (!m_InteractionManagers.Contains(manager))
+                return;
+
+            if (manager != null)
+            {
+                manager.interactableRegistered -= OnInteractableRegistered;
+                manager.interactableUnregistered -= OnInteractableUnregistered;
+            }
+
+            m_InteractionManagers.Remove(manager);
+            Reload();
+        }
+
+        void OnInteractableRegistered(InteractableRegisteredEventArgs eventArgs) { Reload(); }
+
+        void OnInteractableUnregistered(InteractableUnregisteredEventArgs eventArgs) { Reload(); }
+
+        /// <inheritdoc />
         protected override TreeViewItem BuildRoot()
         {
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
                 id = 0,
-                children = new List<TreeViewItem> { BuildInteractableTree() },
+                children = BuildInteractableTree(),
                 depth = -1,
             };
         }
 
-        TreeViewItem BuildInteractableTree()
+        List<TreeViewItem> BuildInteractableTree()
         {
-            var rootTreeItem = new Item
-            {
-                id = m_InteractionManager != null ? m_InteractionManager.GetInstanceID() : 1,
-                displayName = m_InteractionManager != null ? m_InteractionManager.name : "-",
-                depth = 0,
-            };
+            var items = new List<TreeViewItem>();
+            var interactables = new List<XRBaseInteractable>();
 
-            // Build children.
-            if (m_InteractionManager != null && m_InteractionManager.interactables.Count > 0)
+            foreach (var interactionManager in m_InteractionManagers)
             {
-                var children = new List<TreeViewItem>();
-                foreach (var interactable in m_InteractionManager.interactables)
+                if (interactionManager == null)
+                    continue;
+
+                var rootTreeItem = new Item
                 {
-                    var childItem = new Item
+                    id = interactionManager.GetInstanceID(),
+                    displayName = interactionManager.name,
+                    depth = 0,
+                };
+
+                // Build children.
+                interactionManager.GetRegisteredInteractables(interactables);
+                if (interactables.Count > 0)
+                {
+                    var children = new List<TreeViewItem>();
+                    foreach (var interactable in interactables)
                     {
-                        id = interactable.GetInstanceID(),
-                        displayName = interactable.name,
-                        interactable = interactable,
-                        depth = 1,
-                        parent = rootTreeItem,
-                    };
-                    children.Add(childItem);
+                        var childItem = new Item
+                        {
+                            id = interactable.GetInstanceID(),
+                            displayName = interactable.name,
+                            interactable = interactable,
+                            depth = 1,
+                            parent = rootTreeItem,
+                        };
+                        children.Add(childItem);
+                    }
+
+                    // Sort children by name.
+                    children.Sort((a, b) => string.Compare(a.displayName, b.displayName));
+                    rootTreeItem.children = children;
                 }
 
-                // Sort children by name.
-                children.Sort((a, b) => string.Compare(a.displayName, b.displayName));
-                rootTreeItem.children = children;
+                items.Add(rootTreeItem);
             }
 
-            return rootTreeItem;
+            return items;
         }
 
+        /// <inheritdoc />
         protected override void RowGUI(RowGUIArgs args)
         {
             var item = (Item)args.item;
@@ -146,8 +221,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         GUI.Label(cellRect, item.interactable.interactionLayerMask.value.ToString());
                         break;
                     case (int)ColumnId.Colliders:
-                        var colliderNames = item.interactable.colliders.Select(x => x.gameObject.name).ToList();
-                        GUI.Label(cellRect, string.Join(",", colliderNames.ToArray()));
+                        GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", item.interactable.colliders));
                         break;
                     case (int)ColumnId.Hover:
                         GUI.Label(cellRect, item.interactable.isHovered ? "True" : "False");

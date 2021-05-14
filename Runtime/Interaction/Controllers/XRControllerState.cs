@@ -55,6 +55,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning restore IDE1006
 
         /// <summary>
+        /// Sets the interaction state for this frame. This method should only be called once per frame.
+        /// </summary>
+        /// <param name="isActive">Whether the state is active (in other words, pressed).</param>
+        public void SetFrameState(bool isActive)
+        {
+            activatedThisFrame = !active && isActive;
+            deactivatedThisFrame = active && !isActive;
+            active = isActive;
+        }
+
+        /// <summary>
         /// Resets the interaction states that are based on whether they occurred "this frame".
         /// </summary>
         /// <seealso cref="activatedThisFrame"/>
@@ -147,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="rotation">The rotation for this controller.</param>
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
-        /// <param name="pressActive">Whether press is active or not.</param>
+        /// <param name="pressActive">Whether UI press is active or not.</param>
         public XRControllerState(double time, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
         {
             this.time = time;
@@ -155,32 +166,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             this.position = position;
             this.rotation = rotation;
 
-            this.selectInteractionState.ResetFrameDependent();
-            SimulateInteractionState(selectActive, ref this.selectInteractionState);
-            this.activateInteractionState.ResetFrameDependent();
-            SimulateInteractionState(activateActive, ref this.activateInteractionState);
-            this.uiPressInteractionState.ResetFrameDependent();
-            SimulateInteractionState(pressActive, ref this.uiPressInteractionState);
-        }
-
-        void SimulateInteractionState(bool pressed,  ref InteractionState interactionState)
-        {
-            if (pressed)
-            {
-                if (!interactionState.active)
-                {
-                    interactionState.activatedThisFrame = true;
-                    interactionState.active = true;
-                }
-            }
-            else
-            {
-                if (interactionState.active)
-                {
-                    interactionState.deactivatedThisFrame = true;
-                    interactionState.active = false;
-                }
-            }
+            this.selectInteractionState.SetFrameState(selectActive);
+            this.activateInteractionState.SetFrameState(activateActive);
+            this.uiPressInteractionState.SetFrameState(pressActive);
         }
 
         /// <summary>

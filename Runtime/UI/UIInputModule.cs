@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
@@ -79,6 +80,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Camera uiCamera { get; set; }
 
+        /// <summary>
+        /// Calls the methods in its invocation list after the input module collects a list of type <see cref="RaycastResult"/>, but before the results are used.
+        /// Note that not all fields of the event data are still valid or up to date at this point in the UI event processing.
+        /// This event can be used to read, modify, or reorder results.
+        /// After the event, the first result in the list with a non-null GameObject will be used.
+        /// </summary>
+        public event Action<PointerEventData, List<RaycastResult>> finalizeRaycastResults;
+
         AxisEventData m_CachedAxisEvent;
         PointerEventData m_CachedPointerEvent;
         TrackedDeviceEventData m_CachedTrackedDeviceEventData;
@@ -148,6 +157,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 throw new ArgumentNullException(nameof(eventData));
 
             eventSystem.RaycastAll(eventData, m_RaycastResultCache);
+            finalizeRaycastResults?.Invoke(eventData, m_RaycastResultCache);
             var result = FindFirstRaycast(m_RaycastResultCache);
             m_RaycastResultCache.Clear();
             return result;

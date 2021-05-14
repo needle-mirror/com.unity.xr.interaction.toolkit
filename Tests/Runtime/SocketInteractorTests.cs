@@ -6,12 +6,12 @@ using UnityEngine.TestTools;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    public class SocketInteractorTests
+    class SocketInteractorTests
     {
         [TearDown]
         public void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
+            TestUtilities.DestroyAllSceneObjects();
         }
 
         [UnityTest]
@@ -21,7 +21,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var socketInteractor = TestUtilities.CreateSocketInteractor();
             var interactable = TestUtilities.CreateGrabInteractable();
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(socketInteractor.selectTarget, Is.EqualTo(interactable));
         }
@@ -33,19 +34,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var socketInteractor = TestUtilities.CreateSocketInteractor();
             var selectedInteractable = TestUtilities.CreateGrabInteractable();
             var hoveredInteractable = TestUtilities.CreateGrabInteractable();
+            // Move to a position so it won't be the closest to ensure selectedInteractable is the one selected
             hoveredInteractable.transform.localPosition = new Vector3(0.001f, 0f, 0f);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(socketInteractor.selectTarget, Is.EqualTo(selectedInteractable));
 
             var validTargets = new List<XRBaseInteractable>();
             manager.GetValidTargets(socketInteractor, validTargets);
-            Assert.That(validTargets, Has.Exactly(1).EqualTo(hoveredInteractable));
+            Assert.That(validTargets, Is.EquivalentTo(new[] { selectedInteractable, hoveredInteractable }));
+            socketInteractor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { selectedInteractable, hoveredInteractable }));
 
-            var hoverTargetList = new List<XRBaseInteractable>();
-            socketInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(hoveredInteractable));
+            var hoverTargets = new List<XRBaseInteractable>();
+            socketInteractor.GetHoverTargets(hoverTargets);
+            Assert.That(hoverTargets, Is.EquivalentTo(new[] { selectedInteractable, hoveredInteractable }));
 
             Object.Destroy(hoveredInteractable);
 
@@ -54,10 +59,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(hoveredInteractable == null, Is.True);
 
             manager.GetValidTargets(socketInteractor, validTargets);
-            Assert.That(validTargets, Is.Empty);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { selectedInteractable }));
+            socketInteractor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { selectedInteractable }));
 
-            socketInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Is.Empty);
+            socketInteractor.GetHoverTargets(hoverTargets);
+            Assert.That(hoverTargets, Is.EquivalentTo(new[] { selectedInteractable }));
 
             Object.Destroy(selectedInteractable);
 

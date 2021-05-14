@@ -1,10 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using UnityEngine.Assertions;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -16,13 +12,55 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Rig")]
     [DisallowMultipleComponent]
     [HelpURL(XRHelpURLConstants.k_XRRig)]
-    public class XRRig : MonoBehaviour
+    public partial class XRRig : MonoBehaviour
     {
+        /// <summary>
+        /// Sets which Tracking Origin Mode to use when initializing the input device.
+        /// </summary>
+        /// <seealso cref="requestedTrackingOriginMode"/>
+        /// <seealso cref="TrackingOriginModeFlags"/>
+        /// <seealso cref="XRInputSubsystem.TrySetTrackingOriginMode"/>
+        public enum TrackingOriginMode
+        {
+            /// <summary>
+            /// Uses the default Tracking Origin Mode of the input device.
+            /// </summary>
+            /// <remarks>
+            /// When changing to this value after startup, the Tracking Origin Mode will not be changed.
+            /// </remarks>
+            NotSpecified,
+
+            /// <summary>
+            /// Sets the Tracking Origin Mode to <see cref="TrackingOriginModeFlags.Device"/>.
+            /// Input devices will be tracked relative to the first known location.
+            /// </summary>
+            /// <remarks>
+            /// Represents a device-relative tracking origin. A device-relative tracking origin defines a local origin
+            /// at the position of the device in space at some previous point in time, usually at a recenter event,
+            /// power-on, or AR/VR session start. Pose data provided by the device will be in this space relative to
+            /// the local origin. This means that poses returned in this mode will not include the user height (for VR)
+            /// or the device height (for AR) and any camera tracking from the XR device will need to be manually offset accordingly.
+            /// </remarks>
+            /// <seealso cref="TrackingOriginModeFlags.Device"/>
+            Device,
+
+            /// <summary>
+            /// Sets the Tracking Origin Mode to <see cref="TrackingOriginModeFlags.Floor"/>.
+            /// Input devices will be tracked relative to a location on the floor.
+            /// </summary>
+            /// <remarks>
+            /// Represents the tracking origin whereby (0, 0, 0) is on the "floor" or other surface determined by the
+            /// XR device being used. The pose values reported by an XR device in this mode will include the height
+            /// of the XR device above this surface, removing the need to offset the position of the camera tracking
+            /// the XR device by the height of the user (VR) or the height of the device above the floor (AR).
+            /// </remarks>
+            /// <seealso cref="TrackingOriginModeFlags.Floor"/>
+            Floor,
+        }
+
         const float k_DefaultCameraYOffset = 1.36144f;
 
         [SerializeField]
-        [Tooltip("The \"Rig\" GameObject is used to refer to the base of the XR Rig, by default it is this GameObject." +
-            " This is the GameObject that will be manipulated via locomotion.")]
         GameObject m_RigBaseGameObject;
 
         /// <summary>
@@ -36,11 +74,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The GameObject to move to desired height off the floor (defaults to this object if none provided).")]
         GameObject m_CameraFloorOffsetObject;
 
         /// <summary>
         /// The <see cref="GameObject"/> to move to desired height off the floor (defaults to this object if none provided).
+        /// This is used to transform the XR device from camera space to rig space.
         /// </summary>
         public GameObject cameraFloorOffsetObject
         {
@@ -53,7 +91,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The GameObject that contains the camera, this is usually the \"Head\" of XR rigs.")]
         GameObject m_CameraGameObject;
 
         /// <summary>
@@ -66,52 +103,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The type of tracking origin to use for this Rig. Tracking origins identify where (0, 0, 0) is in the world of tracking.")]
-        TrackingOriginModeFlags m_TrackingOriginMode = TrackingOriginModeFlags.Unknown;
+        TrackingOriginMode m_RequestedTrackingOriginMode = TrackingOriginMode.NotSpecified;
 
         /// <summary>
         /// The type of tracking origin to use for this Rig. Tracking origins identify where (0, 0, 0) is in the world
-        /// of tracking. Not all devices support all tracking spaces; if the selected tracking space is not set it will
-        /// fall back to <see cref="TrackingSpaceType.Stationary"/>.
+        /// of tracking. Not all devices support all tracking origin modes.
         /// </summary>
-        public TrackingOriginModeFlags trackingOriginMode
+        /// <seealso cref="TrackingOriginMode"/>
+        public TrackingOriginMode requestedTrackingOriginMode
         {
-            get => m_TrackingOriginMode;
+            get => m_RequestedTrackingOriginMode;
             set
             {
-                m_TrackingOriginMode = value;
+                m_RequestedTrackingOriginMode = value;
                 TryInitializeCamera();
             }
         }
 
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to read in old data and upgrade.
         [SerializeField]
-        [Tooltip("Set if the XR experience is Room Scale or Stationary.")]
-        TrackingSpaceType m_TrackingSpace = TrackingSpaceType.Stationary;
-
-        /// <summary>
-        /// Whether the experience is Room Scale or Stationary. Not all devices support all tracking spaces; if the
-        /// selected tracking space is not set it will fall back to Stationary.
-        /// </summary>
-        [Obsolete("XRRig.trackingSpace is obsolete.  Please use XRRig.trackingOriginMode.")]
-        public TrackingSpaceType trackingSpace
-        {
-            get => m_TrackingSpace;
-            set
-            {
-                m_TrackingSpace = value;
-                TryInitializeCamera();
-            }
-        }
-#pragma warning restore 0618
-
-        [SerializeField]
-        [Tooltip("Camera Height to be used when in \"Device\" tracking origin mode to define the height of the user from the floor.")]
         float m_CameraYOffset = k_DefaultCameraYOffset;
 
-
         /// <summary>
-        /// The amount the camera is offset from the floor (by moving the camera offset object).
+        /// Camera height to be used when in <c>Device</c> Tracking Origin Mode to define the height of the user from the floor.
+        /// This is the amount that the camera is offset from the floor when moving the <see cref="cameraFloorOffsetObject"/>.
         /// </summary>
         public float cameraYOffset
         {
@@ -122,6 +136,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 MoveOffsetHeight();
             }
         }
+
+        /// <summary>
+        /// (Read Only) The Tracking Origin Mode that this Rig is in.
+        /// </summary>
+        /// <seealso cref="requestedTrackingOriginMode"/>
+        public TrackingOriginModeFlags currentTrackingOriginMode { get; private set; }
 
         /// <summary>
         /// (Read Only) The rig's local position in camera space.
@@ -143,7 +163,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         static readonly List<XRInputSubsystem> s_InputSubsystems = new List<XRInputSubsystem>();
 
-        // Bookkeeping to track lazy initialization of the tracking space type.
+        // Bookkeeping to track lazy initialization of the tracking origin mode type.
         bool m_CameraInitialized;
         bool m_CameraInitializing;
 
@@ -153,6 +173,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void OnValidate()
         {
             UpgradeTrackingSpaceToTrackingOriginMode();
+            UpgradeTrackingOriginModeToRequest();
 
             if (m_RigBaseGameObject == null)
                 m_RigBaseGameObject = gameObject;
@@ -173,7 +194,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     foreach (var inputSubsystem in s_InputSubsystems)
                     {
-                        if (inputSubsystem != null && inputSubsystem.GetTrackingOriginMode() != m_TrackingOriginMode)
+                        // Convert from the request enum to the flags enum that is used by the subsystem
+                        TrackingOriginModeFlags equivalentFlagsMode;
+                        switch (m_RequestedTrackingOriginMode)
+                        {
+                            case TrackingOriginMode.NotSpecified:
+                                // Don't need to initialize the camera since we don't set the mode when NotSpecified (we just keep the current value)
+                                return false;
+                            case TrackingOriginMode.Device:
+                                equivalentFlagsMode = TrackingOriginModeFlags.Device;
+                                break;
+                            case TrackingOriginMode.Floor:
+                                equivalentFlagsMode = TrackingOriginModeFlags.Floor;
+                                break;
+                            default:
+                                Assert.IsTrue(false, $"Unhandled {nameof(TrackingOriginMode)}={m_RequestedTrackingOriginMode}");
+                                return false;
+                        }
+
+                        if (inputSubsystem != null && inputSubsystem.GetTrackingOriginMode() != equivalentFlagsMode)
                         {
                             return true;
                         }
@@ -181,15 +220,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
                 else
                 {
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, Input Subsystems not present.
-                    switch (m_TrackingOriginMode)
-                    {
-                        case TrackingOriginModeFlags.Floor:
-                            return XRDevice.GetTrackingSpaceType() != TrackingSpaceType.RoomScale;
-                        case TrackingOriginModeFlags.Device:
-                            return XRDevice.GetTrackingSpaceType() != TrackingSpaceType.Stationary;
-                    }
-#pragma warning restore 0618
+                    return IsModeStaleLegacy();
                 }
 
                 return false;
@@ -206,6 +237,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 Debug.LogWarning("No Camera Floor Offset Object specified for XR Rig, using attached GameObject.", this);
                 m_CameraFloorOffsetObject = gameObject;
             }
+
             if (m_CameraGameObject == null)
             {
                 var mainCamera = Camera.main;
@@ -271,33 +303,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Utility helper to migrate from <see cref="TrackingSpaceType"/> to <see cref="TrackingOriginModeFlags"/> seamlessly.
-        /// </summary>
-        void UpgradeTrackingSpaceToTrackingOriginMode()
-        {
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to allow a proper upgrade path.
-            if (m_TrackingOriginMode == TrackingOriginModeFlags.Unknown && m_TrackingSpace <= TrackingSpaceType.RoomScale)
-            {
-                switch (m_TrackingSpace)
-                {
-                    case TrackingSpaceType.RoomScale:
-                        m_TrackingOriginMode = TrackingOriginModeFlags.Floor;
-                        break;
-                    case TrackingSpaceType.Stationary:
-                        m_TrackingOriginMode = TrackingOriginModeFlags.Device;
-                        break;
-                }
-
-                // Set to an invalid value to indicate the value has been migrated.
-                m_TrackingSpace = (TrackingSpaceType)3;
-#if UNITY_EDITOR
-                EditorUtility.SetDirty(this);
-#endif // UNITY_EDITOR
-#pragma warning restore 0618
-            }
-        }
-
-        /// <summary>
         /// Repeatedly attempt to initialize the camera.
         /// </summary>
         void TryInitializeCamera()
@@ -323,7 +328,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Handles re-centering and off-setting the camera in space depending on which tracking space it is setup in.
+        /// Handles re-centering and off-setting the camera in space depending on which tracking origin mode it is setup in.
         /// </summary>
         bool SetupCamera()
         {
@@ -349,26 +354,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             else
             {
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, Input Subsystems not present.
-                switch (m_TrackingOriginMode)
-                {
-                    case TrackingOriginModeFlags.Floor:
-                        initialized = SetupCameraLegacy(TrackingSpaceType.RoomScale);
-                        break;
-                    case TrackingOriginModeFlags.Device:
-                        initialized = SetupCameraLegacy(TrackingSpaceType.Stationary);
-                        break;
-                }
-#pragma warning restore 0618
+                return SetupCameraLegacy();
             }
 
             return initialized;
-        }
-
-        void OnInputSubsystemTrackingOriginUpdated(XRInputSubsystem inputSubsystem)
-        {
-            m_TrackingOriginMode = inputSubsystem.GetTrackingOriginMode();
-            MoveOffsetHeight();
         }
 
         bool SetupCamera(XRInputSubsystem inputSubsystem)
@@ -376,10 +365,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (inputSubsystem == null)
                 return false;
 
-            switch (m_TrackingOriginMode)
+            var successful = true;
+
+            switch (m_RequestedTrackingOriginMode)
             {
-                case TrackingOriginModeFlags.Floor:
-                case TrackingOriginModeFlags.Device:
+                case TrackingOriginMode.NotSpecified:
+                    currentTrackingOriginMode = inputSubsystem.GetTrackingOriginMode();
+                    break;
+                case TrackingOriginMode.Device:
+                case TrackingOriginMode.Floor:
                 {
                     var supportedModes = inputSubsystem.GetSupportedTrackingOriginModes();
 
@@ -387,41 +381,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (supportedModes == TrackingOriginModeFlags.Unknown)
                         return false;
 
+                    // Convert from the request enum to the flags enum that is used by the subsystem
+                    var equivalentFlagsMode = m_RequestedTrackingOriginMode == TrackingOriginMode.Device
+                        ? TrackingOriginModeFlags.Device
+                        : TrackingOriginModeFlags.Floor;
+
                     // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags -- Treated like Flags enum when querying supported modes
-                    if ((supportedModes & m_TrackingOriginMode) == 0)
+                    if ((supportedModes & equivalentFlagsMode) == 0)
                     {
-                        Debug.LogWarning($"Attempting to set the tracking space to {m_TrackingOriginMode}, but that is not supported by the SDK." +
-                            $" Supported types: {supportedModes:F}.", this);
-                        return true;
+                        m_RequestedTrackingOriginMode = TrackingOriginMode.NotSpecified;
+                        currentTrackingOriginMode = inputSubsystem.GetTrackingOriginMode();
+                        Debug.LogWarning($"Attempting to set the tracking origin mode to {equivalentFlagsMode}, but that is not supported by the SDK." +
+                            $" Supported types: {supportedModes:F}. Using the current mode of {currentTrackingOriginMode} instead.", this);
                     }
-
-                    var trackingSettingsSet = inputSubsystem.TrySetTrackingOriginMode(m_TrackingOriginMode);
-                    if (m_TrackingOriginMode == TrackingOriginModeFlags.Device)
-                        trackingSettingsSet = inputSubsystem.TryRecenter();
-
-                    if (trackingSettingsSet)
-                        MoveOffsetHeight();
-
-                    return trackingSettingsSet;
+                    else
+                    {
+                        successful = inputSubsystem.TrySetTrackingOriginMode(equivalentFlagsMode);
+                    }
                 }
+                    break;
                 default:
+                    Assert.IsTrue(false, $"Unhandled {nameof(TrackingOriginMode)}={m_RequestedTrackingOriginMode}");
                     return false;
             }
-        }
 
-#pragma warning disable 0618 // Disable Obsolete warnings for TrackingSpaceType, explicitly to allow for using legacy data if available.
-        bool SetupCameraLegacy(TrackingSpaceType trackingSpaceType)
-        {
-            var trackingSettingsSet = XRDevice.SetTrackingSpaceType(trackingSpaceType);
-            if (trackingSpaceType == TrackingSpaceType.Stationary)
-                InputTracking.Recenter();
-
-            if (trackingSettingsSet)
+            if (successful)
                 MoveOffsetHeight();
 
-            return trackingSettingsSet;
+            if (currentTrackingOriginMode == TrackingOriginModeFlags.Device || m_RequestedTrackingOriginMode == TrackingOriginMode.Device)
+                successful = inputSubsystem.TryRecenter();
+
+            return successful;
         }
-#pragma warning restore 0618
 
         /// <summary>
         /// Sets the height of the camera based on the current tracking origin mode by updating the <see cref="cameraFloorOffsetObject"/>.
@@ -431,7 +422,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!Application.isPlaying)
                 return;
 
-            switch (m_TrackingOriginMode)
+            switch (currentTrackingOriginMode)
             {
                 case TrackingOriginModeFlags.Floor:
                     MoveOffsetHeight(0f);
@@ -457,6 +448,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 desiredPosition.y = y;
                 offsetTransform.localPosition = desiredPosition;
             }
+        }
+
+        void OnInputSubsystemTrackingOriginUpdated(XRInputSubsystem inputSubsystem)
+        {
+            currentTrackingOriginMode = inputSubsystem.GetTrackingOriginMode();
+            MoveOffsetHeight();
         }
 
         /// <summary>
@@ -552,7 +549,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="destinationForward">The forward vector that will be matched to the forward vector of the rig object,
         /// which is the direction the player moves in Unity when walking forward in the physical world.</param>
         /// <returns>Returns <see langword="true"/> if the rotation is performed. Otherwise, returns <see langword="false"/>.</returns>
-        public bool MatchRigUpRigForward (Vector3 destinationUp, Vector3 destinationForward)
+        public bool MatchRigUpRigForward(Vector3 destinationUp, Vector3 destinationForward)
         {
             if (m_RigBaseGameObject != null && MatchRigUp(destinationUp))
             {

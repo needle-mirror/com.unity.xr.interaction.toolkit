@@ -17,27 +17,69 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public abstract partial class XRBaseInteractable : MonoBehaviour
     {
         /// <summary>
-        /// Type of movement for an interactable.
+        /// Options for how movement of an Interactable is performed.
         /// </summary>
+        /// <remarks>
+        /// Each method of movement has tradeoffs, and different values may be more appropriate
+        /// for each type of Interactable object in a project.
+        /// </remarks>
+        /// <seealso cref="XRGrabInteractable.movementType"/>
         public enum MovementType
         {
             /// <summary>
-            /// In VelocityTracking mode, the Rigidbody associated with the will have velocity and angular velocity added to it such that the interactable attach point will follow the interactor attach point
-            /// as this is applying forces to the Rigidbody, this will appear to be a slight distance behind the visual representation of the Interactor / Controller.
+            /// Move the Interactable object by setting the velocity and angular velocity of the Rigidbody.
+            /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody
+            /// as it follows the Interactor, however with the tradeoff that it can appear to lag behind
+            /// and not move as smoothly as <see cref="Instantaneous"/>.
             /// </summary>
+            /// <remarks>
+            /// The velocity values will be set during the FixedUpdate function, and it will move at the
+            /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
+            /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
+            /// follows the Interactor, it may not visually update position each frame and be a slight distance
+            /// behind the Interactor or controller due to the difference between the Physics update rate
+            /// and the render update rate.
+            /// </remarks>
+            /// <seealso cref="Rigidbody.velocity"/>
+            /// <seealso cref="Rigidbody.angularVelocity"/>
             VelocityTracking,
 
             /// <summary>
-            /// In Kinematic mode the Rigidbody associated with the interactable will be moved such that the interactable attach point will match the interactor attach point
-            /// as this is updating the Rigidbody, this will appear a frame behind the visual representation of the Interactor / Controller.
+            /// Move the Interactable object by moving the kinematic Rigidbody towards the target position and orientation.
+            /// Use this if you want to keep the visual representation synchronized to match its Physics state,
+            /// and if you want to allow the object to be able to move through other Colliders without a Rigidbody
+            /// as it follows the Interactor.
             /// </summary>
+            /// <remarks>
+            /// The movement methods will be called during the FixedUpdate function, and it will move at the
+            /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
+            /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
+            /// follows the Interactor, it may not visually update position each frame and be a slight distance
+            /// behind the Interactor or controller due to the difference between the Physics update rate
+            /// and the render update rate. Collisions will be more accurate as compared to <see cref="Instantaneous"/>
+            /// since with this method, the Rigidbody will be moved by settings its internal velocity rather than
+            /// instantly teleporting to match the Transform pose.
+            /// </remarks>
+            /// <seealso cref="Rigidbody.MovePosition"/>
+            /// <seealso cref="Rigidbody.MoveRotation"/>
             Kinematic,
 
             /// <summary>
-            /// In Instantaneous Mode the interactable's transform is updated such that the interactable attach point will match the interactor's attach point.
-            /// As this is updating the transform directly, any Rigidbody attached to the GameObject that the interactable component is on will be disabled while being interacted with so
-            /// that any motion will not "judder" due to the Rigidbody interfering with motion.
+            /// Move the Interactable object by setting the position and rotation of the Transform every frame.
+            /// Use this if you want the visual representation to be updated each frame, minimizing latency,
+            /// however with the tradeoff that it will be able to move through other Colliders without a Rigidbody
+            /// as it follows the Interactor.
             /// </summary>
+            /// <remarks>
+            /// The Transform values will be set each frame, which may be faster than the framerate-independent
+            /// interval of the Physics update. The Collider of the Interactable object may be a slight distance
+            /// behind the visual as it follows the Interactor due to the difference between the Physics update rate
+            /// and the render update rate. Collisions will not be computed as accurately as <see cref="Kinematic"/>
+            /// since with this method, the Rigidbody will be forced to instantly teleport poses to match the Transform pose
+            /// rather than moving the Rigidbody through setting its internal velocity.
+            /// </remarks>
+            /// <seealso cref="Transform.position"/>
+            /// <seealso cref="Transform.rotation"/>
             Instantaneous,
         }
 

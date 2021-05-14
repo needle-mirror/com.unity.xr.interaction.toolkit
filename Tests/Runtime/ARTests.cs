@@ -67,12 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public override void TearDown()
         {
-            TestUtilities.DestroyAllInteractionObjects();
-
-            if (s_TestPlane != null)
-                Object.DestroyImmediate(s_TestPlane);
-            if (m_ARSessionOrigin != null)
-                Object.DestroyImmediate(m_ARSessionOrigin.gameObject);
+            TestUtilities.DestroyAllSceneObjects();
 
             GestureTouchesUtility.touchInputSource = GestureTouchesUtility.defaultTouchInputSource;
             EnhancedTouchSupport.Disable();

@@ -16,21 +16,45 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         const float k_DefaultTighteningAmount = 0.5f;
         const float k_DefaultSmoothingAmount = 5f;
-        const float k_VelocityDamping = 0.4f;
+        const float k_VelocityDamping = 1f;
         const float k_VelocityScale = 1f;
-        const float k_AngularVelocityDamping = 0.4f;
-        const float k_AngularVelocityScale = 0.95f;
+        const float k_AngularVelocityDamping = 1f;
+        const float k_AngularVelocityScale = 1f;
         const int k_ThrowSmoothingFrameCount = 20;
         const float k_DefaultAttachEaseInTime = 0.15f;
         const float k_DefaultThrowSmoothingDuration = 0.25f;
         const float k_DefaultThrowVelocityScale = 1.5f;
         const float k_DefaultThrowAngularVelocityScale = 1f;
 
+        /// <summary>
+        /// Controls the method used when calculating the target position of the object.
+        /// </summary>
+        /// <seealso cref="attachPointCompatibilityMode"/>
+        public enum AttachPointCompatibilityMode
+        {
+            /// <summary>
+            /// Use the default, correct method for calculating the target position of the object.
+            /// </summary>
+            Default,
+
+            /// <summary>
+            /// Use an additional offset from the center of mass when calculating the target position of the object.
+            /// Also incorporate the scale of the Interactor's Attach Transform.
+            /// Marked for deprecation.
+            /// </summary>
+            /// <remarks>
+            /// This is the backwards compatible support mode for projects that accounted for the
+            /// unintended difference when using XR Interaction Toolkit prior to version <c>1.0.0-pre.4</c>.
+            /// To have the effective attach position be the same between all <see cref="MovementType"/> values, use <see cref="Default"/>.
+            /// </remarks>
+            Legacy,
+        }
+
         [SerializeField]
         Transform m_AttachTransform;
 
         /// <summary>
-        /// The attachment point to use on this Interactable (will use this object's position as center if none set).
+        /// The attachment point to use on this Interactable (will use this object's position if none set).
         /// </summary>
         public Transform attachTransform
         {
@@ -51,11 +75,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        MovementType m_MovementType = MovementType.Kinematic;
+        MovementType m_MovementType = MovementType.Instantaneous;
 
         /// <summary>
         /// Specifies how this object is moved when selected, either through setting the velocity of the <see cref="Rigidbody"/>,
-        /// moving the kinematic <see cref="Rigidbody"/> during Fixed Update, or by directly updating the <see cref="Transform"/>.
+        /// moving the kinematic <see cref="Rigidbody"/> during Fixed Update, or by directly updating the <see cref="Transform"/> each frame.
         /// </summary>
         /// <seealso cref="XRBaseInteractable.MovementType"/>
         public MovementType movementType
@@ -358,6 +382,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_RetainTransformParent = value;
         }
 
+        [SerializeField]
+        AttachPointCompatibilityMode m_AttachPointCompatibilityMode = AttachPointCompatibilityMode.Default;
+
+        /// <summary>
+        /// Controls the method used when calculating the target position of the object.
+        /// Use <see cref="AttachPointCompatibilityMode.Default"/> for consistent attach points
+        /// between all <see cref="XRBaseInteractable.MovementType"/> values.
+        /// Marked for deprecation, this property will be removed in a future version.
+        /// </summary>
+        /// <remarks>
+        /// This is a backwards compatibility option in order to keep the old, incorrect method
+        /// of calculating the attach point. Projects that already accounted for the difference
+        /// can use the Legacy option to maintain the same attach positioning from older versions
+        /// without needing to modify the Attach Transform position.
+        /// </remarks>
+        /// <seealso cref="AttachPointCompatibilityMode"/>
+        public AttachPointCompatibilityMode attachPointCompatibilityMode
+        {
+            get => m_AttachPointCompatibilityMode;
+            set => m_AttachPointCompatibilityMode = value;
+        }
+
         // Point we are attaching to on this Interactable (in Interactor's attach coordinate space)
         Vector3 m_InteractorLocalPosition;
         Quaternion m_InteractorLocalRotation;
@@ -408,48 +454,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             switch (updatePhase)
             {
-                // During Fixed update we want to perform any physics based updates (e.g., Kinematic or VelocityTracking).
-                // The call to MoveToTarget will perform the correct the type of update depending on the update phase.
+                // During Fixed update we want to perform any physics-based updates (e.g., Kinematic or VelocityTracking).
                 case XRInteractionUpdateOrder.UpdatePhase.Fixed:
                     if (isSelected)
                     {
                         if (m_CurrentMovementType == MovementType.Kinematic)
-                        {
                             PerformKinematicUpdate(updatePhase);
-                        }
                         else if (m_CurrentMovementType == MovementType.VelocityTracking)
-                        {
-                            PerformVelocityTrackingUpdate(Time.unscaledDeltaTime, updatePhase);
-                        }
+                            PerformVelocityTrackingUpdate(Time.deltaTime, updatePhase);
                     }
 
                     break;
 
-                // During Dynamic update we want to perform any GameObject based manipulation (e.g., Instantaneous).
-                // The call to MoveToTarget will perform the correct the type of update depending on the update phase.
+                // During Dynamic update we want to perform any Transform-based manipulation (e.g., Instantaneous).
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                     if (isSelected)
                     {
-                        UpdateTarget(Time.unscaledDeltaTime);
+                        // Legacy does not support the Attach Transform position changing after being grabbed
+                        // due to depending on the Physics update to compute the world center of mass.
+                        if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
+                            UpdateInteractorLocalPose(selectingInteractor);
+                        UpdateTarget(Time.deltaTime);
                         SmoothVelocityUpdate();
+
                         if (m_CurrentMovementType == MovementType.Instantaneous)
-                        {
                             PerformInstantaneousUpdate(updatePhase);
-                        }
                     }
 
                     break;
 
-                // During OnBeforeUpdate we want to perform any last minute GameObject position changes before rendering (e.g., Instantaneous).
-                // The call to MoveToTarget will perform the correct the type of update depending on the update phase.
+                // During OnBeforeRender we want to perform any last minute Transform position changes before rendering (e.g., Instantaneous).
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
                     if (isSelected)
                     {
-                        UpdateTarget(Time.unscaledDeltaTime);
+                        // Legacy does not support the Attach Transform position changing after being grabbed
+                        // due to depending on the Physics update to compute the world center of mass.
+                        if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
+                            UpdateInteractorLocalPose(selectingInteractor);
+                        UpdateTarget(Time.deltaTime);
+
                         if (m_CurrentMovementType == MovementType.Instantaneous)
-                        {
                             PerformInstantaneousUpdate(updatePhase);
-                        }
                     }
 
                     break;
@@ -496,10 +541,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Apply smoothing (if configured)
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
             {
-                var currentAttachDelta = m_CurrentAttachEaseTime / m_AttachEaseInTime;
-                m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, currentAttachDelta);
-                m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, currentAttachDelta);
-                m_CurrentAttachEaseTime += Time.unscaledDeltaTime;
+                var easePercent = m_CurrentAttachEaseTime / m_AttachEaseInTime;
+                m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, easePercent);
+                m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, easePercent);
+                m_CurrentAttachEaseTime += timeDelta;
             }
             else
             {
@@ -509,7 +554,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, m_TightenPosition);
                 }
                 else
+                {
                     m_TargetWorldPosition = rawTargetWorldPosition;
+                }
 
                 if (m_SmoothRotation)
                 {
@@ -517,7 +564,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, m_TightenRotation);
                 }
                 else
+                {
                     m_TargetWorldRotation = rawTargetWorldRotation;
+                }
             }
         }
 
@@ -530,6 +579,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     transform.position = m_TargetWorldPosition;
                 }
+
                 if (m_TrackRotation)
                 {
                     transform.rotation = m_TargetWorldRotation;
@@ -543,10 +593,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (m_TrackPosition)
                 {
-                    var positionDelta = m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
+                    var position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
+                        ? m_TargetWorldPosition
+                        : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
                     m_Rigidbody.velocity = Vector3.zero;
-                    m_Rigidbody.MovePosition(m_Rigidbody.position + positionDelta);
+                    m_Rigidbody.MovePosition(position);
                 }
+
                 if (m_TrackRotation)
                 {
                     m_Rigidbody.angularVelocity = Vector3.zero;
@@ -564,8 +617,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.velocity *= (1f - m_VelocityDamping);
-                    var posDelta = m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
-                    var velocity = posDelta / timeDelta;
+                    var positionDelta = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
+                        ? m_TargetWorldPosition - transform.position
+                        : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
+                    var velocity = positionDelta / timeDelta;
 
                     if (!float.IsNaN(velocity.x))
                         m_Rigidbody.velocity += (velocity * m_VelocityScale);
@@ -576,14 +631,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.angularVelocity *= (1f - m_AngularVelocityDamping);
-                    var rotationDelta = m_TargetWorldRotation * Quaternion.Inverse(m_Rigidbody.rotation);
+                    var rotationDelta = m_TargetWorldRotation * Quaternion.Inverse(transform.rotation);
                     rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
                     if (angleInDegrees > 180f)
                         angleInDegrees -= 360f;
 
                     if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
                     {
-                        var angularVelocity = (rotationAxis * angleInDegrees * Mathf.Deg2Rad) / timeDelta;
+                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / timeDelta;
                         if (!float.IsNaN(angularVelocity.x))
                             m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
                     }
@@ -593,22 +648,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void UpdateInteractorLocalPose(XRBaseInteractor interactor)
         {
+            if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
+            {
+                UpdateInteractorLocalPoseLegacy(interactor);
+                return;
+            }
+
             // In order to move the Interactable to the Interactor we need to
             // calculate the Interactable attach point in the coordinate system of the
             // Interactor's attach point.
-#pragma warning disable IDE0029 // Use coalesce expression -- Do not use for UnityEngine.Object types
-            var attachTransform = m_AttachTransform != null ? m_AttachTransform : transform;
-#pragma warning restore IDE0029
-            var attachPosition = m_AttachTransform != null ? m_AttachTransform.position : transform.position;
-            var attachOffset = m_Rigidbody.worldCenterOfMass - attachPosition;
-            var localAttachOffset = attachTransform.InverseTransformDirection(attachOffset);
+            var thisAttachTransform = m_AttachTransform != null ? m_AttachTransform : transform;
+            var attachOffset = transform.position - thisAttachTransform.position;
+            var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
+
+            m_InteractorLocalPosition = localAttachOffset;
+            m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
+        }
+
+        void UpdateInteractorLocalPoseLegacy(XRBaseInteractor interactor)
+        {
+            // In order to move the Interactable to the Interactor we need to
+            // calculate the Interactable attach point in the coordinate system of the
+            // Interactor's attach point.
+            var thisAttachTransform = m_AttachTransform != null ? m_AttachTransform : transform;
+            var attachOffset = m_Rigidbody.worldCenterOfMass - thisAttachTransform.position;
+            var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
 
             var inverseLocalScale = interactor.attachTransform.lossyScale;
             inverseLocalScale = new Vector3(1f / inverseLocalScale.x, 1f / inverseLocalScale.y, 1f / inverseLocalScale.z);
             localAttachOffset.Scale(inverseLocalScale);
 
             m_InteractorLocalPosition = localAttachOffset;
-            m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(m_Rigidbody.rotation) * attachTransform.rotation);
+            m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
         }
 
         /// <inheritdoc />
@@ -644,14 +715,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_DetachVelocity = Vector3.zero;
             m_DetachAngularVelocity = Vector3.zero;
 
-            UpdateInteractorLocalPose(selectingInteractor);
+            // Initialize target pose for easing and smoothing
+            m_TargetWorldPosition = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? transform.position : m_Rigidbody.worldCenterOfMass;
+            m_TargetWorldRotation = transform.rotation;
+            m_CurrentAttachEaseTime = 0f;
 
-            if (m_AttachEaseInTime > 0f)
-            {
-                m_TargetWorldPosition = m_Rigidbody.worldCenterOfMass;
-                m_TargetWorldRotation = transform.rotation;
-                m_CurrentAttachEaseTime = 0f;
-            }
+            UpdateInteractorLocalPose(selectingInteractor);
 
             SmoothVelocityStart();
         }
@@ -718,7 +787,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_UsedGravity = rigidbody.useGravity;
             m_OldDrag = rigidbody.drag;
             m_OldAngularDrag = rigidbody.angularDrag;
-            rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic;
+            rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic || m_CurrentMovementType == MovementType.Instantaneous;
             rigidbody.useGravity = false;
             rigidbody.drag = 0f;
             rigidbody.angularDrag = 0f;
@@ -771,8 +840,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (selectingInteractor.attachTransform.position - m_LastPosition) / Time.deltaTime;
 
             var velocityDiff = (selectingInteractor.attachTransform.rotation * Quaternion.Inverse(m_LastRotation));
-            m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] = (new Vector3(Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.x), Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.y), Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.z))
-                / Time.deltaTime) * Mathf.Deg2Rad;
+            m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] =
+                (new Vector3(Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.x),
+                        Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.y),
+                        Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.z))
+                    / Time.deltaTime) * Mathf.Deg2Rad;
 
             m_ThrowSmoothingCurrentFrame = (m_ThrowSmoothingCurrentFrame + 1) % k_ThrowSmoothingFrameCount;
             m_LastPosition = selectingInteractor.attachTransform.position;
