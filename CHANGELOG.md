@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.5] - 2021-08-02
+
+### Added
+- Added public events to `UIInputModule` which correspond to calls to `EventSystem.Execute` and `EventSystem.ExecuteHierarchy` to allow the events to be globally handled.
+- Added profiler markers to `XRInteractionManager` to help with performance analysis.
+- Added ability for the Animation and Physics 2D built-in packages to be optional.
+
+### Changed
+- Changed `XRBaseInteractable.GetDistanceSqrToInteractor` to not consider disabled Colliders or Colliders on disabled GameObjects. This logic is used by `XRDirectInteractor` and `XRSocketInteractor` to find the closest interactable to select.
+
+### Fixed
+- Fixed poor performance scaling of `XRInteractionManager` as the number of valid targets and hover targets of an Interactor increased. AR projects with hundreds of gesture interactables should see a large speedup.
+- Fixed AR Gesture Recognizers producing GC allocations each frame when there were no touches.
+- Fixed issue involving multiple Interactables that reference the same Collider in their Colliders list. Unregistering an Interactable will now only cause the Collider association to be removed from the `XRInteractionManager` if it's actually associated with that same Interactable.
+- Fixed the Inspector showing a warning about a missing XR Controller when the Interactor is able to find one on a parent GameObject.
+
 ## [1.0.0-pre.4] - 2021-05-14
 
 ### Added

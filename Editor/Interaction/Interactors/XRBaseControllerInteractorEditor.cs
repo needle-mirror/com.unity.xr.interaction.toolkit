@@ -233,7 +233,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             foreach (var targetObject in serializedObject.targetObjects)
             {
                 var interactor = (XRBaseControllerInteractor)targetObject;
-                if (interactor.GetComponent<XRBaseController>() == null)
+                if (interactor.GetComponentInParent<XRBaseController>() == null)
                 {
                     EditorGUILayout.HelpBox(BaseControllerContents.missingRequiredController, MessageType.Warning, true);
                     break;

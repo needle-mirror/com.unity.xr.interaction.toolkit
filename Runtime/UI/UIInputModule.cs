@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
@@ -13,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// the modules will synchronize with each other.
     /// </remarks>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_UIInputModule)]
-    public abstract class UIInputModule : BaseInputModule
+    public abstract partial class UIInputModule : BaseInputModule
     {
         [SerializeField, FormerlySerializedAs("clickSpeed")]
         [Tooltip("The maximum time (in seconds) between two mouse presses for it to be consecutive click.")]
@@ -80,14 +79,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Camera uiCamera { get; set; }
 
-        /// <summary>
-        /// Calls the methods in its invocation list after the input module collects a list of type <see cref="RaycastResult"/>, but before the results are used.
-        /// Note that not all fields of the event data are still valid or up to date at this point in the UI event processing.
-        /// This event can be used to read, modify, or reorder results.
-        /// After the event, the first result in the list with a non-null GameObject will be used.
-        /// </summary>
-        public event Action<PointerEventData, List<RaycastResult>> finalizeRaycastResults;
-
         AxisEventData m_CachedAxisEvent;
         PointerEventData m_CachedPointerEvent;
         TrackedDeviceEventData m_CachedTrackedDeviceEventData;
@@ -143,11 +134,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <returns>Returns whether the update event was used by the selected object.</returns>
         protected bool SendUpdateEventToSelectedObject()
         {
-            if (eventSystem.currentSelectedGameObject == null)
+            var selectedGameObject = eventSystem.currentSelectedGameObject;
+            if (selectedGameObject == null)
                 return false;
 
             var data = GetBaseEventData();
-            ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);
+            updateSelected?.Invoke(selectedGameObject, data);
+            ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
             return data.used;
         }
 
@@ -228,8 +221,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // and then exit.
             if (currentPointerTarget == null || eventData.pointerEnter == null)
             {
-                foreach (var go in eventData.hovered)
-                    ExecuteEvents.Execute(go, eventData, ExecuteEvents.pointerExitHandler);
+                foreach (var hovered in eventData.hovered)
+                {
+                    pointerExit?.Invoke(hovered, eventData);
+                    ExecuteEvents.Execute(hovered, eventData, ExecuteEvents.pointerExitHandler);
+                }
 
                 eventData.hovered.Clear();
 
@@ -249,18 +245,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Then send exit and enter events up to, but not including, the common root.
             if (eventData.pointerEnter != null)
             {
-                var t = eventData.pointerEnter.transform;
+                var target = eventData.pointerEnter.transform;
 
-                while (t != null)
+                while (target != null)
                 {
-                    if (commonRoot != null && commonRoot.transform == t)
+                    if (commonRoot != null && commonRoot.transform == target)
                         break;
 
-                    ExecuteEvents.Execute(t.gameObject, eventData, ExecuteEvents.pointerExitHandler);
+                    var targetGameObject = target.gameObject;
+                    pointerExit?.Invoke(targetGameObject, eventData);
+                    ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerExitHandler);
 
-                    eventData.hovered.Remove(t.gameObject);
+                    eventData.hovered.Remove(targetGameObject);
 
-                    t = t.parent;
+                    target = target.parent;
                 }
             }
 
@@ -268,22 +266,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse -- Could be null if it was destroyed immediately after executing above
             if (currentPointerTarget != null)
             {
-                var t = currentPointerTarget.transform;
+                var target = currentPointerTarget.transform;
 
-                while (t != null && t.gameObject != commonRoot)
+                while (target != null && target.gameObject != commonRoot)
                 {
-                    ExecuteEvents.Execute(t.gameObject, eventData, ExecuteEvents.pointerEnterHandler);
+                    var targetGameObject = target.gameObject;
+                    pointerEnter?.Invoke(targetGameObject, eventData);
+                    ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerEnterHandler);
 
-                    eventData.hovered.Add(t.gameObject);
+                    eventData.hovered.Add(targetGameObject);
 
-                    t = t.parent;
+                    target = target.parent;
                 }
             }
         }
 
         void ProcessMouseButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
         {
-            var currentOverGo = eventData.pointerCurrentRaycast.gameObject;
+            var hoverTarget = eventData.pointerCurrentRaycast.gameObject;
 
             if ((mouseButtonChanges & ButtonDeltaState.Pressed) != 0)
             {
@@ -293,21 +293,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 eventData.pressPosition = eventData.position;
                 eventData.pointerPressRaycast = eventData.pointerCurrentRaycast;
 
-                var selectHandlerGO = ExecuteEvents.GetEventHandler<ISelectHandler>(currentOverGo);
+                var selectHandler = ExecuteEvents.GetEventHandler<ISelectHandler>(hoverTarget);
 
                 // If we have clicked something new, deselect the old thing
                 // and leave 'selection handling' up to the press event.
-                if (selectHandlerGO != eventSystem.currentSelectedGameObject)
+                if (selectHandler != eventSystem.currentSelectedGameObject)
                     eventSystem.SetSelectedGameObject(null, eventData);
 
                 // search for the control that will receive the press.
                 // if we can't find a press handler set the press
                 // handler to be what would receive a click.
-                var newPressed = ExecuteEvents.ExecuteHierarchy(currentOverGo, eventData, ExecuteEvents.pointerDownHandler);
+
+                pointerDown?.Invoke(hoverTarget, eventData);
+                var newPressed = ExecuteEvents.ExecuteHierarchy(hoverTarget, eventData, ExecuteEvents.pointerDownHandler);
 
                 // We didn't find a press handler, so we search for a click handler.
                 if (newPressed == null)
-                    newPressed = ExecuteEvents.GetEventHandler<IPointerClickHandler>(currentOverGo);
+                    newPressed = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hoverTarget);
 
                 var time = Time.unscaledTime;
 
@@ -319,29 +321,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 eventData.clickTime = time;
 
                 eventData.pointerPress = newPressed;
-                eventData.rawPointerPress = currentOverGo;
+                eventData.rawPointerPress = hoverTarget;
 
                 // Save the drag handler for drag events during this mouse down.
-                eventData.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(currentOverGo);
+                var dragObject = ExecuteEvents.GetEventHandler<IDragHandler>(hoverTarget);
+                eventData.pointerDrag = dragObject;
 
-                if (eventData.pointerDrag != null)
-                    ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.initializePotentialDrag);
+                if (dragObject != null)
+                {
+                    initializePotentialDrag?.Invoke(dragObject, eventData);
+                    ExecuteEvents.Execute(dragObject, eventData, ExecuteEvents.initializePotentialDrag);
+                }
             }
 
             if ((mouseButtonChanges & ButtonDeltaState.Released) != 0)
             {
-                ExecuteEvents.Execute(eventData.pointerPress, eventData, ExecuteEvents.pointerUpHandler);
+                var target = eventData.pointerPress;
+                pointerUp?.Invoke(target, eventData);
+                ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
 
-                var pointerUpHandler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(currentOverGo);
-
-                if (eventData.pointerPress == pointerUpHandler && eventData.eligibleForClick)
+                var pointerUpHandler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hoverTarget);
+                var pointerDrag = eventData.pointerDrag;
+                if (target == pointerUpHandler && eventData.eligibleForClick)
                 {
-                    ExecuteEvents.Execute(eventData.pointerPress, eventData, ExecuteEvents.pointerClickHandler);
+                    pointerClick?.Invoke(target, eventData);
+                    ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerClickHandler);
                 }
-                else if (eventData.dragging && eventData.pointerDrag != null)
+                else if (eventData.dragging && pointerDrag != null)
                 {
-                    ExecuteEvents.ExecuteHierarchy(currentOverGo, eventData, ExecuteEvents.dropHandler);
-                    ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.endDragHandler);
+                    drop?.Invoke(hoverTarget, eventData);
+                    ExecuteEvents.ExecuteHierarchy(hoverTarget, eventData, ExecuteEvents.dropHandler);
+
+                    endDrag?.Invoke(pointerDrag, eventData);
+                    ExecuteEvents.Execute(pointerDrag, eventData, ExecuteEvents.endDragHandler);
                 }
 
                 eventData.eligibleForClick = eventData.dragging = false;
@@ -362,7 +374,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 if ((eventData.pressPosition - eventData.position).sqrMagnitude >= ((eventSystem.pixelDragThreshold * eventSystem.pixelDragThreshold) * pixelDragThresholdMultiplier))
                 {
-                    ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.beginDragHandler);
+                    var target = eventData.pointerDrag;
+                    beginDrag?.Invoke(target, eventData);
+                    ExecuteEvents.Execute(target, eventData, ExecuteEvents.beginDragHandler);
                     eventData.dragging = true;
                 }
             }
@@ -370,14 +384,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (eventData.dragging)
             {
                 // If we moved from our initial press object, process an up for that object.
-                if (eventData.pointerPress != eventData.pointerDrag)
+                var target = eventData.pointerPress;
+                if (target != eventData.pointerDrag)
                 {
-                    ExecuteEvents.Execute(eventData.pointerPress, eventData, ExecuteEvents.pointerUpHandler);
+                    pointerUp?.Invoke(target, eventData);
+                    ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
 
                     eventData.eligibleForClick = false;
                     eventData.pointerPress = null;
                     eventData.rawPointerPress = null;
                 }
+
+                drag?.Invoke(eventData.pointerDrag, eventData);
                 ExecuteEvents.Execute(eventData.pointerDrag, eventData, ExecuteEvents.dragHandler);
             }
         }
@@ -388,6 +406,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0f))
             {
                 var scrollHandler = ExecuteEvents.GetEventHandler<IScrollHandler>(eventData.pointerEnter);
+                scroll?.Invoke(scrollHandler, eventData);
                 ExecuteEvents.ExecuteHierarchy(scrollHandler, eventData, ExecuteEvents.scrollHandler);
             }
         }
@@ -483,10 +502,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var implementationData = joystickState.implementationData;
 
             var usedSelectionChange = false;
-            if (eventSystem.currentSelectedGameObject != null)
+            var selectedGameObject = eventSystem.currentSelectedGameObject;
+            if (selectedGameObject != null)
             {
                 var data = GetBaseEventData();
-                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);
+                updateSelected?.Invoke(selectedGameObject, data);
+                ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
                 usedSelectionChange = data.used;
             }
 
@@ -534,7 +555,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         eventData.moveVector = moveVector;
                         eventData.moveDir = moveDirection;
 
-                        ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, eventData, ExecuteEvents.moveHandler);
+                        move?.Invoke(selectedGameObject, eventData);
+                        ExecuteEvents.Execute(selectedGameObject, eventData, ExecuteEvents.moveHandler);
                         usedSelectionChange = eventData.used;
 
                         implementationData.consecutiveMoveCount++;
@@ -550,14 +572,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (!usedSelectionChange)
             {
-                if (eventSystem.currentSelectedGameObject != null)
+                if (selectedGameObject != null)
                 {
                     var data = GetBaseEventData();
                     if ((joystickState.submitButtonDelta & ButtonDeltaState.Pressed) != 0)
-                        ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
+                    {
+                        submit?.Invoke(selectedGameObject, data);
+                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.submitHandler);
+                    }
 
                     if (!data.used && (joystickState.cancelButtonDelta & ButtonDeltaState.Pressed) != 0)
-                        ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
+                    {
+                        cancel?.Invoke(selectedGameObject, data);
+                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.cancelHandler);
+                    }
                 }
             }
 

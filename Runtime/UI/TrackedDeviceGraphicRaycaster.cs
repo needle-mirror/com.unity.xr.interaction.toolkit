@@ -62,6 +62,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Whether or not 2D occlusion is checked when performing raycasts.
         /// Enable to make Graphics be blocked by 2D objects that exist in front of it.
         /// </summary>
+        /// <remarks>
+        /// This property has no effect when the project does not include the Physics 2D module.
+        /// </remarks>
         public bool checkFor2DOcclusion
         {
             get => m_CheckFor2DOcclusion;
@@ -112,7 +115,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <inheritdoc />
         public override Camera eventCamera => canvas != null && canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
 
-        /// <summary>Perform a raycast against objects within this Raycaster's domain.</summary>
+        /// <summary>
+        /// Perform a raycast against objects within this Raycaster's domain.
+        /// </summary>
         /// <param name="eventData">Data containing where and how to raycast.</param>
         /// <param name="resultAppendList">The resultant hits from the raycast.</param>
         public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
@@ -140,7 +145,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         bool m_HasWarnedEventCameraNull;
 
         readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
+#if PHYSICS2D_MODULE_PRESENT
         readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
+#endif
         static readonly RaycastHitComparer s_RaycastHitComparer = new RaycastHitComparer();
 
         static readonly Vector3[] s_Corners = new Vector3[4];
@@ -167,6 +174,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hits[index];
         }
 
+#if PHYSICS2D_MODULE_PRESENT
         static RaycastHit2D FindClosestHit(RaycastHit2D[] hits, int count)
         {
             var index = 0;
@@ -182,6 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return hits[index];
         }
+#endif
 
         void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
         {
@@ -205,7 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             var rayPoints = eventData.rayPoints;
             var layerMask = eventData.layerMask;
-            for(var i = 1; i < rayPoints.Count; i++)
+            for (var i = 1; i < rayPoints.Count; i++)
             {
                 var from = rayPoints[i - 1];
                 var to = rayPoints[i];
@@ -239,6 +248,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (m_CheckFor2DOcclusion)
             {
+#if PHYSICS2D_MODULE_PRESENT
                 var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, hitDistance, m_BlockingMask);
 
                 if (hitCount > 0)
@@ -247,6 +257,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     hitDistance = hit.distance > hitDistance ? hitDistance : hit.distance;
                     hitSomething = true;
                 }
+#endif
             }
 
             m_RaycastResultsCache.Clear();

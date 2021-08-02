@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
@@ -134,6 +135,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactables, Is.EqualTo(new[] { interactable }));
             Assert.That(interactable.colliders, Has.Count.EqualTo(1));
             Assert.That(manager.GetInteractableForCollider(interactable.colliders.First()), Is.EqualTo(interactable));
+        }
+
+        [Test]
+        public void InteractableUnregistersAssociatedColliders()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractable = TestUtilities.CreateGrabInteractable();
+            var secondInteractable = TestUtilities.CreateGrabInteractable();
+
+            manager.UnregisterInteractable(firstInteractable);
+            manager.UnregisterInteractable(secondInteractable);
+
+            // Setup so the first Interactable has both colliders, and the second Interactable has a conflicting reference
+            secondInteractable.transform.SetParent(firstInteractable.transform);
+            firstInteractable.colliders.Clear();
+            firstInteractable.colliders.AddRange(firstInteractable.GetComponentsInChildren<Collider>());
+            secondInteractable.colliders.Clear();
+            secondInteractable.colliders.AddRange(secondInteractable.GetComponentsInChildren<Collider>());
+
+            Assert.That(firstInteractable.colliders, Has.Count.EqualTo(2));
+            Assert.That(secondInteractable.colliders, Has.Count.EqualTo(1));
+
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[0]), Is.Null);
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[1]), Is.Null);
+
+            manager.RegisterInteractable(firstInteractable);
+
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[0]), Is.SameAs(firstInteractable));
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[1]), Is.SameAs(firstInteractable));
+
+            LogAssert.Expect(LogType.Warning, new Regex("A Collider used by an Interactable object is already registered with another Interactable object*"));
+            manager.RegisterInteractable(secondInteractable);
+
+            // Interactables registered afterward do not replace the existing Collider association
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[0]), Is.SameAs(firstInteractable));
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[1]), Is.SameAs(firstInteractable));
+
+            manager.UnregisterInteractable(secondInteractable);
+
+            // Interactables registered afterward should not cause the registered Collider association to be removed
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[0]), Is.SameAs(firstInteractable));
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[1]), Is.SameAs(firstInteractable));
+
+            manager.UnregisterInteractable(firstInteractable);
+
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[0]), Is.Null);
+            Assert.That(manager.GetInteractableForCollider(firstInteractable.colliders[1]), Is.Null);
         }
 
         // Tests that Interactors and Interactables can register or unregister

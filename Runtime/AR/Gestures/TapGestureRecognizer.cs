@@ -22,6 +22,7 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using System;
 using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
@@ -43,6 +44,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// to be registered as a tap.
         /// </summary>
         public float durationSeconds { get; set; } = 0.3f;
+
+        // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
+        readonly Func<InputSystem.EnhancedTouch.Touch, TapGesture> m_CreateEnhancedGesture;
+        readonly Func<Touch, TapGesture> m_CreateGestureFunction;
+
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="TapGestureRecognizer"/>.
+        /// </summary>
+        public TapGestureRecognizer()
+        {
+            m_CreateEnhancedGesture = CreateEnhancedGesture;
+            m_CreateGestureFunction = CreateGesture;
+        }
 
         /// <summary>
         /// Creates a Tap gesture with the given touch.
@@ -68,9 +82,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void TryCreateGestures()
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                TryCreateOneFingerGestureOnTouchBegan(CreateEnhancedGesture);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateEnhancedGesture);
             else
-                TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateGestureFunction);
         }
     }
 }

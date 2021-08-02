@@ -156,9 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
         protected void TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T> createGestureFunction)
         {
-            TryCreateOneFingerGestureOnTouchBegan(CreateGestureFunction);
-
-            T CreateGestureFunction(CommonTouch touch) => createGestureFunction(touch.GetTouch());
+            TryCreateOneFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
         }
 
         /// <summary>
@@ -167,9 +165,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
         protected void TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
         {
-            TryCreateOneFingerGestureOnTouchBegan(CreateGestureFunction);
-
-            T CreateGestureFunction(CommonTouch touch) => createGestureFunction(touch.GetEnhancedTouch());
+            TryCreateOneFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
         }
 
         void TryCreateOneFingerGestureOnTouchBegan(Func<CommonTouch, T> createGestureFunction)
@@ -193,10 +189,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected void TryCreateTwoFingerGestureOnTouchBegan(
             Func<Touch, Touch, T> createGestureFunction)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(CreateGestureFunction);
-
-            T CreateGestureFunction(CommonTouch touch, CommonTouch otherTouch) =>
-                createGestureFunction(touch.GetTouch(), otherTouch.GetTouch());
+            TryCreateTwoFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
         }
 
         /// <summary>
@@ -206,10 +199,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected void TryCreateTwoFingerGestureOnTouchBegan(
             Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(CreateGestureFunction);
-
-            T CreateGestureFunction(CommonTouch touch, CommonTouch otherTouch) =>
-                createGestureFunction(touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());
+            TryCreateTwoFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
         }
 
         void TryCreateTwoFingerGestureOnTouchBegan(
@@ -272,6 +262,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         void OnFinished(T gesture)
         {
             RemoveGesture(gesture);
+        }
+
+        /// <summary>
+        /// Helper class to preallocate delegates to avoid GC Alloc that would happen
+        /// when passing the lambda to the methods which create one or two finger gestures.
+        /// </summary>
+        static class TouchConverterClosureHelper
+        {
+            // One Touch to Gesture input argument Func
+            static Func<Touch, T> s_CreateGestureFromOneTouchFunction;
+            static Func<InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromOneEnhancedTouchFunction;
+
+            // Two Touch to Gesture input argument Func
+            static Func<Touch, Touch, T> s_CreateGestureFromTwoTouchFunction;
+            static Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromTwoEnhancedTouchFunction;
+
+            // Preallocate delegates to avoid GC Alloc
+            static readonly Func<CommonTouch, T> s_ConvertUsingOneTouch = ConvertUsingOneTouch;
+            static readonly Func<CommonTouch, T> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
+            static readonly Func<CommonTouch, CommonTouch, T> s_ConvertUsingTwoTouch = ConvertUsingTwoTouch;
+            static readonly Func<CommonTouch, CommonTouch, T> s_ConvertUsingTwoEnhancedTouch = ConvertUsingTwoEnhancedTouch;
+
+            public static Func<CommonTouch, T> GetFunc(Func<Touch, T> createGestureFunction)
+            {
+                s_CreateGestureFromOneTouchFunction = createGestureFunction;
+                return s_ConvertUsingOneTouch;
+            }
+
+            public static Func<CommonTouch, T> GetFunc(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+            {
+                s_CreateGestureFromOneEnhancedTouchFunction = createGestureFunction;
+                return s_ConvertUsingOneEnhancedTouch;
+            }
+
+            public static Func<CommonTouch, CommonTouch, T> GetFunc(Func<Touch, Touch, T> createGestureFunction)
+            {
+                s_CreateGestureFromTwoTouchFunction = createGestureFunction;
+                return s_ConvertUsingTwoTouch;
+            }
+
+            public static Func<CommonTouch, CommonTouch, T> GetFunc(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+            {
+                s_CreateGestureFromTwoEnhancedTouchFunction = createGestureFunction;
+                return s_ConvertUsingTwoEnhancedTouch;
+            }
+
+            static T ConvertUsingOneTouch(CommonTouch touch) =>
+                s_CreateGestureFromOneTouchFunction(touch.GetTouch());
+
+            static T ConvertUsingOneEnhancedTouch(CommonTouch touch) =>
+                s_CreateGestureFromOneEnhancedTouchFunction(touch.GetEnhancedTouch());
+
+            static T ConvertUsingTwoTouch(CommonTouch touch, CommonTouch otherTouch) =>
+                s_CreateGestureFromTwoTouchFunction(touch.GetTouch(), otherTouch.GetTouch());
+
+            static T ConvertUsingTwoEnhancedTouch(CommonTouch touch, CommonTouch otherTouch) =>
+                s_CreateGestureFromTwoEnhancedTouchFunction(touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());
         }
     }
 }

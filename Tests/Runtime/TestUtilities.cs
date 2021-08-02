@@ -69,14 +69,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             return xrRig;
         }
-        
+
         internal static TeleportationAnchor CreateTeleportAnchorPlane()
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.name = "plane";
             TeleportationAnchor teleAnchor = plane.AddComponent<TeleportationAnchor>();
             return teleAnchor;
-        } 
+        }
 
         internal static XRRayInteractor CreateRayInteractor()
         {
@@ -86,7 +86,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
             interactor.xrController = controller;
             controller.enableInputTracking = false;
-            interactor.enableUIInteraction = false;            
+            interactor.enableUIInteraction = false;
             controller.enableInputActions = false;
             return interactor;
         }
@@ -122,13 +122,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         internal static XRControllerRecorder CreateControllerRecorder(XRController controller, Action<XRControllerRecording> addRecordingFrames)
-        {            
+        {
             var controllerRecorder = controller.gameObject.AddComponent<XRControllerRecorder>();
             controllerRecorder.xrController = controller;
             controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
 
             addRecordingFrames(controllerRecorder.recording);
             return controllerRecorder;
-        }      
+        }
     }
 }

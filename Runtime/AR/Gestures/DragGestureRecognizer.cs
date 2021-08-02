@@ -22,6 +22,7 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using System;
 using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
@@ -37,6 +38,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// before the drag gesture is interpreted as started.
         /// </summary>
         public float slopInches { get; set; } = 0.1f;
+
+        // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
+        readonly Func<InputSystem.EnhancedTouch.Touch, DragGesture> m_CreateEnhancedGesture;
+        readonly Func<Touch, DragGesture> m_CreateGestureFunction;
+
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="DragGestureRecognizer"/>.
+        /// </summary>
+        public DragGestureRecognizer()
+        {
+            m_CreateEnhancedGesture = CreateEnhancedGesture;
+            m_CreateGestureFunction = CreateGesture;
+        }
 
         /// <summary>
         /// Creates a Drag gesture with the given touch.
@@ -62,9 +76,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void TryCreateGestures()
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                TryCreateOneFingerGestureOnTouchBegan(CreateEnhancedGesture);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateEnhancedGesture);
             else
-                TryCreateOneFingerGestureOnTouchBegan(CreateGesture);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateGestureFunction);
         }
     }
 }

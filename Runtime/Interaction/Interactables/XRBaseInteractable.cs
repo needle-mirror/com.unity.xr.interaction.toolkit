@@ -453,7 +453,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">Interactor to calculate distance against.</param>
         /// <returns>Returns the minimum distance between the interactor and this interactable's colliders.</returns>
-        public float GetDistanceSqrToInteractor(XRBaseInteractor interactor)
+        public virtual float GetDistanceSqrToInteractor(XRBaseInteractor interactor)
         {
             if (interactor == null)
                 return float.MaxValue;
@@ -461,6 +461,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var minDistanceSqr = float.MaxValue;
             foreach (var col in m_Colliders)
             {
+                if (!col.gameObject.activeInHierarchy || !col.enabled)
+                    continue;
+                
                 var offset = (interactor.attachTransform.position - col.transform.position);
                 minDistanceSqr = Mathf.Min(offset.sqrMagnitude, minDistanceSqr);
             }

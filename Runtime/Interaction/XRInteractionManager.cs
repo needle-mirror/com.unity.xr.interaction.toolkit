@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
+#if AR_FOUNDATION_PRESENT
+using UnityEngine.XR.Interaction.Toolkit.AR;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -89,14 +93,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly RegistrationList<XRBaseInteractable> m_Interactables = new RegistrationList<XRBaseInteractable>();
 
         /// <summary>
-        /// Reusable list of Interactables for retrieving hover targets.
+        /// Reusable list of Interactables for retrieving hover targets of an Interactor.
         /// </summary>
-        readonly List<XRBaseInteractable> m_HoverTargetList = new List<XRBaseInteractable>();
+        readonly List<XRBaseInteractable> m_HoverTargets = new List<XRBaseInteractable>();
+
+        /// <summary>
+        /// Reusable set of Interactables for retrieving hover targets of an Interactor.
+        /// </summary>
+        readonly HashSet<XRBaseInteractable> m_UnorderedHoverTargets = new HashSet<XRBaseInteractable>();
 
         /// <summary>
         /// Reusable list of valid targets for an Interactor.
         /// </summary>
-        readonly List<XRBaseInteractable> m_InteractorValidTargets = new List<XRBaseInteractable>();
+        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
+
+        /// <summary>
+        /// Reusable set of valid targets for an Interactor.
+        /// </summary>
+        readonly HashSet<XRBaseInteractable> m_UnorderedValidTargets = new HashSet<XRBaseInteractable>();
 
         // Reusable event args
         readonly SelectEnterEventArgs m_SelectEnterEventArgs = new SelectEnterEventArgs();
@@ -107,6 +121,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly InteractorUnregisteredEventArgs m_InteractorUnregisteredEventArgs = new InteractorUnregisteredEventArgs();
         readonly InteractableRegisteredEventArgs m_InteractableRegisteredEventArgs = new InteractableRegisteredEventArgs();
         readonly InteractableUnregisteredEventArgs m_InteractableUnregisteredEventArgs = new InteractableUnregisteredEventArgs();
+
+        static readonly ProfilerMarker s_ProcessInteractorsMarker = new ProfilerMarker("XRI.ProcessInteractors");
+        static readonly ProfilerMarker s_ProcessInteractablesMarker = new ProfilerMarker("XRI.ProcessInteractables");
+        static readonly ProfilerMarker s_GetValidTargetsMarker = new ProfilerMarker("XRI.GetValidTargets");
+        static readonly ProfilerMarker s_FilterRegisteredValidTargetsMarker = new ProfilerMarker("XRI.FilterRegisteredValidTargets");
+        static readonly ProfilerMarker s_EvaluateInvalidSelectionsMarker = new ProfilerMarker("XRI.EvaluateInvalidSelections");
+        static readonly ProfilerMarker s_EvaluateInvalidHoversMarker = new ProfilerMarker("XRI.EvaluateInvalidHovers");
+        static readonly ProfilerMarker s_EvaluateValidSelectionsMarker = new ProfilerMarker("XRI.EvaluateValidSelections");
+        static readonly ProfilerMarker s_EvaluateValidHoversMarker = new ProfilerMarker("XRI.EvaluateValidHovers");
+        static readonly ProfilerMarker s_SelectEnterMarker = new ProfilerMarker("XRI.SelectEnter");
+        static readonly ProfilerMarker s_SelectExitMarker = new ProfilerMarker("XRI.SelectExit");
+        static readonly ProfilerMarker s_HoverEnterMarker = new ProfilerMarker("XRI.HoverEnter");
+        static readonly ProfilerMarker s_HoverExitMarker = new ProfilerMarker("XRI.HoverExit");
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -129,26 +156,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
+        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void Update()
         {
             FlushRegistration();
 
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
             foreach (var interactor in m_Interactors.registeredSnapshot)
             {
                 if (!m_Interactors.IsStillRegistered(interactor))
                     continue;
 
-                GetValidTargets(interactor, m_InteractorValidTargets);
+                using (s_GetValidTargetsMarker.Auto())
+                    GetValidTargets(interactor, m_ValidTargets);
 
-                ClearInteractorSelection(interactor);
-                ClearInteractorHover(interactor, m_InteractorValidTargets);
-                InteractorSelectValidTargets(interactor, m_InteractorValidTargets);
-                InteractorHoverValidTargets(interactor, m_InteractorValidTargets);
+                using (s_EvaluateInvalidSelectionsMarker.Auto())
+                    ClearInteractorSelection(interactor);
+                using (s_EvaluateInvalidHoversMarker.Auto())
+                    ClearInteractorHover(interactor, m_ValidTargets);
+                using (s_EvaluateValidSelectionsMarker.Auto())
+                    InteractorSelectValidTargets(interactor, m_ValidTargets);
+                using (s_EvaluateValidHoversMarker.Auto())
+                    InteractorHoverValidTargets(interactor, m_ValidTargets);
             }
 
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
+            using (s_ProcessInteractablesMarker.Auto())
+                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
         }
 
         /// <summary>
@@ -157,8 +192,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void LateUpdate()
         {
             FlushRegistration();
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
+
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
+            using (s_ProcessInteractablesMarker.Auto())
+                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
         }
 
         /// <summary>
@@ -167,8 +205,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void FixedUpdate()
         {
             FlushRegistration();
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+            using (s_ProcessInteractablesMarker.Auto())
+                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
         }
 
         /// <summary>
@@ -179,9 +220,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnBeforeRender()
         {
             FlushRegistration();
-            ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
-            ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
+
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
+            using (s_ProcessInteractablesMarker.Auto())
+                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
         }
+        // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
         /// <summary>
         ///  Process all interactors in a scene.
@@ -291,8 +336,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (interactableCollider != null && !m_ColliderToInteractableMap.ContainsKey(interactableCollider))
+                    if (interactableCollider == null)
+                        continue;
+
+                    // Add the association for a fast lookup which maps from Collider to Interactable.
+                    // Warn if the same Collider is already used by another registered Interactable
+                    // since the lookup will only return the earliest registered rather than a list of all.
+                    // The warning is suppressed in the case of gesture interactables since it's common
+                    // to compose multiple on the same GameObject.
+                    if (!m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable))
+                    {
                         m_ColliderToInteractableMap.Add(interactableCollider, interactable);
+                    }
+#if AR_FOUNDATION_PRESENT
+                    else if (!(interactable is ARBaseGestureInteractable && associatedInteractable is ARBaseGestureInteractable))
+#else
+                    else
+#endif
+                    {
+                        Debug.LogWarning("A Collider used by an Interactable object is already registered with another Interactable object." +
+                            $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
+                            $" The value returned by {nameof(XRInteractionManager)}.{nameof(GetInteractableForCollider)} will be the first association.",
+                            interactable);
+                    }
                 }
 
                 m_InteractableRegisteredEventArgs.manager = this;
@@ -332,9 +398,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactables.Unregister(interactable))
             {
+                // This makes the assumption that the list of Colliders has not been changed after
+                // the Interactable is registered. If any were removed afterward, those would remain
+                // in the dictionary.
                 foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (interactableCollider != null)
+                    if (interactableCollider == null)
+                        continue;
+
+                    if (m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable) && associatedInteractable == interactable)
                         m_ColliderToInteractableMap.Remove(interactableCollider);
                 }
 
@@ -466,7 +538,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
             interactor.GetValidTargets(validTargets);
-            RemoveAllUnregistered(this, validTargets);
+
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+            using (s_FilterRegisteredValidTargetsMarker.Auto())
+                RemoveAllUnregistered(this, validTargets);
 
             return validTargets;
         }
@@ -545,11 +620,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         public virtual void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            interactor.GetHoverTargets(m_HoverTargetList);
-            for (var i = m_HoverTargetList.Count - 1; i >= 0; --i)
+            interactor.GetHoverTargets(m_HoverTargets);
+            if (m_HoverTargets.Count == 0)
+                return;
+
+            // Performance optimization of the Contains checks by putting the valid targets into a HashSet.
+            // Some Interactors like ARGestureInteractor can have hundreds of valid Interactables
+            // since they will add most ARBaseGestureInteractable instances.
+            m_UnorderedValidTargets.Clear();
+            if (validTargets.Count > 0)
             {
-                var target = m_HoverTargetList[i];
-                if (!interactor.isHoverActive || !interactor.CanHover(target) || !target.IsHoverableBy(interactor) || validTargets == null || !validTargets.Contains(target))
+                foreach (var target in validTargets)
+                {
+                    m_UnorderedValidTargets.Add(target);
+                }
+            }
+
+            for (var i = m_HoverTargets.Count - 1; i >= 0; --i)
+            {
+                var target = m_HoverTargets[i];
+                if (!interactor.isHoverActive || !interactor.CanHover(target) || !target.IsHoverableBy(interactor) || !m_UnorderedValidTargets.Contains(target))
                     HoverExit(interactor, target);
             }
         }
@@ -560,10 +650,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to potentially exit its hover state due to cancellation.</param>
         public virtual void CancelInteractorHover(XRBaseInteractor interactor)
         {
-            interactor.GetHoverTargets(m_HoverTargetList);
-            for (var i = m_HoverTargetList.Count - 1; i >= 0; --i)
+            interactor.GetHoverTargets(m_HoverTargets);
+            for (var i = m_HoverTargets.Count - 1; i >= 0; --i)
             {
-                var target = m_HoverTargetList[i];
+                var target = m_HoverTargets[i];
                 HoverCancel(interactor, target);
             }
         }
@@ -674,15 +764,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is selecting.</param>
         /// <param name="interactable">The Interactable being selected.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable, SelectEnterEventArgs args)
         {
             Debug.Assert(args.interactor == interactor, this);
             Debug.Assert(args.interactable == interactable, this);
 
-            interactor.OnSelectEntering(args);
-            interactable.OnSelectEntering(args);
-            interactor.OnSelectEntered(args);
-            interactable.OnSelectEntered(args);
+            using (s_SelectEnterMarker.Auto())
+            {
+                interactor.OnSelectEntering(args);
+                interactable.OnSelectEntering(args);
+                interactor.OnSelectEntered(args);
+                interactable.OnSelectEntered(args);
+            }
         }
 
         /// <summary>
@@ -696,10 +790,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Debug.Assert(args.interactor == interactor, this);
             Debug.Assert(args.interactable == interactable, this);
 
-            interactor.OnSelectExiting(args);
-            interactable.OnSelectExiting(args);
-            interactor.OnSelectExited(args);
-            interactable.OnSelectExited(args);
+            using (s_SelectExitMarker.Auto())
+            {
+                interactor.OnSelectExiting(args);
+                interactable.OnSelectExiting(args);
+                interactor.OnSelectExited(args);
+                interactable.OnSelectExited(args);
+            }
         }
 
         /// <summary>
@@ -713,10 +810,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Debug.Assert(args.interactor == interactor, this);
             Debug.Assert(args.interactable == interactable, this);
 
-            interactor.OnHoverEntering(args);
-            interactable.OnHoverEntering(args);
-            interactor.OnHoverEntered(args);
-            interactable.OnHoverEntered(args);
+            using (s_HoverEnterMarker.Auto())
+            {
+                interactor.OnHoverEntering(args);
+                interactable.OnHoverEntering(args);
+                interactor.OnHoverEntered(args);
+                interactable.OnHoverEntered(args);
+            }
         }
 
         /// <summary>
@@ -730,11 +830,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Debug.Assert(args.interactor == interactor, this);
             Debug.Assert(args.interactable == interactable, this);
 
-            interactor.OnHoverExiting(args);
-            interactable.OnHoverExiting(args);
-            interactor.OnHoverExited(args);
-            interactable.OnHoverExited(args);
+            using (s_HoverExitMarker.Auto())
+            {
+                interactor.OnHoverExiting(args);
+                interactable.OnHoverExiting(args);
+                interactor.OnHoverExited(args);
+                interactable.OnHoverExited(args);
+            }
         }
+        // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
         /// <summary>
         /// Automatically called each frame during Update to enter the selection state of the Interactor if necessary due to current conditions.
@@ -767,15 +871,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!interactor.isHoverActive)
                 return;
 
+            // For performance optimization, this is done once instead of within each iteration.
+            // Makes the assumption that the process of entering the hover state does not
+            // cause other hover targets to be cleared or canceled, which could affect this list.
+            interactor.GetHoverTargets(m_HoverTargets);
+            m_UnorderedHoverTargets.Clear();
+            if (m_HoverTargets.Count > 0)
+            {
+                foreach (var target in m_HoverTargets)
+                {
+                    m_UnorderedHoverTargets.Add(target);
+                }
+            }
+
             for (var i = 0; i < validTargets.Count && interactor.isHoverActive; ++i)
             {
                 var interactable = validTargets[i];
                 if (interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor))
                 {
-                    interactor.GetHoverTargets(m_HoverTargetList);
-                    if (!m_HoverTargetList.Contains(interactable))
+                    if (!m_UnorderedHoverTargets.Contains(interactable))
                     {
                         HoverEnter(interactor, interactable);
+
+                        // Add to the set to protect against the valid targets list containing duplicates
+                        // which could cause the hover state to be entered again.
+                        m_UnorderedHoverTargets.Add(interactable);
                     }
                 }
             }

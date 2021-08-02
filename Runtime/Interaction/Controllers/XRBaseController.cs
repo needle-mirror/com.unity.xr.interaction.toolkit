@@ -245,10 +245,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         XRControllerState m_ControllerState = new XRControllerState();
 
+#if ANIMATION_MODULE_PRESENT
         /// <summary>
         /// The <see cref="Animator"/> on <see cref="model"/>.
         /// </summary>
         Animator m_ModelAnimator;
+#endif
 
         bool m_HasWarnedAnimatorMissing;
 
@@ -442,6 +444,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="modelDeSelectTransition"/>
         protected virtual void UpdateControllerModelAnimation()
         {
+#if ANIMATION_MODULE_PRESENT
             if (m_AnimateModel && m_Model != null)
             {
                 // Update the Animator reference if necessary
@@ -465,6 +468,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 else if (m_SelectInteractionState.deactivatedThisFrame)
                     m_ModelAnimator.SetTrigger(m_ModelDeSelectTransition);
             }
+#endif
         }
 
         /// <summary>

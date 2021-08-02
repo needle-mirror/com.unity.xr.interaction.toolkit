@@ -22,6 +22,7 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using System;
 using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
@@ -37,6 +38,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// before the twist gesture is interpreted as started.
         /// </summary>
         public float slopRotation { get; set; } = 10f;
+
+        // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
+        readonly Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, TwistGesture> m_CreateEnhancedGesture;
+        readonly Func<Touch, Touch, TwistGesture> m_CreateGestureFunction;
+
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="TwistGestureRecognizer"/>.
+        /// </summary>
+        public TwistGestureRecognizer()
+        {
+            m_CreateEnhancedGesture = CreateEnhancedGesture;
+            m_CreateGestureFunction = CreateGesture;
+        }
 
         /// <summary>
         /// Creates a Twist gesture with the given touches.
@@ -64,9 +78,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void TryCreateGestures()
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                TryCreateTwoFingerGestureOnTouchBegan(CreateEnhancedGesture);
+                TryCreateTwoFingerGestureOnTouchBegan(m_CreateEnhancedGesture);
             else
-                TryCreateTwoFingerGestureOnTouchBegan(CreateGesture);
+                TryCreateTwoFingerGestureOnTouchBegan(m_CreateGestureFunction);
         }
     }
 }

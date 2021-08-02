@@ -258,5 +258,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
         }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorIgnoresDisabledCollidersWhenSortingValidTargets([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        {
+            // This will test that the Direct and Socket Interactor will ignore disabled colliders
+            // when sorting to find the closest interactable to select.
+
+            // Create Interaction Manager
+            TestUtilities.CreateInteractionManager();
+
+            // Interactable 1 has a single sphere collider centered on its local origin.
+            // The sphere collider has a radius of 1.
+            var interactable1 = TestUtilities.CreateGrabInteractable();
+            interactable1.transform.position = new Vector3(-1.1f, 0, 0);
+            interactable1.enabled = false;
+            interactable1.name = "interactable1";
+
+            // Interactable 1 has a single sphere collider centered on its local origin.
+            // The sphere collider has a radius of 1. It is also disabled.
+            var interactable2 = TestUtilities.CreateGrabInteractable();
+            interactable2.GetComponent<SphereCollider>().enabled = false;
+            interactable2.transform.position = new Vector3(1, 0, 0);
+            interactable2.enabled = false;
+            interactable2.name = "interactable2";
+
+            yield return new WaitForFixedUpdate();
+
+            XRBaseInteractor interactor = null;
+            if (interactorType == typeof(XRDirectInteractor))
+                interactor = TestUtilities.CreateDirectInteractor();
+            else if (interactorType == typeof(XRSocketInteractor))
+                interactor = TestUtilities.CreateSocketInteractor();
+
+            Assert.That(interactor, Is.Not.Null);
+
+            interactor.enabled = false;
+
+            yield return new WaitForFixedUpdate();
+
+            var validTargets = new List<XRBaseInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty, $"All interactors and interactables are disabled, so there should be no valid targets.");
+
+            interactor.enabled = true;
+            interactable1.enabled = true;
+            interactable2.enabled = true;
+
+            yield return new WaitForFixedUpdate();
+
+            // Since interactable2's collider is disabled, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable1 }));
+        }
     }
 }

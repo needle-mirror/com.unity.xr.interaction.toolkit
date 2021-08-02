@@ -206,8 +206,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                             s_Touches.Add(new CommonTouch(Input.GetTouch(index)));
                         break;
                     case TouchInputSource.Enhanced:
-                        foreach (var touch in InputSystem.EnhancedTouch.Touch.activeTouches)
+                        // ReSharper disable once ForCanBeConvertedToForeach -- Would produce garbage, ReadOnlyArray does not use a struct for the enumerator
+                        for (var index = 0; index < InputSystem.EnhancedTouch.Touch.activeTouches.Count; ++index)
+                        {
+                            var touch = InputSystem.EnhancedTouch.Touch.activeTouches[index];
                             s_Touches.Add(new CommonTouch(touch));
+                        }
                         break;
                     case TouchInputSource.Mock:
                         foreach (var touch in mockTouches)
