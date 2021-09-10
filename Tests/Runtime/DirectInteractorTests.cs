@@ -83,7 +83,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
         }
@@ -104,7 +105,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
 
@@ -181,6 +183,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             
             // directInteractor2 grabs the interactable from directInteractor1
             Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor2), "In second frame, controller 2 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorReportsValidTargetWhenInteractableRegisteredAfterContact()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
+            var controller = interactor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
+                    true, false, false); 
+                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
+                    true, false, false);
+            });
+            controllerRecorder.isPlaying = true;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+
+            var validTargets = new List<XRBaseInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
+
+            // Disable the Interactable so it will be removed as a valid target
+            interactable.enabled = false;
+
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(null));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            // Re-enable the Interactable. It should not be required to leave and enter the collider to be selected again.
+            interactable.enabled = true;
+
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
         }
     }
 }

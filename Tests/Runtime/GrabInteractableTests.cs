@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -11,18 +9,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class GrabInteractableTests
     {
-        class MockInteractor : XRBaseInteractor
-        {
-            public List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
-
-            /// <inheritdoc />
-            public override void GetValidTargets(List<XRBaseInteractable> targets)
-            {
-                targets.Clear();
-                targets.AddRange(validTargets);
-            }
-        }
-
         static readonly XRBaseInteractable.MovementType[] s_MovementTypes =
         {
             XRBaseInteractable.MovementType.VelocityTracking,
@@ -101,11 +87,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.worldCenterOfMass, Is.EqualTo(new Vector3(1f, 2f, 3f) + centerOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // Create Interactor at some arbitrary point away from the Interactable
-            var interactorGO = new GameObject("Interactor");
+            var interactor = TestUtilities.CreateMockInteractor();
             var targetPosition = Vector3.zero;
-            interactorGO.transform.localPosition = Vector3.zero;
-            interactorGO.transform.localRotation = Quaternion.identity;
-            var interactor = interactorGO.AddComponent<MockInteractor>();
 
             yield return null;
 
@@ -201,11 +184,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.worldCenterOfMass, Is.EqualTo(new Vector3(1f, 2f, 3f) + centerOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // Create Interactor at some arbitrary point away from the Interactable
-            var interactorGO = new GameObject("Interactor");
+            var interactor = TestUtilities.CreateMockInteractor();
             var targetPosition = Vector3.zero;
-            interactorGO.transform.localPosition = Vector3.zero;
-            interactorGO.transform.localRotation = Quaternion.identity;
-            var interactor = interactorGO.AddComponent<MockInteractor>();
 
             yield return null;
 
@@ -303,11 +283,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.worldCenterOfMass, Is.EqualTo(new Vector3(1f, 2f, 3f) + centerOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // Create Interactor at some arbitrary point away from the Interactable
-            var interactorGO = new GameObject("Interactor");
+            var interactor = TestUtilities.CreateMockInteractor();
             var targetPosition = Vector3.zero;
-            interactorGO.transform.localPosition = Vector3.zero;
-            interactorGO.transform.localRotation = Quaternion.identity;
-            var interactor = interactorGO.AddComponent<MockInteractor>();
 
             yield return null;
 
@@ -426,12 +403,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.worldCenterOfMass, Is.EqualTo(new Vector3(1f, 2f, 3f) + centerOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // Create Interactor at some arbitrary point away from the Interactable
-            var interactorGO = new GameObject("Interactor");
+            var interactor = TestUtilities.CreateMockInteractor();
             var targetPosition = Vector3.zero;
             var targetRotation = Quaternion.identity;
-            interactorGO.transform.localPosition = Vector3.zero;
-            interactorGO.transform.localRotation = Quaternion.identity;
-            var interactor = interactorGO.AddComponent<MockInteractor>();
 
             yield return null;
 

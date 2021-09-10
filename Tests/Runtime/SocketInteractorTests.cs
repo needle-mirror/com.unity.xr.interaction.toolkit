@@ -96,5 +96,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(socketInteractor.selectTarget, Is.EqualTo(null));
             Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
         }
+
+        [UnityTest]
+        public IEnumerator SocketInteractorReportsValidTargetWhenInteractableRegisteredAfterContact()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateSocketInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+
+            var validTargets = new List<XRBaseInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
+
+            // Disable the Interactable so it will be removed as a valid target
+            interactable.enabled = false;
+
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(null));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            // Re-enable the Interactable. It should not be required to leave and enter the collider to be selected again.
+            interactable.enabled = true;
+
+            yield return null;
+
+            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
+        }
     }
 }

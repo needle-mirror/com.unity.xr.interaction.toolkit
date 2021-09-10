@@ -37,12 +37,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// <summary>
             /// A binary measure of whether the index finger is activating the trigger.
             /// </summary>
-            TriggerPressed,
+            TriggerButton,
 
             /// <summary>
             /// A binary measure of whether the device is being gripped.
             /// </summary>
-            GripPressed,
+            GripButton,
 
             /// <summary>
             /// The primary face button being pressed on a device, or sole button if only one is available.
@@ -123,7 +123,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Represents a rightwards motion on the secondary touchpad or joystick on a device.
             /// </summary>
             SecondaryAxis2DRight,
-        };
+
+            /// <summary>
+            /// A binary measure of whether the index finger is activating the trigger.
+            /// </summary>
+            [Obsolete("TriggerPressed has been deprecated. Use TriggerButton instead. (UnityUpgradable) -> TriggerButton")]
+            TriggerPressed = TriggerButton,
+
+            /// <summary>
+            /// A binary measure of whether the device is being gripped.
+            /// </summary>
+            [Obsolete("GripPressed has been deprecated. Use GripButton instead. (UnityUpgradable) -> GripButton")]
+            GripPressed = GripButton,
+        }
 
         enum ButtonReadType
         {
@@ -154,8 +166,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             new ButtonInfo("MenuButton", ButtonReadType.Binary),
             new ButtonInfo("Trigger", ButtonReadType.Axis1D),
             new ButtonInfo("Grip", ButtonReadType.Axis1D),
-            new ButtonInfo("TriggerPressed", ButtonReadType.Binary),
-            new ButtonInfo("GripPressed", ButtonReadType.Binary),
+            new ButtonInfo("TriggerButton", ButtonReadType.Binary),
+            new ButtonInfo("GripButton", ButtonReadType.Binary),
             new ButtonInfo("PrimaryButton", ButtonReadType.Binary),
             new ButtonInfo("PrimaryTouch", ButtonReadType.Binary),
             new ButtonInfo("SecondaryButton", ButtonReadType.Binary),

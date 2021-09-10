@@ -18,8 +18,13 @@
     "versionDefines": [
         {
             "name": "com.unity.inputsystem",
-            "expression": "1.1.0-preview.2",
+            "expression": "1.1.0-pre.4",
             "define": "INPUT_SYSTEM_1_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "[1.1.0-preview.2,1.1.0-preview.3]",
+            "define": "INPUT_SYSTEM_1_1_PREVIEW"
         },
         {
             "name": "com.unity.xr.arfoundation",

@@ -161,5 +161,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 }
             }
         }
+
+        /// <summary>
+        /// Checks whether the Interactable is being touched.
+        /// </summary>
+        /// <param name="interactable">The Interactable to check if touching.</param>
+        /// <returns>Returns <see langword="true"/> if the Interactable is being touched. Otherwise, returns <see langword="false"/>.</returns>
+        public bool IsContacting(XRBaseInteractable interactable)
+        {
+            return m_UnorderedInteractables.Contains(interactable);
+        }
     }
 }

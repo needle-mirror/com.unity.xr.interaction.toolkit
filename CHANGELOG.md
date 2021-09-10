@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.6] - 2021-09-10
+
+### Changed
+- Changed `ARGestureInteractor.GetValidTargets` to no longer filter out Interactable objects based on the camera direction. The optimization method used was faulty and could cause Interactable objects that were still visible to be excluded from the list. ([1354009](https://issuetracker.unity3d.com/product/unity/issues/guid/1354009))
+
+### Fixed
+- Fixed Tracked Device Physics Raycaster so it will include raycast hits for GameObjects that did not have an event handler. This bug was causing events like `IPointerEnterHandler.OnPointerEnter` to not be invoked when the hit was on a child Collider that did not itself have an event handler. ([1356459](https://issuetracker.unity3d.com/product/unity/issues/guid/1356459))
+- Fixed `XRBaseInteractable.isHovered` so it only gets set to `false` when all Interactors exit hovering. It was previously getting set to `false` when any Interactor would exit hovering even if another Interactor was still hovering.
+- Fixed use of obsolete properties in `TrackedPoseDriver` when using Input System package version 1.1.0-pre.6 or newer.
+- Fixed the Default Input Actions sample to be compatible with Input System package version 1.1.0 by merging the two bindings for the Turn action into one binding with both Sector interactions.
+- Fixed the Socket Interactor hover mesh not matching the actual pose the Grab Interactable would attach to in the case when its attach transform was offset or rotated. Also fixed the pose of child meshes. ([1358567](https://issuetracker.unity3d.com/product/unity/issues/guid/1358567))
+- Fixed Interactable objects not being considered valid targets for Direct and Socket Interactors when the Interactable was registered after it had entered the trigger collider of the Interactor. Note that Unity rules for [Colliders](https://docs.unity3d.com/Manual/CollidersOverview.html) and [OnTriggerEnter](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTriggerEnter.html)/[OnTriggerExit](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTriggerExit.html) still applies where the Interactable GameObject being deactivated and then moved will cause the Interactor to miss the trigger enter/exit event. If the object is manipulated in that way, those trigger methods need to be manually called to inform the Direct or Socket Interactor. ([1340469](https://issuetracker.unity3d.com/product/unity/issues/guid/1340469))
+- Fixed the Trigger Pressed and Grip Pressed buttons not working on the XR Controller (Device-based). They were also renamed to Trigger Button and Grip Button to match the corresponding `CommonUsages` name.
+
 ## [1.0.0-pre.5] - 2021-08-02
 
 ### Added

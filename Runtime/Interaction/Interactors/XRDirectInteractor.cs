@@ -96,6 +96,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
             m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactable);
+            if (m_TriggerContactMonitor.IsContacting(args.interactable) && !m_ValidTargets.Contains(args.interactable))
+                m_ValidTargets.Add(args.interactable);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)

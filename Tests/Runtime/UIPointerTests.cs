@@ -480,7 +480,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Reset to Defaults
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -90.0f, 0.0f), false, false, false);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             leftUIReceiver.Reset();
             rightUIReceiver.Reset();
@@ -488,7 +489,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Move over left child.
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, false);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(1));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
@@ -512,7 +513,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Check basic down/up
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Down));
@@ -527,7 +528,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events, Has.Count.EqualTo(0));
 
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, false);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Up));
@@ -543,7 +544,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Check down and drag
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Down));
@@ -559,7 +560,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Move to new location on left child
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -10.0f, 0.0f), false, false, true);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.BeginDrag));
@@ -575,7 +576,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Move children
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, 30.0f, 0.0f), false, false, true);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Exit));
@@ -591,9 +592,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.Dragging));
             globalUIReceiver.Reset();
 
-            //Deselect
+            // Deselect
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, 30.0f, 0.0f), false, false, false);
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Up));
@@ -627,6 +628,78 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var testObjects = SetupPhysicsScene();
 
             yield return CheckEvents(testObjects);
+
+            // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
+            Object.Destroy(testObjects.eventSystem.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator PointerEnterBubblesUp()
+        {
+            var testObjects = SetupPhysicsScene();
+
+            var leftUIReceiver = testObjects.leftUIReceiver;
+            var rightUIReceiver = testObjects.rightUIReceiver;
+            var globalUIReceiver = testObjects.globalUIReceiver;
+
+            // Have the event receiver on a parent of the Collider child
+            // to test that pointer enter events are bubbled up to parent objects
+            // even when the hit GameObject does not have any event handlers itself.
+            Object.Destroy(leftUIReceiver.GetComponent<Collider>());
+            var leftUIColliderGameObject = new GameObject("Collider", typeof(BoxCollider));
+            leftUIColliderGameObject.transform.SetParent(leftUIReceiver.transform, false);
+
+            var recorder = testObjects.controllerRecorder;
+
+            // Reset to Defaults
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -90.0f, 0.0f), false, false, false);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            leftUIReceiver.Reset();
+            rightUIReceiver.Reset();
+            globalUIReceiver.Reset();
+
+            // Move over left child.
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, false);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(1));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(leftUIReceiver.events[0].data, Is.TypeOf<TrackedDeviceEventData>());
+
+            var globalEvents = globalUIReceiver.events;
+            var leftUIReceiverParentTransform = leftUIReceiver.transform.parent;
+            Assert.That(globalEvents, Has.Count.EqualTo(4));
+            Assert.That(globalEvents[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalEvents[0].data, Is.TypeOf<TrackedDeviceEventData>());
+            Assert.That(globalEvents[0].target, Is.EqualTo(leftUIColliderGameObject));
+            Assert.That(globalEvents[1].target, Is.EqualTo(leftUIReceiver.gameObject));
+            Assert.That(globalEvents[2].target, Is.EqualTo(leftUIReceiverParentTransform.gameObject));
+            Assert.That(globalEvents[3].target, Is.EqualTo(leftUIReceiverParentTransform.parent.gameObject));
+
+            var eventData = (TrackedDeviceEventData)leftUIReceiver.events[0].data;
+            Assert.That(eventData.interactor, Is.EqualTo(testObjects.interactor));
+            leftUIReceiver.Reset();
+            globalUIReceiver.Reset();
+
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            // Move off left child.
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -90.0f, 0.0f), false, false, false);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(1));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Exit));
+            Assert.That(leftUIReceiver.events[0].data, Is.TypeOf<TrackedDeviceEventData>());
+
+            Assert.That(globalEvents, Has.Count.EqualTo(4));
+            Assert.That(globalEvents[0].type, Is.EqualTo(EventType.Exit));
+            Assert.That(globalEvents[0].data, Is.TypeOf<TrackedDeviceEventData>());
+            Assert.That(globalEvents[0].target, Is.EqualTo(leftUIColliderGameObject));
+            Assert.That(globalEvents[1].target, Is.EqualTo(leftUIReceiver.gameObject));
+            Assert.That(globalEvents[2].target, Is.EqualTo(leftUIReceiverParentTransform.gameObject));
+            Assert.That(globalEvents[3].target, Is.EqualTo(leftUIReceiverParentTransform.parent.gameObject));
 
             // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
             Object.Destroy(testObjects.eventSystem.gameObject);

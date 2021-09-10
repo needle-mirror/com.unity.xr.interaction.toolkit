@@ -646,8 +646,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_CustomReticle != null)
                 RemoveCustomReticle(args.interactor);
 
-            isHovered = false;
             m_HoveringInteractors.Remove(args.interactor);
+            if (m_HoveringInteractors.Count == 0)
+                isHovered = false;
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             OnHoverExiting(args.interactor);

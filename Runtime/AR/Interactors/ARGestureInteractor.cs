@@ -153,6 +153,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public TwistGestureRecognizer TwistGestureRecognizer => twistGestureRecognizer;
 #pragma warning restore IDE1006
 
+        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
+
         /// <summary>
         /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
         /// </summary>
@@ -228,48 +230,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             m_ARSessionOrigin = s_ARSessionOriginCache;
         }
 
-        static float GetHorizontalFOV(Camera camera)
-        {
-            // Calculate the half horizontal FOV in radians
-            var vFOV = camera.fieldOfView * Mathf.Deg2Rad;
-            var cameraHeight = Mathf.Tan(vFOV * .5f);
-            return Mathf.Atan(cameraHeight * camera.aspect);
-        }
-
         /// <inheritdoc />
         public override void GetValidTargets(List<XRBaseInteractable> validTargets)
         {
             validTargets.Clear();
-
-            // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-            var camera = m_ARSessionOrigin != null ? m_ARSessionOrigin.camera : Camera.main;
-            if (camera == null)
-                return;
-
-            var cameraPosition = camera.transform.position;
-            var cameraForward = camera.transform.forward;
-            var hFOV = GetHorizontalFOV(camera);
-
-            interactionManager.GetRegisteredInteractables(s_Interactables);
-            foreach (var interactable in s_Interactables)
-            {
-                // We can always interact with placement interactables.
-                if (interactable is ARPlacementInteractable)
-                    validTargets.Add(interactable);
-                else if (interactable is ARBaseGestureInteractable)
-                {
-                    // Check if angle off of camera's forward axis is less than hFOV (more or less in camera frustum).
-                    // Note: this does not take size of object into consideration.
-                    // Note: this will fall down when directly over/under object (we should also check for dot
-                    // product with up/down.
-                    var toTarget = Vector3.Normalize(interactable.transform.position - cameraPosition);
-                    var dotForwardToTarget = Vector3.Dot(cameraForward, toTarget);
-                    if (Mathf.Acos(dotForwardToTarget) < hFOV)
-                        validTargets.Add(interactable);
-                }
-            }
-
-            s_Interactables.Clear();
+            validTargets.AddRange(m_ValidTargets);
         }
 
         /// <summary>
@@ -296,6 +261,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             twoFingerDragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
             tapGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
             twistGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        {
+            base.OnRegistered(args);
+            args.manager.interactableRegistered += OnInteractableRegistered;
+            args.manager.interactableUnregistered += OnInteractableUnregistered;
+
+            // Get all of the registered gesture interactables to use as the valid targets
+            m_ValidTargets.Clear();
+            interactionManager.GetRegisteredInteractables(s_Interactables);
+            foreach (var interactable in s_Interactables)
+            {
+                if (interactable is ARBaseGestureInteractable)
+                    m_ValidTargets.Add(interactable);
+            }
+
+            s_Interactables.Clear();
+        }
+
+        /// <inheritdoc />
+        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            base.OnUnregistered(args);
+            args.manager.interactableRegistered -= OnInteractableRegistered;
+            args.manager.interactableUnregistered -= OnInteractableUnregistered;
+        }
+
+        void OnInteractableRegistered(InteractableRegisteredEventArgs args)
+        {
+            if (args.interactable is ARBaseGestureInteractable)
+                m_ValidTargets.Add(args.interactable);
+        }
+
+        void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            if (args.interactable is ARBaseGestureInteractable)
+                m_ValidTargets.Remove(args.interactable);
         }
     }
 }

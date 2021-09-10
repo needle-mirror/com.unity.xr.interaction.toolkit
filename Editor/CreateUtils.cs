@@ -317,8 +317,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         trackedPoseDriver = Undo.AddComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>(xrCamera.gameObject);
 
                     Undo.RecordObject(trackedPoseDriver, "Configure Tracked Pose Driver");
-                    trackedPoseDriver.positionAction = new InputAction(null, InputActionType.Value, "<XRHMD>/centerEyePosition", null, null, "Vector3");
-                    trackedPoseDriver.rotationAction = new InputAction(null, InputActionType.Value, "<XRHMD>/centerEyeRotation", null, null, "Quaternion");
+                    var positionAction = new InputAction("Position", binding: "<XRHMD>/centerEyePosition", expectedControlType: "Vector3");
+                    var rotationAction = new InputAction("Rotation", binding: "<XRHMD>/centerEyeRotation", expectedControlType: "Quaternion");
+#if INPUT_SYSTEM_1_1_OR_NEWER && !INPUT_SYSTEM_1_1_PREVIEW // 1.1.0-pre.6 or newer, excluding older preview
+                    trackedPoseDriver.positionInput = new InputActionProperty(positionAction);
+                    trackedPoseDriver.rotationInput = new InputActionProperty(rotationAction);
+#else
+                    trackedPoseDriver.positionAction = positionAction;
+                    trackedPoseDriver.rotationAction = rotationAction;
+#endif
                     break;
                 }
                 case InputType.DeviceBased:

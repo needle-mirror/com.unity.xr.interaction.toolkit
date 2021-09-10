@@ -225,28 +225,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 DrawHoveredInteractables();
         }
 
-        Matrix4x4 GetInteractableAttachMatrix(XRGrabInteractable interactable, MeshFilter meshFilter, Vector3 scale)
+        Matrix4x4 GetHoverMeshMatrix(XRGrabInteractable interactable, MeshFilter meshFilter, float hoverScale)
         {
-            var interactableLocalPosition = Vector3.zero;
-            var interactableLocalRotation = Quaternion.identity;
+            var interactableAttachTransform = interactable.attachTransform != null ? interactable.attachTransform : interactable.transform;
+            var attachOffset = meshFilter.transform.position - interactableAttachTransform.position;
+            var interactableLocalPosition = interactableAttachTransform.InverseTransformDirection(attachOffset) * hoverScale;
+            var interactableLocalRotation = Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactableAttachTransform.rotation);
 
-            if (interactable.attachTransform != null)
-            {
-                // localPosition doesn't take into account scaling of parent objects, so scale attachpoint by lossyScale which is the global scale.
-                interactableLocalPosition =  Vector3.Scale(interactable.attachTransform.localPosition, interactable.attachTransform.lossyScale);
-                interactableLocalRotation = interactable.attachTransform.localRotation;
-            }
+            var position = attachTransform.position + attachTransform.rotation * interactableLocalPosition;
+            var rotation = attachTransform.rotation * interactableLocalRotation;
+            var scale = meshFilter.transform.lossyScale * hoverScale;
 
-            var finalPosition = attachTransform.position - interactableLocalPosition;
-            var finalRotation = attachTransform.rotation * interactableLocalRotation;
-
-            if(interactable.transform != meshFilter.transform)
-            {
-                finalPosition += Vector3.Scale(interactable.transform.InverseTransformPoint(meshFilter.transform.position), interactable.transform.lossyScale);
-                finalRotation *= Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactable.transform.rotation);
-            }
-
-            return Matrix4x4.TRS(finalPosition, finalRotation, scale);
+            return Matrix4x4.TRS(position, rotation, scale);
         }
 
         /// <summary>
@@ -254,6 +244,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawHoveredInteractables()
         {
+            if (m_InteractableHoverScale <= 0f)
+                return;
+
             var materialToDrawWith = selectTarget == null ? m_InteractableHoverMeshMaterial : m_InteractableCantHoverMeshMaterial;
             if (materialToDrawWith == null)
                 return;
@@ -261,8 +254,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var mainCamera = Camera.main;
             if (mainCamera == null)
                 return;
-
-            var hoveredScale = Mathf.Max(0f, m_InteractableHoverScale);
 
             foreach (var hoverTarget in hoverTargets)
             {
@@ -283,13 +274,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (!ShouldDrawHoverMesh(meshFilter, meshRenderer, mainCamera))
                         continue;
 
-                    for (var submeshIndex = 0; submeshIndex < meshFilter.sharedMesh.subMeshCount; ++submeshIndex)
+                    var matrix = GetHoverMeshMatrix(grabTarget, meshFilter, m_InteractableHoverScale);
+                    var sharedMesh = meshFilter.sharedMesh;
+                    for (var submeshIndex = 0; submeshIndex < sharedMesh.subMeshCount; ++submeshIndex)
                     {
                         Graphics.DrawMesh(
-                            meshFilter.sharedMesh,
-                            GetInteractableAttachMatrix(grabTarget, meshFilter, meshFilter.transform.lossyScale * hoveredScale),
+                            sharedMesh,
+                            matrix,
                             materialToDrawWith,
-                            gameObject.layer, // TODO Why use this Interactor layer instead of the Interactable layer?
+                            gameObject.layer,
                             null, // Draw mesh in all cameras (default value)
                             submeshIndex);
                     }
@@ -375,6 +368,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
             m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactable);
+            if (m_TriggerContactMonitor.IsContacting(args.interactable) && !m_ValidTargets.Contains(args.interactable))
+                m_ValidTargets.Add(args.interactable);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)

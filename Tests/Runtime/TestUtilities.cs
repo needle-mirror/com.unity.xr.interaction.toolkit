@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
@@ -99,6 +100,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
+        internal static MockInteractor CreateMockInteractor()
+        {
+            var interactorGO = new GameObject("Mock Interactor");
+            interactorGO.transform.localPosition = Vector3.zero;
+            interactorGO.transform.localRotation = Quaternion.identity;
+            var interactor = interactorGO.AddComponent<MockInteractor>();
+            return interactor;
+        }
+
         internal static XRGrabInteractable CreateGrabInteractable()
         {
             GameObject interactableGO = new GameObject("Grab Interactable");
@@ -129,6 +139,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             addRecordingFrames(controllerRecorder.recording);
             return controllerRecorder;
+        }
+    }
+
+    class MockInteractor : XRBaseInteractor
+    {
+        public List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
+
+        /// <inheritdoc />
+        public override void GetValidTargets(List<XRBaseInteractable> targets)
+        {
+            targets.Clear();
+            targets.AddRange(validTargets);
         }
     }
 }

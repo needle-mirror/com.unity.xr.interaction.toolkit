@@ -229,14 +229,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 var col = hit.collider;
                 var go = col.gameObject;
 
-                // It has to be able to handle UI Events
-                var validHit = go.GetComponent<IEventSystemHandler>() != null;
-
                 Vector2 screenPos = currentEventCamera.WorldToScreenPoint(hit.point);
                 var relativeMousePosition = Display.RelativeMouseAt(screenPos);
                 var displayIndex = (int)relativeMousePosition.z;
 
-                validHit &= hit.distance < hitDistance;
+                var validHit = hit.distance < hitDistance;
                 if (validHit)
                 {
                     var result = new RaycastResult
