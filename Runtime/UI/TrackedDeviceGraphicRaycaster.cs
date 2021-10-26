@@ -34,6 +34,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public int displayIndex { get; }
         }
 
+        /// <summary>
+        /// Compares raycast hits by graphic depth, to sort in descending order.
+        /// </summary>
         sealed class RaycastHitComparer : IComparer<RaycastHitData>
         {
             public int Compare(RaycastHitData a, RaycastHitData b)

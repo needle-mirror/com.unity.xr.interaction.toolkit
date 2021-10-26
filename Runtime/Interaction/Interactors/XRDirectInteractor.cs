@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -31,8 +30,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TriggerContactMonitor.contactAdded += OnContactAdded;
             m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
 
-            if (!GetComponents<Collider>().Any(x => x.isTrigger))
-                Debug.LogWarning("Direct Interactor does not have required Collider set as a trigger.", this);
+            ValidateTriggerCollider();
         }
 
         /// <summary>
@@ -51,6 +49,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void OnTriggerExit(Collider other)
         {
             m_TriggerContactMonitor.RemoveCollider(other);
+        }
+
+        void ValidateTriggerCollider()
+        {
+            // If there isn't a Rigidbody on the same GameObject, a Trigger Collider has to be on this GameObject
+            // for OnTriggerEnter and OnTriggerExit to be called by Unity. When this has a Rigidbody, Colliders can be
+            // on child GameObjects and they don't necessarily have to be Trigger Colliders.
+            // See Collision action matrix https://docs.unity3d.com/Manual/CollidersOverview.html
+            if (!TryGetComponent(out Rigidbody _))
+            {
+                var hasTriggerCollider = false;
+                foreach (var col in GetComponents<Collider>())
+                {
+                    if (col.isTrigger)
+                    {
+                        hasTriggerCollider = true;
+                        break;
+                    }
+                }
+
+                if (!hasTriggerCollider)
+                    Debug.LogWarning("Direct Interactor does not have required Collider set as a trigger.", this);
+            }
         }
 
         /// <inheritdoc />

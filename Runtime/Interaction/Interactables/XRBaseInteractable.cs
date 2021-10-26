@@ -316,12 +316,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRBaseInteractor.hoverTargets"/>
         public List<XRBaseInteractor> hoveringInteractors => m_HoveringInteractors;
 
+        XRBaseInteractor m_SelectingInteractor;
+
         /// <summary>
-        /// (Read Only) The interactor that is selecting this interactable (may be <see langword="null"/>).
+        /// The interactor that is selecting this interactable (may be <see langword="null"/>).
         /// </summary>
+        /// <remarks>
+        /// Unity automatically sets this value during <see cref="OnSelectEntering(SelectEnterEventArgs)"/>
+        /// and <see cref="OnSelectExiting(SelectExitEventArgs)"/> and should not typically need to be set
+        /// by a user. The setter is <see langword="protected"/> to allow for rare scenarios where a derived
+        /// class needs to control this value. Changing this value does not invoke select events.
+        /// </remarks>
         /// <seealso cref="isSelected"/>
         /// <seealso cref="XRBaseInteractor.selectTarget"/>
-        public XRBaseInteractor selectingInteractor { get; private set; }
+        public XRBaseInteractor selectingInteractor
+        {
+            get => m_SelectingInteractor;
+            protected set
+            {
+                m_SelectingInteractor = value;
+                isSelected = value != null;
+            }
+        }
 
         /// <summary>
         /// (Read Only) Indicates whether this interactable is currently being hovered.
@@ -689,7 +705,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectEntered(SelectEnterEventArgs)"/>
         protected internal virtual void OnSelectEntering(SelectEnterEventArgs args)
         {
-            isSelected = true;
             selectingInteractor = args.interactor;
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
@@ -728,7 +743,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectExited(SelectExitEventArgs)"/>
         protected internal virtual void OnSelectExiting(SelectExitEventArgs args)
         {
-            isSelected = false;
             selectingInteractor = null;
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.

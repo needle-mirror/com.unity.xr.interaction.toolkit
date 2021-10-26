@@ -243,7 +243,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public InteractionState uiPressInteractionState => m_UIPressInteractionState;
 
-        XRControllerState m_ControllerState = new XRControllerState();
+        XRControllerState m_ControllerState;
+        bool m_CreateControllerState = true;
 
 #if ANIMATION_MODULE_PRESENT
         /// <summary>
@@ -313,6 +314,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_Model.gameObject.SetActive(!m_HideControllerModel);
         }
 
+        void SetupControllerState()
+        {
+            if (m_ControllerState == null && m_CreateControllerState)
+                m_ControllerState = new XRControllerState();
+        }
+
         /// <summary>
         /// Gets the prefab that should be instantiated upon startup.
         /// </summary>
@@ -330,6 +337,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_PerformSetup)
             {
                 SetupModel();
+                SetupControllerState();
                 m_PerformSetup = false;
             }
 
@@ -372,6 +380,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns <see langword="false"/>.</returns>
         public virtual bool GetControllerState(out XRControllerState controllerState)
         {
+            SetupControllerState();
             controllerState = m_ControllerState;
             return false;
         }
@@ -383,6 +392,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public virtual void SetControllerState(XRControllerState controllerState)
         {
             m_ControllerState = controllerState;
+            m_CreateControllerState = false;
         }
 
         /// <summary>

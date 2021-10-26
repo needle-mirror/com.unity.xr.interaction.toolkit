@@ -73,10 +73,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        /// <summary>
+        /// Compares raycast hits by distance, to sort in ascending order.
+        /// </summary>
         sealed class RaycastHitComparer : IComparer<RaycastHit>
         {
+            /// <summary>
+            /// Compares raycast hits by distance in ascending order.
+            /// </summary>
+            /// <param name="a">The first raycast hit to compare.</param>
+            /// <param name="b">The second raycast hit to compare.</param>
+            /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
-                => b.distance.CompareTo(a.distance);
+                => a.distance.CompareTo(b.distance);
         }
 
         [SerializeField]
@@ -142,7 +151,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_EventCamera = newEventCamera;
         }
 
-        /// <summary>Perform a raycast against all physics objects using this event.</summary>
+        /// <summary>
+        /// Perform a raycast against all physics objects using this event.
+        /// </summary>
         /// <remarks>Will only process events of type <see cref="TrackedDeviceEventData"/>.</remarks>
         /// <param name="eventData">Data containing where and how to raycast.</param>
         /// <param name="resultAppendList">The resultant hits from the raycast.</param>

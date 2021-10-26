@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [1.0.0-pre.8] - 2021-10-26
+
+### Changed
+- Changed the setter of `XRBaseInteractable.selectingInteractor` from `private` to `protected`.
+
+### Fixed
+- Fixed `XRBaseController` so its default `XRControllerState` is no longer constructed with a field initializer to avoid allocation when not needed, such as when it is replaced with `SetControllerState`.
+- Fixed `XRUIInputModule` not processing clicks properly when using simulated touches, such as when using the Device Simulator view. This change means mouse input is not processed when there are touches, matching the behavior of other modules like the Standalone Input Module.
+- Fixed Direct Interactor logging a warning about not having a required trigger Collider when it has a Rigidbody.
+- Fixed missing dependency on `com.unity.modules.physics`.
+- Fixed the sort order of raycasts returned by `TrackedDevicePhysicsRaycaster.Raycast` so that distance is in ascending order (closest first). It was previously returning in descending order (furthest first). In practice, this bug did not affect users since `EventSystem.RaycastAll` would correct the order.
+
 ## [1.0.0-pre.6] - 2021-09-10
 
 ### Changed

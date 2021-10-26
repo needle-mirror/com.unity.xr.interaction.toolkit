@@ -224,11 +224,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
-            if (m_EnableMouseInput)
-                ProcessMouse();
-
+            // Touch needs to take precedence because of the mouse emulation layer
+            var hasTouches = false;
             if (m_EnableTouchInput)
-                ProcessTouches();
+                hasTouches = ProcessTouches();
+
+            if (m_EnableMouseInput && !hasTouches)
+                ProcessMouse();
         }
 
         void ProcessMouse()
@@ -261,20 +263,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessTouches()
+        bool ProcessTouches()
         {
-            if (Input.touchCount > 0)
-            {
-                var touches = Input.touches;
-                foreach (var touch in touches)
-                {
-                    var registeredTouchIndex = -1;
+            var hasTouches = Input.touchCount > 0;
+            if (!hasTouches)
+                return false;
 
-                    // Find if touch already exists
+            var touches = Input.touches;
+            foreach (var touch in touches)
+            {
+                var registeredTouchIndex = -1;
+
+                // Find if touch already exists
+                for (var j = 0; j < m_RegisteredTouches.Count; j++)
+                {
+                    if (touch.fingerId == m_RegisteredTouches[j].touchId)
+                    {
+                        registeredTouchIndex = j;
+                        break;
+                    }
+                }
+
+                if (registeredTouchIndex < 0)
+                {
+                    // Not found, search empty pool
                     for (var j = 0; j < m_RegisteredTouches.Count; j++)
                     {
-                        if (touch.fingerId == m_RegisteredTouches[j].touchId)
+                        if (!m_RegisteredTouches[j].isValid)
                         {
+                            // Re-use the Id
+                            var pointerId = m_RegisteredTouches[j].model.pointerId;
+                            m_RegisteredTouches[j] = new RegisteredTouch(touch, pointerId);
                             registeredTouchIndex = j;
                             break;
                         }
@@ -282,42 +301,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                     if (registeredTouchIndex < 0)
                     {
-                        // Not found, search empty pool
-                        for (var j = 0; j < m_RegisteredTouches.Count; j++)
-                        {
-                            if (!m_RegisteredTouches[j].isValid)
-                            {
-                                // Re-use the Id
-                                var pointerId = m_RegisteredTouches[j].model.pointerId;
-                                m_RegisteredTouches[j] = new RegisteredTouch(touch, pointerId);
-                                registeredTouchIndex = j;
-                                break;
-                            }
-                        }
-
-                        if (registeredTouchIndex < 0)
-                        {
-                            // No Empty slots, add one
-                            registeredTouchIndex = m_RegisteredTouches.Count;
-                            m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingInteractorIndex++));
-                        }
+                        // No Empty slots, add one
+                        registeredTouchIndex = m_RegisteredTouches.Count;
+                        m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingInteractorIndex++));
                     }
-
-                    var registeredTouch = m_RegisteredTouches[registeredTouchIndex];
-                    registeredTouch.model.selectPhase = touch.phase;
-                    registeredTouch.model.position = touch.position;
-                    m_RegisteredTouches[registeredTouchIndex] = registeredTouch;
                 }
 
-                for (var i = 0; i < m_RegisteredTouches.Count; i++)
-                {
-                    var registeredTouch = m_RegisteredTouches[i];
-                    ProcessTouch(ref registeredTouch.model);
-                    if (registeredTouch.model.selectPhase == TouchPhase.Ended || registeredTouch.model.selectPhase == TouchPhase.Canceled)
-                        registeredTouch.isValid = false;
-                    m_RegisteredTouches[i] = registeredTouch;
-                }
+                var registeredTouch = m_RegisteredTouches[registeredTouchIndex];
+                registeredTouch.model.selectPhase = touch.phase;
+                registeredTouch.model.position = touch.position;
+                m_RegisteredTouches[registeredTouchIndex] = registeredTouch;
             }
+
+            for (var i = 0; i < m_RegisteredTouches.Count; i++)
+            {
+                var registeredTouch = m_RegisteredTouches[i];
+                ProcessTouch(ref registeredTouch.model);
+                if (registeredTouch.model.selectPhase == TouchPhase.Ended || registeredTouch.model.selectPhase == TouchPhase.Canceled)
+                    registeredTouch.isValid = false;
+                m_RegisteredTouches[i] = registeredTouch;
+            }
+
+            return true;
         }
     }
 }

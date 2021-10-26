@@ -154,6 +154,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void UpdateTrackingInput(XRControllerState controllerState)
         {
+            base.UpdateTrackingInput(controllerState);
+            if (controllerState == null)
+                return;
+
             controllerState.poseDataFlags = PoseDataFlags.NoData;
 #if LIH_PRESENT_V1API
             if (m_PoseProvider != null)

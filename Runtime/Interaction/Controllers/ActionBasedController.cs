@@ -152,6 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void UpdateTrackingInput(XRControllerState controllerState)
         {
+            base.UpdateTrackingInput(controllerState);
             if (controllerState == null)
                 return;
 
