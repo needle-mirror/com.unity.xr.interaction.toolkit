@@ -13,6 +13,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_SelectActionTrigger;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.hideControllerOnSelect"/>.</summary>
         protected SerializedProperty m_HideControllerOnSelect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.allowHoveredActivate"/>.</summary>
+        protected SerializedProperty m_AllowHoveredActivate;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.playAudioClipOnSelectEntered"/>.</summary>
         protected SerializedProperty m_PlayAudioClipOnSelectEntered;
@@ -85,6 +87,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent selectActionTrigger = EditorGUIUtility.TrTextContent("Select Action Trigger", "Choose how the select action is triggered, either by current state, state transition, toggle when the select button is pressed, or sticky toggle when the select button is pressed and deselect the second time the select button is depressed.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.hideControllerOnSelect"/>.</summary>
             public static readonly GUIContent hideControllerOnSelect = EditorGUIUtility.TrTextContent("Hide Controller On Select", "Hide the controller model on select.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.allowHoveredActivate"/>.</summary>
+            public static readonly GUIContent allowHoveredActivate = EditorGUIUtility.TrTextContent("Allow Hovered Activate", "Send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.playAudioClipOnSelectEntered"/>.</summary>
             public static readonly GUIContent playAudioClipOnSelectEntered = EditorGUIUtility.TrTextContent("On Select Entered", "Play an audio clip when the Select state is entered.");
@@ -161,6 +165,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
             m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
+            m_AllowHoveredActivate = serializedObject.FindProperty("m_AllowHoveredActivate");
 
             m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
             m_AudioClipForOnSelectEntered = serializedObject.FindProperty("m_AudioClipForOnSelectEntered");
@@ -205,9 +210,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            base.DrawProperties();
+            // Not calling base method to completely override drawn properties
+
+            DrawCoreConfiguration();
             DrawSelectActionTrigger();
+            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
+            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
         }
 
         /// <inheritdoc />

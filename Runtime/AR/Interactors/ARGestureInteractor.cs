@@ -47,6 +47,7 @@ using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using UnityEngine.XR.ARFoundation;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -62,13 +63,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class ARGestureInteractor : XRBaseInteractor
     {
         [SerializeField]
-        ARSessionOrigin m_ARSessionOrigin;
+        XROrigin m_XROrigin;
 
         /// <summary>
-        /// The <see cref="ARSessionOrigin"/> that this Interactor will use
+        /// The <see cref="XROrigin"/> that this Interactor will use
         /// (such as to get the <see cref="Camera"/> or to transform from Session space).
         /// Will find one if <see langword="null"/>.
         /// </summary>
+        public XROrigin xrOrigin
+        {
+            get => m_XROrigin;
+            set
+            {
+                m_XROrigin = value;
+                if (Application.isPlaying)
+                    PushXROrigin();
+            }
+        }
+
+        [SerializeField]
+        ARSessionOrigin m_ARSessionOrigin;
+
+        /// <summary>
+        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
+        /// that this Interactor will use (such as to get the <see cref="Camera"/>
+        /// or to transform from Session space). Will find one if <see langword="null"/>.
+        /// </summary>
+        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
         public ARSessionOrigin arSessionOrigin
         {
             get => m_ARSessionOrigin;
@@ -91,7 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public PinchGestureRecognizer pinchGestureRecognizer { get; private set; }
 
         /// <summary>
-        /// (Read Only) The two finger drag gesture recognizer.
+        /// (Read Only) The two-finger Drag gesture recognizer.
         /// </summary>
         public TwoFingerDragGestureRecognizer twoFingerDragGestureRecognizer { get; private set; }
 
@@ -110,6 +131,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// (Read Only) The <see cref="ARGestureInteractor"/> instance.
         /// </summary>
+        /// <remarks>
+        /// <c>instance</c> has been deprecated. Use <see cref="ARBaseGestureInteractable.gestureInteractor"/> instead of singleton.
+        /// </remarks>
         [Obsolete("instance has been deprecated. Use ARBaseGestureInteractable.gestureInteractor instead of singleton.")]
         public static ARGestureInteractor instance
         {
@@ -129,31 +153,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc cref="instance"/>
+        /// <remarks>
+        /// <c>Instance</c> has been deprecated. Use <see cref="instance"/> instead.
+        /// </remarks>
         [Obsolete("Instance has been deprecated. Use instance instead. (UnityUpgradable) -> instance")]
         public static ARGestureInteractor Instance => instance;
 
         /// <inheritdoc cref="dragGestureRecognizer"/>
+        /// <remarks><c>DragGestureRecognizer</c> has been deprecated. Use <see cref="dragGestureRecognizer"/> instead.</remarks>
         [Obsolete("DragGestureRecognizer has been deprecated. Use dragGestureRecognizer instead. (UnityUpgradable) -> dragGestureRecognizer")]
         public DragGestureRecognizer DragGestureRecognizer => dragGestureRecognizer;
 
         /// <inheritdoc cref="pinchGestureRecognizer"/>
+        /// <remarks><c>PinchGestureRecognizer</c> has been deprecated. Use <see cref="pinchGestureRecognizer"/> instead.</remarks>
         [Obsolete("PinchGestureRecognizer has been deprecated. Use pinchGestureRecognizer instead. (UnityUpgradable) -> pinchGestureRecognizer")]
         public PinchGestureRecognizer PinchGestureRecognizer => pinchGestureRecognizer;
 
         /// <inheritdoc cref="twoFingerDragGestureRecognizer"/>
+        /// <remarks><c>TwoFingerDragGestureRecognizer</c> has been deprecated. Use <see cref="twoFingerDragGestureRecognizer"/> instead.</remarks>
         [Obsolete("TwoFingerDragGestureRecognizer has been deprecated. Use twoFingerDragGestureRecognizer instead. (UnityUpgradable) -> twoFingerDragGestureRecognizer")]
         public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer => twoFingerDragGestureRecognizer;
 
         /// <inheritdoc cref="tapGestureRecognizer"/>
+        /// <remarks><c>TapGestureRecognizer</c> has been deprecated. Use <see cref="tapGestureRecognizer"/> instead.</remarks>
         [Obsolete("TapGestureRecognizer has been deprecated. Use tapGestureRecognizer instead. (UnityUpgradable) -> tapGestureRecognizer")]
         public TapGestureRecognizer TapGestureRecognizer => tapGestureRecognizer;
 
         /// <inheritdoc cref="twistGestureRecognizer"/>
+        /// <remarks><c>TwistGestureRecognizer</c> has been deprecated. Use <see cref="twistGestureRecognizer"/> instead.</remarks>
         [Obsolete("TwistGestureRecognizer has been deprecated. Use twistGestureRecognizer instead. (UnityUpgradable) -> twistGestureRecognizer")]
         public TwistGestureRecognizer TwistGestureRecognizer => twistGestureRecognizer;
 #pragma warning restore IDE1006
 
-        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
+        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
+
+        /// <summary>
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// </summary>
+        static XROrigin s_XROriginCache;
 
         /// <summary>
         /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
@@ -163,13 +200,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Temporary, reusable list of registered Interactables.
         /// </summary>
-        static readonly List<XRBaseInteractable> s_Interactables = new List<XRBaseInteractable>();
+        static readonly List<IXRInteractable> s_Interactables = new List<IXRInteractable>();
 
         /// <inheritdoc />
         protected override void Reset()
         {
             base.Reset();
 #if UNITY_EDITOR
+            m_XROrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<XROrigin>(gameObject);
             m_ARSessionOrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<ARSessionOrigin>(gameObject);
 #endif
         }
@@ -185,8 +223,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             tapGestureRecognizer = new TapGestureRecognizer();
             twistGestureRecognizer = new TwistGestureRecognizer();
 
+            FindXROrigin();
+            PushXROrigin();
+
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility.
             FindARSessionOrigin();
             PushARSessionOrigin();
+#pragma warning restore 618
         }
 
         /// <inheritdoc />
@@ -197,8 +240,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #if ENABLE_INPUT_SYSTEM
             EnhancedTouchSupport.Enable();
 #endif
+            FindXROrigin();
+            PushXROrigin();
+
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility.
             FindARSessionOrigin();
             PushARSessionOrigin();
+#pragma warning restore 618
         }
 
         protected override void OnDisable()
@@ -219,6 +267,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 UpdateGestureRecognizers();
         }
 
+        void FindXROrigin()
+        {
+            if (m_XROrigin != null)
+                return;
+
+            if (s_XROriginCache == null)
+                s_XROriginCache = FindObjectOfType<XROrigin>();
+
+            m_XROrigin = s_XROriginCache;
+        }
+
         void FindARSessionOrigin()
         {
             if (m_ARSessionOrigin != null)
@@ -231,7 +290,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        public override void GetValidTargets(List<XRBaseInteractable> validTargets)
+        public override void GetValidTargets(List<IXRInteractable> validTargets)
         {
             validTargets.Clear();
             validTargets.AddRange(m_ValidTargets);
@@ -251,9 +310,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
+        /// Passes the <see cref="xrOrigin"/> to the Gesture Recognizers.
+        /// </summary>
+        /// <seealso cref="GestureRecognizer{T}.xrOrigin"/>
+        protected virtual void PushXROrigin()
+        {
+            dragGestureRecognizer.xrOrigin = m_XROrigin;
+            pinchGestureRecognizer.xrOrigin = m_XROrigin;
+            twoFingerDragGestureRecognizer.xrOrigin = m_XROrigin;
+            tapGestureRecognizer.xrOrigin = m_XROrigin;
+            twistGestureRecognizer.xrOrigin = m_XROrigin;
+        }
+
+        /// <summary>
         /// Passes the <see cref="arSessionOrigin"/> to the Gesture Recognizers.
         /// </summary>
         /// <seealso cref="GestureRecognizer{T}.arSessionOrigin"/>
+        [Obsolete("PushARSessionOrigin has been deprecated. Use PushXROrigin instead for similar functionality.")]
         protected virtual void PushARSessionOrigin()
         {
             dragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
@@ -264,7 +337,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        protected override void OnRegistered(InteractorRegisteredEventArgs args)
         {
             base.OnRegistered(args);
             args.manager.interactableRegistered += OnInteractableRegistered;
@@ -283,7 +356,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        protected override void OnUnregistered(InteractorUnregisteredEventArgs args)
         {
             base.OnUnregistered(args);
             args.manager.interactableRegistered -= OnInteractableRegistered;
@@ -292,14 +365,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
-            if (args.interactable is ARBaseGestureInteractable)
-                m_ValidTargets.Add(args.interactable);
+            if (args.interactableObject is ARBaseGestureInteractable)
+                m_ValidTargets.Add(args.interactableObject);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
         {
-            if (args.interactable is ARBaseGestureInteractable)
-                m_ValidTargets.Remove(args.interactable);
+            if (args.interactableObject is ARBaseGestureInteractable)
+                m_ValidTargets.Remove(args.interactableObject);
         }
     }
 }

@@ -40,8 +40,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public float slopInches { get; set; } = 0.1f;
 
         /// <summary>
-        /// Angle that both fingers must move in the same direction
-        /// before the drag gesture is interpreted as started.
+        /// Maximum angle of the divergence between the paths of both fingers
+        /// for a two-finger drag gesture to be interpreted as started.
         /// </summary>
         public float angleThresholdRadians { get; set; } = Mathf.PI / 6;
 

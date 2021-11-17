@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// </summary>
     /// <remarks>
     /// This class does not directly manipulate the camera or controllers which are part of
-    /// the XR Rig, but rather drives them indirectly through simulated input devices.
+    /// the XR Origin, but rather drives them indirectly through simulated input devices.
     /// <br /><br />
     /// Use the Package Manager window to install the <i>XR Device Simulator</i> sample into
     /// your project to get sample mouse and keyboard bindings for Input System actions that
@@ -22,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// To make use of this simulator, add the prefab to your scene (the prefab makes use
     /// of <see cref="InputActionManager"/> to ensure the Input System actions are enabled).
     /// <br /><br />
-    /// Note that the XR Rig must read the position and rotation of the HMD and controllers
+    /// Note that the XR Origin must read the position and rotation of the HMD and controllers
     /// by using Input System actions (such as by using <see cref="ActionBasedController"/>
     /// and <see cref="TrackedPoseDriver"/>) for this simulator to work as expected.
     /// Attempting to use XR input subsystem device methods (such as by using <see cref="XRController"/>
@@ -802,10 +802,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
-        [Tooltip("The Transform that contains the Camera. This is usually the \"Head\" of XR rigs. Automatically set to the first enabled camera tagged MainCamera if unset.")]
+        [Tooltip("The Transform that contains the Camera. This is usually the \"Head\" of XR Origins. Automatically set to the first enabled camera tagged MainCamera if unset.")]
         Transform m_CameraTransform;
         /// <summary>
-        /// The <see cref="Transform"/> that contains the <see cref="Camera"/>. This is usually the "Head" of XR rigs.
+        /// The <see cref="Transform"/> that contains the <see cref="Camera"/>. This is usually the "Head" of XR Origins.
         /// Automatically set to <see cref="Camera.main"/> if unset.
         /// </summary>
         public Transform cameraTransform
@@ -1563,7 +1563,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Add simulated XR devices to the Input System.
         /// </summary>
-        /// <seealso cref="InputSystem.AddDevice{TDevice}"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
         protected virtual void AddDevices()
         {
             m_HMDDevice = InputSystem.InputSystem.AddDevice<XRSimulatedHMD>();
@@ -1596,7 +1596,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Remove simulated XR devices from the Input System.
         /// </summary>
-        /// <seealso cref="InputSystem.RemoveDevice"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
         protected virtual void RemoveDevices()
         {
             if (m_HMDDevice != null && m_HMDDevice.added)

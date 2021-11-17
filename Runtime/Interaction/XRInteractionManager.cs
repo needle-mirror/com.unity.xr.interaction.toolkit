@@ -15,10 +15,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// for Interactors and Interactables to be able to communicate.
     /// </summary>
     /// <remarks>
-    /// Many of the methods on the abstract base classes of Interactors and Interactables are designed to be internal
-    /// such that they can be called by this Interaction Manager rather than being called directly in order to maintain
-    /// consistency between both targets of an interaction event.
+    /// Many of the methods on the Interactors and Interactables are designed to be called by this Interaction Manager
+    /// rather than being called directly in order to maintain consistency between both targets of an interaction event.
     /// </remarks>
+    /// <seealso cref="IXRInteractor"/>
+    /// <seealso cref="IXRInteractable"/>
     [AddComponentMenu("XR/XR Interaction Manager")]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionManager)]
@@ -26,47 +27,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public class XRInteractionManager : MonoBehaviour
     {
         /// <summary>
-        /// Calls the methods in its invocation list when an <see cref="XRBaseInteractor"/> is registered.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractor"/> is registered.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractorRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
         /// do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="RegisterInteractor"/>
-        /// <seealso cref="XRBaseInteractor.registered"/>
+        /// <seealso cref="RegisterInteractor(IXRInteractor)"/>
+        /// <seealso cref="IXRInteractor.registered"/>
         public event Action<InteractorRegisteredEventArgs> interactorRegistered;
 
         /// <summary>
-        /// Calls the methods in its invocation list when an <see cref="XRBaseInteractor"/> is unregistered.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractor"/> is unregistered.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractorUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
         /// do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="UnregisterInteractor"/>
-        /// <seealso cref="XRBaseInteractor.unregistered"/>
+        /// <seealso cref="UnregisterInteractor(IXRInteractor)"/>
+        /// <seealso cref="IXRInteractor.unregistered"/>
         public event Action<InteractorUnregisteredEventArgs> interactorUnregistered;
 
         /// <summary>
-        /// Calls the methods in its invocation list when an <see cref="XRBaseInteractable"/> is registered.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractable"/> is registered.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractableRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
         /// do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="RegisterInteractable"/>
-        /// <seealso cref="XRBaseInteractable.registered"/>
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
+        /// <seealso cref="IXRInteractable.registered"/>
         public event Action<InteractableRegisteredEventArgs> interactableRegistered;
 
         /// <summary>
-        /// Calls the methods in its invocation list when an <see cref="XRBaseInteractable"/> is unregistered.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractable"/> is unregistered.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractableUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
         /// do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="UnregisterInteractable"/>
-        /// <seealso cref="XRBaseInteractable.unregistered"/>
+        /// <seealso cref="UnregisterInteractable(IXRInteractable)"/>
+        /// <seealso cref="IXRInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
         /// <summary>
@@ -80,37 +81,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Map of all registered objects to test for colliding.
         /// </summary>
-        readonly Dictionary<Collider, XRBaseInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, XRBaseInteractable>();
+        readonly Dictionary<Collider, IXRInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, IXRInteractable>();
 
         /// <summary>
         /// List of registered Interactors.
         /// </summary>
-        readonly RegistrationList<XRBaseInteractor> m_Interactors = new RegistrationList<XRBaseInteractor>();
+        readonly RegistrationList<IXRInteractor> m_Interactors = new RegistrationList<IXRInteractor>();
 
         /// <summary>
         /// List of registered Interactables.
         /// </summary>
-        readonly RegistrationList<XRBaseInteractable> m_Interactables = new RegistrationList<XRBaseInteractable>();
+        readonly RegistrationList<IXRInteractable> m_Interactables = new RegistrationList<IXRInteractable>();
 
         /// <summary>
-        /// Reusable list of Interactables for retrieving hover targets of an Interactor.
+        /// Reusable list of Interactables for retrieving the current hovered Interactables of an Interactor.
         /// </summary>
-        readonly List<XRBaseInteractable> m_HoverTargets = new List<XRBaseInteractable>();
+        readonly List<IXRHoverInteractable> m_CurrentHovered = new List<IXRHoverInteractable>();
 
         /// <summary>
-        /// Reusable set of Interactables for retrieving hover targets of an Interactor.
+        /// Reusable list of Interactables for retrieving the current selected Interactables of an Interactor.
         /// </summary>
-        readonly HashSet<XRBaseInteractable> m_UnorderedHoverTargets = new HashSet<XRBaseInteractable>();
+        readonly List<IXRSelectInteractable> m_CurrentSelected = new List<IXRSelectInteractable>();
 
         /// <summary>
         /// Reusable list of valid targets for an Interactor.
         /// </summary>
-        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
+        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
         /// <summary>
         /// Reusable set of valid targets for an Interactor.
         /// </summary>
-        readonly HashSet<XRBaseInteractable> m_UnorderedValidTargets = new HashSet<XRBaseInteractable>();
+        readonly HashSet<IXRInteractable> m_UnorderedValidTargets = new HashSet<IXRInteractable>();
+
+        readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
+        readonly List<IXRInteractor> m_ScratchInteractors = new List<IXRInteractor>();
+        readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
 
         // Reusable event args
         readonly SelectEnterEventArgs m_SelectEnterEventArgs = new SelectEnterEventArgs();
@@ -122,6 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly InteractableRegisteredEventArgs m_InteractableRegisteredEventArgs = new InteractableRegisteredEventArgs();
         readonly InteractableUnregisteredEventArgs m_InteractableUnregisteredEventArgs = new InteractableUnregisteredEventArgs();
 
+        static readonly ProfilerMarker s_PreprocessInteractorsMarker = new ProfilerMarker("XRI.PreprocessInteractors");
         static readonly ProfilerMarker s_ProcessInteractorsMarker = new ProfilerMarker("XRI.ProcessInteractors");
         static readonly ProfilerMarker s_ProcessInteractablesMarker = new ProfilerMarker("XRI.ProcessInteractables");
         static readonly ProfilerMarker s_GetValidTargetsMarker = new ProfilerMarker("XRI.GetValidTargets");
@@ -161,8 +167,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             FlushRegistration();
 
-            using (s_ProcessInteractorsMarker.Auto())
-                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
+            using (s_PreprocessInteractorsMarker.Auto())
+                PreprocessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
             foreach (var interactor in m_Interactors.registeredSnapshot)
             {
@@ -172,16 +178,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (s_GetValidTargetsMarker.Auto())
                     GetValidTargets(interactor, m_ValidTargets);
 
-                using (s_EvaluateInvalidSelectionsMarker.Auto())
-                    ClearInteractorSelection(interactor);
-                using (s_EvaluateInvalidHoversMarker.Auto())
-                    ClearInteractorHover(interactor, m_ValidTargets);
-                using (s_EvaluateValidSelectionsMarker.Auto())
-                    InteractorSelectValidTargets(interactor, m_ValidTargets);
-                using (s_EvaluateValidHoversMarker.Auto())
-                    InteractorHoverValidTargets(interactor, m_ValidTargets);
+                // Cast to the abstract base classes to assist with backwards compatibility with existing user code.
+                GetOfType(m_ValidTargets, m_DeprecatedValidTargets);
+
+                var selectInteractor = interactor as IXRSelectInteractor;
+                var hoverInteractor = interactor as IXRHoverInteractor;
+
+                if (selectInteractor != null)
+                {
+                    using (s_EvaluateInvalidSelectionsMarker.Auto())
+                        ClearInteractorSelectionInternal(selectInteractor, m_ValidTargets);
+                }
+
+                if (hoverInteractor != null)
+                {
+                    using (s_EvaluateInvalidHoversMarker.Auto())
+                        ClearInteractorHoverInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                }
+
+                if (selectInteractor != null)
+                {
+                    using (s_EvaluateValidSelectionsMarker.Auto())
+                        InteractorSelectValidTargetsInternal(selectInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                }
+
+                if (hoverInteractor != null)
+                {
+                    using (s_EvaluateValidHoversMarker.Auto())
+                        InteractorHoverValidTargetsInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                }
             }
 
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
             using (s_ProcessInteractablesMarker.Auto())
                 ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
         }
@@ -229,9 +258,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
         /// <summary>
-        ///  Process all interactors in a scene.
+        /// Automatically called each frame to preprocess all interactors registered with this manager.
         /// </summary>
         /// <param name="updatePhase">The update phase.</param>
+        /// <seealso cref="IXRInteractor.PreprocessInteractor"/>
+        protected virtual void PreprocessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            foreach (var interactor in m_Interactors.registeredSnapshot)
+            {
+                if (!m_Interactors.IsStillRegistered(interactor))
+                    continue;
+
+                interactor.PreprocessInteractor(updatePhase);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called each frame to process all interactors registered with this manager.
+        /// </summary>
+        /// <param name="updatePhase">The update phase.</param>
+        /// <seealso cref="IXRInteractor.ProcessInteractor"/>
         protected virtual void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactor in m_Interactors.registeredSnapshot)
@@ -244,9 +290,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Process all interactables in a scene.
+        /// Automatically called each frame to process all interactables registered with this manager.
         /// </summary>
         /// <param name="updatePhase">The update phase.</param>
+        /// <seealso cref="IXRInteractable.ProcessInteractable"/>
         protected virtual void ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactable in m_Interactables.registeredSnapshot)
@@ -258,16 +305,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <inheritdoc cref="RegisterInteractor(IXRInteractor)"/>
+        /// <remarks>
+        /// <c>RegisterInteractor(XRBaseInteractor)</c> has been deprecated. Use <see cref="RegisterInteractor(IXRInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("RegisterInteractor(XRBaseInteractor) has been deprecated. Use RegisterInteractor(IXRInteractor) instead.")]
+        public virtual void RegisterInteractor(XRBaseInteractor interactor) => RegisterInteractor((IXRInteractor)interactor);
+
         /// <summary>
-        /// Register a new Interactor to be processed.
+        /// Registers a new Interactor to be processed.
         /// </summary>
         /// <param name="interactor">The Interactor to be registered.</param>
-        public virtual void RegisterInteractor(XRBaseInteractor interactor)
+        public virtual void RegisterInteractor(IXRInteractor interactor)
         {
             if (m_Interactors.Register(interactor))
             {
                 m_InteractorRegisteredEventArgs.manager = this;
-                m_InteractorRegisteredEventArgs.interactor = interactor;
+                m_InteractorRegisteredEventArgs.interactorObject = interactor;
                 OnRegistered(m_InteractorRegisteredEventArgs);
             }
         }
@@ -280,31 +334,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="RegisterInteractor"/>
+        /// <seealso cref="RegisterInteractor(IXRInteractor)"/>
         protected virtual void OnRegistered(InteractorRegisteredEventArgs args)
         {
             Debug.Assert(args.manager == this, this);
 
-            args.interactor.OnRegistered(args);
+            args.interactorObject.OnRegistered(args);
             interactorRegistered?.Invoke(args);
         }
 
+        /// <inheritdoc cref="UnregisterInteractor(IXRInteractor)"/>
+        /// <remarks>
+        /// <c>UnregisterInteractor(XRBaseInteractor)</c> has been deprecated. Use <see cref="UnregisterInteractor(IXRInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("UnregisterInteractor(XRBaseInteractor) has been deprecated. Use UnregisterInteractor(IXRInteractor) instead.")]
+        public virtual void UnregisterInteractor(XRBaseInteractor interactor) => UnregisterInteractor((IXRInteractor)interactor);
+
         /// <summary>
-        /// Unregister an Interactor so it is no longer processed.
+        /// Unregisters an Interactor so it is no longer processed.
         /// </summary>
         /// <param name="interactor">The Interactor to be unregistered.</param>
-        public virtual void UnregisterInteractor(XRBaseInteractor interactor)
+        public virtual void UnregisterInteractor(IXRInteractor interactor)
         {
             if (!IsRegistered(interactor))
                 return;
 
-            CancelInteractorSelection(interactor);
-            CancelInteractorHover(interactor);
+            if (interactor is IXRSelectInteractor selectInteractor)
+                CancelInteractorSelectionInternal(selectInteractor);
+
+            if (interactor is IXRHoverInteractor hoverInteractor)
+                CancelInteractorHoverInternal(hoverInteractor);
 
             if (m_Interactors.Unregister(interactor))
             {
                 m_InteractorUnregisteredEventArgs.manager = this;
-                m_InteractorUnregisteredEventArgs.interactor = interactor;
+                m_InteractorUnregisteredEventArgs.interactorObject = interactor;
                 OnUnregistered(m_InteractorUnregisteredEventArgs);
             }
         }
@@ -317,20 +381,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="UnregisterInteractor"/>
+        /// <seealso cref="UnregisterInteractor(IXRInteractor)"/>
         protected virtual void OnUnregistered(InteractorUnregisteredEventArgs args)
         {
             Debug.Assert(args.manager == this, this);
 
-            args.interactor.OnUnregistered(args);
+            args.interactorObject.OnUnregistered(args);
             interactorUnregistered?.Invoke(args);
         }
 
+        /// <inheritdoc cref="RegisterInteractable(IXRInteractable)"/>
+        /// <remarks>
+        /// <c>RegisterInteractable(XRBaseInteractable)</c> has been deprecated. Use <see cref="RegisterInteractable(IXRInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("RegisterInteractable(XRBaseInteractable) has been deprecated. Use RegisterInteractable(IXRInteractable) instead.")]
+        public virtual void RegisterInteractable(XRBaseInteractable interactable) => RegisterInteractable((IXRInteractable)interactable);
+
         /// <summary>
-        /// Register a new Interactable to be processed.
+        /// Registers a new Interactable to be processed.
         /// </summary>
         /// <param name="interactable">The Interactable to be registered.</param>
-        public virtual void RegisterInteractable(XRBaseInteractable interactable)
+        public virtual void RegisterInteractable(IXRInteractable interactable)
         {
             if (m_Interactables.Register(interactable))
             {
@@ -356,13 +427,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         Debug.LogWarning("A Collider used by an Interactable object is already registered with another Interactable object." +
                             $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
-                            $" The value returned by {nameof(XRInteractionManager)}.{nameof(GetInteractableForCollider)} will be the first association.",
-                            interactable);
+                            $" The value returned by {nameof(XRInteractionManager)}.{nameof(TryGetInteractableForCollider)} will be the first association.",
+                            interactable as Object);
                     }
                 }
 
                 m_InteractableRegisteredEventArgs.manager = this;
-                m_InteractableRegisteredEventArgs.interactable = interactable;
+                m_InteractableRegisteredEventArgs.interactableObject = interactable;
                 OnRegistered(m_InteractableRegisteredEventArgs);
             }
         }
@@ -375,26 +446,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="RegisterInteractable"/>
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
         protected virtual void OnRegistered(InteractableRegisteredEventArgs args)
         {
             Debug.Assert(args.manager == this, this);
 
-            args.interactable.OnRegistered(args);
+            args.interactableObject.OnRegistered(args);
             interactableRegistered?.Invoke(args);
         }
 
+        /// <inheritdoc cref="UnregisterInteractable(IXRInteractable)"/>
+        /// <remarks>
+        /// <c>UnregisterInteractable(XRBaseInteractable)</c> has been deprecated. Use <see cref="UnregisterInteractable(IXRInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("UnregisterInteractable(XRBaseInteractable) has been deprecated. Use UnregisterInteractable(IXRInteractable) instead.")]
+        public virtual void UnregisterInteractable(XRBaseInteractable interactable) => UnregisterInteractable((IXRInteractable)interactable);
+
         /// <summary>
-        /// Unregister an Interactable so it is no longer processed.
+        /// Unregisters an Interactable so it is no longer processed.
         /// </summary>
         /// <param name="interactable">The Interactable to be unregistered.</param>
-        public virtual void UnregisterInteractable(XRBaseInteractable interactable)
+        public virtual void UnregisterInteractable(IXRInteractable interactable)
         {
             if (!IsRegistered(interactable))
                 return;
 
-            CancelInteractableSelection(interactable);
-            CancelInteractableHover(interactable);
+            if (interactable is IXRSelectInteractable selectable)
+                CancelInteractableSelectionInternal(selectable);
+
+            if (interactable is IXRHoverInteractable hoverable)
+                CancelInteractableHoverInternal(hoverable);
 
             if (m_Interactables.Unregister(interactable))
             {
@@ -411,7 +492,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
 
                 m_InteractableUnregisteredEventArgs.manager = this;
-                m_InteractableUnregisteredEventArgs.interactable = interactable;
+                m_InteractableUnregisteredEventArgs.interactableObject = interactable;
                 OnUnregistered(m_InteractableUnregisteredEventArgs);
             }
         }
@@ -424,17 +505,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
         /// </remarks>
-        /// <seealso cref="UnregisterInteractable"/>
+        /// <seealso cref="UnregisterInteractable(IXRInteractable)"/>
         protected virtual void OnUnregistered(InteractableUnregisteredEventArgs args)
         {
             Debug.Assert(args.manager == this, this);
 
-            args.interactable.OnUnregistered(args);
+            args.interactableObject.OnUnregistered(args);
             interactableUnregistered?.Invoke(args);
         }
 
+        /// <inheritdoc cref="GetRegisteredInteractors(List{IXRInteractor})"/>
+        /// <remarks>
+        /// <c>GetRegisteredInteractors(List&lt;XRBaseInteractor&gt;)</c> has been deprecated. Use <see cref="GetRegisteredInteractors(List{IXRInteractor})"/> instead.
+        /// </remarks>
+        [Obsolete("GetRegisteredInteractors(List<XRBaseInteractor>) has been deprecated. Use GetRegisteredInteractors(List<IXRInteractor>) instead.")]
+        public void GetRegisteredInteractors(List<XRBaseInteractor> results)
+        {
+            GetRegisteredInteractors(m_ScratchInteractors);
+            GetOfType(m_ScratchInteractors, results);
+        }
+
         /// <summary>
-        /// Return all registered Interactors into List <paramref name="results"/>.
+        /// Returns all registered Interactors into List <paramref name="results"/>.
         /// </summary>
         /// <param name="results">List to receive registered Interactors.</param>
         /// <remarks>
@@ -442,9 +534,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// method is called. It is not a live view, meaning Interactors
         /// registered or unregistered afterward will not be reflected in the
         /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
         /// </remarks>
-        /// <seealso cref="GetRegisteredInteractables"/>
-        public void GetRegisteredInteractors(List<XRBaseInteractor> results)
+        /// <seealso cref="GetRegisteredInteractables(List{IXRInteractable})"/>
+        public void GetRegisteredInteractors(List<IXRInteractor> results)
         {
             if (results == null)
                 throw new ArgumentNullException(nameof(results));
@@ -452,8 +545,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_Interactors.GetRegisteredItems(results);
         }
 
+        /// <inheritdoc cref="GetRegisteredInteractables(List{IXRInteractable})"/>
+        /// <remarks>
+        /// <c>GetRegisteredInteractables(List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="GetRegisteredInteractables(List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("GetRegisteredInteractables(List<XRBaseInteractable>) has been deprecated. Use GetRegisteredInteractables(List<IXRInteractable>) instead.")]
+        public void GetRegisteredInteractables(List<XRBaseInteractable> results)
+        {
+            GetRegisteredInteractables(m_ScratchInteractables);
+            GetOfType(m_ScratchInteractables, results);
+        }
+
         /// <summary>
-        /// Return all registered Interactables into List <paramref name="results"/>.
+        /// Returns all registered Interactables into List <paramref name="results"/>.
         /// </summary>
         /// <param name="results">List to receive registered Interactables.</param>
         /// <remarks>
@@ -461,9 +565,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// method is called. It is not a live view, meaning Interactables
         /// registered or unregistered afterward will not be reflected in the
         /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
         /// </remarks>
-        /// <seealso cref="GetRegisteredInteractors"/>
-        public void GetRegisteredInteractables(List<XRBaseInteractable> results)
+        /// <seealso cref="GetRegisteredInteractors(List{IXRInteractor})"/>
+        public void GetRegisteredInteractables(List<IXRInteractable> results)
         {
             if (results == null)
                 throw new ArgumentNullException(nameof(results));
@@ -471,29 +576,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_Interactables.GetRegisteredItems(results);
         }
 
+        /// <inheritdoc cref="IsRegistered(IXRInteractor)"/>
+        /// <remarks>
+        /// <c>IsRegistered(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsRegistered(IXRInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsRegistered(XRBaseInteractor) has been deprecated. Use IsRegistered(IXRInteractor) instead.")]
+        public bool IsRegistered(XRBaseInteractor interactor) => IsRegistered((IXRInteractor)interactor);
+
         /// <summary>
         /// Checks whether the <paramref name="interactor"/> is registered with this Interaction Manager.
         /// </summary>
         /// <param name="interactor">The Interactor to check.</param>
         /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
-        /// <seealso cref="RegisterInteractor"/>
-        public bool IsRegistered(XRBaseInteractor interactor)
+        /// <seealso cref="RegisterInteractor(IXRInteractor)"/>
+        public bool IsRegistered(IXRInteractor interactor)
         {
             return m_Interactors.IsRegistered(interactor);
         }
+
+        /// <inheritdoc cref="IsRegistered(IXRInteractable)"/>
+        /// <remarks>
+        /// <c>IsRegistered(XRBaseInteractable)</c> has been deprecated. Use <see cref="IsRegistered(IXRInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("IsRegistered(XRBaseInteractable) has been deprecated. Use IsRegistered(IXRInteractable) instead.")]
+        public bool IsRegistered(XRBaseInteractable interactable) => IsRegistered((IXRInteractable)interactable);
 
         /// <summary>
         /// Checks whether the <paramref name="interactable"/> is registered with this Interaction Manager.
         /// </summary>
         /// <param name="interactable">The Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
-        /// <seealso cref="RegisterInteractable"/>
-        public bool IsRegistered(XRBaseInteractable interactable)
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
+        public bool IsRegistered(IXRInteractable interactable)
         {
             return m_Interactables.IsRegistered(interactable);
         }
 
         /// <inheritdoc cref="GetInteractableForCollider"/>
+        /// <remarks>
+        /// <c>TryGetInteractableForCollider</c> has been deprecated. Use <see cref="GetInteractableForCollider"/> instead.
+        /// </remarks>
         [Obsolete("TryGetInteractableForCollider has been deprecated. Use GetInteractableForCollider instead. (UnityUpgradable) -> GetInteractableForCollider(*)")]
         public XRBaseInteractable TryGetInteractableForCollider(Collider interactableCollider)
         {
@@ -501,47 +623,108 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Gets the Interactable a specific <see cref="Collider"/> is attached to.
+        /// </summary>
+        /// <param name="interactableCollider">The collider of the Interactable to retrieve.</param>
+        /// <param name="interactable">The returned Interactable associated with the collider.</param>
+        /// <returns>Returns <see langword="true"/> if an Interactable was associated with the collider. Otherwise, returns <see langword="false"/>.</returns>
+        public bool TryGetInteractableForCollider(Collider interactableCollider, out IXRInteractable interactable)
+        {
+            interactable = null;
+            return interactableCollider != null && m_ColliderToInteractableMap.TryGetValue(interactableCollider, out interactable) && interactable != null;
+        }
+
+        /// <summary>
         /// Gets the Interactable a specific collider is attached to.
         /// </summary>
         /// <param name="interactableCollider">The collider of the Interactable to retrieve.</param>
-        /// <returns>The Interactable that the collider is attached to. Otherwise returns <see langword="null"/> if no such Interactable exists.</returns>
+        /// <returns>Returns the Interactable that the collider is attached to. Otherwise returns <see langword="null"/> if no such Interactable exists.</returns>
+        /// <remarks>
+        /// <c>GetInteractableForCollider</c> has been deprecated. Use <see cref="TryGetInteractableForCollider(Collider, out IXRInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("GetInteractableForCollider has been deprecated. Use TryGetInteractableForCollider(Collider, out IXRInteractable) instead.")]
         public XRBaseInteractable GetInteractableForCollider(Collider interactableCollider)
         {
-            if (interactableCollider != null && m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var interactable))
-                return interactable;
+            if (TryGetInteractableForCollider(interactableCollider, out var interactable))
+                return interactable as XRBaseInteractable;
 
             return null;
         }
 
-
-        // TODO Expose the dictionary as a read-only wrapper if necessary rather than providing a reference this way
         /// <summary>
         /// Gets the dictionary that has all the registered colliders and their associated Interactable.
         /// </summary>
         /// <param name="map">When this method returns, contains the dictionary that has all the registered colliders and their associated Interactable.</param>
+        /// <remarks>
+        /// Clears <paramref name="map"/> before adding to it.
+        /// <br />
+        /// <c>GetColliderToInteractableMap</c> has been deprecated. GetColliderToInteractableMap has been deprecated. The signature no longer matches the field used by the XRInteractionManager, so a copy is returned instead of a ref. Changes to the returned Dictionary will not be observed by the XRInteractionManager.
+        /// </remarks>
+        [Obsolete("GetColliderToInteractableMap has been deprecated. The signature no longer matches the field used by the XRInteractionManager, so a copy is returned instead of a ref. Changes to the returned Dictionary will not be observed by the XRInteractionManager.", true)]
         public void GetColliderToInteractableMap(ref Dictionary<Collider, XRBaseInteractable> map)
         {
             if (map != null)
             {
                 map.Clear();
-                map = m_ColliderToInteractableMap;
+                foreach (var kvp in m_ColliderToInteractableMap)
+                {
+                    if (kvp.Value is XRBaseInteractable baseInteractable)
+                        map.Add(kvp.Key, baseInteractable);
+                }
             }
         }
 
         /// <summary>
-        /// For the provided <paramref name="interactor"/>, return a list of the valid Interactables that can be hovered over or selected.
+        /// Retrieves the list of Interactables that the given Interactor could possibly interact with this frame.
+        /// This list is sorted by priority (with highest priority first), and will only contain Interactables
+        /// that are registered with this Interaction Manager.
+        /// </summary>
+        /// <param name="interactor">The Interactor to get valid targets for.</param>
+        /// <param name="targets">The results list to populate with Interactables that are valid for selection or hover.</param>
+        /// <remarks>
+        /// Unity expects the <paramref name="interactor"/>'s implementation of <see cref="IXRInteractor.GetValidTargets"/> to clear <paramref name="results"/> before adding to it.
+        /// </remarks>
+        /// <seealso cref="IXRInteractor.GetValidTargets"/>
+        public void GetValidTargets(IXRInteractor interactor, List<IXRInteractable> targets)
+        {
+            interactor.GetValidTargets(targets);
+
+            // To attempt to be backwards compatible with user scripts that have not been upgraded to use the interfaces,
+            // call the old method to let existing code modify the list.
+            if (interactor is XRBaseInteractor baseInteractor)
+            {
+                m_DeprecatedValidTargets.Clear();
+                GetOfType(targets, m_DeprecatedValidTargets);
+                if (targets.Count == m_DeprecatedValidTargets.Count)
+                {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+                    baseInteractor.GetValidTargets(m_DeprecatedValidTargets);
+#pragma warning restore 618
+
+                    GetOfType(m_DeprecatedValidTargets, targets);
+                }
+            }
+
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+            using (s_FilterRegisteredValidTargetsMarker.Auto())
+                RemoveAllUnregistered(this, targets);
+        }
+
+        /// <summary>
+        /// For the provided <paramref name="interactor"/>, returns a list of the valid Interactables that can be hovered over or selected.
         /// </summary>
         /// <param name="interactor">The Interactor whose valid targets we want to find.</param>
         /// <param name="validTargets">List to be filled with valid targets of the Interactor.</param>
         /// <returns>The list of valid targets of the Interactor.</returns>
-        /// <seealso cref="XRBaseInteractor.GetValidTargets"/>
+        /// <seealso cref="IXRInteractor.GetValidTargets"/>
+        /// <remarks>
+        /// <c>GetValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="GetValidTargets(IXRInteractor, List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("GetValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use GetValidTargets(IXRInteractor, List<IXRInteractable>) instead.")]
         public List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            interactor.GetValidTargets(validTargets);
-
-            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
-            using (s_FilterRegisteredValidTargetsMarker.Auto())
-                RemoveAllUnregistered(this, validTargets);
+            GetValidTargets(interactor, m_ScratchInteractables);
+            GetOfType(m_ScratchInteractables, validTargets);
 
             return validTargets;
         }
@@ -555,7 +738,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// Does not modify the manager at all, just the list.
         /// </remarks>
-        internal static int RemoveAllUnregistered(XRInteractionManager manager, List<XRBaseInteractable> interactables)
+        internal static int RemoveAllUnregistered(XRInteractionManager manager, List<IXRInteractable> interactables)
         {
             var numRemoved = 0;
             for (var i = interactables.Count - 1; i >= 0; --i)
@@ -575,54 +758,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that will force select the Interactable.</param>
         /// <param name="interactable">The Interactable to be forced selected.</param>
-        public void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        /// <remarks>
+        /// <c>ForceSelect(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("ForceSelect(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead.")]
+        public void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable) => SelectEnter(interactor, interactable);
+
+        /// <summary>
+        /// Automatically called each frame during Update to clear the selection of the Interactor if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its selection state.</param>
+        /// <remarks>
+        /// <c>ClearInteractorSelection(XRBaseInteractor)</c> has been deprecated. Use <see cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("ClearInteractorSelection(XRBaseInteractor) has been deprecated. Use ClearInteractorSelection(IXRSelectInteractor, List<IXRInteractable>) instead.")]
+        public virtual void ClearInteractorSelection(XRBaseInteractor interactor)
         {
-            SelectEnter(interactor, interactable);
         }
 
         /// <summary>
         /// Automatically called each frame during Update to clear the selection of the Interactor if necessary due to current conditions.
         /// </summary>
         /// <param name="interactor">The Interactor to potentially exit its selection state.</param>
-        public virtual void ClearInteractorSelection(XRBaseInteractor interactor)
-        {
-            if (interactor.selectTarget != null &&
-                (!interactor.isSelectActive || !interactor.CanSelect(interactor.selectTarget) || !interactor.selectTarget.IsSelectableBy(interactor)))
-            {
-                SelectExit(interactor, interactor.selectTarget);
-            }
-        }
-
-        /// <summary>
-        /// Automatically called when an Interactor is unregistered to cancel the selection of the Interactor if necessary.
-        /// </summary>
-        /// <param name="interactor">The Interactor to potentially exit its selection state due to cancellation.</param>
-        public virtual void CancelInteractorSelection(XRBaseInteractor interactor)
-        {
-            if (interactor.selectTarget != null)
-                SelectCancel(interactor, interactor.selectTarget);
-        }
-
-        /// <summary>
-        /// Automatically called when an Interactable is unregistered to cancel the selection of the Interactable if necessary.
-        /// </summary>
-        /// <param name="interactable">The Interactable to potentially exit its selection state due to cancellation.</param>
-        public virtual void CancelInteractableSelection(XRBaseInteractable interactable)
-        {
-            if (interactable.selectingInteractor != null)
-                SelectCancel(interactable.selectingInteractor, interactable);
-        }
-
-        /// <summary>
-        /// Automatically called each frame during Update to clear the hover state of the Interactor if necessary due to current conditions.
-        /// </summary>
-        /// <param name="interactor">The Interactor to potentially exit its hover state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
-        public virtual void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        /// <seealso cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/>
+        protected virtual void ClearInteractorSelection(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
-            interactor.GetHoverTargets(m_HoverTargets);
-            if (m_HoverTargets.Count == 0)
+            if (interactor.interactablesSelected.Count == 0)
                 return;
+
+            m_CurrentSelected.Clear();
+            m_CurrentSelected.AddRange(interactor.interactablesSelected);
 
             // Performance optimization of the Contains checks by putting the valid targets into a HashSet.
             // Some Interactors like ARGestureInteractor can have hundreds of valid Interactables
@@ -636,60 +802,254 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
 
-            for (var i = m_HoverTargets.Count - 1; i >= 0; --i)
+            for (var i = m_CurrentSelected.Count - 1; i >= 0; --i)
             {
-                var target = m_HoverTargets[i];
-                if (!interactor.isHoverActive || !interactor.CanHover(target) || !target.IsHoverableBy(interactor) || !m_UnorderedValidTargets.Contains(target))
-                    HoverExit(interactor, target);
+                var interactable = m_CurrentSelected[i];
+                // Selection, unlike hover, can control whether the interactable has to continue being a valid target
+                // to automatically cause it to be deselected.
+                if (!interactor.isSelectActive || !HasInteractionLayerOverlap(interactor, interactable) || !interactor.CanSelect(interactable) || !interactable.IsSelectableBy(interactor) || (!interactor.keepSelectedTargetValid && !m_UnorderedValidTargets.Contains(interactable)))
+                    SelectExitInternal(interactor, interactable);
             }
+        }
+
+        void ClearInteractorSelectionInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
+        {
+            ClearInteractorSelection(interactor, validTargets);
+            if (interactor is XRBaseInteractor baseInteractor)
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+                ClearInteractorSelection(baseInteractor);
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Automatically called when an Interactor is unregistered to cancel the selection of the Interactor if necessary.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its selection state due to cancellation.</param>
+        /// <remarks>
+        /// <c>CancelInteractorSelection(XRBaseInteractor)</c> has been deprecated. Use <see cref="CancelInteractorSelection(IXRSelectInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("CancelInteractorSelection(XRBaseInteractor) has been deprecated. Use CancelInteractorSelection(IXRSelectInteractor) instead.")]
+        public virtual void CancelInteractorSelection(XRBaseInteractor interactor) => CancelInteractorSelection((IXRSelectInteractor)interactor);
+
+        /// <summary>
+        /// Automatically called when an Interactor is unregistered to cancel the selection of the Interactor if necessary.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its selection state due to cancellation.</param>
+        public virtual void CancelInteractorSelection(IXRSelectInteractor interactor)
+        {
+            for (var i = interactor.interactablesSelected.Count - 1; i >= 0; --i)
+            {
+                SelectCancelInternal(interactor, interactor.interactablesSelected[i]);
+            }
+        }
+
+        void CancelInteractorSelectionInternal(IXRSelectInteractor interactor)
+        {
+            if (interactor is XRBaseInteractor baseInteractor)
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+                CancelInteractorSelection(baseInteractor);
+#pragma warning restore 618
+            else
+                CancelInteractorSelection(interactor);
+        }
+
+        /// <summary>
+        /// Automatically called when an Interactable is unregistered to cancel the selection of the Interactable if necessary.
+        /// </summary>
+        /// <param name="interactable">The Interactable to potentially exit its selection state due to cancellation.</param>
+        /// <remarks>
+        /// <c>CancelInteractableSelection(XRBaseInteractable)</c> has been deprecated. Use <see cref="CancelInteractableSelection(IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CancelInteractableSelection(XRBaseInteractable) has been deprecated. Use CancelInteractableSelection(IXRSelectInteractable) instead.")]
+        public virtual void CancelInteractableSelection(XRBaseInteractable interactable) => CancelInteractableSelection((IXRSelectInteractable)interactable);
+
+        /// <summary>
+        /// Automatically called when an Interactable is unregistered to cancel the selection of the Interactable if necessary.
+        /// </summary>
+        /// <param name="interactable">The Interactable to potentially exit its selection state due to cancellation.</param>
+        public virtual void CancelInteractableSelection(IXRSelectInteractable interactable)
+        {
+            for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
+            {
+                SelectCancelInternal(interactable.interactorsSelecting[i], interactable);
+            }
+        }
+
+        void CancelInteractableSelectionInternal(IXRSelectInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactable is XRBaseInteractable baseInteractable)
+                CancelInteractableSelection(baseInteractable);
+#pragma warning restore 618
+            else
+                CancelInteractableSelection(interactable);
+        }
+
+        /// <summary>
+        /// Automatically called each frame during Update to clear the hover state of the Interactor if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its hover state.</param>
+        /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <remarks>
+        /// <c>ClearInteractorHover(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("ClearInteractorHover(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use ClearInteractorHover(IXRHoverInteractor, List<IXRInteractable>) instead.")]
+        public virtual void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
+        {
+        }
+
+        /// <summary>
+        /// Automatically called each frame during Update to clear the hover state of the Interactor if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its hover state.</param>
+        /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <seealso cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/>
+        protected virtual void ClearInteractorHover(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
+        {
+            if (interactor.interactablesHovered.Count == 0)
+                return;
+
+            m_CurrentHovered.Clear();
+            m_CurrentHovered.AddRange(interactor.interactablesHovered);
+
+            // Performance optimization of the Contains checks by putting the valid targets into a HashSet.
+            // Some Interactors like ARGestureInteractor can have hundreds of valid Interactables
+            // since they will add most ARBaseGestureInteractable instances.
+            m_UnorderedValidTargets.Clear();
+            if (validTargets.Count > 0)
+            {
+                foreach (var target in validTargets)
+                {
+                    m_UnorderedValidTargets.Add(target);
+                }
+            }
+
+            for (var i = m_CurrentHovered.Count - 1; i >= 0; --i)
+            {
+                var interactable = m_CurrentHovered[i];
+                if (!interactor.isHoverActive || !HasInteractionLayerOverlap(interactor, interactable) || !interactor.CanHover(interactable) || !interactable.IsHoverableBy(interactor) || !m_UnorderedValidTargets.Contains(interactable))
+                    HoverExitInternal(interactor, interactable);
+            }
+        }
+
+        void ClearInteractorHoverInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        {
+            ClearInteractorHover(interactor, validTargets);
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor)
+                ClearInteractorHover(baseInteractor, deprecatedValidTargets);
+#pragma warning restore 618
         }
 
         /// <summary>
         /// Automatically called when an Interactor is unregistered to cancel the hover state of the Interactor if necessary.
         /// </summary>
         /// <param name="interactor">The Interactor to potentially exit its hover state due to cancellation.</param>
-        public virtual void CancelInteractorHover(XRBaseInteractor interactor)
+        /// <remarks>
+        /// <c>CancelInteractorHover(XRBaseInteractor)</c> has been deprecated. Use <see cref="CancelInteractorHover(IXRHoverInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("CancelInteractorHover(XRBaseInteractor) has been deprecated. Use CancelInteractorHover(IXRHoverInteractor) instead.")]
+        public virtual void CancelInteractorHover(XRBaseInteractor interactor) => CancelInteractorHover((IXRHoverInteractor)interactor);
+
+        /// <summary>
+        /// Automatically called when an Interactor is unregistered to cancel the hover state of the Interactor if necessary.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially exit its hover state due to cancellation.</param>
+        public virtual void CancelInteractorHover(IXRHoverInteractor interactor)
         {
-            interactor.GetHoverTargets(m_HoverTargets);
-            for (var i = m_HoverTargets.Count - 1; i >= 0; --i)
+            for (var i = interactor.interactablesHovered.Count - 1; i >= 0; --i)
             {
-                var target = m_HoverTargets[i];
-                HoverCancel(interactor, target);
+                HoverCancelInternal(interactor, interactor.interactablesHovered[i]);
             }
+        }
+
+        void CancelInteractorHoverInternal(IXRHoverInteractor interactor)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor)
+                CancelInteractorHover(baseInteractor);
+#pragma warning restore 618
+            else
+                CancelInteractorHover(interactor);
         }
 
         /// <summary>
         /// Automatically called when an Interactable is unregistered to cancel the hover state of the Interactable if necessary.
         /// </summary>
         /// <param name="interactable">The Interactable to potentially exit its hover state due to cancellation.</param>
-        public virtual void CancelInteractableHover(XRBaseInteractable interactable)
+        /// <remarks>
+        /// <c>CancelInteractableHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CancelInteractableHover(IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CancelInteractableHover(XRBaseInteractable) has been deprecated. Use CancelInteractableHover(IXRHoverInteractable) instead.")]
+        public virtual void CancelInteractableHover(XRBaseInteractable interactable) => CancelInteractableHover((IXRHoverInteractable)interactable);
+
+        /// <summary>
+        /// Automatically called when an Interactable is unregistered to cancel the hover state of the Interactable if necessary.
+        /// </summary>
+        /// <param name="interactable">The Interactable to potentially exit its hover state due to cancellation.</param>
+        public virtual void CancelInteractableHover(IXRHoverInteractable interactable)
         {
-            for (var i = interactable.hoveringInteractors.Count - 1; i >= 0; --i)
-                HoverCancel(interactable.hoveringInteractors[i], interactable);
+            for (var i = interactable.interactorsHovering.Count - 1; i >= 0; --i)
+            {
+                HoverCancelInternal(interactable.interactorsHovering[i], interactable);
+            }
+        }
+
+        void CancelInteractableHoverInternal(IXRHoverInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactable is XRBaseInteractable baseInteractable)
+                CancelInteractableHover(baseInteractable);
+#pragma warning restore 618
+            else
+                CancelInteractableHover(interactable);
         }
 
         /// <summary>
-        /// Initiates selection of an Interactable by an Interactor. This method may cause the Interactable to first exit being selected.
+        /// Initiates selection of an Interactable by an Interactor. This method may first result in other interaction events
+        /// such as causing the Interactable to first exit being selected.
         /// </summary>
         /// <param name="interactor">The Interactor that is selecting.</param>
         /// <param name="interactable">The Interactable being selected.</param>
         /// <remarks>
-        /// This attempt will be ignored if the Interactor requires exclusive selection of an Interactable and that
-        /// Interactable is already selected by another Interactor.
+        /// This attempt may be ignored depending on the selection policy of the Interactor and/or the Interactable.
+        /// <br />
+        /// <c>SelectEnter(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>
+        [Obsolete("SelectEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead.")]
         public virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates selection of an Interactable by an Interactor. This method may first result in other interaction events
+        /// such as causing the Interactable to first exit being selected.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is selecting.</param>
+        /// <param name="interactable">The Interactable being selected.</param>
+        /// <remarks>
+        /// This attempt may be ignored depending on the selection policy of the Interactor and/or the Interactable.
+        /// </remarks>
+        public virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            if (interactable.isSelected && interactable.selectingInteractor != interactor)
-            {
-                if (interactor.requireSelectExclusive)
-                    return;
+            if (interactable.isSelected && !ResolveExistingSelect(interactor, interactable))
+                return;
 
-                SelectExit(interactable.selectingInteractor, interactable);
-            }
+            m_SelectEnterEventArgs.manager = this;
+            m_SelectEnterEventArgs.interactorObject = interactor;
+            m_SelectEnterEventArgs.interactableObject = interactable;
+            SelectEnterInternal(interactor, interactable, m_SelectEnterEventArgs);
+        }
 
-            m_SelectEnterEventArgs.interactor = interactor;
-            m_SelectEnterEventArgs.interactable = interactable;
-            SelectEnter(interactor, interactable, m_SelectEnterEventArgs);
+        void SelectEnterInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                SelectEnter(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                SelectEnter(interactor, interactable);
         }
 
         /// <summary>
@@ -697,12 +1057,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer selecting.</param>
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <remarks>
+        /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable) instead.")]
         public virtual void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
+            => SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+        /// <summary>
+        /// Initiates ending selection of an Interactable by an Interactor.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer selecting.</param>
+        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        public virtual void SelectExit(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            m_SelectExitEventArgs.interactor = interactor;
-            m_SelectExitEventArgs.interactable = interactable;
+            m_SelectExitEventArgs.manager = this;
+            m_SelectExitEventArgs.interactorObject = interactor;
+            m_SelectExitEventArgs.interactableObject = interactable;
             m_SelectExitEventArgs.isCanceled = false;
-            SelectExit(interactor, interactable, m_SelectExitEventArgs);
+            SelectExitInternal(interactor, interactable, m_SelectExitEventArgs);
+        }
+
+        void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                SelectExit(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                SelectExit(interactor, interactable);
         }
 
         /// <summary>
@@ -711,12 +1094,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer selecting.</param>
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <remarks>
+        /// <c>SelectCancel(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectCancel(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("SelectCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectCancel(IXRSelectInteractor, IXRSelectInteractable) instead.")]
         public virtual void SelectCancel(XRBaseInteractor interactor, XRBaseInteractable interactable)
+            => SelectCancel((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+        /// <summary>
+        /// Initiates ending selection of an Interactable by an Interactor due to cancellation,
+        /// such as from either being unregistered due to being disabled or destroyed.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer selecting.</param>
+        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        public virtual void SelectCancel(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            m_SelectExitEventArgs.interactor = interactor;
-            m_SelectExitEventArgs.interactable = interactable;
+            m_SelectExitEventArgs.manager = this;
+            m_SelectExitEventArgs.interactorObject = interactor;
+            m_SelectExitEventArgs.interactableObject = interactable;
             m_SelectExitEventArgs.isCanceled = true;
-            SelectExit(interactor, interactable, m_SelectExitEventArgs);
+            SelectExitInternal(interactor, interactable, m_SelectExitEventArgs);
+        }
+
+        void SelectCancelInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                SelectCancel(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                SelectCancel(interactor, interactable);
         }
 
         /// <summary>
@@ -724,11 +1131,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is hovering.</param>
         /// <param name="interactable">The Interactable being hovered over.</param>
+        /// <remarks>
+        /// <c>HoverEnter(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("HoverEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable) instead.")]
         public virtual void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates hovering of an Interactable by an Interactor.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is hovering.</param>
+        /// <param name="interactable">The Interactable being hovered over.</param>
+        public virtual void HoverEnter(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverEnterEventArgs.interactor = interactor;
-            m_HoverEnterEventArgs.interactable = interactable;
-            HoverEnter(interactor, interactable, m_HoverEnterEventArgs);
+            m_HoverEnterEventArgs.manager = this;
+            m_HoverEnterEventArgs.interactorObject = interactor;
+            m_HoverEnterEventArgs.interactableObject = interactable;
+            HoverEnterInternal(interactor, interactable, m_HoverEnterEventArgs);
+        }
+
+        void HoverEnterInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                HoverEnter(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                HoverEnter(interactor, interactable);
         }
 
         /// <summary>
@@ -736,12 +1168,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer hovering.</param>
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
+        /// <remarks>
+        /// <c>HoverExit(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverExit(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("HoverExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable) instead.")]
         public virtual void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates ending hovering of an Interactable by an Interactor.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer hovering.</param>
+        /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
+        public virtual void HoverExit(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverExitEventArgs.interactor = interactor;
-            m_HoverExitEventArgs.interactable = interactable;
+            m_HoverExitEventArgs.manager = this;
+            m_HoverExitEventArgs.interactorObject = interactor;
+            m_HoverExitEventArgs.interactableObject = interactable;
             m_HoverExitEventArgs.isCanceled = false;
-            HoverExit(interactor, interactable, m_HoverExitEventArgs);
+            HoverExitInternal(interactor, interactable, m_HoverExitEventArgs);
+        }
+
+        void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                HoverExit(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                HoverExit(interactor, interactable);
         }
 
         /// <summary>
@@ -750,12 +1207,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer hovering.</param>
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
+        /// <remarks>
+        /// <c>HoverCancel(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverCancel(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("HoverCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverCancel(IXRHoverInteractor, IXRHoverInteractable) instead.")]
         public virtual void HoverCancel(XRBaseInteractor interactor, XRBaseInteractable interactable)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => HoverCancel((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates ending hovering of an Interactable by an Interactor due to cancellation,
+        /// such as from either being unregistered due to being disabled or destroyed.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer hovering.</param>
+        /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
+        public virtual void HoverCancel(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverExitEventArgs.interactor = interactor;
-            m_HoverExitEventArgs.interactable = interactable;
+            m_HoverExitEventArgs.manager = this;
+            m_HoverExitEventArgs.interactorObject = interactor;
+            m_HoverExitEventArgs.interactableObject = interactable;
             m_HoverExitEventArgs.isCanceled = true;
-            HoverExit(interactor, interactable, m_HoverExitEventArgs);
+            HoverExitInternal(interactor, interactable, m_HoverExitEventArgs);
+        }
+
+        void HoverCancelInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                HoverCancel(baseInteractor, baseInteractable);
+#pragma warning restore 618
+            else
+                HoverCancel(interactor, interactable);
         }
 
         /// <summary>
@@ -764,11 +1247,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is selecting.</param>
         /// <param name="interactable">The Interactable being selected.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
-        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+        /// <remarks>
+        /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs)"/> instead.
+        /// </remarks>
+        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs) instead.")]
         protected virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable, SelectEnterEventArgs args)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable, args);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is selecting.</param>
+        /// <param name="interactable">The Interactable being selected.</param>
+        /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+        protected virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
         {
-            Debug.Assert(args.interactor == interactor, this);
-            Debug.Assert(args.interactable == interactable, this);
+            Debug.Assert(args.interactorObject == interactor, this);
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
 
             using (s_SelectEnterMarker.Auto())
             {
@@ -779,16 +1279,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        void SelectEnterInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                SelectEnter(baseInteractor, baseInteractable, args);
+#pragma warning restore 618
+            else
+                SelectEnter(interactor, interactable, args);
+        }
+
         /// <summary>
         /// Initiates ending selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer selecting.</param>
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs)"/> instead.
+        /// </remarks>
+        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs) instead.")]
         protected virtual void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable, SelectExitEventArgs args)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable, args);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates ending selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer selecting.</param>
+        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        protected virtual void SelectExit(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectExitEventArgs args)
         {
-            Debug.Assert(args.interactor == interactor, this);
-            Debug.Assert(args.interactable == interactable, this);
+            Debug.Assert(args.interactorObject == interactor, this);
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
 
             using (s_SelectExitMarker.Auto())
             {
@@ -799,16 +1326,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectExitEventArgs args)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                SelectExit(baseInteractor, baseInteractable, args);
+#pragma warning restore 618
+            else
+                SelectExit(interactor, interactable, args);
+        }
+
         /// <summary>
         /// Initiates hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
         /// </summary>
         /// <param name="interactor">The Interactor that is hovering.</param>
         /// <param name="interactable">The Interactable being hovered over.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// <c>HoverEnter(XRBaseInteractor, XRBaseInteractable, HoverEnterEventArgs)</c> has been deprecated. Use <see cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable, HoverEnterEventArgs)"/> instead.
+        /// </remarks>
+        [Obsolete("HoverEnter(XRBaseInteractor, XRBaseInteractable, HoverEnterEventArgs) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable, HoverEnterEventArgs) instead.")]
         protected virtual void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable, HoverEnterEventArgs args)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable, args);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is hovering.</param>
+        /// <param name="interactable">The Interactable being hovered over.</param>
+        /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        protected virtual void HoverEnter(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverEnterEventArgs args)
         {
-            Debug.Assert(args.interactor == interactor, this);
-            Debug.Assert(args.interactable == interactable, this);
+            Debug.Assert(args.interactorObject == interactor, this);
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
 
             using (s_HoverEnterMarker.Auto())
             {
@@ -819,16 +1373,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        void HoverEnterInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverEnterEventArgs args)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                HoverEnter(baseInteractor, baseInteractable, args);
+#pragma warning restore 618
+            else
+                HoverEnter(interactor, interactable, args);
+        }
+
         /// <summary>
         /// Initiates ending hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
         /// </summary>
         /// <param name="interactor">The Interactor that is no longer hovering.</param>
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// <c>HoverExit(XRBaseInteractor, XRBaseInteractable, HoverExitEventArgs)</c> has been deprecated. Use <see cref="HoverExit(IXRHoverInteractor, IXRHoverInteractable, HoverExitEventArgs)"/> instead.
+        /// </remarks>
+        [Obsolete("HoverExit(XRBaseInteractor, XRBaseInteractable, HoverExitEventArgs) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable, HoverExitEventArgs) instead.")]
         protected virtual void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable, HoverExitEventArgs args)
+#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
+            => HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable, args);
+#pragma warning restore IDE0004
+
+        /// <summary>
+        /// Initiates ending hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is no longer hovering.</param>
+        /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
+        /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        protected virtual void HoverExit(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverExitEventArgs args)
         {
-            Debug.Assert(args.interactor == interactor, this);
-            Debug.Assert(args.interactable == interactable, this);
+            Debug.Assert(args.interactorObject == interactor, this);
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
 
             using (s_HoverExitMarker.Auto())
             {
@@ -840,25 +1421,56 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
+        void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverExitEventArgs args)
+        {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
+                HoverExit(baseInteractor, baseInteractable, args);
+#pragma warning restore 618
+            else
+                HoverExit(interactor, interactable, args);
+        }
+
         /// <summary>
         /// Automatically called each frame during Update to enter the selection state of the Interactor if necessary due to current conditions.
         /// </summary>
         /// <param name="interactor">The Interactor to potentially enter its selection state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <remarks>
+        /// <c>InteractorSelectValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("InteractorSelectValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorSelectValidTargets(IXRSelectInteractor, List<IXRInteractable>) instead.")]
         protected virtual void InteractorSelectValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            if (!interactor.isSelectActive)
-                return;
+        }
 
-            for (var i = 0; i < validTargets.Count && interactor.isSelectActive; ++i)
+        /// <summary>
+        /// Automatically called each frame during Update to enter the selection state of the Interactor if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially enter its selection state.</param>
+        /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <seealso cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/>
+        protected virtual void InteractorSelectValidTargets(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
+        {
+            foreach (var target in validTargets)
             {
-                var interactable = validTargets[i];
-                if (interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor) &&
-                    interactor.selectTarget != interactable)
+                if (target is IXRSelectInteractable interactable)
                 {
-                    SelectEnter(interactor, interactable);
+                    if (interactor.isSelectActive && HasInteractionLayerOverlap(interactor, interactable) && interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor) && !interactor.IsSelecting(interactable))
+                    {
+                        SelectEnterInternal(interactor, interactable);
+                    }
                 }
             }
+        }
+
+        void InteractorSelectValidTargetsInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        {
+            InteractorSelectValidTargets(interactor, validTargets);
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor)
+                InteractorSelectValidTargets(baseInteractor, deprecatedValidTargets);
+#pragma warning restore 618
         }
 
         /// <summary>
@@ -866,38 +1478,98 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor to potentially enter its hover state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <remarks>
+        /// <c>InteractorHoverValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/> instead.
+        /// </remarks>
+        [Obsolete("InteractorHoverValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorHoverValidTargets(IXRHoverInteractor, List<IXRInteractable>) instead.")]
         protected virtual void InteractorHoverValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            if (!interactor.isHoverActive)
-                return;
+        }
 
-            // For performance optimization, this is done once instead of within each iteration.
-            // Makes the assumption that the process of entering the hover state does not
-            // cause other hover targets to be cleared or canceled, which could affect this list.
-            interactor.GetHoverTargets(m_HoverTargets);
-            m_UnorderedHoverTargets.Clear();
-            if (m_HoverTargets.Count > 0)
+        /// <summary>
+        /// Automatically called each frame during Update to enter the hover state of the Interactor if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactor">The Interactor to potentially enter its hover state.</param>
+        /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <seealso cref="InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/>
+        protected virtual void InteractorHoverValidTargets(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
+        {
+            foreach (var target in validTargets)
             {
-                foreach (var target in m_HoverTargets)
+                if (target is IXRHoverInteractable interactable)
                 {
-                    m_UnorderedHoverTargets.Add(target);
-                }
-            }
-
-            for (var i = 0; i < validTargets.Count && interactor.isHoverActive; ++i)
-            {
-                var interactable = validTargets[i];
-                if (interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor))
-                {
-                    if (!m_UnorderedHoverTargets.Contains(interactable))
+                    if (interactor.isHoverActive && HasInteractionLayerOverlap(interactor, interactable) && interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor) && !interactor.IsHovering(interactable))
                     {
-                        HoverEnter(interactor, interactable);
-
-                        // Add to the set to protect against the valid targets list containing duplicates
-                        // which could cause the hover state to be entered again.
-                        m_UnorderedHoverTargets.Add(interactable);
+                        HoverEnterInternal(interactor, interactable);
                     }
                 }
+            }
+        }
+
+        void InteractorHoverValidTargetsInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        {
+            InteractorHoverValidTargets(interactor, validTargets);
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor)
+                InteractorHoverValidTargets(baseInteractor, deprecatedValidTargets);
+#pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Automatically called when selection of an Interactable by an Interactor is initiated
+        /// and the Interactable is already selected.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is selecting.</param>
+        /// <param name="interactable">The Interactable being selected.</param>
+        /// <returns>Returns <see langword="true"/> if the existing selection was successfully resolved and selection should continue.
+        /// Otherwise, returns <see langword="false"/> if the select should be ignored.</returns>
+        /// <seealso cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>
+        protected virtual bool ResolveExistingSelect(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+            Debug.Assert(interactable.isSelected, this);
+
+            if (interactor.IsSelecting(interactable))
+                return false;
+
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+            if (interactor is XRBaseInteractor baseInteractor && baseInteractor.requireSelectExclusive)
+                return false;
+#pragma warning restore 618
+
+            switch (interactable.selectMode)
+            {
+                case InteractableSelectMode.Single:
+                    ExitInteractableSelection(interactable);
+                    break;
+                case InteractableSelectMode.Multiple:
+                    break;
+                default:
+                    Debug.Assert(false, $"Unhandled {nameof(InteractableSelectMode)}={interactable.selectMode}", this);
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether the Interactor and Interactable share at least one interaction layer
+        /// between their Interaction Layer Masks.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns <see langword="true"/> if the Interactor and Interactable share at least one interaction layer. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="IXRInteractor.interactionLayers"/>
+        /// <seealso cref="IXRInteractable.interactionLayers"/>
+        protected static bool HasInteractionLayerOverlap(IXRInteractor interactor, IXRInteractable interactable)
+        {
+            return (interactor.interactionLayers & interactable.interactionLayers) != 0;
+        }
+
+        void ExitInteractableSelection(IXRSelectInteractable interactable)
+        {
+            for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
+            {
+                SelectExitInternal(interactable.interactorsSelecting[i], interactable);
             }
         }
 
@@ -905,6 +1577,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_Interactors.Flush();
             m_Interactables.Flush();
+        }
+
+        static void GetOfType<TSource, TDestination>(List<TSource> source, List<TDestination> destination)
+        {
+            destination.Clear();
+            foreach (var item in source)
+            {
+                if (item is TDestination destinationItem)
+                {
+                    destination.Add(destinationItem);
+                }
+            }
         }
 
         /// <summary>

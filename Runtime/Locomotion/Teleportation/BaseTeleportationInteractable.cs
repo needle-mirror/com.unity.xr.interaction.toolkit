@@ -3,27 +3,27 @@ using System;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// The option of which object's orientation in the rig will be matched with the destination after teleporting.
+    /// The option of which object's orientation in the rig Unity matches with the destination after teleporting.
     /// </summary>
     public enum MatchOrientation
     {
         /// <summary>
-        /// After teleporting the XR Rig will be positioned such that its up vector matches world space up.
+        /// After teleporting the XR Origin will be positioned such that its up vector matches world space up.
         /// </summary>
         WorldSpaceUp,
 
         /// <summary>
-        /// After teleporting the XR Rig will be positioned such that its up vector matches target up.
+        /// After teleporting the XR Origin will be positioned such that its up vector matches target up.
         /// </summary>
         TargetUp,
 
         /// <summary>
-        /// After teleporting the XR Rig will be positioned such that its up vector matches target up and forward.
+        /// After teleporting the XR Origin will be positioned such that its up and forward vectors match target up and forward, respectively.
         /// </summary>
         TargetUpAndForward,
 
         /// <summary>
-        /// After teleporting the XR Rig will not attempt to match any orientation.
+        /// After teleporting the XR Origin will not attempt to match any orientation.
         /// </summary>
         None,
     }
@@ -35,15 +35,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public struct TeleportRequest
     {
         /// <summary>
-        /// The position in world space of the Teleportation Destination
+        /// The position in world space of the Teleportation Destination.
         /// </summary>
         public Vector3 destinationPosition;
         /// <summary>
-        /// The rotation in world space of the Teleportation Destination, This is used primarily for matching world rotations directly
+        /// The rotation in world space of the Teleportation Destination. This is used primarily for matching world rotations directly.
         /// </summary>
         public Quaternion destinationRotation;
         /// <summary>
-        ///  The Time (in unix epoch) of the request
+        ///  The Time (in unix epoch) of the request.
         /// </summary>
         public float requestTime;
         /// <summary>
@@ -83,25 +83,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             OnDeactivated,
 
             /// <summary>
-            /// Teleportation occurs once selection is released without being canceled.
+            /// (Deprecated) OnSelectExit has been deprecated. Use OnSelectExited instead.
             /// </summary>
             [Obsolete("OnSelectExit has been deprecated. Use OnSelectExited instead. (UnityUpgradable) -> OnSelectExited")]
             OnSelectExit = OnSelectExited,
 
             /// <summary>
-            /// Teleportation occurs right when area is selected.
+            /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
             /// </summary>
             [Obsolete("OnSelectEnter has been deprecated. Use OnSelectEntered instead. (UnityUpgradable) -> OnSelectEntered")]
             OnSelectEnter = OnSelectEntered,
 
             /// <summary>
-            /// Teleportation occurs on activate.
+            /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
             /// </summary>
             [Obsolete("OnActivate has been deprecated. Use OnActivated instead. (UnityUpgradable) -> OnActivated")]
             OnActivate = OnActivated,
 
             /// <summary>
-            /// Teleportation occurs on deactivate.
+            /// (Deprecated) OnDeactivate has been deprecated. Use OnDeactivated instead.
             /// </summary>
             [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated")]
             OnDeactivate = OnDeactivated,
@@ -113,7 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         TeleportationProvider m_TeleportationProvider;
 
         /// <summary>
-        /// The teleportation provider that this teleportation interactable will communicate teleport requests to.
+        /// The teleportation provider that this teleportation interactable communicates teleport requests to.
         /// If no teleportation provider is configured, will attempt to find a teleportation provider during Awake.
         /// </summary>
         public TeleportationProvider teleportationProvider
@@ -137,10 +137,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// Set to:
         /// <list type="bullet">
-        /// <item><see cref="MatchOrientation.WorldSpaceUp"/> to stay oriented according to the world space up vector.</item>
-        /// <item><see cref="MatchOrientation.TargetUp"/> to orient according to the target <see cref="BaseTeleportationInteractable"/> Transform's up vector.</item>
-        /// <item><see cref="MatchOrientation.TargetUpAndForward"/> to orient according to the target <see cref="BaseTeleportationInteractable"/> Transform's rotation.</item>
-        /// <item><see cref="MatchOrientation.None"/> to maintain the same orientation before and after teleporting.</item>
+        /// <item>
+        /// <term><see cref="MatchOrientation.WorldSpaceUp"/></term>
+        /// <description> to stay oriented according to the world space up vector.</description>
+        /// </item>
+        /// <item>
+        /// <term><see cref="MatchOrientation.TargetUp"/></term>
+        /// <description> to orient according to the target <see cref="BaseTeleportationInteractable"/> Transform's up vector.</description>
+        /// </item>
+        /// <item>
+        /// <term><see cref="MatchOrientation.TargetUpAndForward"/></term>
+        /// <description> to orient according to the target <see cref="BaseTeleportationInteractable"/> Transform's rotation.</description>
+        /// </item>
+        /// <item>
+        /// <term><see cref="MatchOrientation.None"/></term>
+        /// <description> to maintain the same orientation before and after teleporting.</description>
+        /// </item>
         /// </list>
         /// </remarks>
         public MatchOrientation matchOrientation
@@ -154,13 +166,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
         TeleportTrigger m_TeleportTrigger = TeleportTrigger.OnSelectExited;
 
         /// <summary>
-        /// Specifies when the teleportation will be triggered.
+        /// Specifies when the teleportation triggers.
         /// </summary>
         public TeleportTrigger teleportTrigger
         {
             get => m_TeleportTrigger;
             set => m_TeleportTrigger = value;
         }
+
+        [SerializeField]
+        TeleportingEvent m_Teleporting = new TeleportingEvent();
+
+        /// <summary>
+        /// Gets or sets the event that Unity calls when queuing to teleport via
+        /// the <see cref="TeleportationProvider"/>.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="TeleportingEventArgs"/> passed to each listener is only valid
+        /// while the event is invoked, do not hold a reference to it.
+        /// </remarks>
+        public TeleportingEvent teleporting
+        {
+            get => m_Teleporting;
+            set => m_Teleporting = value;
+        }
+
+        // Reusable event args
+        readonly TeleportingEventArgs m_TeleportingEventArgs = new TeleportingEventArgs();
 
         /// <inheritdoc />
         protected override void Awake()
@@ -172,25 +204,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        /// <summary>
-        /// Generates a teleport request.
-        /// </summary>
-        /// <param name="interactor">The interactor generating the teleport request.</param>
-        /// <param name="raycastHit">The raycast hit where user will be teleported to.</param>
-        /// <param name="teleportRequest">The teleport request.</param>
-        /// <returns>Returns <see langword="true"/> if button teleportation was successful. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
-            => false;
-
-        void SendTeleportRequest(XRBaseInteractor interactor)
+        /// <inheritdoc />
+        protected override void Reset()
         {
-            if (!interactor || m_TeleportationProvider == null)
+            base.Reset();
+            selectMode = InteractableSelectMode.Multiple;
+        }
+
+        /// <summary>
+        /// Automatically called upon the teleport trigger when a teleport request should be generated.
+        /// </summary>
+        /// <param name="interactor">The interactor that initiated the teleport trigger.</param>
+        /// <param name="raycastHit">The raycast hit information from the interactor.</param>
+        /// <param name="teleportRequest">The teleport request that should be filled out during this method call.</param>
+        /// <returns>Returns <see langword="true"/> if the teleport request was successfully updated and should be queued. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>
+        /// <remarks>
+        /// <c>GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest)</c> has been deprecated. Use <see cref="GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest)"/> instead.
+        /// </remarks>
+        [Obsolete("GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest) has been deprecated. Use GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest) instead.")]
+        protected virtual bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
+            => GenerateTeleportRequest((IXRInteractor)interactor, raycastHit, ref teleportRequest);
+
+        /// <summary>
+        /// Automatically called upon the teleport trigger event occurring to generate the teleport request.
+        /// The teleportation destination pose should be filled out.
+        /// </summary>
+        /// <param name="interactor">The interactor that initiated the teleport trigger.</param>
+        /// <param name="raycastHit">The raycast hit information from the interactor.</param>
+        /// <param name="teleportRequest">The teleport request that should be filled out during this method call.</param>
+        /// <returns>Returns <see langword="true"/> if the teleport request was successfully updated and should be queued. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>
+        protected virtual bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest) => false;
+
+        void SendTeleportRequest(IXRInteractor interactor)
+        {
+            if (interactor == null || m_TeleportationProvider == null)
                 return;
 
-            var rayInt = interactor as XRRayInteractor;
-            if (rayInt != null)
+            RaycastHit raycastHit = default;
+            if (interactor is XRRayInteractor rayInteractor && rayInteractor != null)
             {
-                if (rayInt.TryGetCurrent3DRaycastHit(out var raycastHit))
+                if (rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit))
                 {
                     // Are we still selecting this object?
                     var found = false;
@@ -203,54 +258,73 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         }
                     }
 
-                    if (found)
+                    if (!found)
                     {
-                        var tr = new TeleportRequest
-                        {
-                            matchOrientation = m_MatchOrientation,
-                            requestTime = Time.time,
-                        };
-                        if (GenerateTeleportRequest(interactor, raycastHit, ref tr))
-                        {
-                            m_TeleportationProvider.QueueTeleportRequest(tr);
-                        }
+                        return;
                     }
+                }
+            }
+
+            var teleportRequest = new TeleportRequest
+            {
+                matchOrientation = m_MatchOrientation,
+                requestTime = Time.time,
+            };
+
+            bool success;
+            if (interactor is XRBaseInteractor baseInteractor)
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+                success = GenerateTeleportRequest(baseInteractor, raycastHit, ref teleportRequest);
+#pragma warning restore 618
+            else
+                success = GenerateTeleportRequest(interactor, raycastHit, ref teleportRequest);
+
+            if (success)
+            {
+                success = m_TeleportationProvider.QueueTeleportRequest(teleportRequest);
+
+                if (success && m_Teleporting != null)
+                {
+                    m_TeleportingEventArgs.interactorObject = interactor;
+                    m_TeleportingEventArgs.interactableObject = this;
+                    m_TeleportingEventArgs.teleportRequest = teleportRequest;
+                    m_Teleporting.Invoke(m_TeleportingEventArgs);
                 }
             }
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntered(SelectEnterEventArgs args)
+        protected override void OnSelectEntered(SelectEnterEventArgs args)
         {
             if (m_TeleportTrigger == TeleportTrigger.OnSelectEntered)
-                SendTeleportRequest(args.interactor);
+                SendTeleportRequest(args.interactorObject);
 
             base.OnSelectEntered(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExited(SelectExitEventArgs args)
+        protected override void OnSelectExited(SelectExitEventArgs args)
         {
             if (m_TeleportTrigger == TeleportTrigger.OnSelectExited && !args.isCanceled)
-                SendTeleportRequest(args.interactor);
+                SendTeleportRequest(args.interactorObject);
 
             base.OnSelectExited(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnActivated(ActivateEventArgs args)
+        protected override void OnActivated(ActivateEventArgs args)
         {
             if (m_TeleportTrigger == TeleportTrigger.OnActivated)
-                SendTeleportRequest(args.interactor);
+                SendTeleportRequest(args.interactorObject);
 
             base.OnActivated(args);
         }
 
         /// <inheritdoc />
-        protected internal override void OnDeactivated(DeactivateEventArgs args)
+        protected override void OnDeactivated(DeactivateEventArgs args)
         {
             if (m_TeleportTrigger == TeleportTrigger.OnDeactivated)
-                SendTeleportRequest(args.interactor);
+                SendTeleportRequest(args.interactorObject);
 
             base.OnDeactivated(args);
         }

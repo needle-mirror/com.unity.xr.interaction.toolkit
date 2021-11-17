@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     public class TrackedDeviceEventData : PointerEventData
     {
         /// <summary>
-        /// Created with event system.
+        /// Initializes and returns an instance of <see cref="TrackedDeviceEventData"/> with event system.
         /// </summary>
         /// <param name="eventSystem"> The event system associated with the UI.</param>
         public TrackedDeviceEventData(EventSystem eventSystem)
@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// A series of interconnected points used to track hovered and selected UI.
+        /// A series of interconnected points Unity uses to track hovered and selected UI.
         /// </summary>
         public List<Vector3> rayPoints { get; set; }
 

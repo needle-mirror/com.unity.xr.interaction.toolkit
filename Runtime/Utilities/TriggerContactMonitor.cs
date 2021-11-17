@@ -22,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// In other words, touching more of its colliders does not cause this to fire again until all of its colliders
         /// are no longer being touched.
         /// </remarks>
-        public event Action<XRBaseInteractable> contactAdded;
+        public event Action<IXRInteractable> contactAdded;
 
         /// <summary>
         /// Calls the methods in its invocation list when an Interactable is no longer being touched.
@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// In other words, leaving just one of its colliders when another one of it is still being touched
         /// will not fire the event.
         /// </remarks>
-        public event Action<XRBaseInteractable> contactRemoved;
+        public event Action<IXRInteractable> contactRemoved;
 
         /// <summary>
         /// The Interaction Manager used to fetch the Interactable associated with a Collider.
@@ -40,8 +40,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <seealso cref="XRInteractionManager.GetInteractableForCollider"/>
         public XRInteractionManager interactionManager { get; set; }
 
-        readonly Dictionary<Collider, XRBaseInteractable> m_EnteredColliders = new Dictionary<Collider, XRBaseInteractable>();
-        readonly HashSet<XRBaseInteractable> m_UnorderedInteractables = new HashSet<XRBaseInteractable>();
+        readonly Dictionary<Collider, IXRInteractable> m_EnteredColliders = new Dictionary<Collider, IXRInteractable>();
+        readonly HashSet<IXRInteractable> m_UnorderedInteractables = new HashSet<IXRInteractable>();
         readonly HashSet<Collider> m_EnteredUnassociatedColliders = new HashSet<Collider>();
 
         /// <summary>
@@ -56,8 +56,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <seealso cref="RemoveCollider"/>
         public void AddCollider(Collider collider)
         {
-            var interactable = interactionManager != null ? interactionManager.GetInteractableForCollider(collider) : null;
-            if (interactable == null)
+            if (interactionManager == null)
+                return;
+
+            if (!interactionManager.TryGetInteractableForCollider(collider, out var interactable))
             {
                 m_EnteredUnassociatedColliders.Add(collider);
                 return;
@@ -114,8 +116,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             s_ScratchColliders.Clear();
             foreach (var col in m_EnteredUnassociatedColliders)
             {
-                var interactable = interactionManager.GetInteractableForCollider(col);
-                if (interactable != null)
+                if (interactionManager.TryGetInteractableForCollider(col, out var interactable))
                 {
                     // Add to temporary list to remove in a second pass to avoid modifying
                     // the collection being iterated.
@@ -144,14 +145,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// This process is done automatically when Colliders are added,
         /// but this method can be used to force a refresh.
         /// </remarks>
-        public void ResolveUnassociatedColliders(XRBaseInteractable interactable)
+        public void ResolveUnassociatedColliders(IXRInteractable interactable)
         {
             if (m_EnteredUnassociatedColliders.Count == 0 || interactionManager == null)
                 return;
 
             foreach (var col in interactable.colliders)
             {
-                if (m_EnteredUnassociatedColliders.Contains(col) && interactionManager.GetInteractableForCollider(col) == interactable)
+                if (m_EnteredUnassociatedColliders.Contains(col) &&
+                    interactionManager.TryGetInteractableForCollider(col, out var associatedInteractable) &&
+                    associatedInteractable == interactable)
                 {
                     m_EnteredUnassociatedColliders.Remove(col);
                     m_EnteredColliders[col] = interactable;
@@ -167,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// </summary>
         /// <param name="interactable">The Interactable to check if touching.</param>
         /// <returns>Returns <see langword="true"/> if the Interactable is being touched. Otherwise, returns <see langword="false"/>.</returns>
-        public bool IsContacting(XRBaseInteractable interactable)
+        public bool IsContacting(IXRInteractable interactable)
         {
             return m_UnorderedInteractables.Contains(interactable);
         }

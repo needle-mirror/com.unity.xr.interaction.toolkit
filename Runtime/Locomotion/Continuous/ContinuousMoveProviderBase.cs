@@ -9,14 +9,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public abstract class ContinuousMoveProviderBase : LocomotionProvider
     {
         /// <summary>
-        /// Defines when gravity will begin to take effect.
+        /// Defines when gravity begins to take effect.
         /// </summary>
         /// <seealso cref="gravityApplicationMode"/>
         public enum GravityApplicationMode
         {
             /// <summary>
             /// Only begin to apply gravity and apply locomotion when a move input occurs.
-            /// When using gravity, will then continue applying each frame, even if input is stopped, until touching ground.
+            /// When using gravity, continues applying each frame, even if input is stopped, until touching ground.
             /// </summary>
             /// <remarks>
             /// Use this style when you don't want gravity to apply when the player physically walks away and off a ground surface.
@@ -87,7 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The source Transform to define the forward direction.")]
         Transform m_ForwardSource;
         /// <summary>
-        /// The source <see cref="Transform"/> to define the forward direction.
+        /// The source <see cref="Transform"/> that defines the forward direction.
         /// </summary>
         public Transform forwardSource
         {
@@ -106,8 +106,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void Update()
         {
-            var xrRig = system.xrRig;
-            if (xrRig == null)
+            var xrOrigin = system.xrOrigin;
+            if (xrOrigin == null)
                 return;
 
             var input = ReadInput();
@@ -147,8 +147,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (input == Vector2.zero)
                 return Vector3.zero;
 
-            var xrRig = system.xrRig;
-            if (xrRig == null)
+            var xrOrigin = system.xrOrigin;
+            if (xrOrigin == null)
                 return Vector3.zero;
 
             // Assumes that the input axes are in the range [-1, 1].
@@ -156,13 +156,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // while still allowing for analog input to move slower (which would be lost if simply normalizing).
             var inputMove = Vector3.ClampMagnitude(new Vector3(m_EnableStrafe ? input.x : 0f, 0f, input.y), 1f);
 
-            var rigTransform = xrRig.rig.transform;
-            var rigUp = rigTransform.up;
+            var originTransform = xrOrigin.Origin.transform;
+            var originUp = originTransform.up;
 
             // Determine frame of reference for what the input direction is relative to
-            var forwardSourceTransform = m_ForwardSource == null ? xrRig.cameraGameObject.transform : m_ForwardSource;
+            var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;
             var inputForwardInWorldSpace = forwardSourceTransform.forward;
-            if (Mathf.Approximately(Mathf.Abs(Vector3.Dot(inputForwardInWorldSpace, rigUp)), 1f))
+            if (Mathf.Approximately(Mathf.Abs(Vector3.Dot(inputForwardInWorldSpace, originUp)), 1f))
             {
                 // When the input forward direction is parallel with the rig normal,
                 // it will probably feel better for the player to move along the same direction
@@ -172,11 +172,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 inputForwardInWorldSpace = -forwardSourceTransform.up;
             }
 
-            var inputForwardProjectedInWorldSpace = Vector3.ProjectOnPlane(inputForwardInWorldSpace, rigUp);
-            var forwardRotation = Quaternion.FromToRotation(rigTransform.forward, inputForwardProjectedInWorldSpace);
+            var inputForwardProjectedInWorldSpace = Vector3.ProjectOnPlane(inputForwardInWorldSpace, originUp);
+            var forwardRotation = Quaternion.FromToRotation(originTransform.forward, inputForwardProjectedInWorldSpace);
 
             var translationInRigSpace = forwardRotation * inputMove * (m_MoveSpeed * Time.deltaTime);
-            var translationInWorldSpace = rigTransform.TransformDirection(translationInRigSpace);
+            var translationInWorldSpace = originTransform.TransformDirection(translationInRigSpace);
 
             return translationInWorldSpace;
         }
@@ -188,8 +188,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="translationInWorldSpace">The translation amount in world space to move the rig (pre-gravity).</param>
         protected virtual void MoveRig(Vector3 translationInWorldSpace)
         {
-            var xrRig = system.xrRig;
-            if (xrRig == null)
+            var xrOrigin = system.xrOrigin;
+            if (xrOrigin == null)
                 return;
 
             FindCharacterController();
@@ -222,7 +222,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (CanBeginLocomotion() && BeginLocomotion())
                 {
-                    xrRig.rig.transform.position += motion;
+                    xrOrigin.Origin.transform.position += motion;
 
                     EndLocomotion();
                 }
@@ -231,15 +231,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void FindCharacterController()
         {
-            var xrRig = system.xrRig;
-            if (xrRig == null)
+            var xrOrigin = system.xrOrigin;
+            if (xrOrigin == null)
                 return;
 
             // Save a reference to the optional CharacterController on the rig GameObject
             // that will be used to move instead of modifying the Transform directly.
             if (m_CharacterController == null && !m_AttemptedGetCharacterController)
             {
-                m_CharacterController = xrRig.rig.GetComponent<CharacterController>();
+                m_CharacterController = xrOrigin.Origin.GetComponent<CharacterController>();
                 m_AttemptedGetCharacterController = true;
             }
         }

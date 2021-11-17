@@ -115,11 +115,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_RaycastTriggerInteraction = value;
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See [BaseRaycaster.eventCamera](xref:UnityEngine.EventSystems.BaseRaycaster.eventCamera).
+        /// </summary>
         public override Camera eventCamera => canvas != null && canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
 
         /// <summary>
-        /// Perform a raycast against objects within this Raycaster's domain.
+        /// Performs a raycast against objects within this Raycaster's domain.
         /// </summary>
         /// <param name="eventData">Data containing where and how to raycast.</param>
         /// <param name="resultAppendList">The resultant hits from the raycast.</param>

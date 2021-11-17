@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class TapGesture : Gesture<TapGesture>
     {
         /// <summary>
-        /// Constructs a Tap gesture.
+        /// Initializes and returns an instance of <see cref="TapGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Constructs a Tap gesture.
+        /// Initializes and returns an instance of <see cref="TapGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
@@ -89,7 +89,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected internal override void OnStart()
         {
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.arSessionOrigin, out var hit))
+#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit))
+#pragma warning restore 618
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)

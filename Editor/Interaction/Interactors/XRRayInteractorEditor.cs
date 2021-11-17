@@ -27,6 +27,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HoverTimeToSelect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
         protected SerializedProperty m_EnableUIInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
+        protected SerializedProperty m_RayOriginTransform;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.lineType"/>.</summary>
         protected SerializedProperty m_LineType;
@@ -54,8 +56,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.referenceFrame"/>.</summary>
         protected SerializedProperty m_ReferenceFrame;
 
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.keepSelectedTargetValid"/>.</summary>
-        protected SerializedProperty m_KeepSelectedTargetValid;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.allowAnchorControl"/>.</summary>
         protected SerializedProperty m_AllowAnchorControl;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.useForceGrab"/>.</summary>
@@ -89,6 +89,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent hoverTimeToSelect = EditorGUIUtility.TrTextContent("Hover Time To Select", "Number of seconds for which this Interactor must hover over an Interactable to select it.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
+            public static readonly GUIContent rayOriginTransform = EditorGUIUtility.TrTextContent("Ray Origin Transform", "The starting position and direction of any ray casts. If not set at startup, it will automatically be created based on the Attach Transform.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.lineType"/>.</summary>
             public static readonly GUIContent lineType = EditorGUIUtility.TrTextContent("Line Type", "Line type of the ray cast.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blendVisualLinePoints"/>.</summary>
@@ -115,10 +117,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent referenceFrame = EditorGUIUtility.TrTextContent("Reference Frame", "The reference frame of the curve to define the ground plane and up. If not set at startup it will try to find the Rig GameObject, and if that does not exist it will use global up and origin by default.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitDetectionType"/>.</summary>
             public static readonly GUIContent hitDetectionType = EditorGUIUtility.TrTextContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.keepSelectedTargetValid"/>.</summary>
-            public static readonly GUIContent keepSelectedTargetValid = EditorGUIUtility.TrTextContent("Keep Selected Target Valid", "Keep selecting the target when not pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation interactables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.allowAnchorControl"/>.</summary>
-            public static readonly GUIContent allowAnchorControl = EditorGUIUtility.TrTextContent("Anchor Control", "Allows the user to move the attach anchor point using the joystick.");
+            public static readonly GUIContent allowAnchorControl = EditorGUIUtility.TrTextContent("Anchor Control", "Allows the user to move the attach anchor point using the thumbstick.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.useForceGrab"/>.</summary>
             public static readonly GUIContent useForceGrab = EditorGUIUtility.TrTextContent("Force Grab", "Force grab moves the object to your hand rather than interacting with it at a distance.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateSpeed"/>.</summary>
@@ -143,6 +143,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_HoverToSelect = serializedObject.FindProperty("m_HoverToSelect");
             m_HoverTimeToSelect = serializedObject.FindProperty("m_HoverTimeToSelect");
             m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
+            m_RayOriginTransform = serializedObject.FindProperty("m_RayOriginTransform");
 
             m_LineType = serializedObject.FindProperty("m_LineType");
             m_BlendVisualLinePoints = serializedObject.FindProperty("m_BlendVisualLinePoints");
@@ -158,7 +159,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AdditionalFlightTime = serializedObject.FindProperty("m_AdditionalFlightTime");
             m_ReferenceFrame = serializedObject.FindProperty("m_ReferenceFrame");
 
-            m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
             m_AllowAnchorControl = serializedObject.FindProperty("m_AllowAnchorControl");
             m_UseForceGrab = serializedObject.FindProperty("m_UseForceGrab");
 
@@ -222,6 +222,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
+            EditorGUILayout.PropertyField(m_RayOriginTransform, Contents.rayOriginTransform);
         }
 
         /// <summary>
@@ -313,8 +314,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawSelectionConfigurationNested()
         {
             DrawSelectActionTrigger();
-            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, Contents.keepSelectedTargetValid);
+            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
+            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
             EditorGUILayout.PropertyField(m_HoverToSelect, Contents.hoverToSelect);
             if (m_HoverToSelect.boolValue)
             {

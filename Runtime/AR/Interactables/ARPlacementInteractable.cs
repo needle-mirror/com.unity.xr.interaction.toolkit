@@ -43,7 +43,8 @@ using UnityEngine.XR.ARSubsystems;
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// <see cref="UnityEvent"/> that is invoked when an object is placed.
+    /// (Deprecated) <see cref="UnityEvent"/> that is invoked when an object is placed.
+    /// Use <see cref="ARObjectPlacementEvent" /> instead.
     /// </summary>
     [Serializable, Obsolete("ARObjectPlacedEvent has been deprecated. Use ARObjectPlacementEvent instead.")]
     public class ARObjectPlacedEvent : UnityEvent<ARPlacementInteractable, GameObject>
@@ -51,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     }
 
     /// <summary>
-    /// <see cref="UnityEvent"/> that is invoked when an object is placed.
+    /// <see cref="UnityEvent"/> that is invoked when the user places an object.
     /// </summary>
     [Serializable]
     public class ARObjectPlacementEvent : UnityEvent<ARObjectPlacementEventArgs>
@@ -59,7 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     }
 
     /// <summary>
-    /// Event data associated with the event when an object is placed.
+    /// Event data associated with the event when the user places an object.
     /// </summary>
     public class ARObjectPlacementEventArgs
     {
@@ -75,7 +76,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     }
 
     /// <summary>
-    /// Controls the placement of Andy objects via a tap gesture.
+    /// Controls the placement of Prefabs via a tap gesture.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_ARPlacementInteractable)]
     public class ARPlacementInteractable : ARBaseGestureInteractable
@@ -94,11 +95,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         [SerializeField]
-        [Tooltip("The LayerMask that is used during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        [Tooltip("The LayerMask that Unity uses during an additional raycast when a user touch does not hit any AR trackable planes.")]
         LayerMask m_FallbackLayerMask;
 
         /// <summary>
-        /// The <see cref="LayerMask"/> that is used during an additional raycast
+        /// The <see cref="LayerMask"/> that Unity uses during an additional raycast
         /// when a user touch does not hit any AR trackable planes.
         /// </summary>
         public LayerMask fallbackLayerMask
@@ -126,6 +127,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Gets or sets the event that is called when this Interactable places a new <see cref="GameObject"/> in the world.
         /// </summary>
+        /// <remarks>
+        /// <c>onObjectPlaced</c> has been deprecated. Use <see cref="objectPlaced"/> with updated signature instead.
+        /// </remarks>
         [Obsolete("onObjectPlaced has been deprecated. Use objectPlaced with updated signature instead.")]
         public ARObjectPlacedEvent onObjectPlaced
         {
@@ -148,14 +152,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected virtual bool TryGetPlacementPose(TapGesture gesture, out Pose pose)
         {
             // Raycast against the location the player touched to search for planes.
-            if (GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, arSessionOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask))
+            var hit = xrOrigin != null
+                ? GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, xrOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask)
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+                : arSessionOrigin != null && GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, arSessionOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask);
+#pragma warning restore 618
+            if (hit)
             {
                 pose = s_Hits[0].pose;
 
                 // Use hit pose and camera pose to check if hit test is from the
                 // back of the plane, if it is, no need to create the anchor.
                 // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-                var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+                var camera = xrOrigin != null
+                    ? xrOrigin.Camera
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+                    : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
+#pragma warning restore 618
                 if (camera == null)
                     return false;
 
@@ -183,14 +196,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             placementObject.transform.parent = anchor;
 
             // Use Trackables object in scene to use as parent
-            if (arSessionOrigin != null && arSessionOrigin.trackablesParent != null)
-                anchor.parent = arSessionOrigin.trackablesParent;
+            var trackablesParent = xrOrigin != null
+                ? xrOrigin.TrackablesParent
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+                : (arSessionOrigin != null ? arSessionOrigin.trackablesParent : null);
+#pragma warning restore 618
+            if (trackablesParent != null)
+                anchor.parent = trackablesParent;
 
             return placementObject;
         }
 
         /// <summary>
-        /// This method is called after an object has been placed.
+        /// Unity calls this method automatically when the user places an object.
         /// </summary>
         /// <param name="args">Event data containing a reference to the instantiated placement object.</param>
         protected virtual void OnObjectPlaced(ARObjectPlacementEventArgs args)
@@ -213,8 +231,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             if (gesture.isCanceled)
                 return;
 
-            if (arSessionOrigin == null)
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+            if (xrOrigin == null && arSessionOrigin == null)
                 return;
+#pragma warning restore 618
 
             if (TryGetPlacementPose(gesture, out var pose))
             {

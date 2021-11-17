@@ -28,7 +28,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         class Item : TreeViewItem
         {
-            public XRBaseInteractable interactable;
+            public IXRInteractable interactable;
         }
 
         enum ColumnId
@@ -37,24 +37,26 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Type,
             LayerMask,
             Colliders,
-            Hover,
-            Select,
+            Hovered,
+            Selected,
 
-            COUNT
+            Count,
         }
+
+        static bool exitingPlayMode => EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode;
 
         readonly List<XRInteractionManager> m_InteractionManagers = new List<XRInteractionManager>();
 
         static MultiColumnHeaderState CreateHeaderState()
         {
-            var columns = new MultiColumnHeaderState.Column[(int)ColumnId.COUNT];
+            var columns = new MultiColumnHeaderState.Column[(int)ColumnId.Count];
 
             columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Name") };
             columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Type") };
             columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask") };
             columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Colliders") };
-            columns[(int)ColumnId.Hover]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hover") };
-            columns[(int)ColumnId.Select]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Select") };
+            columns[(int)ColumnId.Hovered]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hovered") };
+            columns[(int)ColumnId.Selected]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Selected") };
 
             return new MultiColumnHeaderState(columns);
         }
@@ -71,10 +73,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public void UpdateManagersList(List<XRInteractionManager> currentManagers)
         {
-            bool managerListChanged = false;
+            var managerListChanged = false;
 
             // Check for Removal
-            for (int i = 0; i < m_InteractionManagers.Count; i++)
+            for (var i = 0; i < m_InteractionManagers.Count; i++)
             {
                 var manager = m_InteractionManagers[i];
                 if (!currentManagers.Contains(manager))
@@ -95,7 +97,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 }
             }
 
-            if(managerListChanged)
+            if (managerListChanged)
                 Reload();
         }
 
@@ -126,9 +128,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Reload();
         }
 
-        void OnInteractableRegistered(InteractableRegisteredEventArgs eventArgs) { Reload(); }
+        void OnInteractableRegistered(InteractableRegisteredEventArgs eventArgs)
+        {
+            Reload();
+        }
 
-        void OnInteractableUnregistered(InteractableUnregisteredEventArgs eventArgs) { Reload(); }
+        void OnInteractableUnregistered(InteractableUnregisteredEventArgs eventArgs)
+        {
+            // Skip reloading as each interactable is being destroyed when exiting Play mode
+            if (!exitingPlayMode)
+                Reload();
+        }
 
         /// <inheritdoc />
         protected override TreeViewItem BuildRoot()
@@ -145,7 +155,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         List<TreeViewItem> BuildInteractableTree()
         {
             var items = new List<TreeViewItem>();
-            var interactables = new List<XRBaseInteractable>();
+            var interactables = new List<IXRInteractable>();
 
             foreach (var interactionManager in m_InteractionManagers)
             {
@@ -154,8 +164,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
                 var rootTreeItem = new Item
                 {
-                    id = interactionManager.GetInstanceID(),
-                    displayName = interactionManager.name,
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactionManager),
+                    displayName = XRInteractionDebuggerWindow.GetDisplayName(interactionManager),
                     depth = 0,
                 };
 
@@ -168,8 +178,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     {
                         var childItem = new Item
                         {
-                            id = interactable.GetInstanceID(),
-                            displayName = interactable.name,
+                            id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactable),
+                            displayName = XRInteractionDebuggerWindow.GetDisplayName(interactable),
                             interactable = interactable,
                             depth = 1,
                             parent = rootTreeItem,
@@ -191,6 +201,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void RowGUI(RowGUIArgs args)
         {
+            if (!Application.isPlaying || exitingPlayMode)
+                return;
+
             var item = (Item)args.item;
 
             var columnCount = args.GetNumVisibleColumns();
@@ -218,19 +231,30 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         GUI.Label(cellRect, item.interactable.GetType().Name);
                         break;
                     case (int)ColumnId.LayerMask:
-                        GUI.Label(cellRect, item.interactable.interactionLayerMask.value.ToString());
+                        GUI.Label(cellRect, item.interactable.interactionLayers.value.ToString());
                         break;
                     case (int)ColumnId.Colliders:
                         GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", item.interactable.colliders));
                         break;
-                    case (int)ColumnId.Hover:
-                        GUI.Label(cellRect, item.interactable.isHovered ? "True" : "False");
+                    case (int)ColumnId.Hovered:
+                        if (item.interactable is IXRHoverInteractable hoverable)
+                            GUI.Label(cellRect, hoverable.isHovered ? "True" : "False");
                         break;
-                    case (int)ColumnId.Select:
-                        GUI.Label(cellRect, item.interactable.isSelected ? "True" : "False");
+                    case (int)ColumnId.Selected:
+                        if (item.interactable is IXRSelectInteractable selectable)
+                            GUI.Label(cellRect, selectable.isSelected ? "True" : "False");
                         break;
                 }
             }
+        }
+
+        /// <inheritdoc />
+        protected override void DoubleClickedItem(int id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeInstanceID = id;
         }
     }
 }

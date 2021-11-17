@@ -5,6 +5,149 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.0-pre.5] - 2021-11-17
+
+### Fixed
+- Fixed name of the profiler marker for `PreprocessInteractors`.
+
+## [2.0.0-pre.4] - 2021-11-17
+
+### Added
+- Added ability to change the `MovementType` of an `XRGrabInteractable` while it is selected. The methods `SetupRigidbodyDrop` and `SetupRigidbodyGrab` will be invoked in this case, you can check if the `XRGrabInteractable` it's not selected or use the methods `Grab` and `Drop` to perform operations that should only occur once during the select state.
+
+### Changed
+- Changed so the Interaction Layer Mask check is done in the `XRInteractionManager` instead of within `XRBaseInteractor.CanSelect`/`XRBaseInteractable.IsSelectableBy` and `XRBaseInteractor.CanHover`/`XRBaseInteractable.IsHoverableBy`.
+- Changed `com.unity.inputsystem` dependency from 1.0.2 to 1.2.0.
+- Changed `com.unity.xr.core-utils` dependency from 2.0.0-pre.3 to 2.0.0-pre.5.
+- Changed `com.unity.xr.legacyinputhelpers` dependency from 2.1.7 to 2.1.8.
+- Changed `XRHelpURLConstants` from `public` to `internal`.
+
+### Fixed
+- Updated the property names of [XROrigin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/api/Unity.XR.CoreUtils.XROrigin.html) to adhere to PascalCase.
+
+## [2.0.0-pre.3] - 2021-11-09
+
+### Added
+- Added XR Interaction Toolkit Settings to the **Edit &gt; Project Settings** window to allow for editing of the Interaction Layers. These settings are stored within a new `Assets/XRI` folder by default.
+- Added a Select Mode property to Interactables that controls the number of Interactors that can select it at the same time. This allows Interactables that support it to be configured to allow multiple hands to interact with it at the same time. The Multiple option can be disabled in the Inspector window by adding `[CanSelectMultiple(false)]` to your component script.
+- Added ability to double click a row in the XR Interaction Debugger window to select the Interactor or Interactable.
+- Added the `ActionBasedController.trackingStateAction` property that allows users to bind the `InputTrackingState`. This new action is used when updating the controller's position and rotation. When not set, it falls back to the old behavior of using the tracked device's tracking state that is driving the position or rotation action.
+- Added the interaction `float` value to the controller state. This will allow users to read the `float` value from `InteractionState`, not just the `bool` value, to drive visuals.
+- Added methods to `XRBaseInteractor` and `XRBaseInteractable` to return the pose of the Attach Transform captured during the moment of selection (`GetAttachPoseOnSelect` and `GetLocalAttachPoseOnSelect`).
+- Added a property to `XRBaseInteractor` and `XRBaseInteractable` to return the first interactor or interactable during the current select stack (`firstInteractableSelected` and `firstInteractorSelecting`).
+- Added Allow Hovered Activate option to Ray Interactor and Direct Interactor to allow sending activate and deactivate events to interactables that the interactor is hovered over but not selected when there is no current selection. Override `GetActivateTargets(List<IXRActivateInteractable>)` to control which interactables can be activated.
+- Added `teleporting` event to `BaseTeleportationInteractable` (`TeleportationAnchor`, `TeleportationArea`). Fires according to timing defined by that type's `teleportTrigger`.
+
+### Changed
+- Changed `ProcessInteractor` so that it is called after interaction events instead of before. Added a new `PreprocessInteractor` method to interactors which is called before interaction events. Scripts which used `ProcessInteractor` to compute valid targets should move that logic into `PreprocessInteractor` instead.
+- Changed the signature of all methods with `XRBaseInteractor` or `XRBaseInteractable` parameters to instead take one of the new interfaces for Interactors (`IXRInteractor`, `IXRActivateInteractor`, `IXRHoverInteractor`, `IXRSelectInteractor`) or Interactables (`IXRInteractable`, `IXRActivateInteractable`, `IXRHoverInteractable`, `IXRSelectInteractable`). This change allows users to completely override and develop their own implementation of Interactors and Interactables instead of being required to derive from `XRBaseInteractor` or `XRBaseInteractable`.
+  |Old Signature|New Signature|
+  |---|---|
+  |XRBaseInteractor<br/>`void GetValidTargets(List<XRBaseInteractable> targets)`|IXRInteractor<br/>`void GetValidTargets(List<IXRInteractable> targets)`|
+  |XRBaseInteractor<br/>`bool CanHover(XRBaseInteractable interactable)`|IXRHoverInteractor<br/>`bool CanHover(IXRHoverInteractable interactable)`|
+  |XRBaseInteractor<br/>`bool CanSelect(XRBaseInteractable interactable)`|IXRSelectInteractor<br/>`bool CanSelect(IXRSelectInteractable interactable)`|
+  |XRBaseInteractable<br/>`bool IsHoverableBy(XRBaseInteractor interactor)`|IXRHoverInteractable<br/>`bool IsHoverableBy(IXRHoverInteractor interactor)`|
+  |XRBaseInteractable<br/>`bool IsSelectableBy(XRBaseInteractor interactor)`|IXRSelectInteractable<br/>`bool IsSelectableBy(IXRSelectInteractor interactor)`|
+  |BaseInteractionEventArgs<br/>`XRBaseInteractor interactor { get; set; }`<br/>`XRBaseInteractable interactable { get; set; }`|ActivateEventArgs and DeactivateEventArgs<br/>`IXRActivateInteractor interactorObject { get; set; }`<br/>`IXRActivateInteractable interactableObject { get; set; }`<br/><br/>HoverEnterEventArgs and HoverExitEventArgs<br/>`IXRHoverInteractor interactorObject { get; set; }`<br/>`IXRHoverInteractable interactableObject { get; set; }`<br/><br/>SelectEnterEventArgs and SelectExitEventArgs<br/>`IXRSelectInteractor interactorObject { get; set; }`<br/>`IXRSelectInteractable interactableObject { get; set; }`|
+  ```csharp
+  // Example Interactable that overrides an interaction event method.
+  public class ExampleInteractable : XRBaseInteractable
+  {
+      // Old code
+      protected override void OnSelectEntering(SelectEnterEventArgs args)
+      {
+          base.OnSelectEntering(args);
+          XRBaseInteractor interactor = args.interactor;
+          // Do something with interactor
+      }
+
+      // New code
+      protected override void OnSelectEntering(SelectEnterEventArgs args)
+      {
+          base.OnSelectEntering(args);
+          var interactor = args.interactorObject;
+          // Do something with interactor
+      }
+  }
+
+  // Example Interactor that overrides GetValidTargets.
+  public class ExampleInteractor : XRRayInteractor
+  {
+      // Old code
+      public override void GetValidTargets(List<XRBaseInteractable> targets)
+      {
+          base.GetValidTargets(targets);
+          // Do additional filtering or prioritizing of Interactable candidates in targets list
+      }
+
+      // New code
+      public override void GetValidTargets(List<IXRInteractable> targets)
+      {
+          base.GetValidTargets(targets);
+          // Do additional filtering or prioritizing of Interactable candidates in targets list
+      }
+  }
+  ```
+- Changed Interactors and Interactables so they support having multiple selections, similarly to how they could have multiple components they were either hovering over or being hovered over by.
+  |Old Pseudocode Snippets|New Pseudocode Snippets|
+  |---|---|
+  |`XRBaseInteractor.selectTarget != null`|`IXRSelectInteractor.hasSelection`|
+  |`XRBaseInteractor.selectTarget`|`// Getting the first selected Interactable`<br/>`IXRSelectInteractor.hasSelection ? IXRSelectInteractor.interactablesSelected[0] : null`<br/>or<br/>`using System.Linq;`<br/>`IXRSelectInteractor.interactablesSelected.FirstOrDefault();`|
+  |`var targets = new List<XRBaseInteractable>();`<br/>`XRBaseInteractor.GetHoverTargets(targets);`|`IXRHoverInteractor.interactablesHovered`|
+  |`XRBaseInteractable.hoveringInteractors`|`IXRHoverInteractable.interactorsHovering`|
+  |`XRBaseInteractable.selectingInteractor`|`IXRSelectInteractable.interactorsSelecting`|
+  ```csharp
+  // Example Interactor that overrides a predicate method.
+  public class ExampleInteractor : XRBaseInteractor
+  {
+      // Old code
+      public override bool CanSelect(XRBaseInteractable interactable)
+      {
+          return base.CanSelect(interactable) && (selectTarget == null || selectTarget == interactable);
+      }
+
+      // New code
+      public override bool CanSelect(IXRSelectInteractable interactable)
+      {
+          return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable));
+      }
+  }
+  ```
+- Changed `XRInteractionManager` methods `ClearInteractorSelection` and `ClearInteractorHover` from `public` to `protected`. These are invoked each frame automatically and were not intended to be called by external scripts.
+- Changed behaviors that used the `attachTransform` property of `XRBaseInteractor` and `XRGrabInteractable` to instead use `IXRInteractor.GetAttachTransform(IXRInteractable)` and `IXRInteractable.GetAttachTransform(IXRInteractor)` when possible. Users can override the `GetAttachTransform` methods to customize which `Transform` should be used for a given Interactor or Interactable.
+- Changed Interactor and Interactable interaction Layer checks to use the new `InteractionLayerMask` instead of the Unity physics `LayerMask`. Layers for the Interaction Layer Mask can be edited separately from Unity physics Layers. A migration tool was added to upgrade the field in all Prefabs and scenes. You will be prompted automatically after upgrading the package, and it can also be done at any time by opening **Edit &gt; Project Settings &gt; XR Interaction Toolkit** and clicking **Run Interaction Layer Mask Updater**.
+- Changed Toggle and Sticky in Select Action Trigger so the toggled on state is now based on whether a selection actually occurred rather than whether there was simply a valid target. This means that a user that presses the select button while pointing at a valid target but one that can not be selected will no longer be in a toggled on state to select other interactables that can be selected.
+- Changed Socket Interactor so the hover mesh can appear for all valid Interactable components, not just Grab Interactable components.
+- Changed `XRRayInteractor.TranslateAnchor` so the Ray Origin Transform is passed instead of the Original Attach Transform, and renamed the parameter from `originalAnchor` to `rayOrigin`.
+- Changed `HoverEnterEventArgs`, `HoverExitEventArgs`, `SelectEnterEventArgs`, and `SelectExitEventArgs` by adding a `manager` property of type `XRInteractionManager`.
+- Changed minimum supported version of the Unity Editor from 2019.3 to 2019.4 (LTS).
+
+### Deprecated
+- Deprecated `XRRig` which was replaced by [XROrigin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/api/Unity.XR.CoreUtils.XROrigin.html) in a new dependent package [XR Core Utilities](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/manual/index.html). `XROrigin` combines the functionality of `XRRig` and `ARSessionOrigin`.
+- Deprecated `XRBaseInteractor.requireSelectExclusive` which was used by `XRSocketInteractor`. That logic was moved into `CanSelect` by utilizing the `isSelected` property of the interactable.
+- Deprecated `XRRayInteractor.originalAttachTransform` and replaced with `rayOriginTransform`. The original pose of the Attach Transform can now be obtained with new methods (`GetAttachPoseOnSelect` and `GetLocalAttachPoseOnSelect`).
+- Deprecated `GetControllerState` and `SetControllerState` from the `XRBaseController`. That logic was moved into the `currentControllerState` property.
+- Deprecated `XRControllerState.poseDataFlags` due to being replaced by the new field `XRControllerState.inputTrackingState` to track the controller pose state.
+- Deprecated the `XRControllerState` constructor; the `inputTrackingState` parameter is now required.
+- Deprecated `AddRecordingFrame(double, Vector3, Quaternion, bool, bool, bool)` in the `XRControllerRecording`; use `AddRecordingFrame(XRControllerState)` or `AddRecordingFrameNonAlloc` instead.
+
+### Fixed
+- Fixed Teleportation Areas and Anchors causing undesired teleports when two different Ray Interactors are pointed at them by setting their default Select Mode to Multiple. By default, a teleport would be triggered On Select Exit, but that would occur when each Ray Interactor would take selection. Users with existing projects should change the Select Mode to Multiple.
+- Fixed Sockets sometimes showing either the wrong hover mesh or appearing while selected for a single frame when the selection state changed that frame.
+- Fixed Sockets sometimes showing the hover mesh for a single frame after another Interactor would take its selection when the Recycle Delay Time should have suppressed it from appearing.
+- Fixed controller's recording serialization losing data when restarting the Unity Editor.
+- Fixed releasing `XRGrabInteractable` objects after a teleport from having too much energy.
+- Fixed `pixelDragThresholdMultiplier` not being squared when calculating the threshold in `UIInputModule`. To keep the same drag threshold you should update the `Tracked Device Drag Threshold Multiplier` property of your `XRUIInputModule` (and your subclasses of `UIInputModule`) to its square root in the Inspector window; for example, a value of `2` should be changed to `1.414214` (or `sqrt(2)`).
+
+## [2.0.0-pre.2] - 2021-11-04
+
+### Changed
+- Changed package version for internal release.
+
+## [2.0.0-pre.1] - 2021-10-22
+
+### Changed
+- Changed package version for internal release.
 
 ## [1.0.0-pre.8] - 2021-10-26
 

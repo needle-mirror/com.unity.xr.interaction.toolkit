@@ -11,7 +11,7 @@ To install samples included with this package, follow the instructions for [Inst
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Default Input Actions` folder. You can move these Assets to a different location.
 
-This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
+This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
 
 This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
@@ -19,14 +19,14 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 |---|---|
 |`XRI Default Continuous Move.preset`|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
 |`XRI Default Continuous Turn.preset`|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
-|`XRI Default Input Actions.inputactions`|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
+|`XRI Default Input Actions.inputactions`|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
 |`XRI Default Left Controller.preset`|Preset for left hand [Controllers](index.md#controllers).|
 |`XRI Default Right Controller.preset`|Preset for right hand [Controllers](index.md#controllers).|
 |`XRI Default Snap Turn.preset`|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
 
 ### Input Actions Asset
 
-The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
+The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
 
 ![sample-default-input-actions-asset](images/sample-default-input-actions-asset.png)
 
@@ -75,7 +75,7 @@ The XR Interaction Toolkit package provides an example implementation of an XR D
 
 ### Input Actions Asset
 
-The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
+The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
 
 ![sample-device-simulator-controls-asset](images/sample-device-simulator-controls-asset.png)
 

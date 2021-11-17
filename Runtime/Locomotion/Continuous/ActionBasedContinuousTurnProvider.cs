@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The Input System Action that will be used to read Turn data from the left hand controller. Must be a Value Vector2 Control.")]
         InputActionProperty m_LeftHandTurnAction;
         /// <summary>
-        /// The Input System Action that will be used to read Turn data from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
+        /// The Input System Action that Unity uses to read Turn data from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty leftHandTurnAction
         {
@@ -30,7 +30,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The Input System Action that will be used to read Turn data from the right hand controller. Must be a Value Vector2 Control.")]
         InputActionProperty m_RightHandTurnAction;
         /// <summary>
-        /// The Input System Action that will be used to read Turn data from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
+        /// The Input System Action that Unity uses to read Turn data from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty rightHandTurnAction
         {

@@ -28,7 +28,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         class Item : TreeViewItem
         {
-            public XRBaseInteractor interactor;
+            public IXRInteractor interactor;
         }
 
         enum ColumnId
@@ -41,16 +41,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             SelectInteractable,
             ValidTargets,
 
-            COUNT
+            Count,
         }
+
+        static bool exitingPlayMode => EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode;
 
         readonly List<XRInteractionManager> m_InteractionManagers = new List<XRInteractionManager>();
 
-        readonly List<XRBaseInteractable> m_Targets = new List<XRBaseInteractable>();
+        readonly List<IXRInteractable> m_Targets = new List<IXRInteractable>();
 
         static MultiColumnHeaderState CreateHeaderState()
         {
-            var columns = new MultiColumnHeaderState.Column[(int)ColumnId.COUNT];
+            var columns = new MultiColumnHeaderState.Column[(int)ColumnId.Count];
 
             columns[(int)ColumnId.Name] = new MultiColumnHeaderState.Column
             {
@@ -105,10 +107,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         public void UpdateManagersList(List<XRInteractionManager> currentManagers)
         {
-            bool managerListChanged = false;
+            var managerListChanged = false;
 
             // Check for Removal
-            for (int i = 0; i < m_InteractionManagers.Count; i++)
+            for (var i = 0; i < m_InteractionManagers.Count; i++)
             {
                 var manager = m_InteractionManagers[i];
                 if (!currentManagers.Contains(manager))
@@ -129,7 +131,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 }
             }
 
-            if(managerListChanged)
+            if (managerListChanged)
                 Reload();
         }
 
@@ -160,9 +162,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Reload();
         }
 
-        void OnInteractorRegistered(InteractorRegisteredEventArgs eventArgs) { Reload(); }
+        void OnInteractorRegistered(InteractorRegisteredEventArgs eventArgs)
+        {
+            Reload();
+        }
 
-        void OnInteractorUnregistered(InteractorUnregisteredEventArgs eventArgs) { Reload(); }
+        void OnInteractorUnregistered(InteractorUnregisteredEventArgs eventArgs)
+        {
+            // Skip reloading as each interactor is being destroyed when exiting Play mode
+            if (!exitingPlayMode)
+                Reload();
+        }
 
         /// <inheritdoc />
         protected override TreeViewItem BuildRoot()
@@ -179,7 +189,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         List<TreeViewItem> BuildInteractableTree()
         {
             var items = new List<TreeViewItem>();
-            var interactors = new List<XRBaseInteractor>();
+            var interactors = new List<IXRInteractor>();
 
             foreach (var interactionManager in m_InteractionManagers)
             {
@@ -188,8 +198,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
                 var rootTreeItem = new Item
                 {
-                    id = interactionManager.GetInstanceID(),
-                    displayName = interactionManager.name,
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactionManager),
+                    displayName = XRInteractionDebuggerWindow.GetDisplayName(interactionManager),
                     depth = 0,
                 };
 
@@ -202,8 +212,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     {
                         var childItem = new Item
                         {
-                            id = interactor.GetInstanceID(),
-                            displayName = interactor.name,
+                            id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactor),
+                            displayName = XRInteractionDebuggerWindow.GetDisplayName(interactor),
                             interactor = interactor,
                             depth = 1,
                             parent = rootTreeItem,
@@ -225,6 +235,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void RowGUI(RowGUIArgs args)
         {
+            if (!Application.isPlaying || exitingPlayMode)
+                return;
+
             var item = (Item)args.item;
 
             var columnCount = args.GetNumVisibleColumns();
@@ -246,25 +259,29 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             if (item.interactor != null)
             {
+                var selectInteractor = item.interactor as IXRSelectInteractor;
+                var hoverInteractor = item.interactor as IXRHoverInteractor;
+
                 switch (column)
                 {
                     case (int)ColumnId.Type:
                         GUI.Label(cellRect, item.interactor.GetType().Name);
                         break;
                     case (int)ColumnId.HoverActive:
-                        GUI.Label(cellRect, item.interactor.isHoverActive.ToString());
+                        if (hoverInteractor != null)
+                            GUI.Label(cellRect, hoverInteractor.isHoverActive.ToString());
                         break;
                     case (int)ColumnId.SelectActive:
-                        GUI.Label(cellRect, item.interactor.isSelectActive.ToString());
+                        if (selectInteractor != null)
+                            GUI.Label(cellRect, selectInteractor.isSelectActive.ToString());
                         break;
                     case (int)ColumnId.HoverInteractable:
-                        item.interactor.GetHoverTargets(m_Targets);
-                        if (m_Targets.Count > 0)
-                            GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", m_Targets));
+                        if (hoverInteractor?.interactablesHovered.Count > 0)
+                            GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", hoverInteractor.interactablesHovered));
                         break;
                     case (int)ColumnId.SelectInteractable:
-                        if (item.interactor.selectTarget != null)
-                            GUI.Label(cellRect, item.interactor.selectTarget.name);
+                        if (selectInteractor?.interactablesSelected.Count > 0)
+                            GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", selectInteractor.interactablesSelected));
                         break;
                     case (int)ColumnId.ValidTargets:
                         item.interactor.GetValidTargets(m_Targets);
@@ -273,6 +290,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         break;
                 }
             }
+        }
+
+        /// <inheritdoc />
+        protected override void DoubleClickedItem(int id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeInstanceID = id;
         }
     }
 }

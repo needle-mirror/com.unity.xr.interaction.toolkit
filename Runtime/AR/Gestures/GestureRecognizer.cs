@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR.ARFoundation;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -47,9 +48,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public event Action<T> onGestureStarted;
 
         /// <summary>
-        /// The <see cref="ARSessionOrigin"/> that will be used by gestures
-        /// (such as to get the <see cref="Camera"/> or to transform from Session space).
+        /// The <see cref="XROrigin"/>
+        /// that will be used by gestures (such as to get the [Camera](xref:UnityEngine.Camera)
+        /// or to transform from Session space).
         /// </summary>
+        public XROrigin xrOrigin { get; set; }
+
+        /// <summary>
+        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
+        /// that will be used by gestures (such as to get the [Camera](xref:UnityEngine.Camera)
+        /// or to transform from Session space).
+        /// </summary>
+        [Obsolete("arSessionOrigin has been deprecated. Use xrOrigin instead for similar functionality.")]
         public ARSessionOrigin arSessionOrigin { get; set; }
 
         /// <summary>
@@ -67,6 +77,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// (Deprecated) List of current active gestures.
         /// </summary>
+        /// <remarks>
+        /// <c>m_Gestures</c> has been deprecated. Use <see cref="gestures"/> instead.
+        /// </remarks>
         [Obsolete("m_Gestures has been deprecated. Use gestures instead. (UnityUpgradable) -> gestures")]
         protected List<T> m_Gestures = new List<T>();
 #pragma warning restore IDE1006 // Naming Styles

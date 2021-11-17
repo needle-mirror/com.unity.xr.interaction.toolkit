@@ -10,11 +10,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnFirstHoverEntered = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called only when the first Interactor begins hovering
+        /// (Deprecated) Allows interaction with Interactors whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.
+        /// </summary>
+        /// <seealso cref="XRBaseInteractor.interactionLayerMask"/>
+        /// <remarks><c>interactionLayerMask</c> has been deprecated. Use <see cref="interactionLayers"/> instead.</remarks>
+        [Obsolete("interactionLayerMask has been deprecated. Use interactionLayers instead.")]
+        public LayerMask interactionLayerMask
+        {
+            get => m_InteractionLayerMask;
+            set => m_InteractionLayerMask = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Gets or sets the event that Unity calls only when the first Interactor begins hovering
         /// over this Interactable as the sole hovering Interactor. Subsequent Interactors that
         /// begin hovering over this Interactable will not cause this event to be invoked as
         /// long as any others are still hovering.
         /// </summary>
+        /// <remarks><c>onFirstHoverEntered</c> has been deprecated. Use <see cref="firstHoverEntered"/> with updated signature instead.</remarks>
         [Obsolete("onFirstHoverEntered has been deprecated. Use firstHoverEntered with updated signature instead.")]
         public XRInteractableEvent onFirstHoverEntered
         {
@@ -26,9 +39,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnLastHoverExited = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called only when the last remaining hovering Interactor
+        /// (Deprecated) Gets or sets the event that Unity calls only when the last remaining hovering Interactor
         /// ends hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onLastHoverExited</c> has been deprecated. Use <see cref="lastHoverExited"/> with updated signature instead.</remarks>
         [Obsolete("onLastHoverExited has been deprecated. Use lastHoverExited with updated signature instead.")]
         public XRInteractableEvent onLastHoverExited
         {
@@ -40,8 +54,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnHoverEntered = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor begins hovering over this Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor begins hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onHoverEntered</c> has been deprecated. Use <see cref="hoverEntered"/> instead.</remarks>
         [Obsolete("onHoverEntered has been deprecated. Use hoverEntered with updated signature instead.")]
         public XRInteractableEvent onHoverEntered
         {
@@ -53,8 +68,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnHoverExited = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor ends hovering over this Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor ends hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onHoverExited</c> has been deprecated. Use <see cref="hoverExited"/> hoverExited with updated signature instead.</remarks>
         [Obsolete("onHoverExited has been deprecated. Use hoverExited with updated signature instead.")]
         public XRInteractableEvent onHoverExited
         {
@@ -66,8 +82,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnSelectEntered = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor begins selecting this Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor begins selecting this Interactable.
         /// </summary>
+        /// <remarks><c>onSelectEntered</c> has been deprecated. Use <see cref="selectEntered"/> with updated signature instead.</remarks>
         [Obsolete("onSelectEntered has been deprecated. Use selectEntered with updated signature instead.")]
         public XRInteractableEvent onSelectEntered
         {
@@ -79,8 +96,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnSelectExited = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor ends selecting this Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor ends selecting this Interactable.
         /// </summary>
+        /// <remarks><c>onSelectExited</c> has been deprecated. Use <see cref="selectExited"/> with updated signature and check for <c>!</c><see cref="SelectExitEventArgs.isCanceled"/> instead.</remarks>
         [Obsolete("onSelectExited has been deprecated. Use selectExited with updated signature and check for !args.isCanceled instead.")]
         public XRInteractableEvent onSelectExited
         {
@@ -92,9 +110,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnSelectCanceled = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when this Interactable is selected by an Interactor and either is unregistered
+        /// (Deprecated) Gets or sets the event that Unity calls when this Interactable is selected by an Interactor and either is unregistered
         /// (such as from being disabled or destroyed).
         /// </summary>
+        /// <remarks><c>onSelectCanceled</c> has been deprecated. Use <see cref="selectExited"/> with updated signature and check for <see cref="SelectExitEventArgs.isCanceled"/> instead.</remarks>
         [Obsolete("onSelectCanceled has been deprecated. Use selectExited with updated signature and check for args.isCanceled instead.")]
         public XRInteractableEvent onSelectCanceled
         {
@@ -106,8 +125,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnActivate = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor activates this selected Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor activates this selected Interactable.
         /// </summary>
+        /// <remarks><c>onActivate</c> has been deprecated. Use <see cref="activated"/> instead.</remarks>
         [Obsolete("onActivate has been deprecated. Use activated with updated signature instead.")]
         public XRInteractableEvent onActivate
         {
@@ -119,8 +139,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractableEvent m_OnDeactivate = new XRInteractableEvent();
 
         /// <summary>
-        /// (Deprecated) Gets or sets the event that is called when an Interactor deactivates this selected Interactable.
+        /// (Deprecated) Gets or sets the event that Unity calls when an Interactor deactivates this selected Interactable.
         /// </summary>
+        /// <remarks><c>onDeactivate</c> has been deprecated. Use <see cref="deactivated"/> instead.</remarks>
         [Obsolete("onDeactivate has been deprecated. Use deactivated with updated signature instead.")]
         public XRInteractableEvent onDeactivate
         {
@@ -129,157 +150,172 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// (Deprecated) Called only when the first Interactor begins hovering over this Interactable.
+        /// (Deprecated) Unity calls this only when the first Interactor begins hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onFirstHoverEnter</c> has been deprecated. Use <see cref="onFirstHoverEntered"/> instead.</remarks>
         [Obsolete("onFirstHoverEnter has been deprecated. Use onFirstHoverEntered instead. (UnityUpgradable) -> onFirstHoverEntered")]
         public XRInteractableEvent onFirstHoverEnter => onFirstHoverEntered;
 
         /// <summary>
-        /// (Deprecated) Called every time when an Interactor begins hovering over this Interactable.
+        /// (Deprecated) Unity calls this every time an Interactor begins hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onHoverEnter</c> has been deprecated. Use <see cref="onHoverEntered"/> instead.</remarks>
         [Obsolete("onHoverEnter has been deprecated. Use onHoverEntered instead. (UnityUpgradable) -> onHoverEntered")]
         public XRInteractableEvent onHoverEnter => onHoverEntered;
 
         /// <summary>
-        /// (Deprecated) Called every time when an Interactor ends hovering over this Interactable.
+        /// (Deprecated) Unity calls this every time an Interactor ends hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onHoverExit</c> has been deprecated. Use <see cref="onHoverExited"/> instead.</remarks>
         [Obsolete("onHoverExit has been deprecated. Use onHoverExited instead. (UnityUpgradable) -> onHoverExited")]
         public XRInteractableEvent onHoverExit => onHoverExited;
 
         /// <summary>
-        /// (Deprecated) Called only when the last Interactor ends hovering over this Interactable.
+        /// (Deprecated) Unity calls this only when the last Interactor ends hovering over this Interactable.
         /// </summary>
+        /// <remarks><c>onLastHoverExit</c> has been deprecated. Use <see cref="onLastHoverExited"/> instead.</remarks>
         [Obsolete("onLastHoverExit has been deprecated. Use onLastHoverExited instead. (UnityUpgradable) -> onLastHoverExited")]
         public XRInteractableEvent onLastHoverExit => onLastHoverExited;
 
         /// <summary>
-        /// (Deprecated) Called when an Interactor begins selecting this Interactable.
+        /// (Deprecated) Unity calls this when an Interactor begins selecting this Interactable.
         /// </summary>
+        /// <remarks><c>onSelectEnter</c> has been deprecated. Use <see cref="onSelectEntered"/> instead.</remarks>
         [Obsolete("onSelectEnter has been deprecated. Use onSelectEntered instead. (UnityUpgradable) -> onSelectEntered")]
         public XRInteractableEvent onSelectEnter => onSelectEntered;
 
         /// <summary>
-        /// (Deprecated) Called when an Interactor ends selecting this Interactable.
+        /// (Deprecated) Unity calls this when an Interactor ends selecting this Interactable.
         /// </summary>
+        /// <remarks><c>onSelectExit</c> has been deprecated. Use <see cref="onSelectExited"/> instead.</remarks>
         [Obsolete("onSelectExit has been deprecated. Use onSelectExited instead. (UnityUpgradable) -> onSelectExited")]
         public XRInteractableEvent onSelectExit => onSelectExited;
 
         /// <summary>
-        /// (Deprecated) Called when the Interactor selecting this Interactable is disabled or destroyed.
+        /// (Deprecated) Unity calls this when the Interactor selecting this Interactable is disabled or destroyed.
         /// </summary>
+        /// <remarks><c>onSelectCancel</c> has been deprecated. Use <see cref="onSelectCanceled"/> instead.</remarks>
         [Obsolete("onSelectCancel has been deprecated. Use onSelectCanceled instead. (UnityUpgradable) -> onSelectCanceled")]
         public XRInteractableEvent onSelectCancel => onSelectCanceled;
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// right before the Interactor first initiates hovering over an Interactable
         /// in a first pass.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the hover.</param>
         /// <seealso cref="OnHoverEntered(XRBaseInteractor)"/>
+        /// <remarks><c>OnHoverEntering(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnHoverEntering(HoverEnterEventArgs)"/> instead.</remarks>
         [Obsolete("OnHoverEntering(XRBaseInteractor) has been deprecated. Use OnHoverEntering(HoverEnterEventArgs) instead.")]
-        protected internal virtual void OnHoverEntering(XRBaseInteractor interactor)
+        protected virtual void OnHoverEntering(XRBaseInteractor interactor)
         {
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// when the Interactor first initiates hovering over an Interactable
         /// in a second pass.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the hover.</param>
         /// <seealso cref="OnHoverExited(XRBaseInteractor)"/>
+        /// <remarks><c>OnHoverEntered(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnHoverEntered(HoverEnterEventArgs)"/> instead.</remarks>
         [Obsolete("OnHoverEntered(XRBaseInteractor) has been deprecated. Use OnHoverEntered(HoverEnterEventArgs) instead.")]
-        protected internal virtual void OnHoverEntered(XRBaseInteractor interactor)
+        protected virtual void OnHoverEntered(XRBaseInteractor interactor)
         {
-            if (m_HoveringInteractors.Count == 1)
+            if (hoveringInteractors.Count == 1)
                 m_OnFirstHoverEntered?.Invoke(interactor);
 
             m_OnHoverEntered?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// right before the Interactor ends hovering over an Interactable
         /// in a first pass.
         /// </summary>
         /// <param name="interactor">Interactor that is ending the hover.</param>
         /// <seealso cref="OnHoverExited(XRBaseInteractor)"/>
+        /// <remarks><c>OnHoverExiting(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnHoverExiting(HoverExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnHoverExiting(XRBaseInteractor) has been deprecated. Use OnHoverExiting(HoverExitEventArgs) instead.")]
-        protected internal virtual void OnHoverExiting(XRBaseInteractor interactor)
+        protected virtual void OnHoverExiting(XRBaseInteractor interactor)
         {
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// when the Interactor ends hovering over an Interactable
         /// in a second pass.
         /// </summary>
         /// <param name="interactor">Interactor that is ending the hover.</param>
         /// <seealso cref="OnHoverEntered(XRBaseInteractor)"/>
+        /// <remarks><c>OnHoverExited(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnHoverExited(HoverExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnHoverExited(XRBaseInteractor) has been deprecated. Use OnHoverExited(HoverExitEventArgs) instead.")]
-        protected internal virtual void OnHoverExited(XRBaseInteractor interactor)
+        protected virtual void OnHoverExited(XRBaseInteractor interactor)
         {
-            if (m_HoveringInteractors.Count == 0)
+            if (hoveringInteractors.Count == 0)
                 m_OnLastHoverExited?.Invoke(interactor);
 
             m_OnHoverExited?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// right before the Interactor first initiates selection of an Interactable
         /// in a first pass.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the selection.</param>
         /// <seealso cref="OnSelectEntered(XRBaseInteractor)"/>
+        /// <remarks><c>OnSelectEntering(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectEntering(SelectEnterEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectEntering(XRBaseInteractor) has been deprecated. Use OnSelectEntering(SelectEnterEventArgs) instead.")]
-        protected internal virtual void OnSelectEntering(XRBaseInteractor interactor)
+        protected virtual void OnSelectEntering(XRBaseInteractor interactor)
         {
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// when the Interactor first initiates selection of an Interactable
         /// in a second pass.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the selection.</param>
         /// <seealso cref="OnSelectExited(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectCanceled"/>
+        /// <remarks><c>OnSelectEntered(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectEntered(SelectEnterEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectEntered(XRBaseInteractor) has been deprecated. Use OnSelectEntered(SelectEnterEventArgs) instead.")]
-        protected internal virtual void OnSelectEntered(XRBaseInteractor interactor)
+        protected virtual void OnSelectEntered(XRBaseInteractor interactor)
         {
             m_OnSelectEntered?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// right before the Interactor ends selection of an Interactable
         /// in a first pass.
         /// </summary>
         /// <param name="interactor">Interactor that is ending the selection.</param>
         /// <seealso cref="OnSelectExited(XRBaseInteractor)"/>
+        /// <remarks><c>OnSelectExiting(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectExiting(SelectExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectExiting(XRBaseInteractor) has been deprecated. Use OnSelectExiting(SelectExitEventArgs) and check for !args.isCanceled instead.")]
-        protected internal virtual void OnSelectExiting(XRBaseInteractor interactor)
+        protected virtual void OnSelectExiting(XRBaseInteractor interactor)
         {
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// when the Interactor ends selection of an Interactable
         /// in a second pass.
         /// </summary>
         /// <param name="interactor">Interactor that is ending the selection.</param>
         /// <seealso cref="OnSelectEntered(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectCanceled"/>
+        /// <remarks><c>OnSelectExited(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectExited(SelectExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectExited(XRBaseInteractor) has been deprecated. Use OnSelectExited(SelectExitEventArgs) and check for !args.isCanceled instead.")]
-        protected internal virtual void OnSelectExited(XRBaseInteractor interactor)
+        protected virtual void OnSelectExited(XRBaseInteractor interactor)
         {
             m_OnSelectExited?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
         /// while this Interactable is selected by an Interactor
         /// right before either is unregistered (such as from being disabled or destroyed)
         /// in a first pass.
@@ -288,50 +324,79 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectEntered(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectExited(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectCanceled"/>
+        /// <remarks><c>OnSelectCanceling(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectExiting(SelectExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectCanceling(XRBaseInteractor) has been deprecated. Use OnSelectExiting(SelectExitEventArgs) and check for args.isCanceled instead.")]
-        protected internal virtual void OnSelectCanceling(XRBaseInteractor interactor)
+        protected virtual void OnSelectCanceling(XRBaseInteractor interactor)
         {
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the Interaction Manager
-        /// while this Interactable is selected by an Interactor
-        /// when either is unregistered (such as from being disabled or destroyed)
+        /// (Deprecated) The <see cref="XRInteractionManager"/> calls this method
+        /// while an Interactor selects this Interactable when either
+        /// is unregistered (such as from being disabled or destroyed)
         /// in a second pass.
         /// </summary>
         /// <param name="interactor">Interactor that is ending the selection.</param>
         /// <seealso cref="OnSelectEntered(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectExited(XRBaseInteractor)"/>
         /// <seealso cref="OnSelectCanceling"/>
+        /// <remarks><c>OnSelectCanceled(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnSelectExited(SelectExitEventArgs)"/> instead.</remarks>
         [Obsolete("OnSelectCanceled(XRBaseInteractor) has been deprecated. Use OnSelectExited(SelectExitEventArgs) and check for args.isCanceled instead.")]
-        protected internal virtual void OnSelectCanceled(XRBaseInteractor interactor)
+        protected virtual void OnSelectCanceled(XRBaseInteractor interactor)
         {
             m_OnSelectCanceled?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the <see cref="XRBaseControllerInteractor"/>
-        /// when the Interactor begins an activation event on this selected Interactable.
+        /// (Deprecated) The <see cref="XRBaseControllerInteractor"/> calls this method
+        /// when the Interactor begins an activation event on this Interactable.
         /// </summary>
         /// <param name="interactor">Interactor that is sending the activate event.</param>
         /// <seealso cref="OnDeactivate"/>
+        /// <remarks><c>OnActivate(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnActivated(ActivateEventArgs)"/> instead.</remarks>
         [Obsolete("OnActivate(XRBaseInteractor) has been deprecated. Use OnActivated(ActivateEventArgs) instead.")]
-        protected internal virtual void OnActivate(XRBaseInteractor interactor)
+        protected virtual void OnActivate(XRBaseInteractor interactor)
         {
             m_OnActivate?.Invoke(interactor);
         }
 
         /// <summary>
-        /// (Deprecated) This method is called by the <see cref="XRBaseControllerInteractor"/>
-        /// when the Interactor ends an activation event on this selected Interactable.
+        /// (Deprecated) The <see cref="XRBaseControllerInteractor"/> calls this method
+        /// when the Interactor ends an activation event on this Interactable.
         /// </summary>
         /// <param name="interactor">Interactor that is sending the deactivate event.</param>
         /// <seealso cref="OnActivate"/>
+        /// <remarks><c>OnDeactivate(XRBaseInteractor)</c> has been deprecated. Use <see cref="OnDeactivated(DeactivateEventArgs)"/> instead.</remarks>
         [Obsolete("OnDeactivate(XRBaseInteractor) has been deprecated. Use OnDeactivated(DeactivateEventArgs) instead.")]
-        protected internal virtual void OnDeactivate(XRBaseInteractor interactor)
+        protected virtual void OnDeactivate(XRBaseInteractor interactor)
         {
             m_OnDeactivate?.Invoke(interactor);
         }
+
+        /// <summary>
+        /// (Deprecated) Calculates distance squared to interactor (based on colliders).
+        /// </summary>
+        /// <param name="interactor">Interactor to calculate distance against.</param>
+        /// <returns>Returns the minimum distance between the interactor and this interactable's colliders.</returns>
+        /// <remarks><c>GetDistanceSqrToInteractor(XRBaseInteractor)</c> has been deprecated. Use <see cref="GetDistanceSqrToInteractor(IXRInteractor)"/> instead.</remarks>
+        [Obsolete("GetDistanceSqrToInteractor(XRBaseInteractor) has been deprecated. Use GetDistanceSqrToInteractor(IXRInteractor) instead.")]
+        public virtual float GetDistanceSqrToInteractor(XRBaseInteractor interactor) => GetDistanceSqrToInteractor(interactor as IXRInteractor);
+
+        /// <summary>
+        /// (Deprecated) Attaches the custom reticle to the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor that is interacting with this Interactable.</param>
+        /// <remarks><c>AttachCustomReticle(XRBaseInteractor)</c> has been deprecated. Use <see cref="AttachCustomReticle(IXRInteractor)"/> instead.</remarks>
+        [Obsolete("AttachCustomReticle(XRBaseInteractor) has been deprecated. Use AttachCustomReticle(IXRInteractor) instead.")]
+        public virtual void AttachCustomReticle(XRBaseInteractor interactor) => AttachCustomReticle(interactor as IXRInteractor);
+
+        /// <summary>
+        /// (Deprecated) Removes the custom reticle from the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor that is no longer interacting with this Interactable.</param>
+        /// <remarks><c>RemoveCustomReticle(XRBaseInteractor)</c> has been deprecated. Use <see cref="RemoveCustomReticle(IXRInteractor)"/> instead.</remarks>
+        [Obsolete("RemoveCustomReticle(XRBaseInteractor) has been deprecated. Use RemoveCustomReticle(IXRInteractor) instead.")]
+        public virtual void RemoveCustomReticle(XRBaseInteractor interactor) => RemoveCustomReticle(interactor as IXRInteractor);
 #pragma warning restore 618
     }
 }

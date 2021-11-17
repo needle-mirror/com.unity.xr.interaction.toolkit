@@ -1,41 +1,60 @@
-using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
     class XRInteractionDebuggerWindow : EditorWindow
     {
+        [SerializeField]
+        Vector2 m_ScrollPosition;
+        [SerializeField]
+        bool m_ShowInputDevices; // Default off since the focus of this window is XRI.
+        [SerializeField]
+        bool m_ShowInteractors = true;
+        [SerializeField]
+        bool m_ShowInteractables = true;
+
+        [SerializeField]
+        Vector2 m_InputDevicesTreeScrollPosition;
+        [SerializeField]
+        TreeViewState m_InputDevicesTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_InputDevicesTreeHeaderState;
+
+        [SerializeField]
+        Vector2 m_InteractablesTreeScrollPosition;
+        [SerializeField]
+        TreeViewState m_InteractablesTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_InteractablesTreeHeaderState;
+
+        [SerializeField]
+        Vector2 m_InteractorsTreeScrollPosition;
+        [SerializeField]
+        TreeViewState m_InteractorsTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_InteractorsTreeHeaderState;
+
+        XRInputDevicesTreeView m_InputDevicesTree;
+        XRInteractorsTreeView m_InteractorsTree;
+        XRInteractablesTreeView m_InteractablesTree;
+
         static XRInteractionDebuggerWindow s_Instance;
-        [SerializeField] Vector2 m_ScrollPosition;
-        [SerializeField] bool m_ShowInputDevices; // Default off since the focus of this window is XRI.
-        [SerializeField] bool m_ShowInteractors = true;
-        [SerializeField] bool m_ShowInteractables = true;
 
-        [SerializeField] Vector2 m_InputDevicesTreeScrollPosition;
-        [NonSerialized] XRInputDevicesTreeView m_InputDevicesTree;
-        [SerializeField] TreeViewState m_InputDevicesTreeState;
-        [SerializeField] MultiColumnHeaderState m_InputDevicesTreeHeaderState;
+        static readonly List<string> s_Names = new List<string>();
 
-        [SerializeField] Vector2 m_InteractablesTreeScrollPosition;
-        [NonSerialized] XRInteractablesTreeView m_InteractablesTree;
-        [SerializeField] TreeViewState m_InteractablesTreeState;
-        [SerializeField] MultiColumnHeaderState m_InteractablesTreeHeaderState;
-
-        [SerializeField] Vector2 m_InteractorsTreeScrollPosition;
-        [NonSerialized] XRInteractorsTreeView m_InteractorsTree;
-        [SerializeField] TreeViewState m_InteractorsTreeState;
-        [SerializeField] MultiColumnHeaderState m_InteractorsTreeHeaderState;
-
-        [NonSerialized] static List<string> s_Names = new List<string>();
+        static readonly Dictionary<object, int> s_GeneratedUniqueIds = new Dictionary<object, int>();
 
         [MenuItem("Window/Analysis/XR Interaction Debugger", false, 2100)]
         public static void Init()
         {
             if (s_Instance == null)
             {
+                s_GeneratedUniqueIds.Clear();
                 s_Instance = GetWindow<XRInteractionDebuggerWindow>();
                 s_Instance.Show();
                 s_Instance.titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");
@@ -172,15 +191,48 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.EndHorizontal();
         }
 
-        internal static string JoinNames<T>(string separator, List<T> objects) where T : UnityEngine.Object
+        internal static string JoinNames<T>(string separator, List<T> objects)
         {
             s_Names.Clear();
             foreach (var obj in objects)
             {
-                s_Names.Add(obj.name);
+                var name = GetDisplayName(obj);
+                s_Names.Add(name);
             }
 
             return string.Join(separator, s_Names);
+        }
+
+        internal static string GetDisplayName(object obj)
+        {
+            if (obj is Object unityObject)
+            {
+                return unityObject != null ? unityObject.name : "<Destroyed>";
+            }
+
+            return obj.GetType().Name;
+        }
+
+        internal static int GetUniqueTreeViewId(object obj)
+        {
+            if (obj is Object unityObject)
+            {
+                return unityObject.GetInstanceID();
+            }
+
+            // Generate an ID if the object isn't a Unity Object,
+            // making sure to not clash with an existing instance ID.
+            if (!s_GeneratedUniqueIds.TryGetValue(obj, out var id))
+            {
+                do
+                {
+                    id = Random.Range(int.MinValue, int.MaxValue);
+                } while (EditorUtility.InstanceIDToObject(id) != null);
+
+                s_GeneratedUniqueIds.Add(obj, id);
+            }
+
+            return id;
         }
 
         static class Contents

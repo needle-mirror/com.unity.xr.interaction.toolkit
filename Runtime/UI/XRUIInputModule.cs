@@ -62,6 +62,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// The maximum distance to raycast with tracked devices to find hit objects.
         /// </summary>
+        /// <remarks>
+        /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.
+        /// </remarks>
         [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
         public float maxRaycastDistance
         {
@@ -116,7 +119,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnEnable.html">MonoBehavior.OnEnable</a>.
+        /// </summary>
         protected override void OnEnable()
         {
             base.OnEnable();

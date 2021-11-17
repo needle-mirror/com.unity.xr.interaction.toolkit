@@ -16,6 +16,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.teleportTrigger"/>.</summary>
         protected SerializedProperty m_TeleportTrigger;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.teleporting"/>.</summary>
+        protected SerializedProperty m_Teleporting;
+
+        /// <summary>
+        /// Contents of GUI elements used by this editor.
+        /// </summary>
+        protected static class BaseTeleportationContents
+        {
+            /// <summary><see cref="GUIContent"/> for the header label of Teleport events.</summary>
+            public static readonly GUIContent teleportEventsHeader = EditorGUIUtility.TrTextContent("Teleport", "Called when the XRRig is queued to teleport via the Teleportation Provider.");
+        }
+
         /// <inheritdoc />
         protected override void OnEnable()
         {
@@ -32,6 +44,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 SessionState.SetBool(initializedKey, true);
                 m_MatchOrientation.isExpanded = true;
             }
+
+            m_Teleporting = serializedObject.FindProperty("m_Teleporting");
         }
 
         /// <inheritdoc />
@@ -69,6 +83,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_MatchOrientation);
             EditorGUILayout.PropertyField(m_TeleportTrigger);
             EditorGUILayout.PropertyField(m_TeleportationProvider);
+        }
+
+        /// <inheritdoc />
+        protected override void DrawInteractableEventsNested()
+        {
+            EditorGUILayout.LabelField(BaseTeleportationContents.teleportEventsHeader, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_Teleporting);
+
+            base.DrawInteractableEventsNested();
         }
     }
 }

@@ -16,8 +16,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_InteractionManager;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
         protected SerializedProperty m_InteractionLayerMask;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayers"/>.</summary>
+        protected SerializedProperty m_InteractionLayers;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.attachTransform"/>.</summary>
         protected SerializedProperty m_AttachTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
+        protected SerializedProperty m_KeepSelectedTargetValid;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
         protected SerializedProperty m_StartingSelectedInteractable;
 
@@ -56,9 +60,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionManager"/>.</summary>
             public static readonly GUIContent interactionManager = EditorGUIUtility.TrTextContent("Interaction Manager", "The XR Interaction Manager that this Interactor will communicate with (will find one if None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
-            public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactables whose Interaction Layer Mask overlaps with any layer in this Interaction Layer Mask.");
+            public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Deprecated Interaction Layer Mask", "Deprecated Interaction Layer Mask that uses the Unity physics Layers. Hide this property by disabling \'Show Old Interaction Layer Mask In Inspector\' in the XR Interaction Toolkit project settings.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
+            public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactables whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.attachTransform"/>.</summary>
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables. Will create an empty GameObject if None.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
+            public static readonly GUIContent keepSelectedTargetValid = EditorGUIUtility.TrTextContent("Keep Selected Target Valid", "Keep selecting the target when not touching or pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
@@ -86,7 +94,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
+            m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
+            m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
 
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
@@ -141,6 +151,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawProperties()
         {
             DrawCoreConfiguration();
+            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
         }
 
         /// <summary>
@@ -172,7 +183,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawInteractionManagement()
         {
             EditorGUILayout.PropertyField(m_InteractionManager, BaseContents.interactionManager);
-            EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
+            EditorGUILayout.PropertyField(m_InteractionLayers, BaseContents.interactionLayers);
+            if (XRInteractionEditorSettings.instance.showOldInteractionLayerMaskInInspector)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
+                }
+            }
         }
 
         /// <summary>

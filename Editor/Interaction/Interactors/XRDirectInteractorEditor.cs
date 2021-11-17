@@ -35,7 +35,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawSelectionConfiguration()
         {
             DrawSelectActionTrigger();
+            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
+            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
         }
     }

@@ -1,7 +1,7 @@
 ﻿namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Interactor helper object draws a targeting <see cref="reticlePrefab"/> over a raycasted point in front of the Interactor.
+    /// Interactor helper object that draws a targeting <see cref="reticlePrefab"/> over a raycasted point in front of the Interactor.
     /// </summary>
     [AddComponentMenu("XR/Helpers/XR Interactor Reticle Visual")]
     [DisallowMultipleComponent]
@@ -24,7 +24,7 @@
         [SerializeField, Tooltip("Prefab to draw over Raycast destination.")]
         GameObject m_ReticlePrefab;
         /// <summary>
-        /// Prefab to draw over Raycast destination.
+        /// Prefab which Unity draws over Raycast destination.
         /// </summary>
         public GameObject reticlePrefab
         {
@@ -50,7 +50,7 @@
         [SerializeField, Tooltip("Whether to undo the apparent scale of the prefab by distance.")]
         bool m_UndoDistanceScaling = true;
         /// <summary>
-        /// Whether to undo the apparent scale of the prefab by distance.
+        /// Whether Unity undoes the apparent scale of the prefab by distance.
         /// </summary>
         public bool undoDistanceScaling
         {
@@ -61,7 +61,7 @@
         [SerializeField, Tooltip("Whether to align the prefab to the raycasted surface normal.")]
         bool m_AlignPrefabWithSurfaceNormal = true;
         /// <summary>
-        /// Whether to align the prefab to the raycasted surface normal.
+        /// Whether Unity aligns the prefab to the raycasted surface normal.
         /// </summary>
         public bool alignPrefabWithSurfaceNormal
         {
@@ -83,7 +83,7 @@
         [SerializeField, Tooltip("Draw the Reticle Prefab while selecting an Interactable.")]
         bool m_DrawWhileSelecting;
         /// <summary>
-        /// Draw the <see cref="reticlePrefab"/> while selecting an Interactable.
+        /// Whether Unity draws the <see cref="reticlePrefab"/> while selecting an Interactable.
         /// </summary>
         public bool drawWhileSelecting
         {
@@ -127,8 +127,6 @@
         /// </summary>
         readonly RaycastHit[] m_RaycastHits = new RaycastHit[k_MaxRaycastHits];
 
-        bool m_HasSelectedInteractable;
-
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -138,7 +136,6 @@
             if (m_Interactor != null)
             {
                 m_Interactor.selectEntered.AddListener(OnSelectEntered);
-                m_Interactor.selectExited.AddListener(OnSelectExited);
             }
             SetupReticlePrefab();
             reticleActive = false;
@@ -163,7 +160,6 @@
             if (m_Interactor != null)
             {
                 m_Interactor.selectEntered.RemoveListener(OnSelectEntered);
-                m_Interactor.selectExited.RemoveListener(OnSelectExited);
             }
         }
 
@@ -212,7 +208,7 @@
 
         bool UpdateReticleTarget()
         {
-            if (m_HasSelectedInteractable && !m_DrawWhileSelecting)
+            if (!m_DrawWhileSelecting && m_Interactor.hasSelection)
                 return false;
 
             var raycastPos = Vector3.zero;
@@ -247,13 +243,7 @@
 
         void OnSelectEntered(SelectEnterEventArgs args)
         {
-            m_HasSelectedInteractable = true;
             reticleActive = false;
-        }
-
-        void OnSelectExited(SelectExitEventArgs args)
-        {
-            m_HasSelectedInteractable = false;
         }
     }
 }

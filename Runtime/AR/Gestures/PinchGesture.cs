@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class PinchGesture : Gesture<PinchGesture>
     {
         /// <summary>
-        /// Constructs a PinchGesture gesture.
+        /// Initializes and returns an instance of <see cref="PinchGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>
@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Constructs a PinchGesture gesture.
+        /// Initializes and returns an instance of <see cref="PinchGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>

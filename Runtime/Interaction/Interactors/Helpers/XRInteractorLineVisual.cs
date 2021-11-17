@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool GetLinePoints(ref Vector3[] linePoints, out int numPoints);
 
         /// <summary>
-        /// Gets the current raycast hit information, if a hit occurred. It will return the world position and the normal vector
+        /// Gets the current raycast hit information, if a hit occurs. It returns the world position and the normal vector
         /// of the hit point, and its position in linePoints.
         /// </summary>
         /// <param name="position">When this method returns, contains the world position of the ray impact point if a hit occurred.</param>
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="positionInLine">When this method returns, contains the index of the sample endpoint within the list of points returned by <see cref="GetLinePoints"/>
         /// where a hit occurred. Otherwise, a value of <c>0</c> if no hit occurred.</param>
         /// <param name="isValidTarget">When this method returns, contains whether both a hit occurred and it is a valid target for interaction.</param>
-        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the raycast hit information is valid. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if a hit occurs, implying the raycast hit information is valid. Otherwise, returns <see langword="false"/>.</returns>
         bool TryGetHitInfo(out Vector3 position, out Vector3 normal, out int positionInLine, out bool isValidTarget);
     }
 
@@ -63,9 +63,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_OverrideInteractorLineLength = true;
         /// <summary>
-        /// A boolean value that controls which source is used to determine the length of the line.
+        /// A boolean value that controls which source Unity uses to determine the length of the line.
         /// Set to <see langword="true"/> to use the Line Length set by this behavior.
-        /// Set to <see langword="false"/> have the length of the line determined by the interactor.
+        /// Set to <see langword="false"/> to have the length of the line determined by the Interactor.
         /// </summary>
         /// <seealso cref="lineLength"/>
         public bool overrideInteractorLineLength
@@ -147,7 +147,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_FollowTightness = 10f;
         /// <summary>
-        /// Controls the speed that the rendered segments will follow the target segments when Smooth Movement is enabled.
+        /// Controls the speed that the rendered segments follow the target segments when Smooth Movement is enabled.
         /// </summary>
         /// <seealso cref="smoothMovement"/>
         /// <seealso cref="snapThresholdDistance"/>
@@ -173,7 +173,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         GameObject m_Reticle;
         /// <summary>
-        /// Stores the reticle that will appear at the end of the line when it is valid.
+        /// Stores the reticle that appears at the end of the line when it is valid.
         /// </summary>
         public GameObject reticle
         {
@@ -184,7 +184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_StopLineAtFirstRaycastHit = true;
         /// <summary>
-        /// Controls whether the line will always be cut short by this behavior at the first raycast hit, even when invalid.
+        /// Controls whether this behavior always cuts the line short at the first raycast hit, even when invalid.
         /// </summary>
         /// <remarks>
         /// The line will always be cut short by this behavior when pointing at a valid target.
@@ -518,11 +518,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
-        /// <summary>
-        /// Attaches a custom reticle.
-        /// </summary>
-        /// <param name="reticleInstance"> Reticle GameObject that is attached.</param>
-        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
+        /// <inheritdoc />
         public bool AttachCustomReticle(GameObject reticleInstance)
         {
             if (!m_CustomReticleAttached)
@@ -550,10 +546,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return false;
         }
 
-        /// <summary>
-        /// Removes a custom reticle.
-        /// </summary>
-        /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
+        /// <inheritdoc />
         public bool RemoveCustomReticle()
         {
             if (m_CustomReticle != null)
@@ -571,5 +564,4 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return false;
         }
     }
-
 }

@@ -26,17 +26,19 @@
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// Controls the selection of an object through a Tap gesture.
+    /// Controls the selection of an object via a Tap gesture.
     /// </summary>
     public class ARSelectionInteractable {}
 }
 
 #else
 
+using System;
+
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// Controls the selection of an object through a Tap gesture.
+    /// Controls the selection of an object via a Tap gesture.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_ARSelectionInteractable)]
     public class ARSelectionInteractable : ARBaseGestureInteractable
@@ -55,13 +57,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         bool m_GestureSelected;
 
         /// <inheritdoc />
-        public override bool IsSelectableBy(XRBaseInteractor interactor)
-        {
-            if (!(interactor is ARGestureInteractor))
-                return false;
+        /// <remarks>
+        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.")]
+        public override bool IsSelectableBy(XRBaseInteractor interactor) => IsSelectableBy((IXRSelectInteractor)interactor);
 
-            return m_GestureSelected;
-        }
+        /// <inheritdoc />
+        public override bool IsSelectableBy(IXRSelectInteractor interactor) => interactor is ARGestureInteractor && m_GestureSelected;
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(TapGesture gesture) => true;
@@ -86,7 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
+        protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
             base.OnSelectEntering(args);
             if (m_SelectionVisualization != null)
@@ -94,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
             if (m_SelectionVisualization != null)

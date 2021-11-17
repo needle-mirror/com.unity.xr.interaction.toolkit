@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("A list of controllers that allow move.  If an XRController is not enabled, or does not have input actions enabled, move will not work.")]
         List<XRBaseController> m_Controllers = new List<XRBaseController>();
         /// <summary>
-        /// The XRControllers that allow move.  An XRController must be enabled in order to move.
+        /// The XRControllers that allow movement. An XRController must be enabled in order to move.
         /// </summary>
         public List<XRBaseController> controllers
         {
@@ -108,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Get value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
+        /// Gets value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
         /// </summary>
         /// <param name="value">The value to be adjusted.</param>
         /// <returns>Returns adjusted 2D vector.</returns>
@@ -124,7 +124,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Get value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
+        /// Gets value adjusted based on deadzone thresholds defined in <see cref="deadzoneMin"/> and <see cref="deadzoneMax"/>.
         /// </summary>
         /// <param name="value">The value to be adjusted.</param>
         /// <returns>Returns adjusted value.</returns>

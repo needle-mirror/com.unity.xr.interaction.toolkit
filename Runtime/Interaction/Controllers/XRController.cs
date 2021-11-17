@@ -9,12 +9,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Interprets feature values on a tracked input controller device from the XR input subsystem
     /// into XR Interaction states, such as Select. Additionally, it applies the current Pose value
-    /// of a tracked device to the transform of the GameObject.
+    /// of a tracked device to the transform of the <see cref="GameObject"/>.
     /// </summary>
     /// <remarks>
     /// It is recommended to use <see cref="ActionBasedController"/> instead of this behavior.
     /// This behavior does not need as much initial setup as compared to <see cref="ActionBasedController"/>,
-    /// however input processing is less customizable and the XR Device Simulator cannot be used to drive
+    /// however input processing is less customizable and the <see cref="Inputs.Simulation.XRDeviceSimulator"/> cannot be used to drive
     /// this behavior.
     /// </remarks>
     /// <seealso cref="XRBaseController"/>
@@ -75,7 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_AxisToPressThreshold = 0.1f;
 
         /// <summary>
-        /// The amount an axis needs to be pressed to trigger an interaction event.
+        /// The amount that a user needs to press an axis in order to trigger an interaction event.
         /// </summary>
         public float axisToPressThreshold
         {
@@ -147,7 +147,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         InputDevice m_InputDevice;
         /// <summary>
-        /// (Read Only) The <see cref="InputDevice"/> being used to read data from.
+        /// (Read Only) The <see cref="InputDevice"/> Unity uses to read data from.
         /// </summary>
         public InputDevice inputDevice => m_InputDevice.isValid ? m_InputDevice : m_InputDevice = InputDevices.GetDeviceAtXRNode(controllerNode);
 
@@ -158,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (controllerState == null)
                 return;
 
-            controllerState.poseDataFlags = PoseDataFlags.NoData;
+            controllerState.inputTrackingState = InputTrackingState.None;
 #if LIH_PRESENT_V1API
             if (m_PoseProvider != null)
             {
@@ -166,7 +166,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     controllerState.position = poseProviderPose.position;
                     controllerState.rotation = poseProviderPose.rotation;
-                    controllerState.poseDataFlags = PoseDataFlags.Position | PoseDataFlags.Rotation;
+                    controllerState.inputTrackingState = InputTrackingState.Position | InputTrackingState.Rotation;
                 }
             }
             else
@@ -177,12 +177,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if ((retFlags & PoseDataFlags.Position) != 0)
                 {
                     controllerState.position = poseProviderPose.position;
-                    controllerState.poseDataFlags |= PoseDataFlags.Position;
+                    controllerState.inputTrackingState |= InputTrackingState.Position;
                 }
                 if ((retFlags & PoseDataFlags.Rotation) != 0)
                 {
                     controllerState.rotation = poseProviderPose.rotation;
-                    controllerState.poseDataFlags |= PoseDataFlags.Rotation;
+                    controllerState.inputTrackingState |= InputTrackingState.Rotation;
                 }
             }
             else
@@ -190,18 +190,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (inputDevice.TryGetFeatureValue(CommonUsages.trackingState, out var trackingState))
                 {
+                    controllerState.inputTrackingState = trackingState;
+                    
                     if ((trackingState & InputTrackingState.Position) != 0 &&
                         inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out var devicePosition))
                     {
                         controllerState.position = devicePosition;
-                        controllerState.poseDataFlags |= PoseDataFlags.Position;
                     }
 
                     if ((trackingState & InputTrackingState.Rotation) != 0 &&
                         inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out var deviceRotation))
                     {
                         controllerState.rotation = deviceRotation;
-                        controllerState.poseDataFlags |= PoseDataFlags.Rotation;
                     }
                 }
             }
@@ -215,9 +215,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
 
             controllerState.ResetFrameDependentStates();
-            controllerState.selectInteractionState.SetFrameState(IsPressed(m_SelectUsage));
-            controllerState.activateInteractionState.SetFrameState(IsPressed(m_ActivateUsage));
-            controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressUsage));
+            controllerState.selectInteractionState.SetFrameState(IsPressed(m_SelectUsage), ReadValue(m_SelectUsage));
+            controllerState.activateInteractionState.SetFrameState(IsPressed(m_ActivateUsage), ReadValue(m_ActivateUsage));
+            controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressUsage), ReadValue(m_UIPressUsage));
         }
 
         /// <summary>
@@ -229,6 +229,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             inputDevice.IsPressed(button, out var pressed, m_AxisToPressThreshold);
             return pressed;
+        }
+
+        /// <summary>
+        /// Reads and returns the given action value.
+        /// </summary>
+        /// <param name="button">The button to read the value from.</param>
+        /// <returns>Returns the button value.</returns>
+        protected virtual float ReadValue(InputHelpers.Button button)
+        {
+            inputDevice.TryReadSingleValue(button, out var value);
+            return value;
         }
 
         /// <inheritdoc />

@@ -11,6 +11,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Interaction.Toolkit.AR;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -19,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         const int k_TestPlaneLayer = 9;
 
-        ARSessionOrigin m_ARSessionOrigin;
+        XROrigin m_XROrigin;
 
         Camera m_Camera;
 
@@ -47,9 +48,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             TestUtilities.CreateInteractionManager();
 
-            var sessionOriginGO = ObjectFactory.CreateGameObject("AR Session Origin",
-                typeof(ARSessionOrigin), typeof(ARPlaneManager), typeof(ARRaycastManager));
-            m_ARSessionOrigin = sessionOriginGO.GetComponent<ARSessionOrigin>();
+            var xrOriginGO = ObjectFactory.CreateGameObject("XR Origin",
+                typeof(XROrigin), typeof(ARPlaneManager), typeof(ARRaycastManager));
+            m_XROrigin = xrOriginGO.GetComponent<XROrigin>();
 
             var cameraGO = ObjectFactory.CreateGameObject("AR Camera", typeof(Camera), typeof(ARGestureInteractor));
             cameraGO.tag = "MainCamera";
@@ -57,8 +58,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             m_Camera.transform.position = new Vector3(0f, 5f, -5f);
             m_Camera.transform.LookAt(Vector3.zero, Vector3.up);
-            m_Camera.transform.SetParent(m_ARSessionOrigin.transform);
-            m_ARSessionOrigin.camera = m_Camera;
+            m_Camera.transform.SetParent(m_XROrigin.transform);
+            m_XROrigin.Camera = m_Camera;
 
             GestureTouchesUtility.touchInputSource = GestureTouchesUtility.TouchInputSource.Mock;
             EnhancedTouchSupport.Enable();

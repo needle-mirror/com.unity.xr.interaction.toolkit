@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -13,9 +14,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
     public class XRDirectInteractor : XRBaseControllerInteractor
     {
-        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
-        /// <inheritdoc />
-        protected override List<XRBaseInteractable> validTargets => m_ValidTargets;
+        /// <summary>
+        /// The set of Interactables that this Interactor could possibly interact with this frame.
+        /// This list is not sorted by priority.
+        /// </summary>
+        /// <seealso cref="IXRInteractor.GetValidTargets"/>
+        protected List<IXRInteractable> unsortedValidTargets { get; } = new List<IXRInteractable>();
 
         readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
 
@@ -75,25 +79,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override void GetValidTargets(List<XRBaseInteractable> targets)
+        public override void GetValidTargets(List<IXRInteractable> targets)
         {
-            SortingHelpers.SortByDistanceToInteractor(this, m_ValidTargets, targets);
+            SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
         }
 
         /// <inheritdoc />
-        public override bool CanHover(XRBaseInteractable interactable)
+        /// <remarks>
+        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
+        public override bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
+
+        /// <inheritdoc />
+        public override bool CanHover(IXRHoverInteractable interactable)
         {
-            return base.CanHover(interactable) && (selectTarget == null || selectTarget == interactable);
+            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
         /// <inheritdoc />
-        public override bool CanSelect(XRBaseInteractable interactable)
+        /// <remarks>
+        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
+        public override bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
+
+        /// <inheritdoc />
+        public override bool CanSelect(IXRSelectInteractable interactable)
         {
-            return base.CanSelect(interactable) && (selectTarget == null || selectTarget == interactable);
+            return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
         /// <inheritdoc />
-        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        protected override void OnRegistered(InteractorRegisteredEventArgs args)
         {
             base.OnRegistered(args);
             args.manager.interactableRegistered += OnInteractableRegistered;
@@ -103,11 +121,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // and filter out any targets that were unregistered while this was not subscribed.
             m_TriggerContactMonitor.interactionManager = args.manager;
             m_TriggerContactMonitor.ResolveUnassociatedColliders();
-            XRInteractionManager.RemoveAllUnregistered(args.manager, m_ValidTargets);
+            XRInteractionManager.RemoveAllUnregistered(args.manager, unsortedValidTargets);
         }
 
         /// <inheritdoc />
-        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        protected override void OnUnregistered(InteractorUnregisteredEventArgs args)
         {
             base.OnUnregistered(args);
             args.manager.interactableRegistered -= OnInteractableRegistered;
@@ -116,25 +134,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
-            m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactable);
-            if (m_TriggerContactMonitor.IsContacting(args.interactable) && !m_ValidTargets.Contains(args.interactable))
-                m_ValidTargets.Add(args.interactable);
+            m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactableObject);
+            if (m_TriggerContactMonitor.IsContacting(args.interactableObject) && !unsortedValidTargets.Contains(args.interactableObject))
+                unsortedValidTargets.Add(args.interactableObject);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
         {
-            m_ValidTargets.Remove(args.interactable);
+            unsortedValidTargets.Remove(args.interactableObject);
         }
 
-        void OnContactAdded(XRBaseInteractable interactable)
+        void OnContactAdded(IXRInteractable interactable)
         {
-            if (!m_ValidTargets.Contains(interactable))
-                m_ValidTargets.Add(interactable);
+            if (!unsortedValidTargets.Contains(interactable))
+                unsortedValidTargets.Add(interactable);
         }
 
-        void OnContactRemoved(XRBaseInteractable interactable)
+        void OnContactRemoved(IXRInteractable interactable)
         {
-            m_ValidTargets.Remove(interactable);
+            unsortedValidTargets.Remove(interactable);
         }
     }
 }

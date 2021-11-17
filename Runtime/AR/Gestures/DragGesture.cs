@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class DragGesture : Gesture<DragGesture>
     {
         /// <summary>
-        /// Constructs a DragGesture gesture.
+        /// Initializes and returns an instance of <see cref="DragGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Constructs a DragGesture gesture.
+        /// Initializes and returns an instance of <see cref="DragGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
@@ -86,18 +86,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #pragma warning disable IDE1006 // Naming Styles
         /// <inheritdoc cref="fingerId"/>
+        /// <remarks>
+        /// <c>FingerId</c> has been deprecated. Use <see cref="fingerId"/> instead.
+        /// </remarks>
         [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId")]
         public int FingerId => fingerId;
 
         /// <inheritdoc cref="startPosition"/>
+        /// <remarks>
+        /// <c>StartPosition</c> has been deprecated. Use <see cref="startPosition"/> instead.
+        /// </remarks>
         [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition")]
         public Vector2 StartPosition => startPosition;
 
         /// <inheritdoc cref="position"/>
+        /// <remarks>
+        /// <c>Position</c> has been deprecated. Use <see cref="position"/> instead.
+        /// </remarks>
         [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
         public Vector2 Position => position;
 
         /// <inheritdoc cref="delta"/>
+        /// <remarks>
+        /// <c>Delta</c> has been deprecated. Use <see cref="delta"/> instead.
+        /// </remarks>
         [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
         public Vector2 Delta => delta;
 #pragma warning restore IDE1006
@@ -146,7 +158,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             GestureTouchesUtility.LockFingerId(fingerId);
 
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.arSessionOrigin, out var hit))
+#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit))
+#pragma warning restore 618
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)

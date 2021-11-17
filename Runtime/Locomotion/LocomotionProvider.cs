@@ -14,28 +14,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Deprecated) The <see cref="startLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
         /// </summary>
         /// <seealso cref="beginLocomotion"/>
+        /// <remarks>
+        /// <c>startLocomotion</c> has been deprecated. Use <see cref="beginLocomotion"/> instead.
+        /// </remarks>
         [Obsolete("startLocomotion has been deprecated. Use beginLocomotion instead. (UnityUpgradable) -> beginLocomotion", true)]
 #pragma warning disable 67 // Never invoked, kept for API Updater
         public event Action<LocomotionSystem> startLocomotion;
 #pragma warning restore 67
 
         /// <summary>
-        /// The <see cref="beginLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
+        /// Unity calls the <see cref="beginLocomotion"/> action when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
         /// </summary>
         public event Action<LocomotionSystem> beginLocomotion;
 
         /// <summary>
-        /// The <see cref="endLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully ends a locomotion event.
+        /// Unity calls the <see cref="endLocomotion"/> action when a <see cref="LocomotionProvider"/> successfully ends a locomotion event.
         /// </summary>
         public event Action<LocomotionSystem> endLocomotion;
 
         [SerializeField]
-        [Tooltip("The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig." +
+        [Tooltip("The Locomotion System that this locomotion provider communicates with for exclusive access to an XR Origin." +
             " If one is not provided, the behavior will attempt to locate one during its Awake call.")]
         LocomotionSystem m_System;
 
         /// <summary>
-        /// The <see cref="LocomotionSystem"/> that this <see cref="LocomotionProvider"/> will communicate with for exclusive access to an XR Rig.
+        /// The <see cref="LocomotionSystem"/> that this <see cref="LocomotionProvider"/> communicates with for exclusive access to an XR Origin.
         /// If one is not provided, the behavior will attempt to locate one during its Awake call.
         /// </summary>
         public LocomotionSystem system

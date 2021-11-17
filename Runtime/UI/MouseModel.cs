@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public GameObject draggedGameObject { get; set; }
 
             /// <summary>
-            /// Resets this object to it's default, unused state.
+            /// Resets this object to its default, unused state.
             /// </summary>
             public void Reset()
             {
@@ -173,7 +173,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public List<GameObject> hoverTargets { get; set; }
 
             /// <summary>
-            ///  Tracks the current enter/exit target being hovered over at any given moment.
+            /// Tracks the current enter/exit target being hovered over at any given moment.
             /// </summary>
             /// <seealso cref="PointerEventData.pointerEnter"/>
             public GameObject pointerTarget { get; set; }
@@ -258,7 +258,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Shorthand to set the pressed state of the left mouse button.
+        /// Sets the pressed state of the left mouse button.
         /// </summary>
         public bool leftButtonPressed
         {
@@ -273,7 +273,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Cached data and button state representing a right mouse button on a mouse.
-        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
+        /// Unity UI (UGUI) uses this to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel rightButton
         {
@@ -286,7 +286,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Shorthand to set the pressed state of the right mouse button.
+        /// Sets the pressed state of the right mouse button.
         /// </summary>
         public bool rightButtonPressed
         {
@@ -314,7 +314,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Shorthand to set the pressed state of the middle mouse button.
+        /// Sets the pressed state of the middle mouse button.
         /// </summary>
         public bool middleButtonPressed
         {

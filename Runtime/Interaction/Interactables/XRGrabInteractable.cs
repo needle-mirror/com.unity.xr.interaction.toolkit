@@ -9,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
+    [CanSelectMultiple(false)]
     [RequireComponent(typeof(Rigidbody))]
     [AddComponentMenu("XR/XR Grab Interactable")]
     [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
@@ -41,12 +42,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Use an additional offset from the center of mass when calculating the target position of the object.
             /// Also incorporate the scale of the Interactor's Attach Transform.
             /// Marked for deprecation.
-            /// </summary>
-            /// <remarks>
             /// This is the backwards compatible support mode for projects that accounted for the
             /// unintended difference when using XR Interaction Toolkit prior to version <c>1.0.0-pre.4</c>.
-            /// To have the effective attach position be the same between all <see cref="MovementType"/> values, use <see cref="Default"/>.
-            /// </remarks>
+            /// To have the effective attach position be the same between all <see cref="XRBaseInteractable.MovementType"/> values, use <see cref="Default"/>.
+            /// </summary>
             Legacy,
         }
 
@@ -54,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_AttachTransform;
 
         /// <summary>
-        /// The attachment point to use on this Interactable (will use this object's position if none set).
+        /// The attachment point Unity uses on this Interactable (will use this object's position if none set).
         /// </summary>
         public Transform attachTransform
         {
@@ -66,7 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_AttachEaseInTime = k_DefaultAttachEaseInTime;
 
         /// <summary>
-        /// Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).
+        /// Time in seconds Unity eases in the attach when selected (a value of 0 indicates no easing).
         /// </summary>
         public float attachEaseInTime
         {
@@ -78,14 +77,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         MovementType m_MovementType = MovementType.Instantaneous;
 
         /// <summary>
-        /// Specifies how this object is moved when selected, either through setting the velocity of the <see cref="Rigidbody"/>,
+        /// Specifies how this object moves when selected, either through setting the velocity of the <see cref="Rigidbody"/>,
         /// moving the kinematic <see cref="Rigidbody"/> during Fixed Update, or by directly updating the <see cref="Transform"/> each frame.
         /// </summary>
         /// <seealso cref="XRBaseInteractable.MovementType"/>
         public MovementType movementType
         {
             get => m_MovementType;
-            set => m_MovementType = value;
+            set
+            {
+                m_MovementType = value;
+
+                if (isSelected)
+                {
+                    SetupRigidbodyDrop(m_Rigidbody);
+                    UpdateCurrentMovementType();
+                    SetupRigidbodyGrab(m_Rigidbody);
+                }
+            }
         }
 
         [SerializeField, Range(0f, 1f)]
@@ -110,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_VelocityScale = k_VelocityScale;
 
         /// <summary>
-        /// Scale factor applied to the tracked velocity while updating the <see cref="Rigidbody"/>
+        /// Scale factor Unity applies to the tracked velocity while updating the <see cref="Rigidbody"/>
         /// when tracking the position of the Interactor.
         /// </summary>
         /// <remarks>
@@ -128,7 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_AngularVelocityDamping = k_AngularVelocityDamping;
 
         /// <summary>
-        /// Scale factor of how much to dampen the existing angular velocity when tracking the rotation of the Interactor.
+        /// Scale factor of how much Unity dampens the existing angular velocity when tracking the rotation of the Interactor.
         /// The smaller the value, the longer it takes for the angular velocity to decay.
         /// </summary>
         /// <remarks>
@@ -146,7 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_AngularVelocityScale = k_AngularVelocityScale;
 
         /// <summary>
-        /// Scale factor applied to the tracked angular velocity while updating the <see cref="Rigidbody"/>
+        /// Scale factor Unity applies to the tracked angular velocity while updating the <see cref="Rigidbody"/>
         /// when tracking the rotation of the Interactor.
         /// </summary>
         /// <remarks>
@@ -177,7 +186,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_SmoothPosition;
 
         /// <summary>
-        /// Apply smoothing while following the position of the Interactor when selected.
+        /// Whether Unity applies smoothing while following the position of the Interactor when selected.
         /// </summary>
         /// <seealso cref="smoothPositionAmount"/>
         /// <seealso cref="tightenPosition"/>
@@ -324,7 +333,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_ThrowVelocityScale = k_DefaultThrowVelocityScale;
 
         /// <summary>
-        /// Scale factor applied to this object's inherited velocity of the Interactor when released.
+        /// Scale factor Unity applies to this object's velocity inherited from the Interactor when released.
         /// </summary>
         /// <seealso cref="throwOnDetach"/>
         public float throwVelocityScale
@@ -337,7 +346,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_ThrowAngularVelocityScale = k_DefaultThrowAngularVelocityScale;
 
         /// <summary>
-        /// Scale factor applied to this object's inherited angular velocity of the Interactor when released.
+        /// Scale factor Unity applies to this object's angular velocity inherited from the Interactor when released.
         /// </summary>
         /// <seealso cref="throwOnDetach"/>
         public float throwAngularVelocityScale
@@ -350,7 +359,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_ForceGravityOnDetach;
 
         /// <summary>
-        /// Force this object to have gravity when released
+        /// Forces this object to have gravity when released
         /// (will still use pre-grab value if this is <see langword="false"/>).
         /// </summary>
         public bool forceGravityOnDetach
@@ -360,9 +369,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Force this object to have gravity when released
+        /// (Deprecated) Forces this object to have gravity when released
         /// (will still use pre-grab value if this is <see langword="false"/>).
         /// </summary>
+        /// <remarks>
+        /// <c>gravityOnDetach</c> has been deprecated. Use <see cref="forceGravityOnDetach"/> instead.
+        /// </remarks>
         [Obsolete("gravityOnDetach has been deprecated. Use forceGravityOnDetach instead. (UnityUpgradable) -> forceGravityOnDetach")]
         public bool gravityOnDetach
         {
@@ -374,7 +386,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_RetainTransformParent = true;
 
         /// <summary>
-        /// Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.
+        /// Whether Unity sets the parent of this object back to its original parent this object was a child of after this object is dropped.
         /// </summary>
         public bool retainTransformParent
         {
@@ -436,6 +448,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         Transform m_OriginalSceneParent;
 
+        // Account for teleportation to avoid throws with unintentionally high energy
+        TeleportationProvider m_TeleportationProvider;
+        Pose m_PoseBeforeTeleport;
+
         /// <inheritdoc />
         protected override void Awake()
         {
@@ -470,12 +486,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                     if (isSelected)
                     {
+                        var interactor = interactorsSelecting[0];
                         // Legacy does not support the Attach Transform position changing after being grabbed
                         // due to depending on the Physics update to compute the world center of mass.
                         if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
-                            UpdateInteractorLocalPose(selectingInteractor);
-                        UpdateTarget(Time.deltaTime);
-                        SmoothVelocityUpdate();
+                            UpdateInteractorLocalPose(interactor);
+                        UpdateTarget(interactor, Time.deltaTime);
+                        SmoothVelocityUpdate(interactor);
 
                         if (m_CurrentMovementType == MovementType.Instantaneous)
                             PerformInstantaneousUpdate(updatePhase);
@@ -487,11 +504,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
                     if (isSelected)
                     {
+                        var interactor = interactorsSelecting[0];
                         // Legacy does not support the Attach Transform position changing after being grabbed
                         // due to depending on the Physics update to compute the world center of mass.
                         if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
-                            UpdateInteractorLocalPose(selectingInteractor);
-                        UpdateTarget(Time.deltaTime);
+                            UpdateInteractorLocalPose(interactor);
+                        UpdateTarget(interactor, Time.deltaTime);
 
                         if (m_CurrentMovementType == MovementType.Instantaneous)
                             PerformInstantaneousUpdate(updatePhase);
@@ -503,7 +521,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case XRInteractionUpdateOrder.UpdatePhase.Late:
                     if (m_DetachInLateUpdate)
                     {
-                        if (selectingInteractor == null)
+                        if (!isSelected)
                             Detach();
                         m_DetachInLateUpdate = false;
                     }
@@ -512,31 +530,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <inheritdoc />
+        public override Transform GetAttachTransform(IXRInteractor interactor)
+        {
+            return m_AttachTransform != null ? m_AttachTransform : base.GetAttachTransform(interactor);
+        }
+
         /// <summary>
-        /// Calculate the world position to place this object at when selected.
+        /// Calculates the world position to place this object at when selected.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the selection.</param>
         /// <returns>Returns the attach position in world space.</returns>
-        Vector3 GetWorldAttachPosition(XRBaseInteractor interactor)
+        Vector3 GetWorldAttachPosition(IXRInteractor interactor)
         {
-            return interactor.attachTransform.position + interactor.attachTransform.rotation * m_InteractorLocalPosition;
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            return interactorAttachTransform.position + interactorAttachTransform.rotation * m_InteractorLocalPosition;
         }
 
         /// <summary>
-        /// Calculate the world rotation to place this object at when selected.
+        /// Calculates the world rotation to place this object at when selected.
         /// </summary>
         /// <param name="interactor">Interactor that is initiating the selection.</param>
         /// <returns>Returns the attach rotation in world space.</returns>
-        Quaternion GetWorldAttachRotation(XRBaseInteractor interactor)
+        Quaternion GetWorldAttachRotation(IXRInteractor interactor)
         {
-            return interactor.attachTransform.rotation * m_InteractorLocalRotation;
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            return interactorAttachTransform.rotation * m_InteractorLocalRotation;
         }
 
-        void UpdateTarget(float timeDelta)
+        void UpdateTarget(IXRInteractor interactor, float timeDelta)
         {
             // Compute the unsmoothed target world position and rotation
-            var rawTargetWorldPosition = GetWorldAttachPosition(selectingInteractor);
-            var rawTargetWorldRotation = GetWorldAttachRotation(selectingInteractor);
+            var rawTargetWorldPosition = GetWorldAttachPosition(interactor);
+            var rawTargetWorldRotation = GetWorldAttachRotation(interactor);
 
             // Apply smoothing (if configured)
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
@@ -646,7 +672,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void UpdateInteractorLocalPose(XRBaseInteractor interactor)
+        void UpdateInteractorLocalPose(IXRInteractor interactor)
         {
             if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
             {
@@ -657,7 +683,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // In order to move the Interactable to the Interactor we need to
             // calculate the Interactable attach point in the coordinate system of the
             // Interactor's attach point.
-            var thisAttachTransform = m_AttachTransform != null ? m_AttachTransform : transform;
+            var thisAttachTransform = GetAttachTransform(interactor);
             var attachOffset = transform.position - thisAttachTransform.position;
             var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
 
@@ -665,16 +691,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
         }
 
-        void UpdateInteractorLocalPoseLegacy(XRBaseInteractor interactor)
+        void UpdateInteractorLocalPoseLegacy(IXRInteractor interactor)
         {
             // In order to move the Interactable to the Interactor we need to
             // calculate the Interactable attach point in the coordinate system of the
             // Interactor's attach point.
-            var thisAttachTransform = m_AttachTransform != null ? m_AttachTransform : transform;
+            var thisAttachTransform = GetAttachTransform(interactor);
             var attachOffset = m_Rigidbody.worldCenterOfMass - thisAttachTransform.position;
             var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
 
-            var inverseLocalScale = interactor.attachTransform.lossyScale;
+            var inverseLocalScale = interactor.GetAttachTransform(this).lossyScale;
             inverseLocalScale = new Vector3(1f / inverseLocalScale.x, 1f / inverseLocalScale.y, 1f / inverseLocalScale.z);
             localAttachOffset.Scale(inverseLocalScale);
 
@@ -682,15 +708,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
         }
 
+        void UpdateCurrentMovementType()
+        {
+            // Special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors)
+            var interactor = interactorsSelecting[0];
+            var baseInteractor = interactor as XRBaseInteractor;
+            m_CurrentMovementType = (baseInteractor != null ? baseInteractor.selectedInteractableMovementTypeOverride : null) ?? m_MovementType;
+        }
+
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
+        protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
             base.OnSelectEntering(args);
             Grab();
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
             Drop();
@@ -703,12 +737,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="Drop"/>
         protected virtual void Grab()
         {
-            m_OriginalSceneParent = transform.parent;
-            transform.SetParent(null);
-
-            // Special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors)
-            m_CurrentMovementType = selectingInteractor.selectedInteractableMovementTypeOverride ?? m_MovementType;
-
+            var thisTransform = transform;
+            m_OriginalSceneParent = thisTransform.parent;
+            thisTransform.SetParent(null);
+            
+            UpdateCurrentMovementType();
             SetupRigidbodyGrab(m_Rigidbody);
 
             // Reset detach velocities
@@ -716,13 +749,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_DetachAngularVelocity = Vector3.zero;
 
             // Initialize target pose for easing and smoothing
-            m_TargetWorldPosition = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? transform.position : m_Rigidbody.worldCenterOfMass;
-            m_TargetWorldRotation = transform.rotation;
+            m_TargetWorldPosition = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
+            m_TargetWorldRotation = thisTransform.rotation;
             m_CurrentAttachEaseTime = 0f;
 
-            UpdateInteractorLocalPose(selectingInteractor);
+            var interactor = interactorsSelecting[0];
+            UpdateInteractorLocalPose(interactor);
 
-            SmoothVelocityStart();
+            SmoothVelocityStart(interactor);
         }
 
         /// <summary>
@@ -735,12 +769,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_RetainTransformParent && m_OriginalSceneParent != null && !m_OriginalSceneParent.gameObject.activeInHierarchy)
             {
-                bool exitingPlayMode;
 #if UNITY_EDITOR
                 // Suppress the warning when exiting Play mode to avoid confusing the user
-                exitingPlayMode = UnityEditor.EditorApplication.isPlaying && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
+                var exitingPlayMode = UnityEditor.EditorApplication.isPlaying && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
 #else
-                exitingPlayMode = false;
+                var exitingPlayMode = false;
 #endif
                 if (!exitingPlayMode)
                     Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. " +
@@ -761,7 +794,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Automatically called during the end of the frame after being dropped.
         /// </summary>
         /// <remarks>
-        /// This method will update the velocity of the Rigidbody if configured to do so.
+        /// This method updates the velocity of the Rigidbody if configured to do so.
         /// </remarks>
         /// <seealso cref="Drop"/>
         protected virtual void Detach()
@@ -804,17 +837,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             // Restore Rigidbody settings
             rigidbody.isKinematic = m_WasKinematic;
-            rigidbody.useGravity = m_UsedGravity | m_ForceGravityOnDetach;
+            rigidbody.useGravity = m_UsedGravity;
             rigidbody.drag = m_OldDrag;
             rigidbody.angularDrag = m_OldAngularDrag;
+            
+            if (!isSelected)
+                m_Rigidbody.useGravity |= m_ForceGravityOnDetach;
         }
 
-        void SmoothVelocityStart()
+        void SmoothVelocityStart(IXRInteractor interactor)
         {
-            if (selectingInteractor == null)
-                return;
-            m_LastPosition = selectingInteractor.attachTransform.position;
-            m_LastRotation = selectingInteractor.attachTransform.rotation;
+            SetTeleportationProvider(interactor);
+
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            m_LastPosition = interactorAttachTransform.position;
+            m_LastRotation = interactorAttachTransform.rotation;
             Array.Clear(m_ThrowSmoothingFrameTimes, 0, m_ThrowSmoothingFrameTimes.Length);
             Array.Clear(m_ThrowSmoothingVelocityFrames, 0, m_ThrowSmoothingVelocityFrames.Length);
             Array.Clear(m_ThrowSmoothingAngularVelocityFrames, 0, m_ThrowSmoothingAngularVelocityFrames.Length);
@@ -830,16 +867,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_DetachVelocity = smoothedVelocity * m_ThrowVelocityScale;
                 m_DetachAngularVelocity = smoothedAngularVelocity * m_ThrowAngularVelocityScale;
             }
+
+            ClearTeleportationProvider();
         }
 
-        void SmoothVelocityUpdate()
+        void SmoothVelocityUpdate(IXRInteractor interactor)
         {
-            if (selectingInteractor == null)
-                return;
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            var interactorPosition = interactorAttachTransform.position;
+            var interactorRotation = interactorAttachTransform.rotation;
             m_ThrowSmoothingFrameTimes[m_ThrowSmoothingCurrentFrame] = Time.time;
-            m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (selectingInteractor.attachTransform.position - m_LastPosition) / Time.deltaTime;
+            m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (interactorPosition - m_LastPosition) / Time.deltaTime;
 
-            var velocityDiff = (selectingInteractor.attachTransform.rotation * Quaternion.Inverse(m_LastRotation));
+            var velocityDiff = (interactorRotation * Quaternion.Inverse(m_LastRotation));
             m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] =
                 (new Vector3(Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.x),
                         Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.y),
@@ -847,8 +887,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     / Time.deltaTime) * Mathf.Deg2Rad;
 
             m_ThrowSmoothingCurrentFrame = (m_ThrowSmoothingCurrentFrame + 1) % k_ThrowSmoothingFrameCount;
-            m_LastPosition = selectingInteractor.attachTransform.position;
-            m_LastRotation = selectingInteractor.attachTransform.rotation;
+            m_LastPosition = interactorPosition;
+            m_LastRotation = interactorRotation;
         }
 
         Vector3 GetSmoothedVelocityValue(Vector3[] velocityFrames)
@@ -873,6 +913,55 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return calcVelocity / totalWeights;
 
             return Vector3.zero;
+        }
+
+        void OnBeginTeleportation(LocomotionSystem locomotionSystem)
+        {
+            var originTransform = locomotionSystem.xrOrigin.Origin.transform;
+            m_PoseBeforeTeleport = new Pose(originTransform.position, originTransform.rotation);
+        }
+
+        void OnEndTeleportation(LocomotionSystem locomotionSystem)
+        {
+            var originTransform = locomotionSystem.xrOrigin.Origin.transform;
+            var translated = originTransform.position - m_PoseBeforeTeleport.position;
+            var rotated = originTransform.rotation * Quaternion.Inverse(m_PoseBeforeTeleport.rotation);
+
+            for (var frameIdx = 0; frameIdx < k_ThrowSmoothingFrameCount; ++frameIdx)
+            {
+                if (m_ThrowSmoothingFrameTimes[frameIdx] == 0f)
+                    break;
+
+                m_ThrowSmoothingVelocityFrames[frameIdx] = rotated * m_ThrowSmoothingVelocityFrames[frameIdx];
+            }
+
+            m_LastPosition += translated;
+            m_LastRotation = rotated * m_LastRotation;
+        }
+
+        void SetTeleportationProvider(IXRInteractor interactor)
+        {
+            ClearTeleportationProvider();
+            var interactorTransform = interactor?.transform;
+            if (interactorTransform == null)
+                return;
+
+            m_TeleportationProvider = interactorTransform.GetComponentInParent<TeleportationProvider>();
+            if (m_TeleportationProvider == null)
+                return;
+
+            m_TeleportationProvider.beginLocomotion += OnBeginTeleportation;
+            m_TeleportationProvider.endLocomotion += OnEndTeleportation;
+        }
+
+        void ClearTeleportationProvider()
+        {
+            if (m_TeleportationProvider == null)
+                return;
+
+            m_TeleportationProvider.beginLocomotion -= OnBeginTeleportation;
+            m_TeleportationProvider.endLocomotion -= OnEndTeleportation;
+            m_TeleportationProvider = null;
         }
     }
 }

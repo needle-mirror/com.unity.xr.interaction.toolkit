@@ -12,7 +12,7 @@ using UnityEngine.Scripting;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
 {
     /// <summary>
-    /// Interaction that performs the action if the control is pushed into a slice of a circle along cardinal directions,
+    /// Interaction that performs the action if the user pushes the control into a slice of a circle along cardinal directions,
     /// with a deadzone center magnitude. Typically used to define actions for North, South, East, or West for a thumbstick.
     /// </summary>
     /// <remarks>
@@ -76,22 +76,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             Locked,
 
             /// <summary>
-            /// Perform if initially actuated in a configured valid direction, and will cancel when
-            /// no longer actuating in a valid direction, and will perform again when re-entering a valid sector
+            /// Perform if initially actuated in a configured valid direction. Cancels when
+            /// no longer actuating in a valid direction, and performs again when re-entering a valid sector
             /// even when not returning to center.
             /// </summary>
             AllowReentry,
 
             /// <summary>
-            /// Perform if initially actuated in a configured valid direction, and will cancel when
-            /// no longer actuating in a valid direction, and will remain so when re-entering a valid sector
+            /// Perform if initially actuated in a configured valid direction. Cancels when
+            /// no longer actuating in a valid direction, and remains so when re-entering a valid sector
             /// without returning to center.
             /// </summary>
             DisallowReentry,
 
             /// <summary>
             /// Perform if actuated in a configured valid direction, no matter the initial actuation direction.
-            /// Will cancel when not actuated in a valid direction.
+            /// Cancels when not actuated in a valid direction.
             /// </summary>
             HistoryIndependent,
         }
@@ -119,7 +119,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         }
 
         /// <summary>
-        /// Determines cardinal direction(s) that the action should perform when crossing the press threshold towards.
+        /// Specifies cardinal direction(s) that, if the user moves the control in
+        /// any of those directions enough to cross the press threshold, the action
+        /// should be performed.
         /// </summary>
         public Directions directions;
 
@@ -130,7 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         public SweepBehavior sweepBehavior;
 
         /// <summary>
-        /// Magnitude threshold that must be crossed by an actuated control for the control to
+        /// Magnitude threshold that an actuated control must cross for the control to
         /// be considered pressed.
         /// </summary>
         /// <remarks>
@@ -142,7 +144,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         internal float pressPointOrDefault => pressPoint >= 0f ? pressPoint : defaultPressPoint;
 
         /// <summary>
-        /// The default magnitude threshold that must be crossed by an actuated control for the control to
+        /// The default magnitude threshold that an actuated control must cross for the control to
         /// be considered pressed.
         /// </summary>
         public static float defaultPressPoint { get; set; } = 0.5f;
@@ -151,7 +153,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
 
         bool m_WasValidDirection;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <see cref="IInputInteraction.Process(ref InputInteractionContext)"/>
+        /// </summary>
+        /// <param name="context">Context for an interaction occuring that the input system passed here for interaction operations.</param>
         public void Process(ref InputInteractionContext context)
         {
             var isActuated = context.ControlIsActuated(pressPointOrDefault);
@@ -260,7 +265,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See [IInputInteraction.Reset](xref:UnityEngine.InputSystem.IInputInteraction.Reset).
+        /// </summary>
         public void Reset()
         {
             // Do not reset, only do so when no longer actuating.
@@ -287,13 +294,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
 #if UNITY_EDITOR
     class SectorInteractionEditor : InputParameterEditor<SectorInteraction>
     {
-        readonly GUIContent m_DirectionsLabel = EditorGUIUtility.TrTextContent("Directions", 
-            "Determines cardinal direction(s) that the action should perform when crossing the press threshold towards.");
-        readonly GUIContent m_SweepBehaviorLabel = EditorGUIUtility.TrTextContent("Sweep Behavior", 
+        readonly GUIContent m_DirectionsLabel = EditorGUIUtility.TrTextContent("Directions",
+            "Sets which cardinal directions to use when determining valid directions to perform the action.");
+        readonly GUIContent m_SweepBehaviorLabel = EditorGUIUtility.TrTextContent("Sweep Behavior",
             "Determines when the action should perform or cancel when sweeping the stick around the cardinal directions without returning to center.");
         readonly GUIContent m_PressPointLabel = EditorGUIUtility.TrTextContent("Press Point",
             "Magnitude threshold that must be crossed by an actuated control for the control to be considered pressed.");
-        readonly GUIContent m_DefaultToggleLabel = EditorGUIUtility.TrTextContent("Default", 
+        readonly GUIContent m_DefaultToggleLabel = EditorGUIUtility.TrTextContent("Default",
             "If enabled, the default value is used.");
 
         public override void OnGUI()

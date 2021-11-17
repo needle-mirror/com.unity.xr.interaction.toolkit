@@ -16,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The Input System Action that will be used to read Snap Turn data from the left hand controller. Must be a Value Vector2 Control.")]
         InputActionProperty m_LeftHandSnapTurnAction;
         /// <summary>
-        /// The Input System Action that will be used to read Snap Turn data sent from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
+        /// The Input System Action that Unity uses to read Snap Turn data sent from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty leftHandSnapTurnAction
         {
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The Input System Action that will be used to read Snap Turn data from the right hand controller. Must be a Value Vector2 Control.")]
         InputActionProperty m_RightHandSnapTurnAction;
         /// <summary>
-        /// The Input System Action that will be used to read Snap Turn data sent from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
+        /// The Input System Action that Unity uses to read Snap Turn data sent from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty rightHandSnapTurnAction
         {

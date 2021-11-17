@@ -93,7 +93,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(grabInteractable.isSelected, Is.False);
-            Assert.That(interactor.selectTarget, Is.Null);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform, Is.Not.Null);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
@@ -190,7 +191,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(grabInteractable.isSelected, Is.False);
-            Assert.That(interactor.selectTarget, Is.Null);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform, Is.Not.Null);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
@@ -289,7 +291,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(grabInteractable.isSelected, Is.False);
-            Assert.That(interactor.selectTarget, Is.Null);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform, Is.Not.Null);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
@@ -410,7 +413,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(grabInteractable.isSelected, Is.False);
-            Assert.That(interactor.selectTarget, Is.Null);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform, Is.Not.Null);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(targetRotation).Using(QuaternionEqualityComparer.Instance));

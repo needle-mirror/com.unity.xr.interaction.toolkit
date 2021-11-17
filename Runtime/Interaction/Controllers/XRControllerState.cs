@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.SpatialTracking;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -9,6 +8,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [Serializable]
     public struct InteractionState
     {
+        [Range(0f, 1f)]
+        [SerializeField]
+        float m_Value;
+
+        /// <summary>
+        /// The value of the interaction in this frame.
+        /// </summary>
+        public float value
+        {
+            get => m_Value;
+            set => m_Value = value;
+        }
+        
+        [SerializeField]
         bool m_Active;
 
         /// <summary>
@@ -23,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_ActivatedThisFrame;
 
         /// <summary>
-        /// Whether the interaction state was activated this frame.
+        /// Whether the interaction state activated this frame.
         /// </summary>
         public bool activatedThisFrame
         {
@@ -34,7 +47,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_DeactivatedThisFrame;
 
         /// <summary>
-        /// Whether the interaction state was deactivated this frame.
+        /// Whether the interaction state deactivated this frame.
         /// </summary>
         public bool deactivatedThisFrame
         {
@@ -43,8 +56,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Whether the interaction state was deactivated this frame.
+        /// (Deprecated) Whether the interaction state was deactivated this frame.
         /// </summary>
+        /// <remarks>
+        /// <c>deActivatedThisFrame</c> has been deprecated. Use <see cref="deactivatedThisFrame"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("deActivatedThisFrame has been deprecated. Use deactivatedThisFrame instead. (UnityUpgradable) -> deactivatedThisFrame")]
         public bool deActivatedThisFrame
@@ -60,9 +76,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="isActive">Whether the state is active (in other words, pressed).</param>
         public void SetFrameState(bool isActive)
         {
+            SetFrameState(isActive, isActive ? 1f : 0f);
+        }
+
+        /// <summary>
+        /// Sets the interaction state for this frame. This method should only be called once per frame.
+        /// </summary>
+        /// <param name="isActive">Whether the state is active (in other words, pressed).</param>
+        /// <param name="newValue">The interaction value.</param>
+        public void SetFrameState(bool isActive, float newValue)
+        {
+            value = newValue;
             activatedThisFrame = !active && isActive;
             deactivatedThisFrame = active && !isActive;
             active = isActive;
+        }
+
+        /// <summary>
+        /// Sets the interaction state that are based on whether they occurred "this frame".
+        /// </summary>
+        /// <param name="wasActive">Whether the previous state is active (in other words, pressed).</param>
+        public void SetFrameDependent(bool wasActive)
+        {
+            activatedThisFrame = !wasActive && active;
+            deactivatedThisFrame = wasActive && !active;
         }
 
         /// <summary>
@@ -77,8 +114,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        ///  Resets the interaction states that are based on whether they occurred "this frame".
+        /// (Deprecated) Resets the interaction states that are based on whether they occurred "this frame".
         /// </summary>
+        /// <remarks>
+        /// <c>Reset</c> has been deprecated. Use <see cref="ResetFrameDependent"/> instead.
+        /// </remarks>
         [Obsolete("Reset has been renamed. Use ResetFrameDependent instead. (UnityUpgradable) -> ResetFrameDependent()")]
         public void Reset() => ResetFrameDependent();
     }
@@ -87,7 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Represents the current state of the <see cref="XRBaseController"/>.
     /// </summary>
     [Serializable]
-    public class XRControllerState
+    public partial class XRControllerState
     {
         /// <summary>
         /// The time value for this controller.
@@ -95,9 +135,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public double time;
 
         /// <summary>
-        /// The pose data flags of the controller.
+        /// The input tracking state of the controller.
         /// </summary>
-        public PoseDataFlags poseDataFlags;
+        public InputTrackingState inputTrackingState;
 
         /// <summary>
         /// The position of the controller.
@@ -110,29 +150,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Quaternion rotation;
 
         /// <summary>
-        /// State of selection interaction state.
+        /// The selection interaction state.
         /// </summary>
         public InteractionState selectInteractionState;
 
         /// <summary>
-        /// State of activate interaction state.
+        /// The activate interaction state.
         /// </summary>
         public InteractionState activateInteractionState;
 
         /// <summary>
-        /// State of UI press interaction state.
+        /// The UI press interaction state.
         /// </summary>
         public InteractionState uiPressInteractionState;
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>
-        public XRControllerState()
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        protected XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState)
         {
-            this.time = 0d;
-            this.poseDataFlags = PoseDataFlags.Rotation | PoseDataFlags.Position;
-            this.position = Vector3.zero;
-            this.rotation = Quaternion.identity;
+            this.time = time;
+            this.position = position;
+            this.rotation = rotation;
+            this.inputTrackingState = inputTrackingState;
+        }
+        
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        public XRControllerState() : this (0d, Vector3.zero, Quaternion.identity, InputTrackingState.None)
+        {
         }
 
         /// <summary>
@@ -142,9 +193,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public XRControllerState(XRControllerState value)
         {
             this.time = value.time;
-            this.poseDataFlags = value.poseDataFlags;
             this.position = value.position;
             this.rotation = value.rotation;
+            this.inputTrackingState = value.inputTrackingState;
             this.selectInteractionState = value.selectInteractionState;
             this.activateInteractionState = value.activateInteractionState;
             this.uiPressInteractionState = value.uiPressInteractionState;
@@ -156,19 +207,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="time">The time value for this controller.</param>
         /// <param name="position">The position for this controller.</param>
         /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
         /// <param name="pressActive">Whether UI press is active or not.</param>
-        public XRControllerState(double time, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, 
+            bool selectActive, bool activateActive, bool pressActive) 
+            : this (time, position, rotation, inputTrackingState) 
         {
-            this.time = time;
-            this.poseDataFlags = PoseDataFlags.Rotation | PoseDataFlags.Position;
-            this.position = position;
-            this.rotation = rotation;
-
             this.selectInteractionState.SetFrameState(selectActive);
             this.activateInteractionState.SetFrameState(activateActive);
             this.uiPressInteractionState.SetFrameState(pressActive);
+        }
+        
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        /// <param name="selectActive">Whether select is active or not.</param>
+        /// <param name="activateActive">Whether activate is active or not.</param>
+        /// <param name="pressActive">Whether UI press is active or not.</param>
+        /// <param name="selectValue">The select value.</param>
+        /// <param name="activateValue">The activate value.</param>
+        /// <param name="pressValue">The UI press value.</param>
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, 
+            bool selectActive, bool activateActive, bool pressActive,
+            float selectValue, float activateValue, float pressValue)
+            : this(time, position, rotation, inputTrackingState)
+        {
+            this.selectInteractionState.SetFrameState(selectActive, selectValue);
+            this.activateInteractionState.SetFrameState(activateActive, activateValue);
+            this.uiPressInteractionState.SetFrameState(pressActive, pressValue);
         }
 
         /// <summary>
@@ -183,8 +255,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Resets all the interaction states that are based on whether they occurred "this frame".
+        /// (Deprecated) Resets all the interaction states that are based on whether they occurred "this frame".
         /// </summary>
+        /// <remarks>
+        /// <c>ResetInputs</c> has been renamed. Use <see cref="ResetFrameDependentStates"/> instead.
+        /// </remarks>
         [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()")]
         public void ResetInputs() => ResetFrameDependentStates();
 

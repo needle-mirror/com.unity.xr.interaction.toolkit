@@ -67,7 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Rotate the rig by <paramref name="turnAmount"/> degrees.
+        /// Rotates the rig by <paramref name="turnAmount"/> degrees.
         /// </summary>
         /// <param name="turnAmount">The amount of rotation in degrees.</param>
         protected void TurnRig(float turnAmount)
@@ -77,10 +77,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (CanBeginLocomotion() && BeginLocomotion())
             {
-                var xrRig = system.xrRig;
-                if (xrRig != null)
+                var xrOrigin = system.xrOrigin;
+                if (xrOrigin != null)
                 {
-                    xrRig.RotateAroundCameraUsingRigUp(turnAmount);
+                    xrOrigin.RotateAroundCameraUsingOriginUp(turnAmount);
                 }
 
                 EndLocomotion();

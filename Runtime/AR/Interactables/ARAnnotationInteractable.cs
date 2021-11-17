@@ -17,7 +17,8 @@ using System.Collections.Generic;
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// An annotation that appears when hovering over the GameObject this component is attached to.
+    /// An annotation that appears when the user hovers over the <see cref="GameObject"/>
+    /// that the <see cref="ARAnnotationInteractable"/> component governing this annotation is attached to.
     /// </summary>
     [Serializable]
     public class ARAnnotation
@@ -27,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         GameObject m_AnnotationVisualization;
 
         /// <summary>
-        /// The visualization <see cref="GameObject"/> that will become active when the object is hovered over.
+        /// The visualization <see cref="GameObject"/> that will become active when the user hovers over this object.
         /// </summary>
         public GameObject annotationVisualization
         {
@@ -115,7 +116,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             else
             {
                 // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-                var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+                var camera = xrOrigin != null
+                    ? xrOrigin.Camera
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+                    : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
+#pragma warning restore 618
                 if (camera == null)
                     return;
 

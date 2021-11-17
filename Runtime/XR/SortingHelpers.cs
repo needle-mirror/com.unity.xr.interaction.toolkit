@@ -11,13 +11,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Reusable mapping of Interactables to their distance squared from an Interactor (used for sort).
         /// </summary>
-        static readonly Dictionary<XRBaseInteractable, float> s_InteractableDistanceSqrMap = new Dictionary<XRBaseInteractable, float>();
+        static readonly Dictionary<IXRInteractable, float> s_InteractableDistanceSqrMap = new Dictionary<IXRInteractable, float>();
 
         /// <summary>
         /// Used to avoid GC Alloc that would happen if using <see cref="InteractableDistanceComparison"/> directly
         /// as argument to <see cref="List{T}.Sort(Comparison{T})"/>.
         /// </summary>
-        static readonly Comparison<XRBaseInteractable> s_InteractableDistanceComparison = InteractableDistanceComparison;
+        static readonly Comparison<IXRInteractable> s_InteractableDistanceComparison = InteractableDistanceComparison;
 
         public static void Sort<T>(IList<T> hits, IComparer<T> comparer) where T : struct
         {
@@ -50,21 +50,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Clears <paramref name="results"/> before adding to it.
         /// This method is not thread safe.
         /// </remarks>
-        public static void SortByDistanceToInteractor(XRBaseInteractor interactor, List<XRBaseInteractable> unsortedTargets, List<XRBaseInteractable> results)
+        public static void SortByDistanceToInteractor(IXRInteractor interactor, List<IXRInteractable> unsortedTargets, List<IXRInteractable> results)
         {
             results.Clear();
             results.AddRange(unsortedTargets);
 
             s_InteractableDistanceSqrMap.Clear();
+            var baseInteractor = interactor as XRBaseInteractor;
             foreach (var interactable in unsortedTargets)
             {
-                s_InteractableDistanceSqrMap[interactable] = interactable.GetDistanceSqrToInteractor(interactor);
+                float distance;
+                if (interactable is XRBaseInteractable baseInteractable && baseInteractor != null)
+                {
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
+                    distance = baseInteractable.GetDistanceSqrToInteractor(baseInteractor);
+#pragma warning restore 618
+                }
+                else
+                {
+                    distance = interactable.GetDistanceSqrToInteractor(interactor);
+                }
+
+                s_InteractableDistanceSqrMap[interactable] = distance;
             }
 
             results.Sort(s_InteractableDistanceComparison);
         }
 
-        static int InteractableDistanceComparison(XRBaseInteractable x, XRBaseInteractable y)
+        static int InteractableDistanceComparison(IXRInteractable x, IXRInteractable y)
         {
             var xDistance = s_InteractableDistanceSqrMap[x];
             var yDistance = s_InteractableDistanceSqrMap[y];

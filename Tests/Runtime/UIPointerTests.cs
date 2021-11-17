@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -14,8 +15,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             XRControllerRecording currentRecording = recorder.recording;
             currentRecording.InitRecording();
-            currentRecording.AddRecordingFrame(0.0f, position, rotation, selectActive, activateActive, pressActive);
-            currentRecording.AddRecordingFrame(1000f, position, rotation, selectActive, activateActive, pressActive);
+            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, position, rotation, InputTrackingState.All, selectActive, activateActive, pressActive));
+            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(1000f, position, rotation, InputTrackingState.All, selectActive, activateActive, pressActive));
             recorder.recording = currentRecording;
             recorder.ResetPlayback();
             recorder.isPlaying = true;
@@ -353,15 +354,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             _ = new GameObject("InteractionManager", typeof(XRInteractionManager));
 
-            var rigGo = new GameObject("XrRig");
+            var rigGo = new GameObject("XROrigin");
             rigGo.SetActive(false);
-            var rig = rigGo.AddComponent<XRRig>();
+            var rig = rigGo.AddComponent<XROrigin>();
 
             // Add camera offset
             var cameraOffsetGo = new GameObject();
             cameraOffsetGo.name = "CameraOffset";
             cameraOffsetGo.transform.SetParent(rig.transform,false);
-            rig.cameraFloorOffsetObject = cameraOffsetGo;
+            rig.CameraFloorOffsetObject = cameraOffsetGo;
 
             // Set up camera and canvas on which we can perform raycasts.
             var cameraGo = new GameObject("Camera");
@@ -370,7 +371,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             camera.stereoTargetEye = StereoTargetEyeMask.None;
             camera.pixelRect = new Rect(0, 0, 640, 480);
 
-            rig.cameraGameObject = cameraGo;
+            rig.Camera = cameraGo.GetComponent<Camera>();
             rigGo.SetActive(true);
 
             var eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(XRUIInputModule));

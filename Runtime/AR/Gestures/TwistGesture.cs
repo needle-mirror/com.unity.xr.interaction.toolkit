@@ -35,7 +35,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         Vector2 m_PreviousPosition2;
 
         /// <summary>
-        /// Constructs a PinchGesture gesture.
+        /// Initializes and returns an instance of <see cref="TwistGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>
@@ -46,7 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Constructs a PinchGesture gesture.
+        /// Initializes and returns an instance of <see cref="TwistGesture"/>.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch1">The first touch that started this gesture.</param>
@@ -194,6 +194,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             GestureTouchesUtility.ReleaseFingerId(fingerId2);
         }
 
+        /// <summary>
+        /// Calculates a signed angle for how much to twist according to the movement of two touch positions.
+        /// </summary>
+        /// <param name="currentPosition1">Current position of the first touch.</param>
+        /// <param name="currentPosition2">Current position of the second touch.</param>
+        /// <param name="previousPosition1">Previous position of the first touch.</param>
+        /// <param name="previousPosition2">Previous position of the second touch.</param>
+        /// <returns>A signed angle, in degrees, representing how much to rotate an interactable by according to the changes in the two positions passed in.</returns>
         protected static float CalculateDeltaRotation(
             Vector2 currentPosition1,
             Vector2 currentPosition2,

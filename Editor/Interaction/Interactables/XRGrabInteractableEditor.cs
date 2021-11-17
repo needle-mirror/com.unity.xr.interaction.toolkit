@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor.XR.Interaction.Toolkit.Utilities;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -247,23 +248,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_AttachTransform, Contents.attachTransform);
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
-            EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
-        }
-
-        static void EnumPropertyField(SerializedProperty property, GUIContent label, GUIContent[] displayedOptions, params GUILayoutOption[] options)
-        {
-            // This is similar to EditorGUILayout.PropertyField but allows the displayed options of the popup to be specified
-            var rect = EditorGUILayout.GetControlRect(true, EditorGUIUtility.singleLineHeight, EditorStyles.popup, options);
-            using (var scope = new EditorGUI.PropertyScope(rect, label, property))
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var enumValueIndex = property.hasMultipleDifferentValues ? -1 : property.enumValueIndex;
-                enumValueIndex = EditorGUI.Popup(rect, scope.content, enumValueIndex, displayedOptions);
-                if (change.changed)
-                {
-                    property.enumValueIndex = enumValueIndex;
-                }
-            }
+            XRInteractionEditorGUI.EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
         }
     }
 }

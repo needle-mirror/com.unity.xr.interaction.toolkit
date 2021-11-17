@@ -9,8 +9,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public class TeleportationArea : BaseTeleportationInteractable
     {
         /// <inheritdoc />
-        protected override bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
+        protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
         {
+            if (raycastHit.collider == null)
+                return false;
+
             teleportRequest.destinationPosition = raycastHit.point;
             teleportRequest.destinationRotation = transform.rotation;
             return true;

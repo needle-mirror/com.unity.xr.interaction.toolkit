@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_ShowInteractableHoverMeshes = true;
         /// <summary>
-        /// Whether this socket should show a mesh at socket's attach point for interactables that it is hovering over.
+        /// Whether this socket should show a mesh at socket's attach point for Interactables that it is hovering over.
         /// </summary>
         public bool showInteractableHoverMeshes
         {
@@ -64,7 +64,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_InteractableHoverScale = 1f;
         /// <summary>
-        /// Scale at which to render hovered interactable.
+        /// Scale at which to render hovered Interactable.
         /// </summary>
         public float interactableHoverScale
         {
@@ -83,16 +83,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_RecycleDelayTime = value;
         }
 
-        float m_LastRemoveTime = -100f;
+        float m_LastRemoveTime = -1f;
 
         /// <summary>
-        /// Reusable list of valid targets.
+        /// The set of Interactables that this Interactor could possibly interact with this frame.
+        /// This list is not sorted by priority.
         /// </summary>
-        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
+        /// <seealso cref="IXRInteractor.GetValidTargets"/>
+        protected List<IXRInteractable> unsortedValidTargets { get; } = new List<IXRInteractable>();
 
         readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
 
-        readonly Dictionary<XRBaseInteractable, ValueTuple<MeshFilter, Renderer>[]> m_MeshFilterCache = new Dictionary<XRBaseInteractable, ValueTuple<MeshFilter, Renderer>[]>();
+        readonly Dictionary<IXRInteractable, ValueTuple<MeshFilter, Renderer>[]> m_MeshFilterCache = new Dictionary<IXRInteractable, ValueTuple<MeshFilter, Renderer>[]>();
 
         /// <summary>
         /// Reusable list of type <see cref="MeshFilter"/> to reduce allocations.
@@ -130,7 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Create the default hover materials
+        /// Creates the default hover materials
         /// for <see cref="interactableHoverMeshMaterial"/> and <see cref="interactableCantHoverMeshMaterial"/> if necessary.
         /// </summary>
         protected virtual void CreateDefaultHoverMaterials()
@@ -162,7 +164,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Set Standard <paramref name="material"/> with Fade rendering mode
+        /// Sets Standard <paramref name="material"/> with Fade rendering mode
         /// and set <paramref name="color"/> as the main color.
         /// </summary>
         /// <param name="material">The <see cref="Material"/> whose properties will be set.</param>
@@ -184,12 +186,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverEntering(HoverEnterEventArgs args)
+        protected override void OnHoverEntering(HoverEnterEventArgs args)
         {
             base.OnHoverEntering(args);
 
             s_MeshFilters.Clear();
-            args.interactable.GetComponentsInChildren(true, s_MeshFilters);
+            args.interactableObject.transform.GetComponentsInChildren(true, s_MeshFilters);
             if (s_MeshFilters.Count == 0)
                 return;
 
@@ -199,18 +201,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var meshFilter = s_MeshFilters[i];
                 interactableTuples[i] = (meshFilter, meshFilter.GetComponent<Renderer>());
             }
-            m_MeshFilterCache.Add(args.interactable, interactableTuples);
+            m_MeshFilterCache.Add(args.interactableObject, interactableTuples);
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverExiting(HoverExitEventArgs args)
+        protected override void OnHoverExiting(HoverExitEventArgs args)
         {
             base.OnHoverExiting(args);
-            m_MeshFilterCache.Remove(args.interactable);
+            m_MeshFilterCache.Remove(args.interactableObject);
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
             m_LastRemoveTime = Time.time;
@@ -221,33 +223,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.ProcessInteractor(updatePhase);
 
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic && m_ShowInteractableHoverMeshes && hoverTargets.Count > 0)
-                DrawHoveredInteractables();
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            {
+                // An explicit check for isHoverRecycleAllowed is done since an interactable may have been deselected
+                // after this socket was updated by the manager, such as when a later Interactor takes the selection
+                // from this socket. The recycle delay time could cause the hover to be effectively disabled.
+                if (m_ShowInteractableHoverMeshes && hasHover && isHoverRecycleAllowed)
+                    DrawHoveredInteractables();
+            }
         }
 
-        Matrix4x4 GetHoverMeshMatrix(XRGrabInteractable interactable, MeshFilter meshFilter, float hoverScale)
+        Matrix4x4 GetHoverMeshMatrix(IXRInteractable interactable, MeshFilter meshFilter, float hoverScale)
         {
-            var interactableAttachTransform = interactable.attachTransform != null ? interactable.attachTransform : interactable.transform;
+            var interactableAttachTransform = interactable.GetAttachTransform(this);
             var attachOffset = meshFilter.transform.position - interactableAttachTransform.position;
             var interactableLocalPosition = interactableAttachTransform.InverseTransformDirection(attachOffset) * hoverScale;
             var interactableLocalRotation = Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactableAttachTransform.rotation);
 
-            var position = attachTransform.position + attachTransform.rotation * interactableLocalPosition;
-            var rotation = attachTransform.rotation * interactableLocalRotation;
+            var interactorAttachTransform = GetAttachTransform(interactable);
+            var position = interactorAttachTransform.position + interactorAttachTransform.rotation * interactableLocalPosition;
+            var rotation = interactorAttachTransform.rotation * interactableLocalRotation;
             var scale = meshFilter.transform.lossyScale * hoverScale;
 
             return Matrix4x4.TRS(position, rotation, scale);
         }
 
         /// <summary>
-        /// This method is called automatically in order to draw the interactables that are currently being hovered over.
+        /// Unity calls this method automatically in order to draw the Interactables that are currently being hovered over.
         /// </summary>
         protected virtual void DrawHoveredInteractables()
         {
             if (m_InteractableHoverScale <= 0f)
                 return;
 
-            var materialToDrawWith = selectTarget == null ? m_InteractableHoverMeshMaterial : m_InteractableCantHoverMeshMaterial;
+            var materialToDrawWith = hasSelection ? m_InteractableCantHoverMeshMaterial : m_InteractableHoverMeshMaterial;
             if (materialToDrawWith == null)
                 return;
 
@@ -255,13 +264,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (mainCamera == null)
                 return;
 
-            foreach (var hoverTarget in hoverTargets)
+            foreach (var interactable in interactablesHovered)
             {
-                var grabTarget = hoverTarget as XRGrabInteractable;
-                if (grabTarget == null || grabTarget == selectTarget)
+                if (interactable == null)
                     continue;
 
-                if (!m_MeshFilterCache.TryGetValue(grabTarget, out var interactableTuples))
+                if (IsSelecting(interactable))
+                    continue;
+
+                if (!m_MeshFilterCache.TryGetValue(interactable, out var interactableTuples))
                     continue;
 
                 if (interactableTuples == null || interactableTuples.Length == 0)
@@ -274,7 +285,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (!ShouldDrawHoverMesh(meshFilter, meshRenderer, mainCamera))
                         continue;
 
-                    var matrix = GetHoverMeshMatrix(grabTarget, meshFilter, m_InteractableHoverScale);
+                    var matrix = GetHoverMeshMatrix(interactable, meshFilter, m_InteractableHoverScale);
                     var sharedMesh = meshFilter.sharedMesh;
                     for (var submeshIndex = 0; submeshIndex < sharedMesh.subMeshCount; ++submeshIndex)
                     {
@@ -291,43 +302,50 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override void GetValidTargets(List<XRBaseInteractable> targets)
+        public override void GetValidTargets(List<IXRInteractable> targets)
         {
-            SortingHelpers.SortByDistanceToInteractor(this, m_ValidTargets, targets);
+            SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
         }
 
-        /// <summary>
-        /// (Read Only) Indicates whether this interactor is in a state where it could hover (always <see langword="true"/> for sockets if active).
-        /// </summary>
-        public override bool isHoverActive => m_SocketActive;
+        /// <inheritdoc />
+        public override bool isHoverActive => base.isHoverActive && m_SocketActive;
 
-        /// <summary>
-        /// (Read Only) Indicates whether this interactor is in a state where it could select (always <see langword="true"/> for sockets if active).
-        /// </summary>
-        public override bool isSelectActive => m_SocketActive;
-
-        /// <summary>
-        /// (Read Only) Indicates whether this interactor requires exclusive selection of an interactable (always <see langword="true"/> for sockets).
-        /// </summary>
-        public override bool requireSelectExclusive => true;
+        /// <inheritdoc />
+        public override bool isSelectActive => base.isSelectActive && m_SocketActive;
 
         /// <inheritdoc />
         public override XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride => XRBaseInteractable.MovementType.Instantaneous;
 
         /// <inheritdoc />
-        public override bool CanSelect(XRBaseInteractable interactable)
-        {
-            return base.CanSelect(interactable) && (selectTarget == null || selectTarget == interactable);
-        }
+        /// <remarks>
+        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
+        public override bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
 
         /// <inheritdoc />
-        public override bool CanHover(XRBaseInteractable interactable)
+        public override bool CanHover(IXRHoverInteractable interactable)
         {
-            return base.CanHover(interactable) && Time.time > m_LastRemoveTime + m_RecycleDelayTime;
+            return base.CanHover(interactable) && isHoverRecycleAllowed;
+        }
+
+        bool isHoverRecycleAllowed => m_LastRemoveTime < 0f || m_RecycleDelayTime <= 0f || (Time.time > m_LastRemoveTime + m_RecycleDelayTime);
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
+        public override bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
+
+        /// <inheritdoc />
+        public override bool CanSelect(IXRSelectInteractable interactable)
+        {
+            return base.CanSelect(interactable) && ((!hasSelection && !interactable.isSelected) || IsSelecting(interactable));
         }
 
         /// <summary>
-        /// This method is called automatically in order to determine whether the Mesh should be drawn.
+        /// Unity calls this method automatically in order to determine whether the Mesh should be drawn.
         /// </summary>
         /// <param name="meshFilter">The <see cref="MeshFilter"/> which will be drawn when returning <see langword="true"/>.</param>
         /// <param name="meshRenderer">The <see cref="Renderer"/> on the same <see cref="GameObject"/> as the <paramref name="meshFilter"/>.</param>
@@ -344,7 +362,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnRegistered(InteractorRegisteredEventArgs args)
+        protected override void OnRegistered(InteractorRegisteredEventArgs args)
         {
             base.OnRegistered(args);
             args.manager.interactableRegistered += OnInteractableRegistered;
@@ -354,11 +372,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // and filter out any targets that were unregistered while this was not subscribed.
             m_TriggerContactMonitor.interactionManager = args.manager;
             m_TriggerContactMonitor.ResolveUnassociatedColliders();
-            XRInteractionManager.RemoveAllUnregistered(args.manager, m_ValidTargets);
+            XRInteractionManager.RemoveAllUnregistered(args.manager, unsortedValidTargets);
         }
 
         /// <inheritdoc />
-        protected internal override void OnUnregistered(InteractorUnregisteredEventArgs args)
+        protected override void OnUnregistered(InteractorUnregisteredEventArgs args)
         {
             base.OnUnregistered(args);
             args.manager.interactableRegistered -= OnInteractableRegistered;
@@ -367,25 +385,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
-            m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactable);
-            if (m_TriggerContactMonitor.IsContacting(args.interactable) && !m_ValidTargets.Contains(args.interactable))
-                m_ValidTargets.Add(args.interactable);
+            m_TriggerContactMonitor.ResolveUnassociatedColliders(args.interactableObject);
+            if (m_TriggerContactMonitor.IsContacting(args.interactableObject) && !unsortedValidTargets.Contains(args.interactableObject))
+                unsortedValidTargets.Add(args.interactableObject);
         }
 
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
         {
-            m_ValidTargets.Remove(args.interactable);
+            unsortedValidTargets.Remove(args.interactableObject);
         }
 
-        void OnContactAdded(XRBaseInteractable interactable)
+        void OnContactAdded(IXRInteractable interactable)
         {
-            if (!m_ValidTargets.Contains(interactable))
-                m_ValidTargets.Add(interactable);
+            if (!unsortedValidTargets.Contains(interactable))
+                unsortedValidTargets.Add(interactable);
         }
 
-        void OnContactRemoved(XRBaseInteractable interactable)
+        void OnContactRemoved(IXRInteractable interactable)
         {
-            m_ValidTargets.Remove(interactable);
+            unsortedValidTargets.Remove(interactable);
         }
 
         struct ShaderPropertyLookup

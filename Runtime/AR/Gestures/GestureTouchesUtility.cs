@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.XR.ARFoundation;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -154,7 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     }
 
     /// <summary>
-    /// Singleton used by Gesture's and GestureRecognizer's to interact with touch input.
+    /// Singleton used by Gestures and GestureRecognizers to interact with touch input.
     ///
     /// 1. Makes it easy to find touches by fingerId.
     /// 2. Allows Gestures to Lock/Release fingerIds.
@@ -174,7 +175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         const float k_EdgeThresholdInches = 0.1f;
 
         /// <summary>
-        /// The default source of <c>Touch</c> input used by this class.
+        /// The default source of <c>Touch</c> input this class uses.
         /// </summary>
         /// <remarks>
         /// Defaults to use legacy Input Manager Touch input when the <b>Active Input Handling</b> mode of the Unity project
@@ -285,12 +286,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Performs a Raycast from the camera.
         /// </summary>
         /// <param name="screenPos">The screen position to perform the raycast from.</param>
-        /// <param name="sessionOrigin">The <see cref="ARSessionOrigin"/> whose Camera is used for raycasting.</param>
+        /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for raycasting.</param>
+        /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for raycasting.</param>
         /// <param name="result">When this method returns, contains the <see cref="RaycastHit"/> result.</param>
         /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
-        public static bool RaycastFromCamera(Vector2 screenPos, ARSessionOrigin sessionOrigin, out RaycastHit result)
+        public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result)
         {
-            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
+            // The ARSessionOrigin parameter will eventually be removed. This class is internal so no need for overloaded.
+            var camera = sessionOrigin != null
+                ? sessionOrigin.Camera
+                : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
             if (camera == null)
             {
                 result = default;

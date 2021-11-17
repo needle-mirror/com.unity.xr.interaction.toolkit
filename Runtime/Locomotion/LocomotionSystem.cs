@@ -1,4 +1,6 @@
 using System;
+using UnityEngine.Serialization;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -26,9 +28,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     /// <summary>
-    /// The <see cref="LocomotionSystem"/> object is used to control access to the XR Rig. This system enforces that only one
-    /// Locomotion Provider can move the XR Rig at one time. This is the only place that access to an XR Rig is controlled,
-    /// having multiple instances of a <see cref="LocomotionSystem"/> drive a single XR Rig is not recommended.
+    /// The <see cref="LocomotionSystem"/> object is used to control access to the XR Origin. This system enforces that only one
+    /// Locomotion Provider can move the XR Origin at one time. This is the only place that access to an XR Origin is controlled,
+    /// having multiple instances of a <see cref="LocomotionSystem"/> drive a single XR Origin is not recommended.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_LocomotionSystem)]
     public class LocomotionSystem : MonoBehaviour
@@ -37,11 +39,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_TimeMadeExclusive;
 
         [SerializeField]
-        [Tooltip("The timeout (in seconds) for exclusive access to the XR Rig.")]
+        [Tooltip("The timeout (in seconds) for exclusive access to the XR Origin.")]
         float m_Timeout = 10f;
 
         /// <summary>
-        /// The timeout (in seconds) for exclusive access to the XR Rig.
+        /// The timeout (in seconds) for exclusive access to the XR Origin.
         /// </summary>
         public float timeout
         {
@@ -49,27 +51,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Timeout = value;
         }
 
-        [SerializeField]
-        [Tooltip("The XR Rig object to provide access control to.")]
-        XRRig m_XRRig;
+        [SerializeField, FormerlySerializedAs("m_XRRig")]
+        [Tooltip("The XR Origin object to provide access control to.")]
+        XROrigin m_XROrigin;
 
         /// <summary>
-        /// The XR Rig object to provide access control to.
+        /// The XR Origin object to provide access control to.
         /// </summary>
-        public XRRig xrRig
+        public XROrigin xrOrigin
         {
-            get => m_XRRig;
-            set => m_XRRig = value;
+            get => m_XROrigin;
+            set => m_XROrigin = value;
         }
 
         /// <summary>
-        /// (Read Only) If this value is true, the XR Rig's position should not be modified until this false.
+        /// (Deprecated) The XR Rig object to provide access control to.
+        /// </summary>
+        [Obsolete("xrRig is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
+        public XRRig xrRig
+        {
+            get => m_XROrigin as XRRig;
+            set => m_XROrigin = value;
+        }
+
+        /// <summary>
+        /// (Read Only) If this value is true, the XR Origin's position should not be modified until this false.
         /// </summary>
         public bool busy => m_CurrentExclusiveProvider != null;
 
         /// <summary>
-        /// (Read Only) If this value is true, the XR Rig's position should not be modified until this false.
+        /// (Read Only) If this value is true, the XR Origin's position should not be modified until this false.
         /// </summary>
+        /// <remarks>
+        /// <c>Busy</c> has been deprecated. Use <see cref="busy"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Busy has been deprecated. Use busy instead. (UnityUpgradable) -> busy")]
         public bool Busy => busy;
@@ -80,8 +95,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void Awake()
         {
-            if (m_XRRig == null)
-                m_XRRig = FindObjectOfType<XRRig>();
+            if (m_XROrigin == null)
+                m_XROrigin = FindObjectOfType<XROrigin>();
         }
 
         /// <summary>
@@ -96,7 +111,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Attempt to "lock" access to the XR Rig for the <paramref name="provider"/>.
+        /// Attempt to "lock" access to the XR Origin for the <paramref name="provider"/>.
         /// </summary>
         /// <param name="provider">The locomotion provider that is requesting access.</param>
         /// <returns>Returns a <see cref="RequestResult"/> that reflects the status of the request.</returns>
@@ -115,14 +130,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return m_CurrentExclusiveProvider != provider ? RequestResult.Busy : RequestResult.Error;
         }
 
-        internal void ResetExclusivity()
+        void ResetExclusivity()
         {
             m_CurrentExclusiveProvider = null;
             m_TimeMadeExclusive = 0f;
         }
 
         /// <summary>
-        /// Informs the <see cref="LocomotionSystem"/> that exclusive access to the XR Rig is no longer required.
+        /// Informs the <see cref="LocomotionSystem"/> that exclusive access to the XR Origin is no longer required.
         /// </summary>
         /// <param name="provider">The locomotion provider that is relinquishing access.</param>
         /// <returns>Returns a <see cref="RequestResult"/> that reflects the status of the request.</returns>

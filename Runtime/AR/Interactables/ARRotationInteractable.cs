@@ -47,11 +47,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     [HelpURL(XRHelpURLConstants.k_ARRotationInteractable)]
     public class ARRotationInteractable : ARBaseGestureInteractable
     {
-        [SerializeField, Tooltip("Rate at which to rotate object with a drag.")]
+        [SerializeField, Tooltip("The rate at which Unity rotates the attached object with a drag gesture.")]
         float m_RotationRateDegreesDrag = 100f;
 
         /// <summary>
-        /// The rate at which to rotate object with a drag.
+        /// The rate at which Unity rotates the attached object with a drag gesture.
         /// </summary>
         public float rotationRateDegreesDrag
         {
@@ -59,11 +59,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             set => m_RotationRateDegreesDrag = value;
         }
 
-        [SerializeField, Tooltip("Rate at which to rotate object with a twist.")]
+        [SerializeField, Tooltip("The rate at which Unity rotates the attached object with a twist gesture.")]
         float m_RotationRateDegreesTwist = 2.5f;
 
         /// <summary>
-        /// The rate at which to rotate object with a twist.
+        /// The rate at which Unity rotates the attached object with a twist gesture.
         /// </summary>
         public float rotationRateDegreesTwist
         {
@@ -91,7 +91,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnContinueManipulation(DragGesture gesture)
         {
             // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-            var camera = arSessionOrigin != null ? arSessionOrigin.camera : Camera.main;
+            var camera = xrOrigin != null
+                ? xrOrigin.Camera
+#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
+                : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
+#pragma warning restore 618
             if (camera == null)
                 return;
 

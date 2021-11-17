@@ -11,6 +11,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class XRControllerRecordingEditor : BaseInteractionEditor
     {
+        /// <summary>String format used to display the interaction values.</summary>
+        protected const string k_ValueFormat = "0.#";
+        
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_SelectActivatedInFirstFrame"/>.</summary>
+        SerializedProperty m_SelectActivatedInFirstFrame;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_ActivateActivatedInFirstFrame"/>.</summary>
+        SerializedProperty m_ActivateActivatedInFirstFrame;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_FirstUIPressActivatedInFirstFrame"/>.</summary>
+        SerializedProperty m_FirstUIPressActivatedInFirstFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.frames"/>.</summary>
         SerializedProperty m_Frames;
 
@@ -34,6 +43,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="MonoBehaviour"/>
         protected virtual void OnEnable()
         {
+            m_SelectActivatedInFirstFrame = serializedObject.FindProperty("m_SelectActivatedInFirstFrame");
+            m_ActivateActivatedInFirstFrame = serializedObject.FindProperty("m_ActivateActivatedInFirstFrame");
+            m_FirstUIPressActivatedInFirstFrame = serializedObject.FindProperty("m_FirstUIPressActivatedInFirstFrame");
             m_Frames = serializedObject.FindProperty("m_Frames");
             m_ControllerRecording = (XRControllerRecording)target;
         }
@@ -69,7 +81,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawProperties()
         {
             if (GUILayout.Button(Contents.clearRecording))
+            {
+                m_SelectActivatedInFirstFrame.boolValue = false;
+                m_ActivateActivatedInFirstFrame.boolValue = false;
+                m_FirstUIPressActivatedInFirstFrame.boolValue = false;
                 m_Frames.ClearArray();
+            }
 
             EditorGUILayout.LabelField(Contents.frames);
             using (new EditorGUILayout.VerticalScope())
@@ -103,6 +120,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.Toggle(frame.selectInteractionState.active, GUILayout.MaxWidth(14));
             EditorGUILayout.Toggle(frame.activateInteractionState.active, GUILayout.MaxWidth(14));
             EditorGUILayout.Toggle(frame.uiPressInteractionState.active, GUILayout.MaxWidth(14));
+            EditorGUILayout.TextField(frame.selectInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
+            EditorGUILayout.TextField(frame.activateInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
+            EditorGUILayout.TextField(frame.uiPressInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
             EditorGUILayout.EndHorizontal();
         }
     }

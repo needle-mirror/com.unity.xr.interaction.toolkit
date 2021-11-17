@@ -1,8 +1,5 @@
 ﻿using System;
 using UnityEngine.Serialization;
-#if LIH_PRESENT
-using UnityEngine.SpatialTracking;
-#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -13,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="ActionBasedController"/>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Controllers)]
     [DisallowMultipleComponent]
-    public abstract class XRBaseController : MonoBehaviour
+    public abstract partial class XRBaseController : MonoBehaviour
     {
         /// <summary>
         /// The time within the frame that controller pose will be sampled.
@@ -43,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         UpdateType m_UpdateTrackingType = UpdateType.UpdateAndBeforeRender;
 
         /// <summary>
-        /// The time within the frame that the controller will sample tracking input.
+        /// The time within the frame that the controller samples tracking input.
         /// </summary>
         /// <seealso cref="UpdateType"/>
         public UpdateType updateTrackingType
@@ -57,10 +54,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Whether input pose tracking is enabled for this controller.
-        /// When enabled, the current tracking pose input of the controller device will be read each frame.
+        /// When enabled, Unity reads the current tracking pose input of the controller device each frame.
         /// </summary>
         /// <remarks>
-        /// This can be disabled in order to drive the controller state manually instead of from reading current inputs,
+        /// You can disable this in order to drive the controller state manually instead of from reading current inputs,
         /// such as when playing back recorded pose inputs.
         /// </remarks>
         /// <seealso cref="enableInputActions"/>
@@ -75,10 +72,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Whether input for XR Interaction events is enabled for this controller.
-        /// When enabled, the current input of the controller device will be read each frame.
+        /// When enabled, Unity reads the current input of the controller device each frame.
         /// </summary>
         /// <remarks>
-        /// This can be disabled in order to drive the controller state manually instead of from reading current inputs,
+        /// You can disable this in order to drive the controller state manually instead of from reading current inputs,
         /// such as when playing back recorded inputs.
         /// </remarks>
         /// <seealso cref="enableInputTracking"/>
@@ -92,12 +89,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_ModelPrefab;
 
         /// <summary>
-        /// The prefab of a controller model to show for this controller that will be automatically instantiated by this behavior.
+        /// The prefab of a controller model to show for this controller that this behavior automatically instantiates.
         /// </summary>
         /// <remarks>
-        /// This behavior will automatically instantiate an instance of the prefab as a child
+        /// This behavior automatically instantiates an instance of the prefab as a child
         /// of <see cref="modelParent"/> upon startup unless <see cref="model"/> is already set,
-        /// in which case this value ignored.
+        /// in which case this value is ignored.
         /// </remarks>
         /// <seealso cref="model"/>
         public Transform modelPrefab
@@ -110,7 +107,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_ModelParent;
 
         /// <summary>
-        /// The transform that is used as the parent for the model prefab when it is instantiated.
+        /// The transform that this behavior uses as the parent for the model prefab when it is instantiated.
         /// </summary>
         /// <remarks>
         /// Automatically instantiated and set in <see cref="Awake"/> if not already set.
@@ -129,6 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc cref="modelParent"/>
+        /// <remarks><c>modelTransform</c> has been deprecated due to being renamed. Use <see cref="modelParent"/> instead.</remarks>
         [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead. (UnityUpgradable) -> modelParent")]
         public Transform modelTransform
         {
@@ -140,7 +138,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_Model;
 
         /// <summary>
-        /// The instance of the controller model in the scene. This can be set to an existing object instead of using <see cref="modelPrefab"/>.
+        /// The instance of the controller model in the scene. You can set this to an existing object instead of using <see cref="modelPrefab"/>.
         /// </summary>
         /// <remarks>
         /// If set, it should reference a child GameObject of this behavior so it will update with the controller pose.
@@ -195,7 +193,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_HideControllerModel;
 
         /// <summary>
-        /// Whether the controller model should be hidden.
+        /// Whether to hide the controller model.
         /// </summary>
         /// <seealso cref="model"/>
         /// <seealso cref="XRBaseControllerInteractor.hideControllerOnSelect"/>
@@ -211,17 +209,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// (Deprecated) Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
         /// </summary>
         /// <seealso cref="XRRayInteractor.TranslateAnchor"/>
         /// <seealso cref="XRRayInteractor.RotateAnchor"/>
+        /// <remarks>
+        /// <c>anchorControlDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
         [Obsolete("anchorControlDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
         public float anchorControlDeadzone { get; set; }
 
         /// <summary>
-        /// Defines the off-axis deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// (Deprecated) Defines the off-axis deadzone values for device-based input when performing translate or rotate anchor actions.
         /// </summary>
         /// <seealso cref="Application.onBeforeRender"/>
+        /// <remarks>
+        /// <c>anchorControlOffAxisDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
         [Obsolete("anchorControlOffAxisDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
         public float anchorControlOffAxisDeadzone { get; set; }
 
@@ -239,11 +243,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         InteractionState m_UIPressInteractionState;
         /// <summary>
-        /// (Read Only) The current ui press interaction state.
+        /// (Read Only) The current UI press interaction state.
         /// </summary>
         public InteractionState uiPressInteractionState => m_UIPressInteractionState;
 
         XRControllerState m_ControllerState;
+        /// <summary>
+        /// The current state of the controller.
+        /// </summary>
+        public XRControllerState currentControllerState
+        {
+            get
+            {
+                SetupControllerState();
+                return m_ControllerState;
+            }
+
+            set
+            {
+                m_ControllerState = value;
+                m_CreateControllerState = false;
+            }
+        }
+
         bool m_CreateControllerState = true;
 
 #if ANIMATION_MODULE_PRESENT
@@ -331,6 +353,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the controller every frame.
+        /// This is called automatically from <see cref="Update"/>.
         /// </summary>
         protected virtual void UpdateController()
         {
@@ -374,33 +397,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Gets the state of the controller.
-        /// </summary>
-        /// <param name="controllerState">When this method returns, contains the <see cref="XRControllerState"/> object representing the state of the controller.</param>
-        /// <returns>Returns <see langword="false"/>.</returns>
-        public virtual bool GetControllerState(out XRControllerState controllerState)
-        {
-            SetupControllerState();
-            controllerState = m_ControllerState;
-            return false;
-        }
-
-        /// <summary>
-        /// Sets the state of the controller.
-        /// </summary>
-        /// <param name="controllerState">The state of the controller to set.</param>
-        public virtual void SetControllerState(XRControllerState controllerState)
-        {
-            m_ControllerState = controllerState;
-            m_CreateControllerState = false;
-        }
-
-        /// <summary>
         /// Applies the given controller state to this <see cref="XRBaseController"/>.
         /// Depending on the update phase, the XR Interaction states may be copied
         /// and/or the pose value may be applied to the transform of the GameObject.
+        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/>.
         /// </summary>
-        /// <param name="updatePhase">The update phase this is called during.</param>
+        /// <param name="updatePhase">The update phase during this call.</param>
         /// <param name="controllerState">The state of the controller to apply.</param>
         protected virtual void ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase updatePhase, XRControllerState controllerState)
         {
@@ -418,12 +420,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
             {
-                if ((controllerState.poseDataFlags & PoseDataFlags.Position) != 0)
+                if ((controllerState.inputTrackingState & InputTrackingState.Position) != 0)
                 {
                     transform.localPosition = controllerState.position;
                 }
 
-                if ((controllerState.poseDataFlags & PoseDataFlags.Rotation) != 0)
+                if ((controllerState.inputTrackingState & InputTrackingState.Rotation) != 0)
                 {
                     transform.localRotation = controllerState.rotation;
                 }
@@ -432,6 +434,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the pose values in the given controller state based on the current tracking input of the controller device.
+        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/>.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateTrackingInput(XRControllerState controllerState)
@@ -440,6 +443,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the XR Interaction states in the given controller state based on the current inputs of the controller device.
+        /// Unity calls this automatically from <see cref="UpdateController"/>.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateInput(XRControllerState controllerState)
@@ -448,6 +452,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the animation on the model instance (if the model contains an <see cref="Animator"/>).
+        /// Unity calls this automatically from <see cref="UpdateController"/>.
         /// </summary>
         /// <seealso cref="animateModel"/>
         /// <seealso cref="modelSelectTransition"/>

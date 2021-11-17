@@ -18,6 +18,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -67,9 +68,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 InputActionType.Value,
                 "<Gamepad>/leftStick");
 
-            var xrRig = TestUtilities.CreateXRRig();
-            var rigTransform = xrRig.rig.transform;
-            var cameraTransform = xrRig.cameraGameObject.transform;
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            var rigTransform = xrOrigin.Origin.transform;
+            var cameraTransform = xrOrigin.Camera.transform;
 
             // Rotate the camera to face a different direction than rig forward to test
             // that the move provider will move with respect to a selected forward object.
@@ -79,15 +80,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Create a controller object to serve as another forward source
             var controllerGO = new GameObject("Controller");
-            controllerGO.transform.SetParent(xrRig.cameraFloorOffsetObject.transform, false);
+            controllerGO.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform, false);
             controllerGO.transform.Rotate(0f, -45f, 0f);
             var controllerForward = controllerGO.transform.forward;
             Assert.That(rigTransform.forward, Is.Not.EqualTo(controllerForward).Using(Vector3ComparerWithEqualsOperator.Instance));
 
-            // Config continuous move on XR rig
-            var locoSys = xrRig.gameObject.AddComponent<LocomotionSystem>();
-            locoSys.xrRig = xrRig;
-            var moveProvider = xrRig.gameObject.AddComponent<ActionBasedContinuousMoveProvider>();
+            // Config continuous move on XR Origin
+            var locoSys = xrOrigin.gameObject.AddComponent<LocomotionSystem>();
+            locoSys.xrOrigin = xrOrigin;
+            var moveProvider = xrOrigin.gameObject.AddComponent<ActionBasedContinuousMoveProvider>();
             moveProvider.system = locoSys;
             moveProvider.leftHandMoveAction = new InputActionProperty(action);
             moveProvider.moveSpeed = 1f;
@@ -97,7 +98,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 case ForwardSource.Default:
                     break;
                 case ForwardSource.Camera:
-                    moveProvider.forwardSource = xrRig.cameraGameObject.transform;
+                    moveProvider.forwardSource = xrOrigin.Camera.transform;
                     break;
                 case ForwardSource.Controller:
                     moveProvider.forwardSource = controllerGO.transform;
@@ -163,13 +164,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 InputActionType.Value,
                 "<Gamepad>/rightStick");
 
-            var xrRig = TestUtilities.CreateXRRig();
-            var rigTransform = xrRig.rig.transform;
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            var rigTransform = xrOrigin.Origin.transform;
 
-            // Config continuous turn on XR rig
-            var locoSys = xrRig.gameObject.AddComponent<LocomotionSystem>();
-            locoSys.xrRig = xrRig;
-            var turnProvider = xrRig.gameObject.AddComponent<ActionBasedContinuousTurnProvider>();
+            // Config continuous turn on XR Origin
+            var locoSys = xrOrigin.gameObject.AddComponent<LocomotionSystem>();
+            locoSys.xrOrigin = xrOrigin;
+            var turnProvider = xrOrigin.gameObject.AddComponent<ActionBasedContinuousTurnProvider>();
             turnProvider.system = locoSys;
             turnProvider.leftHandTurnAction = new InputActionProperty(action);
             turnProvider.turnSpeed = 60f;

@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Draw world space standard basis vectors at <paramref name="transform"/>.
+        /// Draws world space standard basis vectors at <paramref name="transform"/>.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> to represent.</param>
         /// <param name="size">Length of each ray.</param>

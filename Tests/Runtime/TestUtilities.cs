@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -43,32 +44,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
-        internal static XRRig CreateXRRig()
+        internal static XROrigin CreateXROrigin()
         {
-            var xrRigGO = new GameObject("XR Rig");
-            xrRigGO.SetActive(false);
-            var xrRig = xrRigGO.AddComponent<XRRig>();
-            xrRig.rig = xrRigGO;
+            var xrOriginGO = new GameObject("XR Origin");
+            xrOriginGO.SetActive(false);
+            var xrOrigin = xrOriginGO.AddComponent<XROrigin>();
+            xrOrigin.Origin = xrOriginGO;
 
             // Add camera offset
             var cameraOffsetGO = new GameObject("CameraOffset");
-            cameraOffsetGO.transform.SetParent(xrRig.transform,false);
-            xrRig.cameraFloorOffsetObject = cameraOffsetGO;
+            cameraOffsetGO.transform.SetParent(xrOrigin.transform,false);
+            xrOrigin.CameraFloorOffsetObject = cameraOffsetGO;
 
-            xrRig.transform.position = Vector3.zero;
-            xrRig.transform.rotation = Quaternion.identity;
+            xrOrigin.transform.position = Vector3.zero;
+            xrOrigin.transform.rotation = Quaternion.identity;
 
             // Add camera
             var cameraGO = new GameObject("Camera");
             var camera = cameraGO.AddComponent<Camera>();
 
             cameraGO.transform.SetParent(cameraOffsetGO.transform, false);
-            xrRig.cameraGameObject = cameraGO;
-            xrRigGO.SetActive(true);
+            xrOrigin.Camera = cameraGO.GetComponent<Camera>();
+            xrOriginGO.SetActive(true);
 
             XRDevice.DisableAutoXRCameraTracking(camera, true);
 
-            return xrRig;
+            return xrOrigin;
         }
 
         internal static TeleportationAnchor CreateTeleportAnchorPlane()
@@ -144,10 +145,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
     class MockInteractor : XRBaseInteractor
     {
-        public List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
+        public List<IXRInteractable> validTargets { get; } = new List<IXRInteractable>();
 
         /// <inheritdoc />
-        public override void GetValidTargets(List<XRBaseInteractable> targets)
+        public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
             targets.AddRange(validTargets);

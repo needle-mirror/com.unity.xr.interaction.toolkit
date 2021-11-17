@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -18,6 +19,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_Colliders;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.interactionLayerMask"/>.</summary>
         protected SerializedProperty m_InteractionLayerMask;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.interactionLayers"/>.</summary>
+        protected SerializedProperty m_InteractionLayers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectMode"/>.</summary>
+        protected SerializedProperty m_SelectMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.customReticle"/>.</summary>
         protected SerializedProperty m_CustomReticle;
 
@@ -29,6 +34,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HoverEntered;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.hoverExited"/>.</summary>
         protected SerializedProperty m_HoverExited;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.firstSelectEntered"/>.</summary>
+        protected SerializedProperty m_FirstSelectEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.lastSelectExited"/>.</summary>
+        protected SerializedProperty m_LastSelectExited;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectEntered"/>.</summary>
         protected SerializedProperty m_SelectEntered;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectExited"/>.</summary>
@@ -77,6 +86,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_OnDeactivateCalls;
 
         /// <summary>
+        /// Whether <see cref="InteractableSelectMode.Multiple"/> is allowed by the script of the object being inspected.
+        /// </summary>
+        protected bool selectMultipleAllowed { get; private set; }
+
+        /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
         protected static class BaseContents
@@ -86,7 +100,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.colliders"/>.</summary>
             public static readonly GUIContent colliders = EditorGUIUtility.TrTextContent("Colliders", "Colliders to include when selecting/interacting with this Interactable (if empty, will use any child Colliders).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.interactionLayerMask"/>.</summary>
-            public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactors whose Interaction Layer Mask overlaps with any layer in this Interaction Layer Mask.");
+            public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Deprecated Interaction Layer Mask", "Deprecated Interaction Layer Mask that uses the Unity physics Layers. Hide this property by disabling \'Show Old Interaction Layer Mask In Inspector\' in the XR Interaction Toolkit project settings.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.interactionLayers"/>.</summary>
+            public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactors whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.selectMode"/>.</summary>
+            public static readonly GUIContent selectMode = EditorGUIUtility.TrTextContent("Select Mode", "The selection policy, either Single selection with swapping allowed, Single Locked selection without swapping, or Multiple selection.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.customReticle"/>.</summary>
             public static readonly GUIContent customReticle = EditorGUIUtility.TrTextContent("Custom Reticle", "The reticle that will appear at the end of the line when it is valid.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.onFirstHoverEntered"/>.</summary>
@@ -111,10 +129,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent firstLastHoverEventsHeader = EditorGUIUtility.TrTextContent("First/Last Hover", "Similar to Hover except called only when the first Interactor begins hovering over this Interactable as the sole hovering Interactor, or when the last remaining hovering Interactor ends hovering.");
             /// <summary><see cref="GUIContent"/> for the header label of Hover events.</summary>
             public static readonly GUIContent hoverEventsHeader = EditorGUIUtility.TrTextContent("Hover", "Called when an Interactor begins hovering over this Interactable (Entered), or ends hovering (Exited).");
+            /// <summary><see cref="GUIContent"/> for the header label of First/Last Hover events.</summary>
+            public static readonly GUIContent firstLastSelectEventsHeader = EditorGUIUtility.TrTextContent("First/Last Select", "Similar to Select except called only when the first Interactor begins selecting this Interactable as the sole selecting Interactor, or when the last remaining selecting Interactor ends selecting.");
             /// <summary><see cref="GUIContent"/> for the header label of Select events.</summary>
             public static readonly GUIContent selectEventsHeader = EditorGUIUtility.TrTextContent("Select", "Called when an Interactor begins selecting this Interactable (Entered), or ends selecting (Exited).");
             /// <summary><see cref="GUIContent"/> for the header label of Activate events.</summary>
             public static readonly GUIContent activateEventsHeader = EditorGUIUtility.TrTextContent("Activate", "Called when the Interactor that is selecting this Interactable sends a command to activate (Activated), or deactivate (Deactivated). Not to be confused with the active state of a GameObject.");
+
+            /// <summary>The help box message when Multiple is not supported by the script and the serialized field is Multiple.</summary>
+            /// <seealso cref="selectMultipleAllowed"/>
+            public static readonly GUIContent multipleNotSupported = EditorGUIUtility.TrTextContent("Multiple is not supported by this component script.");
 
             /// <summary>The help box message when deprecated Interactable Events are being used.</summary>
             public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactable Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");
@@ -129,12 +153,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
             m_Colliders = serializedObject.FindProperty("m_Colliders");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
+            m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
+            m_SelectMode = serializedObject.FindProperty("m_SelectMode");
             m_CustomReticle = serializedObject.FindProperty("m_CustomReticle");
 
             m_FirstHoverEntered = serializedObject.FindProperty("m_FirstHoverEntered");
             m_LastHoverExited = serializedObject.FindProperty("m_LastHoverExited");
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
             m_HoverExited = serializedObject.FindProperty("m_HoverExited");
+            m_FirstSelectEntered = serializedObject.FindProperty("m_FirstSelectEntered");
+            m_LastSelectExited = serializedObject.FindProperty("m_LastSelectExited");
             m_SelectEntered = serializedObject.FindProperty("m_SelectEntered");
             m_SelectExited = serializedObject.FindProperty("m_SelectExited");
             m_Activated = serializedObject.FindProperty("m_Activated");
@@ -159,6 +187,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OnSelectCanceledCalls = m_OnSelectCanceled.FindPropertyRelative("m_PersistentCalls.m_Calls");
             m_OnActivateCalls = m_OnActivate.FindPropertyRelative("m_PersistentCalls.m_Calls");
             m_OnDeactivateCalls = m_OnDeactivate.FindPropertyRelative("m_PersistentCalls.m_Calls");
+
+            var attribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
+            selectMultipleAllowed = attribute?.allowMultiple ?? true;
         }
 
         /// <inheritdoc />
@@ -219,7 +250,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             DrawInteractionManagement();
             EditorGUILayout.PropertyField(m_CustomReticle, BaseContents.customReticle);
+            DrawSelectionConfiguration();
         }
+
+        /// <summary>
+        /// Draw the property fields related to selection configuration.
+        /// </summary>
+        protected virtual void DrawSelectionConfiguration()
+        {
+            if (m_SelectMode.intValue == (int)InteractableSelectMode.Multiple && !selectMultipleAllowed)
+                EditorGUILayout.HelpBox(BaseContents.multipleNotSupported.text, MessageType.Error);
+
+            XRInteractionEditorGUI.EnumPropertyField<InteractableSelectMode>(m_SelectMode, BaseContents.selectMode, IsSelectModeOptionEnabled);
+        }
+
+        bool IsSelectModeOptionEnabled(Enum arg) => (InteractableSelectMode)arg != InteractableSelectMode.Multiple || selectMultipleAllowed;
 
         /// <summary>
         /// Draw the property fields related to interaction management.
@@ -227,7 +272,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawInteractionManagement()
         {
             EditorGUILayout.PropertyField(m_InteractionManager, BaseContents.interactionManager);
-            EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
+            EditorGUILayout.PropertyField(m_InteractionLayers, BaseContents.interactionLayers);
+            if (XRInteractionEditorSettings.instance.showOldInteractionLayerMaskInInspector)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
+                }
+            }
+            
             EditorGUILayout.PropertyField(m_Colliders, BaseContents.colliders, true);
         }
 
@@ -286,6 +339,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_HoverExited);
             if (m_OnHoverExitedCalls.arraySize > 0 || m_OnHoverExitedCalls.hasMultipleDifferentValues)
                 EditorGUILayout.PropertyField(m_OnHoverExited, BaseContents.onHoverExited);
+
+            EditorGUILayout.LabelField(BaseContents.firstLastSelectEventsHeader, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_FirstSelectEntered);
+            EditorGUILayout.PropertyField(m_LastSelectExited);
 
             EditorGUILayout.LabelField(BaseContents.selectEventsHeader, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_SelectEntered);

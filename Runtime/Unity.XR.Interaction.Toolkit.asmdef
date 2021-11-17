@@ -6,7 +6,8 @@
         "Unity.XR.ARSubsystems",
         "Unity.XR.ARFoundation",
         "UnityEngine.XR.LegacyInputHelpers",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.XR.CoreUtils"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

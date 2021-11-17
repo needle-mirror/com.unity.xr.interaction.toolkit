@@ -83,7 +83,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <seealso cref="InputStateBlock.format"/>
         public static FourCC formatId => new FourCC('X', 'R', 'S', 'C');
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
+        /// </summary>
         public FourCC format => formatId;
 
         /// <summary>

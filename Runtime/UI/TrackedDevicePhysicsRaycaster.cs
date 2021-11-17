@@ -131,7 +131,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField, Tooltip("The event camera for this raycaster. The event camera is used to determine the screen position and display of the raycast results.")]
         Camera m_EventCamera;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See [BaseRaycaster.eventCamera](xref:UnityEngine.EventSystems.BaseRaycaster.eventCamera).
+        /// </summary>
         public override Camera eventCamera
         {
             get
@@ -152,7 +154,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Perform a raycast against all physics objects using this event.
+        /// Performs a raycast against all physics objects using this event.
         /// </summary>
         /// <remarks>Will only process events of type <see cref="TrackedDeviceEventData"/>.</remarks>
         /// <param name="eventData">Data containing where and how to raycast.</param>
@@ -174,7 +176,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         // Use this list on each raycast to avoid continually allocating.
         readonly List<RaycastHit> m_RaycastResultsCache = new List<RaycastHit>();
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html">MonoBehaviour.Awake</a>.
+        /// </summary>
         protected override void Awake()
         {
             base.Awake();

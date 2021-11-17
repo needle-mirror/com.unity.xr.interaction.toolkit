@@ -2,8 +2,8 @@
 # Locomotion
 
 The XR Interaction Toolkit package provides a set of locomotion primitives that offer the means to move about a Scene during an XR experience. These components are:
-- An XR Rig that represents the user
-- A Locomotion System that control access to the XR Rig
+- An XR Origin that represents the user
+- A Locomotion System that control access to the XR Origin
 - A teleportation system with teleportation destinations
 - A Snap Turn Provider that rotates the rig by fixed angles
 - A Continuous Turn Provider that smoothly rotates the rig over time
@@ -15,8 +15,8 @@ This documentation outlines how to use and extend these components.
 
 | **Term** | **Meaning** |
 |-|-|
-| **XR Rig** | `MonoBehaviour` that specifies a Rig, a Camera Floor Offset Object, and a Camera. Also provides options of tracking origin modes to configure the XR device. |
-| **Rig** | The base GameObject of the XR Rig. This is the GameObject that the application will manipulate via locomotion. By default, the Rig is the GameObject that the XR Rig is attached to.|
+| **XR Origin** | `MonoBehaviour` that specifies an Origin, a Camera Floor Offset Object, and a Camera. Also provides options of tracking origin modes to configure the XR device. |
+| **Origin** | The base GameObject of the XR Origin. This is the GameObject that the application will manipulate via locomotion. By default, the Rig is the GameObject that the XR Origin is attached to.|
 | **Camera Floor Offset Object** | GameObject to move the Camera to the desired height off the floor. |
 | **Camera Object** | GameObject that contains a Camera component. This is usually the main Camera that renders what the user sees, and is usually the "head" of XR rigs. |
 | **Floor mode** | A floor-relative tracking mode. When the Scene starts, the origin is the floor. |
@@ -32,9 +32,9 @@ This documentation outlines how to use and extend these components.
 
 Before you follow the steps below, to streamline setup of Action-based behaviors, it is recommended that you install the [Default Input Actions](samples.md#default-input-actions) sample and follow the steps for [configuring Preset Manager defaults](samples.md#configuring-preset-manager-defaults) to reduce the burden of configuring the Actions when using Action-based behaviors. Using Action-based behaviors is recommended; for more information, see [Action-based vs. Device-based behaviors](index.md#action-based-vs.-device-based-behaviors).
 
-### 1. Set up the XR Rig 
+### 1. Set up the XR Origin
 
-To set up an XR Rig, click **GameObject &gt; XR &gt; XR Rig**. This creates an XR Rig GameObject in the Scene. You can set the **Tracking Origin Mode** to **Device** or **Floor** instead of using the default of the device. The command also creates an Interaction Manager if there isn't one in the Scene.
+To set up an XR Origin, click **GameObject &gt; XR &gt; XR Origin**. This creates an XR Origin GameObject in the Scene. You can set the **Tracking Origin Mode** to **Device** or **Floor** instead of using the default of the device. The command also creates an Interaction Manager if there isn't one in the Scene.
 
 This also creates two child GameObjects with an XR Controller on each to represent the motion controllers. For Action-based controllers, the Actions that you assign should use either the **XR Controller (LeftHand)** or **XR Controller (RightHand)** binding paths. For Device-based controllers, the **Controller Node** is set to **Left Hand** and **Right Hand** automatically.
 
@@ -42,7 +42,7 @@ This also creates two child GameObjects with an XR Controller on each to represe
 
 ### 2. Add a Locomotion System with teleportation and snap turning
 
-On the **XR Rig** GameObject, add a **Locomotion System**, a **Teleportation Provider**, and a **Snap Turn Provider**.
+On the **XR Origin** GameObject, add a **Locomotion System**, a **Teleportation Provider**, and a **Snap Turn Provider**.
 
 To set up snap turn, you need to configure the [Snap Turn Provider](#snap-turn-provider) in the Inspector.
 
@@ -88,7 +88,7 @@ The **Projectile Curve** option is recommended for use in teleportation scenario
 
 | **Property** | **Description** |
 |-|-|
-| **Reference Frame** | The reference frame of the projectile. If you don't set this, the XR Ray Interactor attempts to use the local XR Rig, which makes the curve always go up then down in the tracking space. If the XR Rig doesn't exist, the curve rotates with the Controller. |
+| **Reference Frame** | The reference frame of the projectile. If you don't set this, the XR Ray Interactor attempts to use the local XR Origin, which makes the curve always go up then down in the tracking space. If the XR Origin doesn't exist, the curve rotates with the Controller. |
 | **Velocity** | Initial velocity of the projectile. Increase this value to make the curve reach further. |
 | **Acceleration** | Gravity of the projectile in the reference frame. |
 | **Additional FlightTime** | Additional flight time after the projectile lands. Increase this value to make the endpoint drop lower in height. |
@@ -127,36 +127,36 @@ The XR Interactor Line Visual gives you additional options to customize the appe
 
 ## Architecture
 
-The Locomotion System is responsible for managing one XR Rig. The XR Rig handles the user's position in Unity world space. The Locomotion System can restrict access to the XR Rig while Locomotion Providers are moving it.
+The Locomotion System is responsible for managing one XR Origin. The XR Origin handles the user's position in Unity world space. The Locomotion System can restrict access to the XR Origin while Locomotion Providers are moving it.
 
-For example, at the request of the Teleportation Provider, the Locomotion System locks the XR Rig while in a Teleport action. This ensures that the user can't do another action, such as snap turning or teleporting again, while the current action is active.
+For example, at the request of the Teleportation Provider, the Locomotion System locks the XR Origin while in a Teleport action. This ensures that the user can't do another action, such as snap turning or teleporting again, while the current action is active.
 
-After the Teleport has finished, the Teleportation Provider relinquishes the exclusive lock on the system and allows other Locomotion Providers to influence the XR Rig.
+After the Teleport has finished, the Teleportation Provider relinquishes the exclusive lock on the system and allows other Locomotion Providers to influence the XR Origin.
 
-Locomotion Providers can modify the XR Rig without taking exclusive access if necessary. However, before you give a Locomotion Provider non-exclusive access to the XR Rig, you should always check to see if the Locomotion System is busy before it makes any changes to the XR Rig.
+Locomotion Providers can modify the XR Origin without taking exclusive access if necessary. However, before you give a Locomotion Provider non-exclusive access to the XR Origin, you should always check to see if the Locomotion System is busy before it makes any changes to the XR Origin.
 
 The overall flow of a Locomotion request is as follows:
 
 1. The Locomotion Provider checks to see if the Locomotion System is currently busy.
 2. If not, the Locomotion Provider requests exclusive access to the Locomotion System.
-3. If the request is successful, the Locomotion Provider moves the XR Rig.
+3. If the request is successful, the Locomotion Provider moves the XR Origin.
 4. When the Locomotion Provider has finished modifying the user's position and/or rotation, the Locomotion Provider relinquishes exclusive access to the Locomotion System.
 
-If the Locomotion System is busy, or the Locomotion Provider is unable to gain exclusive access to the Locomotion System, the Locomotion Provider shouldn't modify the Locomotion System's XR Rig. 
+If the Locomotion System is busy, or the Locomotion Provider is unable to gain exclusive access to the Locomotion System, the Locomotion Provider shouldn't modify the Locomotion System's XR Origin.
 
-### XR Rig
+### XR Origin
 
-The Locomotion System uses the XR Rig as the anchor for the user. 
+The Locomotion System uses the XR Origin as the anchor for the user.
 
-Before detailing the options on the XR Rig component, it's important to understand the recommended hierarchy of GameObjects to support Interaction.
+Before detailing the options on the XR Origin component, it's important to understand the recommended hierarchy of GameObjects to support Interaction.
 
-The image below shows the XR Rig component. 
+The image below shows the XR Origin component.
 
 ![xr-rig](images/xr-rig.png)
 
 | **Property** | **Description** |
 |-|-|
-|**Rig Base Game Object**|Indicates which GameObject acts as the Transform from tracking space into world space. In the recommended hierarchy, this is the "XR Rig" GameObject.|
+|**Rig Base Game Object**|Indicates which GameObject acts as the Transform from tracking space into world space. In the recommended hierarchy, this is the "XR Origin" GameObject.|
 |**Camera Floor Offset Object**|Sets which GameObject has a vertical offset applied if the device tracking origin doesn't contain the user's height.|
 |**Camera Game Object**|Indicates which GameObject holds the user's camera. This is important because the user's camera might not be at the origin of the tracking volume. In the suggested hierarchy, this is the "Camera" GameObject.|
 |**Tracking Origin Mode**|Sets the desired tracking origin used by the application.|
@@ -164,7 +164,7 @@ The image below shows the XR Rig component.
 
 ### Locomotion System
 
-The Locomotion System is a `MonoBehaviour` that acts as the arbitrator for Locomotion Provider access to an XR Rig. 
+The Locomotion System is a `MonoBehaviour` that acts as the arbitrator for Locomotion Provider access to an XR Origin.
 
 The following is an image of the Locomotion System component:
 
@@ -173,9 +173,9 @@ The following is an image of the Locomotion System component:
 | **Property** | **Description** |
 |-|-|
 |**Timeout**|Controls the maximum amount of time a single Locomotion Provider can keep exclusive access of the Locomotion System. By default, the value is set to 10 seconds.|
-|**XR Rig**|Select which XR Rig this Locomotion System will control. You can have as many Locomotion Systems and XR Rigs in your Scene as necessary. By default, it will find the object of type XR Rig in the Scene.|
+|**XR Origin**|Select which XR Origin this Locomotion System will control. You can have as many Locomotion Systems and XR Origins in your Scene as necessary. By default, it will find the object of type XR Origin in the Scene.|
 
-As a best practice, the Locomotion System should be located on the XR Rig GameObject. For more information, see the recommended hierarchy setup for interaction.
+As a best practice, the Locomotion System should be located on the XR Origin GameObject. For more information, see the recommended hierarchy setup for interaction.
 
 ### Locomotion Providers
 
@@ -183,9 +183,9 @@ Locomotion Providers implement different types of locomotion. The package suppli
 
 The `LocomotionProvider` class provides a simple interface to request and relinquish exclusive access to the configured Locomotion System. If no `LocomotionSystem` class is configured, the Locomotion Provider attempts to find a Locomotion System in the current Scene(s).
 
-To request exclusive access to the Locomotion System, use the `BeginLocomotion` method. To relinquish access to the Locomotion System, use the `EndLocomotion` method. The implementation of Locomotion Provider must call these methods as appropriate, and relinquish its access when it has finished interacting with the Locomotion System. 
+To request exclusive access to the Locomotion System, use the `BeginLocomotion` method. To relinquish access to the Locomotion System, use the `EndLocomotion` method. The implementation of Locomotion Provider must call these methods as appropriate, and relinquish its access when it has finished interacting with the Locomotion System.
 
-Use the `CanBeginLocomotion` method to check if the Locomotion System is currently in exclusive mode before attempting to call `BeginLocomotion` to acquire it. 
+Use the `CanBeginLocomotion` method to check if the Locomotion System is currently in exclusive mode before attempting to call `BeginLocomotion` to acquire it.
 
 The `LocomotionProvider` abstract class also providers two events:
 * `startLocomotion` is invoked on a successful call to `BeginLocomotion`.
@@ -208,7 +208,7 @@ The XR Interaction system also provides various line rendering options. For more
 
 #### Teleportation Provider
 
-The Teleportation Provider Component implements the `LocomotionProvider` abstract class. You can have as many instances of the Teleportation Provider Component in your Scene as you need. However, in most cases, a single instance is enough. As a best practice, place this instance on the XR Rig GameObject.
+The Teleportation Provider Component implements the `LocomotionProvider` abstract class. You can have as many instances of the Teleportation Provider Component in your Scene as you need. However, in most cases, a single instance is enough. As a best practice, place this instance on the XR Origin GameObject.
 
 The following image shows the Teleportation Provider MonoBehaviour.
 
@@ -235,7 +235,7 @@ The properties on the Teleportation Area Interactable are similar to other Inter
 |**Teleportation Provider** |Indicates which Teleportation Provider this Interactable communicates with. If a Teleportation Provider is not configured, the Interactable attempts to find a Teleportation Provider in the current Scene(s).|
 
 **Match Orientation** is used to specify how the rotation of the rig changes when teleporting.
-- If your application does not rotate the rig in any way, and you always want the rig's up vector to match World Space's Up vector, use the **World Space Up** option. 
+- If your application does not rotate the rig in any way, and you always want the rig's up vector to match World Space's Up vector, use the **World Space Up** option.
 - If you want the user to be able to stand on a ceiling, wall, or other tilted surface, and have them rotate to match so that the ceiling or wall feels like their new floor, select **Target Up** instead. The rig will match the up vector of the Transform that the Teleportation Area component is attached to.
 - If you want to point the user in a very specific direction when they arrive at a target, select **Target Up And Forward**. This will match the rig's rotation to the exact rotation of the Transform that a Teleportation Area is attached to.
 - If you do not want a teleport to change the rotation in any way, and you want the user to retain the same rotation before and after a teleport, select **None**.  If your entire application is oriented at a 45 degree angle, for instance, you can rotate the Rig's root Transform and set all teleport targets to `MatchOrientation.None`.
@@ -268,7 +268,7 @@ The following image shows an example of the Snap Turn Provider (Action-based).
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Turn Amount**|Specify by how many degrees the Rig will rotate around the Y axis during each snap turn.|
 |**Debounce Time**|Specify how much time must pass after a successful snap turn before the user can trigger a second snap turn.|
 |**Enable Turn Left Right**|Controls whether to enable left and right snap turns.|
@@ -284,7 +284,7 @@ The following image shows an example of the Snap Turn Provider (Device-based).
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider communicates with for exclusive access to an XR Rig. If none is provided, the behavior will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider communicates with for exclusive access to an XR Origin. If none is provided, the behavior will attempt to locate one during its `Awake` call.|
 |**Turn Input Source**|The 2D Input Axis on the controller devices that will be used to trigger a snap turn.|
 |**Controllers**|Each element in the controllers list is a reference to an XR Controller that provides device inputs to trigger snap turning.|
 |**Turn Amount**|Specify by how many degrees the Rig will rotate around the Y axis during each snap turn.|
@@ -307,7 +307,7 @@ The following image shows an example of the Continuous Turn Provider (Action-bas
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Turn Speed**|The number of degrees/second clockwise to rotate when turning clockwise.|
 |**Left Hand Turn Action**|The Action used to read input from the left hand controller.|
 |**Right Hand Turn Action**|The Action used to read input from the right hand controller.|
@@ -320,7 +320,7 @@ The following image shows an example of the Continuous Turn Provider (Device-bas
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Turn Speed**|The number of degrees/second clockwise to rotate when turning clockwise.|
 |**Input Binding**|The 2D Input Axis on the controller devices that will be used to trigger turning.|
 |**Controllers**|Each element in the controllers list is a reference to an XR Controller that provides device inputs to trigger turning.|
@@ -345,7 +345,7 @@ The following image shows an example of the Continuous Move Provider (Action-bas
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Move Speed**|The speed, in units per second, to move forward.|
 |**Enable Strafe**|Controls whether to enable strafing (sideways movement).|
 |**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used.|
@@ -362,7 +362,7 @@ The following image shows an example of the Continuous Move Provider (Device-bas
 
 |**Property**|**Description**|
 |---|---|
-|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Rig. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Move Speed**|The speed, in units per second, to move forward.|
 |**Enable Strafe**|Controls whether to enable strafing (sideways movement).|
 |**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used.|
@@ -393,6 +393,6 @@ The following image shows an example of the Character Controller Driver.
 
 |Date|Reason|
 |---|---|
-|May 12, 2021|Documentation updated for changes to tracking origin mode on the XR Rig. Matches package version 1.0.0-pre.4.|
+|May 12, 2021|Documentation updated for changes to tracking origin mode on the XR Origin. Matches package version 1.0.0-pre.4.|
 |January 10, 2020|Documentation fixes, adds revision history.|
 |October 20, 2020|Added continuous locomotion and updated for Inspector changes. Matches package version 0.10.0.|

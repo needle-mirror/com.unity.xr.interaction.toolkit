@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The number of degrees clockwise to rotate when snap turning clockwise.")]
         float m_TurnAmount = 45f;
         /// <summary>
-        /// The number of degrees clockwise to rotate when snap turning clockwise.
+        /// The number of degrees clockwise Unity rotates the rig when snap turning clockwise.
         /// </summary>
         public float turnAmount
         {
@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("The amount of time that the system will wait before starting another snap turn.")]
         float m_DebounceTime = 0.5f;
         /// <summary>
-        /// The amount of time that the system will wait before starting another snap turn.
+        /// The amount of time that Unity waits before starting another snap turn.
         /// </summary>
         public float debounceTime
         {
@@ -83,10 +83,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (Math.Abs(m_CurrentTurnAmount) > 0f && BeginLocomotion())
             {
-                var xrRig = system.xrRig;
-                if (xrRig != null)
+                var xrOrigin = system.xrOrigin;
+                if (xrOrigin != null)
                 {
-                    xrRig.RotateAroundCameraUsingRigUp(m_CurrentTurnAmount);
+                    xrOrigin.RotateAroundCameraUsingOriginUp(m_CurrentTurnAmount);
                 }
                 m_CurrentTurnAmount = 0f;
                 EndLocomotion();

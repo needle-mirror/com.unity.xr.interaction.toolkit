@@ -5,6 +5,7 @@ using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -42,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const int k_MaxSampleFrequency = 100;
 
         /// <summary>
-        /// Sets which trajectory path to use for the cast when detecting collisions.
+        /// Sets which trajectory path Unity uses for the cast when detecting collisions.
         /// </summary>
         /// <seealso cref="lineType"/>
         public enum LineType
@@ -93,7 +94,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_BlendVisualLinePoints = true;
         /// <summary>
-        /// Blend the line sample points used for raycasting with the current pose of the controller.
+        /// Blend the line sample points Unity uses for raycasting with the current pose of the controller.
         /// Use this to make the line visual stay connected with the controller instead of lagging behind.
         /// </summary>
         /// <remarks>
@@ -124,10 +125,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        Transform m_RayOriginTransform;
+        /// <summary>
+        /// The starting position and direction of any ray casts.
+        /// </summary>
+        /// <remarks>
+        /// Automatically instantiated and set in <see cref="Awake"/> if <see langword="null"/>
+        /// and initialized with the pose of the <see cref="XRBaseInteractor.attachTransform"/>.
+        /// Setting this will not automatically destroy the previous object.
+        /// </remarks>
+        public Transform rayOriginTransform
+        {
+            get => m_RayOriginTransform;
+            set => m_RayOriginTransform = value;
+        }
+
+        [SerializeField]
         Transform m_ReferenceFrame;
         /// <summary>
         /// The reference frame of the curve to define the ground plane and up.
-        /// If not set at startup it will try to find the <see cref="XRRig.rig"/> GameObject,
+        /// If not set at startup it will try to find the <see cref="XROrigin.Origin"/> GameObject,
         /// and if that does not exist it will use global up and origin by default.
         /// </summary>
         /// <seealso cref="LineType.ProjectileCurve"/>
@@ -151,9 +168,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Initial velocity of the projectile. Increasing this value will make the curve reach further.
+        /// (Deprecated) Initial velocity of the projectile. Increasing this value will make the curve reach further.
         /// </summary>
         /// <seealso cref="LineType.ProjectileCurve"/>
+        /// <remarks>
+        /// <c>Velocity</c> has been deprecated. Use <see cref="velocity"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Velocity has been deprecated. Use velocity instead. (UnityUpgradable) -> velocity")]
         public float Velocity
@@ -176,9 +196,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Gravity of the projectile in the reference frame.
+        /// (Deprecated) Gravity of the projectile in the reference frame.
         /// </summary>
         /// <seealso cref="LineType.ProjectileCurve"/>
+        /// <remarks>
+        /// <c>Acceleration</c> has been deprecated. Use <see cref="acceleration"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Acceleration has been deprecated. Use acceleration instead. (UnityUpgradable) -> acceleration")]
         public float Acceleration
@@ -215,6 +238,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc cref="additionalFlightTime"/>
+        /// <remarks>
+        /// <c>AdditionalFlightTime</c> has been deprecated. Use <see cref="additionalFlightTime"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("AdditionalFlightTime has been deprecated. Use additionalFlightTime instead. (UnityUpgradable) -> additionalFlightTime")]
         public float AdditionalFlightTime
@@ -227,7 +253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_EndPointDistance = 30f;
         /// <summary>
-        /// Increase this value distance will make the end of curve further from the start point.
+        /// Increase this value distance to make the end of the curve further from the start point.
         /// </summary>
         /// <seealso cref="LineType.BezierCurve"/>
         public float endPointDistance
@@ -239,7 +265,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_EndPointHeight = -10f;
         /// <summary>
-        /// Decrease this value will make the end of the curve drop lower relative to the start point.
+        /// Decrease this value to make the end of the curve drop lower relative to the start point.
         /// </summary>
         /// <seealso cref="LineType.BezierCurve"/>
         public float endPointHeight
@@ -251,7 +277,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_ControlPointDistance = 10f;
         /// <summary>
-        /// Increase this value will make the peak of the curve further from the start point.
+        /// Increase this value to make the peak of the curve further from the start point.
         /// </summary>
         /// <seealso cref="LineType.BezierCurve"/>
         public float controlPointDistance
@@ -263,7 +289,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_ControlPointHeight = 5f;
         /// <summary>
-        /// Increase this value will make the peak of the curve higher relative to the start point.
+        /// Increase this value to make the peak of the curve higher relative to the start point.
         /// </summary>
         /// <seealso cref="LineType.BezierCurve"/>
         public float controlPointHeight
@@ -276,7 +302,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(k_MinSampleFrequency, k_MaxSampleFrequency)]
         int m_SampleFrequency = 20;
         /// <summary>
-        /// The number of sample points used to approximate curved paths.
+        /// The number of sample points Unity uses to approximate curved paths.
         /// Larger values produce a better quality approximate at the cost of reduced performance
         /// due to the number of raycasts.
         /// </summary>
@@ -295,7 +321,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         HitDetectionType m_HitDetectionType = HitDetectionType.Raycast;
         /// <summary>
-        /// Sets which type of hit detection to use for the raycast.
+        /// Gets or sets which type of hit detection to use for the raycast.
         /// </summary>
         public HitDetectionType hitDetectionType
         {
@@ -310,6 +336,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Gets or sets radius used for sphere casting. Will use regular raycasting if set to 0 or less.
         /// </summary>
         /// <seealso cref="HitDetectionType.SphereCast"/>
+        /// <seealso cref="hitDetectionType"/>
         public float sphereCastRadius
         {
             get => m_SphereCastRadius;
@@ -341,7 +368,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_HitClosestOnly;
         /// <summary>
-        /// Consider only the closest Interactable as a valid target for interaction.
+        /// Whether Unity considers only the closest Interactable as a valid target for interaction.
         /// </summary>
         /// <remarks>
         /// Enable this to make only the closest Interactable receive hover events.
@@ -352,18 +379,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_HitClosestOnly;
             set => m_HitClosestOnly = value;
-        }
-
-        [SerializeField]
-        bool m_KeepSelectedTargetValid = true;
-        /// <summary>
-        /// Whether to keep selecting the target when not pointing to it after initially selecting it.
-        /// It is recommended to set this value to <see langword="true"/> for grabbing objects, <see langword="false"/> for teleportation interactables.
-        /// </summary>
-        public bool keepSelectedTargetValid
-        {
-            get => m_KeepSelectedTargetValid;
-            set => m_KeepSelectedTargetValid = value;
         }
 
         [SerializeField]
@@ -393,7 +408,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_EnableUIInteraction = true;
         /// <summary>
-        /// Gets or sets whether this interactor is able to affect UI.
+        /// Gets or sets whether this Interactor is able to affect UI.
         /// </summary>
         public bool enableUIInteraction
         {
@@ -482,7 +497,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get
             {
-                var castForward = startTransform.forward;
+                var castForward = effectiveRayOrigin.forward;
                 var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
                 var projectedForward = Vector3.ProjectOnPlane(castForward, up);
                 return Mathf.Approximately(Vector3.Angle(castForward, projectedForward), 0f)
@@ -492,36 +507,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc cref="angle"/>
+        /// <remarks>
+        /// <c>Angle</c> has been deprecated. Use <see cref="angle"/> instead.
+        /// </remarks>
 #pragma warning disable IDE1006 // Naming Styles
         [Obsolete("Angle has been deprecated. Use angle instead. (UnityUpgradable) -> angle")]
         public float Angle => angle;
 #pragma warning restore IDE1006
 
-        readonly List<XRBaseInteractable> m_ValidTargets = new List<XRBaseInteractable>();
-        /// <inheritdoc />
-        protected override List<XRBaseInteractable> validTargets => m_ValidTargets;
+        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
-        Transform m_OriginalAttachTransform;
         /// <summary>
         /// The <see cref="Transform"/> that upon entering selection
-        /// (when this interactor first initiates selection of an interactable),
-        /// this interactor will copy the pose of the attach <see cref="Transform"/> values into.
+        /// (when this Interactor first initiates selection of an Interactable),
+        /// this Interactor will copy the pose of the attach <see cref="Transform"/> values into.
         /// </summary>
         /// <remarks>
         /// Automatically instantiated and set in <see cref="Awake"/>.
         /// Setting this will not automatically destroy the previous object.
+        /// <br />
+        /// <c>originalAttachTransform</c> has been deprecated. Use <see cref="rayOriginTransform"/> instead.
         /// </remarks>
         /// <seealso cref="XRBaseInteractor.attachTransform"/>
+        [Obsolete("originalAttachTransform has been deprecated. Use rayOriginTransform instead. (UnityUpgradable) -> rayOriginTransform")]
         protected Transform originalAttachTransform
         {
-            get => m_OriginalAttachTransform;
-            set => m_OriginalAttachTransform = value;
+            get => rayOriginTransform;
+            set => rayOriginTransform = value;
         }
 
         /// <summary>
-        /// The starting transform of any Raycasts. Uses the Original Attach transform, falling back to this transform.
+        /// The starting position and direction of any ray casts.
+        /// Safe version of <see cref="rayOriginTransform"/>, falls back to this Transform if not set.
         /// </summary>
-        Transform startTransform => m_OriginalAttachTransform != null ? m_OriginalAttachTransform : transform;
+        Transform effectiveRayOrigin => m_RayOriginTransform != null ? m_RayOriginTransform : transform;
 
         /// <summary>
         /// The closest index of the sample endpoint where a 3D or UI hit occurred.
@@ -534,7 +553,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRUIInputModule m_RegisteredInputModule;
 
         // state to manage hover selection
-        XRBaseInteractable m_CurrentNearestObject;
+        IXRInteractable m_CurrentNearestObject;
         float m_LastTimeHoveredObjectChanged;
         bool m_PassedHoverTimeToSelect;
 
@@ -550,7 +569,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         List<SamplePoint> m_SamplePoints;
 
         /// <summary>
-        /// The <see cref="Time.frameCount"/> that the sample points were updated.
+        /// The <see cref="Time.frameCount"/> when Unity last updated the sample points.
         /// Used as an optimization to avoid recomputing the points during <see cref="ProcessInteractor"/>
         /// when it was already computed and used for an input module in <see cref="UpdateUIModel"/>.
         /// </summary>
@@ -611,13 +630,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 s_ScratchSamplePoints = new List<SamplePoint>(capacity);
 
             FindReferenceFrame();
-
-            if (m_OriginalAttachTransform == null)
-            {
-                m_OriginalAttachTransform = new GameObject($"[{gameObject.name}] Original Attach").transform;
-                m_OriginalAttachTransform.SetParent(transform);
-                CaptureAttachTransform();
-            }
+            CreateRayOrigin();
         }
 
         /// <inheritdoc />
@@ -734,22 +747,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_ReferenceFrame != null)
                 return;
 
-            var xrRig = FindObjectOfType<XRRig>();
-            if (xrRig != null)
+            var xrOrigin = FindObjectOfType<XROrigin>();
+            if (xrOrigin != null)
             {
-                var rig = xrRig.rig;
-                if (rig != null)
+                var origin = xrOrigin.Origin;
+                if (origin != null)
                 {
-                    m_ReferenceFrame = rig.transform;
+                    m_ReferenceFrame = origin.transform;
                 }
                 else
                 {
-                    Debug.Log($"Reference frame of the curve not set and {nameof(XRRig)}.{nameof(XRRig.rig)} is not set, using global up as default.", this);
+                    Debug.Log($"Reference frame of the curve not set and {nameof(XROrigin)}.{nameof(XROrigin.Origin)} is not set, using global up as default.", this);
                 }
             }
             else
             {
-                Debug.Log($"Reference frame of the curve not set and {nameof(XRRig)} is not found, using global up as default.", this);
+                Debug.Log($"Reference frame of the curve not set and {nameof(XROrigin)} is not found, using global up as default.", this);
+            }
+        }
+
+        void CreateRayOrigin()
+        {
+            if (m_RayOriginTransform == null)
+            {
+                m_RayOriginTransform = new GameObject($"[{gameObject.name}] Ray Origin").transform;
+                m_RayOriginTransform.SetParent(transform);
+                if (attachTransform != null)
+                {
+                    m_RayOriginTransform.position = attachTransform.position;
+                    m_RayOriginTransform.rotation = attachTransform.rotation;
+                }
+                else
+                {
+                    m_RayOriginTransform.localPosition = Vector3.zero;
+                    m_RayOriginTransform.localRotation = Quaternion.identity;
+                }
             }
         }
 
@@ -825,6 +857,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="numPoints">Obsolete.</param>
         /// <param name="_">Dummy value to support old function signature.</param>
         /// <returns>Obsolete.</returns>
+        /// <remarks>
+        /// <c>GetLinePoints</c> with <c>ref int</c> parameter has been deprecated. Use signature with <c>out int</c> parameter instead.
+        /// </remarks>
         [Obsolete("GetLinePoints with ref int parameter has been deprecated. Use signature with out int parameter instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool GetLinePoints(ref Vector3[] linePoints, ref int numPoints, int _ = default)
@@ -939,6 +974,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="isValidTarget">Obsolete.</param>
         /// <param name="_">Dummy value to support old function signature.</param>
         /// <returns>Obsolete.</returns>
+        /// <remarks>
+        /// <c>TryGetHitInfo</c> with <c>ref</c> parameters has been deprecated. Use signature with <c>out</c> parameters instead.
+        /// </remarks>
         [Obsolete("TryGetHitInfo with ref parameters has been deprecated. Use signature with out parameters instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool TryGetHitInfo(ref Vector3 position, ref Vector3 normal, ref int positionInLine, ref bool isValidTarget, int _ = default)
@@ -980,8 +1018,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 positionInLine = raycastHitIndex;
 
                 // Determine if the collider is registered as an interactable and the interactable is being hovered
-                var interactable = interactionManager.GetInteractableForCollider(raycastHit.Value.collider);
-                isValidTarget = interactable != null && hoverTargets.Contains(interactable);
+                isValidTarget = interactionManager.TryGetInteractableForCollider(raycastHit.Value.collider, out var interactable) &&
+                    IsHovering(interactable);
             }
 
             return true;
@@ -993,8 +1031,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!isActiveAndEnabled || m_SamplePoints == null)
                 return;
 
-            model.position = startTransform.position;
-            model.orientation = startTransform.rotation;
+            model.position = effectiveRayOrigin.position;
+            model.orientation = effectiveRayOrigin.rotation;
             model.select = isUISelectActive;
             model.raycastLayerMask = raycastMask;
 
@@ -1030,6 +1068,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc cref="TryGetCurrent3DRaycastHit(out RaycastHit)"/>
+        /// <remarks>
+        /// <c>GetCurrentRaycastHit</c> has been deprecated. Use <see cref="TryGetCurrent3DRaycastHit"/> instead.
+        /// </remarks>
         [Obsolete("GetCurrentRaycastHit has been deprecated. Use TryGetCurrent3DRaycastHit instead. (UnityUpgradable) -> TryGetCurrent3DRaycastHit(*)")]
         public bool GetCurrentRaycastHit(out RaycastHit raycastHit)
         {
@@ -1147,13 +1188,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Calculate the quadratic Bezier control points used for <see cref="LineType.BezierCurve"/>.
+        /// Calculates the quadratic Bezier control points used for <see cref="LineType.BezierCurve"/>.
         /// </summary>
         void UpdateBezierControlPoints()
         {
-            var forward = startTransform.forward;
+            var forward = effectiveRayOrigin.forward;
             var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
-            m_ControlPoints[0] = startTransform.position;
+            m_ControlPoints[0] = effectiveRayOrigin.position;
             m_ControlPoints[1] = m_ControlPoints[0] + forward * m_ControlPointDistance + up * m_ControlPointHeight;
             m_ControlPoints[2] = m_ControlPoints[0] + forward * m_EndPointDistance + up * m_EndPointHeight;
         }
@@ -1211,8 +1252,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void CalculateProjectileParameters(out Vector3 initialPosition, out Vector3 initialVelocity, out Vector3 constantAcceleration, out float flightTime)
         {
-            initialPosition = startTransform.position;
-            initialVelocity = startTransform.forward * m_Velocity;
+            initialPosition = effectiveRayOrigin.position;
+            initialVelocity = effectiveRayOrigin.forward * m_Velocity;
             var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
             var referencePosition = m_ReferenceFrame != null ? m_ReferenceFrame.position : Vector3.zero;
             constantAcceleration = up * -m_Acceleration;
@@ -1267,72 +1308,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Translates the attach anchor for this interactor. This can be useful to move a held object closer or further away from the interactor.
         /// </summary>
-        /// <param name="originalAnchor">The original attach transform of the interactor.</param>
+        /// <param name="rayOrigin">The starting position and direction of any ray casts.</param>
         /// <param name="anchor">The attach transform of the interactor.</param>
         /// <param name="directionAmount">The translation amount.</param>
-        protected virtual void TranslateAnchor(Transform originalAnchor, Transform anchor, float directionAmount)
+        protected virtual void TranslateAnchor(Transform rayOrigin, Transform anchor, float directionAmount)
         {
             if (Mathf.Approximately(directionAmount, 0f))
                 return;
 
-            var originalAnchorPosition = originalAnchor.position;
-            var originalAnchorForward = originalAnchor.forward;
+            var originPosition = rayOrigin.position;
+            var originForward = rayOrigin.forward;
 
-            var resultingPosition = attachTransform.position + originalAnchorForward * (directionAmount * m_TranslateSpeed * Time.deltaTime);
+            var resultingPosition = anchor.position + originForward * (directionAmount * m_TranslateSpeed * Time.deltaTime);
 
-            // Check the delta between the original position, and the calculated position. stop the new position
-            var posInAttachSpace = resultingPosition - originalAnchorPosition;
-            var dotResult = Vector3.Dot(posInAttachSpace, originalAnchorForward);
+            // Check the delta between the origin position and the calculated position.
+            // Clamp so it doesn't go further back than the origin position.
+            var posInAttachSpace = resultingPosition - originPosition;
+            var dotResult = Vector3.Dot(posInAttachSpace, originForward);
 
-            attachTransform.position = dotResult > 0f ? resultingPosition : originalAnchorPosition;
+            anchor.position = dotResult > 0f ? resultingPosition : originPosition;
         }
 
         /// <inheritdoc />
-        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            base.ProcessInteractor(updatePhase);
+            base.PreprocessInteractor(updatePhase);
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                // Update the pose of the attach point
-                if (m_AllowAnchorControl && selectTarget != null)
-                {
-                    var ctrl = xrController as XRController;
-                    if (ctrl != null && ctrl.inputDevice.isValid)
-                    {
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
-
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
-
-                        if (inPressed || outPressed)
-                        {
-                            var directionAmount = inPressed ? 1f : -1f;
-                            TranslateAnchor(m_OriginalAttachTransform, attachTransform, directionAmount);
-                        }
-                        if (leftPressed || rightPressed)
-                        {
-                            var directionAmount = leftPressed ? -1f : 1f;
-                            RotateAnchor(attachTransform, directionAmount);
-                        }
-                    }
-
-                    var actionBasedController = xrController as ActionBasedController;
-                    if (actionBasedController != null)
-                    {
-                        if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
-                        {
-                            RotateAnchor(attachTransform, rotateAmt.x);
-                        }
-
-                        if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
-                        {
-                            TranslateAnchor(m_OriginalAttachTransform, attachTransform, translateAmt.y);
-                        }
-                    }
-                }
-
                 // Update curve approximation used for raycasts
                 // if it hasn't already been done earlier in the frame for the UI Input Module.
                 if (m_SamplePointsFrameUpdated != Time.frameCount)
@@ -1369,19 +1372,55 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override bool isSelectActive
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            get
-            {
-                if (m_HoverToSelect && m_PassedHoverTimeToSelect)
-                    return true;
+            base.ProcessInteractor(updatePhase);
 
-                return base.isSelectActive;
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            {
+                // Update the pose of the attach point
+                if (m_AllowAnchorControl && hasSelection)
+                {
+                    var ctrl = xrController as XRController;
+                    if (ctrl != null && ctrl.inputDevice.isValid)
+                    {
+                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
+                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+
+                        ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
+                        ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
+
+                        if (inPressed || outPressed)
+                        {
+                            var directionAmount = inPressed ? 1f : -1f;
+                            TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
+                        }
+                        if (leftPressed || rightPressed)
+                        {
+                            var directionAmount = leftPressed ? -1f : 1f;
+                            RotateAnchor(attachTransform, directionAmount);
+                        }
+                    }
+
+                    var actionBasedController = xrController as ActionBasedController;
+                    if (actionBasedController != null)
+                    {
+                        if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                        {
+                            RotateAnchor(attachTransform, rotateAmt.x);
+                        }
+
+                        if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
+                        {
+                            TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                        }
+                    }
+                }
             }
         }
 
         /// <inheritdoc />
-        public override void GetValidTargets(List<XRBaseInteractable> targets)
+        public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
 
@@ -1397,8 +1436,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         break;
 
                     // A hit on geometry not associated with Interactables should block Interactables behind it from being a valid target
-                    var interactable = interactionManager.GetInteractableForCollider(raycastHit.collider);
-                    if (interactable == null)
+                    if (!interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var interactable))
                         break;
 
                     if (!targets.Contains(interactable))
@@ -1414,7 +1452,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Approximate the curve into a polygonal chain of endpoints, whose line segments can be used as
+        /// Approximates the curve into a polygonal chain of endpoints, whose line segments can be used as
         /// the rays for doing Physics raycasts.
         /// </summary>
         /// <param name="count">The number of sample points to calculate.</param>
@@ -1426,7 +1464,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             samplePoints.Clear();
             var samplePoint = new SamplePoint
             {
-                position = startTransform.position,
+                position = effectiveRayOrigin.position,
                 parameter = 0f,
             };
             samplePoints.Add(samplePoint);
@@ -1434,7 +1472,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             switch (m_LineType)
             {
                 case LineType.StraightLine:
-                    samplePoint.position = samplePoints[0].position + startTransform.forward * m_MaxRaycastDistance;
+                    samplePoint.position = samplePoints[0].position + effectiveRayOrigin.forward * m_MaxRaycastDistance;
                     samplePoint.parameter = 1f;
                     samplePoints.Add(samplePoint);
                     break;
@@ -1475,7 +1513,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Walk the line segments from the approximated curve, casting from one endpoint to the next.
+        /// Walks the line segments from the approximated curve, casting from one endpoint to the next.
         /// </summary>
         void UpdateRaycastHits()
         {
@@ -1560,49 +1598,69 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override bool CanHover(XRBaseInteractable interactable)
+        public override bool isSelectActive
         {
-            return base.CanHover(interactable) && (selectTarget == null || selectTarget == interactable);
+            get
+            {
+                if (m_HoverToSelect && m_PassedHoverTimeToSelect)
+                    return allowSelect;
+
+                return base.isSelectActive;
+            }
         }
 
         /// <inheritdoc />
-        public override bool CanSelect(XRBaseInteractable interactable)
-        {
-            var selectActivated = (m_HoverToSelect && m_PassedHoverTimeToSelect && m_CurrentNearestObject == interactable) || base.CanSelect(interactable);
+        /// <remarks>
+        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
+        public override bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
 
-            // Check if selectTarget is a valid target or if we enable sticky select to fake selectTarget as valid when we selected it but are not pointing at it.
-            return selectActivated &&
-                   (selectTarget == null || (selectTarget == interactable && (keepSelectedTargetValid || m_ValidTargets.Contains(interactable))));
+        /// <inheritdoc />
+        public override bool CanHover(IXRHoverInteractable interactable)
+        {
+            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
+        /// <remarks>
+        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
+        /// </remarks>
+        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
+        public override bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
+
+        /// <inheritdoc />
+        public override bool CanSelect(IXRSelectInteractable interactable)
+        {
+            if (m_HoverToSelect && m_PassedHoverTimeToSelect && m_CurrentNearestObject != interactable)
+                return false;
+
+            return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable));
+        }
+
+        /// <inheritdoc />
+        protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
             base.OnSelectEntering(args);
 
-            CaptureAttachTransform();
-
-            if (!m_UseForceGrab && TryGetCurrent3DRaycastHit(out var raycastHit))
+            if (!m_UseForceGrab && interactablesSelected.Count == 1 && TryGetCurrent3DRaycastHit(out var raycastHit))
                 attachTransform.position = raycastHit.point;
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
-            RestoreAttachTransform();
-        }
 
-        void CaptureAttachTransform()
-        {
-            m_OriginalAttachTransform.position = attachTransform.position;
-            m_OriginalAttachTransform.rotation = attachTransform.rotation;
+            if (!hasSelection)
+                RestoreAttachTransform();
         }
 
         void RestoreAttachTransform()
         {
-            attachTransform.position = m_OriginalAttachTransform.position;
-            attachTransform.rotation = m_OriginalAttachTransform.rotation;
+            var pose = GetLocalAttachPoseOnSelect(firstInteractableSelected);
+            attachTransform.localPosition = pose.position;
+            attachTransform.localRotation = pose.rotation;
         }
 
         static int SanitizeSampleFrequency(int value)

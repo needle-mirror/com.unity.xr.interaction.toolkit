@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             var interactable = TestUtilities.CreateGrabInteractable();
             // Prevent the Interactable from being selected to allow the object to be moved freely
-            interactable.interactionLayerMask = 0;
+            interactable.interactionLayers = 0;
             var sphereCollider = interactable.GetComponent<SphereCollider>();
             sphereCollider.center = Vector3.zero;
             sphereCollider.radius = 0.5f;
@@ -65,8 +65,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.enabled = false;
             interactable.enabled = true;
 
-            Assert.That(manager.GetInteractableForCollider(sphereCollider), Is.EqualTo(interactable));
-            Assert.That(manager.GetInteractableForCollider(boxCollider), Is.EqualTo(interactable));
+            Assert.That(manager.TryGetInteractableForCollider(sphereCollider, out var sphereColliderInteractable), Is.True);
+            Assert.That(sphereColliderInteractable, Is.EqualTo(interactable));
+            Assert.That(manager.TryGetInteractableForCollider(boxCollider, out var boxColliderInteractable), Is.True);
+            Assert.That(boxColliderInteractable, Is.EqualTo(interactable));
 
             yield return null;
             yield return new WaitForFixedUpdate();
@@ -74,7 +76,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var directOverlaps = Physics.OverlapSphere(triggerCollider.transform.position, triggerCollider.radius, -1, QueryTriggerInteraction.Ignore);
             Assert.That(directOverlaps, Is.Empty);
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty);
 
@@ -146,7 +148,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
@@ -175,7 +177,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
@@ -212,7 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty);
 
@@ -248,7 +250,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty);
 
@@ -297,7 +299,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty, $"All interactors and interactables are disabled, so there should be no valid targets.");
 

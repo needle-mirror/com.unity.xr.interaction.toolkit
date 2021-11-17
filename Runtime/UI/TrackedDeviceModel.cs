@@ -26,13 +26,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public GameObject pointerTarget { get; set; }
 
             /// <summary>
-            /// Used to cache whether or not the current mouse button is being dragged.
+            /// Whether or not the current mouse button is being dragged.
             /// </summary>
             /// <seealso cref="PointerEventData.dragging"/>
             public bool isDragging { get; set; }
 
             /// <summary>
-            /// Used to cache the last time this button was pressed.
+            /// The last time this button was pressed.
             /// </summary>
             /// <seealso cref="PointerEventData.clickTime"/>
             public float pressedTime { get; set; }
@@ -107,6 +107,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// The maximum distance to raycast to check for UI.
         /// </summary>
+        /// <remarks>
+        /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.
+        /// </remarks>
         [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
         public float maxRaycastDistance { get; set; }
 

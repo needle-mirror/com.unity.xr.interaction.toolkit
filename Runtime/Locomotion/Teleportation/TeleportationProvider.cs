@@ -3,7 +3,7 @@ using UnityEngine.Assertions;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// The <see cref="TeleportationProvider"/> is responsible for moving the XR Rig
+    /// The <see cref="TeleportationProvider"/> is responsible for moving the XR Origin
     /// to the desired location on the user's request.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_TeleportationProvider)]
@@ -39,33 +39,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!validRequest || !BeginLocomotion())
                 return;
 
-            var xrRig = system.xrRig;
-            if (xrRig != null)
+            var xrOrigin = system.xrOrigin;
+            if (xrOrigin != null)
             {
                 switch (currentRequest.matchOrientation)
                 {
                     case MatchOrientation.WorldSpaceUp:
-                        xrRig.MatchRigUp(Vector3.up);
+                        xrOrigin.MatchOriginUp(Vector3.up);
                         break;
                     case MatchOrientation.TargetUp:
-                        xrRig.MatchRigUp(currentRequest.destinationRotation * Vector3.up);
+                        xrOrigin.MatchOriginUp(currentRequest.destinationRotation * Vector3.up);
                         break;
                     case MatchOrientation.TargetUpAndForward:
-                        xrRig.MatchRigUpCameraForward(currentRequest.destinationRotation * Vector3.up, currentRequest.destinationRotation * Vector3.forward);
+                        xrOrigin.MatchOriginUpCameraForward(currentRequest.destinationRotation * Vector3.up, currentRequest.destinationRotation * Vector3.forward);
                         break;
                     case MatchOrientation.None:
-                        // Change nothing. Maintain current rig rotation.
+                        // Change nothing. Maintain current origin rotation.
                         break;
                     default:
                         Assert.IsTrue(false, $"Unhandled {nameof(MatchOrientation)}={currentRequest.matchOrientation}.");
                         break;
                 }
 
-                var heightAdjustment = xrRig.rig.transform.up * xrRig.cameraInRigSpaceHeight;
+                var heightAdjustment = xrOrigin.Origin.transform.up * xrOrigin.CameraInOriginSpaceHeight;
 
                 var cameraDestination = currentRequest.destinationPosition + heightAdjustment;
 
-                xrRig.MoveCameraToWorldLocation(cameraDestination);
+                xrOrigin.MoveCameraToWorldLocation(cameraDestination);
             }
 
             EndLocomotion();

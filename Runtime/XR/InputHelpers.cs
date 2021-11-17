@@ -127,12 +127,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// <summary>
             /// A binary measure of whether the index finger is activating the trigger.
             /// </summary>
+            /// <remarks>
+            /// <c>TriggerPressed</c> has been deprecated. Use <see cref="TriggerButton"/> instead.
+            /// </remarks>
             [Obsolete("TriggerPressed has been deprecated. Use TriggerButton instead. (UnityUpgradable) -> TriggerButton")]
             TriggerPressed = TriggerButton,
 
             /// <summary>
             /// A binary measure of whether the device is being gripped.
             /// </summary>
+            /// <remarks>
+            /// <c>GripPressed</c> has been deprecated. Use <see cref="GripButton"/> instead.
+            /// </remarks>
             [Obsolete("GripPressed has been deprecated. Use GripButton instead. (UnityUpgradable) -> GripButton")]
             GripPressed = GripButton,
         }
@@ -274,6 +280,89 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             isPressed = false;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to read and return the supplied button value.
+        /// </summary>
+        /// <param name="device">The input device.</param>
+        /// <param name="button">The button to read the value.</param>
+        /// <param name="singleValue">The button value; it will have the default <see langword="float"/> value (<c>0f</c>) if the button value can't be read.</param>
+        /// <returns>Returns <see langword="true"/> if the button value can be read. Otherwise, returns <see langword="false"/></returns>
+        public static bool TryReadSingleValue(this InputDevice device, Button button, out float singleValue)
+        {
+            if ((int)button >= s_ButtonData.Length)
+            {
+                throw new ArgumentException("[InputHelpers.TryReadSingleValue] The value of <button> is out of the supported range.");
+            }
+
+            if (!device.isValid)
+            {
+                singleValue = default;
+                return false;
+            }
+
+            var info = s_ButtonData[(int)button];
+            switch (info.type)
+            {
+                case ButtonReadType.Binary:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
+                    {
+                        singleValue = value ? 1f : 0f;
+                        return true;
+                    }
+                }
+                    break;
+                case ButtonReadType.Axis1D:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
+                    {
+                        singleValue = value;
+                        return true;
+                    }
+                }
+                    break;
+                case ButtonReadType.Axis2DUp:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                    {
+                        singleValue = value.y;
+                        return true;
+                    }
+                }
+                    break;
+                case ButtonReadType.Axis2DDown:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                    {
+                        singleValue = -value.y;
+                        return true;
+                    }
+                }
+                    break;
+                case ButtonReadType.Axis2DLeft:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                    {
+                        singleValue = -value.x;
+                        return true;
+                    }
+                }
+                    break;
+                case ButtonReadType.Axis2DRight:
+                {
+                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                    {
+                        singleValue = value.x;
+                        return true;
+                    }
+                }
+                    break;
+            }
+
+            singleValue = default;
             return false;
         }
     }

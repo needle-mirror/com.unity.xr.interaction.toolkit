@@ -8,9 +8,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     public static class InputActionPropertyExtensions
     {
         /// <summary>
-        /// Enable the action held on to by the <paramref name="property"/> if it represents
-        /// an <see cref="InputAction"/> directly, meaning not indirectly with an <see cref="InputActionReference"/>
-        /// for an action externally defined in an <see cref="InputActionAsset"/>.
+        /// Enable the action held on to by the <paramref name="property"/> only if it represents
+        /// an <see cref="InputAction"/> directly. In other words, function will do nothing if the action
+        /// has a non-<see langword="null"/> <see cref="InputActionProperty.reference"/> property.
         /// </summary>
         /// <param name="property">The property to operate on.</param>
         /// <remarks>
@@ -27,9 +27,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
 
         /// <summary>
-        /// Disable the action held on to by the <paramref name="property"/> if it represents
-        /// an <see cref="InputAction"/> directly, meaning not indirectly with an <see cref="InputActionReference"/>
-        /// for an action externally defined in an <see cref="InputActionAsset"/>.
+        /// Disable the action held on to by the <paramref name="property"/> only if it represents
+        /// an <see cref="InputAction"/> directly. In other words, function will do nothing if the action
+        /// has a non-<see langword="null"/> <see cref="InputActionProperty.reference"/> property.
         /// </summary>
         /// <param name="property">The property to operate on.</param>
         /// <remarks>

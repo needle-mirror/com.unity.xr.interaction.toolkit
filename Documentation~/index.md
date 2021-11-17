@@ -24,14 +24,14 @@ This package is available as a preview package, so it is still in the process of
 
 To install this package, follow the instructions in the [Package Manager documentation](https://docs.unity3d.com/Manual/upm-ui-install.html).
 
-This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it.
+This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it.
 
 If your Project uses touches or gestures, you also need to perform the following configuration steps:
 
 1. From Unity's main menu, go to **Edit &gt; Project Settings**, then select **Player &gt; Other Settings**.
 2. Set **Active Input Handling** to **Both**.
 
-For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
+For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
 
 ## Installing samples
 
@@ -58,7 +58,7 @@ For more details about samples, see the [Samples](samples.md) page.
 
 ### Setup through GameObject menu
 
-To set up a Scene for use with the XR Interaction Toolkit, use the commands in the **GameObject &gt; XR** menu to create Interaction GameObjects. You can drop Interactors, Interactables, and the XR Rig into the Scene from this menu.
+To set up a Scene for use with the XR Interaction Toolkit, use the commands in the **GameObject &gt; XR** menu to create Interaction GameObjects. You can drop Interactors, Interactables, and the XR Origin into the Scene from this menu.
 
 ![gameobject-xr-menu](images/gameobject-xr-menu.png)
 
@@ -77,6 +77,7 @@ To receive input from an XR input device, the Interactor GameObject needs a Cont
 |Action|Required for|
 |---|---|
 |Position, Rotation, and Select|Basic interaction|
+|Tracking State|(Optional) Knowing if Position and/or Rotation inputs are valid|
 |Activate|Activating a selected object|
 |UI Press|Interacting with UI objects|
 |Haptic Device|Identifying the device to send haptic impulses to|
@@ -100,25 +101,21 @@ As an example, to set up an Interactable object that the user can grab, select i
 
 ### Action-based vs. Device-based behaviors
 
-Several behaviors, such as the [Snap Turn Provider](locomotion.md#snap-turn-provider), have two variants: an Action-based behavior and a Device-based behavior. Action-based behaviors use [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Actions.html) to indirectly read input from one or more controls. Device-based behaviors use [`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html) to read input directly from an [`InputDevice`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.html) from a specific control configured on the behavior itself.
+Several behaviors, such as the [Snap Turn Provider](locomotion.md#snap-turn-provider), have two variants: an Action-based behavior and a Device-based behavior. Action-based behaviors use [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html) to indirectly read input from one or more controls. Device-based behaviors use [`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html) to read input directly from an [`InputDevice`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.html) from a specific control configured on the behavior itself.
 
 It is recommended that you use the Action-based variant instead of the Device-based variant to take advantage of the benefits that the Input System package provides. Some features, such as the XR Device Simulator, are only supported when using Actions.
 
 ### Using Actions with Action-based behaviors
 
-Actions must be enabled before they react to input. See [Using Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Actions.html#using-actions) in the Input System documentation for details about this process. Action-based behaviors in this package have properties of type [`InputActionProperty`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.InputActionProperty.html) which can either store an Action directly, or indirectly by referencing an Action contained in an Input Action Asset. Action-based behaviors automatically enable and disable the Actions that are directly defined (that is, not a reference) during their on `OnEnable` and `OnDisable` events. Action-based behaviors don't automatically enable or disable the Actions that are indirectly defined (that is, a reference) to allow the enabled state to be managed externally.
+Actions must be enabled before they react to input. See [Using Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html#using-actions) in the Input System documentation for details about this process. Action-based behaviors in this package have properties of type [`InputActionProperty`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.InputActionProperty.html) which can either store an Action directly, or indirectly by referencing an Action contained in an Input Action Asset. Action-based behaviors automatically enable and disable the Actions that are directly defined (that is, not a reference) during their on `OnEnable` and `OnDisable` events. Action-based behaviors don't automatically enable or disable the Actions that are indirectly defined (that is, a reference) to allow the enabled state to be managed externally.
 
 The Input Action Manager behavior can be used to automatically enable or disable the Actions defined in an Input Action Asset during its own `OnEnable` and `OnDisable` events. As an example, you can add this behavior to a GameObject in your Scene and add all Input Action Assets that you make use of to the **Action Assets** list.
 
 ![input-action-manager](images/input-action-manager.png)
 
-Note: For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view must have focus. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. A **Lock Input to Game View** option is available in the [Input Debugger](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Debugging.html#input-debugger) window (**Window &gt; Analysis &gt; Input Debugger**). Enabling this option forces input to continue processing even when the Game view does not have focus.
+Note: For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view may need to have focus depending on the current project settings. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. See [Background and focus change behavior](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Devices.html#background-and-focus-change-behavior) to learn how to adjust settings to not require focus in the Game view.
 
 To streamline setup of behaviors that use Actions, a [Default Input Actions Sample](samples.md#default-input-actions) is included with the package.
-
-#### Limitations with input action interactions
-
-Depending on the version of [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/index.html) added to a project, Input Actions used by the XR Controller (Action-based) may not be able to use [Interactions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/Interactions.html) on some types of input controls. When Input System version 1.1.0-preview.2 and above is used, interactions are fully supported. With older versions, the value of an axis control binding will be compared to a threshold to determine whether the action is triggered.
 
 ## Debugger window
 
@@ -128,11 +125,25 @@ The XR Interaction Toolkit Debugger window displays a top-down view of all the I
 
 ## InteractionLayerMask
 
-The InteractionLayerMask is a mechanism for filtering which interactors can act upon which interactables.  Interactors and interactables that share at least one layer in their InteractionLayerMask are allowed to interact.  If an interactor and interactable do not share at least one layer in their InteractionLayerMask then they are not allowed to interact.  Mask comparisons do not consider the layer on an interactor's or interactable's GameObject.  Comparisons only consider the InteractionLayerMasks on the interactor and interactable.
+The InteractionLayerMask is a mechanism for filtering which interactors can act upon which interactables. Interactors and interactables that share at least one layer in their InteractionLayerMask are allowed to interact. If an interactor and interactable do not share at least one layer in their InteractionLayerMask then they are not allowed to interact. Mask comparisons do not consider the layer on an interactor's or interactable's GameObject. Comparisons only consider the InteractionLayerMask on the interactor and interactable.
 
-InteractionLayerMasks use physics layers, but this mask is distinct from a raycast mask.  A raycast mask specifies what a raycast can hit. The InteractionLayerMask specifies whether an interactor and interactable can interact through state changes such as select and hover.
+You can add new interaction layers by editing the [Interaction Layers](#interaction-layers-settings) in the Project Settings window. They are unrelated to the physics layers defined in **Edit &gt; Project Settings &gt; Tags and Layers**.
 
-InteractionLayerMasks can be set on both interactors and interactables, and default to interact with all layers.
+The InteractionLayerMask specifies whether an interactor and interactable can interact through state changes such as select and hover. InteractionLayerMask can be set on both interactors and interactables. Interactors interact with all layers by default, and interactables interact with the `Default` built-in layer by default.
+
+### Interaction Layers Settings
+
+Add and remove interaction layers using **Edit &gt; Project Settings &gt; XR Interaction Toolkit** and editing the fields under Interaction Layers.
+
+![interaction-layer-settings](images/interaction-layer-settings.png)
+
+The settings are stored in an asset in the `Assets/XRI/Settings/Resources` folder inside your project. You should not move or rename the InteractionLayerSettings asset file from that folder. Its relative path in your project is used internally to update and create it. If you delete the InteractionLayerSettings asset, a new asset with default values will be created in the same place when required.
+
+### Interaction Layer Mask Updater
+
+If you're upgrading your project from a version prior to XR Interaction Toolkit 2.0.0 then it's recommended to update the interaction layer masks in your Interactables and Interactors. This can be done through the following dialog box that is shown after the package installation or by clicking **Run Interaction Layer Mask Updater** in **Edit &gt; Project Settings &gt; XR Interaction Toolkit**.
+
+![interaction-layer-mask-updater](images/interaction-layer-mask-updater.png)
 
 ## UI interaction setup
 
@@ -197,7 +208,7 @@ All registered Interactables and Interactors are updated by the Interaction Mana
 
 ## AR interaction
 
-Note: AR interaction components are only available while using Unity 2019.3 or later and in a Project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
+Note: AR interaction components are only available in a Project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
 
 ### AR gestures
 
@@ -283,7 +294,6 @@ In addition to standard Unity callbacks, you can override the following methods 
 |`isSelectActive`|Gets whether this interactor is in a state where it could select.|
 |`CanHover`|Returns true if this Interactor is in a state where it could select, false otherwise.|
 |`CanSelect`|Returns true if the Interactable is valid for selection this frame, false otherwise.|
-|`requireSelectExclusive`|Indicates whether this interactor requires exclusive selection of an interactable to select it.|
 |`selectedInteractableMovementTypeOverride`|Gets the movement type to use when overriding the selected Interactable's movement.|
 |`OnRegistered` and `OnUnregistered`|The Interaction Manager calls these methods when the Interactor is registered and unregistered from it.|
 |`OnHoverEntering` and `OnHoverEntered`|The Interaction Manager calls these methods when the Interactor first initiates hovering over an Interactable.|
@@ -308,13 +318,33 @@ In addition to standard Unity callbacks, you can override the following methods:
 |`OnSelectExiting` and `OnSelectExited`|The Interaction Manager calls these methods when an Interactor ends selection of the Interactable. The event arguments will describe whether the selection was canceled, such as from either being unregistered due to being disabled or destroyed.|
 |`OnActivated` and `OnDeactivated`|The Controller Interactor calls these methods when the Interactor begins an activation event on the selected Interactable, or ends the activation.|
 
-The `firstHoverEntered` and `lastHoverExited` events can be used to control highlight states of objects as they will correctly fire when the first hover is detected, and when no other Interactor is hovering an object.
+An Interactable can be hovered by multiple Interactors at the same time. The `firstHoverEntered` and `lastHoverExited` events can be used to control highlight states of objects as they will fire when just the first hover is started, and once all hovers are stopped. Similarly, the `firstSelectEntered` and `lastSelectExited` events can be used on Interactables that support multiple selections.
+
+#### Interactable select modes
+
+The `selectMode` of an Interactable is used to set the selection policy. The value is only read by the Interaction Manager when a selection attempt is made, so changing this value from Multiple to Single will not cause selections to be exited.
+
+|Select Mode|Description|
+|---|---|
+|Single|Can only be selected by a single Interactor at a time and allows other Interactors to take selection by automatically deselecting.|
+|Multiple|Can be selected by multiple Interactors at a time.|
+
+The Multiple option can be disabled in the Inspector window by using the `CanSelectMultiple` attribute on your component script.
+
+ ```csharp
+using UnityEngine.XR.Interaction.Toolkit;
+
+[CanSelectMultiple(false)]
+public class ExampleInteractable : XRBaseInteractable
+{
+}
+```
 
 ## Locomotion
 
 The XR Interaction Toolkit package provides a set of locomotion primitives that offer the means to move about a Scene during an XR experience. These components are:
-- An XR Rig that represents the user
-- A Locomotion System that controls access to the XR Rig
+- An XR Origin that represents the user
+- A Locomotion System that controls access to the XR Origin
 - A teleportation system with teleportation destinations
 - A Snap Turn Provider that rotates the rig by fixed angles
 - A Continuous Turn Provider that smoothly rotates the rig over time
@@ -328,12 +358,13 @@ The [Locomotion](locomotion.md) documentation explains these sections in more de
 
 This version of the XR Interaction Toolkit is compatible with the following versions of the Unity Editor:
 
-* 2019.3 and later
+* 2019.4 and later
 
 ### Document revision history
 
 |Date|Reason|
 |---|---|
+|November 17, 2021|Documentation updated due to change in Input System package related to Game view focus, interaction interfaces, and multiple selections. Matches package version 2.0.0-pre.4.|
 |March 15, 2020|Documentation updated to reflect change that custom Editor classes are no longer needed to show additional serialized fields. Matches package version 1.0.0-pre.3.|
 |December 14, 2020|Documentation updated to reflect change to when registration with Interaction Manager occurs and for changes to event signatures. Matches package version 1.0.0-pre.2.|
 |October 20, 2020|Documentation updated. Matches package version 0.10.0.|

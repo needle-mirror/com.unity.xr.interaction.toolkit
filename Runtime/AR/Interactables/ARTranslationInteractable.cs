@@ -45,7 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public class ARTranslationInteractable : ARBaseGestureInteractable
     {
         [SerializeField]
-        [Tooltip("Controls whether the object will be constrained vertically, horizontally, or free to move in all axis.")]
+        [Tooltip("Controls whether Unity constrains the object vertically, horizontally, or free to move in all axes.")]
         GestureTransformationUtility.GestureTranslationMode m_ObjectGestureTranslationMode;
 
         /// <summary>
@@ -71,11 +71,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         [SerializeField]
-        [Tooltip("The LayerMask that is used during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        [Tooltip("The LayerMask that Unity uses during an additional raycast when a user touch does not hit any AR trackable planes.")]
         LayerMask m_FallbackLayerMask;
 
         /// <summary>
-        /// The <see cref="LayerMask"/> that is used during an additional raycast
+        /// The <see cref="LayerMask"/> that Unity uses during an additional raycast
         /// when a user touch does not hit any AR trackable planes.
         /// </summary>
         public LayerMask fallbackLayerMask
@@ -128,10 +128,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             m_IsActive = true;
 
-            var desiredPlacement =
-                GestureTransformationUtility.GetBestPlacementPosition(
+            var desiredPlacement = xrOrigin != null
+                ? GestureTransformationUtility.GetBestPlacementPosition(
+                    transform.parent.position, gesture.position, m_GroundingPlaneHeight, 0.03f,
+                    maxTranslationDistance, objectGestureTranslationMode, xrOrigin, fallbackLayerMask: m_FallbackLayerMask)
+#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility.
+                : GestureTransformationUtility.GetBestPlacementPosition(
                     transform.parent.position, gesture.position, m_GroundingPlaneHeight, 0.03f,
                     maxTranslationDistance, objectGestureTranslationMode, arSessionOrigin, fallbackLayerMask: m_FallbackLayerMask);
+#pragma warning restore 618
 
             if (desiredPlacement.hasHoveringPosition && desiredPlacement.hasPlacementPosition)
             {

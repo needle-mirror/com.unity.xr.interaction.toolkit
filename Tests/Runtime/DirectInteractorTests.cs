@@ -24,13 +24,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
-            Assert.That(validTargets, Has.Exactly(1).EqualTo(interactable));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
-            var hoverTargetList = new List<XRBaseInteractable>();
-            directInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable));
+            Assert.That(directInteractor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(directInteractor.hasHover, Is.True);
         }
 
         [UnityTest]
@@ -43,15 +42,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             directInteractor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
-            var hoverTargets = new List<XRBaseInteractable>();
-            directInteractor.GetHoverTargets(hoverTargets);
-            Assert.That(hoverTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(directInteractor.interactablesHovered, Is.EqualTo(new[] { interactable }));
 
             Object.Destroy(interactable);
 
@@ -63,8 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             directInteractor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty);
 
-            directInteractor.GetHoverTargets(hoverTargets);
-            Assert.That(hoverTargets, Is.Empty);
+            Assert.That(directInteractor.interactablesHovered, Is.Empty);
         }
 
         [UnityTest]
@@ -76,17 +72,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false); 
-                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false)); 
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(directInteractor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }
 
         [UnityTest]
@@ -98,40 +94,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false); 
-                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false)); 
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.That(directInteractor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(directInteractor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
-            XRBaseInteractor canceledInteractor = null;
-            XRBaseInteractable canceledInteractable = null;
-            interactable.selectExited.AddListener(args => canceledInteractor = args.isCanceled ? args.interactor : null);
-            directInteractor.selectExited.AddListener(args => canceledInteractable = args.isCanceled ? args.interactable : null);
+            IXRSelectInteractor canceledInteractor = null;
+            IXRSelectInteractable canceledInteractable = null;
+            interactable.selectExited.AddListener(args => canceledInteractor = args.isCanceled ? args.interactorObject : null);
+            directInteractor.selectExited.AddListener(args => canceledInteractable = args.isCanceled ? args.interactableObject : null);
 
             Object.Destroy(interactable);
 
             yield return null;
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse -- overloaded Object operator==
             Assert.That(interactable == null, Is.True);
-            Assert.That(directInteractor.selectTarget, Is.Null);
+            Assert.That(directInteractor.interactablesSelected, Is.Empty);
 
             Assert.That(canceledInteractor, Is.SameAs(directInteractor));
             Assert.That(canceledInteractable, Is.SameAs(interactable));
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);
             Assert.That(validTargets, Is.Empty);
 
-            var hoverTargetList = new List<XRBaseInteractable>();
-            directInteractor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Is.Empty);
+            Assert.That(directInteractor.interactablesHovered, Is.Empty);
         }
 
         [UnityTest]
@@ -145,14 +139,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller1 = directInteractor1.GetComponent<XRController>();
             var controllerRecorder1 = TestUtilities.CreateControllerRecorder(controller1, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    false, false, false);
-                recording.AddRecordingFrame(0.1f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
-                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
-                recording.AddRecordingFrame(0.3f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
 
             var directInteractor2 = TestUtilities.CreateDirectInteractor();
@@ -160,29 +154,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller2 = directInteractor2.GetComponent<XRController>();
             var controllerRecorder2 = TestUtilities.CreateControllerRecorder(controller2, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    false, false, false);
-                recording.AddRecordingFrame(0.1f, Vector3.zero, Quaternion.identity,
-                    false, false, false);
-                recording.AddRecordingFrame(0.2f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
-                recording.AddRecordingFrame(0.3f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
 
             controllerRecorder1.isPlaying = true;
             controllerRecorder2.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
-  
+
             // directInteractor1 grabs the interactable
-            Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor1), "In first frame, controller 1 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { directInteractor1 }), "In first frame, controller 1 should grab the interactable.");
 
             // Wait for the proper interaction that signifies the handoff
             yield return new WaitForSeconds(0.2f);
-            
+
             // directInteractor2 grabs the interactable from directInteractor1
-            Assert.That(interactable.selectingInteractor, Is.EqualTo(directInteractor2), "In second frame, controller 2 should grab the interactable. Instead got " + interactable.selectingInteractor.name);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { directInteractor2 }), "In second frame, controller 2 should grab the interactable.");
         }
 
         [UnityTest]
@@ -196,30 +190,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = interactor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false); 
-                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false)); 
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
-            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
 
-            var validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
             // Disable the Interactable so it will be removed as a valid target
             interactable.enabled = false;
 
             yield return null;
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(null));
-            Assert.That(interactable.selectingInteractor, Is.EqualTo(null));
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
 
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.Empty);
@@ -229,11 +223,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return null;
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
-            Assert.That(interactable.selectingInteractor, Is.EqualTo(interactor));
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
 
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EquivalentTo(new[] { interactable }));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
         }
     }
 }

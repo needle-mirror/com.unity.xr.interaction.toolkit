@@ -33,9 +33,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #else
 
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.XR.ARFoundation;
+using Unity.XR.CoreUtils;
 
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
@@ -49,13 +51,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public abstract class ARBaseGestureInteractable : XRBaseInteractable
     {
         [SerializeField]
+        XROrigin m_XROrigin;
+
+        /// <summary>
+        /// The <see cref="XROrigin"/>
+        /// that this Interactable will use (such as to get the [Camera](xref:UnityEngine.Camera)
+        /// or to transform from Session space). Will find one if <see langword="null"/>.
+        /// </summary>
+        public XROrigin xrOrigin
+        {
+            get => m_XROrigin;
+            set => m_XROrigin = value;
+        }
+
+        [SerializeField]
         ARSessionOrigin m_ARSessionOrigin;
 
         /// <summary>
-        /// The <see cref="ARSessionOrigin"/> that this Interactable will use
-        /// (such as to get the <see cref="Camera"/> or to transform from Session space).
-        /// Will find one if <see langword="null"/>.
+        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
+        /// that this Interactable will use (such as to get the [Camera](xref:UnityEngine.Camera)
+        /// or to transform from Session space). Will find one if <see langword="null"/>.
         /// </summary>
+        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
         public ARSessionOrigin arSessionOrigin
         {
             get => m_ARSessionOrigin;
@@ -63,14 +80,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// The <see cref="ARGestureInteractor"/> whose gestures are listened to by this Interactable
-        /// when connected.
+        /// The <see cref="ARGestureInteractor"/> that this Interactable listens
+        /// to for gestures when connected.
         /// </summary>
         /// <seealso cref="ConnectGestureInteractor"/>
         /// <seealso cref="DisconnectGestureInteractor"/>
         protected ARGestureInteractor gestureInteractor { get; private set; }
 
         bool m_IsManipulating;
+
+        /// <summary>
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// </summary>
+        static XROrigin s_XROriginCache;
 
         /// <summary>
         /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
@@ -80,13 +102,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Temporary, reusable list of registered Interactors.
         /// </summary>
-        static readonly List<XRBaseInteractor> s_Interactors = new List<XRBaseInteractor>();
+        static readonly List<IXRInteractor> s_Interactors = new List<IXRInteractor>();
 
         /// <inheritdoc />
         protected override void Reset()
         {
             base.Reset();
 #if UNITY_EDITOR
+            m_XROrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<XROrigin>(gameObject);
             m_ARSessionOrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<ARSessionOrigin>(gameObject);
 #endif
         }
@@ -95,6 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void Awake()
         {
             base.Awake();
+            FindXROrigin();
             FindARSessionOrigin();
         }
 
@@ -102,52 +126,67 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnEnable()
         {
             base.OnEnable();
+            FindXROrigin();
             FindARSessionOrigin();
         }
 
         /// <inheritdoc />
-        public override bool IsHoverableBy(XRBaseInteractor interactor) => interactor is ARGestureInteractor;
+        /// <remarks>
+        /// <c>IsHoverableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsHoverableBy(IXRHoverInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsHoverableBy(XRBaseInteractor) has been deprecated. Use IsHoverableBy(IXRHoverInteractor) instead.")]
+        public override bool IsHoverableBy(XRBaseInteractor interactor) => IsHoverableBy((IXRHoverInteractor)interactor);
 
         /// <inheritdoc />
-        public override bool IsSelectableBy(XRBaseInteractor interactor) => false;
+        public override bool IsHoverableBy(IXRHoverInteractor interactor) => interactor is ARGestureInteractor;
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.")]
+        public override bool IsSelectableBy(XRBaseInteractor interactor) => IsSelectableBy((IXRSelectInteractor)interactor);
+
+        /// <inheritdoc />
+        public override bool IsSelectableBy(IXRSelectInteractor interactor) => false;
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(DragGesture gesture) => false;
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(PinchGesture gesture) => false;
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TapGesture gesture) => false;
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwistGesture gesture) => false;
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture) => false;
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
@@ -156,7 +195,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
@@ -165,7 +204,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
@@ -174,7 +213,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
@@ -183,7 +222,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
@@ -192,7 +231,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onUpdated"/>
@@ -201,7 +240,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onUpdated"/>
@@ -210,7 +249,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onUpdated"/>
@@ -219,7 +258,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onUpdated"/>
@@ -228,7 +267,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onUpdated"/>
@@ -237,7 +276,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onFinished"/>
@@ -246,7 +285,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onFinished"/>
@@ -255,7 +294,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onFinished"/>
@@ -264,7 +303,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onFinished"/>
@@ -273,7 +312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <seealso cref="Gesture{T}.onFinished"/>
@@ -282,24 +321,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Determines if the Gesture Interactor is selecting the <see cref="GameObject"/> this Interactable is attached to.
+        /// Determines if the <see cref="ARGestureInteractor"/> is selecting the
+        /// <see cref="GameObject"/> this Interactable is attached to.
         /// </summary>
-        /// <returns>Returns <seealso langword="true"/> if the Gesture Interactor is selecting the <see cref="GameObject"/> this Interactable is attached to.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// <returns>Returns <seealso langword="true"/> if the Gesture Interactor
+        /// is selecting the <see cref="GameObject"/> this Interactable is attached
+        /// to. Otherwise, returns <seealso langword="false"/>.</returns>
         protected virtual bool IsGameObjectSelected()
         {
-            if (gestureInteractor == null)
+            if (gestureInteractor == null || !gestureInteractor.hasSelection)
                 return false;
 
-            var selectedInteractable = gestureInteractor.selectTarget;
-            if (selectedInteractable == null)
-                return false;
+            foreach (var interactable in gestureInteractor.interactablesSelected)
+            {
+                if (interactable is Component interactableComponent && interactableComponent.gameObject == gameObject)
+                    return true;
+            }
 
-            return selectedInteractable.gameObject == gameObject;
+            return false;
         }
 
         /// <summary>
-        /// Connect an interactor's gestures to this interactable.
+        /// Connect an <see cref="ARGestureInteractor"/>'s gestures to this interactable.
         /// </summary>
         protected virtual void ConnectGestureInteractor()
         {
@@ -323,7 +366,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Disconnect an interactor's gestures from this interactable.
+        /// Disconnect an <see cref="ARGestureInteractor"/>'s gestures from this interactable.
         /// </summary>
         protected virtual void DisconnectGestureInteractor()
         {
@@ -347,7 +390,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnRegistered(InteractableRegisteredEventArgs args)
+        protected override void OnRegistered(InteractableRegisteredEventArgs args)
         {
             base.OnRegistered(args);
 
@@ -355,7 +398,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        protected internal override void OnUnregistered(InteractableUnregisteredEventArgs args)
+        protected override void OnUnregistered(InteractableUnregisteredEventArgs args)
         {
             base.OnUnregistered(args);
 
@@ -392,7 +435,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         void OnGestureInteractorUnregistered(InteractorUnregisteredEventArgs args)
         {
-            Assert.AreEqual(gestureInteractor, args.interactor as ARGestureInteractor);
+            Assert.AreEqual(gestureInteractor, args.interactorObject as ARGestureInteractor);
 
             DisconnectGestureInteractor();
             gestureInteractor.unregistered -= OnGestureInteractorUnregistered;
@@ -406,7 +449,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             Assert.IsNull(gestureInteractor);
 
-            if (args.interactor is ARGestureInteractor registeredGestureInteractor)
+            if (args.interactorObject is ARGestureInteractor registeredGestureInteractor)
             {
                 gestureInteractor = registeredGestureInteractor;
                 ConnectGestureInteractor();
@@ -441,6 +484,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return result;
         }
 
+        void FindXROrigin()
+        {
+            if (m_XROrigin != null)
+                return;
+
+            if (s_XROriginCache == null)
+                s_XROriginCache = FindObjectOfType<XROrigin>();
+
+            m_XROrigin = s_XROriginCache;
+        }
+
         void FindARSessionOrigin()
         {
             if (m_ARSessionOrigin != null)
@@ -453,11 +507,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Determines if the manipulation can be started for the given gesture.
+        /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <typeparam name="T">The gesture type.</typeparam>
         /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can be started. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the manipulation can
+        /// start. Otherwise, returns <see langword="false"/>.</returns>
         // TODO Consider making this protected virtual and deprecating non-generic methods
         bool CanStartManipulationForGesture<T>(Gesture<T> gesture) where T : Gesture<T>
         {
@@ -479,7 +534,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is started.
+        /// Unity calls this method automatically when the manipulation starts.
         /// </summary>
         /// <typeparam name="T">The gesture type.</typeparam>
         /// <param name="gesture">The current gesture.</param>
@@ -508,7 +563,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is continued.
+        /// Unity calls this method automatically when the manipulation continues.
         /// </summary>
         /// <typeparam name="T">The gesture type.</typeparam>
         /// <param name="gesture">The current gesture.</param>
@@ -537,7 +592,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the manipulation is ended.
+        /// Unity calls this method automatically when the manipulation ends.
         /// </summary>
         /// <typeparam name="T">The gesture type.</typeparam>
         /// <param name="gesture">The current gesture.</param>

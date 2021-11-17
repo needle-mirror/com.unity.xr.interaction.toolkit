@@ -1,4 +1,5 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AR;
+﻿using System;
+using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -8,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Constants for <see cref="HelpURLAttribute"/> for XR Interaction Toolkit.
     /// </summary>
-    public static class XRHelpURLConstants
+    static class XRHelpURLConstants
     {
         /// <summary>
         /// Scripting API URL for <see cref="ActionBasedContinuousMoveProvider"/>.
@@ -178,6 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="XRRig"/>.
         /// </summary>
+        [Obsolete("k_XRRig is now deprecated since XRRig was replaced by XROrigin. Please use documentation from com.unity.xr.core-utils instead.", true)]
         public const string k_XRRig = k_BaseApi + k_BaseNamespace + nameof(XRRig) + ".html";
 
         /// <summary>
@@ -195,7 +197,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
 
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@1.0/api/";
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

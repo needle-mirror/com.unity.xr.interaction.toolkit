@@ -43,13 +43,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
-            List<XRBaseInteractable> validTargets = new List<XRBaseInteractable>();
+            var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(interactor, validTargets);
-            Assert.That(validTargets, Has.Exactly(1).EqualTo(interactable));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
-            List<XRBaseInteractable> hoverTargetList = new List<XRBaseInteractable>();
-            interactor.GetHoverTargets(hoverTargetList);
-            Assert.That(hoverTargetList, Has.Exactly(1).EqualTo(interactable));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
         }
 
         [UnityTest]
@@ -65,16 +63,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = interactor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
-                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }
 
         [UnityTest]
@@ -89,8 +87,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
             var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, false, false, false);
-            controller.SetControllerState(controllerState);
+            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,false, false, false);
+            controller.currentControllerState = controllerState;
 
             yield return new WaitForFixedUpdate();
             yield return null;
@@ -181,8 +179,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
             var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, false, false, false);
-            controller.SetControllerState(controllerState);
+            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,false, false, false);
+            controller.currentControllerState = controllerState;
 
             yield return new WaitForSeconds(0.1f);
 
@@ -283,8 +281,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
             var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, false, false, false);
-            controller.SetControllerState(controllerState);
+
+            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, false, false, false);
+            controller.currentControllerState = controllerState;
 
             yield return new WaitForSeconds(0.1f);
 
@@ -367,19 +366,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactor.interactablesSelected, Is.Empty);
 
-            interactor.StartManualInteraction(interactable);
+            interactor.StartManualInteraction((IXRSelectInteractable)interactable);
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
             interactor.EndManualInteraction();
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactor.interactablesSelected, Is.Empty);
         }
 
         [UnityTest]
@@ -395,16 +394,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = interactor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrame(0.0f, Vector3.zero, Quaternion.identity,
-                    true, false, false);
-                recording.AddRecordingFrame(float.MaxValue, Vector3.zero, Quaternion.identity,
-                    true, false, false);
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
             });
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(interactable));
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
             // The above part is the same test for selecting a grab interactable.
 
@@ -414,7 +413,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
-            Assert.That(interactor.selectTarget, Is.EqualTo(null));
+            Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(attachPosition));
         }
 
@@ -422,7 +421,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator RayInteractorCanLimitClosestOnly()
         {
             TestUtilities.CreateInteractionManager();
-            TestUtilities.CreateXRRig();
+            TestUtilities.CreateXROrigin();
             var interactor = TestUtilities.CreateRayInteractor();
             interactor.xrController.enabled = false;
             interactor.hitClosestOnly = false;
@@ -431,14 +430,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             // Verify that valid targets and hover targets is empty
-            var targets = new List<XRBaseInteractable>();
-            interactor.GetValidTargets(targets);
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
 
-            Assert.That(targets, Is.Empty);
+            Assert.That(validTargets, Is.Empty);
 
-            interactor.GetHoverTargets(targets);
-
-            Assert.That(targets, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
 
             var nearInteractable = TestUtilities.CreateGrabInteractable();
             nearInteractable.transform.localPosition = new Vector3(0f, 0f, 10f);
@@ -451,15 +448,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             // Verify that both Interactables are hit
-            interactor.GetValidTargets(targets);
+            interactor.GetValidTargets(validTargets);
 
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
+            Assert.That(validTargets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
 
-            interactor.GetHoverTargets(targets);
-
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
-            Assert.That(nearInteractable.hoveringInteractors, Is.EqualTo(new[] { interactor }));
-            Assert.That(farInteractable.hoveringInteractors, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { nearInteractable, farInteractable }));
+            Assert.That(nearInteractable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(farInteractable.interactorsHovering, Is.EqualTo(new[] { interactor }));
 
             interactor.hitClosestOnly = true;
 
@@ -467,15 +462,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             // Verify that only the closest Interactable is considered valid
-            interactor.GetValidTargets(targets);
+            interactor.GetValidTargets(validTargets);
 
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable }));
+            Assert.That(validTargets, Is.EqualTo(new[] { nearInteractable }));
 
-            interactor.GetHoverTargets(targets);
-
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable }));
-            Assert.That(nearInteractable.hoveringInteractors, Is.EqualTo(new[] { interactor }));
-            Assert.That(farInteractable.hoveringInteractors, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { nearInteractable }));
+            Assert.That(nearInteractable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(farInteractable.interactorsHovering, Is.Empty);
         }
 
         [UnityTest]
@@ -483,7 +476,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator RayInteractorHitsAllAlongCurve([ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
         {
             TestUtilities.CreateInteractionManager();
-            TestUtilities.CreateXRRig();
+            TestUtilities.CreateXROrigin();
             var interactor = TestUtilities.CreateRayInteractor();
             interactor.xrController.enabled = false;
             const int sampleFrequency = 5;
@@ -503,14 +496,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(samplePoints.Length, Is.GreaterThanOrEqualTo(samplePointsCount));
 
             // Verify that valid targets and hover targets is empty
-            var targets = new List<XRBaseInteractable>();
-            interactor.GetValidTargets(targets);
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
 
-            Assert.That(targets, Is.Empty);
+            Assert.That(validTargets, Is.Empty);
 
-            interactor.GetHoverTargets(targets);
-
-            Assert.That(targets, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
 
             // Create two Interactable Planes such that they are within two separate line segments of the curve
             // (although for Straight Line, there is only the one line segment).
@@ -529,15 +520,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             // Verify that both Interactable Planes are hit
-            interactor.GetValidTargets(targets);
+            interactor.GetValidTargets(validTargets);
 
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
+            Assert.That(validTargets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
 
-            interactor.GetHoverTargets(targets);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { nearInteractable, farInteractable }));
 
-            Assert.That(targets, Is.EqualTo(new[] { nearInteractable, farInteractable }));
-
-            XRBaseInteractable CreatePlaneInteractable(Vector3 position)
+            IXRInteractable CreatePlaneInteractable(Vector3 position)
             {
                 var planeGO = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 var interactable = planeGO.AddComponent<XRSimpleInteractable>();
@@ -552,7 +541,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator RayInteractorSamplePointsContinuesThroughGeometry([ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
         {
             TestUtilities.CreateInteractionManager();
-            TestUtilities.CreateXRRig();
+            TestUtilities.CreateXROrigin();
             var interactor = TestUtilities.CreateRayInteractor();
             interactor.xrController.enabled = false;
             interactor.transform.position = Vector3.zero;

@@ -15,12 +15,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_PositionAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotationAction"/>.</summary>
         protected SerializedProperty m_RotationAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.trackingStateAction"/>.</summary>
+        protected SerializedProperty m_TrackingStateAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.selectAction"/>.</summary>
         protected SerializedProperty m_SelectAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.selectActionValue"/>.</summary>
+        protected SerializedProperty m_SelectActionValue;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.activateAction"/>.</summary>
         protected SerializedProperty m_ActivateAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.activateActionValue"/>.</summary>
+        protected SerializedProperty m_ActivateActionValue;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.uiPressAction"/>.</summary>
         protected SerializedProperty m_UIPressAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.uiPressActionValue"/>.</summary>
+        protected SerializedProperty m_UIPressActionValue;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
         protected SerializedProperty m_HapticDeviceAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
@@ -37,12 +45,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static GUIContent positionAction = EditorGUIUtility.TrTextContent("Position Action", "The Input System action to use for Position Tracking for this GameObject. Must be a Vector3 Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotationAction"/>.</summary>
             public static GUIContent rotationAction = EditorGUIUtility.TrTextContent("Rotation Action", "The Input System action to use for Rotation Tracking for this GameObject. Must be a Quaternion Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.trackingStateAction"/>.</summary>
+            public static GUIContent trackingStateAction = EditorGUIUtility.TrTextContent("Tracking State Action", "The Input System action to get the values being actively tracked; falls back to the tracked device's tracking state that is driving the position or rotation action when not set. Must be an Integer Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.selectAction"/>.</summary>
             public static GUIContent selectAction = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for Selecting an Interactable. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.selectAction"/>.</summary>
+            public static GUIContent selectActionValue = EditorGUIUtility.TrTextContent("Select Action Value", "The Input System action to read values for Selecting an Interactable. Must be an Axis Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.activateAction"/>.</summary>
             public static GUIContent activateAction = EditorGUIUtility.TrTextContent("Activate Action", "The Input System action to use for Activating a selected Interactable. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.activateAction"/>.</summary>
+            public static GUIContent activateActionValue = EditorGUIUtility.TrTextContent("Activate Action Value", "The Input System action to read values for Activating a selected Interactable. Must be an Axis Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.uiPressAction"/>.</summary>
             public static GUIContent uiPressAction = EditorGUIUtility.TrTextContent("UI Press Action", "The Input System action to use for UI interaction. Must be a Button Control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.uiPressAction"/>.</summary>
+            public static GUIContent uiPressActionValue = EditorGUIUtility.TrTextContent("UI Press Action Value", "The Input System action to read values for UI interaction. Must be an Axis Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
             public static GUIContent hapticDeviceAction = EditorGUIUtility.TrTextContent("Haptic Device Action", "The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
@@ -58,9 +74,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_PositionAction = serializedObject.FindProperty("m_PositionAction");
             m_RotationAction = serializedObject.FindProperty("m_RotationAction");
+            m_TrackingStateAction = serializedObject.FindProperty("m_TrackingStateAction");
             m_SelectAction = serializedObject.FindProperty("m_SelectAction");
+            m_SelectActionValue = serializedObject.FindProperty("m_SelectActionValue");
             m_ActivateAction = serializedObject.FindProperty("m_ActivateAction");
+            m_ActivateActionValue = serializedObject.FindProperty("m_ActivateActionValue");
             m_UIPressAction = serializedObject.FindProperty("m_UIPressAction");
+            m_UIPressActionValue = serializedObject.FindProperty("m_UIPressActionValue");
             m_HapticDeviceAction = serializedObject.FindProperty("m_HapticDeviceAction");
             m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
             m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
@@ -72,6 +92,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             base.DrawTrackingConfiguration();
             EditorGUILayout.PropertyField(m_PositionAction, Contents.positionAction);
             EditorGUILayout.PropertyField(m_RotationAction, Contents.rotationAction);
+            EditorGUILayout.PropertyField(m_TrackingStateAction, Contents.trackingStateAction);
         }
 
         /// <inheritdoc />
@@ -79,8 +100,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             base.DrawInputConfiguration();
             EditorGUILayout.PropertyField(m_SelectAction, Contents.selectAction);
+            EditorGUILayout.PropertyField(m_SelectActionValue, Contents.selectActionValue);
             EditorGUILayout.PropertyField(m_ActivateAction, Contents.activateAction);
+            EditorGUILayout.PropertyField(m_ActivateActionValue, Contents.activateActionValue);
             EditorGUILayout.PropertyField(m_UIPressAction, Contents.uiPressAction);
+            EditorGUILayout.PropertyField(m_UIPressActionValue, Contents.uiPressActionValue);
         }
 
         /// <inheritdoc />

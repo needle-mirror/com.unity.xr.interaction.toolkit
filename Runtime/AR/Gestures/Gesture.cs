@@ -37,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public abstract class Gesture<T> where T : Gesture<T>
     {
         /// <summary>
-        /// Constructs a Gesture with a given recognizer.
+        /// Initializes and returns an instance of <see cref="Gesture"/> with a given recognizer.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         internal Gesture(GestureRecognizer<T> recognizer)

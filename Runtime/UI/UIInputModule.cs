@@ -64,7 +64,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         [FormerlySerializedAs("trackedDeviceDragThresholdMultiplier")]
         [SerializeField, Tooltip("Scales the EventSystem.pixelDragThreshold, for tracked devices, to make selection easier.")]
-        float m_TrackedDeviceDragThresholdMultiplier = 2f;
+        float m_TrackedDeviceDragThresholdMultiplier = 1.4f;
         /// <summary>
         /// Scales the <see cref="EventSystem.pixelDragThreshold"/>, for tracked devices, to make selection easier.
         /// </summary>
@@ -75,7 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// The <see cref="Camera"/> that is used to perform 2D raycasts when determining the screen space location of a tracked device cursor.
+        /// The <see cref="Camera"/> that Unity uses to perform 2D raycasts when determining the screen space location of a tracked device cursor.
         /// </summary>
         public Camera uiCamera { get; set; }
 
@@ -122,7 +122,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             SendUpdateEventToSelectedObject();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
+        /// </summary>
         public override void Process()
         {
             // Postpone processing until later in the frame
@@ -372,7 +374,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (!eventData.dragging)
             {
-                if ((eventData.pressPosition - eventData.position).sqrMagnitude >= ((eventSystem.pixelDragThreshold * eventSystem.pixelDragThreshold) * pixelDragThresholdMultiplier))
+                var threshold = eventSystem.pixelDragThreshold * pixelDragThresholdMultiplier;
+                if ((eventData.pressPosition - eventData.position).sqrMagnitude >= (threshold * threshold))
                 {
                     var target = eventData.pointerDrag;
                     beginDrag?.Invoke(target, eventData);

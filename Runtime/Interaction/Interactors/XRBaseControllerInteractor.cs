@@ -1,42 +1,49 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Abstract base class from which all interactors that are controller driven derive.
+    /// Abstract base class from which all interactors that are controller-driven derive.
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
     /// hover and selection. Additionally, this class provides functionality for checking the controller's selection status
     /// and hiding the controller on selection.
     /// </summary>
-    public abstract partial class XRBaseControllerInteractor : XRBaseInteractor
+    public abstract partial class XRBaseControllerInteractor : XRBaseInteractor, IXRActivateInteractor
     {
         /// <summary>
         /// This defines the type of input that triggers an interaction.
         /// </summary>
+        /// <seealso cref="selectActionTrigger"/>
         public enum InputTriggerType
         {
             /// <summary>
-            /// The interaction will start when the button is pressed.
+            /// Unity will consider the input active while the button is pressed.
+            /// A user can hold the button before the interaction is possible
+            /// and still trigger the interaction when it is possible.
             /// </summary>
+            /// <seealso cref="InteractionState.active"/>
             State,
 
             /// <summary>
-            /// This interaction will start on the select button/key being activated or deactivated.
+            /// Unity will consider the input active only on the frame the button is pressed,
+            /// and if successful remain engaged until the input is released.
+            /// A user must press the button while the interaction is possible to trigger the interaction.
+            /// They will not trigger the interaction if they started pressing the button before the interaction was possible.
             /// </summary>
-            /// <seealso cref="XRBaseController.selectInteractionState"/>
+            /// <seealso cref="InteractionState.activatedThisFrame"/>
             StateChange,
 
             /// <summary>
-            /// This interaction will start on the select button/key being activated
-            /// and remain engaged until the second time the input is activated.
+            /// The interaction starts on the frame the input is pressed
+            /// and remains engaged until the second time the input is pressed.
             /// </summary>
             Toggle,
 
             /// <summary>
-            /// Start interaction on select enter, and wait until the second time the
-            /// select key is depressed before exiting the interaction.  This is useful
-            /// for grabbing and throwing without having to hold a button down.
+            /// The interaction starts on the frame the input is pressed
+            /// and remains engaged until the second time the input is released.
             /// </summary>
             Sticky,
         }
@@ -44,8 +51,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputTriggerType m_SelectActionTrigger = InputTriggerType.State;
         /// <summary>
-        /// Controls whether this interactor toggles selection on button press (rather than selection on press).
+        /// Choose how Unity interprets the select input action from the controller.
+        /// Controls between different input styles for determining if this Interactor can select,
+        /// such as whether the button is currently pressed or just toggles the active state.
         /// </summary>
+        /// <seealso cref="InputTriggerType"/>
+        /// <seealso cref="isSelectActive"/>
         public InputTriggerType selectActionTrigger
         {
             get => m_SelectActionTrigger;
@@ -55,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_HideControllerOnSelect;
         /// <summary>
-        /// Controls whether this interactor should hide the controller model on selection.
+        /// Controls whether this Interactor should hide the controller model on selection.
         /// </summary>
         /// <seealso cref="XRBaseController.hideControllerModel"/>
         public bool hideControllerOnSelect
@@ -69,10 +80,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        [SerializeField]
+        bool m_AllowHoveredActivate;
+        /// <summary>
+        /// Controls whether to send activate and deactivate events to interactables
+        /// that this interactor is hovered over but not selected when there is no current selection.
+        /// By default, the interactor will only send activate and deactivate events to interactables that it's selected.
+        /// </summary>
+        /// <seealso cref="allowActivate"/>
+        /// <seealso cref="GetActivateTargets"/>
+        public bool allowHoveredActivate
+        {
+            get => m_AllowHoveredActivate;
+            set => m_AllowHoveredActivate = value;
+        }
+
         [SerializeField, FormerlySerializedAs("m_PlayAudioClipOnSelectEnter")]
         bool m_PlayAudioClipOnSelectEntered;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Select Entered.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Select Entered.
         /// </summary>
         /// <seealso cref="audioClipForOnSelectEntered"/>
         public bool playAudioClipOnSelectEntered
@@ -84,7 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_AudioClipForOnSelectEnter")]
         AudioClip m_AudioClipForOnSelectEntered;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Select Entered.
+        /// The <see cref="AudioClip"/> Unity plays on Select Entered.
         /// </summary>
         /// <seealso cref="playAudioClipOnSelectEntered"/>
         public AudioClip audioClipForOnSelectEntered
@@ -96,7 +122,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayAudioClipOnSelectExit")]
         bool m_PlayAudioClipOnSelectExited;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Select Exited.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Select Exited.
         /// </summary>
         /// <seealso cref="audioClipForOnSelectExited"/>
         public bool playAudioClipOnSelectExited
@@ -108,7 +134,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_AudioClipForOnSelectExit")]
         AudioClip m_AudioClipForOnSelectExited;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Select Exited.
+        /// The <see cref="AudioClip"/> Unity plays on Select Exited.
         /// </summary>
         /// <seealso cref="playAudioClipOnSelectExited"/>
         public AudioClip audioClipForOnSelectExited
@@ -120,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_PlayAudioClipOnSelectCanceled;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Select Canceled.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Select Canceled.
         /// </summary>
         /// <seealso cref="audioClipForOnSelectCanceled"/>
         public bool playAudioClipOnSelectCanceled
@@ -132,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         AudioClip m_AudioClipForOnSelectCanceled;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Select Canceled.
+        /// The <see cref="AudioClip"/> Unity plays on Select Canceled.
         /// </summary>
         /// <seealso cref="playAudioClipOnSelectCanceled"/>
         public AudioClip audioClipForOnSelectCanceled
@@ -144,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayAudioClipOnHoverEnter")]
         bool m_PlayAudioClipOnHoverEntered;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Hover Entered.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Hover Entered.
         /// </summary>
         /// <seealso cref="audioClipForOnHoverEntered"/>
         public bool playAudioClipOnHoverEntered
@@ -156,7 +182,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_AudioClipForOnHoverEnter")]
         AudioClip m_AudioClipForOnHoverEntered;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Hover Entered.
+        /// The <see cref="AudioClip"/> Unity plays on Hover Entered.
         /// </summary>
         /// <seealso cref="playAudioClipOnHoverEntered"/>
         public AudioClip audioClipForOnHoverEntered
@@ -168,7 +194,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayAudioClipOnHoverExit")]
         bool m_PlayAudioClipOnHoverExited;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Hover Exited.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Hover Exited.
         /// </summary>
         /// <seealso cref="audioClipForOnHoverExited"/>
         public bool playAudioClipOnHoverExited
@@ -180,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_AudioClipForOnHoverExit")]
         AudioClip m_AudioClipForOnHoverExited;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Hover Exited.
+        /// The <see cref="AudioClip"/> Unity plays on Hover Exited.
         /// </summary>
         /// <seealso cref="playAudioClipOnHoverExited"/>
         public AudioClip audioClipForOnHoverExited
@@ -192,7 +218,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_PlayAudioClipOnHoverCanceled;
         /// <summary>
-        /// Controls whether to play an <see cref="AudioClip"/> on Hover Canceled.
+        /// Controls whether Unity plays an <see cref="AudioClip"/> on Hover Canceled.
         /// </summary>
         /// <seealso cref="audioClipForOnHoverCanceled"/>
         public bool playAudioClipOnHoverCanceled
@@ -204,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         AudioClip m_AudioClipForOnHoverCanceled;
         /// <summary>
-        /// The <see cref="AudioClip"/> to play on Hover Canceled.
+        /// The <see cref="AudioClip"/> Unity plays on Hover Canceled.
         /// </summary>
         /// <seealso cref="playAudioClipOnHoverCanceled"/>
         public AudioClip audioClipForOnHoverCanceled
@@ -216,7 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayHapticsOnSelectEnter")]
         bool m_PlayHapticsOnSelectEntered;
         /// <summary>
-        /// Controls whether to play haptics on Select Entered.
+        /// Controls whether Unity plays haptics on Select Entered.
         /// </summary>
         /// <seealso cref="hapticSelectEnterIntensity"/>
         /// <seealso cref="hapticSelectEnterDuration"/>
@@ -230,7 +256,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticSelectEnterIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Select Entered.
+        /// The Haptics intensity Unity plays on Select Entered.
         /// </summary>
         /// <seealso cref="hapticSelectEnterDuration"/>
         /// <seealso cref="playHapticsOnSelectEntered"/>
@@ -243,7 +269,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticSelectEnterDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Select Entered.
+        /// The Haptics duration (in seconds) Unity plays on Select Entered.
         /// </summary>
         /// <seealso cref="hapticSelectEnterIntensity"/>
         /// <seealso cref="playHapticsOnSelectEntered"/>
@@ -256,7 +282,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayHapticsOnSelectExit")]
         bool m_PlayHapticsOnSelectExited;
         /// <summary>
-        /// Controls whether to play haptics on Select Exited.
+        /// Controls whether Unity plays haptics on Select Exited.
         /// </summary>
         /// <seealso cref="hapticSelectExitIntensity"/>
         /// <seealso cref="hapticSelectExitDuration"/>
@@ -270,7 +296,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticSelectExitIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Select Exited.
+        /// The Haptics intensity Unity plays on Select Exited.
         /// </summary>
         /// <seealso cref="hapticSelectExitDuration"/>
         /// <seealso cref="playHapticsOnSelectExited"/>
@@ -283,7 +309,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticSelectExitDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Select Exited.
+        /// The Haptics duration (in seconds) Unity plays on Select Exited.
         /// </summary>
         /// <seealso cref="hapticSelectExitIntensity"/>
         /// <seealso cref="playHapticsOnSelectExited"/>
@@ -296,7 +322,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_PlayHapticsOnSelectCanceled;
         /// <summary>
-        /// Controls whether to play haptics on Select Canceled.
+        /// Controls whether Unity plays haptics on Select Canceled.
         /// </summary>
         /// <seealso cref="hapticSelectCancelIntensity"/>
         /// <seealso cref="hapticSelectCancelDuration"/>
@@ -310,7 +336,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticSelectCancelIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Select Canceled.
+        /// The Haptics intensity Unity plays on Select Canceled.
         /// </summary>
         /// <seealso cref="hapticSelectCancelDuration"/>
         /// <seealso cref="playHapticsOnSelectCanceled"/>
@@ -323,7 +349,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticSelectCancelDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Select Canceled.
+        /// The Haptics duration (in seconds) Unity plays on Select Canceled.
         /// </summary>
         /// <seealso cref="hapticSelectCancelIntensity"/>
         /// <seealso cref="playHapticsOnSelectCanceled"/>
@@ -336,7 +362,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayHapticsOnHoverEnter")]
         bool m_PlayHapticsOnHoverEntered;
         /// <summary>
-        /// Controls whether to play haptics on Hover Entered.
+        /// Controls whether Unity plays haptics on Hover Entered.
         /// </summary>
         /// <seealso cref="hapticHoverEnterIntensity"/>
         /// <seealso cref="hapticHoverEnterDuration"/>
@@ -350,7 +376,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticHoverEnterIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Hover Entered.
+        /// The Haptics intensity Unity plays on Hover Entered.
         /// </summary>
         /// <seealso cref="hapticHoverEnterDuration"/>
         /// <seealso cref="playHapticsOnHoverEntered"/>
@@ -363,7 +389,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticHoverEnterDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Hover Entered.
+        /// The Haptics duration (in seconds) Unity plays on Hover Entered.
         /// </summary>
         /// <seealso cref="hapticHoverEnterIntensity"/>
         /// <seealso cref="playHapticsOnHoverEntered"/>
@@ -376,7 +402,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField, FormerlySerializedAs("m_PlayHapticsOnHoverExit")]
         bool m_PlayHapticsOnHoverExited;
         /// <summary>
-        /// Controls whether to play haptics on Hover Exited.
+        /// Controls whether Unity plays haptics on Hover Exited.
         /// </summary>
         /// <seealso cref="hapticHoverExitIntensity"/>
         /// <seealso cref="hapticHoverExitDuration"/>
@@ -390,7 +416,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticHoverExitIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Hover Exited.
+        /// The Haptics intensity Unity plays on Hover Exited.
         /// </summary>
         /// <seealso cref="hapticHoverExitDuration"/>
         /// <seealso cref="playHapticsOnHoverExited"/>
@@ -403,7 +429,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticHoverExitDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Hover Exited.
+        /// The Haptics duration (in seconds) Unity plays on Hover Exited.
         /// </summary>
         /// <seealso cref="hapticHoverExitIntensity"/>
         /// <seealso cref="playHapticsOnHoverExited"/>
@@ -416,7 +442,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_PlayHapticsOnHoverCanceled;
         /// <summary>
-        /// Controls whether to play haptics on Hover Canceled.
+        /// Controls whether Unity plays haptics on Hover Canceled.
         /// </summary>
         /// <seealso cref="hapticHoverCancelIntensity"/>
         /// <seealso cref="hapticHoverCancelDuration"/>
@@ -430,7 +456,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0,1)]
         float m_HapticHoverCancelIntensity;
         /// <summary>
-        /// The Haptics intensity to play on Hover Canceled.
+        /// The Haptics intensity Unity plays on Hover Canceled.
         /// </summary>
         /// <seealso cref="hapticHoverCancelDuration"/>
         /// <seealso cref="playHapticsOnHoverCanceled"/>
@@ -443,7 +469,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_HapticHoverCancelDuration;
         /// <summary>
-        /// The Haptics duration (in seconds) to play on Hover Canceled.
+        /// The Haptics duration (in seconds) Unity plays on Hover Canceled.
         /// </summary>
         /// <seealso cref="hapticHoverCancelIntensity"/>
         /// <seealso cref="playHapticsOnHoverCanceled"/>
@@ -451,6 +477,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_HapticHoverCancelDuration;
             set => m_HapticHoverCancelDuration = value;
+        }
+
+        bool m_AllowActivate = true;
+        /// <summary>
+        /// Defines whether this interactor allows sending activate and deactivate events.
+        /// </summary>
+        /// <seealso cref="allowHoveredActivate"/>
+        /// <seealso cref="shouldActivate"/>
+        /// <seealso cref="shouldDeactivate"/>
+        public bool allowActivate
+        {
+            get => m_AllowActivate;
+            set => m_AllowActivate = value;
         }
 
         XRBaseController m_Controller;
@@ -464,15 +503,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
+        /// (Deprecated) (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
         /// </summary>
-        /// <seealso cref="XRBaseInteractor.GetValidTargets"/>
-        protected abstract List<XRBaseInteractable> validTargets { get; }
+        [Obsolete("validTargets has been deprecated. Use a property of type List<IXRInteractable> instead.")]
+        protected virtual List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
 
         readonly ActivateEventArgs m_ActivateEventArgs = new ActivateEventArgs();
         readonly DeactivateEventArgs m_DeactivateEventArgs = new DeactivateEventArgs();
 
+        static readonly List<IXRActivateInteractable> s_ActivateTargets = new List<IXRActivateInteractable>();
+
         bool m_ToggleSelectActive;
+        bool m_ToggleSelectDeactivatedThisFrame;
         bool m_WaitingForSelectDeactivate;
         AudioSource m_EffectsAudioSource;
 
@@ -498,53 +540,88 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            base.ProcessInteractor(updatePhase);
+            base.PreprocessInteractor(updatePhase);
 
-            // Perform toggling of selection state
-            // and activation of selected object on activate.
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                if (m_Controller == null)
-                    return;
-
+                // Perform toggling of selection state for isSelectActive
+                m_ToggleSelectDeactivatedThisFrame = false;
                 if (m_SelectActionTrigger == InputTriggerType.Toggle ||
                     m_SelectActionTrigger == InputTriggerType.Sticky)
                 {
-                    if (m_Controller.selectInteractionState.activatedThisFrame)
-                    {
-                        if (m_ToggleSelectActive)
-                            m_WaitingForSelectDeactivate = true;
+                    if (m_Controller == null)
+                        return;
 
-                        if (m_ToggleSelectActive || validTargets.Count > 0)
-                            m_ToggleSelectActive = !m_ToggleSelectActive;
+                    if (m_ToggleSelectActive && m_Controller.selectInteractionState.activatedThisFrame)
+                    {
+                        m_ToggleSelectActive = false;
+                        m_ToggleSelectDeactivatedThisFrame = true;
+                        m_WaitingForSelectDeactivate = true;
                     }
 
                     if (m_Controller.selectInteractionState.deactivatedThisFrame)
                         m_WaitingForSelectDeactivate = false;
                 }
+            }
+        }
 
-                if (selectTarget != null && m_Controller.activateInteractionState.activatedThisFrame)
-                {
-                    m_ActivateEventArgs.interactor = this;
-                    m_ActivateEventArgs.interactable = selectTarget;
-                    selectTarget.OnActivated(m_ActivateEventArgs);
-                }
+        /// <inheritdoc />
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractor(updatePhase);
 
-                if (selectTarget != null && m_Controller.activateInteractionState.deactivatedThisFrame)
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            {
+                // Send activate/deactivate events as necessary.
+                if (m_AllowActivate)
                 {
-                    m_DeactivateEventArgs.interactor = this;
-                    m_DeactivateEventArgs.interactable = selectTarget;
-                    selectTarget.OnDeactivated(m_DeactivateEventArgs);
+                    var sendActivate = shouldActivate;
+                    var sendDeactivate = shouldDeactivate;
+                    if (sendActivate || sendDeactivate)
+                    {
+                        GetActivateTargets(s_ActivateTargets);
+
+                        if (sendActivate)
+                            SendActivateEvent(s_ActivateTargets);
+
+                        // Note that this makes it possible for an interactable to receive an OnDeactivated event
+                        // but not the earlier OnActivated event if it was selected afterward.
+                        if (sendDeactivate)
+                            SendDeactivateEvent(s_ActivateTargets);
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Gets whether the selection state is active for this interactor.  This will check if the controller has a valid selection
-        /// state or whether toggle selection is currently on and active.
-        /// </summary>
+        void SendActivateEvent(List<IXRActivateInteractable> targets)
+        {
+            foreach (var interactable in targets)
+            {
+                if (interactable == null || interactable as Object == null)
+                    continue;
+
+                m_ActivateEventArgs.interactorObject = this;
+                m_ActivateEventArgs.interactableObject = interactable;
+                interactable.OnActivated(m_ActivateEventArgs);
+            }
+        }
+
+        void SendDeactivateEvent(List<IXRActivateInteractable> targets)
+        {
+            foreach (var interactable in targets)
+            {
+                if (interactable == null || interactable as Object == null)
+                    continue;
+
+                m_DeactivateEventArgs.interactorObject = this;
+                m_DeactivateEventArgs.interactableObject = interactable;
+                interactable.OnDeactivated(m_DeactivateEventArgs);
+            }
+        }
+
+        /// <inheritdoc />
         public override bool isSelectActive
         {
             get
@@ -562,13 +639,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     case InputTriggerType.StateChange:
                         return (m_Controller != null && m_Controller.selectInteractionState.activatedThisFrame) ||
-                            (selectTarget != null && m_Controller != null && !m_Controller.selectInteractionState.deactivatedThisFrame);
+                            (hasSelection && m_Controller != null && !m_Controller.selectInteractionState.deactivatedThisFrame);
 
                     case InputTriggerType.Toggle:
-                        return m_ToggleSelectActive;
+                        return m_ToggleSelectActive ||
+                            (m_Controller != null && m_Controller.selectInteractionState.activatedThisFrame && !m_ToggleSelectDeactivatedThisFrame);
 
                     case InputTriggerType.Sticky:
-                        return m_ToggleSelectActive || m_WaitingForSelectDeactivate;
+                        return m_ToggleSelectActive || m_WaitingForSelectDeactivate ||
+                            (m_Controller != null && m_Controller.selectInteractionState.activatedThisFrame);
 
                     default:
                         return false;
@@ -577,13 +656,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Whether or not the UI Press controller input is considered pressed.
+        /// (Read Only) Whether or not Unity considers the UI Press controller input pressed.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if active. Otherwise, returns <see langword="false"/>.</returns>
         protected bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
 
         /// <inheritdoc />
-        protected internal override void OnSelectEntering(SelectEnterEventArgs args)
+        public virtual bool shouldActivate =>
+            m_AllowActivate && (hasSelection || m_AllowHoveredActivate && hasHover) && m_Controller != null && m_Controller.activateInteractionState.activatedThisFrame;
+
+        /// <inheritdoc />
+        public virtual bool shouldDeactivate =>
+            m_AllowActivate && (hasSelection || m_AllowHoveredActivate && hasHover) && m_Controller != null && m_Controller.activateInteractionState.deactivatedThisFrame;
+
+        /// <inheritdoc />
+        public virtual void GetActivateTargets(List<IXRActivateInteractable> targets)
+        {
+            targets.Clear();
+            if (hasSelection)
+            {
+                foreach (var interactable in interactablesSelected)
+                {
+                    if (interactable is IXRActivateInteractable activateInteractable)
+                    {
+                        targets.Add(activateInteractable);
+                    }
+                }
+            }
+            else if (m_AllowHoveredActivate && hasHover)
+            {
+                foreach (var interactable in interactablesHovered)
+                {
+                    if (interactable is IXRActivateInteractable activateInteractable)
+                    {
+                        targets.Add(activateInteractable);
+                    }
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
             base.OnSelectEntering(args);
 
@@ -597,7 +710,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnSelectExiting(SelectExitEventArgs args)
+        protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
 
@@ -622,7 +735,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverEntering(HoverEnterEventArgs args)
+        protected override void OnHoverEntering(HoverEnterEventArgs args)
         {
             base.OnHoverEntering(args);
 
@@ -634,7 +747,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected internal override void OnHoverExiting(HoverExitEventArgs args)
+        protected override void OnHoverExiting(HoverExitEventArgs args)
         {
             base.OnHoverExiting(args);
 
@@ -704,11 +817,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Called automatically to handle exiting select.
+        /// Unity calls this automatically to handle exiting select.
         /// </summary>
         /// <seealso cref="OnSelectExiting"/>
         void HandleDeselecting()
         {
+            if (hasSelection)
+                return;
+
             // Reset toggle values when no longer selecting
             // (can happen by another Interactor taking the Interactable or through method calls).
             m_ToggleSelectActive = false;

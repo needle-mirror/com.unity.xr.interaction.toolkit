@@ -10,8 +10,8 @@ using UnityEngine.Scripting;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
 {
     /// <summary>
-    /// A single <c>Vector3</c> value, such as a position, computed from an ordered list of bindings.
-    /// The value will be read from the first binding that has a valid control.
+    /// A single <see cref="Vector3"/> value, such as a position, computed from an ordered list of bindings.
+    /// Unity reads from the first binding that has a valid control.
     /// </summary>
     /// <inheritdoc />
 #if UNITY_EDITOR
@@ -38,7 +38,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         [InputControl(layout = "Vector3")]
         public int third;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <see cref="FallbackComposite{TValue}" />
+        /// </summary>
+        /// <param name="context">Callback context for the binding composite. Unity
+        /// uses this to access the values supplied by part bindings.</param>
+        /// <returns><see cref="Vector3" /> read from the context.</returns>
         public override Vector3 ReadValue(ref InputBindingCompositeContext context)
         {
             var value = context.ReadValue<Vector3, Vector3MagnitudeComparer>(first, out var sourceControl);
@@ -70,8 +75,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
     }
 
     /// <summary>
-    /// A single <c>Quaternion</c> value, such as a rotation, computed from an ordered list of bindings.
-    /// The value will be read from the first binding that has a valid control.
+    /// A single <see cref="Quaternion"/> value, such as a rotation, computed from an ordered list of bindings.
+    /// Unity reads from the first binding that has a valid control.
     /// </summary>
     /// <inheritdoc />
 #if UNITY_EDITOR
@@ -98,7 +103,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         [InputControl(layout = "Quaternion")]
         public int third;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <see cref="FallbackComposite{TValue}" />
+        /// </summary>
+        /// <param name="context">Callback context for the binding composite. Unity
+        /// uses this to access the values supplied by part bindings.</param>
+        /// <returns><see cref="Quaternion" /> read from the context.</returns>
         public override Quaternion ReadValue(ref InputBindingCompositeContext context)
         {
             var value = context.ReadValue<Quaternion, QuaternionCompositeComparer>(first, out var sourceControl);
@@ -136,8 +146,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
     /// <remarks>
     /// This composite allows for defining multiple binding paths, but unlike a Value action with
     /// multiple bindings which uses control magnitude to select the active control, this composite
-    /// will use an ordered priority list of bindings. If the first input binding is not bound to
-    /// an input control, it will fallback to try the second input binding, and so on.
+    /// uses an ordered priority list of bindings. If the first input binding is not bound to
+    /// an input control, it falls back to try the second input binding, and so on.
     /// </remarks>
     [Preserve]
     public abstract class FallbackComposite<TValue> : InputBindingComposite<TValue>

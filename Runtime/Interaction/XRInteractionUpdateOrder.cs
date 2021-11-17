@@ -70,25 +70,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// The phase in which updates happen.
         /// </summary>
+        /// <seealso cref="IXRInteractor.ProcessInteractor"/>
+        /// <seealso cref="IXRInteractable.ProcessInteractable"/>
         public enum UpdatePhase
         {
             /// <summary>
-            /// Frame-rate independent.
+            /// Frame-rate independent. Corresponds with the <c>MonoBehaviour.FixedUpdate</c> method.
             /// </summary>
             Fixed,
 
             /// <summary>
-            /// Called every frame.
+            /// Called every frame. Corresponds with the <c>MonoBehaviour.Update</c> method.
             /// </summary>
             Dynamic,
 
             /// <summary>
-            /// Called at the end of every frame.
+            /// Called at the end of every frame.  Corresponds with the <c>MonoBehaviour.LateUpdate</c> method.
             /// </summary>
             Late,
 
-             /// <summary>
-            /// Called just before render.
+            /// <summary>
+            /// Called just before render. Corresponds with the <see cref="Application.onBeforeRender"/> callback.
             /// </summary>
             OnBeforeRender,
         }

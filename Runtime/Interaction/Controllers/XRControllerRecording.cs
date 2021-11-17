@@ -14,8 +14,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [CreateAssetMenu(menuName = "XR/XR Controller Recording")]
     [Serializable, PreferBinarySerialization]
     [HelpURL(XRHelpURLConstants.k_XRControllerRecording)]
-    public class XRControllerRecording : ScriptableObject
+    public partial class XRControllerRecording : ScriptableObject, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// Whether the selection interaction was activated in the first frame.
+        /// Used to proper deserialize the first frame.
+        /// </summary>
+        [SerializeField]
+        bool m_SelectActivatedInFirstFrame;
+        
+        /// <summary>
+        /// Whether the activate interaction was activated in the first frame.
+        /// Used to proper deserialize the first frame.
+        /// </summary>
+        [SerializeField]
+        bool m_ActivateActivatedInFirstFrame;
+        
+        /// <summary>
+        /// Whether the UI press interaction was activated in the first frame.
+        /// Used to proper deserialize the first frame.
+        /// </summary>
+        [SerializeField]
+        bool m_FirstUIPressActivatedInFirstFrame;
+        
         [SerializeField]
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
         List<XRControllerState> m_Frames = new List<XRControllerState>();
@@ -32,27 +53,62 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public double duration => m_Frames.Count == 0 ? 0d : m_Frames[m_Frames.Count - 1].time;
 
         /// <summary>
-        /// Adds a recording of a frame.
+        /// See <see cref="ISerializationCallbackReceiver.OnBeforeSerialize"/>.
         /// </summary>
-        /// <param name="time">The time for this controller frame.</param>
-        /// <param name="position">The position for this controller frame.</param>
-        /// <param name="rotation">The rotation for this controller frame.</param>
-        /// <param name="selectActive">Whether select is active or not.</param>
-        /// <param name="activateActive">Whether activate is active or not.</param>
-        /// <param name="pressActive">Whether press is active or not.</param>
-        public void AddRecordingFrame(
-            double time, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            frames.Add(new XRControllerState(time, position, rotation, selectActive, activateActive, pressActive));
+            if (m_Frames == null || m_Frames.Count <= 0)
+                return;
+
+            var firstFrame = m_Frames[0];
+            m_SelectActivatedInFirstFrame = firstFrame.selectInteractionState.activatedThisFrame;
+            m_ActivateActivatedInFirstFrame = firstFrame.activateInteractionState.activatedThisFrame;
+            m_FirstUIPressActivatedInFirstFrame = firstFrame.uiPressInteractionState.activatedThisFrame;
+        }
+
+        /// <summary>
+        /// See <see cref="ISerializationCallbackReceiver.OnAfterDeserialize"/>.
+        /// </summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_Frames == null || m_Frames.Count <= 0)
+                return;
+
+            var firstFrame = m_Frames[0];
+            firstFrame.selectInteractionState.SetFrameDependent(!m_SelectActivatedInFirstFrame && firstFrame.selectInteractionState.active);
+            firstFrame.activateInteractionState.SetFrameDependent(!m_ActivateActivatedInFirstFrame && firstFrame.activateInteractionState.active);
+            firstFrame.uiPressInteractionState.SetFrameDependent(!m_FirstUIPressActivatedInFirstFrame && firstFrame.uiPressInteractionState.active);
+
+            for (var i = 1; i < m_Frames.Count; i++)
+            {
+                var frame = m_Frames[i];
+                var previousFrame = m_Frames[i - 1];
+                frame.selectInteractionState.SetFrameDependent(previousFrame.selectInteractionState.active);
+                frame.activateInteractionState.SetFrameDependent(previousFrame.activateInteractionState.active);
+                frame.uiPressInteractionState.SetFrameDependent(previousFrame.uiPressInteractionState.active);
+            }
         }
 
         /// <summary>
         /// Adds a recording of a frame.
+        /// Duplicates the supplied <paramref name="state"/> object and adds the copy as a frame recording.
         /// </summary>
         /// <param name="state"> The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <seealso cref="AddRecordingFrameNonAlloc"/>
         public void AddRecordingFrame(XRControllerState state)
         {
             frames.Add(new XRControllerState(state));
+        }
+        
+        /// <summary>
+        /// Adds a recording of a frame.
+        /// Adds the supplied <paramref name="state"/> object as a frame recording; does not allocate new memory.
+        /// </summary>
+        /// <param name="state"> The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <seealso cref="AddRecordingFrame(XRControllerState)"/>
+        public void AddRecordingFrameNonAlloc(XRControllerState state)
+        {
+            frames.Add(state);
         }
 
         /// <summary>
@@ -60,6 +116,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public void InitRecording()
         {
+            m_SelectActivatedInFirstFrame = false;
+            m_ActivateActivatedInFirstFrame = false;
+            m_FirstUIPressActivatedInFirstFrame = false;
             m_Frames.Clear();
 #if UNITY_EDITOR
             Undo.RecordObject(this, "Recording XR Controller");

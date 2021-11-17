@@ -44,7 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Tooltip("A list of controllers that allow Turn.  If an XRController is not enabled, or does not have input actions enabled, turn will not work.")]
         List<XRBaseController> m_Controllers = new List<XRBaseController>();
         /// <summary>
-        /// The XRControllers that allow Turn.  An XRController must be enabled in order to Turn.
+        /// The XRControllers that allow turning. An XRController must be enabled in order to turn.
         /// </summary>
         public List<XRBaseController> controllers
         {
@@ -109,7 +109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Get value adjusted based on deadzone thresholds.
+        /// Gets value adjusted based on deadzone thresholds.
         /// </summary>
         /// <param name="value">The value to be adjusted.</param>
         /// <returns>Returns adjusted 2D vector.</returns>
@@ -125,7 +125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Get value adjusted based on deadzone thresholds.
+        /// Gets value adjusted based on deadzone thresholds.
         /// </summary>
         /// <param name="value">The value to be adjusted.</param>
         /// <returns>Returns adjusted value.</returns>
