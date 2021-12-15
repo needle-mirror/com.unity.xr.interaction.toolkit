@@ -43,15 +43,6 @@ using UnityEngine.XR.ARSubsystems;
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
-    /// (Deprecated) <see cref="UnityEvent"/> that is invoked when an object is placed.
-    /// Use <see cref="ARObjectPlacementEvent" /> instead.
-    /// </summary>
-    [Serializable, Obsolete("ARObjectPlacedEvent has been deprecated. Use ARObjectPlacementEvent instead.")]
-    public class ARObjectPlacedEvent : UnityEvent<ARPlacementInteractable, GameObject>
-    {
-    }
-
-    /// <summary>
     /// <see cref="UnityEvent"/> that is invoked when the user places an object.
     /// </summary>
     [Serializable]
@@ -79,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Controls the placement of Prefabs via a tap gesture.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_ARPlacementInteractable)]
-    public class ARPlacementInteractable : ARBaseGestureInteractable
+    public partial class ARPlacementInteractable : ARBaseGestureInteractable
     {
         [SerializeField]
         [Tooltip("A GameObject to place when a raycast from a user touch hits a plane.")]
@@ -119,24 +110,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             get => m_ObjectPlaced;
             set => m_ObjectPlaced = value;
         }
-
-#pragma warning disable 618
-        [SerializeField]
-        ARObjectPlacedEvent m_OnObjectPlaced = new ARObjectPlacedEvent();
-
-        /// <summary>
-        /// Gets or sets the event that is called when this Interactable places a new <see cref="GameObject"/> in the world.
-        /// </summary>
-        /// <remarks>
-        /// <c>onObjectPlaced</c> has been deprecated. Use <see cref="objectPlaced"/> with updated signature instead.
-        /// </remarks>
-        [Obsolete("onObjectPlaced has been deprecated. Use objectPlaced with updated signature instead.")]
-        public ARObjectPlacedEvent onObjectPlaced
-        {
-            get => m_OnObjectPlaced;
-            set => m_OnObjectPlaced = value;
-        }
-#pragma warning restore 618
 
         readonly ARObjectPlacementEventArgs m_ObjectPlacementEventArgs = new ARObjectPlacementEventArgs();
 

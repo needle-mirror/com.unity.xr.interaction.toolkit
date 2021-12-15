@@ -29,5 +29,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
             currentControllerState = controllerState;
         }
 #pragma warning restore 618
+
+        /// <inheritdoc cref="modelParent"/>
+        /// <remarks><c>modelTransform</c> has been deprecated due to being renamed. Use <see cref="modelParent"/> instead.</remarks>
+        [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead. (UnityUpgradable) -> modelParent")]
+        public Transform modelTransform
+        {
+            get => modelParent;
+            set => modelParent = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="XRRayInteractor.TranslateAnchor"/>
+        /// <seealso cref="XRRayInteractor.RotateAnchor"/>
+        /// <remarks>
+        /// <c>anchorControlDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
+        [Obsolete("anchorControlDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlDeadzone { get; set; }
+
+        /// <summary>
+        /// (Deprecated) Defines the off-axis deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="Application.onBeforeRender"/>
+        /// <remarks>
+        /// <c>anchorControlOffAxisDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
+        [Obsolete("anchorControlOffAxisDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlOffAxisDeadzone { get; set; }
     }
 }

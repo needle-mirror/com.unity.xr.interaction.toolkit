@@ -4,52 +4,10 @@ using UnityEngine.Events;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// <see cref="UnityEvent"/> that responds to changes of hover, selection, and activation by this Interactable.
-    /// </summary>
-    [Serializable, Obsolete("XRInteractableEvent has been deprecated. Use events specific to each state change instead.")]
-    public class XRInteractableEvent : UnityEvent<XRBaseInteractor>
-    {
-    }
-
-    /// <summary>
-    /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this Interactor.
-    /// </summary>
-    [Serializable, Obsolete("XRInteractorEvent has been deprecated. Use events specific to each state change instead.")]
-    public class XRInteractorEvent : UnityEvent<XRBaseInteractable>
-    {
-    }
-
-    /// <summary>
     /// Event data associated with an interaction event between an Interactor and Interactable.
     /// </summary>
-    public abstract class BaseInteractionEventArgs
+    public abstract partial class BaseInteractionEventArgs
     {
-        /// <summary>
-        /// (Deprecated) The Interactor associated with the interaction event.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
-        public XRBaseInteractor interactor
-        {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
-        }
-
-        /// <summary>
-        /// (Deprecated) The Interactable associated with the interaction event.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
-        public XRBaseInteractable interactable
-        {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
-        }
-
         /// <summary>
         /// The Interactor associated with the interaction event.
         /// </summary>
@@ -351,21 +309,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Event data associated with the event when an Interactor is registered with an <see cref="XRInteractionManager"/>.
     /// </summary>
-    public class InteractorRegisteredEventArgs : BaseRegistrationEventArgs
+    public partial class InteractorRegisteredEventArgs : BaseRegistrationEventArgs
     {
-        /// <summary>
-        /// (Deprecated) The Interactor that was registered.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
-        public XRBaseInteractor interactor
-        {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
-        }
-
         /// <summary>
         /// The Interactor that was registered.
         /// </summary>
@@ -375,21 +320,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Event data associated with the event when an Interactable is registered with an <see cref="XRInteractionManager"/>.
     /// </summary>
-    public class InteractableRegisteredEventArgs : BaseRegistrationEventArgs
+    public partial class InteractableRegisteredEventArgs : BaseRegistrationEventArgs
     {
-        /// <summary>
-        /// (Deprecated) The Interactable that was registered.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
-        public XRBaseInteractable interactable
-        {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
-        }
-
         /// <summary>
         /// The Interactable that was registered.
         /// </summary>
@@ -399,21 +331,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Event data associated with the event when an Interactor is unregistered from an <see cref="XRInteractionManager"/>.
     /// </summary>
-    public class InteractorUnregisteredEventArgs : BaseRegistrationEventArgs
+    public partial class InteractorUnregisteredEventArgs : BaseRegistrationEventArgs
     {
-        /// <summary>
-        /// (Deprecated) The Interactor that was unregistered.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
-        public XRBaseInteractor interactor
-        {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
-        }
-
         /// <summary>
         /// The Interactor that was unregistered.
         /// </summary>
@@ -423,21 +342,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Event data associated with the event when an Interactable is unregistered from an <see cref="XRInteractionManager"/>.
     /// </summary>
-    public class InteractableUnregisteredEventArgs : BaseRegistrationEventArgs
+    public partial class InteractableUnregisteredEventArgs : BaseRegistrationEventArgs
     {
-        /// <summary>
-        /// (Deprecated) The Interactable that was unregistered.
-        /// </summary>
-        /// <remarks>
-        /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
-        /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
-        public XRBaseInteractable interactable
-        {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
-        }
-
         /// <summary>
         /// The Interactable that was unregistered.
         /// </summary>

@@ -55,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// This is intended to be the base class for all Teleportation Interactables. This abstracts the teleport request process for specializations of this class.
     /// </summary>
-    public abstract class BaseTeleportationInteractable : XRBaseInteractable
+    public abstract partial class BaseTeleportationInteractable : XRBaseInteractable
     {
         /// <summary>
         /// Indicates when the teleportation action happens.
@@ -210,21 +210,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Reset();
             selectMode = InteractableSelectMode.Multiple;
         }
-
-        /// <summary>
-        /// Automatically called upon the teleport trigger when a teleport request should be generated.
-        /// </summary>
-        /// <param name="interactor">The interactor that initiated the teleport trigger.</param>
-        /// <param name="raycastHit">The raycast hit information from the interactor.</param>
-        /// <param name="teleportRequest">The teleport request that should be filled out during this method call.</param>
-        /// <returns>Returns <see langword="true"/> if the teleport request was successfully updated and should be queued. Otherwise, returns <see langword="false"/>.</returns>
-        /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>
-        /// <remarks>
-        /// <c>GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest)</c> has been deprecated. Use <see cref="GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest)"/> instead.
-        /// </remarks>
-        [Obsolete("GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest) has been deprecated. Use GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest) instead.")]
-        protected virtual bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
-            => GenerateTeleportRequest((IXRInteractor)interactor, raycastHit, ref teleportRequest);
 
         /// <summary>
         /// Automatically called upon the teleport trigger event occurring to generate the teleport request.

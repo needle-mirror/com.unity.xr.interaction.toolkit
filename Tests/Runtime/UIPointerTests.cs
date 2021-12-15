@@ -542,6 +542,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.Click));
             globalUIReceiver.Reset();
             Assert.That(globalUIReceiver.events, Has.Count.EqualTo(0));
+            
+            // Check down, off, back on, and up
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Down));
+            Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.PotentialDrag));
+            leftUIReceiver.Reset();
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(2));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.Down));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.PotentialDrag));
+            globalUIReceiver.Reset();
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(0));
+
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, 30.0f, 0.0f), false, false, true);
+            yield return null;
+            
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(3));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Exit));
+            Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.BeginDrag));
+            Assert.That(leftUIReceiver.events[2].type, Is.EqualTo(EventType.Dragging));
+            leftUIReceiver.Reset();
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(0));
+            
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(1));
+            Assert.That(rightUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            rightUIReceiver.Reset();
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(4));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.Exit));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.BeginDrag));
+            Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.Dragging));
+            globalUIReceiver.Reset();
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(0));
+
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, false);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(4));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Up));
+            Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.Click));
+            Assert.That(leftUIReceiver.events[2].type, Is.EqualTo(EventType.EndDrag));
+            Assert.That(leftUIReceiver.events[3].type, Is.EqualTo(EventType.Enter));
+            leftUIReceiver.Reset();
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(1));
+            Assert.That(rightUIReceiver.events[0].type, Is.EqualTo(EventType.Exit));
+            rightUIReceiver.Reset();
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(5));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.Up));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.Click));
+            Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.EndDrag));
+            Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.Exit));
+            Assert.That(globalUIReceiver.events[4].type, Is.EqualTo(EventType.Enter));
+            globalUIReceiver.Reset();
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(0));
 
             // Check down and drag
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);

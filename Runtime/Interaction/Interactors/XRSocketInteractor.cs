@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Socket Interactor")]
     [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]
-    public class XRSocketInteractor : XRBaseInteractor
+    public partial class XRSocketInteractor : XRBaseInteractor
     {
         [SerializeField]
         bool m_ShowInteractableHoverMeshes = true;
@@ -317,26 +317,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride => XRBaseInteractable.MovementType.Instantaneous;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
-        public override bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
-
-        /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
             return base.CanHover(interactable) && isHoverRecycleAllowed;
         }
 
         bool isHoverRecycleAllowed => m_LastRemoveTime < 0f || m_RecycleDelayTime <= 0f || (Time.time > m_LastRemoveTime + m_RecycleDelayTime);
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
-        public override bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
 
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)

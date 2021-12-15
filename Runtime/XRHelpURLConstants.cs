@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.XR.Interaction.Toolkit.AR;
+﻿using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -9,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Constants for <see cref="HelpURLAttribute"/> for XR Interaction Toolkit.
     /// </summary>
-    static class XRHelpURLConstants
+    static partial class XRHelpURLConstants
     {
         /// <summary>
         /// Scripting API URL for <see cref="ActionBasedContinuousMoveProvider"/>.
@@ -175,12 +174,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRRayInteractor"/>.
         /// </summary>
         public const string k_XRRayInteractor = k_BaseApi + k_BaseNamespace + nameof(XRRayInteractor) + ".html";
-
-        /// <summary>
-        /// Scripting API URL for <see cref="XRRig"/>.
-        /// </summary>
-        [Obsolete("k_XRRig is now deprecated since XRRig was replaced by XROrigin. Please use documentation from com.unity.xr.core-utils instead.", true)]
-        public const string k_XRRig = k_BaseApi + k_BaseNamespace + nameof(XRRig) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRSimpleInteractable"/>.

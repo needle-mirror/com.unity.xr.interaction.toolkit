@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Deprecated) The pose data flags of the controller.
         /// </summary>
         /// <seealso cref="inputTrackingState"/>
-        [Obsolete("poseDataFlags has been deprecated. Use trackingState instead.")]
+        [Obsolete("poseDataFlags has been deprecated. Use inputTrackingState instead.")]
         public PoseDataFlags poseDataFlags
         {
             get
@@ -51,5 +51,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
         }
 #pragma warning restore 618
+
+        /// <summary>
+        /// (Deprecated) Resets all the interaction states that are based on whether they occurred "this frame".
+        /// </summary>
+        /// <remarks>
+        /// <c>ResetInputs</c> has been renamed. Use <see cref="ResetFrameDependentStates"/> instead.
+        /// </remarks>
+        [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()")]
+        public void ResetInputs() => ResetFrameDependentStates();
+    }
+
+    public partial struct InteractionState
+    {
+        /// <summary>
+        /// (Deprecated) Whether the interaction state was deactivated this frame.
+        /// </summary>
+        /// <remarks>
+        /// <c>deActivatedThisFrame</c> has been deprecated. Use <see cref="deactivatedThisFrame"/> instead.
+        /// </remarks>
+#pragma warning disable IDE1006 // Naming Styles
+        [Obsolete("deActivatedThisFrame has been deprecated. Use deactivatedThisFrame instead. (UnityUpgradable) -> deactivatedThisFrame")]
+        public bool deActivatedThisFrame
+        {
+            get => deactivatedThisFrame;
+            set => deactivatedThisFrame = value;
+        }
+#pragma warning restore IDE1006
+
+        /// <summary>
+        /// (Deprecated) Resets the interaction states that are based on whether they occurred "this frame".
+        /// </summary>
+        /// <remarks>
+        /// <c>Reset</c> has been deprecated. Use <see cref="ResetFrameDependent"/> instead.
+        /// </remarks>
+        [Obsolete("Reset has been renamed. Use ResetFrameDependent instead. (UnityUpgradable) -> ResetFrameDependent()")]
+        public void Reset() => ResetFrameDependent();
     }
 }

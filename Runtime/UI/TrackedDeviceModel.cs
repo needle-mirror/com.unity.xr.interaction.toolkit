@@ -7,7 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// <summary>
     /// Models a tracked device.
     /// </summary>
-    public struct TrackedDeviceModel
+    public partial struct TrackedDeviceModel
     {
         const float k_DefaultMaxRaycastDistance = 1000f;
 
@@ -103,15 +103,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// (Read Only) A unique Id to identify this model from others within the UI system.
         /// </summary>
         public int pointerId { get; }
-
-        /// <summary>
-        /// The maximum distance to raycast to check for UI.
-        /// </summary>
-        /// <remarks>
-        /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.
-        /// </remarks>
-        [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
-        public float maxRaycastDistance { get; set; }
 
         bool m_SelectDown;
 
@@ -346,5 +337,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             currentRaycast = eventData.pointerCurrentRaycast;
             currentRaycastEndpointIndex = eventData.rayHitIndex;
         }
+
+        // this only exists to clean up a warning in the .deprecated.cs file for this type - when removing that file, remove this field
+        float m_MaxRaycastDistance;
     }
 }

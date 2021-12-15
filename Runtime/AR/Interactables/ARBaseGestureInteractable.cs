@@ -33,11 +33,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #else
 
-using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.XR.ARFoundation;
-using Unity.XR.CoreUtils;
 
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
@@ -48,7 +47,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Base class that manipulates an object via a gesture.
     /// </summary>
-    public abstract class ARBaseGestureInteractable : XRBaseInteractable
+    public abstract partial class ARBaseGestureInteractable : XRBaseInteractable
     {
         [SerializeField]
         XROrigin m_XROrigin;
@@ -62,21 +61,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             get => m_XROrigin;
             set => m_XROrigin = value;
-        }
-
-        [SerializeField]
-        ARSessionOrigin m_ARSessionOrigin;
-
-        /// <summary>
-        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
-        /// that this Interactable will use (such as to get the [Camera](xref:UnityEngine.Camera)
-        /// or to transform from Session space). Will find one if <see langword="null"/>.
-        /// </summary>
-        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
-        public ARSessionOrigin arSessionOrigin
-        {
-            get => m_ARSessionOrigin;
-            set => m_ARSessionOrigin = value;
         }
 
         /// <summary>
@@ -131,21 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsHoverableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsHoverableBy(IXRHoverInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsHoverableBy(XRBaseInteractor) has been deprecated. Use IsHoverableBy(IXRHoverInteractor) instead.")]
-        public override bool IsHoverableBy(XRBaseInteractor interactor) => IsHoverableBy((IXRHoverInteractor)interactor);
-
-        /// <inheritdoc />
         public override bool IsHoverableBy(IXRHoverInteractor interactor) => interactor is ARGestureInteractor;
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.")]
-        public override bool IsSelectableBy(XRBaseInteractor interactor) => IsSelectableBy((IXRSelectInteractor)interactor);
 
         /// <inheritdoc />
         public override bool IsSelectableBy(IXRSelectInteractor interactor) => false;
@@ -591,35 +561,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
-        /// <summary>
-        /// Unity calls this method automatically when the manipulation ends.
-        /// </summary>
-        /// <typeparam name="T">The gesture type.</typeparam>
-        /// <param name="gesture">The current gesture.</param>
-        /// <seealso cref="Gesture{T}.onFinished"/>
-        // TODO Consider making this protected virtual and deprecating non-generic methods
-        void OnEndManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    OnEndManipulation(dragGesture);
-                    break;
-                case PinchGesture pinchGesture:
-                    OnEndManipulation(pinchGesture);
-                    break;
-                case TapGesture tapGesture:
-                    OnEndManipulation(tapGesture);
-                    break;
-                case TwistGesture twistGesture:
-                    OnEndManipulation(twistGesture);
-                    break;
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    OnEndManipulation(twoFingerDragGesture);
-                    break;
-            }
-        }
-
         void OnGestureStarted<T>(Gesture<T> gesture) where T : Gesture<T>
         {
             if (m_IsManipulating)
@@ -643,7 +584,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             if (!IsGameObjectSelected())
             {
                 m_IsManipulating = false;
-                OnEndManipulation(gesture);
+
+                // Contents of the removed OnEndManipulation<T>(Gesture<T>) were copied here to avoid an IL2CPP runtime crash
+                switch (gesture)
+                {
+                    case DragGesture dragGesture:
+                        OnEndManipulation(dragGesture);
+                        break;
+                    case PinchGesture pinchGesture:
+                        OnEndManipulation(pinchGesture);
+                        break;
+                    case TapGesture tapGesture:
+                        OnEndManipulation(tapGesture);
+                        break;
+                    case TwistGesture twistGesture:
+                        OnEndManipulation(twistGesture);
+                        break;
+                    case TwoFingerDragGesture twoFingerDragGesture:
+                        OnEndManipulation(twoFingerDragGesture);
+                        break;
+                }
+
                 return;
             }
 
@@ -653,7 +614,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         void OnFinished<T>(Gesture<T> gesture) where T : Gesture<T>
         {
             m_IsManipulating = false;
-            OnEndManipulation(gesture);
+
+            // Contents of the removed OnEndManipulation<T>(Gesture<T>) were copied here to avoid an IL2CPP runtime crash
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    OnEndManipulation(dragGesture);
+                    break;
+                case PinchGesture pinchGesture:
+                    OnEndManipulation(pinchGesture);
+                    break;
+                case TapGesture tapGesture:
+                    OnEndManipulation(tapGesture);
+                    break;
+                case TwistGesture twistGesture:
+                    OnEndManipulation(twistGesture);
+                    break;
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    OnEndManipulation(twoFingerDragGesture);
+                    break;
+            }
         }
     }
 }

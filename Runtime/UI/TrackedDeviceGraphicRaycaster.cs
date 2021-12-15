@@ -326,7 +326,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (((1 << graphic.gameObject.layer) & layerMask) == 0)
                     continue;
 
-                if (RayIntersectsRectTransform(graphic.rectTransform, ray, out var worldPos, out var distance))
+#if UNITY_2020_1_OR_NEWER
+                var raycastPadding = graphic.raycastPadding;
+#else
+                var raycastPadding = Vector4.zero;
+#endif
+
+                if (RayIntersectsRectTransform(graphic.rectTransform, raycastPadding, ray, out var worldPos, out var distance))
                 {
                     if (distance <= maxDistance)
                     {
@@ -344,9 +350,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             results.AddRange(s_SortedGraphics);
         }
 
-        static bool RayIntersectsRectTransform(RectTransform transform, Ray ray, out Vector3 worldPosition, out float distance)
+        static bool RayIntersectsRectTransform(RectTransform transform, Vector4 raycastPadding, Ray ray, out Vector3 worldPosition, out float distance)
         {
-            transform.GetWorldCorners(s_Corners);
+            GetRectTransformWorldCorners(transform, raycastPadding, s_Corners);
             var plane = new Plane(s_Corners[0], s_Corners[1], s_Corners[2]);
 
             if (plane.Raycast(ray, out var enter))
@@ -366,7 +372,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var topDot = Vector3.Dot(intersection - s_Corners[2], topEdge);
                     var rightDot = Vector3.Dot(intersection - s_Corners[2], rightEdge);
 
-                    //If the intersection is left of the right edge, and below the top edge
+                    // If the intersection is left of the right edge, and below the top edge
                     if (topDot >= 0f && rightDot >= 0f)
                     {
                         worldPosition = intersection;
@@ -379,6 +385,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             worldPosition = Vector3.zero;
             distance = 0f;
             return false;
+        }
+
+        // This method is similar to RecTransform.GetWorldCorners, but with support for the raycastPadding offset.
+        static void GetRectTransformWorldCorners(RectTransform transform, Vector4 offset, Vector3[] fourCornersArray)
+        {
+            if (fourCornersArray == null || fourCornersArray.Length < 4)
+            {
+                Debug.LogError("Calling GetRectTransformWorldCorners with an array that is null or has less than 4 elements.");
+                return;
+            }
+
+            // GraphicRaycaster.Raycast uses RectTransformUtility.RectangleContainsScreenPoint instead,
+            // which redirects to PointInRectangle defined in RectTransformUtil.cpp. However, that method
+            // uses the Camera to convert from the given screen point to a ray, but this class uses
+            // the ray from the Ray Interactor that feeds the event data.
+            // Offset calculation for raycastPadding from PointInRectangle method, which replaces RectTransform.GetLocalCorners.
+            var rect = transform.rect;
+            var x0 = rect.x + offset.x;
+            var y0 = rect.y + offset.y;
+            var x1 = rect.xMax - offset.z;
+            var y1 = rect.yMax - offset.w;
+            fourCornersArray[0] = new Vector3(x0, y0, 0f);
+            fourCornersArray[1] = new Vector3(x0, y1, 0f);
+            fourCornersArray[2] = new Vector3(x1, y1, 0f);
+            fourCornersArray[3] = new Vector3(x1, y0, 0f);
+
+            // Transform the local corners to world space, which is from RectTransform.GetWorldCorners.
+            var localToWorldMatrix = transform.localToWorldMatrix;
+            for (var index = 0; index < 4; ++index)
+                fourCornersArray[index] = localToWorldMatrix.MultiplyPoint(fourCornersArray[index]);
         }
     }
 }

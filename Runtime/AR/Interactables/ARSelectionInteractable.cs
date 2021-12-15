@@ -41,7 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Controls the selection of an object via a Tap gesture.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_ARSelectionInteractable)]
-    public class ARSelectionInteractable : ARBaseGestureInteractable
+    public partial class ARSelectionInteractable : ARBaseGestureInteractable
     {
         [SerializeField, Tooltip("The visualization GameObject that will become active when the object is selected.")]
         GameObject m_SelectionVisualization;
@@ -55,13 +55,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         bool m_GestureSelected;
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.")]
-        public override bool IsSelectableBy(XRBaseInteractor interactor) => IsSelectableBy((IXRSelectInteractor)interactor);
 
         /// <inheritdoc />
         public override bool IsSelectableBy(IXRSelectInteractor interactor) => interactor is ARGestureInteractor && m_GestureSelected;

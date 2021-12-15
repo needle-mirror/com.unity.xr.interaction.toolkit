@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <remarks>
     /// Gestures are created and updated by instances of <see cref="GestureRecognizer{T}"/>.
     /// </remarks>
-    public abstract class Gesture<T> where T : Gesture<T>
+    public abstract partial class Gesture<T> where T : Gesture<T>
     {
         /// <summary>
         /// Initializes and returns an instance of <see cref="Gesture"/> with a given recognizer.
@@ -74,25 +74,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// (Read Only) The gesture recognizer.
         /// </summary>
         protected internal GestureRecognizer<T> recognizer { get; }
-
-#pragma warning disable IDE1006 // Naming Styles
-        /// <inheritdoc cref="isCanceled"/>
-        [Obsolete("WasCancelled has been deprecated. Use isCanceled instead. (UnityUpgradable) -> isCanceled")]
-        public bool WasCancelled => isCanceled;
-
-        /// <inheritdoc cref="targetObject"/>
-        [Obsolete("TargetObject has been deprecated. Use targetObject instead. (UnityUpgradable) -> targetObject")]
-        public GameObject TargetObject
-        {
-            get => targetObject;
-            protected set => targetObject = value;
-        }
-
-        /// <inheritdoc cref="recognizer"/>
-        [Obsolete("m_Recognizer has been deprecated. Use recognizer instead. (UnityUpgradable) -> recognizer")]
-        // ReSharper disable once InconsistentNaming -- Deprecated
-        protected internal GestureRecognizer<T> m_Recognizer => recognizer;
-#pragma warning restore IDE1006 // Naming Styles
 
         bool m_HasStarted;
 

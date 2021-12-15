@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -150,5 +151,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks><c>playHapticsOnHoverEnter</c> has been deprecated. Use <see cref="playHapticsOnHoverEntered"/> instead.</remarks>
         [Obsolete("playHapticsOnHoverEnter has been deprecated. Use playHapticsOnHoverEntered instead. (UnityUpgradable) -> playHapticsOnHoverEntered")]
         public bool playHapticsOnHoverEnter => playHapticsOnHoverEntered;
+
+        /// <summary>
+        /// (Deprecated) (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
+        /// </summary>
+        [Obsolete("validTargets has been deprecated. Use a property of type List<IXRInteractable> instead.")]
+        protected virtual List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
     }
 }

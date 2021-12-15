@@ -232,11 +232,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void Reset()
         {
-            if (TryFindLineRenderer())
-            {
-                ClearLineRenderer();
-                UpdateSettings();
-            }
+            // Don't need to do anything; method kept for backwards compatibility.
         }
 
         /// <summary>
@@ -244,7 +240,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnValidate()
         {
-            UpdateSettings();
+            if (Application.isPlaying)
+                UpdateSettings();
         }
 
         /// <summary>
@@ -257,6 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_Reticle != null)
                 m_Reticle.SetActive(false);
 
+            ClearLineRenderer();
             UpdateSettings();
         }
 
@@ -267,8 +265,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_SnapCurve = true;
             m_ReticleToUse = null;
-
-            Reset();
 
             Application.onBeforeRender += OnBeforeRenderLineVisual;
         }

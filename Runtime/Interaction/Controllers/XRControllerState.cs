@@ -6,7 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <see cref="InteractionState"/> type to hold current state for a given interaction.
     /// </summary>
     [Serializable]
-    public struct InteractionState
+    public partial struct InteractionState
     {
         [Range(0f, 1f)]
         [SerializeField]
@@ -56,21 +56,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// (Deprecated) Whether the interaction state was deactivated this frame.
-        /// </summary>
-        /// <remarks>
-        /// <c>deActivatedThisFrame</c> has been deprecated. Use <see cref="deactivatedThisFrame"/> instead.
-        /// </remarks>
-#pragma warning disable IDE1006 // Naming Styles
-        [Obsolete("deActivatedThisFrame has been deprecated. Use deactivatedThisFrame instead. (UnityUpgradable) -> deactivatedThisFrame")]
-        public bool deActivatedThisFrame
-        {
-            get => deactivatedThisFrame;
-            set => deactivatedThisFrame = value;
-        }
-#pragma warning restore IDE1006
-
-        /// <summary>
         /// Sets the interaction state for this frame. This method should only be called once per frame.
         /// </summary>
         /// <param name="isActive">Whether the state is active (in other words, pressed).</param>
@@ -112,15 +97,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             activatedThisFrame = false;
             deactivatedThisFrame = false;
         }
-
-        /// <summary>
-        /// (Deprecated) Resets the interaction states that are based on whether they occurred "this frame".
-        /// </summary>
-        /// <remarks>
-        /// <c>Reset</c> has been deprecated. Use <see cref="ResetFrameDependent"/> instead.
-        /// </remarks>
-        [Obsolete("Reset has been renamed. Use ResetFrameDependent instead. (UnityUpgradable) -> ResetFrameDependent()")]
-        public void Reset() => ResetFrameDependent();
     }
 
     /// <summary>
@@ -253,15 +229,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             activateInteractionState.ResetFrameDependent();
             uiPressInteractionState.ResetFrameDependent();
         }
-
-        /// <summary>
-        /// (Deprecated) Resets all the interaction states that are based on whether they occurred "this frame".
-        /// </summary>
-        /// <remarks>
-        /// <c>ResetInputs</c> has been renamed. Use <see cref="ResetFrameDependentStates"/> instead.
-        /// </remarks>
-        [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()")]
-        public void ResetInputs() => ResetFrameDependentStates();
 
         /// <summary>
         /// Converts state data to a string.

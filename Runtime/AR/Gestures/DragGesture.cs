@@ -22,15 +22,12 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
-using System;
-using UnityEngine;
-
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>
     /// Gesture for when the user performs a drag motion on the touch screen.
     /// </summary>
-    public class DragGesture : Gesture<DragGesture>
+    public partial class DragGesture : Gesture<DragGesture>
     {
         /// <summary>
         /// Initializes and returns an instance of <see cref="DragGesture"/>.
@@ -83,36 +80,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// (Read Only) The gesture recognizer.
         /// </summary>
         protected DragGestureRecognizer dragRecognizer => (DragGestureRecognizer)recognizer;
-
-#pragma warning disable IDE1006 // Naming Styles
-        /// <inheritdoc cref="fingerId"/>
-        /// <remarks>
-        /// <c>FingerId</c> has been deprecated. Use <see cref="fingerId"/> instead.
-        /// </remarks>
-        [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId")]
-        public int FingerId => fingerId;
-
-        /// <inheritdoc cref="startPosition"/>
-        /// <remarks>
-        /// <c>StartPosition</c> has been deprecated. Use <see cref="startPosition"/> instead.
-        /// </remarks>
-        [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition")]
-        public Vector2 StartPosition => startPosition;
-
-        /// <inheritdoc cref="position"/>
-        /// <remarks>
-        /// <c>Position</c> has been deprecated. Use <see cref="position"/> instead.
-        /// </remarks>
-        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
-        public Vector2 Position => position;
-
-        /// <inheritdoc cref="delta"/>
-        /// <remarks>
-        /// <c>Delta</c> has been deprecated. Use <see cref="delta"/> instead.
-        /// </remarks>
-        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
-        public Vector2 Delta => delta;
-#pragma warning restore IDE1006
 
         /// <inheritdoc />
         protected internal override bool CanStart()

@@ -12,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Direct Interactor")]
     [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
-    public class XRDirectInteractor : XRBaseControllerInteractor
+    public partial class XRDirectInteractor : XRBaseControllerInteractor
     {
         /// <summary>
         /// The set of Interactables that this Interactor could possibly interact with this frame.
@@ -85,24 +85,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        /// <remarks>
-        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
-        public override bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
-
-        /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
             return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
         }
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
-        public override bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
 
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)

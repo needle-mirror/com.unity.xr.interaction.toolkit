@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using UnityEngine.XR.ARFoundation;
 using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
@@ -38,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// To determine when a gesture is finished/updated, listen to events on the
     /// <see cref="Gesture{T}"/> object.
     /// </remarks>
-    public abstract class GestureRecognizer<T> where T : Gesture<T>
+    public abstract partial class GestureRecognizer<T> where T : Gesture<T>
     {
         /// <summary>
         /// Calls the methods in its invocation list when a gesture is started.
@@ -55,14 +54,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public XROrigin xrOrigin { get; set; }
 
         /// <summary>
-        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
-        /// that will be used by gestures (such as to get the [Camera](xref:UnityEngine.Camera)
-        /// or to transform from Session space).
-        /// </summary>
-        [Obsolete("arSessionOrigin has been deprecated. Use xrOrigin instead for similar functionality.")]
-        public ARSessionOrigin arSessionOrigin { get; set; }
-
-        /// <summary>
         /// List of current active gestures.
         /// </summary>
         /// <remarks>
@@ -72,17 +63,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="AddGesture"/>
         /// <seealso cref="RemoveGesture"/>
         protected List<T> gestures { get; } = new List<T>();
-
-#pragma warning disable IDE1006 // Naming Styles
-        /// <summary>
-        /// (Deprecated) List of current active gestures.
-        /// </summary>
-        /// <remarks>
-        /// <c>m_Gestures</c> has been deprecated. Use <see cref="gestures"/> instead.
-        /// </remarks>
-        [Obsolete("m_Gestures has been deprecated. Use gestures instead. (UnityUpgradable) -> gestures")]
-        protected List<T> m_Gestures = new List<T>();
-#pragma warning restore IDE1006 // Naming Styles
 
         readonly List<T> m_PostponedGesturesToRemove = new List<T>();
 

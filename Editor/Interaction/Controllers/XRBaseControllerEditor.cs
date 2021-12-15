@@ -11,7 +11,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// </summary>
     [CustomEditor(typeof(XRBaseController), true), CanEditMultipleObjects]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
-    public class XRBaseControllerEditor : BaseInteractionEditor
+    public partial class XRBaseControllerEditor : BaseInteractionEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.updateTrackingType"/>.</summary>
         protected SerializedProperty m_UpdateTrackingType;
@@ -31,10 +31,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_ModelSelectTransition;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.modelDeSelectTransition"/>.</summary>
         protected SerializedProperty m_ModelDeSelectTransition;
-
-        /// <inheritdoc cref="m_ModelParent"/>
-        [Obsolete("m_ModelTransform has been deprecated due to being renamed. Use m_ModelParent instead. (UnityUpgradable) -> m_ModelParent")]
-        protected SerializedProperty m_ModelTransform;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.

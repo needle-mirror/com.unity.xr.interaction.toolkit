@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [RequireComponent(typeof(Rigidbody))]
     [AddComponentMenu("XR/XR Grab Interactable")]
     [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
-    public class XRGrabInteractable : XRBaseInteractable
+    public partial class XRGrabInteractable : XRBaseInteractable
     {
         const float k_DefaultTighteningAmount = 0.5f;
         const float k_DefaultSmoothingAmount = 5f;
@@ -368,20 +368,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ForceGravityOnDetach = value;
         }
 
-        /// <summary>
-        /// (Deprecated) Forces this object to have gravity when released
-        /// (will still use pre-grab value if this is <see langword="false"/>).
-        /// </summary>
-        /// <remarks>
-        /// <c>gravityOnDetach</c> has been deprecated. Use <see cref="forceGravityOnDetach"/> instead.
-        /// </remarks>
-        [Obsolete("gravityOnDetach has been deprecated. Use forceGravityOnDetach instead. (UnityUpgradable) -> forceGravityOnDetach")]
-        public bool gravityOnDetach
-        {
-            get => forceGravityOnDetach;
-            set => forceGravityOnDetach = value;
-        }
-
         [SerializeField]
         bool m_RetainTransformParent = true;
 
@@ -544,6 +530,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Vector3 GetWorldAttachPosition(IXRInteractor interactor)
         {
             var interactorAttachTransform = interactor.GetAttachTransform(this);
+
+            if (!m_TrackRotation)
+                return interactorAttachTransform.position + transform.TransformDirection(m_InteractorLocalPosition);
+
             return interactorAttachTransform.position + interactorAttachTransform.rotation * m_InteractorLocalPosition;
         }
 
@@ -554,6 +544,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the attach rotation in world space.</returns>
         Quaternion GetWorldAttachRotation(IXRInteractor interactor)
         {
+            if (!m_TrackRotation)
+                return m_TargetWorldRotation;
+
             var interactorAttachTransform = interactor.GetAttachTransform(this);
             return interactorAttachTransform.rotation * m_InteractorLocalRotation;
         }

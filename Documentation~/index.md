@@ -18,20 +18,36 @@ To use these AR interaction components, you must have the [AR Foundation](https:
 
 ## Preview package
 
-This package is available as a preview package, so it is still in the process of becoming stable enough to release. The features and documentation in this package might change before it is ready for release.
+This package is available as a pre-release package, so it is still in the process of becoming stable enough to release. The features and documentation in this package might change before it is ready for release.
 
-## Installing the package
+## Installation
 
-To install this package, follow the instructions in the [Package Manager documentation](https://docs.unity3d.com/Manual/upm-ui-install.html).
+To install this package, refer to the instructions that match your Unity Editor version:
 
-This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it.
+### Version 2022.1 and later
 
-If your Project uses touches or gestures, you also need to perform the following configuration steps:
+To install this package, make sure you [enable pre-release packages](https://docs.unity3d.com/2021.1/Documentation/Manual/class-PackageManager.html#advanced_preview) in the Unity Editor's Package Manager, and then follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/Documentation/Manual/upm-ui-install.html).
 
-1. From Unity's main menu, go to **Edit &gt; Project Settings**, then select **Player &gt; Other Settings**.
-2. Set **Active Input Handling** to **Both**.
+### Version 2021.2
 
-For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
+To install this package, follow the instructions for [adding a package by name](https://docs.unity3d.com/2021.1/Documentation/Manual/upm-ui-quick.html) in the Unity Editor.
+
+|Text Field|Value|
+|---|---|
+|**Name**|`com.unity.xr.interaction.toolkit`|
+|**Version (optional)**|`2.0.0-pre.6`|
+
+### Version 2020.3 
+
+To install this package, make sure you [show preview packages](https://docs.unity3d.com/2020.3/Documentation/Manual/class-PackageManager.html#advanced_preview) in the Unity Editor's Package Manager, and then follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2020.3/Documentation/Manual/upm-ui-install.html).
+
+### Version 2019.4 
+
+To install this package, make sure you [show preview packages](https://docs.unity3d.com/2019.4/Documentation/Manual/upm-ui-list.html#ShowPreview) in the Unity Editor's Package Manager, and then follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2019.4/Documentation/Manual/upm-ui-install.html).
+
+### Input System
+
+This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it. For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
 
 ## Installing samples
 
@@ -360,10 +376,38 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 * 2019.4 and later
 
+### Dependencies
+
+The XR Interaction Toolkit package has several dependencies which are automatically added to your project when installing:
+
+* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/index.html)
+* [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
+* [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/manual/index.html)
+* [XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers)](https://docs.unity3d.com/Packages/com.unity.xr.legacyinputhelpers@2.1/manual/index.html)
+* Built-in modules
+  * [Audio](https://docs.unity3d.com/Manual/com.unity.modules.audio.html)
+  * [IMGUI](https://docs.unity3d.com/Manual/com.unity.modules.imgui.html)
+  * [Physics](https://docs.unity3d.com/Manual/com.unity.modules.physics.html)
+
+#### Optional dependencies
+
+To enable additional AR interaction components included in the package, [AR Foundation (com.unity.xr.arfoundation)](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@latest/) must be added to your project using Package Manager.
+
+To enable additional properties in some behaviors, the [Animation](https://docs.unity3d.com/Manual/com.unity.modules.animation.html) module must be added to your project using Package Manager.
+
+### Helpful links
+
+If you have a question after reading the documentation, you can:
+
+* Join our [support forum](https://forum.unity.com/forums/xr-interaction-toolkit-and-input.519/).
+* Search the [issue tracker](https://issuetracker.unity3d.com/product/unity/issues?project=192&status=1&unity_version=&view=newest) for active issues.
+* View our [public roadmap](https://portal.productboard.com/brs5gbymuktquzeomnargn2u) and submit feature requests.
+
 ### Document revision history
 
 |Date|Reason|
 |---|---|
+|December 14, 2021|Added dependencies and helpful links under technical details, and updated package installation instructions. Matches package version 2.0.0-pre.6.|
 |November 17, 2021|Documentation updated due to change in Input System package related to Game view focus, interaction interfaces, and multiple selections. Matches package version 2.0.0-pre.4.|
 |March 15, 2020|Documentation updated to reflect change that custom Editor classes are no longer needed to show additional serialized fields. Matches package version 1.0.0-pre.3.|
 |December 14, 2020|Documentation updated to reflect change to when registration with Interaction Manager occurs and for changes to event signatures. Matches package version 1.0.0-pre.2.|

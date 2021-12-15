@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -398,5 +399,63 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Obsolete("RemoveCustomReticle(XRBaseInteractor) has been deprecated. Use RemoveCustomReticle(IXRInteractor) instead.")]
         public virtual void RemoveCustomReticle(XRBaseInteractor interactor) => RemoveCustomReticle(interactor as IXRInteractor);
 #pragma warning restore 618
+
+        /// <summary>
+        /// (Deprecated) (Read Only) The list of interactors that are hovering on this interactable.
+        /// </summary>
+        /// <seealso cref="isHovered"/>
+        /// <seealso cref="XRBaseInteractor.hoverTargets"/>
+        [Obsolete("hoveringInteractors has been deprecated. Use interactorsHovering instead.")]
+        public List<XRBaseInteractor> hoveringInteractors { get; } = new List<XRBaseInteractor>();
+
+        /// <summary>
+        /// (Deprecated) The Interactor selecting this Interactable (may be <see langword="null"/>).
+        /// </summary>
+        /// <remarks>
+        /// Unity automatically sets this value during <see cref="OnSelectEntering(SelectEnterEventArgs)"/>
+        /// and <see cref="OnSelectExiting(SelectExitEventArgs)"/> and should not typically need to be set
+        /// by a user. The setter is <see langword="protected"/> to allow for rare scenarios where a derived
+        /// class needs to control this value. Changing this value does not invoke select events.
+        /// <br />
+        /// <c>selectingInteractor</c> has been deprecated. Use <see cref="interactorsSelecting"/> or <see cref="isSelected"/> instead.
+        /// </remarks>
+        /// <seealso cref="isSelected"/>
+        /// <seealso cref="XRBaseInteractor.selectTarget"/>
+        [Obsolete("selectingInteractor has been deprecated. Use interactorsSelecting, GetOldestInteractorSelecting, or isSelected for similar functionality.")]
+        public XRBaseInteractor selectingInteractor
+        {
+            get => isSelected ? interactorsSelecting[0] as XRBaseInteractor : null;
+            protected set
+            {
+                if (isSelected)
+                    interactorsSelecting[0] = value;
+                else
+                    interactorsSelecting.Add(value);
+            }
+        }
+
+        /// <summary>
+        /// (Deprecated) Determines if this interactable can be hovered by a given interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor to check for a valid hover state with.</param>
+        /// <returns>Returns <see langword="true"/> if hovering is valid this frame. Returns <see langword="false"/> if not.</returns>
+        /// <seealso cref="XRBaseInteractor.CanHover(XRBaseInteractable)"/>
+        /// <remarks>
+        /// <c>IsHoverableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsHoverableBy(IXRHoverInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsHoverableBy(XRBaseInteractor) has been deprecated. Use IsHoverableBy(IXRHoverInteractor) instead.")]
+        public virtual bool IsHoverableBy(XRBaseInteractor interactor) => IsHoverableBy((IXRHoverInteractor)interactor);
+
+        /// <summary>
+        /// (Deprecated) Determines if a given Interactor can select this Interactable.
+        /// </summary>
+        /// <param name="interactor">Interactor to check for a valid selection with.</param>
+        /// <returns>Returns <see langword="true"/> if selection is valid this frame. Returns <see langword="false"/> if not.</returns>
+        /// <seealso cref="XRBaseInteractor.CanSelect(XRBaseInteractable)"/>
+        /// <remarks>
+        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
+        /// </remarks>
+        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.")]
+        public virtual bool IsSelectableBy(XRBaseInteractor interactor) => IsSelectableBy((IXRSelectInteractor)interactor);
     }
 }

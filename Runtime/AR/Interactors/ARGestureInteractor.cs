@@ -38,7 +38,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
 #else
 
-using System;
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
@@ -60,7 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
     [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
-    public class ARGestureInteractor : XRBaseInteractor
+    public partial class ARGestureInteractor : XRBaseInteractor
     {
         [SerializeField]
         XROrigin m_XROrigin;
@@ -78,26 +77,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 m_XROrigin = value;
                 if (Application.isPlaying)
                     PushXROrigin();
-            }
-        }
-
-        [SerializeField]
-        ARSessionOrigin m_ARSessionOrigin;
-
-        /// <summary>
-        /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>
-        /// that this Interactor will use (such as to get the <see cref="Camera"/>
-        /// or to transform from Session space). Will find one if <see langword="null"/>.
-        /// </summary>
-        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
-        public ARSessionOrigin arSessionOrigin
-        {
-            get => m_ARSessionOrigin;
-            set
-            {
-                m_ARSessionOrigin = value;
-                if (Application.isPlaying)
-                    PushARSessionOrigin();
             }
         }
 
@@ -125,65 +104,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// (Read Only) The Twist gesture recognizer.
         /// </summary>
         public TwistGestureRecognizer twistGestureRecognizer { get; private set; }
-
-#pragma warning disable IDE1006 // Naming Styles
-        static ARGestureInteractor s_Instance;
-        /// <summary>
-        /// (Read Only) The <see cref="ARGestureInteractor"/> instance.
-        /// </summary>
-        /// <remarks>
-        /// <c>instance</c> has been deprecated. Use <see cref="ARBaseGestureInteractable.gestureInteractor"/> instead of singleton.
-        /// </remarks>
-        [Obsolete("instance has been deprecated. Use ARBaseGestureInteractable.gestureInteractor instead of singleton.")]
-        public static ARGestureInteractor instance
-        {
-            get
-            {
-                if (s_Instance == null)
-                {
-                    s_Instance = FindObjectOfType<ARGestureInteractor>();
-                    if (s_Instance == null)
-                    {
-                        Debug.LogError("No instance of ARGestureInteractor exists in the scene.");
-                    }
-                }
-
-                return s_Instance;
-            }
-        }
-
-        /// <inheritdoc cref="instance"/>
-        /// <remarks>
-        /// <c>Instance</c> has been deprecated. Use <see cref="instance"/> instead.
-        /// </remarks>
-        [Obsolete("Instance has been deprecated. Use instance instead. (UnityUpgradable) -> instance")]
-        public static ARGestureInteractor Instance => instance;
-
-        /// <inheritdoc cref="dragGestureRecognizer"/>
-        /// <remarks><c>DragGestureRecognizer</c> has been deprecated. Use <see cref="dragGestureRecognizer"/> instead.</remarks>
-        [Obsolete("DragGestureRecognizer has been deprecated. Use dragGestureRecognizer instead. (UnityUpgradable) -> dragGestureRecognizer")]
-        public DragGestureRecognizer DragGestureRecognizer => dragGestureRecognizer;
-
-        /// <inheritdoc cref="pinchGestureRecognizer"/>
-        /// <remarks><c>PinchGestureRecognizer</c> has been deprecated. Use <see cref="pinchGestureRecognizer"/> instead.</remarks>
-        [Obsolete("PinchGestureRecognizer has been deprecated. Use pinchGestureRecognizer instead. (UnityUpgradable) -> pinchGestureRecognizer")]
-        public PinchGestureRecognizer PinchGestureRecognizer => pinchGestureRecognizer;
-
-        /// <inheritdoc cref="twoFingerDragGestureRecognizer"/>
-        /// <remarks><c>TwoFingerDragGestureRecognizer</c> has been deprecated. Use <see cref="twoFingerDragGestureRecognizer"/> instead.</remarks>
-        [Obsolete("TwoFingerDragGestureRecognizer has been deprecated. Use twoFingerDragGestureRecognizer instead. (UnityUpgradable) -> twoFingerDragGestureRecognizer")]
-        public TwoFingerDragGestureRecognizer TwoFingerDragGestureRecognizer => twoFingerDragGestureRecognizer;
-
-        /// <inheritdoc cref="tapGestureRecognizer"/>
-        /// <remarks><c>TapGestureRecognizer</c> has been deprecated. Use <see cref="tapGestureRecognizer"/> instead.</remarks>
-        [Obsolete("TapGestureRecognizer has been deprecated. Use tapGestureRecognizer instead. (UnityUpgradable) -> tapGestureRecognizer")]
-        public TapGestureRecognizer TapGestureRecognizer => tapGestureRecognizer;
-
-        /// <inheritdoc cref="twistGestureRecognizer"/>
-        /// <remarks><c>TwistGestureRecognizer</c> has been deprecated. Use <see cref="twistGestureRecognizer"/> instead.</remarks>
-        [Obsolete("TwistGestureRecognizer has been deprecated. Use twistGestureRecognizer instead. (UnityUpgradable) -> twistGestureRecognizer")]
-        public TwistGestureRecognizer TwistGestureRecognizer => twistGestureRecognizer;
-#pragma warning restore IDE1006
 
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
@@ -320,20 +240,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             twoFingerDragGestureRecognizer.xrOrigin = m_XROrigin;
             tapGestureRecognizer.xrOrigin = m_XROrigin;
             twistGestureRecognizer.xrOrigin = m_XROrigin;
-        }
-
-        /// <summary>
-        /// Passes the <see cref="arSessionOrigin"/> to the Gesture Recognizers.
-        /// </summary>
-        /// <seealso cref="GestureRecognizer{T}.arSessionOrigin"/>
-        [Obsolete("PushARSessionOrigin has been deprecated. Use PushXROrigin instead for similar functionality.")]
-        protected virtual void PushARSessionOrigin()
-        {
-            dragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
-            pinchGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
-            twoFingerDragGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
-            tapGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
-            twistGestureRecognizer.arSessionOrigin = m_ARSessionOrigin;
         }
 
         /// <inheritdoc />

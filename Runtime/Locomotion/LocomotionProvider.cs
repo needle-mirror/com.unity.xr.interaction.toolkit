@@ -8,20 +8,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// and simple events for hooking into a start/end locomotion.
     /// </summary>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_LocomotionProviders)]
-    public abstract class LocomotionProvider : MonoBehaviour
+    public abstract partial class LocomotionProvider : MonoBehaviour
     {
-        /// <summary>
-        /// (Deprecated) The <see cref="startLocomotion"/> action will be called when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
-        /// </summary>
-        /// <seealso cref="beginLocomotion"/>
-        /// <remarks>
-        /// <c>startLocomotion</c> has been deprecated. Use <see cref="beginLocomotion"/> instead.
-        /// </remarks>
-        [Obsolete("startLocomotion has been deprecated. Use beginLocomotion instead. (UnityUpgradable) -> beginLocomotion", true)]
-#pragma warning disable 67 // Never invoked, kept for API Updater
-        public event Action<LocomotionSystem> startLocomotion;
-#pragma warning restore 67
-
         /// <summary>
         /// Unity calls the <see cref="beginLocomotion"/> action when a <see cref="LocomotionProvider"/> successfully begins a locomotion event.
         /// </summary>

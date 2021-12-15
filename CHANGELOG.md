@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.0-pre.6] - 2021-12-15
+
+### Fixed
+- Fixed wrong offset when selecting an `XRGrabInteractable` with Track Rotation disabled. ([1361271](https://issuetracker.unity3d.com/product/unity/issues/guid/1361271))
+- Fixed `XRInteractorLineVisual` causing the error "Saving Prefab to immutable folder is not allowed". Also fixed the undo stack by no longer modifying the Line Renderer during `Reset`. ([1378651](https://issuetracker.unity3d.com/product/unity/issues/guid/1378651))
+- Fixed UI interactions not clicking when simultaneously using multiple Ray Interactors. ([1336124](https://issuetracker.unity3d.com/product/unity/issues/guid/1336124))
+- Fixed `Raycast Padding` of `Graphic` UI objects not being considered by `TrackedDeviceGraphicRaycaster`. ([1333300](https://issuetracker.unity3d.com/product/unity/issues/guid/1333300))
+- Fixed `OnEndDrag` not being called on behaviors that implement `IEndDragHandler` when the mouse starts a drag, leaves the bounds of the object, and returns to the object without releasing the mouse button when using the `XRUIInputModule` upon finally releasing the mouse button.
+- Fixed runtime crashing upon tapping the screen when using AR touch gestures in Unity 2021.2 in projects where the Scripting Backend was set to IL2CPP.
+- Fixed `MissingReferenceException` caused by `XRBaseInteractable` when one of its Colliders was destroyed while it was hovering over a Direct Interactor or Socket Interactor.
+- Fixed obsolete message for `XRControllerState.poseDataFlags` to reference the correct replacement field name.
+
 ## [2.0.0-pre.5] - 2021-11-17
 
 ### Fixed
@@ -137,7 +149,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Sockets sometimes showing the hover mesh for a single frame after another Interactor would take its selection when the Recycle Delay Time should have suppressed it from appearing.
 - Fixed controller's recording serialization losing data when restarting the Unity Editor.
 - Fixed releasing `XRGrabInteractable` objects after a teleport from having too much energy.
-- Fixed `pixelDragThresholdMultiplier` not being squared when calculating the threshold in `UIInputModule`. To keep the same drag threshold you should update the `Tracked Device Drag Threshold Multiplier` property of your `XRUIInputModule` (and your subclasses of `UIInputModule`) to its square root in the Inspector window; for example, a value of `2` should be changed to `1.414214` (or `sqrt(2)`).
+- Fixed `pixelDragThresholdMultiplier` not being squared when calculating the threshold in `UIInputModule`. To keep the same drag threshold you should update the `Tracked Device Drag Threshold Multiplier` property of your `XRUIInputModule` (and your subclasses of `UIInputModule`) to its square root in the Inspector window; for example, a value of `2` should be changed to `1.414214` (or `sqrt(2)`). ([1348680](https://issuetracker.unity3d.com/product/unity/issues/guid/1348680))
 
 ## [2.0.0-pre.2] - 2021-11-04
 

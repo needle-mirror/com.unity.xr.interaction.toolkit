@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// Custom class for input modules that send UI input in XR.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_XRUIInputModule)]
-    public class XRUIInputModule : UIInputModule
+    public partial class XRUIInputModule : UIInputModule
     {
         struct RegisteredInteractor
         {
@@ -58,19 +58,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField, HideInInspector]
         [Tooltip("The maximum distance to raycast with tracked devices to find hit objects.")]
         float m_MaxTrackedDeviceRaycastDistance = 1000f;
-
-        /// <summary>
-        /// The maximum distance to raycast with tracked devices to find hit objects.
-        /// </summary>
-        /// <remarks>
-        /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.
-        /// </remarks>
-        [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
-        public float maxRaycastDistance
-        {
-            get => m_MaxTrackedDeviceRaycastDistance;
-            set => m_MaxTrackedDeviceRaycastDistance = value;
-        }
 
         [SerializeField]
         [Tooltip("If true, will forward 3D tracked device data to UI elements.")]
@@ -111,11 +98,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_EnableTouchInput = value;
         }
 
+        int m_RollingPointerId;
+
         MouseModel m_Mouse;
 
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
-
-        int m_RollingInteractorIndex;
 
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
@@ -125,7 +112,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         protected override void OnEnable()
         {
             base.OnEnable();
-            m_Mouse = new MouseModel(m_RollingInteractorIndex++);
+            m_Mouse = new MouseModel(m_RollingPointerId++);
+        }
+
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnDisable.html">MonoBehavior.OnDisable</a>.
+        /// </summary>
+        protected override void OnDisable()
+        {
+            RemovePointerEventData(m_Mouse.pointerId);
+            base.OnDisable();
         }
 
         /// <summary>
@@ -141,7 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     return;
             }
 
-            m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, m_RollingInteractorIndex++));
+            m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, m_RollingPointerId++));
         }
 
         /// <summary>
@@ -218,6 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         registeredInteractor.model.Reset(false);
                         ProcessTrackedDevice(ref registeredInteractor.model, true);
+                        RemovePointerEventData(registeredInteractor.model.pointerId);
                         m_RegisteredInteractors.RemoveAt(i--);
                     }
                     else
@@ -308,7 +305,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         // No Empty slots, add one
                         registeredTouchIndex = m_RegisteredTouches.Count;
-                        m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingInteractorIndex++));
+                        m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingPointerId++));
                     }
                 }
 

@@ -502,12 +502,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Controller = value;
         }
 
-        /// <summary>
-        /// (Deprecated) (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
-        /// </summary>
-        [Obsolete("validTargets has been deprecated. Use a property of type List<IXRInteractable> instead.")]
-        protected virtual List<XRBaseInteractable> validTargets { get; } = new List<XRBaseInteractable>();
-
         readonly ActivateEventArgs m_ActivateEventArgs = new ActivateEventArgs();
         readonly DeactivateEventArgs m_DeactivateEventArgs = new DeactivateEventArgs();
 

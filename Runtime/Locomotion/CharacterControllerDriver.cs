@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.XR.CoreUtils;
+﻿using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -8,7 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// upon locomotion events of a <see cref="LocomotionProvider"/>.
     /// </summary>
     [HelpURL(XRHelpURLConstants.k_CharacterControllerDriver)]
-    public class CharacterControllerDriver : MonoBehaviour
+    public partial class CharacterControllerDriver : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("The Locomotion Provider object to listen to.")]
@@ -63,12 +62,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Read Only) The <see cref="XROrigin"/> used for driving the <see cref="CharacterController"/>.
         /// </summary>
         protected XROrigin xrOrigin => m_XROrigin;
-
-        /// <summary>
-        /// (Read Only) The <see cref="XRRig"/> used for driving the <see cref="CharacterController"/>.
-        /// </summary>
-        [Obsolete("xrRig has been deprecated. Use xrOrigin instead.")]
-        protected XRRig xrRig => xrOrigin as XRRig;
 
         CharacterController m_CharacterController;
         /// <summary>

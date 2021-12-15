@@ -90,9 +90,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                 // Don't remove the Interactable if there are still
                 // any of its colliders touching this trigger.
+                // Treat destroyed colliders as no longer touching.
                 foreach (var kvp in m_EnteredColliders)
                 {
-                    if (kvp.Value == interactable)
+                    if (kvp.Value == interactable && kvp.Key != null)
                         return;
                 }
 
@@ -110,6 +111,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// </remarks>
         public void ResolveUnassociatedColliders()
         {
+            // Cull destroyed colliders from the set to keep it tidy
+            // since there would be no reason to monitor it anymore.
+            m_EnteredUnassociatedColliders.RemoveWhere(IsDestroyed);
+
             if (m_EnteredUnassociatedColliders.Count == 0 || interactionManager == null)
                 return;
 
@@ -138,7 +143,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
         /// <summary>
         /// Resolves the unassociated colliders to <paramref name="interactable"/> if they match.
-        /// This process
         /// </summary>
         /// <param name="interactable">The Interactable to try to associate with the unassociated colliders.</param>
         /// <remarks>
@@ -147,11 +151,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// </remarks>
         public void ResolveUnassociatedColliders(IXRInteractable interactable)
         {
+            // Cull destroyed colliders from the set to keep it tidy
+            // since there would be no reason to monitor it anymore.
+            m_EnteredUnassociatedColliders.RemoveWhere(IsDestroyed);
+
             if (m_EnteredUnassociatedColliders.Count == 0 || interactionManager == null)
                 return;
 
             foreach (var col in interactable.colliders)
             {
+                if (col == null)
+                    continue;
+
                 if (m_EnteredUnassociatedColliders.Contains(col) &&
                     interactionManager.TryGetInteractableForCollider(col, out var associatedInteractable) &&
                     associatedInteractable == interactable)
@@ -174,5 +185,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             return m_UnorderedInteractables.Contains(interactable);
         }
+
+        static bool IsDestroyed(Collider col) => col == null;
     }
 }

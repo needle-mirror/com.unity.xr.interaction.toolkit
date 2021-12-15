@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
@@ -80,8 +81,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public Camera uiCamera { get; set; }
 
         AxisEventData m_CachedAxisEvent;
-        PointerEventData m_CachedPointerEvent;
-        TrackedDeviceEventData m_CachedTrackedDeviceEventData;
+        readonly Dictionary<int, PointerEventData> m_PointerEventByPointerId = new Dictionary<int, PointerEventData>();
+        readonly Dictionary<int, TrackedDeviceEventData> m_TrackedDeviceEventByPointerId = new Dictionary<int, TrackedDeviceEventData>();
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -95,9 +96,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// moves the Rig in order to generate the current sample points used to create the rays used
         /// for this frame. Those positions will be determined during <see cref="DoProcess"/>.
         /// Ray Interactor needs the UI raycasts to be completed by the time <see cref="XRInteractionManager"/>
-        /// calls into <see cref="XRBaseInteractor.GetValidTargets"/> since that is dependent on
+        /// calls into <see cref="IXRInteractor.GetValidTargets"/> since that is dependent on
         /// whether a UI hit was closer than a 3D hit. This processing must therefore be done
-        /// between Locomotion and <see cref="XRBaseInteractor.ProcessInteractor"/> to minimize latency.
+        /// between Locomotion and <see cref="IXRInteractor.PreprocessInteractor"/> to minimize latency.
         /// </remarks>
         protected virtual void Update()
         {
@@ -168,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!mouseState.changedThisFrame)
                 return;
 
-            var eventData = GetOrCreateCachedPointerEvent();
+            var eventData = GetOrCreateCachedPointerEvent(mouseState.pointerId);
             eventData.Reset();
 
             mouseState.CopyTo(eventData);
@@ -353,13 +354,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 {
                     drop?.Invoke(hoverTarget, eventData);
                     ExecuteEvents.ExecuteHierarchy(hoverTarget, eventData, ExecuteEvents.dropHandler);
+                }
 
+                eventData.eligibleForClick = false;
+                eventData.pointerPress = null;
+                eventData.rawPointerPress = null;
+
+                if (eventData.dragging && pointerDrag != null)
+                {
                     endDrag?.Invoke(pointerDrag, eventData);
                     ExecuteEvents.Execute(pointerDrag, eventData, ExecuteEvents.endDragHandler);
                 }
 
-                eventData.eligibleForClick = eventData.dragging = false;
-                eventData.pointerPress = eventData.rawPointerPress = eventData.pointerDrag = null;
+                eventData.dragging = false;
+                eventData.pointerDrag = null;
             }
         }
 
@@ -419,7 +427,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!touchState.changedThisFrame)
                 return;
 
-            var eventData = GetOrCreateCachedPointerEvent();
+            var eventData = GetOrCreateCachedPointerEvent(touchState.pointerId);
             eventData.Reset();
 
             touchState.CopyTo(eventData);
@@ -441,7 +449,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!deviceState.changedThisFrame && !force)
                 return;
 
-            var eventData = GetOrCreateCachedTrackedDeviceEvent();
+            var eventData = GetOrCreateCachedTrackedDeviceEvent(deviceState.pointerId);
             eventData.Reset();
             deviceState.CopyTo(eventData);
 
@@ -596,25 +604,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             joystickState.OnFrameFinished();
         }
 
-        PointerEventData GetOrCreateCachedPointerEvent()
+        internal void RemovePointerEventData(int pointerId)
         {
-            var result = m_CachedPointerEvent;
-            if (result == null)
+            if (!m_TrackedDeviceEventByPointerId.Remove(pointerId))
+                m_PointerEventByPointerId.Remove(pointerId);
+        }
+
+        PointerEventData GetOrCreateCachedPointerEvent(int pointerId)
+        {
+            if (!m_PointerEventByPointerId.TryGetValue(pointerId, out var result))
             {
                 result = new PointerEventData(eventSystem);
-                m_CachedPointerEvent = result;
+                m_PointerEventByPointerId.Add(pointerId, result);
             }
 
             return result;
         }
 
-        TrackedDeviceEventData GetOrCreateCachedTrackedDeviceEvent()
+        TrackedDeviceEventData GetOrCreateCachedTrackedDeviceEvent(int pointerId)
         {
-            var result = m_CachedTrackedDeviceEventData;
-            if (result == null)
+            if (!m_TrackedDeviceEventByPointerId.TryGetValue(pointerId, out var result))
             {
                 result = new TrackedDeviceEventData(eventSystem);
-                m_CachedTrackedDeviceEventData = result;
+                m_TrackedDeviceEventByPointerId.Add(pointerId, result);
             }
 
             return result;

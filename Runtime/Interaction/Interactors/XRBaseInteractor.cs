@@ -189,30 +189,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool hasSelection => interactablesSelected.Count > 0;
 
-        /// <summary>
-        /// Selected Interactable for this Interactor (may be <see langword="null"/>).
-        /// </summary>
-        /// <seealso cref="XRBaseInteractable.selectingInteractor"/>
-        /// <remarks>
-        /// <c>selectTarget</c> has been deprecated. Use <see cref="interactablesSelected"/>, <see cref="XRSelectInteractorExtensions.GetOldestInteractableSelected"/>, <see cref="hasSelection"/>, or <see cref="IsSelecting"/> instead.
-        /// </remarks>
-        [Obsolete("selectTarget has been deprecated. Use interactablesSelected, GetOldestInteractableSelected, hasSelection, or IsSelecting for similar functionality.")]
-        public XRBaseInteractable selectTarget
-        {
-            get => hasSelection ? interactablesSelected[0] as XRBaseInteractable : null;
-            protected set => interactablesSelected[0] = value;
-        }
-
-        /// <summary>
-        /// Target Interactables that are currently being hovered over (may by empty).
-        /// </summary>
-        /// <seealso cref="XRBaseInteractable.hoveringInteractors"/>
-        /// <remarks>
-        /// <c>hoverTargets</c> has been deprecated. Use <see cref="interactablesHovered"/> instead.
-        /// </remarks>
-        [Obsolete("hoverTargets has been deprecated. Use interactablesHovered instead.")]
-        protected List<XRBaseInteractable> hoverTargets { get; } = new List<XRBaseInteractable>();
-
         readonly Dictionary<IXRSelectInteractable, Pose> m_AttachPoseOnSelect = new Dictionary<IXRSelectInteractable, Pose>();
 
         readonly Dictionary<IXRSelectInteractable, Pose> m_LocalAttachPoseOnSelect = new Dictionary<IXRSelectInteractable, Pose>();
@@ -304,22 +280,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Don't need to do anything; method kept for backwards compatibility.
         }
 
-        /// <summary>
-        /// Retrieves a copy of the list of target Interactables that are currently being hovered over.
-        /// </summary>
-        /// <param name="targets">The results list to store hover targets into.</param>
-        /// <remarks>
-        /// Clears <paramref name="targets"/> before adding to it.
-        /// <br />
-        /// <c>GetHoverTargets</c> has been deprecated. Use <see cref="interactablesHovered"/> instead.
-        /// </remarks>
-        [Obsolete("GetHoverTargets has been deprecated. Use interactablesHovered instead.")]
-        public void GetHoverTargets(List<XRBaseInteractable> targets)
-        {
-            targets.Clear();
-            targets.AddRange(hoverTargets);
-        }
-
         /// <inheritdoc />
         public virtual Transform GetAttachTransform(IXRInteractable interactable)
         {
@@ -340,23 +300,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <inheritdoc />
         public virtual void GetValidTargets(List<IXRInteractable> targets)
-        {
-        }
-
-        /// <summary>
-        /// Retrieve the list of Interactables that this Interactor could possibly interact with this frame.
-        /// This list is sorted by priority (with highest priority first).
-        /// </summary>
-        /// <param name="targets">The results list to populate with Interactables that are valid for selection or hover.</param>
-        /// <remarks>
-        /// <c>GetValidTargets(List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="GetValidTargets(List{IXRInteractable})"/> instead.
-        /// <see cref="XRInteractionManager.GetValidTargets(IXRInteractor, List{IXRInteractable})"/> will stitch the results together with <c>GetValidTargets(List&lt;IXRInteractable&gt;)</c>,
-        /// but by default this method now does nothing.
-        /// </remarks>
-        [Obsolete("GetValidTargets(List<XRBaseInteractable>) has been deprecated. Override GetValidTargets(List<IXRInteractable>) instead." +
-            " XRInteractionManager.GetValidTargets will stitch the results together with GetValidTargets(List<IXRInteractable>), but by default" +
-            " this method now does nothing.")]
-        public virtual void GetValidTargets(List<XRBaseInteractable> targets)
         {
         }
 
@@ -414,33 +357,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Determines if the Interactable is valid for hover this frame.
         /// </summary>
         /// <param name="interactable">Interactable to check.</param>
-        /// <returns>Returns <see langword="true"/> if the interactable can be hovered over this frame.</returns>
-        /// <seealso cref="XRBaseInteractable.IsHoverableBy(XRBaseInteractor)"/>
-        /// <remarks>
-        /// <c>CanHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanHover(IXRHoverInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanHover(XRBaseInteractable) has been deprecated. Use CanHover(IXRHoverInteractable) instead.")]
-        public virtual bool CanHover(XRBaseInteractable interactable) => CanHover((IXRHoverInteractable)interactable);
-
-        /// <summary>
-        /// Determines if the Interactable is valid for hover this frame.
-        /// </summary>
-        /// <param name="interactable">Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if the Interactable can be hovered over this frame.</returns>
         /// <seealso cref="IXRHoverInteractable.IsHoverableBy"/>
         public virtual bool CanHover(IXRHoverInteractable interactable) => true;
-
-        /// <summary>
-        /// Determines if the Interactable is valid for selection this frame.
-        /// </summary>
-        /// <param name="interactable">Interactable to check.</param>
-        /// <returns>Returns <see langword="true"/> if the Interactable can be selected this frame.</returns>
-        /// <seealso cref="XRBaseInteractable.IsSelectableBy(XRBaseInteractor)"/>
-        /// <remarks>
-        /// <c>CanSelect(XRBaseInteractable)</c> has been deprecated. Use <see cref="CanSelect(IXRSelectInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("CanSelect(XRBaseInteractable) has been deprecated. Use CanSelect(IXRSelectInteractable) instead.")]
-        public virtual bool CanSelect(XRBaseInteractable interactable) => CanSelect((IXRSelectInteractable)interactable);
 
         /// <summary>
         /// Determines if the Interactable is valid for selection this frame.
@@ -489,18 +408,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="interactablesSelected"/>
         /// <seealso cref="IXRSelectInteractor.IsSelecting"/>
         protected bool IsSelecting(IXRInteractable interactable) => interactable is IXRSelectInteractable selectable && IsSelecting(selectable);
-
-        /// <summary>
-        /// (Deprecated) (Read Only) Indicates whether this Interactor requires that an Interactable is not currently selected to begin selecting it.
-        /// </summary>
-        /// <remarks>
-        /// When <see langword="true"/>, the Interaction Manager will only begin a selection when the Interactable is not currently selected.
-        /// </remarks>
-        /// <remarks>
-        /// <c>requireSelectExclusive</c> has been deprecated. Put logic in <see cref="CanSelect(IXRSelectInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("requireSelectExclusive has been deprecated. Put logic in CanSelect instead.")]
-        public virtual bool requireSelectExclusive => false;
 
         /// <summary>
         /// (Read Only) Overriding movement type of the selected Interactable's movement.
@@ -815,17 +722,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_LocalAttachPoseOnSelect.Clear();
             }
         }
-
-        /// <summary>
-        /// Manually initiate selection of an Interactable.
-        /// </summary>
-        /// <param name="interactable">Interactable that is being selected.</param>
-        /// <seealso cref="EndManualInteraction"/>
-        /// <remarks>
-        /// <c>StartManualInteraction(XRBaseInteractable)</c> has been deprecated. Use <see cref="StartManualInteraction(IXRSelectInteractable)"/> instead.
-        /// </remarks>
-        [Obsolete("StartManualInteraction(XRBaseInteractable) has been deprecated. Use StartManualInteraction(IXRSelectInteractable) instead.")]
-        public virtual void StartManualInteraction(XRBaseInteractable interactable) => StartManualInteraction((IXRSelectInteractable)interactable);
 
         /// <summary>
         /// Manually initiate selection of an Interactable.
