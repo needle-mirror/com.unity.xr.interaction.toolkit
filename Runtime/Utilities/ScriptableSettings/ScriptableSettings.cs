@@ -305,8 +305,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Internal
 
             if (!Application.isBatchMode)
                 AssetDatabase.SaveAssets();
-
-            Debug.Log(string.Format("Created initial copy of settings: {0} at {1}", GetFilePath(), savePath));
 #endif
         }
 
