@@ -139,10 +139,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Force selects an Interactable.
+        /// Manually forces selection of an Interactable. This is different than starting manual interaction.
         /// </summary>
-        /// <param name="interactor">The Interactor that will force select the Interactable.</param>
-        /// <param name="interactable">The Interactable to be forced selected.</param>
+        /// <param name="interactor">The Interactor that will select the Interactable.</param>
+        /// <param name="interactable">The Interactable to be selected.</param>
         /// <remarks>
         /// <c>ForceSelect(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>

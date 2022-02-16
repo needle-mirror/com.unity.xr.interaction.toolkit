@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// using a specified input action.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
-    [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Action-based)")]
+    [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedContinuousMoveProvider)]
     public class ActionBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {

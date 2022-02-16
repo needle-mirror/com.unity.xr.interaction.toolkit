@@ -10,24 +10,24 @@ using Unity.XR.CoreUtils;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Interactor used for interacting with interactables at a distance. This is handled via raycasts
+    /// Interactor used for interacting with interactables at a distance. This is handled via ray casts
     /// that update the current set of valid targets for this interactor.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Ray Interactor")]
+    [AddComponentMenu("XR/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
     public partial class XRRayInteractor : XRBaseControllerInteractor, ILineRenderable, IUIInteractor
     {
         /// <summary>
-        /// Compares raycast hits by distance, to sort in ascending order.
+        /// Compares ray cast hits by distance, to sort in ascending order.
         /// </summary>
         protected sealed class RaycastHitComparer : IComparer<RaycastHit>
         {
             /// <summary>
-            /// Compares raycast hits by distance in ascending order.
+            /// Compares ray cast hits by distance in ascending order.
             /// </summary>
-            /// <param name="a">The first raycast hit to compare.</param>
-            /// <param name="b">The second raycast hit to compare.</param>
+            /// <param name="a">The first ray cast hit to compare.</param>
+            /// <param name="b">The second ray cast hit to compare.</param>
             /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
             {
@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public enum LineType
         {
             /// <summary>
-            /// Performs a single raycast into the Scene with a set ray length.
+            /// Performs a single ray cast into the Scene with a set ray length.
             /// </summary>
             StraightLine,
 
@@ -70,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public enum HitDetectionType
         {
             /// <summary>
-            /// Uses <see cref="Physics"/> Raycast to detect collisions.
+            /// Uses <see cref="Physics"/> Ray cast to detect collisions.
             /// </summary>
             Raycast,
 
@@ -94,16 +94,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_BlendVisualLinePoints = true;
         /// <summary>
-        /// Blend the line sample points Unity uses for raycasting with the current pose of the controller.
+        /// Blend the line sample points Unity uses for ray casting with the current pose of the controller.
         /// Use this to make the line visual stay connected with the controller instead of lagging behind.
         /// </summary>
         /// <remarks>
         /// When the controller is configured to sample tracking input directly before rendering to reduce
         /// input latency, the controller may be in a new position or rotation relative to the starting point
-        /// of the sample curve used for raycasting.
+        /// of the sample curve used for ray casting.
         /// <br/>
         /// A value of <see langword="false"/> will make the line visual stay at a fixed reference frame rather than bending
-        /// or curving towards the end of the raycast line.
+        /// or curving towards the end of the ray cast line.
         /// </remarks>
         public bool blendVisualLinePoints
         {
@@ -259,10 +259,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// The number of sample points Unity uses to approximate curved paths.
         /// Larger values produce a better quality approximate at the cost of reduced performance
-        /// due to the number of raycasts.
+        /// due to the number of ray casts.
         /// </summary>
         /// <remarks>
-        /// A value of <i>n</i> will result in <i>n - 1</i> line segments for raycast.
+        /// A value of <i>n</i> will result in <i>n - 1</i> line segments for ray cast.
         /// This property is not used when using <see cref="LineType.StraightLine"/> since the value would always be 2.
         /// </remarks>
         /// <seealso cref="LineType.ProjectileCurve"/>
@@ -276,7 +276,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         HitDetectionType m_HitDetectionType = HitDetectionType.Raycast;
         /// <summary>
-        /// Gets or sets which type of hit detection to use for the raycast.
+        /// Gets or sets which type of hit detection to use for the ray cast.
         /// </summary>
         public HitDetectionType hitDetectionType
         {
@@ -288,7 +288,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0.01f, 0.25f)]
         float m_SphereCastRadius = 0.1f;
         /// <summary>
-        /// Gets or sets radius used for sphere casting. Will use regular raycasting if set to 0 or less.
+        /// Gets or sets radius used for sphere casting. Will use regular ray casting if set to 0 or less.
         /// </summary>
         /// <seealso cref="HitDetectionType.SphereCast"/>
         /// <seealso cref="hitDetectionType"/>
@@ -301,7 +301,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         LayerMask m_RaycastMask = -1;
         /// <summary>
-        /// Gets or sets layer mask used for limiting raycast targets.
+        /// Gets or sets layer mask used for limiting ray cast targets.
         /// </summary>
         public LayerMask raycastMask
         {
@@ -312,7 +312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
         /// <summary>
-        /// Gets or sets type of interaction with trigger volumes via raycast.
+        /// Gets or sets type of interaction with trigger volumes via ray cast.
         /// </summary>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
@@ -490,7 +490,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// A polygonal chain represented by a list of endpoints which form line segments
-        /// to approximate the curve. Each line segment is where the raycast starts and ends.
+        /// to approximate the curve. Each line segment is where the ray cast starts and ends.
         /// World space coordinates.
         /// </summary>
         List<SamplePoint> m_SamplePoints;
@@ -609,7 +609,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var hitIndex = closestAnyHitIndex;
 
-            // Draw sample points where the raycast line segments took place
+            // Draw sample points where the ray cast line segments took place
             for (var i = 0; i < m_SamplePoints.Count; ++i)
             {
                 var samplePoint = m_SamplePoints[i];
@@ -928,7 +928,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var raycastPoints = model.raycastPoints;
             raycastPoints.Clear();
 
-            // Update curve approximation used for raycasts.
+            // Update curve approximation used for ray casts.
             // This method will be called before ProcessInteractor.
             UpdateSamplePoints(m_SampleFrequency, m_SamplePoints);
             m_SamplePointsFrameUpdated = Time.frameCount;
@@ -952,7 +952,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return m_InputModule.GetTrackedDeviceModel(this, out model);
             }
 
-            model = new TrackedDeviceModel(-1);
+            model = TrackedDeviceModel.invalid;
             return false;
         }
 
@@ -963,12 +963,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Gets the first 3D raycast hit, if any raycast hits are available.
+        /// Gets the first 3D ray cast hit, if any ray cast hits are available.
         /// </summary>
-        /// <param name="raycastHit">When this method returns, contains the raycast hit if available; otherwise, the default value.</param>
+        /// <param name="raycastHit">When this method returns, contains the ray cast hit if available; otherwise, the default value.</param>
         /// <param name="raycastEndpointIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
-        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the raycast hit information is valid.
+        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetCurrent3DRaycastHit(out RaycastHit raycastHit, out int raycastEndpointIndex)
         {
@@ -992,12 +992,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Gets the first UI raycast result, if any raycast results are available.
+        /// Gets the first UI ray cast result, if any ray cast results are available.
         /// </summary>
-        /// <param name="raycastResult">When this method returns, contains the UI raycast result if available; otherwise, the default value.</param>
+        /// <param name="raycastResult">When this method returns, contains the UI ray cast result if available; otherwise, the default value.</param>
         /// <param name="raycastEndpointIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
-        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the raycast hit information is valid.
+        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetCurrentUIRaycastResult(out RaycastResult raycastResult, out int raycastEndpointIndex)
         {
@@ -1014,16 +1014,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Gets the first 3D and UI raycast hits, if any raycast hits are available.
+        /// Gets the first 3D and UI ray cast hits, if any ray cast hits are available.
         /// </summary>
-        /// <param name="raycastHit">When this method returns, contains the raycast hit if available; otherwise, the default value.</param>
+        /// <param name="raycastHit">When this method returns, contains the ray cast hit if available; otherwise, the default value.</param>
         /// <param name="raycastHitIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
-        /// <param name="uiRaycastHit">When this method returns, contains the UI raycast result if available; otherwise, the default value.</param>
+        /// <param name="uiRaycastHit">When this method returns, contains the UI ray cast result if available; otherwise, the default value.</param>
         /// <param name="uiRaycastHitIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
-        /// <param name="isUIHitClosest">When this method returns, contains whether the UI raycast result was the closest hit.</param>
-        /// <returns>Returns <see langword="true"/> if either hit occurred, implying the raycast hit information is valid.
+        /// <param name="isUIHitClosest">When this method returns, contains whether the UI ray cast result was the closest hit.</param>
+        /// <returns>Returns <see langword="true"/> if either hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetCurrentRaycast(
             out RaycastHit? raycastHit,
@@ -1054,7 +1054,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 uiRaycastHit = raycastResultValue;
 
                 // Determine if the UI hit is closer than the 3D hit.
-                // The Raycast segments are sourced from a polygonal chain of endpoints.
+                // The ray cast segments are sourced from a polygonal chain of endpoints.
                 // Within each segment, this Interactor could have hit either a 3D object or a UI object.
                 // The distance is just from the segment start position, not from the origin of the whole curve.
                 isUIHitClosest = uiRaycastHitIndex > 0 &&
@@ -1215,7 +1215,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                // Update curve approximation used for raycasts
+                // Update curve approximation used for ray casts
                 // if it hasn't already been done earlier in the frame for the UI Input Module.
                 if (m_SamplePointsFrameUpdated != Time.frameCount)
                 {
@@ -1225,7 +1225,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 Assert.IsTrue(m_SamplePoints.Count >= 2);
 
-                // Perform raycasts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
+                // Perform ray casts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
                 UpdateRaycastHits();
                 UpdateUIHitIndex();
                 CreateBezierCurve(m_SamplePoints, closestAnyHitIndex, m_HitChordControlPoints);
@@ -1332,7 +1332,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Approximates the curve into a polygonal chain of endpoints, whose line segments can be used as
-        /// the rays for doing Physics raycasts.
+        /// the rays for doing Physics ray casts.
         /// </summary>
         /// <param name="count">The number of sample points to calculate.</param>
         /// <param name="samplePoints">The result list of sample points to populate.</param>
@@ -1409,7 +1409,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     m_RaycastHitEndpointIndex = i;
                     // Sort all the hits by distance along the curve
-                    // since the results of the raycast are not ordered.
+                    // since the results of the ray cast are not ordered.
                     SortingHelpers.Sort(m_RaycastHits, m_RaycastHitComparer);
                     break;
                 }
@@ -1438,7 +1438,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void CreateBezierCurve(List<SamplePoint> samplePoints, int endSamplePointIndex, Vector3[] quadraticControlPoints)
         {
-            // Convert the raycast curve ranging from the controller to the sample endpoint
+            // Convert the ray cast curve ranging from the controller to the sample endpoint
             // where the hit occurred into a quadratic Bezier curve
             // with control points P₀, P₁, P₂.
             var endSamplePoint = endSamplePointIndex > 0 && endSamplePointIndex < samplePoints.Count
@@ -1537,7 +1537,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// A point within a polygonal chain of endpoints which form line segments
-        /// to approximate the curve. Each line segment is where the raycast starts and ends.
+        /// to approximate the curve. Each line segment is where the ray cast starts and ends.
         /// </summary>
         struct SamplePoint
         {

@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
@@ -26,6 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// <summary>
     /// Custom class for input modules that send UI input in XR.
     /// </summary>
+    [AddComponentMenu("Event/XR UI Input Module", 11)]
     [HelpURL(XRHelpURLConstants.k_XRUIInputModule)]
     public partial class XRUIInputModule : UIInputModule
     {
@@ -56,9 +56,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField, HideInInspector]
-        [Tooltip("The maximum distance to raycast with tracked devices to find hit objects.")]
+        [Tooltip("The maximum distance to ray cast with tracked devices to find hit objects.")]
         float m_MaxTrackedDeviceRaycastDistance = 1000f;
 
+        [Header("Input Devices")]
         [SerializeField]
         [Tooltip("If true, will forward 3D tracked device data to UI elements.")]
         bool m_EnableXRInput = true;
@@ -98,9 +99,90 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_EnableTouchInput = value;
         }
 
+        [SerializeField]
+        [Tooltip("If true, will forward gamepad data to UI elements.")]
+        bool m_EnableGamepadInput = true;
+
+        /// <summary>
+        /// If <see langword="true"/>, will forward gamepad data to UI elements.
+        /// </summary>
+        public bool enableGamepadInput
+        {
+            get => m_EnableGamepadInput;
+            set => m_EnableGamepadInput = value;
+        }
+
+        [SerializeField]
+        [Tooltip("If true, will forward joystick data to UI elements.")]
+        bool m_EnableJoystickInput = true;
+
+        /// <summary>
+        /// If <see langword="true"/>, will forward joystick data to UI elements.
+        /// </summary>
+        public bool enableJoystickInput
+        {
+            get => m_EnableJoystickInput;
+            set => m_EnableJoystickInput = value;
+        }
+
+        [Header("Input Manager (Old) Gamepad/Joystick Bindings")]
+        [SerializeField]
+        [Tooltip("Name of the horizontal axis for gamepad/joystick UI navigation when using the old Input Manager.")]
+        string m_HorizontalAxis = "Horizontal";
+
+        /// <summary>
+        /// Name of the horizontal axis for UI navigation when using the old Input Manager.
+        /// </summary>
+        public string horizontalAxis
+        {
+            get => m_HorizontalAxis;
+            set => m_HorizontalAxis = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Name of the vertical axis for gamepad/joystick UI navigation when using the old Input Manager.")]
+        string m_VerticalAxis = "Vertical";
+
+        /// <summary>
+        /// Name of the vertical axis for UI navigation when using the old Input Manager.
+        /// </summary>
+        public string verticalAxis
+        {
+            get => m_VerticalAxis;
+            set => m_VerticalAxis = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Name of the gamepad/joystick button to use for UI selection or submission when using the old Input Manager.")]
+        string m_SubmitButton = "Submit";
+
+        /// <summary>
+        /// Name of the gamepad/joystick button to use for UI selection or submission when using the old Input Manager.
+        /// </summary>
+        public string submitButton
+        {
+            get => m_SubmitButton;
+            set => m_SubmitButton = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Name of the gamepad/joystick button to use for UI cancel or back commands when using the old Input Manager.")]
+        string m_CancelButton = "Cancel";
+
+        /// <summary>
+        /// Name of the gamepad/joystick button to use for UI cancel or back commands when using the old Input Manager.
+        /// </summary>
+        public string cancelButton
+        {
+            get => m_CancelButton;
+            set => m_CancelButton = value;
+        }
+
         int m_RollingPointerId;
 
         MouseModel m_Mouse;
+        GamepadModel m_Gamepad;
+        JoystickModel m_Joystick;
 
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
 
@@ -113,6 +195,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             base.OnEnable();
             m_Mouse = new MouseModel(m_RollingPointerId++);
+            m_Gamepad = new GamepadModel();
+            m_Joystick = new JoystickModel();
         }
 
         /// <summary>
@@ -231,8 +315,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_EnableTouchInput)
                 hasTouches = ProcessTouches();
 
-            if (m_EnableMouseInput && !hasTouches)
+            // Process mouse input before gamepad and joystick per StandaloneInputModule (case 1004066)
+            if (!hasTouches && m_EnableMouseInput)
                 ProcessMouse();
+
+            if (m_EnableGamepadInput)
+                ProcessGamepad();
+
+            if (m_EnableJoystickInput)
+                ProcessJoystick();
         }
 
         void ProcessMouse()
@@ -253,6 +344,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 ProcessMouse(ref m_Mouse);
             }
+#if ENABLE_LEGACY_INPUT_MANAGER
             else if (Input.mousePresent)
             {
                 m_Mouse.position = Input.mousePosition;
@@ -263,6 +355,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 ProcessMouse(ref m_Mouse);
             }
+#endif
         }
 
         bool ProcessTouches()
@@ -271,9 +364,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!hasTouches)
                 return false;
 
-            var touches = Input.touches;
-            foreach (var touch in touches)
+            var touchCount = Input.touchCount;
+            for (var touchIndex = 0; touchIndex < touchCount; ++touchIndex)
             {
+                var touch = Input.GetTouch(touchIndex);
                 var registeredTouchIndex = -1;
 
                 // Find if touch already exists
@@ -325,6 +419,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             return true;
+        }
+
+        void ProcessGamepad()
+        {
+            if (Gamepad.current != null)
+            {
+                m_Gamepad.leftStick = Gamepad.current.leftStick.ReadValue();
+                m_Gamepad.dpad = Gamepad.current.dpad.ReadValue();
+                m_Gamepad.submitButtonDown = Gamepad.current.buttonSouth.isPressed;
+                m_Gamepad.cancelButtonDown = Gamepad.current.buttonEast.isPressed;
+
+                ProcessGamepad(ref m_Gamepad);
+            }
+#if ENABLE_LEGACY_INPUT_MANAGER
+            else if (Input.GetJoystickNames().Length > 0)
+            {
+                m_Gamepad.leftStick = new Vector2(Input.GetAxis(m_HorizontalAxis), Input.GetAxis(m_VerticalAxis));
+                // TODO: Find best way to set dPad vector from old Input Manager
+                m_Gamepad.submitButtonDown = Input.GetButton(m_SubmitButton);
+                m_Gamepad.cancelButtonDown = Input.GetButton(m_CancelButton);
+
+                ProcessGamepad(ref m_Gamepad);
+            }
+#endif
+        }
+
+        void ProcessJoystick()
+        {
+            if (Joystick.current != null)
+            {
+                m_Joystick.move = Joystick.current.stick.ReadValue();
+                m_Joystick.hat = Joystick.current.hatswitch != null ? Joystick.current.hatswitch.ReadValue() : Vector2.zero;
+                m_Joystick.submitButtonDown = Joystick.current.trigger.isPressed;
+                // This will always be false until we can rely on a secondary button from the joystick
+                m_Joystick.cancelButtonDown = false;
+
+                ProcessJoystick(ref m_Joystick);
+            }
+#if ENABLE_LEGACY_INPUT_MANAGER
+            // When using the legacy input manager, gamepad and joystick input are technically the same
+            // so we need to stop processing if both checkboxes are enabled.
+            else if (!m_EnableGamepadInput && Input.GetJoystickNames().Length > 0)
+            {
+                m_Joystick.move = new Vector2(Input.GetAxis(m_HorizontalAxis), Input.GetAxis(m_VerticalAxis));
+                // TODO: Find best way to set hat vector from old Input Manager
+                m_Joystick.submitButtonDown = Input.GetButton(m_SubmitButton);
+                m_Joystick.cancelButtonDown = Input.GetButton(m_CancelButton);
+
+                ProcessJoystick(ref m_Joystick);
+            }
+#endif
         }
     }
 }

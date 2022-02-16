@@ -20,8 +20,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layers");
         }
-        
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="InteractionLayerSettings.m_LayerNames"/>.</summary>
+
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="InteractionLayerSettings"/><c>.m_LayerNames</c>.</summary>
         SerializedProperty m_Layers;
         /// <summary>A gui list used to display the layers.</summary>
         ReorderableList m_LayersList;

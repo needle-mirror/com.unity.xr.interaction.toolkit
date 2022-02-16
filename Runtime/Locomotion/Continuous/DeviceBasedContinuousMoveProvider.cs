@@ -7,7 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// using a specified 2D axis input.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
-    [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Device-based)")]
+    [AddComponentMenu("XR/Locomotion/Continuous Move Provider (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousMoveProvider)]
     public class DeviceBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {

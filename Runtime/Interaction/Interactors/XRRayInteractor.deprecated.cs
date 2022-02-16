@@ -118,7 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <inheritdoc cref="TryGetCurrent3DRaycastHit(out RaycastHit)"/>
         /// <remarks>
-        /// <c>GetCurrentRaycastHit</c> has been deprecated. Use <see cref="TryGetCurrent3DRaycastHit"/> instead.
+        /// <c>GetCurrentRaycastHit</c> has been deprecated. Use <see cref="TryGetCurrent3DRaycastHit(out RaycastHit)"/> instead.
         /// </remarks>
         [Obsolete("GetCurrentRaycastHit has been deprecated. Use TryGetCurrent3DRaycastHit instead. (UnityUpgradable) -> TryGetCurrent3DRaycastHit(*)")]
         public bool GetCurrentRaycastHit(out RaycastHit raycastHit)

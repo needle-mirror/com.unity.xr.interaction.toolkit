@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -736,6 +736,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             CreateAndPlaceGameObject("AR Annotation Interactable", menuCommand.GetContextTransform(), typeof(ARRotationInteractable));
         }
+
 #endif // AR_FOUNDATION_PRESENT
     }
 }

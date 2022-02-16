@@ -73,7 +73,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
-                    true, false, false)); 
+                    true, false, false));
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
                     true, false, false));
             });
@@ -95,7 +95,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
-                    true, false, false)); 
+                    true, false, false));
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
                     true, false, false));
             });
@@ -191,7 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
-                    true, false, false)); 
+                    true, false, false));
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
                     true, false, false));
             });
@@ -207,7 +207,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
-            // Disable the Interactable so it will be removed as a valid target
+            // Disable the Interactable so it will be removed as a valid target.
             interactable.enabled = false;
 
             yield return null;
@@ -228,6 +228,135 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorUpdatesStayedCollidersOnDisablingInteractableCollider()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Check that the interactor is hovering the interactable.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Disable the collider component.
+            interactable.GetComponent<SphereCollider>().enabled = false;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactable's collider is disabled, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            yield return new WaitForFixedUpdate();
+
+            // Additional test: re-enable the collider component, the interactor should re-hover it.
+            interactable.GetComponent<SphereCollider>().enabled = true;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorUpdatesStayedCollidersOnDeactivatingInteractableObject()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // De-activate the interactable's gameObject.
+            interactable.gameObject.SetActive(false);
+
+            // Test to make sure that the interactable gameObject would no longer be a valid target
+            // after its gameObject is set to disable.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            yield return new WaitForFixedUpdate();
+
+            // Re-enabling the interactable gameObject, the interactor should re-hover it.
+            interactable.gameObject.SetActive(true);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorUpdatesStayedCollidersOnDestroyingInteractableObject()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Destroy the interactable's gameObject.
+            Object.Destroy(interactable.gameObject);
+
+            // Test to make sure that the interactable gameObject would no longer be a valid target.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            yield return new WaitForFixedUpdate();
+
+            // Additional test: re-spawning the interactable gameObject, the interactor should re-hover it.
+            interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
         }
     }
 }

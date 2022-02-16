@@ -14,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// Designed to work with <see cref="XRUIInputModule"/>, which configures the final screen position once all hits are tallied.
     /// </remarks>
     /// <seealso cref="PhysicsRaycaster"/>
+    [AddComponentMenu("Event/Tracked Device Physics Raycaster", 11)]
     [HelpURL(XRHelpURLConstants.k_TrackedDevicePhysicsRaycaster)]
     public class TrackedDevicePhysicsRaycaster : BaseRaycaster
     {
@@ -74,26 +75,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Compares raycast hits by distance, to sort in ascending order.
+        /// Compares ray cast hits by distance, to sort in ascending order.
         /// </summary>
         sealed class RaycastHitComparer : IComparer<RaycastHit>
         {
             /// <summary>
-            /// Compares raycast hits by distance in ascending order.
+            /// Compares ray cast hits by distance in ascending order.
             /// </summary>
-            /// <param name="a">The first raycast hit to compare.</param>
-            /// <param name="b">The second raycast hit to compare.</param>
+            /// <param name="a">The first ray cast hit to compare.</param>
+            /// <param name="b">The second ray cast hit to compare.</param>
             /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
                 => a.distance.CompareTo(b.distance);
         }
 
         [SerializeField]
-        [Tooltip("Specifies whether the raycast should hit triggers.")]
+        [Tooltip("Specifies whether the ray cast should hit triggers.")]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
-        /// Specifies whether the raycast should hit triggers.
+        /// Specifies whether the ray cast should hit triggers.
         /// </summary>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
@@ -101,11 +102,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_RaycastTriggerInteraction = value;
         }
 
-        [SerializeField, Tooltip("Layer mask used to filter events. Always combined with the raycast mask of the UI interactor.")]
+        [SerializeField, Tooltip("Layer mask used to filter events. Always combined with the ray cast mask of the UI interactor.")]
         LayerMask m_EventMask = k_EverythingLayerMask;
 
         /// <summary>
-        /// Layer mask used to filter events. Always combined with the raycast mask of the <see cref="IUIInteractor"/>.
+        /// Layer mask used to filter events. Always combined with the ray cast mask of the <see cref="IUIInteractor"/>.
         /// </summary>
         public LayerMask eventMask
         {
@@ -128,7 +129,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_MaxRayIntersections = Math.Max(value, 1);
         }
 
-        [SerializeField, Tooltip("The event camera for this raycaster. The event camera is used to determine the screen position and display of the raycast results.")]
+        [SerializeField, Tooltip("The event camera for this ray caster. The event camera is used to determine the screen position and display of the ray cast results.")]
         Camera m_EventCamera;
 
         /// <summary>
@@ -145,20 +146,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Sets the event camera for this raycaster. The event camera is used to determine the screen position and display of the raycast results.
+        /// Sets the event camera for this ray caster. The event camera is used to determine the screen position and display of the ray cast results.
         /// </summary>
-        /// <param name="newEventCamera">The new <see cref="Camera"/> to set as this raycaster's <see cref="eventCamera"/>.</param>
+        /// <param name="newEventCamera">The new <see cref="Camera"/> to set as this ray caster's <see cref="eventCamera"/>.</param>
         public void SetEventCamera(Camera newEventCamera)
         {
             m_EventCamera = newEventCamera;
         }
 
         /// <summary>
-        /// Performs a raycast against all physics objects using this event.
+        /// Performs a ray cast against all physics objects using this event.
         /// </summary>
         /// <remarks>Will only process events of type <see cref="TrackedDeviceEventData"/>.</remarks>
-        /// <param name="eventData">Data containing where and how to raycast.</param>
-        /// <param name="resultAppendList">The resultant hits from the raycast.</param>
+        /// <param name="eventData">Data containing where and how to ray cast.</param>
+        /// <param name="resultAppendList">The resultant hits from the ray cast.</param>
         public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
         {
             if (eventData is TrackedDeviceEventData trackedEventData)
@@ -173,7 +174,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
         RaycastHitArraySegment m_RaycastArrayWrapper;
 
-        // Use this list on each raycast to avoid continually allocating.
+        // Use this list on each ray cast to avoid continually allocating.
         readonly List<RaycastHit> m_RaycastResultsCache = new List<RaycastHit>();
 
         /// <summary>

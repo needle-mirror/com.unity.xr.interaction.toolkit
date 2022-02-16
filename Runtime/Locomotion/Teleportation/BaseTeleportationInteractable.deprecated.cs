@@ -8,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Automatically called upon the teleport trigger when a teleport request should be generated.
         /// </summary>
         /// <param name="interactor">The interactor that initiated the teleport trigger.</param>
-        /// <param name="raycastHit">The raycast hit information from the interactor.</param>
+        /// <param name="raycastHit">The ray cast hit information from the interactor.</param>
         /// <param name="teleportRequest">The teleport request that should be filled out during this method call.</param>
         /// <returns>Returns <see langword="true"/> if the teleport request was successfully updated and should be queued. Otherwise, returns <see langword="false"/>.</returns>
         /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>

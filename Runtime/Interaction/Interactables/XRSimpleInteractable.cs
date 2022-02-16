@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Simple Interactable")]
+    [AddComponentMenu("XR/XR Simple Interactable", 11)]
     [HelpURL(XRHelpURLConstants.k_XRSimpleInteractable)]
     public class XRSimpleInteractable : XRBaseInteractable
     {

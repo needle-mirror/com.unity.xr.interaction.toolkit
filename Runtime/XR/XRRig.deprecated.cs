@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Deprecated) The type of tracking origin to use for this XROrigin. Tracking origins identify where (0, 0, 0) is in the world
         /// of tracking. Not all devices support all tracking origin modes.
         /// </summary>
-        /// <seealso cref="TrackingOriginMode"/>
+        /// <seealso cref="XROrigin.TrackingOriginMode"/>
         [Obsolete("requestedTrackingOriginMode has been deprecated. Use RequestedTrackingOriginMode instead.")]
         public TrackingOriginMode requestedTrackingOriginMode
         {
@@ -113,9 +113,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// (Deprecated) This function will rotate the rig object around the camera object using the <paramref name="destinationUp"/> vector such that:
         /// <list type="bullet">
-        /// <item>The camera will look at the area in the direction of the <paramref name="destinationForward"/></item>
-        /// <item>The projection of camera's forward vector on the plane with the normal <paramref name="destinationUp"/> will be in the direction of <paramref name="destinationForward"/></item>
-        /// <item>The up vector of the rig object will match the provided <paramref name="destinationUp"/> vector (note that the camera's Up vector can not be manipulated)</item>
+        /// <item>
+        /// <description>The camera will look at the area in the direction of <paramref name="destinationForward"/></description>
+        /// </item>
+        /// <item>
+        /// <description>The projection of camera's forward vector on the plane with the normal <paramref name="destinationUp"/> will be in the direction of <paramref name="destinationForward"/></description>
+        /// </item>
+        /// <item>
+        /// <description>The up vector of the rig object will match the provided <paramref name="destinationUp"/> vector (note that the camera's Up vector can not be manipulated)</description>
+        /// </item>
         /// </list>
         /// </summary>
         /// <param name="destinationUp">The up vector that the rig's up vector will be matched to.</param>
@@ -127,8 +133,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// (Deprecated) This function will rotate the rig object around the camera object using the <paramref name="destinationUp"/> vector such that:
         /// <list type="bullet">
-        /// <item>The forward vector of the rig object, which is the direction the player moves in Unity when walking forward in the physical world, will match the provided <paramref name="destinationUp"/> vector</item>
-        /// <item>The up vector of the rig object will match the provided <paramref name="destinationUp"/> vector</item>
+        /// <item>
+        /// <description>The forward vector of the rig object, which is the direction the player moves in Unity when walking forward in the physical world, will match the provided <paramref name="destinationUp"/> vector</description>
+        /// </item>
+        /// <item>
+        /// <description>The up vector of the rig object will match the provided <paramref name="destinationUp"/> vector</description>
+        /// </item>
         /// </list>
         /// </summary>
         /// <param name="destinationUp">The up vector that the rig's up vector will be matched to.</param>

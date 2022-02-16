@@ -37,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     public abstract partial class Gesture<T> where T : Gesture<T>
     {
         /// <summary>
-        /// Initializes and returns an instance of <see cref="Gesture"/> with a given recognizer.
+        /// Initializes and returns an instance of <see cref="Gesture{T}"/> with a given recognizer.
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         internal Gesture(GestureRecognizer<T> recognizer)
@@ -95,6 +95,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     onUpdated?.Invoke(this as T);
                 }
             }
+        }
+
+        /// <summary>
+        /// Derived types should call this during their Reinitialize step. Gesture is getting
+        /// reinitialized, so this call resets data to construction-time defaults.
+        /// </summary>
+        internal void Reinitialize()
+        {
+            onStart = null;
+            onUpdated = null;
+            onFinished = null;
+
+            isCanceled = false;
+            targetObject = null;
+            m_HasStarted = false;
         }
 
         /// <summary>

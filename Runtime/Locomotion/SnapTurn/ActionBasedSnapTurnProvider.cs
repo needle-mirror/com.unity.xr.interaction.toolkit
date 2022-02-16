@@ -8,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// A locomotion provider that allows the user to rotate their rig using a 2D axis input
     /// from an input system action.
     /// </summary>
-    [AddComponentMenu("XR/Locomotion/Snap Turn Provider (Action-based)")]
+    [AddComponentMenu("XR/Locomotion/Snap Turn Provider (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedSnapTurnProvider)]
     public class ActionBasedSnapTurnProvider : SnapTurnProviderBase
     {

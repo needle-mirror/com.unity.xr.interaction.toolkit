@@ -1,15 +1,15 @@
 # Samples
 
-To install samples included with this package, follow the instructions for [Installing samples](index.md#installing-samples) using the Package Manager.
+To install samples included with this package, follow the instructions for [Installing samples](installation.md#installing-samples) using the Package Manager.
 
 |**Sample**|**Description**|
 |---|---|
-|[Default Input Actions](#default-input-actions)|Default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System.|
-|[XR Device Simulator](#xr-device-simulator)|Assets related to the simulation of XR HMD and controllers.|
+|**[Starter Assets](#starter-assets)**|Assets to streamline setup of behaviors, including a default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System.|
+|**[XR Device Simulator](#xr-device-simulator)**|Assets related to the simulation of XR HMD and controllers.|
 
-## Default Input Actions
+## Starter Assets
 
-This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Default Input Actions` folder. You can move these Assets to a different location.
+This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
 
 This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
 
@@ -17,12 +17,12 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 
 |**Asset**|**Description**|
 |---|---|
-|`XRI Default Continuous Move.preset`|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
-|`XRI Default Continuous Turn.preset`|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
-|`XRI Default Input Actions.inputactions`|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
-|`XRI Default Left Controller.preset`|Preset for left hand [Controllers](index.md#controllers).|
-|`XRI Default Right Controller.preset`|Preset for right hand [Controllers](index.md#controllers).|
-|`XRI Default Snap Turn.preset`|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
+|**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
+|**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
+|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
+|**`XRI Default Left Controller.preset`**|Preset for left hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Right Controller.preset`**|Preset for right hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
 
 ### Input Actions Asset
 
@@ -34,17 +34,17 @@ The Asset contains several Action Maps, separated based on the bound device. Hav
 
 |**Action Map**|**Description**|
 |---|---|
-|XRI HMD|Actions with input bindings to a head-mounted display (that is, `<XRHMD>`).|
-|XRI LeftHand|Actions with input bindings to a left hand controller (that is, `<XRController>{LeftHand}`)|
-|XRI RightHand|Actions with input bindings to a right hand controller (that is, `<XRController>{RightHand}`)|
+|**XRI HMD**|Actions with input bindings to a head-mounted display (that is, `<XRHMD>`).|
+|**XRI LeftHand**|Actions with input bindings to a left hand controller (that is, `<XRController>{LeftHand}`)|
+|**XRI RightHand**|Actions with input bindings to a right hand controller (that is, `<XRController>{RightHand}`)|
 
 There are also several Input Control Schemes to group different input controls. You can use these to selectively enable or disable some of the bindings based on the locomotion movement control scheme in use.
 
 |**Control Scheme**|**Description**|
 |---|---|
-|Generic XR Controller|Bindings that should remain enabled when applying any movement control scheme.|
-|Continuous Move|Bindings that should remain enabled when applying the continuous movement control scheme.|
-|Noncontinuous Move|Bindings that should remain enabled when applying the noncontinuous movement control scheme.|
+|**Generic XR Controller**|Bindings that should remain enabled when applying any movement control scheme.|
+|**Continuous Move**|Bindings that should remain enabled when applying the continuous movement control scheme.|
+|**Noncontinuous Move**|Bindings that should remain enabled when applying the noncontinuous movement control scheme.|
 
 For a complete example of configuring input actions for each controller, and using control schemes, see the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) project.
 
@@ -66,12 +66,12 @@ The following image shows the Preset Manager with the included presets set as de
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\XR Device Simulator` folder. You can move these Assets to a different location.
 
-The XR Interaction Toolkit package provides an example implementation of an XR Device Simulator to allow for manipulating an HMD and a pair of controllers using mouse and keyboard input. This sample contains example bindings for use with that simulator, and a Prefab which you can add to your Scene to quickly start using the simulator.
+The XR Interaction Toolkit package provides an example implementation of an XR Device Simulator to allow for manipulating an HMD and a pair of controllers using mouse and keyboard input. This sample contains example bindings for use with that simulator, and a Prefab which you can add to your scene to quickly start using the simulator.
 
 |**Asset**|**Description**|
 |---|---|
-|`XR Device Simulator Controls.inputactions`|Asset that contains actions with default bindings for use with the XR Device Simulator.|
-|`XR Device Simulator.prefab`|Prefab with the XR Device Simulator component with references to actions configured, and an Input Action Manager component to enable the actions.|
+|**`XR Device Simulator Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator.|
+|**`XR Device Simulator.prefab`**|Prefab with the XR Device Simulator component with references to actions configured, and an Input Action Manager component to enable the actions.|
 
 ### Input Actions Asset
 
@@ -83,4 +83,5 @@ The following image shows the [Action editor](https://docs.unity3d.com/Packages/
 
 |Date|Reason|
 |---|---|
-|October 20, 2020|Document created. Matches package version 0.10.0.|
+|**February 15, 2022**|Renamed the Default Input Actions sample to Starter Assets. Matches package version 2.0.0.|
+|**October 20, 2020**|Document created. Matches package version 0.10.0.|

@@ -58,6 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
+    [AddComponentMenu("XR/AR Gesture Interactor", 22)]
     [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
     public partial class ARGestureInteractor : XRBaseInteractor
     {
@@ -108,12 +109,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
         /// <summary>
-        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static XROrigin s_XROriginCache;
 
         /// <summary>
-        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static ARSessionOrigin s_ARSessionOriginCache;
 
@@ -169,6 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #pragma warning restore 618
         }
 
+        /// <inheritdoc />
         protected override void OnDisable()
         {
             base.OnDisable();

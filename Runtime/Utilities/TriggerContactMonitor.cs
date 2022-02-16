@@ -45,9 +45,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         readonly HashSet<Collider> m_EnteredUnassociatedColliders = new HashSet<Collider>();
 
         /// <summary>
-        /// Reusable temporary list of Collider objects.
+        /// Reusable temporary list of Collider objects for resolving unassociated colliders.
         /// </summary>
         static readonly List<Collider> s_ScratchColliders = new List<Collider>();
+
+        /// <summary>
+        /// Reusable temporary list of Collider objects for removing colliders that did not stay during the frame
+        /// but previously entered.
+        /// </summary>
+        static readonly List<Collider> s_ExitedColliders = new List<Collider>();
 
         /// <summary>
         /// Adds <paramref name="collider"/> to contact list.
@@ -174,6 +180,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                         contactAdded?.Invoke(interactable);
                 }
             }
+        }
+
+        /// <summary>
+        /// Remove colliders that no longer stay during this frame but previously entered.
+        /// </summary>
+        /// <param name="stayedColliders">Colliders that stayed during the fixed update.</param>
+        /// <remarks>
+        /// Can be called in the fixed update phase by interactors after OnTriggerStay.
+        /// </remarks>
+        public void UpdateStayedColliders(List<Collider> stayedColliders)
+        {
+            if (m_EnteredColliders.Count == 0)
+                return;
+
+            s_ExitedColliders.Clear();
+
+            foreach (var collider in m_EnteredColliders.Keys)
+            {
+                if (!stayedColliders.Contains(collider))
+                    // Add to temporary list to remove in a second pass to avoid modifying
+                    // the collection being iterated.
+                    s_ExitedColliders.Add(collider);
+            }
+
+            foreach (var collider in s_ExitedColliders)
+            {
+                RemoveCollider(collider);
+            }
+
+            s_ExitedColliders.Clear();
         }
 
         /// <summary>

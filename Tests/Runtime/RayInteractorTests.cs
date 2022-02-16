@@ -472,7 +472,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        [Ignore("Ignored for known issue where only the raycasts of the first segment where a hit occurred are captured.")]
+        [Ignore("Ignored for known issue where only the ray casts of the first segment where a hit occurred are captured.")]
         public IEnumerator RayInteractorHitsAllAlongCurve([ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
         {
             TestUtilities.CreateInteractionManager();

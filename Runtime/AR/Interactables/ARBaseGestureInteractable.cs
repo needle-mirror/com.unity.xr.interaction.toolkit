@@ -74,12 +74,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         bool m_IsManipulating;
 
         /// <summary>
-        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static XROrigin s_XROriginCache;
 
         /// <summary>
-        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static ARSessionOrigin s_ARSessionOriginCache;
 

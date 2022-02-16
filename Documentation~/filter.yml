@@ -27,6 +27,9 @@ apiRules:
       uidRegex: ARTranslationInteractableEditor
       type: Type
   - exclude:
+      uidRegex: BaseInteractionEditor
+      type: Type
+  - exclude:
       uidRegex: BaseTeleportationInteractableEditor
       type: Type
   - exclude:
@@ -88,6 +91,9 @@ apiRules:
       type: Type
   - exclude:
       uidRegex: XRRayInteractorEditor
+      type: Type
+  - exclude:
+      uidRegex: XRRigEditor
       type: Type
   - exclude:
       uidRegex: XRSocketInteractorEditor

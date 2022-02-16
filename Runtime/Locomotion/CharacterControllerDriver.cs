@@ -6,6 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Controls a <see cref="CharacterController"/> height
     /// upon locomotion events of a <see cref="LocomotionProvider"/>.
     /// </summary>
+    [AddComponentMenu("XR/Locomotion/Character Controller Driver", 11)]
     [HelpURL(XRHelpURLConstants.k_CharacterControllerDriver)]
     public partial class CharacterControllerDriver : MonoBehaviour
     {

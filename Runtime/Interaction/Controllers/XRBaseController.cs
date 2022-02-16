@@ -143,8 +143,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_AnimateModel;
 
         /// <summary>
-        /// Whether to animate the model in response to interaction events.
-        /// When enabled, activates a named animation trigger upon selecting or deselecting.
+        /// Whether to animate the model in response to interaction events. When enabled, the animation trigger will be set for the corresponding
+        /// animator component on the controller model when a select or deselect interaction events occurs.
         /// </summary>
         /// <seealso cref="modelSelectTransition"/>
         /// <seealso cref="modelDeSelectTransition"/>
@@ -403,7 +403,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the pose values in the given controller state based on the current tracking input of the controller device.
-        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/>.
+        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/> so explicit calls
+        /// to this function are not required.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateTrackingInput(XRControllerState controllerState)
@@ -412,7 +413,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the XR Interaction states in the given controller state based on the current inputs of the controller device.
-        /// Unity calls this automatically from <see cref="UpdateController"/>.
+        /// Unity calls this automatically during <see cref="UpdateController"/> so explicit calls to this function are not required.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>
         protected virtual void UpdateInput(XRControllerState controllerState)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -502,8 +503,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Controller = value;
         }
 
-        readonly ActivateEventArgs m_ActivateEventArgs = new ActivateEventArgs();
-        readonly DeactivateEventArgs m_DeactivateEventArgs = new DeactivateEventArgs();
+        readonly LinkedPool<ActivateEventArgs> m_ActivateEventArgs = new LinkedPool<ActivateEventArgs>(() => new ActivateEventArgs(), collectionCheck: false);
+        readonly LinkedPool<DeactivateEventArgs> m_DeactivateEventArgs = new LinkedPool<DeactivateEventArgs>(() => new DeactivateEventArgs(), collectionCheck: false);
 
         static readonly List<IXRActivateInteractable> s_ActivateTargets = new List<IXRActivateInteractable>();
 
@@ -596,9 +597,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (interactable == null || interactable as Object == null)
                     continue;
 
-                m_ActivateEventArgs.interactorObject = this;
-                m_ActivateEventArgs.interactableObject = interactable;
-                interactable.OnActivated(m_ActivateEventArgs);
+                using (m_ActivateEventArgs.Get(out var args))
+                {
+                    args.interactorObject = this;
+                    args.interactableObject = interactable;
+                    interactable.OnActivated(args);
+                }
             }
         }
 
@@ -609,9 +613,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (interactable == null || interactable as Object == null)
                     continue;
 
-                m_DeactivateEventArgs.interactorObject = this;
-                m_DeactivateEventArgs.interactableObject = interactable;
-                interactable.OnDeactivated(m_DeactivateEventArgs);
+                using (m_DeactivateEventArgs.Get(out var args))
+                {
+                    args.interactorObject = this;
+                    args.interactableObject = interactable;
+                    interactable.OnDeactivated(args);
+                }
             }
         }
 

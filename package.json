@@ -1,9 +1,9 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.0.0-pre.7",
+  "version": "2.0.0",
   "unity": "2019.4",
-  "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains helper components that you can use to extend functionality for drawing visuals and hooking in your own interaction events.",
+  "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
     "XR",
     "VR",
@@ -14,7 +14,7 @@
   "dependencies": {
     "com.unity.inputsystem": "1.2.0",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.core-utils": "2.0.0-pre.6",
+    "com.unity.xr.core-utils": "2.0.0",
     "com.unity.xr.legacyinputhelpers": "2.1.8",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
@@ -22,9 +22,9 @@
   },
   "samples": [
     {
-      "displayName": "Default Input Actions",
-      "description": "Default set of input actions and presets for use with XR Interaction Toolkit behaviors that utilize the Input System.",
-      "path": "Samples~/Default Input Actions"
+      "displayName": "Starter Assets",
+      "description": "Assets to streamline setup of behaviors, including a default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System.",
+      "path": "Samples~/Starter Assets"
     },
     {
       "displayName": "XR Device Simulator",
@@ -33,11 +33,11 @@
     }
   ],
   "upmCi": {
-    "footprint": "885e804853e9328e37f09f667fb6d410e0551f38"
+    "footprint": "d17d41e936d33fd0c92fb4fff0013629ecf32056"
   },
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "9f854f2ac0084349bfeefc4d585c56e486c23d13"
+    "revision": "7c1007f607973aedebdc6d7627aa1dafce6b2930"
   }
 }

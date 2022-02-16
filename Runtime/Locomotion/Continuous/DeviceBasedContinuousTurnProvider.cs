@@ -8,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
     /// <seealso cref="DeviceBasedSnapTurnProvider"/>
-    [AddComponentMenu("XR/Locomotion/Continuous Turn Provider (Device-based)")]
+    [AddComponentMenu("XR/Locomotion/Continuous Turn Provider (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousTurnProvider)]
     public class DeviceBasedContinuousTurnProvider : ContinuousTurnProviderBase
     {

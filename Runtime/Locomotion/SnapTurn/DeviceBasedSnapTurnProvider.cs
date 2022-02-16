@@ -4,9 +4,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// A locomotion provider that allows the user to rotate their rig using a specified 2D axis input.
-    /// The provider can take input from multiple different devices (eg: L and R hands).
+    /// The provider can take input from multiple different devices (such as Left and Right hands).
     /// </summary>
-    [AddComponentMenu("XR/Locomotion/Snap Turn Provider (Device-based)")]
+    [AddComponentMenu("XR/Locomotion/Snap Turn Provider (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_DeviceBasedSnapTurnProvider)]
     public class DeviceBasedSnapTurnProvider : SnapTurnProviderBase
     {

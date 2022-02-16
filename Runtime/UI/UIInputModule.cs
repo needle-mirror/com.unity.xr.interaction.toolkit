@@ -15,6 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_UIInputModule)]
     public abstract partial class UIInputModule : BaseInputModule
     {
+        [Header("Configuration")]
         [SerializeField, FormerlySerializedAs("clickSpeed")]
         [Tooltip("The maximum time (in seconds) between two mouse presses for it to be consecutive click.")]
         float m_ClickSpeed = 0.3f;
@@ -76,7 +77,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// The <see cref="Camera"/> that Unity uses to perform 2D raycasts when determining the screen space location of a tracked device cursor.
+        /// The <see cref="Camera"/> that Unity uses to perform 2D ray casts when determining the screen space location of a tracked device cursor.
         /// </summary>
         public Camera uiCamera { get; set; }
 
@@ -90,12 +91,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <remarks>
         /// Processing is postponed from earlier in the frame (<see cref="EventSystem"/> has a
         /// script execution order of <c>-1000</c>) until this Update to allow other systems to
-        /// update the poses that will be used to generate the raycasts used by this input module.
+        /// update the poses that will be used to generate the ray casts used by this input module.
         /// <br />
         /// For Ray Interactor, it must wait until after the Controller pose updates and Locomotion
         /// moves the Rig in order to generate the current sample points used to create the rays used
         /// for this frame. Those positions will be determined during <see cref="DoProcess"/>.
-        /// Ray Interactor needs the UI raycasts to be completed by the time <see cref="XRInteractionManager"/>
+        /// Ray Interactor needs the UI ray casts to be completed by the time <see cref="XRInteractionManager"/>
         /// calls into <see cref="IXRInteractor.GetValidTargets"/> since that is dependent on
         /// whether a UI hit was closer than a 3D hit. This processing must therefore be done
         /// between Locomotion and <see cref="IXRInteractor.PreprocessInteractor"/> to minimize latency.
@@ -145,6 +146,85 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             updateSelected?.Invoke(selectedGameObject, data);
             ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
             return data.used;
+        }
+
+        /// <summary>
+        /// Is the pointer with the given ID over an EventSystem object?
+        /// </summary>
+        /// <param name="pointerId">ID of the XR device pointer, mouse pointer or touch registered with the UIInputModule.
+        /// Meaning this should correspond to either <see cref="PointerEventData"/>.<c>pointerId</c> or <see cref="TrackedDeviceEventData"/>.<c>pointerId</c>.
+        /// </param>
+        /// <returns>Returns <see langword="true"/> if the given pointer is currently hovering over a <c>GameObject</c>. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// The pointer IDs are generated at runtime by the UIInputModule as devices are registered. Calling this method
+        /// without any parameters will attempt to use the Left Mouse Button and will likely result in unexpected behavior.
+        /// A negative pointerId value will be interpreted as "any pointer" and will return true if any XR pointer is
+        /// currently over a GameObject.
+        /// Note: The IDs used to check for interaction are not the same as standard InputDevice device IDs.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// using UnityEngine;
+        /// using UnityEngine.EventSystems;
+        /// using UnityEngine.XR.Interaction.Toolkit.UI;
+        /// 
+        /// public class ClickExample : MonoBehaviour
+        /// {
+        ///     [SerializeField]
+        ///     UIInputModule inputModule;
+        ///     
+        ///     private void OnEnable()
+        ///     {
+        ///         if (inputModule != null)
+        ///         {
+        ///             inputModule.pointerClick += OnDeviceButtonClick;
+        ///         }
+        ///     }
+        /// 
+        ///     private void OnDisable()
+        ///     {
+        ///         if (inputModule != null)
+        ///         {
+        ///             inputModule.pointerClick -= OnDeviceButtonClick;
+        ///         }
+        ///     }
+        ///     
+        ///     // This method will fire after registering with the UIInputModule callbacks. The UIInputModule will
+        ///     // pass the PointerEventData for the device responsible for triggering the callback and can be used to
+        ///     // find the pointerId registered with the EventSystem for that device-specific event.
+        ///     private void OnDeviceButtonClick(GameObject selected, PointerEventData pointerData)
+        ///     {
+        ///         if (EventSystem.current.IsPointerOverGameObject(pointerData.pointerId))
+        ///         {
+        ///             Debug.Log($"Clicked on {EventSystem.current.currentSelectedGameObject}", this);
+        ///         }
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
+        public override bool IsPointerOverGameObject(int pointerId)
+        {
+            // For negative pointer IDs, find any cached pointer events that have a registered pointerEnter object
+            if (pointerId < 0)
+            {
+                foreach (var trackedEvent in m_TrackedDeviceEventByPointerId.Values)
+                {
+                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
+                        return true;
+                }
+
+                foreach (var trackedEvent in m_PointerEventByPointerId.Values)
+                {
+                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
+                        return true;
+                }
+                return false;
+            }
+            else
+            {
+                return (m_TrackedDeviceEventByPointerId.TryGetValue(pointerId, out var trackedDeviceEvent) && trackedDeviceEvent.pointerEnter != null) ||
+                    (m_PointerEventByPointerId.TryGetValue(pointerId, out var pointerEvent) && pointerEvent.pointerEnter != null);
+            }
         }
 
         RaycastResult PerformRaycast(PointerEventData eventData)
@@ -463,7 +543,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
             eventData.position = savedPosition;
 
-            // Get associated camera, or main-tagged camera, or camera from raycast, and if *nothing* exists, then abort processing this frame.
+            // Get associated camera, or main-tagged camera, or camera from ray cast, and if *nothing* exists, then abort processing this frame.
             // ReSharper disable once LocalVariableHidesMember
             var camera = uiCamera != null ? uiCamera : (uiCamera = Camera.main);
             if (camera == null)
@@ -502,7 +582,109 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             deviceState.OnFrameFinished();
         }
 
-        // TODO Update UIInputModule to make use of unused ProcessJoystick method
+        /// <summary>
+        /// Takes an existing GamepadModel and dispatches all relevant changes through the event system.
+        /// It also updates the internal data of the GamepadModel.
+        /// </summary>
+        /// <param name="gamepadState">The gamepad state you want to forward into the UI Event System</param>
+        internal void ProcessGamepad(ref GamepadModel gamepadState)
+        {
+            var implementationData = gamepadState.implementationData;
+
+            var usedSelectionChange = false;
+            var selectedGameObject = eventSystem.currentSelectedGameObject;
+            if (selectedGameObject != null)
+            {
+                var data = GetBaseEventData();
+                updateSelected?.Invoke(selectedGameObject, data);
+                ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
+                usedSelectionChange = data.used;
+            }
+
+            // Don't send move events if disabled in the EventSystem.
+            if (!eventSystem.sendNavigationEvents)
+                return;
+
+            var movement = gamepadState.leftStick + gamepadState.dpad;
+            if (!usedSelectionChange && (!Mathf.Approximately(movement.x, 0f) || !Mathf.Approximately(movement.y, 0f)))
+            {
+                var time = Time.unscaledTime;
+
+                var moveDirection = MoveDirection.None;
+                if (movement.sqrMagnitude > m_MoveDeadzone * m_MoveDeadzone)
+                {
+                    if (Mathf.Abs(movement.x) > Mathf.Abs(movement.y))
+                        moveDirection = (movement.x > 0f) ? MoveDirection.Right : MoveDirection.Left;
+                    else
+                        moveDirection = (movement.y > 0f) ? MoveDirection.Up : MoveDirection.Down;
+                }
+
+                if (moveDirection != implementationData.lastMoveDirection)
+                {
+                    implementationData.consecutiveMoveCount = 0;
+                }
+
+                if (moveDirection != MoveDirection.None)
+                {
+                    var allow = true;
+                    if (implementationData.consecutiveMoveCount != 0)
+                    {
+                        if (implementationData.consecutiveMoveCount > 1)
+                            allow = (time > (implementationData.lastMoveTime + m_RepeatRate));
+                        else
+                            allow = (time > (implementationData.lastMoveTime + m_RepeatDelay));
+                    }
+
+                    if (allow)
+                    {
+                        var eventData = GetOrCreateCachedAxisEvent();
+                        eventData.Reset();
+
+                        eventData.moveVector = movement;
+                        eventData.moveDir = moveDirection;
+
+                        move?.Invoke(selectedGameObject, eventData);
+                        ExecuteEvents.Execute(selectedGameObject, eventData, ExecuteEvents.moveHandler);
+                        usedSelectionChange = eventData.used;
+
+                        implementationData.consecutiveMoveCount++;
+                        implementationData.lastMoveTime = time;
+                        implementationData.lastMoveDirection = moveDirection;
+                    }
+                }
+                else
+                {
+                    implementationData.consecutiveMoveCount = 0;
+                }
+            }
+            else
+            {
+                implementationData.consecutiveMoveCount = 0;
+            }
+
+            if (!usedSelectionChange)
+            {
+                if (selectedGameObject != null)
+                {
+                    var data = GetBaseEventData();
+                    if ((gamepadState.submitButtonDelta & ButtonDeltaState.Pressed) != 0)
+                    {
+                        submit?.Invoke(selectedGameObject, data);
+                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.submitHandler);
+                    }
+
+                    if (!data.used && (gamepadState.cancelButtonDelta & ButtonDeltaState.Pressed) != 0)
+                    {
+                        cancel?.Invoke(selectedGameObject, data);
+                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.cancelHandler);
+                    }
+                }
+            }
+
+            gamepadState.implementationData = implementationData;
+            gamepadState.OnFrameFinished();
+        }
+
         /// <summary>
         /// Takes an existing JoystickModel and dispatches all relevant changes through the event system.
         /// It also updates the internal data of the JoystickModel.
@@ -526,20 +708,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!eventSystem.sendNavigationEvents)
                 return;
 
-            var movement = joystickState.move;
-            if (!usedSelectionChange && (!Mathf.Approximately(movement.x, 0f) || !Mathf.Approximately(movement.y, 0f)))
+            var moveVector = joystickState.move + joystickState.hat;
+            if (!usedSelectionChange && (!Mathf.Approximately(moveVector.x, 0f) || !Mathf.Approximately(moveVector.y, 0f)))
             {
                 var time = Time.unscaledTime;
-
-                var moveVector = joystickState.move;
 
                 var moveDirection = MoveDirection.None;
                 if (moveVector.sqrMagnitude > m_MoveDeadzone * m_MoveDeadzone)
                 {
                     if (Mathf.Abs(moveVector.x) > Mathf.Abs(moveVector.y))
-                        moveDirection = (moveVector.x > 0) ? MoveDirection.Right : MoveDirection.Left;
+                        moveDirection = (moveVector.x > 0f) ? MoveDirection.Right : MoveDirection.Left;
                     else
-                        moveDirection = (moveVector.y > 0) ? MoveDirection.Up : MoveDirection.Down;
+                        moveDirection = (moveVector.y > 0f) ? MoveDirection.Up : MoveDirection.Down;
                 }
 
                 if (moveDirection != implementationData.lastMoveDirection)
@@ -576,10 +756,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     }
                 }
                 else
+                {
                     implementationData.consecutiveMoveCount = 0;
+                }
             }
             else
+            {
                 implementationData.consecutiveMoveCount = 0;
+            }
 
             if (!usedSelectionChange)
             {

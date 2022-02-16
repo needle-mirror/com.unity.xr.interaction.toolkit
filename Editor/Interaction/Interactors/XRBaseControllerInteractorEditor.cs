@@ -257,8 +257,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_SelectActionTrigger, BaseControllerContents.selectActionTrigger);
             if (m_StartingSelectedInteractable.objectReferenceValue != null &&
-                m_SelectActionTrigger.enumValueIndex != (int)XRBaseControllerInteractor.InputTriggerType.Toggle &&
-                m_SelectActionTrigger.enumValueIndex != (int)XRBaseControllerInteractor.InputTriggerType.Sticky)
+                m_SelectActionTrigger.intValue != (int)XRBaseControllerInteractor.InputTriggerType.Toggle &&
+                m_SelectActionTrigger.intValue != (int)XRBaseControllerInteractor.InputTriggerType.Sticky)
             {
                 EditorGUILayout.HelpBox(BaseControllerContents.selectActionTriggerWarning, MessageType.Warning, true);
             }

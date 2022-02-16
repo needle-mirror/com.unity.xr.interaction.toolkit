@@ -10,17 +10,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public struct ImplementationData
         {
             /// <summary>
-            /// Bookkeeping values for Unity UI (UGUI) that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
+            /// Bookkeeping value for Unity UI (UGUI) that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
             /// </summary>
             public int consecutiveMoveCount { get; set; }
 
             /// <summary>
-            /// Bookkeeping values for Unity UI (UGUI) that tracks the direction of the last move command.  Used to handle proper repeat timing.
+            /// Bookkeeping value for Unity UI (UGUI) that tracks the direction of the last move command.  Used to handle proper repeat timing.
             /// </summary>
             public MoveDirection lastMoveDirection { get; set; }
 
             /// <summary>
-            /// Bookkeeping values for Unity UI (UGUI) that tracks the last time a move command was sent.  Used to handle proper repeat timing.
+            /// Bookkeeping value for Unity UI (UGUI) that tracks the last time a move command was sent.  Used to handle proper repeat timing.
             /// </summary>
             public float lastMoveTime { get; set; }
 
@@ -36,9 +36,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// A 2D Vector that represents a UI Selection movement command.  Think moving up and down in options menus or highlighting options.
+        /// A 2D Vector that represents a UI Selection movement command from the joystick main stick, such as moving up and down in options menus or highlighting options.
         /// </summary>
         public Vector2 move { get; set; }
+
+        /// <summary>
+        /// A 2D Vector that represents a UI Selection movement command from the joystick hat switch, such as moving up and down in options menus or highlighting options.
+        /// </summary>
+        public Vector2 hat { get; set; }
 
         /// <summary>
         /// Tracks the current state of the submit or 'move forward' button.  Setting this also updates the <see cref="submitButtonDelta"/> to track if a press or release occurred in the frame.
@@ -93,6 +98,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public void Reset()
         {
             move = Vector2.zero;
+            hat = Vector2.zero;
             m_SubmitButtonDown = m_CancelButtonDown = false;
             submitButtonDelta = cancelButtonDelta = ButtonDeltaState.NoChange;
 

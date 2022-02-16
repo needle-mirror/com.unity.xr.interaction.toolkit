@@ -57,6 +57,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
         protected SerializedProperty m_AttachPointCompatibilityMode;
 
+        /// <summary>Value to be checked before recalculate if the inspected object has a non-uniformly scaled parent.</summary>
+        bool m_RecalculateHasNonUniformScale = true;
+        /// <summary>Caches if the inspected object has a non-uniformly scaled parent.</summary>
+        bool m_HasNonUniformScale;
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
@@ -109,6 +114,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
             public static readonly GUIContent attachPointCompatibilityMode = EditorGUIUtility.TrTextContent("Attach Point Compatibility Mode", "Use Default for consistent attach points between all Movement Type values. Use Legacy for older projects that want to maintain the incorrect method which was partially based on center of mass.");
 
+            /// <summary>Message for non-uniformly scaled parent.</summary>
+            public static readonly string nonUniformScaledParentWarning = "When a child object has a non-uniformly scaled parent and is rotated relative to that parent, it may appear skewed. To avoid this, use uniform scale in all parents' Transform of this object.";
+            
             /// <summary>Array of type <see cref="GUIContent"/> for the options shown in the popup for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
             public static readonly GUIContent[] attachPointCompatibilityModeOptions =
             {
@@ -145,6 +153,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
             m_AttachPointCompatibilityMode = serializedObject.FindProperty("m_AttachPointCompatibilityMode");
+
+            Undo.postprocessModifications += OnPostprocessModifications;
+        }
+
+        /// <summary>
+        /// This function is called when the object becomes disabled.
+        /// </summary>
+        /// <seealso cref="MonoBehaviour"/>
+        protected virtual void OnDisable()
+        {
+            Undo.postprocessModifications -= OnPostprocessModifications;
         }
 
         /// <inheritdoc />
@@ -167,6 +186,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_MovementType, Contents.movementType);
             EditorGUILayout.PropertyField(m_RetainTransformParent, Contents.retainTransformParent);
+            DrawNonUniformScaleMessage();
         }
 
         /// <summary>
@@ -249,6 +269,53 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_AttachTransform, Contents.attachTransform);
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
             XRInteractionEditorGUI.EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
+        }
+
+        /// <summary>
+        /// Checks if the object has a non-uniformly scaled parent and draws a message if necessary.
+        /// </summary>
+        protected virtual void DrawNonUniformScaleMessage()
+        {
+            if (m_RetainTransformParent == null || !m_RetainTransformParent.boolValue)
+                return;
+
+            if (m_RecalculateHasNonUniformScale)
+            {
+                var monoBehaviour = target as MonoBehaviour;
+                if (monoBehaviour == null)
+                    return;
+
+                var transform = monoBehaviour.transform;
+                if (transform == null)
+                    return;
+
+                m_HasNonUniformScale = false;
+                for (var parent = transform.parent; parent != null; parent = parent.parent)
+                {
+                    var localScale = parent.localScale;
+                    if (!Mathf.Approximately(localScale.x, localScale.y) ||
+                        !Mathf.Approximately(localScale.x, localScale.z))
+                    {
+                        m_HasNonUniformScale = true;
+                        break;
+                    }
+                }
+
+                m_RecalculateHasNonUniformScale = false;
+            }
+
+            if (m_HasNonUniformScale)
+                EditorGUILayout.HelpBox(Contents.nonUniformScaledParentWarning, MessageType.Warning);
+        }
+
+        /// <summary>
+        /// Callback registered to be triggered whenever a new set of property modifications is created.
+        /// </summary>
+        /// <seealso cref="Undo.postprocessModifications"/>
+        protected virtual UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
+        {
+            m_RecalculateHasNonUniformScale = true;
+            return modifications;
         }
     }
 }

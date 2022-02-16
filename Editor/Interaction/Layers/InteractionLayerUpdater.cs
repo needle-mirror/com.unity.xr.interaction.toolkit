@@ -13,10 +13,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Class that holds methods to update the Unity interaction <see cref="LayerMask"/> to the equivalent
     /// <see cref="InteractionLayerMask"/> in all editable Interactables and Interactors in the project.
     /// </summary>
-    /// <see cref="XRBaseInteractable.m_InteractionLayerMask"/>
-    /// <see cref="XRBaseInteractable.m_InteractionLayers"/>
-    /// <see cref="XRBaseInteractor.m_InteractionLayerMask"/>
-    /// <see cref="XRBaseInteractor.m_InteractionLayers"/>
+    /// <see cref="XRBaseInteractable.interactionLayerMask"/>
+    /// <see cref="XRBaseInteractable.interactionLayers"/>
+    /// <see cref="XRBaseInteractor.interactionLayerMask"/>
+    /// <see cref="XRBaseInteractor.interactionLayers"/>
     [InitializeOnLoad]
     static class InteractionLayerUpdater
     {

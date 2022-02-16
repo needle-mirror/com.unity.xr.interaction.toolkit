@@ -79,6 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls displaying one or more annotations when hovering over the <see cref="GameObject"/> this component is attached to.
     /// </summary>
+    [AddComponentMenu("XR/AR Annotation Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARAnnotationInteractable)]
     public class ARAnnotationInteractable : ARBaseGestureInteractable
     {

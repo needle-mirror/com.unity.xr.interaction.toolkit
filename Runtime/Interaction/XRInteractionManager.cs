@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Profiling;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
 #endif
@@ -20,7 +21,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="IXRInteractable"/>
-    [AddComponentMenu("XR/XR Interaction Manager")]
+    [AddComponentMenu("XR/XR Interaction Manager", 11)]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionManager)]
     [HelpURL(XRHelpURLConstants.k_XRInteractionManager)]
@@ -118,14 +119,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
 
         // Reusable event args
-        readonly SelectEnterEventArgs m_SelectEnterEventArgs = new SelectEnterEventArgs();
-        readonly SelectExitEventArgs m_SelectExitEventArgs = new SelectExitEventArgs();
-        readonly HoverEnterEventArgs m_HoverEnterEventArgs = new HoverEnterEventArgs();
-        readonly HoverExitEventArgs m_HoverExitEventArgs = new HoverExitEventArgs();
-        readonly InteractorRegisteredEventArgs m_InteractorRegisteredEventArgs = new InteractorRegisteredEventArgs();
-        readonly InteractorUnregisteredEventArgs m_InteractorUnregisteredEventArgs = new InteractorUnregisteredEventArgs();
-        readonly InteractableRegisteredEventArgs m_InteractableRegisteredEventArgs = new InteractableRegisteredEventArgs();
-        readonly InteractableUnregisteredEventArgs m_InteractableUnregisteredEventArgs = new InteractableUnregisteredEventArgs();
+        readonly LinkedPool<SelectEnterEventArgs> m_SelectEnterEventArgs = new LinkedPool<SelectEnterEventArgs>(() => new SelectEnterEventArgs(), collectionCheck: false);
+        readonly LinkedPool<SelectExitEventArgs> m_SelectExitEventArgs = new LinkedPool<SelectExitEventArgs>(() => new SelectExitEventArgs(), collectionCheck: false);
+        readonly LinkedPool<HoverEnterEventArgs> m_HoverEnterEventArgs = new LinkedPool<HoverEnterEventArgs>(() => new HoverEnterEventArgs(), collectionCheck: false);
+        readonly LinkedPool<HoverExitEventArgs> m_HoverExitEventArgs = new LinkedPool<HoverExitEventArgs>(() => new HoverExitEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractorRegisteredEventArgs> m_InteractorRegisteredEventArgs = new LinkedPool<InteractorRegisteredEventArgs>(() => new InteractorRegisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractorUnregisteredEventArgs> m_InteractorUnregisteredEventArgs = new LinkedPool<InteractorUnregisteredEventArgs>(() => new InteractorUnregisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractableRegisteredEventArgs> m_InteractableRegisteredEventArgs = new LinkedPool<InteractableRegisteredEventArgs>(() => new InteractableRegisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractableUnregisteredEventArgs> m_InteractableUnregisteredEventArgs = new LinkedPool<InteractableUnregisteredEventArgs>(() => new InteractableUnregisteredEventArgs(), collectionCheck: false);
 
         static readonly ProfilerMarker s_PreprocessInteractorsMarker = new ProfilerMarker("XRI.PreprocessInteractors");
         static readonly ProfilerMarker s_ProcessInteractorsMarker = new ProfilerMarker("XRI.ProcessInteractors");
@@ -261,7 +262,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Automatically called each frame to preprocess all interactors registered with this manager.
         /// </summary>
         /// <param name="updatePhase">The update phase.</param>
+        /// <remarks>
+        /// Please see the <see cref="XRInteractionUpdateOrder.UpdatePhase"/> documentation for more details on update order.
+        /// </remarks>
         /// <seealso cref="IXRInteractor.PreprocessInteractor"/>
+        /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         protected virtual void PreprocessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactor in m_Interactors.registeredSnapshot)
@@ -277,7 +282,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Automatically called each frame to process all interactors registered with this manager.
         /// </summary>
         /// <param name="updatePhase">The update phase.</param>
-        /// <seealso cref="IXRInteractor.ProcessInteractor"/>
+        /// <remarks>
+        /// Please see the <see cref="XRInteractionUpdateOrder.UpdatePhase"/> documentation for more details on update order.
+        /// </remarks>
+        /// <seealso cref="IXRInteractor.PreprocessInteractor"/>
+        /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         protected virtual void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactor in m_Interactors.registeredSnapshot)
@@ -293,7 +302,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Automatically called each frame to process all interactables registered with this manager.
         /// </summary>
         /// <param name="updatePhase">The update phase.</param>
+        /// <remarks>
+        /// Please see the <see cref="XRInteractionUpdateOrder.UpdatePhase"/> documentation for more details on update order.
+        /// </remarks>
         /// <seealso cref="IXRInteractable.ProcessInteractable"/>
+        /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         protected virtual void ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             foreach (var interactable in m_Interactables.registeredSnapshot)
@@ -313,9 +326,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_Interactors.Register(interactor))
             {
-                m_InteractorRegisteredEventArgs.manager = this;
-                m_InteractorRegisteredEventArgs.interactorObject = interactor;
-                OnRegistered(m_InteractorRegisteredEventArgs);
+                using (m_InteractorRegisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactorObject = interactor;
+                    OnRegistered(args);
+                }
             }
         }
 
@@ -337,7 +353,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Unregisters an Interactor so it is no longer processed.
+        /// Unregister an Interactor so it is no longer processed.
         /// </summary>
         /// <param name="interactor">The Interactor to be unregistered.</param>
         public virtual void UnregisterInteractor(IXRInteractor interactor)
@@ -353,9 +369,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactors.Unregister(interactor))
             {
-                m_InteractorUnregisteredEventArgs.manager = this;
-                m_InteractorUnregisteredEventArgs.interactorObject = interactor;
-                OnUnregistered(m_InteractorUnregisteredEventArgs);
+                using (m_InteractorUnregisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactorObject = interactor;
+                    OnUnregistered(args);
+                }
             }
         }
 
@@ -411,9 +430,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     }
                 }
 
-                m_InteractableRegisteredEventArgs.manager = this;
-                m_InteractableRegisteredEventArgs.interactableObject = interactable;
-                OnRegistered(m_InteractableRegisteredEventArgs);
+                using (m_InteractableRegisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactableObject = interactable;
+                    OnRegistered(args);
+                }
             }
         }
 
@@ -435,7 +457,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Unregisters an Interactable so it is no longer processed.
+        /// Unregister an Interactable so it is no longer processed.
         /// </summary>
         /// <param name="interactable">The Interactable to be unregistered.</param>
         public virtual void UnregisterInteractable(IXRInteractable interactable)
@@ -463,9 +485,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         m_ColliderToInteractableMap.Remove(interactableCollider);
                 }
 
-                m_InteractableUnregisteredEventArgs.manager = this;
-                m_InteractableUnregisteredEventArgs.interactableObject = interactable;
-                OnUnregistered(m_InteractableUnregisteredEventArgs);
+                using (m_InteractableUnregisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactableObject = interactable;
+                    OnUnregistered(args);
+                }
             }
         }
 
@@ -568,7 +593,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to get valid targets for.</param>
         /// <param name="targets">The results list to populate with Interactables that are valid for selection or hover.</param>
         /// <remarks>
-        /// Unity expects the <paramref name="interactor"/>'s implementation of <see cref="IXRInteractor.GetValidTargets"/> to clear <paramref name="results"/> before adding to it.
+        /// Unity expects the <paramref name="interactor"/>'s implementation of <see cref="IXRInteractor.GetValidTargets"/> to clear <paramref name="targets"/> before adding to it.
         /// </remarks>
         /// <seealso cref="IXRInteractor.GetValidTargets"/>
         public void GetValidTargets(IXRInteractor interactor, List<IXRInteractable> targets)
@@ -810,10 +835,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (interactable.isSelected && !ResolveExistingSelect(interactor, interactable))
                 return;
 
-            m_SelectEnterEventArgs.manager = this;
-            m_SelectEnterEventArgs.interactorObject = interactor;
-            m_SelectEnterEventArgs.interactableObject = interactable;
-            SelectEnterInternal(interactor, interactable, m_SelectEnterEventArgs);
+            using (m_SelectEnterEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                SelectEnterInternal(interactor, interactable, args);
+            }
         }
 
         void SelectEnterInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
@@ -833,11 +861,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         public virtual void SelectExit(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            m_SelectExitEventArgs.manager = this;
-            m_SelectExitEventArgs.interactorObject = interactor;
-            m_SelectExitEventArgs.interactableObject = interactable;
-            m_SelectExitEventArgs.isCanceled = false;
-            SelectExitInternal(interactor, interactable, m_SelectExitEventArgs);
+            using (m_SelectExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.isCanceled = false;
+                SelectExitInternal(interactor, interactable, args);
+            }
         }
 
         void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
@@ -858,11 +889,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         public virtual void SelectCancel(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            m_SelectExitEventArgs.manager = this;
-            m_SelectExitEventArgs.interactorObject = interactor;
-            m_SelectExitEventArgs.interactableObject = interactable;
-            m_SelectExitEventArgs.isCanceled = true;
-            SelectExitInternal(interactor, interactable, m_SelectExitEventArgs);
+            using (m_SelectExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.isCanceled = true;
+                SelectExitInternal(interactor, interactable, args);
+            }
         }
 
         void SelectCancelInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
@@ -882,10 +916,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable being hovered over.</param>
         public virtual void HoverEnter(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverEnterEventArgs.manager = this;
-            m_HoverEnterEventArgs.interactorObject = interactor;
-            m_HoverEnterEventArgs.interactableObject = interactable;
-            HoverEnterInternal(interactor, interactable, m_HoverEnterEventArgs);
+            using (m_HoverEnterEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                HoverEnterInternal(interactor, interactable, args);
+            }
         }
 
         void HoverEnterInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
@@ -905,11 +942,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
         public virtual void HoverExit(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverExitEventArgs.manager = this;
-            m_HoverExitEventArgs.interactorObject = interactor;
-            m_HoverExitEventArgs.interactableObject = interactable;
-            m_HoverExitEventArgs.isCanceled = false;
-            HoverExitInternal(interactor, interactable, m_HoverExitEventArgs);
+            using (m_HoverExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.isCanceled = false;
+                HoverExitInternal(interactor, interactable, args);
+            }
         }
 
         void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
@@ -930,11 +970,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
         public virtual void HoverCancel(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
-            m_HoverExitEventArgs.manager = this;
-            m_HoverExitEventArgs.interactorObject = interactor;
-            m_HoverExitEventArgs.interactableObject = interactable;
-            m_HoverExitEventArgs.isCanceled = true;
-            HoverExitInternal(interactor, interactable, m_HoverExitEventArgs);
+            using (m_HoverExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.isCanceled = true;
+                HoverExitInternal(interactor, interactable, args);
+            }
         }
 
         void HoverCancelInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
@@ -953,6 +996,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is selecting.</param>
         /// <param name="interactable">The Interactable being selected.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interactor and interactable are notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
         // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
         {
@@ -986,6 +1035,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is no longer selecting.</param>
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interactor and interactable are notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
         protected virtual void SelectExit(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectExitEventArgs args)
         {
             Debug.Assert(args.interactorObject == interactor, this);
@@ -1018,6 +1073,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is hovering.</param>
         /// <param name="interactable">The Interactable being hovered over.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interactor and interactable are notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
         protected virtual void HoverEnter(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverEnterEventArgs args)
         {
             Debug.Assert(args.interactorObject == interactor, this);
@@ -1050,6 +1111,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is no longer hovering.</param>
         /// <param name="interactable">The Interactable that is no longer being hovered over.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interactor and interactable are notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
         protected virtual void HoverExit(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverExitEventArgs args)
         {
             Debug.Assert(args.interactorObject == interactor, this);

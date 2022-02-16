@@ -55,31 +55,42 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         PinchGesture(PinchGestureRecognizer recognizer, CommonTouch touch1, CommonTouch touch2) : base(recognizer)
         {
+            Reinitialize(touch1, touch2);
+        }
+
+        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
+        internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
+
+        void Reinitialize(CommonTouch touch1, CommonTouch touch2)
+        {
+            Reinitialize();
             fingerId1 = touch1.fingerId;
             fingerId2 = touch2.fingerId;
             startPosition1 = touch1.position;
             startPosition2 = touch2.position;
+            gap = 0f;
+            gapDelta = 0f;
         }
 
         /// <summary>
         /// (Read Only) The id of the first finger used in this gesture.
         /// </summary>
-        public int fingerId1 { get; }
+        public int fingerId1 { get; private set; }
 
         /// <summary>
         /// (Read Only) The id of the second finger used in this gesture.
         /// </summary>
-        public int fingerId2 { get; }
+        public int fingerId2 { get; private set; }
 
         /// <summary>
         /// (Read Only) The screen position of the first finger where the gesture started.
         /// </summary>
-        public Vector2 startPosition1 { get; }
+        public Vector2 startPosition1 { get; private set; }
 
         /// <summary>
         /// (Read Only) The screen position of the second finger where the gesture started.
         /// </summary>
-        public Vector2 startPosition2 { get; }
+        public Vector2 startPosition2 { get; private set; }
 
         /// <summary>
         /// (Read Only) The gap between then position of the first and second fingers.

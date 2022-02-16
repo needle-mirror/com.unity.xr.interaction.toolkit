@@ -32,6 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// <seealso cref="XRSimulatedController"/>
     /// <seealso cref="XRSimulatedHMD"/>
     /// <seealso cref="SimulatedInputLayoutLoader"/>
+    [AddComponentMenu("XR/Debug/XR Device Simulator", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_DeviceSimulator)]
     [HelpURL(XRHelpURLConstants.k_XRDeviceSimulator)]
     public class XRDeviceSimulator : MonoBehaviour

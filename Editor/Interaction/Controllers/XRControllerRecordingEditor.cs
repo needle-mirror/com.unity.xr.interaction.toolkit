@@ -13,12 +13,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         /// <summary>String format used to display the interaction values.</summary>
         protected const string k_ValueFormat = "0.#";
-        
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_SelectActivatedInFirstFrame"/>.</summary>
+
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_SelectActivatedInFirstFrame</c>.</summary>
         SerializedProperty m_SelectActivatedInFirstFrame;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_ActivateActivatedInFirstFrame"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_ActivateActivatedInFirstFrame</c>.</summary>
         SerializedProperty m_ActivateActivatedInFirstFrame;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.m_FirstUIPressActivatedInFirstFrame"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_FirstUIPressActivatedInFirstFrame</c>.</summary>
         SerializedProperty m_FirstUIPressActivatedInFirstFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.frames"/>.</summary>
         SerializedProperty m_Frames;

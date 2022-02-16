@@ -78,9 +78,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.sphereCastRadius"/>.</summary>
             public static readonly GUIContent sphereCastRadius = EditorGUIUtility.TrTextContent("Sphere Cast Radius", "Radius of this Interactor's ray, used for sphere casting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
-            public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting raycast targets.");
+            public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via raycast.");
+            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
             public static readonly GUIContent hitClosestOnly = EditorGUIUtility.TrTextContent("Hit Closest Only", "Consider only the closest Interactable as a valid target for interaction. Enable this to make only the closest Interactable receive hover events.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
@@ -94,7 +94,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.lineType"/>.</summary>
             public static readonly GUIContent lineType = EditorGUIUtility.TrTextContent("Line Type", "Line type of the ray cast.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blendVisualLinePoints"/>.</summary>
-            public static readonly GUIContent blendVisualLinePoints = EditorGUIUtility.TrTextContent("Blend Visual Line Points", "Blend the line sample points used for raycasting with the current pose of the controller. Use this to make the line visual stay connected with the controller instead of lagging behind.");
+            public static readonly GUIContent blendVisualLinePoints = EditorGUIUtility.TrTextContent("Blend Visual Line Points", "Blend the line sample points used for ray casting with the current pose of the controller. Use this to make the line visual stay connected with the controller instead of lagging behind.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.endPointDistance"/>.</summary>
             public static readonly GUIContent endPointDistance = EditorGUIUtility.TrTextContent("End Point Distance", "Increase this value distance will make the end of curve further from the start point.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.controlPointDistance"/>.</summary>
@@ -104,7 +104,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.controlPointHeight"/>.</summary>
             public static readonly GUIContent controlPointHeight = EditorGUIUtility.TrTextContent("Control Point Height", "Increase this value will make the peak of the curve higher relative to the start point.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.sampleFrequency"/>.</summary>
-            public static readonly GUIContent sampleFrequency = EditorGUIUtility.TrTextContent("Sample Frequency", "The number of sample points used to approximate curved paths. Larger values produce a better quality approximate at the cost of reduced performance due to the number of raycasts.");
+            public static readonly GUIContent sampleFrequency = EditorGUIUtility.TrTextContent("Sample Frequency", "The number of sample points used to approximate curved paths. Larger values produce a better quality approximate at the cost of reduced performance due to the number of ray casts.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.velocity"/>.</summary>
             public static readonly GUIContent velocity = EditorGUIUtility.TrTextContent("Velocity", "Initial velocity of the projectile. Increase this value will make the curve reach further.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.acceleration"/>.</summary>
@@ -251,7 +251,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             using (new EditorGUI.IndentLevelScope())
             {
-                switch (m_LineType.enumValueIndex)
+                switch (m_LineType.intValue)
                 {
                     case (int)XRRayInteractor.LineType.StraightLine:
                         EditorGUILayout.PropertyField(m_MaxRaycastDistance, Contents.maxRaycastDistance);
@@ -280,7 +280,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
             EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
             EditorGUILayout.PropertyField(m_HitDetectionType, Contents.hitDetectionType);
-            if (m_HitDetectionType.enumValueIndex == (int)XRRayInteractor.HitDetectionType.SphereCast)
+            if (m_HitDetectionType.intValue == (int)XRRayInteractor.HitDetectionType.SphereCast)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {

@@ -7,10 +7,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
     /// Custom implementation of <see cref="GraphicRaycaster"/> for XR Interaction Toolkit.
-    /// This behavior is used to raycast against a <see cref="Canvas"/>. The Raycaster looks
+    /// This behavior is used to ray cast against a <see cref="Canvas"/>. The Raycaster looks
     /// at all Graphics on the canvas and determines if any of them have been hit by a ray
     /// from a tracked device.
     /// </summary>
+    [AddComponentMenu("Event/Tracked Device Graphic Raycaster", 11)]
     [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
     public class TrackedDeviceGraphicRaycaster : BaseRaycaster
     {
@@ -35,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Compares raycast hits by graphic depth, to sort in descending order.
+        /// Compares ray cast hits by graphic depth, to sort in descending order.
         /// </summary>
         sealed class RaycastHitComparer : IComparer<RaycastHitData>
         {
@@ -44,11 +45,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Whether Graphics facing away from the raycaster are checked for raycasts. Enable this to ignore backfacing Graphics.")]
+        [Tooltip("Whether Graphics facing away from the ray caster are checked for ray casts. Enable this to ignore backfacing Graphics.")]
         bool m_IgnoreReversedGraphics;
 
         /// <summary>
-        /// Whether Graphics facing away from the raycaster are checked for raycasts.
+        /// Whether Graphics facing away from the ray caster are checked for ray casts.
         /// Enable this to ignore backfacing Graphics.
         /// </summary>
         public bool ignoreReversedGraphics
@@ -58,11 +59,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Whether or not 2D occlusion is checked when performing raycasts. Enable to make Graphics be blocked by 2D objects that exist in front of it.")]
+        [Tooltip("Whether or not 2D occlusion is checked when performing ray casts. Enable to make Graphics be blocked by 2D objects that exist in front of it.")]
         bool m_CheckFor2DOcclusion;
 
         /// <summary>
-        /// Whether or not 2D occlusion is checked when performing raycasts.
+        /// Whether or not 2D occlusion is checked when performing ray casts.
         /// Enable to make Graphics be blocked by 2D objects that exist in front of it.
         /// </summary>
         /// <remarks>
@@ -75,11 +76,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Whether or not 3D occlusion is checked when performing raycasts. Enable to make Graphics be blocked by 3D objects that exist in front of it.")]
+        [Tooltip("Whether or not 3D occlusion is checked when performing ray casts. Enable to make Graphics be blocked by 3D objects that exist in front of it.")]
         bool m_CheckFor3DOcclusion;
 
         /// <summary>
-        /// Whether or not 3D occlusion is checked when performing raycasts.
+        /// Whether or not 3D occlusion is checked when performing ray casts.
         /// Enable to make Graphics be blocked by 3D objects that exist in front of it.
         /// </summary>
         public bool checkFor3DOcclusion
@@ -89,11 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("The layers of objects that are checked to determine if they block Graphic raycasts when checking for 2D or 3D occlusion.")]
+        [Tooltip("The layers of objects that are checked to determine if they block Graphic ray casts when checking for 2D or 3D occlusion.")]
         LayerMask m_BlockingMask = -1;
 
         /// <summary>
-        /// The layers of objects that are checked to determine if they block Graphic raycasts
+        /// The layers of objects that are checked to determine if they block Graphic ray casts
         /// when checking for 2D or 3D occlusion.
         /// </summary>
         public LayerMask blockingMask
@@ -103,11 +104,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Specifies whether the raycast should hit Triggers when checking for 3D occlusion.")]
+        [Tooltip("Specifies whether the ray cast should hit Triggers when checking for 3D occlusion.")]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
-        /// Specifies whether the raycast should hit Triggers when checking for 3D occlusion.
+        /// Specifies whether the ray cast should hit Triggers when checking for 3D occlusion.
         /// </summary>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
@@ -121,10 +122,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public override Camera eventCamera => canvas != null && canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
 
         /// <summary>
-        /// Performs a raycast against objects within this Raycaster's domain.
+        /// Performs a ray cast against objects within this Raycaster's domain.
         /// </summary>
-        /// <param name="eventData">Data containing where and how to raycast.</param>
-        /// <param name="resultAppendList">The resultant hits from the raycast.</param>
+        /// <param name="eventData">Data containing where and how to ray cast.</param>
+        /// <param name="resultAppendList">The resultant hits from the ray cast.</param>
         public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
         {
             if (eventData is TrackedDeviceEventData trackedEventData)
@@ -157,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         static readonly Vector3[] s_Corners = new Vector3[4];
 
-        // Use this list on each raycast to avoid continually allocating.
+        // Use this list on each ray cast to avoid continually allocating.
         readonly List<RaycastHitData> m_RaycastResultsCache = new List<RaycastHitData>();
 
         [NonSerialized]
@@ -208,7 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 if (!m_HasWarnedEventCameraNull)
                 {
-                    Debug.LogWarning("Event Camera must be set on World Space Canvas to perform raycasts with tracked device." +
+                    Debug.LogWarning("Event Camera must be set on World Space Canvas to perform ray casts with tracked device." +
                         " UI events will not function correctly until it is set.",
                         this);
                     m_HasWarnedEventCameraNull = true;

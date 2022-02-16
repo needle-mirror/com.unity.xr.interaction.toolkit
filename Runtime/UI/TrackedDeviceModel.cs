@@ -177,7 +177,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         /// <remarks>
         /// A polygonal chain represented by a list of endpoints which form line segments
-        /// to approximate the curve. Each line segment is where the raycast starts and ends.
+        /// to approximate the curve. Each line segment is where the ray cast starts and ends.
         /// World space coordinates.
         /// </remarks>
         public List<Vector3> raycastPoints
@@ -191,13 +191,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// The last raycast done for this model.
+        /// The last ray cast done for this model.
         /// </summary>
         /// <seealso cref="PointerEventData.pointerCurrentRaycast"/>
         public RaycastResult currentRaycast { get; private set; }
 
         /// <summary>
-        /// The endpoint index within the list of raycast points that the <see cref="currentRaycast"/> refers to when a hit occurred.
+        /// The endpoint index within the list of ray cast points that the <see cref="currentRaycast"/> refers to when a hit occurred.
         /// Otherwise, a value of <c>0</c> if no hit occurred.
         /// </summary>
         /// <seealso cref="currentRaycast"/>
@@ -208,7 +208,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         LayerMask m_RaycastLayerMask;
 
         /// <summary>
-        /// Layer mask for raycasts.
+        /// Layer mask for ray casts.
         /// </summary>
         public LayerMask raycastLayerMask
         {
@@ -340,5 +340,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         // this only exists to clean up a warning in the .deprecated.cs file for this type - when removing that file, remove this field
         float m_MaxRaycastDistance;
+
+        internal static TrackedDeviceModel invalid { get; } = new TrackedDeviceModel(-1);
     }
 }

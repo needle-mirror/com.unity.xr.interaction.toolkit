@@ -5,7 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     public partial struct TrackedDeviceModel
     {
         /// <summary>
-        /// The maximum distance to raycast to check for UI.
+        /// The maximum distance to ray cast to check for UI.
         /// </summary>
         /// <remarks>
         /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.

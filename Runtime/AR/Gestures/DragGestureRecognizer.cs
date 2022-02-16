@@ -42,6 +42,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
         readonly Func<InputSystem.EnhancedTouch.Touch, DragGesture> m_CreateEnhancedGesture;
         readonly Func<Touch, DragGesture> m_CreateGestureFunction;
+        readonly Action<DragGesture, InputSystem.EnhancedTouch.Touch> m_ReinitializeEnhancedGesture;
+        readonly Action<DragGesture, Touch> m_ReinitializeGestureFunction;
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="DragGestureRecognizer"/>.
@@ -50,6 +52,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             m_CreateEnhancedGesture = CreateEnhancedGesture;
             m_CreateGestureFunction = CreateGesture;
+            m_ReinitializeEnhancedGesture = ReinitializeEnhancedGesture;
+            m_ReinitializeGestureFunction = ReinitializeGesture;
         }
 
         /// <summary>
@@ -62,6 +66,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return new DragGesture(this, touch);
         }
 
+        static void ReinitializeGesture(DragGesture gesture, Touch touch)
+        {
+            gesture.Reinitialize(touch);
+        }
+
         /// <summary>
         /// Creates a Drag gesture with the given touch.
         /// </summary>
@@ -72,13 +81,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return new DragGesture(this, touch);
         }
 
+        static void ReinitializeEnhancedGesture(DragGesture gesture, InputSystem.EnhancedTouch.Touch touch)
+        {
+            gesture.Reinitialize(touch);
+        }
+
         /// <inheritdoc />
         protected override void TryCreateGestures()
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                TryCreateOneFingerGestureOnTouchBegan(m_CreateEnhancedGesture);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateEnhancedGesture, m_ReinitializeEnhancedGesture);
             else
-                TryCreateOneFingerGestureOnTouchBegan(m_CreateGestureFunction);
+                TryCreateOneFingerGestureOnTouchBegan(m_CreateGestureFunction, m_ReinitializeGestureFunction);
         }
     }
 }

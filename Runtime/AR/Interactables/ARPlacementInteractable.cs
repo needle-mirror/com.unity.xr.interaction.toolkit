@@ -69,15 +69,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls the placement of Prefabs via a tap gesture.
     /// </summary>
+    [AddComponentMenu("XR/AR Placement Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARPlacementInteractable)]
     public partial class ARPlacementInteractable : ARBaseGestureInteractable
     {
         [SerializeField]
-        [Tooltip("A GameObject to place when a raycast from a user touch hits a plane.")]
+        [Tooltip("A GameObject to place when a ray cast from a user touch hits a plane.")]
         GameObject m_PlacementPrefab;
 
         /// <summary>
-        /// A <see cref="GameObject"/> to place when a raycast from a user touch hits a plane.
+        /// A <see cref="GameObject"/> to place when a ray cast from a user touch hits a plane.
         /// </summary>
         public GameObject placementPrefab
         {
@@ -86,11 +87,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         [SerializeField]
-        [Tooltip("The LayerMask that Unity uses during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        [Tooltip("The LayerMask that Unity uses during an additional ray cast when a user touch does not hit any AR trackable planes.")]
         LayerMask m_FallbackLayerMask;
 
         /// <summary>
-        /// The <see cref="LayerMask"/> that Unity uses during an additional raycast
+        /// The <see cref="LayerMask"/> that Unity uses during an additional ray cast
         /// when a user touch does not hit any AR trackable planes.
         /// </summary>
         public LayerMask fallbackLayerMask
@@ -116,11 +117,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
         /// <summary>
-        /// Gets the pose for the object to be placed from a raycast hit triggered by a <see cref="TapGesture"/>.
+        /// Gets the pose for the object to be placed from a ray cast hit triggered by a <see cref="TapGesture"/>.
         /// </summary>
-        /// <param name="gesture">The tap gesture that triggers the raycast.</param>
-        /// <param name="pose">When this method returns, contains the pose of the placement object based on the raycast hit.</param>
-        /// <returns>Returns <see langword="true"/> if there is a valid raycast hit that hit the front of a plane.
+        /// <param name="gesture">The tap gesture that triggers the ray cast.</param>
+        /// <param name="pose">When this method returns, contains the pose of the placement object based on the ray cast hit.</param>
+        /// <returns>Returns <see langword="true"/> if there is a valid ray cast hit that hit the front of a plane.
         /// Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool TryGetPlacementPose(TapGesture gesture, out Pose pose)
         {

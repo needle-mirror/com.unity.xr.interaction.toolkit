@@ -48,6 +48,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
         readonly Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, TwoFingerDragGesture> m_CreateEnhancedGesture;
         readonly Func<Touch, Touch, TwoFingerDragGesture> m_CreateGestureFunction;
+        readonly Action<TwoFingerDragGesture, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> m_ReinitializeEnhancedGesture;
+        readonly Action<TwoFingerDragGesture, Touch, Touch> m_ReinitializeGestureFunction;
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="TwoFingerDragGestureRecognizer"/>.
@@ -56,6 +58,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             m_CreateEnhancedGesture = CreateEnhancedGesture;
             m_CreateGestureFunction = CreateGesture;
+            m_ReinitializeEnhancedGesture = ReinitializeEnhancedGesture;
+            m_ReinitializeGestureFunction = ReinitializeGesture;
         }
 
         /// <summary>
@@ -69,6 +73,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return new TwoFingerDragGesture(this, touch1, touch2);
         }
 
+        static void ReinitializeGesture(TwoFingerDragGesture gesture, Touch touch1, Touch touch2)
+        {
+            gesture.Reinitialize(touch1, touch2);
+        }
+
         /// <summary>
         /// Creates a two finger drag gesture with the given touches.
         /// </summary>
@@ -80,13 +89,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return new TwoFingerDragGesture(this, touch1, touch2);
         }
 
+        static void ReinitializeEnhancedGesture(TwoFingerDragGesture gesture, InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+        {
+            gesture.Reinitialize(touch1, touch2);
+        }
+
         /// <inheritdoc />
         protected override void TryCreateGestures()
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                TryCreateTwoFingerGestureOnTouchBegan(m_CreateEnhancedGesture);
+                TryCreateTwoFingerGestureOnTouchBegan(m_CreateEnhancedGesture, m_ReinitializeEnhancedGesture);
             else
-                TryCreateTwoFingerGestureOnTouchBegan(m_CreateGestureFunction);
+                TryCreateTwoFingerGestureOnTouchBegan(m_CreateGestureFunction, m_ReinitializeGestureFunction);
         }
     }
 }

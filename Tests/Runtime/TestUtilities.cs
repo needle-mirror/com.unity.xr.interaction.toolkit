@@ -5,7 +5,7 @@ using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
-    public static class TestUtilities
+    internal static class TestUtilities
     {
         internal static void DestroyAllSceneObjects()
         {

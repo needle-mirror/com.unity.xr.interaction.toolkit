@@ -65,6 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected List<T> gestures { get; } = new List<T>();
 
         readonly List<T> m_PostponedGesturesToRemove = new List<T>();
+        readonly List<T> m_DeadGesturePool = new List<T>();
 
         bool m_IsUpdatingGestures;
 
@@ -96,6 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 foreach (var gesture in m_PostponedGesturesToRemove)
                 {
                     gestures.Remove(gesture);
+                    m_DeadGesturePool.Add(gesture);
                 }
 
                 m_PostponedGesturesToRemove.Clear();
@@ -138,30 +140,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             // Should not attempt to remove from Gestures list while iterating that list
             if (m_IsUpdatingGestures)
+            {
                 m_PostponedGesturesToRemove.Add(gesture);
+            }
             else
+            {
                 gestures.Remove(gesture);
+                m_DeadGesturePool.Add(gesture);
+            }
         }
 
         /// <summary>
-        /// Helper function for creating one finger gestures when a touch begins.
+        /// Helper function for creating or re-initializing one-finger gestures when a touch begins.
         /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
-        protected void TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T> createGestureFunction)
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
+        protected void TryCreateOneFingerGestureOnTouchBegan(
+            Func<Touch, T> createGestureFunction,
+            Action<T, Touch> reinitializeGestureFunction)
         {
-            TryCreateOneFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
+            TryCreateOneFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
         }
 
         /// <summary>
-        /// Helper function for creating one finger gestures when a touch begins.
+        /// Helper function for creating or reinitializing one-finger gestures when a touch begins.
         /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
-        protected void TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
+        protected void TryCreateOneFingerGestureOnTouchBegan(
+            Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction,
+            Action<T, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
         {
-            TryCreateOneFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
+            TryCreateOneFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
         }
 
-        void TryCreateOneFingerGestureOnTouchBegan(Func<CommonTouch, T> createGestureFunction)
+        void TryCreateOneFingerGestureOnTouchBegan(
+             Func<CommonTouch, T> createGestureFunction,
+             Action<T, CommonTouch> reinitializeGestureFunction)
         {
             foreach (var touch in GestureTouchesUtility.touches)
             {
@@ -169,34 +188,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     !GestureTouchesUtility.IsFingerIdRetained(touch.fingerId) &&
                     !GestureTouchesUtility.IsTouchOffScreenEdge(touch))
                 {
-                    var gesture = createGestureFunction(touch);
+                    T gesture;
+                    if (m_DeadGesturePool.Count > 0)
+                    {
+                        gesture = m_DeadGesturePool[m_DeadGesturePool.Count - 1];
+                        m_DeadGesturePool.RemoveAt(m_DeadGesturePool.Count - 1);
+                        reinitializeGestureFunction(gesture, touch);
+                    }
+                    else
+                    {
+                        gesture = createGestureFunction(touch);
+                    }
                     AddGesture(gesture);
                 }
             }
         }
 
         /// <summary>
-        /// Helper function for creating two finger gestures when a touch begins.
+        /// Helper function for creating or re-initializing two-finger gestures when a touch begins.
         /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
         protected void TryCreateTwoFingerGestureOnTouchBegan(
-            Func<Touch, Touch, T> createGestureFunction)
+            Func<Touch, Touch, T> createGestureFunction,
+            Action<T, Touch, Touch> reinitializeGestureFunction)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
+            TryCreateTwoFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
         }
 
         /// <summary>
-        /// Helper function for creating two finger gestures when a touch begins.
+        /// Helper function for creating two-finger gestures when a touch begins.
         /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
         protected void TryCreateTwoFingerGestureOnTouchBegan(
-            Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+            Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction,
+            Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
         {
-            TryCreateTwoFingerGestureOnTouchBegan(TouchConverterClosureHelper.GetFunc(createGestureFunction));
+            TryCreateTwoFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
         }
 
         void TryCreateTwoFingerGestureOnTouchBegan(
-            Func<CommonTouch, CommonTouch, T> createGestureFunction)
+            Func<CommonTouch, CommonTouch, T> createGestureFunction,
+            Action<T, CommonTouch, CommonTouch> reinitializeGestureFunction)
         {
             var touches = GestureTouchesUtility.touches;
             if (touches.Count < 2)
@@ -204,14 +242,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             for (var i = 0; i < touches.Count; ++i)
             {
-                TryCreateGestureTwoFingerGestureOnTouchBeganForTouchIndex(i, touches, createGestureFunction);
+                TryCreateGestureTwoFingerGestureOnTouchBeganForTouchIndex(i, touches, createGestureFunction, reinitializeGestureFunction);
             }
         }
 
         void TryCreateGestureTwoFingerGestureOnTouchBeganForTouchIndex(
             int touchIndex,
             IReadOnlyList<CommonTouch> touches,
-            Func<CommonTouch, CommonTouch, T> createGestureFunction)
+            Func<CommonTouch, CommonTouch, T> createGestureFunction,
+            Action<T, CommonTouch, CommonTouch> reinitializeGestureFunction)
         {
             var touch = touches[touchIndex];
 
@@ -242,7 +281,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     continue;
                 }
 
-                var gesture = createGestureFunction(touch, otherTouch);
+                T gesture;
+                if (m_DeadGesturePool.Count > 0)
+                {
+                    gesture = m_DeadGesturePool[m_DeadGesturePool.Count - 1];
+                    m_DeadGesturePool.RemoveAt(m_DeadGesturePool.Count - 1);
+                    reinitializeGestureFunction(gesture, touch, otherTouch);
+                }
+                else
+                {
+                    gesture = createGestureFunction(touch, otherTouch);
+                }
                 AddGesture(gesture);
             }
         }
@@ -312,6 +361,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             static T ConvertUsingTwoEnhancedTouch(CommonTouch touch, CommonTouch otherTouch) =>
                 s_CreateGestureFromTwoEnhancedTouchFunction(touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());
+        }
+
+        /// <summary>
+        /// Helper class to preallocate delegates to avoid GC Alloc that would happen
+        /// when passing the lambda to the methods which reinitialize one or two finger gestures.
+        /// </summary>
+        static class TouchActionConverterClosureHelper
+        {
+            // One Touch to Gesture input argument Func
+            static Action<T, Touch> s_ReinitializeGestureFromOneTouchFunction;
+            static Action<T, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromOneEnhancedTouchFunction;
+
+            // Two Touch to Gesture input argument Func
+            static Action<T, Touch, Touch> s_ReinitializeGestureFromTwoTouchFunction;
+            static Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromTwoEnhancedTouchFunction;
+
+            // Preallocate delegates to avoid GC Alloc
+            static readonly Action<T, CommonTouch> s_ConvertUsingOneTouch = ConvertUsingOneTouch;
+            static readonly Action<T, CommonTouch> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
+            static readonly Action<T, CommonTouch, CommonTouch> s_ConvertUsingTwoTouch = ConvertUsingTwoTouch;
+            static readonly Action<T, CommonTouch, CommonTouch> s_ConvertUsingTwoEnhancedTouch = ConvertUsingTwoEnhancedTouch;
+
+            public static Action<T, CommonTouch> GetAction(Action<T, Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromOneTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingOneTouch;
+            }
+
+            public static Action<T, CommonTouch> GetAction(Action<T, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromOneEnhancedTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingOneEnhancedTouch;
+            }
+
+            public static Action<T, CommonTouch, CommonTouch> GetAction(Action<T, Touch, Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromTwoTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingTwoTouch;
+            }
+
+            public static Action<T, CommonTouch, CommonTouch> GetAction(Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromTwoEnhancedTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingTwoEnhancedTouch;
+            }
+
+            static void ConvertUsingOneTouch(T gesture, CommonTouch touch) =>
+                s_ReinitializeGestureFromOneTouchFunction(gesture, touch.GetTouch());
+
+            static void ConvertUsingOneEnhancedTouch(T gesture, CommonTouch touch) =>
+                s_ReinitializeGestureFromOneEnhancedTouchFunction(gesture, touch.GetEnhancedTouch());
+
+            static void ConvertUsingTwoTouch(T gesture, CommonTouch touch, CommonTouch otherTouch) =>
+                s_ReinitializeGestureFromTwoTouchFunction(gesture, touch.GetTouch(), otherTouch.GetTouch());
+
+            static void ConvertUsingTwoEnhancedTouch(T gesture, CommonTouch touch, CommonTouch otherTouch) =>
+                s_ReinitializeGestureFromTwoEnhancedTouchFunction(gesture, touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());
         }
     }
 }

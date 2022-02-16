@@ -199,18 +199,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Can optionally fallback to hit test against Colliders in the loaded Scenes when no trackables were hit.
         /// </summary>
         /// <param name="screenPoint">The point, in device screen pixels, from which to cast.</param>
-        /// <param name="hitResults">Contents are replaced with the raycast results, if successful.</param>
-        /// <param name="sessionOrigin">The <see cref="XROrigin"/> used for raycasting.</param>
+        /// <param name="hitResults">Contents are replaced with the ray cast results, if successful.</param>
+        /// <param name="sessionOrigin">The <see cref="XROrigin"/> used for ray casting.</param>
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
-        /// <param name="fallbackLayerMask">(Optional) The <see cref="LayerMask"/> that Unity uses during an additional raycast when no trackables are hit.
-        /// Defaults to Nothing which skips the fallback raycast.</param>
-        /// <returns>Returns <see langword="true"/> if the raycast hit a trackable in the <paramref name="trackableTypes"/> or if the fallback raycast hit.
+        /// <param name="fallbackLayerMask">(Optional) The <see cref="LayerMask"/> that Unity uses during an additional ray cast when no trackables are hit.
+        /// Defaults to Nothing which skips the fallback ray cast.</param>
+        /// <returns>Returns <see langword="true"/> if the ray cast hit a trackable in the <paramref name="trackableTypes"/> or if the fallback ray cast hit.
         /// Otherwise, returns <see langword="false"/>.</returns>
         public static bool Raycast(
             Vector2 screenPoint,
             List<ARRaycastHit> hitResults,
             XROrigin sessionOrigin,
+#if AR_FOUNDATION_4_2_OR_NEWER
+            TrackableType trackableTypes = TrackableType.AllTypes,
+#else
             TrackableType trackableTypes = TrackableType.All,
+#endif
             int fallbackLayerMask = 0)
         {
             if ((sessionOrigin != null || TryGetSessionOrigin(out sessionOrigin)) &&
@@ -233,6 +237,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var ray = camera.ScreenPointToRay(screenPoint);
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, fallbackLayerMask))
             {
+                var transform = sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform;
                 hitResults.Add(new ARRaycastHit(
                     new XRRaycastHit(
                         TrackableId.invalidId,
@@ -240,7 +245,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                         hit.distance,
                         hitType),
                     hit.distance,
-                    sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform));
+#if AR_FOUNDATION_4_1_OR_NEWER
+                    transform, null));
+#else
+                    transform));
+#endif
                 return true;
             }
 
@@ -262,10 +271,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="maxTranslationDistance">The maximum distance allowed to translate the object.</param>
         /// <param name="gestureTranslationMode">The translation mode, indicating the plane types allowed.
         /// </param>
-        /// <param name="sessionOrigin">The <see cref="XROrigin"/> used for raycasting.</param>
+        /// <param name="sessionOrigin">The <see cref="XROrigin"/> used for ray casting.</param>
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
         /// <param name="fallbackLayerMask">(Optional) The <see cref="LayerMask"/> that Unity uses during
-        /// an additional raycast when no trackables are hit. Defaults to Nothing which skips the fallback raycast.</param>
+        /// an additional ray cast when no trackables are hit. Defaults to Nothing which skips the fallback ray cast.</param>
         /// <remarks>
         /// Unity places objects along the x/z of the grounding plane. When placed on an AR plane
         /// below the grounding plane, the object will drop straight down onto it in world space.
@@ -367,8 +376,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
 
             // If the grounding point is lower than the current grounding plane height, or if the
-            // raycast did not return a hit, then we extend the grounding plane to infinity, and do
-            // a new raycast into the scene from the perspective of the camera.
+            // ray cast did not return a hit, then we extend the grounding plane to infinity, and do
+            // a new ray cast into the scene from the perspective of the camera.
             var cameraRay = camera.ScreenPointToRay(screenPosition);
             var groundingPlane =
                 new Plane(Vector3.up, new Vector3(0f, groundingPlaneHeight, 0f));

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -642,6 +643,258 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
             Assert.That(registrationList.IsStillRegistered("A"), Is.False);
+        }
+
+        [Test]
+        public void NestedSelectEnterEventHasCorrectEventArgs()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractor = TestUtilities.CreateRayInteractor();
+            var secondInteractor = TestUtilities.CreateDirectInteractor();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateGrabInteractable();
+
+            var interactors = new IXRSelectInteractor[4];
+            var interactables = new IXRSelectInteractable[4];
+
+            // The sequence of notifying the interactor and interactable occurs like:
+            // IXRSelectInteractor.OnSelectEntering
+            // IXRSelectInteractable.OnSelectEntering
+            // IXRSelectInteractor.OnSelectEntered <-- During this call is when another select is triggered
+            // IXRSelectInteractable.OnSelectEntered
+            // This test will trigger another select event during this sequence.
+            // Verify that the references to the interactor and interactable in the event args
+            // does not get polluted by the second nested event that executes immediately
+            // during the first event.
+            firstInteractor.selectEntered.AddListener(args =>
+            {
+                interactors[0] = args.interactorObject;
+                interactables[0] = args.interactableObject;
+
+                // Trigger the nested event
+                manager.SelectEnter((IXRSelectInteractor)secondInteractor, secondInteractable);
+            });
+
+            firstInteractable.selectEntered.AddListener(args =>
+            {
+                interactors[1] = args.interactorObject;
+                interactables[1] = args.interactableObject;
+            });
+
+            secondInteractor.selectEntered.AddListener(args =>
+            {
+                interactors[2] = args.interactorObject;
+                interactables[2] = args.interactableObject;
+            });
+
+            secondInteractable.selectEntered.AddListener(args =>
+            {
+                interactors[3] = args.interactorObject;
+                interactables[3] = args.interactableObject;
+            });
+
+            // Trigger the first event
+            manager.SelectEnter((IXRSelectInteractor)firstInteractor, firstInteractable);
+
+            Assert.That(interactors[0], Is.SameAs(firstInteractor));
+            Assert.That(interactables[0], Is.SameAs(firstInteractable));
+            Assert.That(interactors[1], Is.SameAs(firstInteractor));
+            Assert.That(interactables[1], Is.SameAs(firstInteractable));
+            Assert.That(interactors[2], Is.SameAs(secondInteractor));
+            Assert.That(interactables[2], Is.SameAs(secondInteractable));
+            Assert.That(interactors[3], Is.SameAs(secondInteractor));
+            Assert.That(interactables[3], Is.SameAs(secondInteractable));
+        }
+
+        [Test]
+        public void NestedSelectExitEventHasCorrectEventArgs()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractor = TestUtilities.CreateRayInteractor();
+            var secondInteractor = TestUtilities.CreateDirectInteractor();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateGrabInteractable();
+
+            // Start selected
+            manager.SelectEnter((IXRSelectInteractor)firstInteractor, firstInteractable);
+            manager.SelectEnter((IXRSelectInteractor)secondInteractor, secondInteractable);
+
+            var interactors = new IXRSelectInteractor[4];
+            var interactables = new IXRSelectInteractable[4];
+
+            // The sequence of notifying the interactor and interactable occurs like:
+            // IXRSelectInteractor.OnSelectExiting
+            // IXRSelectInteractable.OnSelectExiting
+            // IXRSelectInteractor.OnSelectExited <-- During this call is when another select exit is triggered
+            // IXRSelectInteractable.OnSelectExited
+            // This test will trigger another select event during this sequence.
+            // Verify that the references to the interactor and interactable in the event args
+            // does not get polluted by the second nested event that executes immediately
+            // during the first event.
+            firstInteractor.selectExited.AddListener(args =>
+            {
+                interactors[0] = args.interactorObject;
+                interactables[0] = args.interactableObject;
+
+                // Trigger the nested event
+                manager.SelectExit((IXRSelectInteractor)secondInteractor, secondInteractable);
+            });
+
+            firstInteractable.selectExited.AddListener(args =>
+            {
+                interactors[1] = args.interactorObject;
+                interactables[1] = args.interactableObject;
+            });
+
+            secondInteractor.selectExited.AddListener(args =>
+            {
+                interactors[2] = args.interactorObject;
+                interactables[2] = args.interactableObject;
+            });
+
+            secondInteractable.selectExited.AddListener(args =>
+            {
+                interactors[3] = args.interactorObject;
+                interactables[3] = args.interactableObject;
+            });
+
+            // Trigger the first event
+            manager.SelectExit((IXRSelectInteractor)firstInteractor, firstInteractable);
+
+            Assert.That(interactors[0], Is.SameAs(firstInteractor));
+            Assert.That(interactables[0], Is.SameAs(firstInteractable));
+            Assert.That(interactors[1], Is.SameAs(firstInteractor));
+            Assert.That(interactables[1], Is.SameAs(firstInteractable));
+            Assert.That(interactors[2], Is.SameAs(secondInteractor));
+            Assert.That(interactables[2], Is.SameAs(secondInteractable));
+            Assert.That(interactors[3], Is.SameAs(secondInteractor));
+            Assert.That(interactables[3], Is.SameAs(secondInteractable));
+        }
+
+        [Test]
+        public void NestedHoverEnterEventHasCorrectEventArgs()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractor = TestUtilities.CreateRayInteractor();
+            var secondInteractor = TestUtilities.CreateDirectInteractor();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateGrabInteractable();
+
+            var interactors = new IXRHoverInteractor[4];
+            var interactables = new IXRHoverInteractable[4];
+
+            // The sequence of notifying the interactor and interactable occurs like:
+            // IXRHoverInteractor.OnHoverEntering
+            // IXRHoverInteractable.OnHoverEntering
+            // IXRHoverInteractor.OnHoverEntered <-- During this call is when another hover is triggered
+            // IXRHoverInteractable.OnHoverEntered
+            // This test will trigger another hover event during this sequence.
+            // Verify that the references to the interactor and interactable in the event args
+            // does not get polluted by the second nested event that executes immediately
+            // during the first event.
+            firstInteractor.hoverEntered.AddListener(args =>
+            {
+                interactors[0] = args.interactorObject;
+                interactables[0] = args.interactableObject;
+
+                // Trigger the nested event
+                manager.HoverEnter((IXRHoverInteractor)secondInteractor, secondInteractable);
+            });
+
+            firstInteractable.hoverEntered.AddListener(args =>
+            {
+                interactors[1] = args.interactorObject;
+                interactables[1] = args.interactableObject;
+            });
+
+            secondInteractor.hoverEntered.AddListener(args =>
+            {
+                interactors[2] = args.interactorObject;
+                interactables[2] = args.interactableObject;
+            });
+
+            secondInteractable.hoverEntered.AddListener(args =>
+            {
+                interactors[3] = args.interactorObject;
+                interactables[3] = args.interactableObject;
+            });
+
+            // Trigger the first event
+            manager.HoverEnter((IXRHoverInteractor)firstInteractor, firstInteractable);
+
+            Assert.That(interactors[0], Is.SameAs(firstInteractor));
+            Assert.That(interactables[0], Is.SameAs(firstInteractable));
+            Assert.That(interactors[1], Is.SameAs(firstInteractor));
+            Assert.That(interactables[1], Is.SameAs(firstInteractable));
+            Assert.That(interactors[2], Is.SameAs(secondInteractor));
+            Assert.That(interactables[2], Is.SameAs(secondInteractable));
+            Assert.That(interactors[3], Is.SameAs(secondInteractor));
+            Assert.That(interactables[3], Is.SameAs(secondInteractable));
+        }
+
+        [Test]
+        public void NestedHoverExitEventHasCorrectEventArgs()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractor = TestUtilities.CreateRayInteractor();
+            var secondInteractor = TestUtilities.CreateDirectInteractor();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateGrabInteractable();
+
+            // Start hovered
+            manager.HoverEnter((IXRHoverInteractor)firstInteractor, firstInteractable);
+            manager.HoverEnter((IXRHoverInteractor)secondInteractor, secondInteractable);
+
+            var interactors = new IXRHoverInteractor[4];
+            var interactables = new IXRHoverInteractable[4];
+
+            // The sequence of notifying the interactor and interactable occurs like:
+            // IXRHoverInteractor.OnHoverExiting
+            // IXRHoverInteractable.OnHoverExiting
+            // IXRHoverInteractor.OnHoverExited <-- During this call is when another hover is triggered
+            // IXRHoverInteractable.OnHoverExited
+            // This test will trigger another hover event during this sequence.
+            // Verify that the references to the interactor and interactable in the event args
+            // does not get polluted by the second nested event that executes immediately
+            // during the first event.
+            firstInteractor.hoverExited.AddListener(args =>
+            {
+                interactors[0] = args.interactorObject;
+                interactables[0] = args.interactableObject;
+
+                // Trigger the nested event
+                manager.HoverExit((IXRHoverInteractor)secondInteractor, secondInteractable);
+            });
+
+            firstInteractable.hoverExited.AddListener(args =>
+            {
+                interactors[1] = args.interactorObject;
+                interactables[1] = args.interactableObject;
+            });
+
+            secondInteractor.hoverExited.AddListener(args =>
+            {
+                interactors[2] = args.interactorObject;
+                interactables[2] = args.interactableObject;
+            });
+
+            secondInteractable.hoverExited.AddListener(args =>
+            {
+                interactors[3] = args.interactorObject;
+                interactables[3] = args.interactableObject;
+            });
+
+            // Trigger the first event
+            manager.HoverExit((IXRHoverInteractor)firstInteractor, firstInteractable);
+
+            Assert.That(interactors[0], Is.SameAs(firstInteractor));
+            Assert.That(interactables[0], Is.SameAs(firstInteractable));
+            Assert.That(interactors[1], Is.SameAs(firstInteractor));
+            Assert.That(interactables[1], Is.SameAs(firstInteractable));
+            Assert.That(interactors[2], Is.SameAs(secondInteractor));
+            Assert.That(interactables[2], Is.SameAs(secondInteractable));
+            Assert.That(interactors[3], Is.SameAs(secondInteractor));
+            Assert.That(interactables[3], Is.SameAs(secondInteractable));
         }
 
         /// <summary>

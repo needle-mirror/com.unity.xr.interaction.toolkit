@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -192,7 +193,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         // Reusable event args
-        readonly TeleportingEventArgs m_TeleportingEventArgs = new TeleportingEventArgs();
+        readonly LinkedPool<TeleportingEventArgs> m_TeleportingEventArgs = new LinkedPool<TeleportingEventArgs>(() => new TeleportingEventArgs(), collectionCheck: false);
 
         /// <inheritdoc />
         protected override void Awake()
@@ -216,7 +217,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The teleportation destination pose should be filled out.
         /// </summary>
         /// <param name="interactor">The interactor that initiated the teleport trigger.</param>
-        /// <param name="raycastHit">The raycast hit information from the interactor.</param>
+        /// <param name="raycastHit">The ray cast hit information from the interactor.</param>
         /// <param name="teleportRequest">The teleport request that should be filled out during this method call.</param>
         /// <returns>Returns <see langword="true"/> if the teleport request was successfully updated and should be queued. Otherwise, returns <see langword="false"/>.</returns>
         /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>
@@ -270,10 +271,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 if (success && m_Teleporting != null)
                 {
-                    m_TeleportingEventArgs.interactorObject = interactor;
-                    m_TeleportingEventArgs.interactableObject = this;
-                    m_TeleportingEventArgs.teleportRequest = teleportRequest;
-                    m_Teleporting.Invoke(m_TeleportingEventArgs);
+                    using (m_TeleportingEventArgs.Get(out var args))
+                    {
+                        args.interactorObject = interactor;
+                        args.interactableObject = this;
+                        args.teleportRequest = teleportRequest;
+                        m_Teleporting.Invoke(args);
+                    }
                 }
             }
         }

@@ -96,7 +96,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="updatePhase">The update phase this is called during.</param>
         /// <remarks>
-        /// Please see the Interaction Manager documentation for more details on update order.
+        /// Please see the <see cref="XRInteractionManager"/> and <see cref="XRInteractionUpdateOrder.UpdatePhase"/> documentation for more
+        /// details on update order.
         /// </remarks>
         /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         /// <seealso cref="IXRInteractor.ProcessInteractor"/>

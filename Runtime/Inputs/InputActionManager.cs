@@ -13,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     /// class to mass enable actions so that they actively listen for input and run callbacks.
     /// </remarks>
     /// <seealso cref="InputAction"/>
+    [AddComponentMenu("Input/Input Action Manager")]
     [HelpURL(XRHelpURLConstants.k_InputActionManager)]
     public class InputActionManager : MonoBehaviour
     {

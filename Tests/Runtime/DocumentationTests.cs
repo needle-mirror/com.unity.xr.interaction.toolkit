@@ -19,6 +19,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         /// </summary>
         static readonly Type[] s_RuntimeTypes;
 
+        /// <summary>
+        /// Runtime behavior types that can appear in the Inspector.
+        /// These should all have AddComponentMenu defined.
+        /// </summary>
+        static readonly Type[] s_RuntimeBehaviorTypes;
+
 #if UNITY_EDITOR
         /// <summary>
         /// <see cref="PackageInfo"/> for com.unity.xr.interaction.toolkit.
@@ -39,6 +45,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             s_RuntimeTypes = assembly.GetExportedTypes()
                 .Where(type => (type.IsSubclassOf(typeof(MonoBehaviour)) || type.IsSubclassOf(typeof(ScriptableObject))) && !type.IsAbstract)
+                .OrderBy(type => type.FullName)
+                .ToArray();
+
+            s_RuntimeBehaviorTypes = assembly.GetExportedTypes()
+                .Where(type => type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
                 .OrderBy(type => type.FullName)
                 .ToArray();
         }
@@ -84,6 +95,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 #endif
             // Assumes Scripting API reference.
             Assert.That(attribute.URL, Does.EndWith($"{type.FullName}.html"));
+
+            yield return null;
+        }
+
+        /// <summary>
+        /// Tests that all types that can appear in the Inspector have a specified
+        /// path in the Component menu instead of just the default Component > Scripts menu.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> of the object to test.</param>
+        /// <returns>Returns a coroutine enumerator.</returns>
+        [UnityTest]
+        public IEnumerator AddComponentMenuDefined([ValueSource(nameof(s_RuntimeBehaviorTypes))] Type type)
+        {
+            Assert.That(type, Is.Not.Null);
+
+            var attribute = type.GetCustomAttribute<AddComponentMenu>();
+            Assert.That(attribute, Is.Not.Null, $"AddComponentMenu not defined for {type.FullName}.");
 
             yield return null;
         }

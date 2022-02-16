@@ -40,6 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Manipulates the position of an object via a drag gesture.
     /// If not selected, the object will be selected when the drag gesture starts.
     /// </summary>
+    [AddComponentMenu("XR/AR Translation Interactable", 22)]
     [RequireComponent(typeof(ARSelectionInteractable))]
     [HelpURL(XRHelpURLConstants.k_ARTranslationInteractable)]
     public class ARTranslationInteractable : ARBaseGestureInteractable
@@ -71,11 +72,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         [SerializeField]
-        [Tooltip("The LayerMask that Unity uses during an additional raycast when a user touch does not hit any AR trackable planes.")]
+        [Tooltip("The LayerMask that Unity uses during an additional ray cast when a user touch does not hit any AR trackable planes.")]
         LayerMask m_FallbackLayerMask;
 
         /// <summary>
-        /// The <see cref="LayerMask"/> that Unity uses during an additional raycast
+        /// The <see cref="LayerMask"/> that Unity uses during an additional ray cast
         /// when a user touch does not hit any AR trackable planes.
         /// </summary>
         public LayerMask fallbackLayerMask

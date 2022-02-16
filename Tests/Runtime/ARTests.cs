@@ -85,9 +85,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Give gesture recognizer a chance to process gesture input
             IEnumerator DoYield()
             {
-                if (touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
-                    InputSystem.InputSystem.Update();
-
                 yield return null;
             }
 

@@ -53,19 +53,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         TapGesture(TapGestureRecognizer recognizer, CommonTouch touch) : base(recognizer)
         {
+            Reinitialize(touch);
+        }
+
+        internal void Reinitialize(Touch touch) => Reinitialize(new CommonTouch(touch));
+        internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch) => Reinitialize(new CommonTouch(touch));
+
+        void Reinitialize(CommonTouch touch)
+        {
+            Reinitialize();
             fingerId = touch.fingerId;
             startPosition = touch.position;
+            m_ElapsedTime = 0f;
         }
 
         /// <summary>
         /// (Read Only) The id of the finger used in this gesture.
         /// </summary>
-        public int fingerId { get; }
+        public int fingerId { get; private set; }
 
         /// <summary>
         /// (Read Only) The screen position where the gesture started.
         /// </summary>
-        public Vector2 startPosition { get; }
+        public Vector2 startPosition { get; private set; }
 
         /// <summary>
         /// (Read Only) The gesture recognizer.

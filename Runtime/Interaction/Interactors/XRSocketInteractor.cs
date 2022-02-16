@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -8,10 +9,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Interactor used for holding interactables via a socket. This component is not designed to be attached to a controller
     /// (thus does not derive from <see cref="XRBaseControllerInteractor"/>) and instead will always attempt to select an interactable that it is
-    /// hovering over (though will not perform exclusive selection of that interactable).
+    /// hovering over.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Socket Interactor")]
+    [AddComponentMenu("XR/XR Socket Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]
     public partial class XRSocketInteractor : XRBaseInteractor
     {
@@ -20,6 +21,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Whether this socket should show a mesh at socket's attach point for Interactables that it is hovering over.
         /// </summary>
+        /// <remarks>
+        /// The interactable's attach transform must not change parent Transform while selected
+        /// for the position and rotation of the hover mesh to be correctly calculated.
+        /// </remarks>
         public bool showInteractableHoverMeshes
         {
             get => m_ShowInteractableHoverMeshes;
@@ -92,6 +97,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRInteractor.GetValidTargets"/>
         protected List<IXRInteractable> unsortedValidTargets { get; } = new List<IXRInteractable>();
 
+        /// <summary>
+        /// The set of Colliders that stayed in touch with this Interactor on fixed updated.
+        /// This list will be populated by colliders in OnTriggerStay.
+        /// </summary>
+        readonly List<Collider> m_StayedColliders = new List<Collider>();
+
         readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
 
         readonly Dictionary<IXRInteractable, ValueTuple<MeshFilter, Renderer>[]> m_MeshFilterCache = new Dictionary<IXRInteractable, ValueTuple<MeshFilter, Renderer>[]>();
@@ -100,6 +111,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Reusable list of type <see cref="MeshFilter"/> to reduce allocations.
         /// </summary>
         static readonly List<MeshFilter> s_MeshFilters = new List<MeshFilter>();
+
+        /// <summary>
+        /// Reusable value of <see cref="WaitForFixedUpdate"/> to reduce allocations.
+        /// </summary>
+        static readonly WaitForFixedUpdate s_WaitForFixedUpdate = new WaitForFixedUpdate();
 
         /// <inheritdoc />
         protected override void Awake()
@@ -111,6 +127,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
 
             CreateDefaultHoverMaterials();
+        }
+
+        /// <inheritdoc />
+        protected override void Start()
+        {
+            base.Start();
+
+            StartCoroutine(UpdateCollidersAfterOnTriggerStay());
         }
 
         /// <summary>
@@ -126,9 +150,58 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
+        protected void OnTriggerStay(Collider other)
+        {
+            m_StayedColliders.Add(other);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
         protected void OnTriggerExit(Collider other)
         {
             m_TriggerContactMonitor.RemoveCollider(other);
+        }
+
+        /// <summary>
+        /// This coroutine functions like a LateFixedUpdate method that executes after OnTriggerXXX.
+        /// </summary>
+        /// <returns>Returns enumerator for coroutine.</returns>
+        IEnumerator UpdateCollidersAfterOnTriggerStay()
+        {
+            while (true)
+            {
+                // Wait until the end of the physics cycle so that OnTriggerXXX can get called.
+                // See https://docs.unity3d.com/Manual/ExecutionOrder.html
+                yield return s_WaitForFixedUpdate;
+
+                m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
+            }
+            // ReSharper disable once IteratorNeverReturns -- stopped when behavior is destroyed.
+        }
+
+        /// <inheritdoc />
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractor(updatePhase);
+
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
+            {
+                // Clear stayed Colliders at the beginning of the physics cycle before
+                // the OnTriggerStay method populates this list.
+                // Then the UpdateCollidersAfterOnTriggerStay coroutine will use this list to remove Colliders
+                // that no longer stay in this frame after previously entered.
+                m_StayedColliders.Clear();
+            }
+            else if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            {
+                // An explicit check for isHoverRecycleAllowed is done since an interactable may have been deselected
+                // after this socket was updated by the manager, such as when a later Interactor takes the selection
+                // from this socket. The recycle delay time could cause the hover to be effectively disabled.
+                if (m_ShowInteractableHoverMeshes && hasHover && isHoverRecycleAllowed)
+                    DrawHoveredInteractables();
+            }
         }
 
         /// <summary>
@@ -218,27 +291,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_LastRemoveTime = Time.time;
         }
 
-        /// <inheritdoc />
-        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
-        {
-            base.ProcessInteractor(updatePhase);
-
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
-            {
-                // An explicit check for isHoverRecycleAllowed is done since an interactable may have been deselected
-                // after this socket was updated by the manager, such as when a later Interactor takes the selection
-                // from this socket. The recycle delay time could cause the hover to be effectively disabled.
-                if (m_ShowInteractableHoverMeshes && hasHover && isHoverRecycleAllowed)
-                    DrawHoveredInteractables();
-            }
-        }
-
         Matrix4x4 GetHoverMeshMatrix(IXRInteractable interactable, MeshFilter meshFilter, float hoverScale)
         {
             var interactableAttachTransform = interactable.GetAttachTransform(this);
-            var attachOffset = meshFilter.transform.position - interactableAttachTransform.position;
-            var interactableLocalPosition = interactableAttachTransform.InverseTransformDirection(attachOffset) * hoverScale;
-            var interactableLocalRotation = Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactableAttachTransform.rotation);
+
+            // Get the "static" pose of the attach transform in world space.
+            // While the interactable is selected, it may have a different pose than when released,
+            // so this assumes it will be restored back to the original pose before a selection was made.
+            Pose interactableAttachPose;
+            if (interactable is IXRSelectInteractable selectable && selectable.isSelected)
+            {
+                // The interactable's attach transform must not change parent Transform while selected
+                // for the pose to be calculated correctly. This transforms the captured pose in local space
+                // into the current pose in world space. If the pose of the attach transform was not modified
+                // after being selected, this will be the same value as calculated in the else statement.
+                var localAttachPose = selectable.GetLocalAttachPoseOnSelect(selectable.firstInteractorSelecting);
+                var attachTransformParent = interactableAttachTransform.parent;
+                interactableAttachPose = attachTransformParent != null
+                    ? new Pose(attachTransformParent.TransformPoint(localAttachPose.position),
+                        attachTransformParent.rotation * localAttachPose.rotation)
+                    : localAttachPose;
+            }
+            else
+            {
+                interactableAttachPose = new Pose(interactableAttachTransform.position, interactableAttachTransform.rotation);
+            }
+
+            var attachOffset = meshFilter.transform.position - interactableAttachPose.position;
+            var interactableLocalPosition = InverseTransformDirection(interactableAttachPose, attachOffset) * hoverScale;
+            var interactableLocalRotation = Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactableAttachPose.rotation);
 
             var interactorAttachTransform = GetAttachTransform(interactable);
             var position = interactorAttachTransform.position + interactorAttachTransform.rotation * interactableLocalPosition;
@@ -246,6 +327,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var scale = meshFilter.transform.lossyScale * hoverScale;
 
             return Matrix4x4.TRS(position, rotation, scale);
+        }
+
+        /// <summary>
+        /// Transforms a direction from world space to local space. The opposite of <c>Transform.TransformDirection</c>,
+        /// but using a world Pose instead of a Transform.
+        /// </summary>
+        /// <param name="pose">The world space position and rotation of the Transform.</param>
+        /// <param name="direction">The direction to transform.</param>
+        /// <returns>Returns the transformed direction.</returns>
+        /// <remarks>
+        /// This operation is unaffected by scale.
+        /// <br/>
+        /// You should use <c>Transform.InverseTransformPoint</c> equivalent if the vector represents a position in space rather than a direction.
+        /// </remarks>
+        static Vector3 InverseTransformDirection(Pose pose, Vector3 direction)
+        {
+            return Quaternion.Inverse(pose.rotation) * direction;
         }
 
         /// <summary>
@@ -327,22 +425,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)
         {
-            return base.CanSelect(interactable) && ((!hasSelection && !interactable.isSelected) || IsSelecting(interactable));
+            return base.CanSelect(interactable) &&
+                ((!hasSelection && !interactable.isSelected) ||
+                    (IsSelecting(interactable) && interactable.interactorsSelecting.Count == 1));
         }
 
         /// <summary>
-        /// Unity calls this method automatically in order to determine whether the Mesh should be drawn.
+        /// Unity calls this method automatically in order to determine whether the mesh should be drawn.
         /// </summary>
         /// <param name="meshFilter">The <see cref="MeshFilter"/> which will be drawn when returning <see langword="true"/>.</param>
         /// <param name="meshRenderer">The <see cref="Renderer"/> on the same <see cref="GameObject"/> as the <paramref name="meshFilter"/>.</param>
         /// <param name="mainCamera">The Main Camera.</param>
-        /// <returns>Returns <see langword="true"/> if the Mesh should be drawn. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the mesh should be drawn. Otherwise, returns <see langword="false"/>.</returns>
         /// <seealso cref="DrawHoveredInteractables"/>
         protected virtual bool ShouldDrawHoverMesh(MeshFilter meshFilter, Renderer meshRenderer, Camera mainCamera)
         {
-            // TODO By only checking the main camera culling flags, but drawing the mesh in all cameras,
-            // aren't we ignoring the culling mask of non-main cameras? Or does DrawMesh handle culling
-            // automatically, making some of this evaluation unnecessary?
+            // Graphics.DrawMesh will automatically handle camera culling of the hover mesh using
+            // the GameObject layer of this socket that we pass as the argument value.
+            // However, we also check here to skip drawing the hover mesh if the mesh of the interactable
+            // itself isn't also drawn by the main camera. For the typical scene with one camera,
+            // this means that for the hover mesh to be rendered, the camera should have a culling mask
+            // which overlaps with both the GameObject layer of this socket and the GameObject layer of the interactable.
             var cullingMask = mainCamera.cullingMask;
             return meshFilter != null && (cullingMask & (1 << meshFilter.gameObject.layer)) != 0 && meshRenderer != null && meshRenderer.enabled;
         }

@@ -5,6 +5,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.0] - 2022-02-16
+
+### Added
+- Added a warning message to the Inspector of `XRGrabInteractable` with non-uniformly scaled parent. A child `XRGrabInteractable` with non-uniformly scaled parent that is rotated relative to that parent may appear skewed when you grab it and then release it. See [Limitations with Non-Uniform Scaling](https://docs.unity3d.com/Manual/class-Transform.html). ([1228990](https://issuetracker.unity3d.com/product/unity/issues/guid/1228990))
+- Added support for gamepad and joystick input when using the XRUIInputModule for more complete UGUI integration.
+
+### Changed
+- Changed sockets so selections are only maintained when exclusive. `XRSocketInteractor.CanSelect` changed so that sockets only maintain their selection when it is the sole interactor selecting the interactable. Previously, this was causing interactables that support multiple selection to not get released from the socket when grabbed by another interactor, which is not typically desired.
+- Changed sockets so the hover mesh is positioned at the original attach transform pose for selected interactables. This fixes the case where the hover mesh would be at the wrong location when the attach transform is dynamically modified when an XR Grab Interactable is grabbed.
+- Changed `XRDirectInteractor` and `XRSocketInteractor` by adding an `OnTriggerStay` method to fix an issue where those interactors did not detect when a Collider had exited in some cases where `OnTriggerExit` is not invoked, such as the Collider of the interactable being disabled. Users who had already implemented `OnTriggerStay` in derived classes will need to call the base method.
+- Changed `GestureTransformationUtility.Raycast` default parameter value of `trackableTypes` from `TrackableType.All` to `TrackableType.AllTypes` to fix use of deprecated enum in AR Foundation 4.2. The new value includes `TrackableType.Depth`.
+- Renamed the Default Input Actions sample to Starter Assets.
+- Updated the manual to move most sections to separate pages.
+- Moved some components from the **Component &gt; Scripts** menu into **Component &gt; XR**, **Component &gt; Event**, and **Component &gt; Input**.
+- Changed `com.unity.xr.core-utils` dependency to 2.0.0.
+
+### Fixed
+- Fixed `XRDirectInteractor` and `XRSocketInteractor` still hovering an `XRGrabInteractable` after it was deactivated or destroyed.
+- Fixed properties in event args for select and hover being incorrect when the same event is invoked again during the event due to the instance being reused for both. An object pool is now used by the `XRInteractionManager` to avoid the second event from overwriting the instance for the first event.
+- GC.Alloc calls have been reduced: ray interactors with UI interaction disabled no longer allocate each frame, XRUIInputModule now avoids an allocating call, and AR gesture recognizers no longer re-allocate gestures when an old one is available.
+- Fixed Editor classes improperly using `enumValueIndex` instead of `intValue` in some `SerializedProperty` cases. In practice, this bug did not affect users since the values matched in those cases.
+- Fixed issue where `EventManager.current.IsPointerOverGameObject` would always return false when using `XRUIInputModule` for UI interaction. ([1387567](https://issuetracker.unity3d.com/product/unity/issues/guid/1387567))
+- Fixed XR Tint Interactable Visual from clearing the tint in some cases when it was set to tint on both hover and selection. Also fixed the case when the interactable supports multiple selections so it only clears the tint when all selections end. It will now also set tint during `Awake` if needed.
+- Fixed `ARTests` failing with Enhanced touches due to version upgrade of Input System.
+- Fixed use of deprecated methods and enum values in `GestureTransformationUtility` when using AR Foundation 4.1 and 4.2.
+
 ## [2.0.0-pre.7] - 2022-01-31
 
 ### Fixed
@@ -176,7 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed `XRUIInputModule` not processing clicks properly when using simulated touches, such as when using the Device Simulator view. This change means mouse input is not processed when there are touches, matching the behavior of other modules like the Standalone Input Module.
 - Fixed Direct Interactor logging a warning about not having a required trigger Collider when it has a Rigidbody.
 - Fixed missing dependency on `com.unity.modules.physics`.
-- Fixed the sort order of raycasts returned by `TrackedDevicePhysicsRaycaster.Raycast` so that distance is in ascending order (closest first). It was previously returning in descending order (furthest first). In practice, this bug did not affect users since `EventSystem.RaycastAll` would correct the order.
+- Fixed the sort order of ray casts returned by `TrackedDevicePhysicsRaycaster.Raycast` so that distance is in ascending order (closest first). It was previously returning in descending order (furthest first). In practice, this bug did not affect users since `EventSystem.RaycastAll` would correct the order.
 
 ## [1.0.0-pre.6] - 2021-09-10
 
@@ -184,7 +210,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed `ARGestureInteractor.GetValidTargets` to no longer filter out Interactable objects based on the camera direction. The optimization method used was faulty and could cause Interactable objects that were still visible to be excluded from the list. ([1354009](https://issuetracker.unity3d.com/product/unity/issues/guid/1354009))
 
 ### Fixed
-- Fixed Tracked Device Physics Raycaster so it will include raycast hits for GameObjects that did not have an event handler. This bug was causing events like `IPointerEnterHandler.OnPointerEnter` to not be invoked when the hit was on a child Collider that did not itself have an event handler. ([1356459](https://issuetracker.unity3d.com/product/unity/issues/guid/1356459))
+- Fixed Tracked Device Physics Raycaster so it will include ray cast hits for GameObjects that did not have an event handler. This bug was causing events like `IPointerEnterHandler.OnPointerEnter` to not be invoked when the hit was on a child Collider that did not itself have an event handler. ([1356459](https://issuetracker.unity3d.com/product/unity/issues/guid/1356459))
 - Fixed `XRBaseInteractable.isHovered` so it only gets set to `false` when all Interactors exit hovering. It was previously getting set to `false` when any Interactor would exit hovering even if another Interactor was still hovering.
 - Fixed use of obsolete properties in `TrackedPoseDriver` when using Input System package version 1.1.0-pre.6 or newer.
 - Fixed the Default Input Actions sample to be compatible with Input System package version 1.1.0 by merging the two bindings for the Turn action into one binding with both Sector interactions.
@@ -211,8 +237,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.0-pre.4] - 2021-05-14
 
 ### Added
-- Added Tracked Device Physics Raycaster component to enable physics-based UI interaction through Unity's Event System. This is similar to Physics Raycaster from the Unity UI package, but with support for raycasts from XR Controllers.
-- Added `finalizeRaycastResults` event to `UIInputModule` that allows a callback to modify raycast results before they are used by the event system.
+- Added Tracked Device Physics Raycaster component to enable physics-based UI interaction through Unity's Event System. This is similar to Physics Raycaster from the Unity UI package, but with support for ray casts from XR Controllers.
+- Added `finalizeRaycastResults` event to `UIInputModule` that allows a callback to modify ray cast results before they are used by the event system.
 - Added column to XR Interaction Debugger to show an Interactor's valid targets from `XRBaseInteractor.GetValidTargets`.
 - Added property to XR Controller to allow the model to be set to a child object instead of forcing it to be instantiated from prefab.
 
@@ -222,7 +248,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Grab Interactable to allow its Attach Transform to be updated while grabbed instead of only using its pose at the moment of being grabbed. This requires not using Legacy mode.
 - Changed Grab Interactable to no longer use the scale of the selecting Interactor's Attach Transform. This often caused unintended offsets when grabbing objects. The position of the Attach Transform should be used for this purpose rather than the scale. Projects that depended on that functionality can use Legacy mode to revert to the old method.
 - Changed Grab Interactable default Movement Type from Kinematic to Instantaneous.
-- Changed Grab Interactable default values for damping and scale so Velocity Tracking moves more similar to the other Movement Type values, making the distinguishing feature instead be how it collides with other Colliders without Rigidbodies. Changed `velocityDamping` from 0.4 to 1, `angularVelocityDamping` from 0.4 to 1, and `angularVelocityScale` from 0.95 to 1.
+- Changed Grab Interactable default values for damping and scale so Velocity Tracking moves more similar to the other Movement Type values, making the distinguishing feature instead be how it collides with other Colliders without Rigidbody components. Changed `velocityDamping` from 0.4 to 1, `angularVelocityDamping` from 0.4 to 1, and `angularVelocityScale` from 0.95 to 1.
 - Changed Socket Interactor override of the Movement Type of Interactables from Kinematic to Instantaneous.
 - Changed XR Controller so it does not modify the Transform position, rotation, or scale of the instantiated model prefab upon startup instead of resetting those values.
 - Changed Controller Interactors to let the XR Controller be on a parent GameObject.
@@ -241,7 +267,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Input System actions such as Select not being recognized as pressed in `ActionBasedController` when it was bound to an Axis control (for example '<XRController>/grip') rather than a Button control (for example '<XRController>/gripPressed').
 - Fixed XR Interaction Debugger to display Interactors and Interactables from multiple Interaction Managers.
 - Fixed XR Interaction Debugger having overlapping text when an Interactor was hovering over multiple Interactables.
-- Fixed Tree View panels in the XR Interaction Debugger to be collapsable.
+- Fixed Tree View panels in the XR Interaction Debugger to be collapsible.
 - Fixed `TestFixture` classes in the test assembly to be `internal` instead of `public`.
 - Fixed Grab Interactable to use scaled time for easing and smoothing instead of unscaled time.
 - Fixed Direct and Socket Interactor not being able to interact with an Interactable with multiple Colliders when any of the Colliders leaves the trigger instead of only when all of them leave. ([1325375](https://issuetracker.unity3d.com/product/unity/issues/guid/1325375))
@@ -253,17 +279,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.0-pre.3] - 2021-03-18
 
 ### Added
-- Added ability for serialized fields added in derived behaviors to automatically appear in the Inspector. Users will no longer need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. See [Extending the XR Interaction Toolkit](../manual/index.html#extending-the-xr-interaction-toolkit) in the manual for details about customizing how they are drawn.
+- Added ability for serialized fields added in derived behaviors to automatically appear in the Inspector. Users will no longer need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. See [Extending the XR Interaction Toolkit](../manual/extending-xri.html) in the manual for details about customizing how they are drawn.
 - Added support for `EnhancedTouch` from the Input System for AR gesture classes. This means AR interaction is functional when the Active Input Handling project setting is set to Input System Package (New).
 - Added registration events to `XRBaseInteractable` and `XRBaseInteractor` which work like those in `XRInteractionManager` but for just that object.
 - Added new methods in `ARPlacementInteractable` to divide the logic in `OnEndManipulation` into `TryGetPlacementPose`, `PlaceObject`, and `OnObjectPlaced`.
-- Added `XRRayInteractor.hitClosestOnly` property to limit the number of valid targets. Enable this to make only the closest Interactable receive hover events rather than all Interactables in the full length of the raycast.
+- Added `XRRayInteractor.hitClosestOnly` property to limit the number of valid targets. Enable this to make only the closest Interactable receive hover events rather than all Interactables in the full length of the ray cast.
 - Added new methods in `XRRayInteractor` for getting information about UI hits, and made more methods `virtual` or `public`.
 - Added several properties to Grab Interactable (Damping and Scale) to allow for tweaking the velocity and angular velocity when the Movement Type is Velocity Tracking. These values can be adjusted to reduce oscillation and latency from the Interactor.
 
 ### Changed
 - Changed script execution order so `LocomotionProvider` occurs before Interactors are processed, fixing Ray Interactor from casting with stale controller poses when moving or turning the rig and causing visual flicker of the line.
-- Changed script execution order so `XRUIInputModule` processing occurs after `LocomotionProvider` and before Interactors are processed to fix the frame delay with UI hits due to using stale raycast rays. `XRUIInputModule.Process` now does nothing, override `XRUIInputModule.DoProcess` which is called directly from `Update`.
+- Changed script execution order so `XRUIInputModule` processing occurs after `LocomotionProvider` and before Interactors are processed to fix the frame delay with UI hits due to using stale ray cast rays. `XRUIInputModule.Process` now does nothing, override `XRUIInputModule.DoProcess` which is called directly from `Update`.
 - Changed `XRUIInputModule.DoProcess` from `abstract` to `virtual`. Overriding methods in derived classes should call `base.DoProcess` to ensure `IUpdateSelectedHandler` event sending occurs as before.
 - Changed Ray Interactor's Reference Frame property to use global up as a fallback when not set instead of the Interactor's up.
 - Changed Ray Interactor Projectile Curve to end at ground height rather than controller height. Additional Ground Height and Additional Flight Time properties can be adjusted to control how long the curve travels, but this change means the curve will be longer than it was in previous versions.
@@ -283,7 +309,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Ray Interactor interacting with Interactables that are behind UI. ([1312217](https://issuetracker.unity3d.com/product/unity/issues/guid/1312217))
 - Fixed `XRRayInteractor.hoverToSelect` not being functional. ([1301630](https://issuetracker.unity3d.com/product/unity/issues/guid/1301630))
 - Fixed Ray Interactor not allowing for valid targets behind an Interactable with multiple Collider objects when the ray hits more than one of those Colliders.
-- Fixed Ray Interactor performance to only perform raycasts once per frame instead of each time `GetValidTargets` is called by doing it during `ProcessInteractor` instead.
+- Fixed Ray Interactor performance to only perform ray casts once per frame instead of each time `GetValidTargets` is called by doing it during `ProcessInteractor` instead.
 - Fixed exception in `XRInteractorLineVisual` when changing the Sample Frequency or Line Type of a Ray Interactor.
 - Fixed Ray Interactor anchor control rotation when the Rig plane was not up. Added a property `anchorRotateReferenceFrame` to control the rotation axis.
 - Fixed Reference Frame missing from the Ray Interactor Inspector when the Line Type was Bezier Curve.
@@ -366,7 +392,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
   }
   ```
-- Changed many custom Editors to also apply to child classes so they inherit the custom layout of the Inspector. If your derived class adds a `SerializeField` or public field, you will need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. See [Extending the XR Interaction Toolkit](../manual/index.html#extending-the-xr-interaction-toolkit) in the manual for a code example.
+- Changed many custom Editors to also apply to child classes so they inherit the custom layout of the Inspector. If your derived class adds a `SerializeField` or public field, you will need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. See [Extending the XR Interaction Toolkit](../manual/extending-xri.html) in the manual for a code example.
 - Changed `XRInteractionManager.SelectCancel` to call `OnSelectExiting` and `OnSelectExited` on both the `XRBaseInteractable` and `XRBaseInteractor` in a similar interleaved order to other interaction state changes and when either is unregistered.
 - Changed order of `XRInteractionManager.UnregisterInteractor` to first cancel the select state before canceling hover state for consistency with the normal update loop which exits select before exiting hover.
 - Changed `XRBaseInteractor.StartManualInteraction` and `XRBaseInteractor.EndManualInteraction` to go through `XRInteractionManager` rather than bypassing constraints and events on the Interactable.
@@ -416,7 +442,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added sample containing default set of input actions and presets
 
 ### Fixed
-- Fixed issue with PrimaryAxis2D input from mouse not moving the scrollbars on UI as expected. ([1278162](https://issuetracker.unity3d.com/product/unity/issues/guid/1278162))
+- Fixed issue with PrimaryAxis2D input from mouse not moving the scroll bars on UI as expected. ([1278162](https://issuetracker.unity3d.com/product/unity/issues/guid/1278162))
 - Fixed issue where Bezier Curve did not take into account controller tilt. ([1245614](https://issuetracker.unity3d.com/product/unity/issues/guid/1245614))
 - Fixed issue where a socket's hover mesh was offset. ([1285693](https://issuetracker.unity3d.com/product/unity/issues/guid/1285693))
 - Fixed issue where disabling parent before `XRGrabInteractable` child was causing an error in `OnSelectCanceling`
@@ -429,7 +455,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.10.0-preview.3] - 2020-10-14
 
 ### Added
-- Added ability to control whether the line will always be cut short at the first raycast hit, even when invalid, to the Interactor Line Visual ([1252532](https://issuetracker.unity3d.com/product/unity/issues/guid/1252532))
+- Added ability to control whether the line will always be cut short at the first ray cast hit, even when invalid, to the Interactor Line Visual ([1252532](https://issuetracker.unity3d.com/product/unity/issues/guid/1252532))
 
 ### Changed
 - Renamed `OnSelectEnter`, `OnSelectExit`, `OnSelectCancel`, `OnHoverEnter`, `OnHoverExit`, `OnFirstHoverEnter`, and `OnLastHoverExit` to `OnSelectEntered`, `OnSelectExited`, `OnSelectCanceled`, `OnHoverEntered`, `OnHoverExited`, `OnFirstHoverEntered`, and `OnLastHoverExited` respectively.
@@ -458,9 +484,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added continuous move and turn locomotion
 
 ### Changed
-- Changed accesibility levels to avoid `protected` fields, instead exposed through properties
+- Changed accessibility levels to avoid `protected` fields, instead exposed through properties
 - Components that use Input System actions no longer automatically enable or disable them. Add the `InputActionManager` component to a GameObject in a scene and use the Inspector to reference the `InputActionAsset` you want to automatically enable at startup.
-- Some properties have been renamed from PascalCase to camelCase to conform with coding standard; the API Updator should update usage automatically in most cases
+- Some properties have been renamed from PascalCase to camelCase to conform with coding standard; the API Updater should update usage automatically in most cases
 
 ### Fixed
 - Fixed compilation issue when AR Foundation package is also installed
@@ -472,7 +498,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.9.9-preview.3] - 2020-06-24
 
 ### Changed
-- In progress changes to visibilty
+- In progress changes to visibility
 
 ## [0.9.9-preview.2] - 2020-06-22
 
@@ -486,13 +512,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed controller recording not working
-- Start controller recording at 0 time so you dont have to wait for the recording to start playing.
+- Start controller recording at 0 time so you do not have to wait for the recording to start playing.
 
 ## [0.9.9-preview] - 2020-06-04
 
 ### Added
 - Added Input System support
-- Added abiltiy to query the controller from the interactor
+- Added ability to query the controller from the interactor
 
 ### Changed
 - Changed a number of members and properties to be `protected` rather than `private`
@@ -507,7 +533,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added pose provider support to XR Controller
-- Added abiilty to put objects back to their original hierarchy position when dropping them
+- Added ability to put objects back to their original hierarchy position when dropping them
 - Made teleport configurable to use either activate or select
 - Removed need for box colliders behind UI to stop line visuals from drawing through them
 

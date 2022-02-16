@@ -31,6 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Locomotion Provider can move the XR Origin at one time. This is the only place that access to an XR Origin is controlled,
     /// having multiple instances of a <see cref="LocomotionSystem"/> drive a single XR Origin is not recommended.
     /// </summary>
+    [AddComponentMenu("XR/Locomotion/Locomotion System", 11)]
     [HelpURL(XRHelpURLConstants.k_LocomotionSystem)]
     public partial class LocomotionSystem : MonoBehaviour
     {

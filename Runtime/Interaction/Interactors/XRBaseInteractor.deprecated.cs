@@ -237,7 +237,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <seealso cref="XRBaseInteractable.selectingInteractor"/>
         /// <remarks>
-        /// <c>selectTarget</c> has been deprecated. Use <see cref="interactablesSelected"/>, <see cref="XRSelectInteractorExtensions.GetOldestInteractableSelected"/>, <see cref="hasSelection"/>, or <see cref="IsSelecting"/> instead.
+        /// <c>selectTarget</c> has been deprecated. Use <see cref="interactablesSelected"/>, <see cref="XRSelectInteractorExtensions.GetOldestInteractableSelected(IXRSelectInteractor)"/>, <see cref="hasSelection"/>, or <see cref="XRBaseInteractor.IsSelecting(IXRSelectInteractable)"/> instead.
         /// </remarks>
         [Obsolete("selectTarget has been deprecated. Use interactablesSelected, GetOldestInteractableSelected, hasSelection, or IsSelecting for similar functionality.")]
         public XRBaseInteractable selectTarget

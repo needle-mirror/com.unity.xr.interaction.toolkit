@@ -19,7 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     /// <seealso cref="XRBaseController"/>
     /// <seealso cref="ActionBasedController"/>
-    [AddComponentMenu("XR/XR Controller (Device-based)")]
+    [AddComponentMenu("XR/XR Controller (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_XRController)]
     public class XRController : XRBaseController
     {
@@ -111,7 +111,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         InputHelpers.Button m_MoveObjectIn = InputHelpers.Button.PrimaryAxis2DUp;
 
         /// <summary>
-        /// The input that will be used to translate the anchor away from the interactor.
+        /// The input that will be used to translate the anchor away from the interactor (into the screen / away from the player).
         /// </summary>
         public InputHelpers.Button moveObjectIn
         {
@@ -123,7 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         InputHelpers.Button m_MoveObjectOut = InputHelpers.Button.PrimaryAxis2DDown;
 
         /// <summary>
-        /// The input that will be used to translate the anchor towards the interactor.
+        /// The input that will be used to translate the anchor towards the interactor (out of the screen / towards the player).
         /// </summary>
         public InputHelpers.Button moveObjectOut
         {

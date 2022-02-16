@@ -11,7 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [CanSelectMultiple(false)]
     [RequireComponent(typeof(Rigidbody))]
-    [AddComponentMenu("XR/XR Grab Interactable")]
+    [AddComponentMenu("XR/XR Grab Interactable", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
     public partial class XRGrabInteractable : XRBaseInteractable
     {

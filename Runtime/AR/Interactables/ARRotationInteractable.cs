@@ -44,6 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then dragging along the horizontal axis
     /// or performing a twist gesture will rotate along the y-axis of the item.
     /// </summary>
+    [AddComponentMenu("XR/AR Rotation Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARRotationInteractable)]
     public class ARRotationInteractable : ARBaseGestureInteractable
     {

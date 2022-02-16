@@ -48,6 +48,60 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         [Obsolete("m_Gestures has been deprecated. Use gestures instead. (UnityUpgradable) -> gestures")]
         protected List<T> m_Gestures = new List<T>();
 #pragma warning restore IDE1006 // Naming Styles
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating one-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <remarks>
+        /// <c>TryCreateOneFingerGestureOnTouchBegan(Func&lt;Touch, T&gt;)</c> has been deprecated. Use
+        /// <see cref="TryCreateOneFingerGestureOnTouchBegan(Func{Touch, T}, Action{T, Touch})"/> instead.
+        /// </remarks>
+        [Obsolete("TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T>) is no longer functional. Use TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T>, Action<T, Touch>) instead.", true)]
+        protected void TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T> createGestureFunction)
+        {
+        }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating one-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <remarks>
+        /// <c>TryCreateOneFingerGestureOnTouchBegan(Func&lt;InputSystem.EnhancedTouch.Touch, T&gt;)</c> has been deprecated. Use
+        /// <see cref="TryCreateOneFingerGestureOnTouchBegan(Func{InputSystem.EnhancedTouch.Touch, T}, Action{T, InputSystem.EnhancedTouch.Touch})"/> instead.
+        /// </remarks>
+        [Obsolete("TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T>) is no longer functional. Use TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T>, Action<T, InputSystem.EnhancedTouch.Touch>) instead.", true)]
+        protected void TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+        {
+        }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating two-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <remarks>
+        /// <c>TryCreateTwoFingerGestureOnTouchBegan(Func&lt;Touch, Touch, T&gt;)</c> has been deprecated. Use
+        /// <see cref="TryCreateTwoFingerGestureOnTouchBegan(Func{Touch, Touch, T}, Action{T, Touch, Touch})"/> instead.
+        /// </remarks>
+        [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>) is no longer functional. Use TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>, Action<T, Touch, Touch>) instead.", true)]
+        protected void TryCreateTwoFingerGestureOnTouchBegan(
+            Func<Touch, Touch, T> createGestureFunction)
+        {
+        }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating two-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <remarks>
+        /// <c>TryCreateTwoFingerGestureOnTouchBegan(Func&lt;Touch, Touch, T&gt;)</c> has been deprecated. Use
+        /// <see cref="TryCreateTwoFingerGestureOnTouchBegan(Func{Touch, Touch, T}, Action{T, Touch, Touch})"/> instead.
+        /// </remarks>
+        [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>) is no longer functional. Use TryCreateTwoFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>, Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch>) instead.", true)]
+        protected void TryCreateTwoFingerGestureOnTouchBegan(
+            Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+        {
+        }
     }
 }
 

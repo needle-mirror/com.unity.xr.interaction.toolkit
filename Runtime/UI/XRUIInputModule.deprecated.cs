@@ -5,7 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     public partial class XRUIInputModule
     {
         /// <summary>
-        /// The maximum distance to raycast with tracked devices to find hit objects.
+        /// The maximum distance to ray cast with tracked devices to find hit objects.
         /// </summary>
         /// <remarks>
         /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.

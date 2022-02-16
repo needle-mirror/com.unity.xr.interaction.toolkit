@@ -17,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// input actions in an Input Action Asset are not enabled by default.
     /// </remarks>
     /// <seealso cref="XRBaseController"/>
-    [AddComponentMenu("XR/XR Controller (Action-based)")]
+    [AddComponentMenu("XR/XR Controller (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedController)]
     public partial class ActionBasedController : XRBaseController
     {

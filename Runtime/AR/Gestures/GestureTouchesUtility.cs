@@ -161,7 +161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// 2. Allows Gestures to Lock/Release fingerIds.
     /// 3. Wraps Input.Touches so that it works both in editor and on device.
     /// 4. Provides helper functions for converting touch coordinates
-    ///    and performing raycasts based on touches.
+    ///    and performing ray casts based on touches.
     /// </summary>
     static class GestureTouchesUtility
     {
@@ -285,9 +285,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Performs a Raycast from the camera.
         /// </summary>
-        /// <param name="screenPos">The screen position to perform the raycast from.</param>
-        /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for raycasting.</param>
-        /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for raycasting.</param>
+        /// <param name="screenPos">The screen position to perform the ray cast from.</param>
+        /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for ray casting.</param>
+        /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for ray casting.</param>
         /// <param name="result">When this method returns, contains the <see cref="RaycastHit"/> result.</param>
         /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
         public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result)

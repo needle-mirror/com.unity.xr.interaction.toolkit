@@ -202,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractionManager m_RegisteredInteractionManager;
 
         /// <summary>
-        /// Cached reference to an <see cref="XRInteractionManager"/> found with <see cref="Object.FindObjectOfType"/>.
+        /// Cached reference to an <see cref="XRInteractionManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static XRInteractionManager s_InteractionManagerCache;
 

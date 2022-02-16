@@ -198,7 +198,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// A boolean value representing whether any mouse data has changed this frame, meaning that events should be processed.
         /// </summary>
         /// <remarks>
-        /// This only checks for changes in mouse state (<see cref="position"/>, <see cref="leftButton"/>, <see cref="rightButton"/>, <see cref="middleButton"/>, or <see cref="scrollPosition"/>).
+        /// This only checks for changes in mouse state (<see cref="position"/>, <see cref="leftButton"/>, <see cref="rightButton"/>, <see cref="middleButton"/>, or <see cref="scrollDelta"/>).
         /// </remarks>
         public bool changedThisFrame { get; private set; }
 

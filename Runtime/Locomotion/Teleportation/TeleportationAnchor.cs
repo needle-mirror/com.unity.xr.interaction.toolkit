@@ -5,6 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// specific position and/or rotation.
     /// </summary>
     /// <seealso cref="TeleportationArea"/>
+    [AddComponentMenu("XR/Teleportation Anchor", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationAnchor)]
     public class TeleportationAnchor : BaseTeleportationInteractable
     {

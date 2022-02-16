@@ -44,6 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then doing a pinch/zoom will modify the scale
     /// of the object.
     /// </summary>
+    [AddComponentMenu("XR/AR Scale Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARScaleInteractable)]
     public class ARScaleInteractable : ARBaseGestureInteractable
     {

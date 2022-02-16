@@ -3,7 +3,8 @@
     /// <summary>
     /// <see cref="MonoBehaviour"/> that controls interaction recording and playback (via <see cref="XRControllerRecording"/> assets).
     /// </summary>
-    [DisallowMultipleComponent, AddComponentMenu("XR/XR Controller Recorder")]
+    [AddComponentMenu("XR/Debug/XR Controller Recorder", 11)]
+    [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_ControllerRecorder)]
     [HelpURL(XRHelpURLConstants.k_XRControllerRecorder)]
     public class XRControllerRecorder : MonoBehaviour
