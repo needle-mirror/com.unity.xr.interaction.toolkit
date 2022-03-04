@@ -5,11 +5,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.1] - 2022-03-04
+
+### Changed
+- Changed the `XRI Default Input Actions` asset in the Starter Assets sample by removing the `primaryButton` bindings from Teleport Select and Teleport Mode Activate. If you want to restore the old behavior of both bindings, add an Up\Down\Left\Right Composite, reassign the Up composite part binding, and add the Sector interaction for that direction. The actions were also reorganized into additional Action Maps.
+
+### Fixed
+- Fixed regression introduced with version [2.0.0](#200---2022-02-16) so the hover mesh draws in the correct location when the Interactable's Attach Transform is not a child Transform or deep child Transform.
+- Fixed the `XRI Default Input Actions` asset in the Starter Assets sample showing the warning "(Incompatible Value Type)" on the bindings for Teleport Select and Teleport Mode Activate by changing the action type from Button to Value with an expected control type of `Vector2`. The sample needs to be imported again if you already imported it into your project for you to see these changes.
+- Fixed missing `UNITY_INCLUDE_TESTS` constraint in test assembly definition.
+
 ## [2.0.0] - 2022-02-16
 
 ### Added
 - Added a warning message to the Inspector of `XRGrabInteractable` with non-uniformly scaled parent. A child `XRGrabInteractable` with non-uniformly scaled parent that is rotated relative to that parent may appear skewed when you grab it and then release it. See [Limitations with Non-Uniform Scaling](https://docs.unity3d.com/Manual/class-Transform.html). ([1228990](https://issuetracker.unity3d.com/product/unity/issues/guid/1228990))
-- Added support for gamepad and joystick input when using the XRUIInputModule for more complete UGUI integration.
+- Added support for gamepad and joystick input when using the XR UI Input Module for more complete UGUI integration.
 
 ### Changed
 - Changed sockets so selections are only maintained when exclusive. `XRSocketInteractor.CanSelect` changed so that sockets only maintain their selection when it is the sole interactor selecting the interactable. Previously, this was causing interactables that support multiple selection to not get released from the socket when grabbed by another interactor, which is not typically desired.
@@ -24,7 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed `XRDirectInteractor` and `XRSocketInteractor` still hovering an `XRGrabInteractable` after it was deactivated or destroyed.
 - Fixed properties in event args for select and hover being incorrect when the same event is invoked again during the event due to the instance being reused for both. An object pool is now used by the `XRInteractionManager` to avoid the second event from overwriting the instance for the first event.
-- GC.Alloc calls have been reduced: ray interactors with UI interaction disabled no longer allocate each frame, XRUIInputModule now avoids an allocating call, and AR gesture recognizers no longer re-allocate gestures when an old one is available.
+- GC.Alloc calls have been reduced: ray interactors with UI interaction disabled no longer allocate each frame, XR UI Input Module now avoids an allocating call, and AR gesture recognizers no longer re-allocate gestures when an old one is available.
 - Fixed Editor classes improperly using `enumValueIndex` instead of `intValue` in some `SerializedProperty` cases. In practice, this bug did not affect users since the values matched in those cases.
 - Fixed issue where `EventManager.current.IsPointerOverGameObject` would always return false when using `XRUIInputModule` for UI interaction. ([1387567](https://issuetracker.unity3d.com/product/unity/issues/guid/1387567))
 - Fixed XR Tint Interactable Visual from clearing the tint in some cases when it was set to tint on both hover and selection. Also fixed the case when the interactable supports multiple selections so it only clears the tint when all selections end. It will now also set tint during `Awake` if needed.

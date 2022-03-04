@@ -46,7 +46,7 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 ### Known limitations
 
 * Mouse inputs don't interact with world space UIs when an XR Plug-in Provider in **Edit &gt; Project Settings &gt; XR Plug-in Management** is enabled and running. For more information, please follow the issue tracker. ([1400186](https://issuetracker.unity3d.com/product/unity/issues/guid/1400186/))
-* When configuring the **XRUIInputModule**, gamepad and joystick input buttons are currently hard-coded to known values when using the new Input System. For the gamepad, the **submit** button is mapped to **buttonSouth** and **cancel** is mapped to **buttonEast**. The joystick **submit** button is mapped to the **trigger** and there is currently no support for the cancel button.
+* When configuring the **XR UI Input Module**, gamepad and joystick input buttons are currently hard-coded to known values when using the new Input System. For the gamepad, the **submit** button is mapped to **buttonSouth** and **cancel** is mapped to **buttonEast**. The joystick **submit** button is mapped to the **trigger** and there is currently no support for the cancel button.
 
 ### Helpful links
 
@@ -55,11 +55,13 @@ If you have a question after reading the documentation, you can:
 * Join our [support forum](https://forum.unity.com/forums/xr-interaction-toolkit-and-input.519/).
 * Search the [issue tracker](https://issuetracker.unity3d.com/product/unity/issues?project=192&status=1&unity_version=&view=newest) for active issues.
 * View our [public roadmap](https://portal.productboard.com/brs5gbymuktquzeomnargn2u) and submit feature requests.
+* Download [example projects](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) that demonstrates functionality.
 
 ### Document revision history
 
 |Date|Reason|
 |---|---|
+|**March 4, 2022**|Samples updated and added link to example projects. Matches package version 2.0.1.|
 |**February 10, 2022**|Documentation split into multiple pages, added known limitations, and updated for transition from pre-release to released version 2.0.0.|
 |**November 17, 2021**|Documentation updated due to change in Input System package related to Game view focus, interaction interfaces, and multiple selections. Matches package version 2.0.0-pre.4.|
 |**March 15, 2021**|Documentation updated to reflect change that custom Editor classes are no longer needed to show additional serialized fields. Matches package version 1.0.0-pre.3.|

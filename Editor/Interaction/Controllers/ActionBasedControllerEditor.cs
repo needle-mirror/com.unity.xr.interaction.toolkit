@@ -48,17 +48,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.trackingStateAction"/>.</summary>
             public static GUIContent trackingStateAction = EditorGUIUtility.TrTextContent("Tracking State Action", "The Input System action to get the values being actively tracked; falls back to the tracked device's tracking state that is driving the position or rotation action when not set. Must be an Integer Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.selectAction"/>.</summary>
-            public static GUIContent selectAction = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for Selecting an Interactable. Must be a Button Control.");
+            public static GUIContent selectAction = EditorGUIUtility.TrTextContent("Select Action", "The Input System action to use for selecting an Interactable. Must be an action with a button-like interaction or Button Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.selectAction"/>.</summary>
-            public static GUIContent selectActionValue = EditorGUIUtility.TrTextContent("Select Action Value", "The Input System action to read values for Selecting an Interactable. Must be an Axis Control.");
+            public static GUIContent selectActionValue = EditorGUIUtility.TrTextContent("Select Action Value", "(Optional) The Input System action to read the float value of Select Action, if different. Must be an Axis or Vector2 Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.activateAction"/>.</summary>
-            public static GUIContent activateAction = EditorGUIUtility.TrTextContent("Activate Action", "The Input System action to use for Activating a selected Interactable. Must be a Button Control.");
+            public static GUIContent activateAction = EditorGUIUtility.TrTextContent("Activate Action", "The Input System action to use for activating a selected Interactable. Must be an action with a button-like interaction or Button Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.activateAction"/>.</summary>
-            public static GUIContent activateActionValue = EditorGUIUtility.TrTextContent("Activate Action Value", "The Input System action to read values for Activating a selected Interactable. Must be an Axis Control.");
+            public static GUIContent activateActionValue = EditorGUIUtility.TrTextContent("Activate Action Value", "(Optional) The Input System action to read the float value of Activate Action, if different. Must be an Axis or Vector2 Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.uiPressAction"/>.</summary>
-            public static GUIContent uiPressAction = EditorGUIUtility.TrTextContent("UI Press Action", "The Input System action to use for UI interaction. Must be a Button Control.");
+            public static GUIContent uiPressAction = EditorGUIUtility.TrTextContent("UI Press Action", "The Input System action to use for Canvas UI interaction. Must be an action with a button-like interaction or Button Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.uiPressAction"/>.</summary>
-            public static GUIContent uiPressActionValue = EditorGUIUtility.TrTextContent("UI Press Action Value", "The Input System action to read values for UI interaction. Must be an Axis Control.");
+            public static GUIContent uiPressActionValue = EditorGUIUtility.TrTextContent("UI Press Action Value", "(Optional) The Input System action to read the float value of UI Press Action, if different. Must be an Axis or Vector2 Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
             public static GUIContent hapticDeviceAction = EditorGUIUtility.TrTextContent("Haptic Device Action", "The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>

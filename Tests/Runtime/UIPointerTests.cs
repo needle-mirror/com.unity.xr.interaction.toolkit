@@ -18,7 +18,7 @@ using Unity.XR.CoreUtils;
 //   ]
 // Then open Edit > Project Settings... > Player and edit the Scripting Define Symbols to add this.
 // It is enabled in the XR Interaction Toolkit Examples project to allow these
-// tests to be manually run, but skipped during automated builds where the symbol is not defined.
+// tests to be manually run, but skipped during some types of automated builds where the symbol is not defined.
 #if ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;

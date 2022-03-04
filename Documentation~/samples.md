@@ -30,13 +30,17 @@ The following image shows the [Action editor](https://docs.unity3d.com/Packages/
 
 ![sample-default-input-actions-asset](images/sample-default-input-actions-asset.png)
 
-The Asset contains several Action Maps, separated based on the bound device. Having different sets of actions based on the controller handedness, rather than one set of actions with input bindings for multiple controllers, allows for easier fine-grained management of the allowed actions per-hand. For example, the `XRI RightHand\Turn` action can be disabled while the right hand has picked something up, while turning is still allowed by having the `XRI LeftHand\Turn` action enabled.
+The Asset contains several Action Maps, separated based on the bound device. Having different sets of actions based on the controller handedness, rather than one set of actions with input bindings for multiple controllers, allows for easier fine-grained management of the allowed actions per-hand. For example, the `XRI RightHand Locomotion/Turn` action can be disabled while the right hand has picked something up, while turning is still allowed by having the `XRI LeftHand Locomotion/Turn` action enabled.
 
 |**Action Map**|**Description**|
 |---|---|
-|**XRI HMD**|Actions with input bindings to a head-mounted display (that is, `<XRHMD>`).|
-|**XRI LeftHand**|Actions with input bindings to a left hand controller (that is, `<XRController>{LeftHand}`)|
-|**XRI RightHand**|Actions with input bindings to a right hand controller (that is, `<XRController>{RightHand}`)|
+|**XRI Head**|Actions with input bindings to a head-mounted display (that is, `<XRHMD>`).|
+|**XRI LeftHand**|Actions with input bindings to a left hand controller (that is, `<XRController>{LeftHand}`) related to tracking and haptic feedback.|
+|**XRI LeftHand Interaction**|Actions with input bindings to a left hand controller related to interaction state.|
+|**XRI LeftHand Locomotion**|Actions with input bindings to a left hand controller related to locomotion and interaction state for a teleportation interactor.|
+|**XRI RightHand**|Actions with input bindings to a right hand controller (that is, `<XRController>{RightHand}`) related to tracking and haptic feedback.|
+|**XRI RightHand Interaction**|Actions with input bindings to a right hand controller related to interaction state.|
+|**XRI RightHand Locomotion**|Actions with input bindings to a right hand controller related to locomotion and interaction state for a teleportation interactor.|
 
 There are also several Input Control Schemes to group different input controls. You can use these to selectively enable or disable some of the bindings based on the locomotion movement control scheme in use.
 
@@ -58,7 +62,7 @@ To easily set a preset as the default for its associated behavior, select the As
 
 Access the Preset Manager from Unity's main menu (go to **Edit &gt; Project Settings**, then select **Preset Manager**).
 
-The following image shows the Preset Manager with the included presets set as default for their associated behavior. For the presets which depend on the hand of the controller, a Filter value of **Left** and **Right** is set to allow the appropriate preset to be chosen based on the name of the GameObject.
+The following image shows the Preset Manager with the included presets set as default for their associated behavior. For the presets which depend on the hand of the controller, a Filter value of **Left** and **Right** is set for XRI Default Left Controller and XRI Default Right Controller to allow the appropriate preset to be chosen based on the name of the GameObject.
 
 ![preset-manager](images/preset-manager.png)
 
@@ -83,5 +87,6 @@ The following image shows the [Action editor](https://docs.unity3d.com/Packages/
 
 |Date|Reason|
 |---|---|
+|**March 4, 2022**|Updated Starter Assets for reorganized actions into new action maps. Matches package version 2.0.1.|
 |**February 15, 2022**|Renamed the Default Input Actions sample to Starter Assets. Matches package version 2.0.0.|
 |**October 20, 2020**|Document created. Matches package version 0.10.0.|

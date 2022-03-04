@@ -47,8 +47,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         InputActionProperty m_TrackingStateAction;
         /// <summary>
         /// The Input System action to get the Tracking State when updating this GameObject position and rotation;
-        /// falls back to the tracked device's tracking state that drivies the position or rotation action when not set.
-        /// Must be an <see cref="IntegerControl"/>> Control.
+        /// falls back to the tracked device's tracking state that drives the position or rotation action when not set.
+        /// Must be an <see cref="IntegerControl"/> Control.
         /// </summary>
         /// <seealso cref="InputTrackingState"/>
         public InputActionProperty trackingStateAction
@@ -60,8 +60,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_SelectAction;
         /// <summary>
-        /// The Input System action to use for Selecting an Interactable. Must be a <see cref="ButtonControl"/> Control.
+        /// The Input System action to use for selecting an Interactable.
+        /// Must be an action with a button-like interaction where phase equals performed when pressed.
+        /// Typically a <see cref="ButtonControl"/> Control or a Value type action with a Press or Sector interaction.
         /// </summary>
+        /// <seealso cref="selectActionValue"/>
         public InputActionProperty selectAction
         {
             get => m_SelectAction;
@@ -71,8 +74,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_SelectActionValue;
         /// <summary>
-        /// The Input System action to read values for Selecting an Interactable. Must be an <see cref="AxisControl"/> Control.
+        /// The Input System action to read values for selecting an Interactable.
+        /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
         /// </summary>
+        /// <remarks>
+        /// Optional, Unity uses <see cref="selectAction"/> when not set.
+        /// </remarks>
+        /// <seealso cref="selectAction"/>
         public InputActionProperty selectActionValue
         {
             get => m_SelectActionValue;
@@ -82,8 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_ActivateAction;
         /// <summary>
-        /// The Input System action to use for Activating a selected Interactable. Must be a <see cref="ButtonControl"/> Control.
+        /// The Input System action to use for activating a selected Interactable.
+        /// Must be an action with a button-like interaction where phase equals performed when pressed.
+        /// Typically a <see cref="ButtonControl"/> Control or a Value type action with a Press or Sector interaction.
         /// </summary>
+        /// <seealso cref="activateActionValue"/>
         public InputActionProperty activateAction
         {
             get => m_ActivateAction;
@@ -93,8 +104,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_ActivateActionValue;
         /// <summary>
-        /// The Input System action to read values for Activating a selected Interactable. Must be an <see cref="AxisControl"/> Control.
+        /// The Input System action to read values for activating a selected Interactable.
+        /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
         /// </summary>
+        /// <remarks>
+        /// Optional, Unity uses <see cref="activateAction"/> when not set.
+        /// </remarks>
+        /// <seealso cref="activateAction"/>
         public InputActionProperty activateActionValue
         {
             get => m_ActivateActionValue;
@@ -104,8 +120,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_UIPressAction;
         /// <summary>
-        /// The Input System action to use for UI interaction. Must be a <see cref="ButtonControl"/> Control.
+        /// The Input System action to use for Canvas UI interaction.
+        /// Must be an action with a button-like interaction where phase equals performed when pressed.
+        /// Typically a <see cref="ButtonControl"/> Control or a Value type action with a Press interaction.
         /// </summary>
+        /// <seealso cref="uiPressActionValue"/>
         public InputActionProperty uiPressAction
         {
             get => m_UIPressAction;
@@ -115,8 +134,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_UIPressActionValue;
         /// <summary>
-        /// The Input System action to read values for UI interaction. Must be an <see cref="AxisControl"/> Control.
+        /// The Input System action to read values for Canvas UI interaction.
+        /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
         /// </summary>
+        /// <remarks>
+        /// Optional, Unity uses <see cref="uiPressAction"/> when not set.
+        /// </remarks>
+        /// <seealso cref="uiPressAction"/>
         public InputActionProperty uiPressActionValue
         {
             get => m_UIPressActionValue;
@@ -296,10 +320,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Evaluates whether the given input action is considered pressed.
+        /// Evaluates whether the given input action is considered performed.
+        /// Unity automatically calls this method during <see cref="UpdateInput"/> to determine
+        /// if the interaction state is active this frame.
         /// </summary>
         /// <param name="action">The input action to check.</param>
-        /// <returns>Returns <see langword="true"/> when the input action is considered pressed. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> when the input action is considered performed. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// More accurately, this evaluates whether the action with a button-like interaction is performed.
+        /// Depending on the interaction of the input action, the control driving the value of the input action
+        /// may technically be pressed and though the interaction may be in progress, it may not yet be performed,
+        /// such as for a Hold interaction. In that example, this method returns <see langword="false"/>.
+        /// </remarks>
+        /// <seealso cref="InteractionState.active"/>
         protected virtual bool IsPressed(InputAction action)
         {
             if (action == null)
@@ -320,9 +353,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Reads and returns the given action value.
+        /// Unity automatically calls this method during <see cref="UpdateInput"/> to determine
+        /// the amount or strength of the interaction state this frame.
         /// </summary>
         /// <param name="action">The action to read the value from.</param>
         /// <returns>Returns the action value. If the action is <see langword="null"/> returns the default <see langword="float"/> value (<c>0f</c>).</returns>
+        /// <seealso cref="InteractionState.value"/>
         protected virtual float ReadValue(InputAction action)
         {
             if (action == null)

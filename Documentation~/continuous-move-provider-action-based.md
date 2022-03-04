@@ -15,8 +15,8 @@ Locomotion provider that allows the user to smoothly move their rig continuously
 | &emsp;Immediately | Applies gravity and locomotion every frame, even without move input. Use this style when you want gravity to apply when the player physically walks away and off a ground surface, even when there is no input to move. |
 | **Forward Source** | The source `Transform` that defines the forward direction. |
 | **Left Hand Move Action** | |
-| &emsp;Use Reference | Enable this to have Unity use the left hand move action reference below. |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System Action that Unity uses to read Move data from the left hand controller. Must be a `InputActionType.Value` `Vector2Control` Control. |
 | **Right Hand Move Action** | |
-| &emsp;Use Reference | Enable this to have Unity use the right hand move action reference below. |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System Action that Unity uses to read Move data from the right hand controller. Must be a `InputActionType.Value` `Vector2Control` Control. |

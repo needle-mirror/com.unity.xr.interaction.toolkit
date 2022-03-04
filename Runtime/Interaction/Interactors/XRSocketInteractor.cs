@@ -299,7 +299,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // While the interactable is selected, it may have a different pose than when released,
             // so this assumes it will be restored back to the original pose before a selection was made.
             Pose interactableAttachPose;
-            if (interactable is IXRSelectInteractable selectable && selectable.isSelected)
+            if (interactable is IXRSelectInteractable selectable && selectable.isSelected &&
+                interactableAttachTransform != interactable.transform &&
+                interactableAttachTransform.IsChildOf(interactable.transform))
             {
                 // The interactable's attach transform must not change parent Transform while selected
                 // for the pose to be calculated correctly. This transforms the captured pose in local space
@@ -307,10 +309,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // after being selected, this will be the same value as calculated in the else statement.
                 var localAttachPose = selectable.GetLocalAttachPoseOnSelect(selectable.firstInteractorSelecting);
                 var attachTransformParent = interactableAttachTransform.parent;
-                interactableAttachPose = attachTransformParent != null
-                    ? new Pose(attachTransformParent.TransformPoint(localAttachPose.position),
-                        attachTransformParent.rotation * localAttachPose.rotation)
-                    : localAttachPose;
+                interactableAttachPose =
+                    new Pose(attachTransformParent.TransformPoint(localAttachPose.position),
+                        attachTransformParent.rotation * localAttachPose.rotation);
             }
             else
             {

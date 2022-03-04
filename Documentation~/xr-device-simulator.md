@@ -4,7 +4,7 @@ A component which handles mouse and keyboard input from the user and uses it to 
 
 This class does not directly manipulate the camera or controllers which are part of the XR Origin, but rather drives them indirectly through simulated input devices.
 
-Use the Package Manager window to install the _XR Device Simulator_ sample into your project to get sample mouse and keyboard bindings for Input System actions that this component expects. The sample also includes a prefab of a `GameObject` with this component attached that has references to those sample actions already set. To make use of this simulator, add the prefab to your scene (the prefab makes use of [InputActionManager](input-action-manager.md) to ensure the Input System actions are enabled).
+Use the Package Manager window to install the **XR Device Simulator** sample into your project to get sample mouse and keyboard bindings for Input System actions that this component expects. The sample also includes a prefab of a `GameObject` with this component attached that has references to those sample actions already set. To make use of this simulator, add the prefab to your scene (the prefab makes use of [InputActionManager](input-action-manager.md) to ensure the Input System actions are enabled).
 
 Note that the XR Origin must read the position and rotation of the HMD and controllers by using Input System actions (such as by using `ActionBasedController` and `TrackedPoseDriver`) for this simulator to work as expected. Attempting to use XR input subsystem device methods (such as by using `XRController` and `SpatialTracking.TrackedPoseDriver`) will not work as expected since this simulator depends on the Input System to drive the simulated devices.
 
@@ -14,73 +14,73 @@ Note that the XR Origin must read the position and rotation of the HMD and contr
 
 Each simulated XR HMD or XR Controller must be manipulated before controls/values will be modified. If controls on a manipulated controller are actuated when you stop manipulating, those controls will continue to remain actuated. This is to allow for multi-hand interactions without needing to have dedicated bindings for manipulating each controller separately and concurrently.
 
-* Left Shift _[Hold]_
+* Left Shift [Hold]
   - Manipulate the left-hand controller
-* Space _[Hold]_
+* Space [Hold]
   - Manipulate the right-hand controller
-* Mouse2 (Right Mouse Button) _[Hold]_
+* Mouse2 (Right Mouse Button) [Hold]
   - Manipulate the HMD
-* T _[Toggle]_
+* T [Toggle]
   - Toggle manipulation for the left-hand controller (so you don't need to hold Left Shift)
 You can use mouse input (moving and scroll wheel delta)  to either **Translate** or **Rotate** manipulated device(s).
-* R _[Toggle]_
+* R [Toggle]
   - Toggle between Translate or Rotate mode for mouse input
-* Ctrl _[Hold]_
+* Ctrl [Hold]
   - Temporarily forces into Rotate mode while held
-* Mouse 3 (Middle Mouse Button) _[Hold]_
+* Mouse 3 (Middle Mouse Button) [Hold]
   - Temporarily forces into Rotate mode while held
-* Z _[Hold]_
+* Z [Hold]
   - Constrain translation/rotation/reset to z-axis
-* X _[Hold]_
+* X [Hold]
   - Constrain translation/rotation/reset to x-axis
-* C _[Hold]_
+* C [Hold]
   - Constrain translation/rotation/reset to y-axis
-* V _[Press]_
+* V [Press]
   - Reset position or rotation (depending on current mode being Translate or Rotate)
-* \ _[Toggle]_
+* \ [Toggle]
   - Toggles between the mouse cursor being unlocked or locked to the game window. There is a value dropdown in the inspector to choose between Locked or Confined.
-* G _[Hold]_
+* G [Hold]
   - Grip
 * Mouse 1 (Left Mouse Button) _[Hold]_
   - Trigger
-* B _[Hold]_
+* B [Hold]
   - Primary Button
-* N _[Hold]_
+* N [Hold]
   - Secondary Button
-* M _[Hold]_
+* M [Hold]
   - Menu
-* 4 _[Hold]_
+* 4 [Hold]
   - Primary 2D Axis Click
-* 5 _[Hold]_
+* 5 [Hold]
   - Secondary 2D Axis Click
-* 6 _[Hold]_
+* 6 [Hold]
   - Primary 2D Axis Touch
-* 7 _[Hold]_
+* 7 [Hold]
   - Secondary 2D Axis Touch
-* 8 _[Hold]_
+* 8 [Hold]
   - Primary Touch
-* 9 _[Hold]_
+* 9 [Hold]
   - Secondary Touch
 The `Vector2` controls on the controllers and device position use the WASD keys, and which ones of those will take input are enabled through toggles (more than one can be active):
-* 1 _[Toggle]_
+* 1 [Toggle]
   - Toggles whether keyboard inputs apply to **Primary 2D Axis** (the thumbstick for manipulating controller(s))
-* 2 _[Toggle]_
+* 2 [Toggle]
   - Toggles whether keyboard inputs apply to **Secondary 2D Axis** (the touchpad on the manipulating controller(s))
-* 3 _[Toggle]_
+* 3 [Toggle]
   - Toggles whether keyboard inputs apply to HMD/Controller **Position**
 When **Position** is enabled:
-* WASD _[Hold]_
+* WASD [Hold]
   - Forward/Left/Backward/Right translation of HMD/Controller (mimics Unity Editor Scene view)
-* QE _[Hold]_
+* QE [Hold]
   - Down/Up translation of the HMD/Controller (mimics Unity Editor Scene view)
 When **Primary/Secondary 2D Axis** is enabled:
-* WASD _[Hold]_
+* WASD [Hold]
   - Forward/Left/Backward/Right push of the Controller Primary/Secondary 2D Axis
-* QE _[Hold]_
+* QE [Hold]
   - Left/Right of the opposite controller Primary/Secondary 2D Axis (only works when manipulating a single controller)
-* Mouse4 (Forward Button) and Mouse 5 (Backward Button) _[Hold]_
+* Mouse4 (Forward Button) and Mouse 5 (Backward Button) [Hold]
   - Up/Down of the opposite controller Primary/Secondary 2D Axis (only works when manipulating a single controller)
-* IJKL _[Hold]_
+* IJKL [Hold]
   - Alternate input for Forward/Left/Backward/Right push of the opposite controller Primary/Secondary 2D Axis (only works when manipulating a single controller)
 
 | **Property** | **Description** |
@@ -121,13 +121,13 @@ When **Primary/Secondary 2D Axis** is enabled:
 | **Secondary Touch Action** | The Input System Action used to control the SecondaryTouch control of the manipulated controller device(s). Must be a `ButtonControl`.<br />The prefab in the XR Device Simulator sample has this action bound to the 9 key. |
 | **Camera Transform** | The `Transform` that contains the `Camera`. This is usually the "Head" of XR Origins. Automatically set to `Camera.main` if unset. |
 | **Keyboard Translate Space** | The coordinate space in which keyboard translation should operate. |
-| _Local_ | Set **Keyboard Translate Space** to _Local_ to apply translations of a controller or HMD relative to its own coordinate space, considering its own rotations. Will translate a controller relative to itself, independent of the camera. |
-| _Parent_ | Set **Keyboard Translate Space** to _Parent_ to apply translations of a controller or HMD relative to its parent. If the object does not have a parent, meaning it is a root object, the parent coordinate space is the same as the world coordinate space. This is the same as _Local_ but without considering its own rotations. |
-| _Screen_ | Set **Keyboard Translate Space** to _Screen_ to apply translations of a controller or HMD relative to the screen. Will translate a controller relative to the camera, independent of the controller's orientation. |
+| &emsp;Local | Set **Keyboard Translate Space** to **Local** to apply translations of a controller or HMD relative to its own coordinate space, considering its own rotations. Will translate a controller relative to itself, independent of the camera. |
+| &emsp;Parent | Set **Keyboard Translate Space** to **Parent** to apply translations of a controller or HMD relative to its parent. If the object does not have a parent, meaning it is a root object, the parent coordinate space is the same as the world coordinate space. This is the same as **Local** but without considering its own rotations. |
+| &emsp;Screen | Set **Keyboard Translate Space** to **Screen** to apply translations of a controller or HMD relative to the screen. Will translate a controller relative to the camera, independent of the controller's orientation. |
 | **Mouse Translate Space** | The coordinate space in which mouse translation should operate. |
-| _Local_ | Set **Mouse Translate Space** to _Local_ to apply translations of a controller or HMD relative to its own coordinate space, considering its own rotations. Will translate a controller relative to itself, independent of the camera. |
-| _Parent_ | Set **Mouse Translate Space** to _Parent_ to apply translations of a controller or HMD relative to its parent. If the object does not have a parent, meaning it is a root object, the parent coordinate space is the same as the world coordinate space. This is the same as _Local_ but without considering its own rotations. |
-| _Screen_ | Set **Mouse Translate Space** to _Screen_ to apply translations of a controller or HMD relative to the screen. Will translate a controller relative to the camera, independent of the controller's orientation. |
+| &emsp;Local | Set **Mouse Translate Space** to **Local** to apply translations of a controller or HMD relative to its own coordinate space, considering its own rotations. Will translate a controller relative to itself, independent of the camera. |
+| &emsp;Parent | Set **Mouse Translate Space** to **Parent** to apply translations of a controller or HMD relative to its parent. If the object does not have a parent, meaning it is a root object, the parent coordinate space is the same as the world coordinate space. This is the same as **Local** but without considering its own rotations. |
+| &emsp;Screen | Set **Mouse Translate Space** to **Screen** to apply translations of a controller or HMD relative to the screen. Will translate a controller relative to the camera, independent of the controller's orientation. |
 | **Keyboard X Translate Speed** | Speed of translation in the x-axis (left/right) when triggered by keyboard input. |
 | **Keyboard Y Translate Speed** | Speed of translation in the y-axis (up/down) when triggered by keyboard input. |
 | **Keyboard Z Translate Speed** | Speed of translation in the z-axis (forward/back) when triggered by keyboard input. |
@@ -139,5 +139,5 @@ When **Primary/Secondary 2D Axis** is enabled:
 | **Mouse Scroll Rotate Sensitivity** | Sensitivity of rotation along the z-axis (roll) when triggered by mouse scroll input. |
 | **Mouse Y Rotate Invert** | A boolean value of whether to invert the y-axis of mouse input when rotating by mouse input.<br />A `false` value (default) means typical FPS style where moving the mouse up/down pitches up/down.<br />A `true` value means flight control style where moving the mouse up/down pitches down/up. |
 | **Desired Cursor Lock Mode** | The desired cursor lock mode to toggle to from `CursorLockMode.None`. |
-| _Locked_ | Set **Desired Cursor Lock Mode** to _Locked_ to toggle between `CursorLockMode.None` and locking the cursor to the center of the game window. |
-| _Confined_ | Set **Desired Cursor Lock Mode** to _Confined_ to toggle between `CursorLockMode.None` and confining the cursor to the game window. |
+| &emsp;Locked | Set **Desired Cursor Lock Mode** to **Locked** to toggle between `CursorLockMode.None` and locking the cursor to the center of the game window. |
+| &emsp;Confined | Set **Desired Cursor Lock Mode** to **Confined** to toggle between `CursorLockMode.None` and confining the cursor to the game window. |

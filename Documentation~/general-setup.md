@@ -37,13 +37,11 @@ To have the position and rotation of the XR HMD update the Main Camera Transform
 
 ## Configure XR Controller and Interactor
 
-An Interactor component controls how a GameObject interacts with Interactable components in the scene. There are multiple types of Interactors. The example in the screenshot below uses a Ray Interactor, a component that uses [ray casting](https://docs.unity3d.com/ScriptReference/Physics.Raycast.html) in order to find valid Interactable objects in the scene.
-
-![interactor-setup](images/interactor-setup.png)
+An Interactor component controls how a GameObject interacts with Interactable components in the scene. There are multiple types of Interactors, one of which is an [XR Ray Interactor](xr-ray-interactor.md), a component that uses [ray casting](https://docs.unity3d.com/ScriptReference/Physics.Raycast.html) in order to find valid Interactable objects in the scene.
 
 To read input from an XR input device, the Interactor requires an XR Controller component.
 
-Select the foldout arrows to expand the hierarchy of the XR Origin, then select the **LeftHand Controller** GameObject. If you do not see the **Reference** set for each action, click the Preset selector (the slider icon) at the top-right of the component in the Inspector window and select **XRI Default Left Controller**. If you do not see any presets, make sure to [import starter assets](#import-starter-assets). Do the same with the **RightHand Controller** GameObject and select the **XRI Default Right Controller** preset.
+Select the foldout arrows to expand the hierarchy of the XR Origin, then select the **LeftHand Controller** GameObject. This GameObject has an [XR Controller (Action-based)](xr-controller-action-based.md) component. If you do not see the **Reference** set for each action, click the Preset selector (the slider icon) at the top-right of the component in the Inspector window and select **XRI Default Left Controller**. If you do not see any presets, make sure to [import starter assets](#import-starter-assets). Do the same with the **RightHand Controller** GameObject and select the **XRI Default Right Controller** preset.
 
 The table below describes the actions on the XR Controller that should be bound to an XR input device:
 
@@ -56,7 +54,9 @@ The table below describes the actions on the XR Controller that should be bound 
 |**Haptic Device**|Identifying the device to send haptic impulses to|
 |**Rotate and Translate Anchor**|Manipulating a selected object at a distance|
 
-The Controller and Interactor have limited support for haptic feedback. To enable haptic feedback for an XR Controller (Action-based), specify a **Haptic Device Action** with a binding path to an active control, such as `<XRController>{LeftHand}/*`. To enable haptic feedback for an XR Controller (Device-based), specify a **Controller Node** that supports haptic feedback, such as **Left Hand**. The Interactor can then specify intensities and durations of haptic feedback to play back on select and hover.
+The [XR Controller (Action-based)](xr-controller-action-based.md) component has some input action reference properties which are optional and do not need to be assigned. Refer to the property table in the documentation or refer to the tooltips in the Inspector window for more information.
+
+The Controller and Interactor have limited support for haptic feedback. To enable haptic feedback for an XR Controller (Action-based), specify a **Haptic Device Action** with a binding path to an active control, such as `<XRController>{LeftHand}/*`. To enable haptic feedback for an [XR Controller (Device-based)](xr-controller-device-based.md), specify a **Controller Node** that supports haptic feedback, such as **Left Hand**. The Interactor can then specify intensities and durations of haptic feedback to play back on select and hover events, which is configured under Haptic Events in the Inspector window.
 
 The **Enable Interaction with UI GameObjects** option controls whether this XR Ray Interactor can interact with Unity UI elements in a world space canvas in the scene. See [UI Setup](ui-setup.md) for more information and steps for enabling UI interactivity.
 
