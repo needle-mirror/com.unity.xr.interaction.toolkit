@@ -1428,6 +1428,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     m_CenterEyeEuler += anglesDelta;
                     m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
+                    m_HMDState.deviceRotation = m_HMDState.centerEyeRotation;
                 }
 
                 // Reset
@@ -1451,6 +1452,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     {
                         m_CenterEyeEuler = Vector3.Scale(m_CenterEyeEuler, resetScale);
                         m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
+                        m_HMDState.deviceRotation = m_HMDState.centerEyeRotation;
                     }
                 }
             }

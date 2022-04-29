@@ -475,9 +475,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // to test an attach transform different from both the transform position and center.
             var grabInteractableAttach = new GameObject("Grab Interactable Attach").transform;
             var attachOffset = new Vector3(0.5f, 1f, -0.5f);
+            var attachRotation = Quaternion.Euler(0f, 45f, 0f);
             grabInteractableAttach.SetParent(grabInteractable.transform);
             grabInteractableAttach.localPosition = attachOffset;
-            grabInteractableAttach.localRotation = Quaternion.identity;
+            grabInteractableAttach.localRotation = attachRotation;
             grabInteractable.attachTransform = grabInteractableAttach;
             // Disable track rotation
             grabInteractable.trackRotation = false;
@@ -490,7 +491,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(grabInteractable.isSelected, Is.False);
             Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(new Vector3(1f, 2f, 3f) + attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(grabInteractable.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
             Assert.That(boxCollider.center, Is.EqualTo(centerOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
@@ -519,7 +520,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(grabInteractable.isSelected, Is.True);
             Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
@@ -532,21 +533,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactorAttachTransformRotation = Quaternion.Euler(0f, 90f, 0f);
             interactor.attachTransform.position = targetPosition;
             interactor.attachTransform.rotation = interactorAttachTransformRotation;
-            
-            // The expected object and its attached transform rotation is Quaternion.identity since the track rotation is disabled
-            var expectedRotation = Quaternion.identity;
 
             yield return WaitForSteadyState(movementType);
 
+            // The expected object and its attached transform rotation remains unchanged since track rotation is disabled
             Assert.That(grabInteractable.isSelected, Is.True);
             Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(interactorAttachTransformRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(rigidbody.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
 
             // Move the attach transform on the Interactable to the back lower-right corner of the cube
             attachOffset = new Vector3(0.5f, 0f, -0.5f);
@@ -556,13 +555,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(grabInteractable.isSelected, Is.True);
             Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
             Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(interactor.attachTransform.rotation, Is.EqualTo(interactorAttachTransformRotation).Using(QuaternionEqualityComparer.Instance));
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(rigidbody.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
         }
     }
 }

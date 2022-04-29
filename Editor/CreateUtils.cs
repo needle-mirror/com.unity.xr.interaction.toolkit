@@ -734,7 +734,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             CreateInteractionManager();
 
-            CreateAndPlaceGameObject("AR Annotation Interactable", menuCommand.GetContextTransform(), typeof(ARRotationInteractable));
+            CreateAndPlaceGameObject("AR Annotation Interactable", menuCommand.GetContextTransform(), typeof(ARAnnotationInteractable));
         }
 
 #endif // AR_FOUNDATION_PRESENT

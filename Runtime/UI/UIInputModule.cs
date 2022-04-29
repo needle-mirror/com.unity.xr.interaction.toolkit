@@ -375,6 +375,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 eventData.dragging = false;
                 eventData.pressPosition = eventData.position;
                 eventData.pointerPressRaycast = eventData.pointerCurrentRaycast;
+                eventData.useDragThreshold = true;
 
                 var selectHandler = ExecuteEvents.GetEventHandler<ISelectHandler>(hoverTarget);
 
@@ -463,7 +464,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!eventData.dragging)
             {
                 var threshold = eventSystem.pixelDragThreshold * pixelDragThresholdMultiplier;
-                if ((eventData.pressPosition - eventData.position).sqrMagnitude >= (threshold * threshold))
+                if (!eventData.useDragThreshold || (eventData.pressPosition - eventData.position).sqrMagnitude >= (threshold * threshold))
                 {
                     var target = eventData.pointerDrag;
                     beginDrag?.Invoke(target, eventData);

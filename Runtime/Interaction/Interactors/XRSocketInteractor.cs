@@ -295,6 +295,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             var interactableAttachTransform = interactable.GetAttachTransform(this);
 
+            var grabInteractable = interactable as XRGrabInteractable;
+
             // Get the "static" pose of the attach transform in world space.
             // While the interactable is selected, it may have a different pose than when released,
             // so this assumes it will be restored back to the original pose before a selection was made.
@@ -322,9 +324,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var interactableLocalPosition = InverseTransformDirection(interactableAttachPose, attachOffset) * hoverScale;
             var interactableLocalRotation = Quaternion.Inverse(Quaternion.Inverse(meshFilter.transform.rotation) * interactableAttachPose.rotation);
 
+            Vector3 position;
+            Quaternion rotation;
+
             var interactorAttachTransform = GetAttachTransform(interactable);
-            var position = interactorAttachTransform.position + interactorAttachTransform.rotation * interactableLocalPosition;
-            var rotation = interactorAttachTransform.rotation * interactableLocalRotation;
+            var interactorAttachPose = new Pose(interactorAttachTransform.position, interactorAttachTransform.rotation);
+            if (grabInteractable == null || grabInteractable.trackRotation)
+            {
+                position = interactorAttachPose.rotation * interactableLocalPosition + interactorAttachPose.position;
+                rotation = interactorAttachPose.rotation * interactableLocalRotation;
+            }
+            else
+            {
+                position = interactableAttachPose.rotation * interactableLocalPosition + interactorAttachPose.position;
+                rotation = meshFilter.transform.rotation;
+            }
+
+            // Rare case that Track Position is disabled
+            if (grabInteractable != null && !grabInteractable.trackPosition)
+                position = meshFilter.transform.position;
+
             var scale = meshFilter.transform.lossyScale * hoverScale;
 
             return Matrix4x4.TRS(position, rotation, scale);

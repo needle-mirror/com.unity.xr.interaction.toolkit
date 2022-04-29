@@ -6,14 +6,14 @@ To install this package, refer to the instructions that match your Unity Editor 
 
 To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/Documentation/Manual/upm-ui-install.html).
 
-## Version 2021.2
+## Version 2021.3
 
-To install this package, follow the instructions for [adding a package by name](https://docs.unity3d.com/2021.1/Documentation/Manual/upm-ui-quick.html) in the Unity Editor.
+To install this package, follow the instructions for [adding a package by name](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-quick.html) in the Unity Editor.
 
 |Text Field|Value|
 |---|---|
 |**Name**|`com.unity.xr.interaction.toolkit`|
-|**Version (optional)**|`2.0.0`|
+|**Version (optional)**|`2.0.2`|
 
 ## Version 2020.3
 

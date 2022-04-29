@@ -17,7 +17,7 @@ The XR Interaction Toolkit package comes with a number of pre-defined gestures a
 | **Twist** | User rotates two fingers around a center point | [AR Rotation Interactable](ar-rotation-interactable.md) |
 | **Two Finger Drag** | User drags with two fingers | Nothing currently |
 
-The AR Gesture Interactor component translates screen touches to gestures. Typically, you should place this component on the Camera or another object that has its position driven by the Tracked Pose Driver component. Unity feeds gestures down to Interactables, which then respond to the gesture event.
+The AR Gesture Interactor component translates screen touches to gestures. Unity feeds gestures down to Interactables, which then respond to the gesture event. The AR Gesture Interactor and its gesture recognizers require an XR Origin in the scene.
 
 ## Placement of objects with the AR Placement Interactable
 
@@ -25,4 +25,4 @@ The [AR Placement Interactable](ar-placement-interactable.md) component facilita
 
 ## AR annotations
 
-Use the [AR Annotation Interactable](ar-annotation-interactable.md) to place annotations alongside virtual objects in an AR scene. These annotations are Prefabs that the application can show or hide when they satisfy a set of constraints. Each annotation has a minimum and maximum range from the Camera at which it displays, as well as a maximum Field of View (FOV) center offset from the Camera to hide or minimize annotations that are not centered in the user's view.
+Use the [AR Annotation Interactable](ar-annotation-interactable.md) to place annotations alongside virtual objects in an AR scene. These annotations are visualization GameObjects that the application can show or hide when they satisfy a set of constraints. Each annotation has a minimum and maximum range from the Camera at which it displays, as well as a maximum Field of View (FOV) center offset from the Camera to hide or minimize annotations that are not centered in the user's view.

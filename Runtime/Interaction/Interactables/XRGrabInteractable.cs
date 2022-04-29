@@ -532,7 +532,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var interactorAttachTransform = interactor.GetAttachTransform(this);
 
             if (!m_TrackRotation)
-                return interactorAttachTransform.position + transform.TransformDirection(m_InteractorLocalPosition);
+            {
+                var thisAttachTransform = GetAttachTransform(interactor);
+                return interactorAttachTransform.position + thisAttachTransform.TransformDirection(m_InteractorLocalPosition);
+            }
 
             return interactorAttachTransform.position + interactorAttachTransform.rotation * m_InteractorLocalPosition;
         }

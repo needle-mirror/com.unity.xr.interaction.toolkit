@@ -369,9 +369,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.pointerEnter = m_InternalData.pointerTarget;
             eventData.hovered.Clear();
             eventData.hovered.AddRange(m_InternalData.hoverTargets);
-
-            // This is unset in legacy systems and can safely assumed to stay true.
-            eventData.useDragThreshold = true;
         }
 
         public void CopyFrom(PointerEventData eventData)

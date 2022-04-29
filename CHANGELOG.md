@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.2] - 2022-04-29
+
+### Fixed
+- Fixed wrong offset when selecting an `XRGrabInteractable` with Track Rotation disabled when the Attach Transform had a different rotation than the Interactable's rotation. This configuration was not covered in the related fix made previously in version [2.0.0-pre.6](#200-pre6---2021-12-15). ([1361271](https://issuetracker.unity3d.com/product/unity/issues/guid/1361271))
+- Fixed XR Socket Interactor hover mesh position and rotation for an XR Grab Interactable with Track Position and/or Track Rotation disabled.
+- Fixed the simulated controllers not working in projects where the Scripting Backend was set to IL2CPP.
+- Fixed the simulated HMD `deviceRotation` not being set. It now matches the `centerEyeRotation`.
+- Fixed the **GameObject &gt; XR &gt; AR Annotation Interactable** menu item when AR Foundation is installed to add the correct component.
+- Fixed **UIInputModule** so it uses and resets [`PointerEventData.useDragThreshold`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.PointerEventData.html#UnityEngine_EventSystems_PointerEventData_useDragThreshold) to allow users to ignore the drag threshold by implementing [`IInitializePotentialDragHandler`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.IInitializePotentialDragHandler.html). It was previously being ignored and causing sliders and scrollbars to incorrectly use a drag threshold.
+
 ## [2.0.1] - 2022-03-04
 
 ### Changed
