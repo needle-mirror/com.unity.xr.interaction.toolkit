@@ -149,6 +149,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// Called by <c>EventSystem</c> when the input module is made current.
+        /// </summary>
+        public override void ActivateModule()
+        {
+            base.ActivateModule();
+
+            // Select firstSelectedGameObject if nothing is selected ATM.
+            var toSelect = eventSystem.currentSelectedGameObject;
+            if (toSelect == null)
+                toSelect = eventSystem.firstSelectedGameObject;
+
+            eventSystem.SetSelectedGameObject(toSelect, GetBaseEventData());
+        }
+
+        /// <summary>
         /// Is the pointer with the given ID over an EventSystem object?
         /// </summary>
         /// <param name="pointerId">ID of the XR device pointer, mouse pointer or touch registered with the UIInputModule.
@@ -244,7 +259,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// It also updates the internal data of the <see cref="MouseModel"/>.
         /// </summary>
         /// <param name="mouseState">The mouse state you want to forward into the UI Event System.</param>
-        internal void ProcessMouse(ref MouseModel mouseState)
+        internal void ProcessMouseState(ref MouseModel mouseState)
         {
             if (!mouseState.changedThisFrame)
                 return;
@@ -259,35 +274,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
             var buttonState = mouseState.leftButton;
+            eventData.button = PointerEventData.InputButton.Left;
             buttonState.CopyTo(eventData);
-            ProcessMouseButton(buttonState.lastFrameDelta, eventData);
+            ProcessPointerButton(buttonState.lastFrameDelta, eventData);
 
-            ProcessMouseMovement(eventData);
-            ProcessMouseScroll(eventData);
+            ProcessPointerMovement(eventData);
+            ProcessScrollWheel(eventData);
 
             mouseState.CopyFrom(eventData);
 
-            ProcessMouseButtonDrag(eventData);
+            ProcessPointerButtonDrag(eventData);
 
             buttonState.CopyFrom(eventData);
             mouseState.leftButton = buttonState;
 
             // Right Mouse Button
             buttonState = mouseState.rightButton;
+            eventData.button = PointerEventData.InputButton.Right;
             buttonState.CopyTo(eventData);
 
-            ProcessMouseButton(buttonState.lastFrameDelta, eventData);
-            ProcessMouseButtonDrag(eventData);
+            ProcessPointerButton(buttonState.lastFrameDelta, eventData);
+            ProcessPointerButtonDrag(eventData);
 
             buttonState.CopyFrom(eventData);
             mouseState.rightButton = buttonState;
 
             // Middle Mouse Button
             buttonState = mouseState.middleButton;
+            eventData.button = PointerEventData.InputButton.Middle;
             buttonState.CopyTo(eventData);
 
-            ProcessMouseButton(buttonState.lastFrameDelta, eventData);
-            ProcessMouseButtonDrag(eventData);
+            ProcessPointerButton(buttonState.lastFrameDelta, eventData);
+            ProcessPointerButtonDrag(eventData);
 
             buttonState.CopyFrom(eventData);
             mouseState.middleButton = buttonState;
@@ -295,7 +313,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             mouseState.OnFrameFinished();
         }
 
-        void ProcessMouseMovement(PointerEventData eventData)
+        void ProcessPointerMovement(PointerEventData eventData)
         {
             var currentPointerTarget = eventData.pointerCurrentRaycast.gameObject;
 
@@ -364,7 +382,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessMouseButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
+        void ProcessPointerButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
         {
             var hoverTarget = eventData.pointerCurrentRaycast.gameObject;
 
@@ -452,7 +470,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessMouseButtonDrag(PointerEventData eventData, float pixelDragThresholdMultiplier = 1.0f)
+        void ProcessPointerButtonDrag(PointerEventData eventData, float pixelDragThresholdMultiplier = 1.0f)
         {
             if (!eventData.IsPointerMoving() ||
                 Cursor.lockState == CursorLockMode.Locked ||
@@ -492,7 +510,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessMouseScroll(PointerEventData eventData)
+        void ProcessScrollWheel(PointerEventData eventData)
         {
             var scrollDelta = eventData.scrollDelta;
             if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0f))
@@ -516,9 +534,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.pointerCurrentRaycast = (touchState.selectPhase == TouchPhase.Canceled) ? new RaycastResult() : PerformRaycast(eventData);
             eventData.button = PointerEventData.InputButton.Left;
 
-            ProcessMouseButton(touchState.selectDelta, eventData);
-            ProcessMouseMovement(eventData);
-            ProcessMouseButtonDrag(eventData);
+            ProcessPointerButton(touchState.selectDelta, eventData);
+            ProcessPointerMovement(eventData);
+            ProcessPointerButtonDrag(eventData);
 
             touchState.CopyFrom(eventData);
 
@@ -572,10 +590,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 eventData.position = screenPosition;
                 eventData.delta = thisFrameDelta;
 
-                ProcessMouseButton(deviceState.selectDelta, eventData);
-                ProcessMouseMovement(eventData);
-                ProcessMouseScroll(eventData);
-                ProcessMouseButtonDrag(eventData, m_TrackedDeviceDragThresholdMultiplier);
+                ProcessPointerButton(deviceState.selectDelta, eventData);
+                ProcessPointerMovement(eventData);
+                ProcessScrollWheel(eventData);
+                ProcessPointerButtonDrag(eventData, m_TrackedDeviceDragThresholdMultiplier);
 
                 deviceState.CopyFrom(eventData);
             }
@@ -584,29 +602,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Takes an existing GamepadModel and dispatches all relevant changes through the event system.
-        /// It also updates the internal data of the GamepadModel.
+        /// Takes an existing NavigationModel and dispatches all relevant changes through the event system.
+        /// It also updates the internal data of the NavigationModel.
         /// </summary>
-        /// <param name="gamepadState">The gamepad state you want to forward into the UI Event System</param>
-        internal void ProcessGamepad(ref GamepadModel gamepadState)
+        /// <param name="navigationState">The navigation state you want to forward into the UI Event System</param>
+        internal void ProcessNavigationState(ref NavigationModel navigationState)
         {
-            var implementationData = gamepadState.implementationData;
-
-            var usedSelectionChange = false;
-            var selectedGameObject = eventSystem.currentSelectedGameObject;
-            if (selectedGameObject != null)
-            {
-                var data = GetBaseEventData();
-                updateSelected?.Invoke(selectedGameObject, data);
-                ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
-                usedSelectionChange = data.used;
-            }
+            var usedSelectionChange = SendUpdateEventToSelectedObject();
 
             // Don't send move events if disabled in the EventSystem.
             if (!eventSystem.sendNavigationEvents)
                 return;
 
-            var movement = gamepadState.leftStick + gamepadState.dpad;
+            var implementationData = navigationState.implementationData;
+            var selectedGameObject = eventSystem.currentSelectedGameObject;
+
+            var movement = navigationState.move;
             if (!usedSelectionChange && (!Mathf.Approximately(movement.x, 0f) || !Mathf.Approximately(movement.y, 0f)))
             {
                 var time = Time.unscaledTime;
@@ -668,13 +679,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (selectedGameObject != null)
                 {
                     var data = GetBaseEventData();
-                    if ((gamepadState.submitButtonDelta & ButtonDeltaState.Pressed) != 0)
+                    if ((navigationState.submitButtonDelta & ButtonDeltaState.Pressed) != 0)
                     {
                         submit?.Invoke(selectedGameObject, data);
                         ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.submitHandler);
                     }
 
-                    if (!data.used && (gamepadState.cancelButtonDelta & ButtonDeltaState.Pressed) != 0)
+                    if (!data.used && (navigationState.cancelButtonDelta & ButtonDeltaState.Pressed) != 0)
                     {
                         cancel?.Invoke(selectedGameObject, data);
                         ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.cancelHandler);
@@ -682,111 +693,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
-            gamepadState.implementationData = implementationData;
-            gamepadState.OnFrameFinished();
-        }
-
-        /// <summary>
-        /// Takes an existing JoystickModel and dispatches all relevant changes through the event system.
-        /// It also updates the internal data of the JoystickModel.
-        /// </summary>
-        /// <param name="joystickState">The joystick state you want to forward into the UI Event System</param>
-        internal void ProcessJoystick(ref JoystickModel joystickState)
-        {
-            var implementationData = joystickState.implementationData;
-
-            var usedSelectionChange = false;
-            var selectedGameObject = eventSystem.currentSelectedGameObject;
-            if (selectedGameObject != null)
-            {
-                var data = GetBaseEventData();
-                updateSelected?.Invoke(selectedGameObject, data);
-                ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.updateSelectedHandler);
-                usedSelectionChange = data.used;
-            }
-
-            // Don't send move events if disabled in the EventSystem.
-            if (!eventSystem.sendNavigationEvents)
-                return;
-
-            var moveVector = joystickState.move + joystickState.hat;
-            if (!usedSelectionChange && (!Mathf.Approximately(moveVector.x, 0f) || !Mathf.Approximately(moveVector.y, 0f)))
-            {
-                var time = Time.unscaledTime;
-
-                var moveDirection = MoveDirection.None;
-                if (moveVector.sqrMagnitude > m_MoveDeadzone * m_MoveDeadzone)
-                {
-                    if (Mathf.Abs(moveVector.x) > Mathf.Abs(moveVector.y))
-                        moveDirection = (moveVector.x > 0f) ? MoveDirection.Right : MoveDirection.Left;
-                    else
-                        moveDirection = (moveVector.y > 0f) ? MoveDirection.Up : MoveDirection.Down;
-                }
-
-                if (moveDirection != implementationData.lastMoveDirection)
-                {
-                    implementationData.consecutiveMoveCount = 0;
-                }
-
-                if (moveDirection != MoveDirection.None)
-                {
-                    var allow = true;
-                    if (implementationData.consecutiveMoveCount != 0)
-                    {
-                        if (implementationData.consecutiveMoveCount > 1)
-                            allow = (time > (implementationData.lastMoveTime + m_RepeatRate));
-                        else
-                            allow = (time > (implementationData.lastMoveTime + m_RepeatDelay));
-                    }
-
-                    if (allow)
-                    {
-                        var eventData = GetOrCreateCachedAxisEvent();
-                        eventData.Reset();
-
-                        eventData.moveVector = moveVector;
-                        eventData.moveDir = moveDirection;
-
-                        move?.Invoke(selectedGameObject, eventData);
-                        ExecuteEvents.Execute(selectedGameObject, eventData, ExecuteEvents.moveHandler);
-                        usedSelectionChange = eventData.used;
-
-                        implementationData.consecutiveMoveCount++;
-                        implementationData.lastMoveTime = time;
-                        implementationData.lastMoveDirection = moveDirection;
-                    }
-                }
-                else
-                {
-                    implementationData.consecutiveMoveCount = 0;
-                }
-            }
-            else
-            {
-                implementationData.consecutiveMoveCount = 0;
-            }
-
-            if (!usedSelectionChange)
-            {
-                if (selectedGameObject != null)
-                {
-                    var data = GetBaseEventData();
-                    if ((joystickState.submitButtonDelta & ButtonDeltaState.Pressed) != 0)
-                    {
-                        submit?.Invoke(selectedGameObject, data);
-                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.submitHandler);
-                    }
-
-                    if (!data.used && (joystickState.cancelButtonDelta & ButtonDeltaState.Pressed) != 0)
-                    {
-                        cancel?.Invoke(selectedGameObject, data);
-                        ExecuteEvents.Execute(selectedGameObject, data, ExecuteEvents.cancelHandler);
-                    }
-                }
-            }
-
-            joystickState.implementationData = implementationData;
-            joystickState.OnFrameFinished();
+            navigationState.implementationData = implementationData;
+            navigationState.OnFrameFinished();
         }
 
         internal void RemovePointerEventData(int pointerId)

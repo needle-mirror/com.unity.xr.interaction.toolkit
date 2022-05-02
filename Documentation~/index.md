@@ -28,7 +28,7 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 The XR Interaction Toolkit package has several dependencies which are automatically added to your project when installing:
 
-* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/index.html)
+* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/index.html)
 * [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
 * [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/manual/index.html)
 * [XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers)](https://docs.unity3d.com/Packages/com.unity.xr.legacyinputhelpers@2.1/manual/index.html)

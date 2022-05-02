@@ -19,6 +19,11 @@
     "versionDefines": [
         {
             "name": "com.unity.inputsystem",
+            "expression": "1.4.0",
+            "define": "INPUT_SYSTEM_1_4_OR_NEWER"
+        },
+        {
+            "name": "com.unity.inputsystem",
             "expression": "1.1.0-pre.4",
             "define": "INPUT_SYSTEM_1_1_OR_NEWER"
         },
@@ -41,21 +46,6 @@
             "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",
             "define": "AR_FOUNDATION_PRESENT"
-        },
-        {
-            "name": "com.unity.xr.legacyinputhelpers",
-            "expression": "[1.3.0,1.9.9]",
-            "define": "LIH_PRESENT_V1API"
-        },
-        {
-            "name": "com.unity.xr.legacyinputhelpers",
-            "expression": "2.0.0",
-            "define": "LIH_PRESENT_V2API"
-        },
-        {
-            "name": "com.unity.xr.legacyinputhelpers",
-            "expression": "1.3.0",
-            "define": "LIH_PRESENT"
         },
         {
             "name": "com.unity.modules.animation",

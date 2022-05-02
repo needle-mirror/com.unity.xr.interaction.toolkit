@@ -151,6 +151,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             FindARSessionOrigin();
             PushARSessionOrigin();
 #pragma warning restore 618
+
+            if (m_XROrigin == null && m_ARSessionOrigin == null)
+                Debug.LogWarning($"{nameof(ARGestureInteractor)} on {name} requires that a {nameof(XROrigin)} exists in the Scene, but none was found.", this);
         }
 
         /// <inheritdoc />

@@ -72,13 +72,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             return InteractionLayerSettings.instance.GetLayer(layerName);
         }
-        
+
         /// <summary>
         /// Given a set of Interaction Layer names, returns the equivalent mask for all of them.
         /// </summary>
         /// <param name="layerNames">The interaction layer names to be converted to a mask</param>
         /// <returns>Returns the equivalent mask for all the supplied Interaction Layer names.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException">Throws when <paramref name="layerNames"/> is <see langword="null"/>.</exception>
         public static int GetMask(params string[] layerNames)
         {
             if (layerNames == null)

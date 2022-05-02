@@ -98,3 +98,6 @@ apiRules:
   - exclude:
       uidRegex: XRSocketInteractorEditor
       type: Type
+  - exclude:
+      uidRegex: TunnelingVignetteControllerEditor
+      type: Type

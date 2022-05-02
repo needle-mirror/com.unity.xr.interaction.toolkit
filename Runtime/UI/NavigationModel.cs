@@ -3,9 +3,9 @@ using UnityEngine.EventSystems;
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// Represents the state of a gamepad in the Unity UI (UGUI) system. Keeps track of various book-keeping regarding UI selection, and move and button states.
+    /// Represents the state of a navigation in the Unity UI (UGUI) system. Keeps track of various book-keeping regarding UI selection, and move and button states.
     /// </summary>
-    struct GamepadModel
+    struct NavigationModel
     {
         public struct ImplementationData
         {
@@ -36,14 +36,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// A 2D Vector that represents the analog stick movement to apply to UI selection, such as moving up and down in options menus or highlighting options.
+        /// A 2D Vector that represents the up/down/left/right movement to apply to UI selection, such as moving up and down in options menus or highlighting options.
         /// </summary>
-        public Vector2 leftStick { get; set; }
-
-        /// <summary>
-        /// A 2D Vector that represents the direction pad movement to apply to UI selection, such as moving up and down in options menus or highlighting options.
-        /// </summary>
-        public Vector2 dpad { get; set; }
+        public Vector2 move { get; set; }
 
         /// <summary>
         /// Tracks the current state of the submit or 'move forward' button.  Setting this also updates the <see cref="submitButtonDelta"/> to track if a press or release occurred in the frame.
@@ -97,8 +92,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public void Reset()
         {
-            leftStick = Vector2.zero;
-            dpad = Vector2.zero;
+            move = Vector2.zero;
             m_SubmitButtonDown = m_CancelButtonDown = false;
             submitButtonDelta = cancelButtonDelta = ButtonDeltaState.NoChange;
 

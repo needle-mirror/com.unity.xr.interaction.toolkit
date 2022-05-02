@@ -21,6 +21,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_KeepSelectedTargetValid;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
         protected SerializedProperty m_StartingSelectedInteractable;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingTargetFilter"/>.</summary>
+        protected SerializedProperty m_StartingTargetFilter;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.hoverEntered"/>.</summary>
         protected SerializedProperty m_HoverEntered;
@@ -66,6 +68,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent keepSelectedTargetValid = EditorGUIUtility.TrTextContent("Keep Selected Target Valid", "Keep selecting the target when not touching or pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
+            public static readonly GUIContent startingTargetFilter = EditorGUIUtility.TrTextContent("Starting Target Filter", "The Target Filter that this Interactor will automatically link at startup (optional, may be None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
             public static readonly GUIContent onHoverEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Entered");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
@@ -95,6 +99,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
+            m_StartingTargetFilter = serializedObject.FindProperty("m_StartingTargetFilter");
 
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
             m_HoverExited = serializedObject.FindProperty("m_HoverExited");
@@ -172,6 +177,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawInteractionManagement();
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+            EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
         }
 
         /// <summary>

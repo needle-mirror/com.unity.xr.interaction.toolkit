@@ -17,7 +17,7 @@ These interaction states always involve both an [Interactor](#interactors) and [
 ## Components
 
 ### Interactors
-Interactor components handle the actions of hovering and selecting Interactable objects in the world. This component is responsible for creating a list of valid targets that it could potentially hover or select each frame.
+Interactor components handle the actions of hovering and selecting Interactable objects in the world. This component is responsible for creating a list of Interactables (called Valid Target) that it could potentially hover or select each frame. The Valid Target list is sorted by priority, and by default the closest Interactables have highest priority. This priority criteria can be changed or extended using [Target filters](target-filters.md).
 
 ### Interactables
 Interactables are objects in a scene that an Interactor can hover, select, and/or activate. This component is responsible for defining the behavior of those interaction states. The same Interactor might be able to pick up and throw a ball, shoot a gun, or press a 3D button on a keypad.

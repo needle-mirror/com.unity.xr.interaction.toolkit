@@ -1,7 +1,10 @@
 ﻿using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
+using UnityEngine.InputSystem.XR;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -376,11 +379,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override bool SendHapticImpulse(float amplitude, float duration)
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             if (m_HapticDeviceAction.action?.activeControl?.device is XRControllerWithRumble rumbleController)
             {
                 rumbleController.SendImpulse(amplitude, duration);
                 return true;
             }
+#endif
 
             return false;
         }

@@ -19,6 +19,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_InteractionLayerMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.interactionLayers"/>.</summary>
         protected SerializedProperty m_InteractionLayers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.distanceCalculationMode"/>.</summary>
+        protected SerializedProperty m_DistanceCalculationMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectMode"/>.</summary>
         protected SerializedProperty m_SelectMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.customReticle"/>.</summary>
@@ -103,6 +105,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactors whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.selectMode"/>.</summary>
             public static readonly GUIContent selectMode = EditorGUIUtility.TrTextContent("Select Mode", "The selection policy, either Single selection with swapping allowed, Single Locked selection without swapping, or Multiple selection.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.distanceCalculationMode"/>.</summary>
+            public static readonly GUIContent distanceCalculationMode = EditorGUIUtility.TrTextContent("Distance Calculation Mode", "Specifies how distance is calculated to Interactors, from fastest to most accurate. If using Mesh Colliders, Collider Volume only works if the mesh is convex.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.customReticle"/>.</summary>
             public static readonly GUIContent customReticle = EditorGUIUtility.TrTextContent("Custom Reticle", "The reticle that will appear at the end of the line when it is valid.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.onFirstHoverEntered"/>.</summary>
@@ -140,6 +144,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>The help box message when deprecated Interactable Events are being used.</summary>
             public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactable Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");
+
+            /// <summary>The help box message when the distance calculation is being overriden.</summary>
+            public static readonly GUIContent distanceCalculationOverride = EditorGUIUtility.TrTextContent("The distance calculation is being overridden and driven by another method.");
         }
 
         /// <summary>
@@ -152,6 +159,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_Colliders = serializedObject.FindProperty("m_Colliders");
             m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
             m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
+            m_DistanceCalculationMode = serializedObject.FindProperty("m_DistanceCalculationMode");
             m_SelectMode = serializedObject.FindProperty("m_SelectMode");
             m_CustomReticle = serializedObject.FindProperty("m_CustomReticle");
 
@@ -247,6 +255,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawCoreConfiguration()
         {
             DrawInteractionManagement();
+            DrawDistanceCalculationMode();
             EditorGUILayout.PropertyField(m_CustomReticle, BaseContents.customReticle);
             DrawSelectionConfiguration();
         }
@@ -278,8 +287,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
                 }
             }
-            
+
             EditorGUILayout.PropertyField(m_Colliders, BaseContents.colliders, true);
+        }
+
+        /// <summary>
+        /// Draw the Distance Calculation Mode property and the distance calculation override message.
+        /// </summary>
+        protected virtual void DrawDistanceCalculationMode()
+        {
+            EditorGUILayout.PropertyField(m_DistanceCalculationMode, BaseContents.distanceCalculationMode);
+            if (Application.isPlaying
+                && !m_DistanceCalculationMode.hasMultipleDifferentValues
+                && target is XRBaseInteractable interactable && interactable != null
+                && interactable.getDistanceOverride != null)
+            {
+                EditorGUILayout.HelpBox(BaseContents.distanceCalculationOverride.text, MessageType.None);
+            }
         }
 
         /// <summary>

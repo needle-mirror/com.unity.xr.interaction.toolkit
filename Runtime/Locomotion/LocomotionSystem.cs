@@ -122,7 +122,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns a <see cref="RequestResult"/> that reflects the status of the request.</returns>
         public RequestResult FinishExclusiveOperation(LocomotionProvider provider)
         {
-            if(provider == null || m_CurrentExclusiveProvider == null)
+            if (provider == null || m_CurrentExclusiveProvider == null)
                 return RequestResult.Error;
 
             if (m_CurrentExclusiveProvider == provider)

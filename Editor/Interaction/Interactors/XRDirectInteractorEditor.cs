@@ -39,6 +39,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
             EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+            EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
         }
     }
 }

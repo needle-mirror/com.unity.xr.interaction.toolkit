@@ -139,7 +139,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
-            SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
+            var filter = targetFilter;
+            if (filter != null && filter.canProcess)
+                filter.Process(this, unsortedValidTargets, targets);
+            else
+                SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
         }
 
         /// <inheritdoc />

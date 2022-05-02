@@ -12,6 +12,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachTransform"/>.</summary>
         protected SerializedProperty m_AttachTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.useDynamicAttach"/>.</summary>
+        protected SerializedProperty m_UseDynamicAttach;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.matchAttachPosition"/>.</summary>
+        protected SerializedProperty m_MatchAttachPosition;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.matchAttachRotation"/>.</summary>
+        protected SerializedProperty m_MatchAttachRotation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.snapToColliderVolume"/>.</summary>
+        protected SerializedProperty m_SnapToColliderVolume;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachEaseInTime"/>.</summary>
         protected SerializedProperty m_AttachEaseInTime;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.movementType"/>.</summary>
@@ -69,6 +77,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachTransform"/>.</summary>
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The attachment point to use on this Interactable (will use this object's position if none set).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.useDynamicAttach"/>.</summary>
+            public static readonly GUIContent useDynamicAttach = EditorGUIUtility.TrTextContent("Use Dynamic Attach", "Enable to make the effective attachment point based on the pose of the Interactor when the selection is made.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.matchAttachPosition"/>.</summary>
+            public static readonly GUIContent matchAttachPosition = EditorGUIUtility.TrTextContent("Match Position", "Match the position of the Interactor's attachment point when initializing the grab. This will override the position of Attach Transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.matchAttachRotation"/>.</summary>
+            public static readonly GUIContent matchAttachRotation = EditorGUIUtility.TrTextContent("Match Rotation", "Match the rotation of the Interactor's attachment point when initializing the grab. This will override the rotation of Attach Transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.snapToColliderVolume"/>.</summary>
+            public static readonly GUIContent snapToColliderVolume = EditorGUIUtility.TrTextContent("Snap To Collider Volume", "Adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachEaseInTime"/>.</summary>
             public static readonly GUIContent attachEaseInTime = EditorGUIUtility.TrTextContent("Attach Ease In Time", "Time in seconds to ease in the attach when selected (a value of 0 indicates no easing).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.movementType"/>.</summary>
@@ -131,6 +147,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             base.OnEnable();
 
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
+            m_UseDynamicAttach = serializedObject.FindProperty("m_UseDynamicAttach");
+            m_MatchAttachPosition = serializedObject.FindProperty("m_MatchAttachPosition");
+            m_MatchAttachRotation = serializedObject.FindProperty("m_MatchAttachRotation");
+            m_SnapToColliderVolume = serializedObject.FindProperty("m_SnapToColliderVolume");
             m_AttachEaseInTime = serializedObject.FindProperty("m_AttachEaseInTime");
             m_MovementType = serializedObject.FindProperty("m_MovementType");
             m_VelocityDamping = serializedObject.FindProperty("m_VelocityDamping");
@@ -267,6 +287,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawAttachConfiguration()
         {
             EditorGUILayout.PropertyField(m_AttachTransform, Contents.attachTransform);
+            EditorGUILayout.PropertyField(m_UseDynamicAttach, Contents.useDynamicAttach);
+            if (m_UseDynamicAttach.boolValue)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_MatchAttachPosition, Contents.matchAttachPosition);
+                    EditorGUILayout.PropertyField(m_MatchAttachRotation, Contents.matchAttachRotation);
+                    using (new EditorGUI.DisabledScope(!m_MatchAttachPosition.boolValue))
+                        EditorGUILayout.PropertyField(m_SnapToColliderVolume, Contents.snapToColliderVolume);
+                }
+            }
+
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
             XRInteractionEditorGUI.EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
         }

@@ -3,6 +3,33 @@ using System;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
+    /// Options for describing different phases of a locomotion.
+    /// </summary>
+    /// <remarks>
+    /// It can be used for connecting with the input actions for the locomotion.
+    /// </remarks>
+    /// <seealso cref="LocomotionProvider.locomotionPhase"/>
+    public enum LocomotionPhase
+    {
+        /// <summary>
+        /// Describes the idle state of a locomotion, for example, when the user is standing still with no locomotion inputs.
+        /// </summary>
+        Idle,
+        /// <summary>
+        /// Describes the started state of a locomotion, for example, when the locomotion input action is started.
+        /// </summary>
+        Started,
+        /// <summary>
+        /// Describes the moving state of a locomotion, for example, when the user is continuously moving by pushing the joystick.
+        /// </summary>
+        Moving,
+        /// <summary>
+        /// Describes the done state of a locomotion, for example, when the user has ended moving.
+        /// </summary>
+        Done,
+    }
+
+    /// <summary>
     /// The <see cref="LocomotionProvider"/> is the base class for various locomotion implementations.
     /// This class provides simple ways to interrogate the <see cref="LocomotionSystem"/> for whether a locomotion can begin
     /// and simple events for hooking into a start/end locomotion.
@@ -34,6 +61,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_System;
             set => m_System = value;
         }
+
+        /// <summary>
+        /// The <see cref="LocomotionPhase"/> of this <see cref="LocomotionProvider"/>.
+        /// </summary>
+        /// <remarks>
+        /// Each <see cref="LocomotionProvider"/> instance can implement <see cref="LocomotionPhase"/> options
+        /// based on their own logic related to locomotion, such as input actions and frames during the animation.
+        /// </remarks>
+        /// <seealso cref="LocomotionPhase"/>
+        /// <seealso cref="TunnelingVignetteController"/>
+        public LocomotionPhase locomotionPhase { get; protected set; }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.

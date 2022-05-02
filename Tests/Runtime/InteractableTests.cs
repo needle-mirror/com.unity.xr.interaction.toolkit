@@ -13,6 +13,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             InteractableSelectMode.Multiple,
         };
 
+        static readonly XRBaseInteractable.DistanceCalculationMode[] s_DistanceCalculationMode =
+        {
+            XRBaseInteractable.DistanceCalculationMode.TransformPosition,
+            XRBaseInteractable.DistanceCalculationMode.ColliderPosition,
+            XRBaseInteractable.DistanceCalculationMode.ColliderVolume,
+        };
+
+        static readonly InteractorPositionOption[] s_InteractorPositionOption =
+        {
+            InteractorPositionOption.InteractorInsideCollider,
+            InteractorPositionOption.InteractorOutsideCollider,
+        };
+
         [TearDown]
         public void TearDown()
         {
@@ -86,6 +99,99 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     Assert.Fail($"Unhandled {nameof(InteractableSelectMode)}={selectMode}");
                     break;
             }
+        }
+
+        [Test]
+        public void InteractableDistanceCalculationModeWithInteractorInsideColliders([ValueSource(nameof(s_DistanceCalculationMode))]
+            XRBaseInteractable.DistanceCalculationMode distanceCalculationMode)
+        {
+            TestUtilities.CreateInteractionManager();
+            IXRInteractor interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractableWithColliders();
+
+            interactor.transform.position = new Vector3(0.5f, 0f, 0f);
+            interactable.distanceCalculationMode = distanceCalculationMode;
+
+            Assert.That(interactable.distanceCalculationMode, Is.EqualTo(distanceCalculationMode));
+            Assert.That(interactable.colliders.Count, Is.GreaterThan(1));
+
+            var distanceSqr = interactable.GetDistanceSqrToInteractor(interactor);
+            switch (distanceCalculationMode)
+            {
+                case XRBaseInteractable.DistanceCalculationMode.TransformPosition:
+                    Assert.That(distanceSqr, Is.EqualTo(0.5f * 0.5f));
+                    break;
+                case XRBaseInteractable.DistanceCalculationMode.ColliderPosition:
+                    Assert.That(distanceSqr, Is.EqualTo(0.5f * 0.5f));
+                    break;
+                case XRBaseInteractable.DistanceCalculationMode.ColliderVolume:
+                    Assert.That(distanceSqr, Is.EqualTo(0f));
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(InteractableSelectMode)}={distanceCalculationMode}");
+                    break;
+            }
+        }
+
+        [Test]
+        public void InteractableDistanceCalculationMode(
+            [ValueSource(nameof(s_DistanceCalculationMode))] XRBaseInteractable.DistanceCalculationMode distanceCalculationMode,
+            [ValueSource(nameof(s_InteractorPositionOption))] InteractorPositionOption interactorPositionOption)
+        {
+            TestUtilities.CreateInteractionManager();
+            IXRInteractor interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractableWithColliders();
+
+            // The sphere or box colliders have size of 1f and they are translated (below) to a random position inside a sphere of radius 0.25f
+            var interactorPosition = interactorPositionOption == InteractorPositionOption.InteractorInsideCollider
+                ? Random.insideUnitSphere * 0.2f
+                : Random.onUnitSphere * 5f;
+
+            interactor.transform.position = interactorPosition;
+            interactable.distanceCalculationMode = distanceCalculationMode;
+
+            Assert.That(interactable.distanceCalculationMode, Is.EqualTo(distanceCalculationMode));
+            Assert.That(interactable.colliders.Count, Is.GreaterThan(1));
+
+            // Move the colliders to random positions not far from the interactable
+            foreach (var col in interactable.colliders)
+                col.transform.position = Random.insideUnitSphere * 0.25f;
+
+            var distanceSqr = interactable.GetDistanceSqrToInteractor(interactor);
+            switch (distanceCalculationMode)
+            {
+                case XRBaseInteractable.DistanceCalculationMode.TransformPosition:
+                    var offset = interactable.transform.position - interactorPosition;
+                    Assert.That(distanceSqr, Is.EqualTo(offset.sqrMagnitude));
+                    break;
+                case XRBaseInteractable.DistanceCalculationMode.ColliderPosition:
+                    var minColDistanceSqr = float.MaxValue;
+                    foreach (var col in interactable.colliders)
+                    {
+                        offset = col.transform.position - interactorPosition;
+                        minColDistanceSqr = Mathf.Min(minColDistanceSqr, offset.sqrMagnitude);
+                    }
+                    Assert.That(distanceSqr, Is.EqualTo(minColDistanceSqr));
+                    break;
+                case XRBaseInteractable.DistanceCalculationMode.ColliderVolume:
+                    minColDistanceSqr = float.MaxValue;
+                    foreach (var col in interactable.colliders)
+                    {
+                        offset = col.ClosestPoint(interactorPosition) - interactorPosition;
+                        minColDistanceSqr = Mathf.Min(minColDistanceSqr, offset.sqrMagnitude);
+                    }
+                    Assert.That(distanceSqr, Is.EqualTo(minColDistanceSqr));
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(InteractableSelectMode)}={distanceCalculationMode}");
+                    break;
+            }
+        }
+
+        public enum InteractorPositionOption
+        {
+            InteractorInsideCollider,
+            InteractorOutsideCollider,
         }
     }
 }

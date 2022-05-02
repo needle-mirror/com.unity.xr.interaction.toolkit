@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interactable component that allows basic "grab" functionality.
-    /// Can attach to a selecting Interactor and follow it around while obeying physics (and inherit velocity when released).
+    /// Can attach to an Interactor that selects this Interactable component and follow it around while obeying physics
+    /// (and inherit velocity when released).
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
@@ -59,6 +63,78 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_AttachTransform;
             set => m_AttachTransform = value;
+        }
+
+        [SerializeField]
+        bool m_UseDynamicAttach;
+
+        /// <summary>
+        /// The grab pose will be based on the pose of the Interactor when the selection is made.
+        /// Unity will create a dynamic attachment point for each Interactor that selects this component.
+        /// </summary>
+        /// <remarks>
+        /// A child GameObject will be created for each Interactor that selects this component to serve as the attachment point.
+        /// These are cached and part of a shared pool used by all instances of <see cref="XRGrabInteractable"/>.
+        /// Therefore, while a reference can be obtained by calling <see cref="GetAttachTransform"/> while selected,
+        /// you should typically not add any components to that GameObject unless you remove them after being released
+        /// since it won't always be used by the same Interactable.
+        /// </remarks>
+        /// <seealso cref="attachTransform"/>
+        /// <seealso cref="InitializeDynamicAttachPose"/>
+        public bool useDynamicAttach
+        {
+            get => m_UseDynamicAttach;
+            set => m_UseDynamicAttach = value;
+        }
+
+        [SerializeField]
+        bool m_MatchAttachPosition = true;
+
+        /// <summary>
+        /// Match the position of the Interactor's attachment point when initializing the grab.
+        /// This will override the position of <see cref="attachTransform"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will initialize the dynamic attachment point of this object using the position of the Interactor's attachment point.
+        /// </remarks>
+        /// <seealso cref="useDynamicAttach"/>
+        /// <seealso cref="matchAttachRotation"/>
+        public bool matchAttachPosition
+        {
+            get => m_MatchAttachPosition;
+            set => m_MatchAttachPosition = value;
+        }
+
+        [SerializeField]
+        bool m_MatchAttachRotation = true;
+
+        /// <summary>
+        /// Match the rotation of the Interactor's attachment point when initializing the grab.
+        /// This will override the rotation of <see cref="attachTransform"/>.
+        /// </summary>
+        /// <remarks>
+        /// This will initialize the dynamic attachment point of this object using the rotation of the Interactor's attachment point.
+        /// </remarks>
+        /// <seealso cref="useDynamicAttach"/>
+        /// <seealso cref="matchAttachPosition"/>
+        public bool matchAttachRotation
+        {
+            get => m_MatchAttachRotation;
+            set => m_MatchAttachRotation = value;
+        }
+
+        [SerializeField]
+        bool m_SnapToColliderVolume = true;
+
+        /// <summary>
+        /// Adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object.
+        /// </summary>
+        /// <seealso cref="useDynamicAttach"/>
+        /// <seealso cref="Collider.ClosestPoint"/>
+        public bool snapToColliderVolume
+        {
+            get => m_SnapToColliderVolume;
+            set => m_SnapToColliderVolume = value;
         }
 
         [SerializeField]
@@ -438,6 +514,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         TeleportationProvider m_TeleportationProvider;
         Pose m_PoseBeforeTeleport;
 
+        readonly Dictionary<IXRSelectInteractor, Transform> m_DynamicAttachTransforms = new Dictionary<IXRSelectInteractor, Transform>();
+
+        static readonly LinkedPool<Transform> s_DynamicAttachTransformPool = new LinkedPool<Transform>(OnCreatePooledItem, OnGetPooledItem, OnReleasePooledItem, OnDestroyPooledItem);
+
         /// <inheritdoc />
         protected override void Awake()
         {
@@ -519,46 +599,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override Transform GetAttachTransform(IXRInteractor interactor)
         {
-            return m_AttachTransform != null ? m_AttachTransform : base.GetAttachTransform(interactor);
-        }
-
-        /// <summary>
-        /// Calculates the world position to place this object at when selected.
-        /// </summary>
-        /// <param name="interactor">Interactor that is initiating the selection.</param>
-        /// <returns>Returns the attach position in world space.</returns>
-        Vector3 GetWorldAttachPosition(IXRInteractor interactor)
-        {
-            var interactorAttachTransform = interactor.GetAttachTransform(this);
-
-            if (!m_TrackRotation)
+            if (m_UseDynamicAttach && interactor is IXRSelectInteractor selectInteractor &&
+                m_DynamicAttachTransforms.TryGetValue(selectInteractor, out var dynamicAttachTransform))
             {
-                var thisAttachTransform = GetAttachTransform(interactor);
-                return interactorAttachTransform.position + thisAttachTransform.TransformDirection(m_InteractorLocalPosition);
+                if (dynamicAttachTransform != null)
+                    return dynamicAttachTransform;
+
+                m_DynamicAttachTransforms.Remove(selectInteractor);
+                Debug.LogWarning($"Dynamic Attach Transform created by {this} for {interactor} was destroyed after being created." +
+                    " Continuing as if Use Dynamic Attach was disabled for this pair.", this);
             }
 
-            return interactorAttachTransform.position + interactorAttachTransform.rotation * m_InteractorLocalPosition;
-        }
-
-        /// <summary>
-        /// Calculates the world rotation to place this object at when selected.
-        /// </summary>
-        /// <param name="interactor">Interactor that is initiating the selection.</param>
-        /// <returns>Returns the attach rotation in world space.</returns>
-        Quaternion GetWorldAttachRotation(IXRInteractor interactor)
-        {
-            if (!m_TrackRotation)
-                return m_TargetWorldRotation;
-
-            var interactorAttachTransform = interactor.GetAttachTransform(this);
-            return interactorAttachTransform.rotation * m_InteractorLocalRotation;
+            return m_AttachTransform != null ? m_AttachTransform : base.GetAttachTransform(interactor);
         }
 
         void UpdateTarget(IXRInteractor interactor, float timeDelta)
         {
-            // Compute the unsmoothed target world position and rotation
-            var rawTargetWorldPosition = GetWorldAttachPosition(interactor);
-            var rawTargetWorldRotation = GetWorldAttachRotation(interactor);
+            // Compute the unsmoothed target world pose
+            Vector3 rawTargetWorldPosition;
+            Quaternion rawTargetWorldRotation;
+
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            var interactorAttachPose = new Pose(interactorAttachTransform.position, interactorAttachTransform.rotation);
+            if (m_TrackRotation)
+            {
+                rawTargetWorldPosition = interactorAttachPose.rotation * m_InteractorLocalPosition + interactorAttachPose.position;
+                rawTargetWorldRotation = interactorAttachPose.rotation * m_InteractorLocalRotation;
+            }
+            else
+            {
+                var thisAttachTransform = GetAttachTransform(interactor);
+                rawTargetWorldPosition = thisAttachTransform.TransformDirection(m_InteractorLocalPosition) + interactorAttachPose.position;
+                rawTargetWorldRotation = m_TargetWorldRotation;
+            }
 
             // Apply smoothing (if configured)
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
@@ -715,6 +788,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
+            // Setup the dynamic attach transform.
+            // Done before calling the base method so the attach pose captured is the dynamic one.
+            if (m_UseDynamicAttach)
+            {
+                var dynamicAttachTransform = CreateDynamicAttach(args.interactorObject);
+                InitializeDynamicAttachPose(args.interactorObject, dynamicAttachTransform);
+            }
+
             base.OnSelectEntering(args);
             Grab();
         }
@@ -724,6 +805,103 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnSelectExiting(args);
             Drop();
+        }
+
+        /// <inheritdoc />
+        protected override void OnSelectExited(SelectExitEventArgs args)
+        {
+            base.OnSelectExited(args);
+
+            // Skip checking m_UseDynamicAttach since it may have changed after being grabbed,
+            // and we should ensure it is released. We instead check Count first as a faster way to avoid hashing
+            // and the Dictionary lookup, which should handle when it was never enabled in the first place.
+            if (m_DynamicAttachTransforms.Count > 0 && m_DynamicAttachTransforms.TryGetValue(args.interactorObject, out var dynamicAttachTransform))
+            {
+                if (dynamicAttachTransform != null)
+                    s_DynamicAttachTransformPool.Release(dynamicAttachTransform);
+
+                m_DynamicAttachTransforms.Remove(args.interactorObject);
+            }
+        }
+
+        Transform CreateDynamicAttach(IXRSelectInteractor interactor)
+        {
+            Transform dynamicAttachTransform;
+
+            do
+            {
+                dynamicAttachTransform = s_DynamicAttachTransformPool.Get();
+            } while (dynamicAttachTransform == null);
+
+            m_DynamicAttachTransforms.Remove(interactor);
+            var staticAttachTransform = GetAttachTransform(interactor);
+            m_DynamicAttachTransforms[interactor] = dynamicAttachTransform;
+
+#if UNITY_EDITOR
+            dynamicAttachTransform.name = $"[{interactor.transform.name}] Dynamic Attach";
+#endif
+            dynamicAttachTransform.SetParent(transform, false);
+
+            // Base the initial pose on the Attach Transform.
+            // Technically we could just do the final else statement, but setting the local position and rotation this way
+            // keeps the position and rotation seen in the Inspector tidier by exactly matching instead of potentially having small
+            // floating point offsets.
+            if (staticAttachTransform == transform)
+            {
+                dynamicAttachTransform.localPosition = Vector3.zero;
+                dynamicAttachTransform.localRotation = Quaternion.identity;
+            }
+            else if (staticAttachTransform.parent == transform)
+            {
+                dynamicAttachTransform.localPosition = staticAttachTransform.localPosition;
+                dynamicAttachTransform.localRotation = staticAttachTransform.localRotation;
+            }
+            else
+            {
+                dynamicAttachTransform.SetPositionAndRotation(staticAttachTransform.position, staticAttachTransform.rotation);
+            }
+
+            return dynamicAttachTransform;
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the Interactor first initiates selection of this Interactable.
+        /// Override this method to set the pose of the dynamic attachment point. Before this method is called, the transform
+        /// is already set as a child GameObject with inherited Transform values.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is initiating the selection.</param>
+        /// <param name="dynamicAttachTransform">The dynamic attachment Transform that serves as the attachment point for the given Interactor.</param>
+        /// <remarks>
+        /// This method is only called when <see cref="useDynamicAttach"/> is enabled.
+        /// </remarks>
+        /// <seealso cref="useDynamicAttach"/>
+        protected virtual void InitializeDynamicAttachPose(IXRSelectInteractor interactor, Transform dynamicAttachTransform)
+        {
+            // We assume the static pose should be used for sockets
+            // and for Ray Interactors that bring the object to hand.
+            // In both these cases, this object should move to the interactor.
+            if (interactor is XRSocketInteractor ||
+                interactor is XRRayInteractor rayInteractor && rayInteractor.useForceGrab)
+                return;
+
+            // Copy the pose of the interactor's attach transform
+            var interactorAttachTransform = interactor.GetAttachTransform(this);
+            var position = interactorAttachTransform.position;
+            var rotation = interactorAttachTransform.rotation;
+
+            // Optionally constrain the position to within the Collider(s) of this Interactable
+            if (m_SnapToColliderVolume && m_MatchAttachPosition &&
+                XRInteractableUtility.TryGetClosestPointOnCollider(this, position, out var distanceInfo))
+            {
+                position = distanceInfo.point;
+            }
+
+            if (m_MatchAttachPosition && m_MatchAttachRotation)
+                dynamicAttachTransform.SetPositionAndRotation(position, rotation);
+            else if (m_MatchAttachPosition)
+                dynamicAttachTransform.position = position;
+            else if (m_MatchAttachRotation)
+                dynamicAttachTransform.rotation = rotation;
         }
 
         /// <summary>
@@ -958,6 +1136,49 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TeleportationProvider.beginLocomotion -= OnBeginTeleportation;
             m_TeleportationProvider.endLocomotion -= OnEndTeleportation;
             m_TeleportationProvider = null;
+        }
+
+        static Transform OnCreatePooledItem()
+        {
+            var item = new GameObject().transform;
+            item.localPosition = Vector3.zero;
+            item.localRotation = Quaternion.identity;
+            item.localScale = Vector3.one;
+
+            return item;
+        }
+
+        static void OnGetPooledItem(Transform item)
+        {
+            if (item == null)
+                return;
+
+            item.hideFlags &= ~HideFlags.HideInHierarchy;
+        }
+
+        static void OnReleasePooledItem(Transform item)
+        {
+            if (item == null)
+                return;
+
+            // Don't clear the parent of the GameObject on release since there could be issues
+            // with changing it while a parent GameObject is deactivating, which logs an error.
+            // By keeping it under this interactable, it could mean that GameObjects in the pool
+            // have a chance of being destroyed, but we check that the GameObject we obtain from the pool
+            // has not been destroyed. This means potentially more creations of new GameObjects, but avoids
+            // the issue with reparenting.
+
+            // Hide the GameObject in the Hierarchy so it doesn't pollute this Interactable's hierarchy
+            // when it is no longer used.
+            item.hideFlags |= HideFlags.HideInHierarchy;
+        }
+
+        static void OnDestroyPooledItem(Transform item)
+        {
+            if (item == null)
+                return;
+
+            Destroy(item.gameObject);
         }
     }
 }

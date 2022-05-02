@@ -326,6 +326,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 }
             }
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+            EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
         }
     }
 }

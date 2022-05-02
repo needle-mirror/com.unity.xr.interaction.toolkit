@@ -20,6 +20,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_EnableTurnLeftRight;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SnapTurnProviderBase.enableTurnAround"/>.</summary>
         protected SerializedProperty m_EnableTurnAround;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SnapTurnProviderBase.delayTime"/>.</summary>
+        protected SerializedProperty m_DelayTime;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="DeviceBasedSnapTurnProvider.turnUsage"/>.</summary>
         protected SerializedProperty m_TurnUsage;
@@ -44,6 +46,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent enableTurnLeftRight = EditorGUIUtility.TrTextContent("Enable Turn Left & Right", "Controls whether to enable left & right snap turns.");
             /// <summary><see cref="GUIContent"/> for <see cref="SnapTurnProviderBase.enableTurnAround"/>.</summary>
             public static readonly GUIContent enableTurnAround = EditorGUIUtility.TrTextContent("Enable Turn Around", "Controls whether to enable 180° snap turns.");
+            /// <summary><see cref="GUIContent"/> for <see cref="SnapTurnProviderBase.delayTime"/>.</summary>
+            public static readonly GUIContent delayTime = EditorGUIUtility.TrTextContent("Delay Time", "The time (in seconds) to delay the first turn after receiving initial input for the turn.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="DeviceBasedSnapTurnProvider.turnUsage"/>.</summary>
             public static readonly GUIContent turnUsage = EditorGUIUtility.TrTextContent("Turn Input Source", "The Input axis to use to begin a snap turn.");
@@ -64,6 +68,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_DebounceTime = serializedObject.FindProperty("m_DebounceTime");
             m_EnableTurnLeftRight = serializedObject.FindProperty("m_EnableTurnLeftRight");
             m_EnableTurnAround = serializedObject.FindProperty("m_EnableTurnAround");
+            m_DelayTime = serializedObject.FindProperty("m_DelayTime");
 
             m_TurnUsage = serializedObject.FindProperty("m_TurnUsage");
             m_Controllers = serializedObject.FindProperty("m_Controllers");
@@ -107,6 +112,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_DeadZone, Contents.deadZone);
             EditorGUILayout.PropertyField(m_EnableTurnLeftRight, Contents.enableTurnLeftRight);
             EditorGUILayout.PropertyField(m_EnableTurnAround, Contents.enableTurnAround);
+            EditorGUILayout.PropertyField(m_DelayTime, Contents.delayTime);
             EditorGUILayout.PropertyField(m_DebounceTime, Contents.debounceTime);
         }
     }

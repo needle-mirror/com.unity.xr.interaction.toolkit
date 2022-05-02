@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
+using System.Runtime.InteropServices;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
@@ -18,7 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         public static FourCC formatId => new FourCC('X', 'R', 'S', 'H');
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
         /// </summary>
         public FourCC format => formatId;
 
@@ -110,3 +111,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
     }
 }
+#endif

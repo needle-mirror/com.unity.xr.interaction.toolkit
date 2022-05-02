@@ -22,15 +22,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_TurnSpeed = value;
         }
 
+        bool m_IsTurningXROrigin;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void Update()
         {
+            m_IsTurningXROrigin = false;
+
             // Use the input amount to scale the turn speed.
             var input = ReadInput();
             var turnAmount = GetTurnAmount(input);
+
             TurnRig(turnAmount);
+
+            switch (locomotionPhase)
+            {
+                case LocomotionPhase.Idle:
+                case LocomotionPhase.Started:
+                    if (m_IsTurningXROrigin)
+                        locomotionPhase = LocomotionPhase.Moving;
+                    break;
+                case LocomotionPhase.Moving:
+                    if (!m_IsTurningXROrigin)
+                        locomotionPhase = LocomotionPhase.Done;
+                    break;
+                case LocomotionPhase.Done:
+                    locomotionPhase = m_IsTurningXROrigin ? LocomotionPhase.Moving : LocomotionPhase.Idle;
+                    break;
+                default:
+                    Assert.IsTrue(false, $"Unhandled {nameof(LocomotionPhase)}={locomotionPhase}");
+                    break;
+            }
         }
 
         /// <summary>
@@ -72,7 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="turnAmount">The amount of rotation in degrees.</param>
         protected void TurnRig(float turnAmount)
         {
-            if (Mathf.Approximately( turnAmount, 0f))
+            if (Mathf.Approximately(turnAmount, 0f))
                 return;
 
             if (CanBeginLocomotion() && BeginLocomotion())
@@ -80,6 +104,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var xrOrigin = system.xrOrigin;
                 if (xrOrigin != null)
                 {
+                    m_IsTurningXROrigin = true;
                     xrOrigin.RotateAroundCameraUsingOriginUp(turnAmount);
                 }
 

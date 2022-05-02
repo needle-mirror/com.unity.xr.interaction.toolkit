@@ -262,7 +262,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_ModelParent == null)
             {
                 m_ModelParent = new GameObject($"[{gameObject.name}] Model Parent").transform;
-                m_ModelParent.SetParent(transform);
+                m_ModelParent.SetParent(transform, false);
                 m_ModelParent.localPosition = Vector3.zero;
                 m_ModelParent.localRotation = Quaternion.identity;
             }

@@ -13,4 +13,5 @@ A locomotion provider that allows the user to rotate their rig using a specified
 | **Dead Zone** | The deadzone that the controller movement will have to be above to trigger a snap turn. |
 | **Enable Turn Left & Right** | Controls whether to enable left and right snap turns. |
 | **Enable Turn Around** | Controls whether to enable 180° snap turns. |
+| **Delay Time** | The time (in seconds) to delay the first turn after receiving initial input for the turn. Subsequent turns while holding down input are delayed by the **Debounce Time**, not the delay time. This delay can be used, for example, as time to set a tunneling vignette effect as a VR comfort option. |
 | **Activation Timeout** | The amount of time that Unity waits before starting another snap turn. |

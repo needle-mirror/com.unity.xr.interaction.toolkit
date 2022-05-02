@@ -20,6 +20,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected bool validRequest { get; set; }
 
+        [SerializeField]
+        [Tooltip("The time (in seconds) to delay the teleportation once it is activated.")]
+        float m_DelayTime;
+
+        /// <summary>
+        /// The time (in seconds) to delay the teleportation once it is activated.
+        /// This delay can be used, for example, as time to set a tunneling vignette effect as a VR comfort option.
+        /// </summary>
+        public float delayTime
+        {
+            get => m_DelayTime;
+            set => m_DelayTime = value;
+        }
+
         /// <summary>
         /// This function will queue a teleportation request within the provider.
         /// </summary>
@@ -32,13 +46,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
+        bool m_HasExclusiveLocomotion;
+        float m_TimeStarted = -1f;
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            if (system != null && m_DelayTime > 0f && m_DelayTime > system.timeout)
+                Debug.LogWarning($"Delay Time ({m_DelayTime}) is longer than the Locomotion System's Timeout ({system.timeout}).", this);
+        }
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Update()
         {
-            if (!validRequest || !BeginLocomotion())
+            if (!validRequest)
+            {
+                locomotionPhase = LocomotionPhase.Idle;
                 return;
+            }
+
+            if (!m_HasExclusiveLocomotion)
+            {
+                if (!BeginLocomotion())
+                    return;
+
+                m_HasExclusiveLocomotion = true;
+                locomotionPhase = LocomotionPhase.Started;
+                m_TimeStarted = Time.time;
+            }
+
+            // Wait for configured Delay Time
+            if (m_DelayTime > 0f && Time.time - m_TimeStarted < m_DelayTime)
+                return;
+
+            locomotionPhase = LocomotionPhase.Moving;
 
             var xrOrigin = system.xrOrigin;
             if (xrOrigin != null)
@@ -70,7 +114,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             EndLocomotion();
+            m_HasExclusiveLocomotion = false;
             validRequest = false;
+            locomotionPhase = LocomotionPhase.Done;
         }
     }
 }

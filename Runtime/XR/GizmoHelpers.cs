@@ -5,6 +5,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     public static class GizmoHelpers
     {
+        static readonly Color s_XAxisColor = new Color(219f / 255, 62f / 255, 29f / 255, .93f);
+        static readonly Color s_YAxisColor = new Color(154f / 255, 243f / 255, 72f / 255, .93f);
+        static readonly Color s_ZAxisColor = new Color(58f / 255, 122f / 255, 248f / 255, .93f);
+
         /// <summary>
         /// Draws oriented wire plane.
         /// </summary>
@@ -40,7 +44,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="size"> Size of the cube.</param>
         public static void DrawWireCubeOriented(Vector3 position, Quaternion rotation, float size)
         {
-
             var halfSize = size / 2f;
             var tl = new Vector3(halfSize, 0f, -halfSize);
             var tr = new Vector3(halfSize, 0f, halfSize);
@@ -51,7 +54,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var trt = new Vector3(halfSize, size, halfSize);
             var blt = new Vector3(-halfSize, size, -halfSize);
             var brt = new Vector3(-halfSize, size, halfSize);
-
 
             Gizmos.DrawLine((rotation * tl) + position, (rotation * tr) + position);
 
@@ -87,13 +89,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             var position = transform.position;
 
-            Gizmos.color = Color.blue;
+            Gizmos.color = s_ZAxisColor;
             Gizmos.DrawRay(position, transform.forward * size);
 
-            Gizmos.color = Color.green;
+            Gizmos.color = s_YAxisColor;
             Gizmos.DrawRay(position, transform.up * size);
 
-            Gizmos.color = Color.red;
+            Gizmos.color = s_XAxisColor;
             Gizmos.DrawRay(position, transform.right * size);
         }
     }

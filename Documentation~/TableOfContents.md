@@ -6,6 +6,7 @@
   * [UI setup](ui-setup.md)
   * [Locomotion](locomotion.md)
   * [Interaction layers](interaction-layers.md)
+  * [Target filters](target-filters.md)
   * [AR interaction](ar-interaction.md)
   * [Debugger window](debugger-window.md)
 * Reference

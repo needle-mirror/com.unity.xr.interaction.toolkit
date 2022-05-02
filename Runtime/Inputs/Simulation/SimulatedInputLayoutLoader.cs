@@ -1,8 +1,9 @@
-﻿#if UNITY_EDITOR
+﻿#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
+using UnityEngine.Scripting;
+
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
-
-using UnityEngine.Scripting;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
@@ -39,3 +40,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
     }
 }
+#endif

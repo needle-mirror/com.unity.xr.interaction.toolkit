@@ -1,6 +1,7 @@
 # Components
 
 ## Controller Components
+
 - [XR Controller (Action-based)](xr-controller-action-based.md)
 - [XR Controller (Device-based)](xr-controller-device-based.md)
 - [XR Controller Recorder](xr-controller-recorder.md)
@@ -42,6 +43,7 @@
 - [Snap Turn Provider (Action-based)](snap-turn-provider-action-based.md)
 - [Snap Turn Provider (Device-based)](snap-turn-provider-device-based.md)
 - [Teleportation Provider](teleportation-provider.md)
+- [Tunneling Vignette Controller](tunneling-vignette-controller.md)
 
 ## Visuals
 
@@ -50,6 +52,8 @@
 - [XR Tint Interactable Visual](xr-tint-interactable-visual.md)
 
 ## Other Components
+
 - [Input Action Manager](input-action-manager.md)
 - [XR Device Simulator](xr-device-simulator.md)
 - [XR Interaction Manager](xr-interaction-manager.md)
+- [XR Target Filter](target-filters.md#xr-target-filter)

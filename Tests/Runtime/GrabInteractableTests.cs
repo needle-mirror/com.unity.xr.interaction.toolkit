@@ -563,5 +563,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
         }
+
+        [UnityTest]
+        public IEnumerator DynamicAttachKeepsSamePose([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        {
+            // Create Grab Interactable at some arbitrary point
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grabInteractableGO.name = "Grab Interactable";
+            grabInteractableGO.transform.localPosition = new Vector3(1f, 2f, 3f);
+            grabInteractableGO.transform.localRotation = Quaternion.Euler(15f, 30f, 60f);
+            var rigidbody = grabInteractableGO.AddComponent<Rigidbody>();
+            rigidbody.useGravity = false;
+            rigidbody.isKinematic = true;
+            var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
+            grabInteractable.movementType = movementType;
+            grabInteractable.useDynamicAttach = true;
+            grabInteractable.matchAttachPosition = true;
+            grabInteractable.matchAttachRotation = true;
+            grabInteractable.snapToColliderVolume = false;
+            DisableDelayProperties(grabInteractable);
+
+            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
+
+            // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+
+            // Create Interactor at some arbitrary point away from the Interactable
+            var interactor = TestUtilities.CreateMockInteractor();
+
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.attachTransform, Is.Not.Null);
+            Assert.That(interactor.attachTransform.position, Is.EqualTo(Vector3.zero).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return WaitForSteadyState(movementType);
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+            Assert.That(rigidbody.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+        }
     }
 }

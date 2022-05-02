@@ -358,5 +358,55 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
         }
+
+        [UnityTest]
+        public IEnumerator DirectInteractorCanUseTargetFilter()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateDirectInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            yield return new WaitForFixedUpdate();
+
+            var filter = new MockTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            // Process the filter
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Disable the filter and check if it will no longer be processed
+            filter.canProcess = false;
+            interactor.GetValidTargets(validTargets);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Unlink the filter
+            interactor.targetFilter = null;
+            Assert.That(interactor.targetFilter, Is.EqualTo(null));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process,
+                TargetFilterCallback.Unlink
+            }));
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using UnityEngine.XR.Interaction.Toolkit.AR;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -86,6 +87,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_DeviceBasedSnapTurnProvider = k_BaseApi + k_BaseNamespace + nameof(DeviceBasedSnapTurnProvider) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRTargetFilter"/>.
+        /// </summary>
+        public const string k_XRTargetFilter = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(XRTargetFilter) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="InputActionManager"/>.
         /// </summary>
         public const string k_InputActionManager = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(InputActionManager) + ".html";
@@ -114,6 +120,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="TeleportationProvider"/>.
         /// </summary>
         public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + nameof(TeleportationProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="TunnelingVignetteController"/>
+        /// </summary>
+        public const string k_TunnelingVignetteController = k_BaseApi + k_BaseNamespace + nameof(TunnelingVignetteController) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="TrackedDeviceGraphicRaycaster"/>.
@@ -190,7 +201,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
 
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.0/api/";
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.1/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

@@ -70,6 +70,44 @@ public class ExampleInteractable : XRBaseInteractable
 {
 }
 ```
+
+## Extending target filters
+
+You can derive from `XRBaseTargetFilter` (a `MonoBehaviour`) or implement `IXRTargetFilter` to create a custom Target Filter. At runtime, you can link an instance of your custom Target Filter by assigning it to the `targetFilter` property of an Interactor.
+
+An instance of an `XRBaseTargetFilter` can also be assigned in the Inspector to the **Starting Target Filter** property of an Interactor. During the Interactor runtime initialization, it'll link itself with the filter in this property.
+
+### Extending evaluators
+
+You can derive from `XRTargetEvaluator` to create a custom Evaluator. An `XRTargetEvaluator` has virtual lifecycle callbacks similar to a `MonoBehaviour` and an additional method (`CalculateNormalizedScore`) for its score calculation. All these callbacks are invoked by its `XRTargetFilter`. The `CalculateNormalizedScore` method can be invoked several times in a single frame, as it can be called one time for each target Interactable in the linked Interactors.
+
+An `XRTargetEvaluator` can optionally implement the interface `IXRTargetEvaluatorLinkable` to receive callbacks whenever an Interactor links to or unlinks from its filter.
+
+For Evaluators that do binary tests, it's recommended that its `CalculateNormalizedScore` method returns `1` when the condition is met, and `0` otherwise.
+
+```csharp
+using System;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
+
+[Serializable]
+public class ExcludeByTagEvaluator : XRTargetEvaluator
+{
+    public string tagToExclude;
+
+    protected override float CalculateNormalizedScore(IXRInteractor interactor, IXRInteractable target)
+    {
+        return target.transform.CompareTag(tagToExclude) ? 0f : 1f;
+    }
+}
+```
+
+#### Troubleshooting missing evaluator types
+
+Evaluators are [serialized as reference](https://docs.unity3d.com/ScriptReference/SerializeReference.html) in the `XRTargetFilter`, and Unity does not keep track of the script (or its GUID) that the Evaluator objects originated from. If an Evaluator type becomes missing, Unity will log an error in the Console window. Follow the instructions below to fix this issue:
+- If you are changing the Evaluator type (by renaming its class, namespace, etc) or moving it to another assembly, then you should decorate the Evaluator class with the [MovedFromAttribute](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Scripting/APIUpdating/UpdatedFromAttribute.cs) passing the information of the old type.
+- Before deleting an Evaluator script, make sure that no other `XRTargetFilter` in your project is using it. If you are using Unity version 2021.2 or above, you can select the missing types from the filter Inspector and delete them. Otherwise, to delete these objects, you'll need to create a new Evaluator script, and decorate it with a `MovedFromAttribute` containing the deleted type information.
+
 ## Inspectors
 
 Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes are used to change the appearance and order of properties that appear in the Inspector, particularly for Interactors and Interactables. Derived behaviors that add additional serialized fields (those that are `public` or have the `SerializeField` attribute) will automatically have those appear in the Inspector. The Editor classes can be extended to further customize the Inspector, at which point any declared `SerializedProperty` fields that are assigned will no longer be automatically drawn during `DrawDerivedProperties`. Within those derived Editor classes, you will typically only need to override methods such as `DrawProperties` in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`.

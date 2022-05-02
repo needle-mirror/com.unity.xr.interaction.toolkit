@@ -59,8 +59,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_EnableTurnAround = value;
         }
 
+        [SerializeField]
+        [Tooltip("The time (in seconds) to delay the first turn after receiving initial input for the turn.")]
+        float m_DelayTime;
+
+        /// <summary>
+        /// The time (in seconds) to delay the first turn after receiving initial input for the turn.
+        /// Subsequent turns while holding down input are delayed by the <see cref="debounceTime"/>, not the delay time.
+        /// This delay can be used, for example, as time to set a tunneling vignette effect as a VR comfort option.
+        /// </summary>
+        public float delayTime
+        {
+            get => m_DelayTime;
+            set => m_DelayTime = value;
+        }
+
         float m_CurrentTurnAmount;
         float m_TimeStarted;
+        float m_DelayStartTime;
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            if (system != null && m_DelayTime > 0f && m_DelayTime > system.timeout)
+                Debug.LogWarning($"Delay Time ({m_DelayTime}) is longer than the Locomotion System's Timeout ({system.timeout}).", this);
+        }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -74,22 +98,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             }
 
+            // Reset to Idle state at the beginning of the update loop (rather than the end)
+            // so that anything that needs to be aware of the Done state can trigger, such as
+            // the vignette provider or another comfort mode option.
+            if (locomotionPhase == LocomotionPhase.Done)
+                locomotionPhase = LocomotionPhase.Idle;
+
             var input = ReadInput();
             var amount = GetTurnAmount(input);
-            if (Mathf.Abs(amount) > 0f)
+            if (Mathf.Abs(amount) > 0f || locomotionPhase == LocomotionPhase.Started)
             {
                 StartTurn(amount);
             }
+            else if (Mathf.Approximately(m_CurrentTurnAmount, 0f) && locomotionPhase == LocomotionPhase.Moving)
+            {
+                locomotionPhase = LocomotionPhase.Done;
+            }
 
-            if (Math.Abs(m_CurrentTurnAmount) > 0f && BeginLocomotion())
+            if (locomotionPhase == LocomotionPhase.Moving && Math.Abs(m_CurrentTurnAmount) > 0f && BeginLocomotion())
             {
                 var xrOrigin = system.xrOrigin;
                 if (xrOrigin != null)
                 {
                     xrOrigin.RotateAroundCameraUsingOriginUp(m_CurrentTurnAmount);
                 }
+                else
+                {
+                    locomotionPhase = LocomotionPhase.Done;
+                }
                 m_CurrentTurnAmount = 0f;
                 EndLocomotion();
+
+                if (Mathf.Approximately(amount, 0f))
+                    locomotionPhase = LocomotionPhase.Done;
             }
         }
 
@@ -146,8 +187,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!CanBeginLocomotion())
                 return;
 
+            if (locomotionPhase == LocomotionPhase.Idle)
+            {
+                locomotionPhase = LocomotionPhase.Started;
+                m_DelayStartTime = Time.time;
+            }
+
+            // We set the m_CurrentTurnAmount here so we can still trigger the turn
+            // in the case where the input is released before the delay timeout happens.
+            if (Math.Abs(amount) > 0f)
+                m_CurrentTurnAmount = amount;
+            
+            // Wait for configured Delay Time
+            if (m_DelayTime > 0f && Time.time - m_DelayStartTime < m_DelayTime)
+                return;
+
+            locomotionPhase = LocomotionPhase.Moving;
             m_TimeStarted = Time.time;
-            m_CurrentTurnAmount = amount;
         }
 
         internal void FakeStartTurn(bool isLeft)

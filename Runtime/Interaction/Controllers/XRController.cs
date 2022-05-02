@@ -1,7 +1,6 @@
-using UnityEngine.SpatialTracking;
-
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
 using UnityEngine.Experimental.XR.Interaction;
+using UnityEngine.SpatialTracking;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -131,12 +130,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_MoveObjectOut = value;
         }
 
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
         [SerializeField]
         BasePoseProvider m_PoseProvider;
 
         /// <summary>
-        /// Pose provider used to provide tracking data separate from the <see cref="XRNode"/>.
+        /// Pose provider used to provide tracking data separate from the <see cref="controllerNode"/>.
         /// </summary>
         public BasePoseProvider poseProvider
         {
@@ -159,18 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
 
             controllerState.inputTrackingState = InputTrackingState.None;
-#if LIH_PRESENT_V1API
-            if (m_PoseProvider != null)
-            {
-                if (m_PoseProvider.TryGetPoseFromProvider(out var poseProviderPose))
-                {
-                    controllerState.position = poseProviderPose.position;
-                    controllerState.rotation = poseProviderPose.rotation;
-                    controllerState.inputTrackingState = InputTrackingState.Position | InputTrackingState.Rotation;
-                }
-            }
-            else
-#elif LIH_PRESENT_V2API
+#if ENABLE_VR || ENABLE_AR
             if (m_PoseProvider != null)
             {
                 var retFlags = m_PoseProvider.GetPoseFromProvider(out var poseProviderPose);

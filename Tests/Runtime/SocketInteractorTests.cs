@@ -192,7 +192,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Disable the collider component.
             interactable.GetComponent<SphereCollider>().enabled = false;
-            
+
             yield return new WaitForFixedUpdate();
             yield return null;
 
@@ -305,6 +305,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator SocketInteractorCanUseTargetFilter()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateSocketInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var filter = new MockTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            // Process the filter
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Disable the filter and check if it will no longer be processed
+            filter.canProcess = false;
+            interactor.GetValidTargets(validTargets);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Unlink the filter
+            interactor.targetFilter = null;
+            Assert.That(interactor.targetFilter, Is.EqualTo(null));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process,
+                TargetFilterCallback.Unlink
+            }));
         }
     }
 }

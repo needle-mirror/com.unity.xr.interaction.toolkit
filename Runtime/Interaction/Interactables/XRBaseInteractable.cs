@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 #endif
@@ -83,11 +84,60 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Instantaneous,
         }
 
+        /// <summary>
+        /// Options for how to calculate an Interactable distance to a location in world space.
+        /// </summary>
+        /// <seealso cref="distanceCalculationMode"/>
+        public enum DistanceCalculationMode
+        {
+            /// <summary>
+            /// Calculates the distance using the Interactable's transform position.
+            /// This option has low performance cost, but it may have low distance calculation accuracy for some objects.
+            /// </summary>
+            TransformPosition,
+
+            /// <summary>
+            /// Calculates the distance using the Interactable's Colliders list using the shortest distance to each.
+            /// This option has moderate performance cost and should have moderate distance calculation accuracy for most objects.
+            /// </summary>
+            /// <seealso cref="XRInteractableUtility.TryGetClosestCollider"/>
+            ColliderPosition,
+
+            /// <summary>
+            /// Calculates the distance using the Interactable's Colliders list using the shortest distance to the closest point of each
+            /// (either on the surface or inside the Collider).
+            /// This option has high performance cost but high distance calculation accuracy.
+            /// </summary>
+            /// <remarks>
+            /// The Interactable's Colliders can only be BoxColliders, SphereColliders, CapsuleColliders or convex MeshColliders.
+            /// </remarks>
+            /// <seealso cref="Collider.ClosestPoint"/>
+            /// <seealso cref="XRInteractableUtility.TryGetClosestPointOnCollider"/>
+            ColliderVolume,
+        }
+
         /// <inheritdoc />
         public event Action<InteractableRegisteredEventArgs> registered;
 
         /// <inheritdoc />
         public event Action<InteractableUnregisteredEventArgs> unregistered;
+
+        /// <summary>
+        /// Overriding callback of this object's distance calculation.
+        /// Use this to change the calculation performed in <see cref="GetDistance"/> without needing to create a derived class.
+        /// <br />
+        /// When a callback is assigned to this property, the <see cref="GetDistance"/> execution calls it to perform the
+        /// distance calculation instead of using its default calculation (specified by <see cref="distanceCalculationMode"/> in this base class).
+        /// Assign <see langword="null"/> to this property to restore the default calculation.
+        /// </summary>
+        /// <remarks>
+        /// The assigned callback will be invoked to calculate and return the distance information of the point on this
+        /// Interactable (the first parameter) closest to the given location (the second parameter).
+        /// The given location and returned distance information are in world space.
+        /// </remarks>
+        /// <seealso cref="GetDistance"/>
+        /// <seealso cref="DistanceInfo"/>
+        public Func<IXRInteractable, Vector3, DistanceInfo> getDistanceOverride { get; set; }
 
         [SerializeField]
         XRInteractionManager m_InteractionManager;
@@ -118,7 +168,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         LayerMask m_InteractionLayerMask = -1;
-        
+
         [SerializeField]
         InteractionLayerMask m_InteractionLayers = 1;
 
@@ -133,6 +183,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_InteractionLayers;
             set => m_InteractionLayers = value;
+        }
+
+        [SerializeField]
+        DistanceCalculationMode m_DistanceCalculationMode = DistanceCalculationMode.ColliderPosition;
+
+        /// <summary>
+        /// Specifies how this Interactable calculates its distance to a location, either using its Transform position, Collider
+        /// position or Collider volume.
+        /// </summary>
+        /// <seealso cref="GetDistance"/>
+        /// <seealso cref="colliders"/>
+        /// <seealso cref="DistanceCalculationMode"/>
+        public DistanceCalculationMode distanceCalculationMode
+        {
+            get => m_DistanceCalculationMode;
+            set => m_DistanceCalculationMode = value;
         }
 
         [SerializeField]
@@ -412,6 +478,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// This method calls the <see cref="GetDistance"/> method to perform the distance calculation.
+        /// </remarks>
         public virtual float GetDistanceSqrToInteractor(IXRInteractor interactor)
         {
             var interactorAttachTransform = interactor?.GetAttachTransform(this);
@@ -419,17 +488,52 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return float.MaxValue;
 
             var interactorPosition = interactorAttachTransform.position;
-            var minDistanceSqr = float.MaxValue;
-            foreach (var col in m_Colliders)
+            var distanceInfo = GetDistance(interactorPosition);
+            return distanceInfo.distanceSqr;
+        }
+
+        /// <summary>
+        /// Gets the distance from this Interactable to the given location.
+        /// This method uses the calculation mode configured in <see cref="distanceCalculationMode"/>.
+        /// <br />
+        /// This method can be overridden (without needing to subclass) by assigning a callback to <see cref="getDistanceOverride"/>.
+        /// To restore the previous calculation mode configuration, assign <see langword="null"/> to <see cref="getDistanceOverride"/>.
+        /// </summary>
+        /// <param name="position">Location in world space to calculate the distance to.</param>
+        /// <returns>Returns the distance information (in world space) from this Interactable to the given location.</returns>
+        /// <remarks>
+        /// This method is used by other methods and systems to calculate this Interactable distance to other objects and
+        /// locations (<see cref="GetDistanceSqrToInteractor(IXRInteractor)"/>).
+        /// </remarks>
+        public virtual DistanceInfo GetDistance(Vector3 position)
+        {
+            if (getDistanceOverride != null)
+                return getDistanceOverride(this, position);
+
+            switch (m_DistanceCalculationMode)
             {
-                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled)
-                    continue;
+                case DistanceCalculationMode.TransformPosition:
+                    var thisObjectPosition = transform.position;
+                    var offset = thisObjectPosition - position;
+                    var distanceInfo = new DistanceInfo
+                    {
+                        point = thisObjectPosition,
+                        distanceSqr = offset.sqrMagnitude
+                    };
+                    return distanceInfo;
 
-                var offset = interactorPosition - col.transform.position;
-                minDistanceSqr = Mathf.Min(offset.sqrMagnitude, minDistanceSqr);
+                case DistanceCalculationMode.ColliderPosition:
+                    XRInteractableUtility.TryGetClosestCollider(this, position, out distanceInfo);
+                    return distanceInfo;
+
+                case DistanceCalculationMode.ColliderVolume:
+                    XRInteractableUtility.TryGetClosestPointOnCollider(this, position, out distanceInfo);
+                    return distanceInfo;
+
+                default:
+                    Debug.Assert(false, $"Unhandled {nameof(DistanceCalculationMode)}={m_DistanceCalculationMode}.", this);
+                    goto case DistanceCalculationMode.TransformPosition;
             }
-
-            return minDistanceSqr;
         }
 
         /// <summary>

@@ -29,7 +29,7 @@
         /// <summary>
         /// Controller Recording asset for recording and playback of controller events.
         /// </summary>
-        internal XRControllerRecording recording
+        public XRControllerRecording recording
         {
             get => m_Recording;
             set => m_Recording = value;

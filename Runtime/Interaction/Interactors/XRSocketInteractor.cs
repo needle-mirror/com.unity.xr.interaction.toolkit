@@ -297,11 +297,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var grabInteractable = interactable as XRGrabInteractable;
 
-            // Get the "static" pose of the attach transform in world space.
-            // While the interactable is selected, it may have a different pose than when released,
-            // so this assumes it will be restored back to the original pose before a selection was made.
+            // Get the "static" pose of the interactable's attach transform in world space.
+            // While the XR Grab Interactable is selected, the Attach Transform pose may have been modified
+            // by user code, and we assume it will be restored back to the initial captured pose.
+            // When Use Dynamic Attach is enabled, we can instead rely on using the dedicated GameObject for this interactor.
             Pose interactableAttachPose;
-            if (interactable is IXRSelectInteractable selectable && selectable.isSelected &&
+            if (grabInteractable != null && !grabInteractable.useDynamicAttach &&
+                grabInteractable.isSelected &&
                 interactableAttachTransform != interactable.transform &&
                 interactableAttachTransform.IsChildOf(interactable.transform))
             {
@@ -309,7 +311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // for the pose to be calculated correctly. This transforms the captured pose in local space
                 // into the current pose in world space. If the pose of the attach transform was not modified
                 // after being selected, this will be the same value as calculated in the else statement.
-                var localAttachPose = selectable.GetLocalAttachPoseOnSelect(selectable.firstInteractorSelecting);
+                var localAttachPose = grabInteractable.GetLocalAttachPoseOnSelect(grabInteractable.firstInteractorSelecting);
                 var attachTransformParent = interactableAttachTransform.parent;
                 interactableAttachPose =
                     new Pose(attachTransformParent.TransformPoint(localAttachPose.position),
@@ -422,7 +424,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
-            SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
+            var filter = targetFilter;
+            if (filter != null && filter.canProcess)
+                filter.Process(this, unsortedValidTargets, targets);
+            else
+                SortingHelpers.SortByDistanceToInteractor(this, unsortedValidTargets, targets);
         }
 
         /// <inheritdoc />

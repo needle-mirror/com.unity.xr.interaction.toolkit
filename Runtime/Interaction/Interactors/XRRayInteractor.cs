@@ -19,6 +19,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public partial class XRRayInteractor : XRBaseControllerInteractor, ILineRenderable, IUIInteractor
     {
         /// <summary>
+        /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
+        /// </summary>
+        static List<IXRInteractable> s_Results = new List<IXRInteractable>();
+
+        /// <summary>
         /// Compares ray cast hits by distance, to sort in ascending order.
         /// </summary>
         protected sealed class RaycastHitComparer : IComparer<RaycastHit>
@@ -698,7 +703,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_RayOriginTransform == null)
             {
                 m_RayOriginTransform = new GameObject($"[{gameObject.name}] Ray Origin").transform;
-                m_RayOriginTransform.SetParent(transform);
+                m_RayOriginTransform.SetParent(transform, false);
                 if (attachTransform != null)
                 {
                     m_RayOriginTransform.position = attachTransform.position;
@@ -775,6 +780,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 RegisterWithXRUIInputModule();
             else
                 UnregisterFromXRUIInputModule();
+        }
+
+        /// <summary>
+        /// Use this to determine if the ray is currenlty hovering over a UI GameObject.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if hovering over a UI element. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// <see cref="enableUIInteraction"/> must be enabled, otherwise the function will always return <see langword="false"/>.
+        /// </remarks>
+        /// <seealso cref="UIInputModule.IsPointerOverGameObject(int)"/>
+        /// <seealso cref="EventSystem.IsPointerOverGameObject(int)"/>
+        public bool IsOverUIGameObject()
+        {
+            return m_EnableUIInteraction && m_InputModule != null && TryGetUIModel(out var uiModel) && m_InputModule.IsPointerOverGameObject(uiModel.pointerId);
         }
 
         /// <inheritdoc />
@@ -1260,38 +1279,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Update the pose of the attach point
                 if (m_AllowAnchorControl && hasSelection)
                 {
-                    var ctrl = xrController as XRController;
-                    if (ctrl != null && ctrl.inputDevice.isValid)
+
+                    // If the m_InputModule is not set (null), we still want to process input.
+                    if (m_InputModule == null || m_InputModule.activeInputMode != XRUIInputModule.ActiveInputMode.InputSystemActions)
                     {
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
-
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
-
-                        if (inPressed || outPressed)
+                        var ctrl = xrController as XRController;
+                        if (ctrl != null && ctrl.inputDevice.isValid)
                         {
-                            var directionAmount = inPressed ? 1f : -1f;
-                            TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
-                        }
-                        if (leftPressed || rightPressed)
-                        {
-                            var directionAmount = leftPressed ? -1f : 1f;
-                            RotateAnchor(attachTransform, directionAmount);
+                            ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
+                            ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+
+                            ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
+                            ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
+
+                            if (inPressed || outPressed)
+                            {
+                                var directionAmount = inPressed ? 1f : -1f;
+                                TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
+                            }
+                            if (leftPressed || rightPressed)
+                            {
+                                var directionAmount = leftPressed ? -1f : 1f;
+                                RotateAnchor(attachTransform, directionAmount);
+                            }
                         }
                     }
 
-                    var actionBasedController = xrController as ActionBasedController;
-                    if (actionBasedController != null)
+                    // If the m_InputModule is not set (null), we still want to process input.
+                    if (m_InputModule == null || m_InputModule.activeInputMode != XRUIInputModule.ActiveInputMode.InputManagerBindings)
                     {
-                        if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                        var actionBasedController = xrController as ActionBasedController;
+                        if (actionBasedController != null)
                         {
-                            RotateAnchor(attachTransform, rotateAmt.x);
-                        }
+                            if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                            {
+                                RotateAnchor(attachTransform, rotateAmt.x);
+                            }
 
-                        if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
-                        {
-                            TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                            if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
+                            {
+                                TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                            }
                         }
                     }
                 }
@@ -1327,6 +1355,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             break;
                     }
                 }
+            }
+
+            var filter = targetFilter;
+            if (filter != null && filter.canProcess)
+            {
+                filter.Process(this, targets, s_Results);
+
+                // Copy results elements to targets
+                targets.Clear();
+                targets.AddRange(s_Results);
             }
         }
 

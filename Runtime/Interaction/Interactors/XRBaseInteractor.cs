@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 #endif
@@ -98,6 +99,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        XRBaseTargetFilter m_StartingTargetFilter;
+
+        /// <summary>
+        /// The Target Filter that this Interactor automatically links at startup (optional, may be <see langword="null"/>).
+        /// </summary>
+        /// <remarks>
+        /// To modify the Target Filter after startup, the <see cref="targetFilter"/> property should be used instead.
+        /// </remarks>
+        /// <seealso cref="targetFilter"/>
+        public XRBaseTargetFilter startingTargetFilter
+        {
+            get => m_StartingTargetFilter;
+            set => m_StartingTargetFilter = value;
+        }
+
+        [SerializeField]
         HoverEnterEvent m_HoverEntered = new HoverEnterEvent();
 
         /// <inheritdoc />
@@ -135,6 +152,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_SelectExited;
             set => m_SelectExited = value;
+        }
+
+        IXRTargetFilter m_TargetFilter;
+
+        /// <summary>
+        /// The Target Filter that this Interactor is linked to.
+        /// </summary>
+        /// <seealso cref="startingTargetFilter"/>
+        public IXRTargetFilter targetFilter
+        {
+            get
+            {
+                if (m_TargetFilter is Object unityObj && unityObj == null)
+                    return null;
+
+                return m_TargetFilter;
+            }
+            set
+            {
+                if (Application.isPlaying)
+                {
+                    targetFilter?.Unlink(this);
+                    m_TargetFilter = value;
+                    targetFilter?.Link(this);
+                }
+                else
+                {
+                    m_TargetFilter = value;
+                }
+            }
         }
 
         bool m_AllowHover = true;
@@ -225,12 +272,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Create empty attach transform if none specified
             if (m_AttachTransform == null)
             {
-                var attachGO = new GameObject($"[{gameObject.name}] Attach");
-                m_AttachTransform = attachGO.transform;
-                m_AttachTransform.SetParent(transform);
+                m_AttachTransform = new GameObject($"[{gameObject.name}] Attach").transform;
+                m_AttachTransform.SetParent(transform, false);
                 m_AttachTransform.localPosition = Vector3.zero;
                 m_AttachTransform.localRotation = Quaternion.identity;
             }
+
+            // Setup the starting Target Filter
+            if (m_StartingTargetFilter != null)
+                targetFilter = m_StartingTargetFilter;
 
             // Setup Interaction Manager
             FindCreateInteractionManager();
@@ -277,7 +327,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnDestroy()
         {
-            // Don't need to do anything; method kept for backwards compatibility.
+            // Unlink this Interactor from the Target Filter
+            targetFilter?.Unlink(this);
         }
 
         /// <inheritdoc />

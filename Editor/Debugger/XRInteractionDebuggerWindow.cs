@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.XR.Interaction.Toolkit.Filtering;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -17,6 +19,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         bool m_ShowInteractors = true;
         [SerializeField]
         bool m_ShowInteractables = true;
+        [SerializeField]
+        bool m_ShowTargetFilters;
 
         [SerializeField]
         Vector2 m_InputDevicesTreeScrollPosition;
@@ -39,9 +43,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [SerializeField]
         MultiColumnHeaderState m_InteractorsTreeHeaderState;
 
+        [SerializeField]
+        TreeViewState m_FiltersTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_FiltersTreeHeaderState;
+
+        [SerializeField]
+        TreeViewState m_EvaluatorsScoreTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_EvaluatorsScoreTreeHeaderState;
+
         XRInputDevicesTreeView m_InputDevicesTree;
         XRInteractorsTreeView m_InteractorsTree;
         XRInteractablesTreeView m_InteractablesTree;
+        XRTargetFiltersTreeView m_FiltersTree;
+        XRTargetEvaluatorsScoreTreeView m_EvaluatorsScoreTree;
 
         static XRInteractionDebuggerWindow s_Instance;
 
@@ -102,6 +118,47 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
         }
 
+        void UpdateFiltersTree()
+        {
+            var enabledFilters = XRTargetFilter.enabledFilters;
+            if (m_FiltersTree == null)
+            {
+                m_FiltersTree = XRTargetFiltersTreeView.Create(enabledFilters, ref m_FiltersTreeState, ref m_FiltersTreeHeaderState);
+                m_FiltersTree.ExpandAll();
+            }
+            else
+            {
+                m_FiltersTree.UpdateFilterList(enabledFilters);
+            }
+        }
+
+        void UpdateEvaluatorsScoreTree()
+        {
+            var selectedFilter = m_FiltersTree?.selectedFilter as XRTargetFilter;
+            if (m_EvaluatorsScoreTree == null)
+            {
+                m_EvaluatorsScoreTree = XRTargetEvaluatorsScoreTreeView.Create(selectedFilter, ref m_EvaluatorsScoreTreeState, ref m_EvaluatorsScoreTreeHeaderState);
+                m_EvaluatorsScoreTree.ExpandAll();
+            }
+            else if (selectedFilter != null && (m_EvaluatorsScoreTree.filter != selectedFilter || m_EvaluatorsScoreTree.EnabledEvaluatorListHasChanged()))
+            {
+                m_EvaluatorsScoreTree.Release();
+                m_EvaluatorsScoreTree = XRTargetEvaluatorsScoreTreeView.Create(selectedFilter, ref m_EvaluatorsScoreTreeState, ref m_EvaluatorsScoreTreeHeaderState);
+                m_EvaluatorsScoreTree.ExpandAll();
+            }
+        }
+
+        void ReleaseEvaluatorsScoreTree()
+        {
+            if (m_EvaluatorsScoreTree != null)
+                m_EvaluatorsScoreTree.Release();
+        }
+
+        public void OnDisable()
+        {
+            ReleaseEvaluatorsScoreTree();
+        }
+
         public void OnInspectorUpdate()
         {
             // TODO Only do this when devices update
@@ -110,6 +167,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             UpdateInteractorsTree();
             UpdateInteractablesTree();
 
+            UpdateFiltersTree();
+            UpdateEvaluatorsScoreTree();
+
             if (m_InputDevicesTree != null)
             {
                 m_InputDevicesTree.Reload();
@@ -117,6 +177,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             m_InteractablesTree?.Repaint();
+
+            m_FiltersTree?.Repaint();
+            if (m_EvaluatorsScoreTree != null)
+            {
+                m_EvaluatorsScoreTree.Reload();
+                m_EvaluatorsScoreTree.Repaint();
+            }
+
             Repaint();
         }
 
@@ -131,6 +199,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 DrawInteractorsGUI();
             if (m_ShowInteractables && m_InteractablesTree != null)
                 DrawInteractablesGUI();
+            if (m_ShowTargetFilters && m_FiltersTree != null)
+                DrawFiltersGUI();
 
             EditorGUILayout.EndScrollView();
         }
@@ -176,6 +246,31 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.EndScrollView();
         }
 
+        void DrawFiltersGUI()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("Filters", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+            m_FiltersTree.OnGUI(rect);
+
+            if (m_EvaluatorsScoreTree != null)
+                DrawEvaluatorsScoreGUI();
+        }
+
+        void DrawEvaluatorsScoreGUI()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("Score", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+            m_EvaluatorsScoreTree.OnGUI(rect);
+        }
+
         void DrawToolbarGUI()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -186,6 +281,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 = GUILayout.Toggle(m_ShowInteractors, Contents.showInteractorsContent, EditorStyles.toolbarButton);
             m_ShowInteractables
                 = GUILayout.Toggle(m_ShowInteractables, Contents.showInteractablesContent, EditorStyles.toolbarButton);
+            m_ShowTargetFilters
+                = GUILayout.Toggle(m_ShowTargetFilters, Contents.showTargetFiltersContent, EditorStyles.toolbarButton);
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.EndHorizontal();
@@ -211,6 +308,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             return obj.GetType().Name;
+        }
+
+        internal static string GetDisplayType(object obj)
+        {
+            if (obj is Object unityObject)
+            {
+                return unityObject != null ? unityObject.GetType().Name : "<Destroyed>";
+            }
+
+            return obj != null ? obj.GetType().Name : "<null>";
         }
 
         internal static int GetUniqueTreeViewId(object obj)
@@ -240,6 +347,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static GUIContent showInputDevices = EditorGUIUtility.TrTextContent("Input Devices");
             public static GUIContent showInteractablesContent = EditorGUIUtility.TrTextContent("Interactables");
             public static GUIContent showInteractorsContent = EditorGUIUtility.TrTextContent("Interactors");
+            public static GUIContent showTargetFiltersContent = EditorGUIUtility.TrTextContent("Target Filters");
         }
     }
 }

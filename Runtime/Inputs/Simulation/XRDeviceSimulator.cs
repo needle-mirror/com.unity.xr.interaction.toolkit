@@ -2,8 +2,15 @@ using System;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
+
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
+using UnityEngine.InputSystem.LowLevel;
+#else
+// Disable warnings about unused fields. This component is not functional when the simulated devices cannot be created,
+// but the class signature and SerializeField fields are kept to avoid losing data.
+#pragma warning disable 414 // The field 'field' is assigned but its value is never used
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
@@ -1072,6 +1079,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         Vector3 m_RightControllerEuler;
         Vector3 m_CenterEyeEuler;
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
         XRSimulatedHMDState m_HMDState;
         XRSimulatedControllerState m_LeftControllerState;
         XRSimulatedControllerState m_RightControllerState;
@@ -1079,15 +1087,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         XRSimulatedHMD m_HMDDevice;
         XRSimulatedController m_LeftControllerDevice;
         XRSimulatedController m_RightControllerDevice;
+#endif
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Awake()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             m_HMDState.Reset();
             m_LeftControllerState.Reset();
             m_RightControllerState.Reset();
+#else
+            Debug.LogWarning("XR Device Simulator is not functional on platforms where ENABLE_VR is not defined.", this);
+#endif
         }
 
         /// <summary>
@@ -1105,6 +1118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             AddDevices();
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             SubscribeKeyboardXTranslateAction();
             SubscribeKeyboardYTranslateAction();
             SubscribeKeyboardZTranslateAction();
@@ -1139,6 +1153,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             SubscribeSecondary2DAxisTouchAction();
             SubscribePrimaryTouchAction();
             SubscribeSecondaryTouchAction();
+#endif
         }
 
         /// <summary>
@@ -1148,6 +1163,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             RemoveDevices();
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             UnsubscribeKeyboardXTranslateAction();
             UnsubscribeKeyboardYTranslateAction();
             UnsubscribeKeyboardZTranslateAction();
@@ -1182,6 +1198,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             UnsubscribeSecondary2DAxisTouchAction();
             UnsubscribePrimaryTouchAction();
             UnsubscribeSecondaryTouchAction();
+#endif
         }
 
         /// <summary>
@@ -1192,6 +1209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             ProcessPoseInput();
             ProcessControlInput();
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             if (m_HMDDevice != null)
             {
                 InputState.Change(m_HMDDevice, m_HMDState);
@@ -1206,6 +1224,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 InputState.Change(m_RightControllerDevice, m_RightControllerState);
             }
+#endif
         }
 
         /// <summary>
@@ -1214,6 +1233,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void ProcessPoseInput()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             // Set tracked states
             m_LeftControllerState.isTracked = true;
             m_RightControllerState.isTracked = true;
@@ -1456,6 +1476,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
             }
+#endif
         }
 
         /// <summary>
@@ -1464,6 +1485,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void ProcessControlInput()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             ProcessAxis2DControlInput();
 
             if (m_ManipulateLeftInput)
@@ -1475,6 +1497,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 ProcessButtonControlInput(ref m_RightControllerState);
             }
+#endif
         }
 
         /// <summary>
@@ -1483,6 +1506,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void ProcessAxis2DControlInput()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             if (!m_ManipulateLeftInput && !m_ManipulateRightInput)
                 return;
 
@@ -1539,8 +1563,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
             }
+#endif
         }
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
         /// <summary>
         /// Process input from the user and update the state of manipulated controller device(s)
         /// related to button input controls.
@@ -1562,13 +1588,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             controllerState.WithButton(ControllerButton.PrimaryTouch, m_PrimaryTouchInput);
             controllerState.WithButton(ControllerButton.SecondaryTouch, m_SecondaryTouchInput);
         }
+#endif
 
         /// <summary>
         /// Add simulated XR devices to the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
         protected virtual void AddDevices()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             m_HMDDevice = InputSystem.InputSystem.AddDevice<XRSimulatedHMD>();
             if (m_HMDDevice == null)
             {
@@ -1594,14 +1622,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 Debug.LogError($"Failed to create {nameof(XRSimulatedController)} for {InputSystem.CommonUsages.RightHand}.", this);
             }
+#endif
         }
 
         /// <summary>
         /// Remove simulated XR devices from the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
         protected virtual void RemoveDevices()
         {
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
             if (m_HMDDevice != null && m_HMDDevice.added)
                 InputSystem.InputSystem.RemoveDevice(m_HMDDevice);
 
@@ -1610,6 +1640,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (m_RightControllerDevice != null && m_RightControllerDevice.added)
                 InputSystem.InputSystem.RemoveDevice(m_RightControllerDevice);
+#endif
         }
 
         /// <summary>
@@ -1628,6 +1659,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 : Vector3.zero;
         }
 
+#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
         static void GetAxes(Space translateSpace, Transform cameraTransform, out Vector3 right, out Vector3 up, out Vector3 forward)
         {
             if (cameraTransform == null)
@@ -1703,6 +1735,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     return Quaternion.identity;
             }
         }
+#endif
 
         static void Subscribe(InputActionReference reference, Action<InputAction.CallbackContext> performed = null, Action<InputAction.CallbackContext> canceled = null)
         {

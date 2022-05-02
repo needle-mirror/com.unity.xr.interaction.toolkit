@@ -26,7 +26,7 @@ This documentation outlines how to use and extend these components.
 | **Snap Turn** | A type of locomotion that rotates the user by a fixed angle. |
 | **Continuous Turn** | A type of locomotion that smoothly rotates the user by an amount over time. |
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
-| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html) and their controller bindings in the Input System. |
+| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
 ## Set up a basic scene for snap turn and teleportation
@@ -35,7 +35,9 @@ Before you follow the steps below, to streamline setup of Action-based behaviors
 
 ### 1. Set up the XR Origin and input actions
 
-To set up an XR Origin, click **GameObject &gt; XR &gt; XR Origin (Action-based)**. This creates an **XR Origin** GameObject in the scene. You can set its **Tracking Origin Mode** to **Device** or **Floor** instead of using the default of the device. If there isn't any [XR Interaction Manager](xr-interaction-manager.md) in the scene, this command will also create one automatically on a GameObject. In addition, the Origin has two child GameObjects, LeftHand Controller and RightHand Controller, each having an [XR Controller](xr-controller-action-based.md) component to represent the two motion controllers.
+Follow the steps in General setup to [Create the XR Origin camera rig for tracked devices](general-setup.md#create-the-xr-origin-camera-rig-for-tracked-devices).
+
+The Origin has two child GameObjects, LeftHand Controller and RightHand Controller, each having an [XR Controller](xr-controller-action-based.md) component to represent the two motion controllers.
 
 For Action-based controllers, the Actions that you assign should use either the **XR Controller (LeftHand)** or **XR Controller (RightHand)** binding paths. For Device-based controllers, the **Controller Node** is set to **Left Hand** and **Right Hand** automatically.
 

@@ -660,5 +660,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 Assert.That(lineRenderer.positionCount, Is.EqualTo(hitPositionInLine + 1));
             }
         }
+
+        [UnityTest]
+        public IEnumerator RayInteractorCanUseTargetFilter()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.That(interactable.isHovered, Is.True);
+
+            // Create the filter
+            var filter = new MockTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            // Process the filter
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Disable the filter and check if it will no longer be processed
+            filter.canProcess = false;
+            interactor.GetValidTargets(validTargets);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Unlink the filter
+            interactor.targetFilter = null;
+            Assert.That(interactor.targetFilter, Is.EqualTo(null));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process,
+                TargetFilterCallback.Unlink
+            }));
+        }
     }
 }

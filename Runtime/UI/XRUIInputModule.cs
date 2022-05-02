@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -55,6 +56,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        /// <summary>
+        /// Represents which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.
+        /// </summary>
+        /// /// <seealso cref="activeInputMode"/>
+        public enum ActiveInputMode
+        {
+            /// <summary>
+            /// Only use input polled through the built-in Unity Input Manager (Old).
+            /// </summary>
+            InputManagerBindings,
+
+            /// <summary>
+            /// Only use input polled from <see cref="InputActionReference"/> through the newer Input System package.
+            /// </summary>
+            InputSystemActions,
+
+            /// <summary>
+            /// Scan through input from both Unity Input Manager and Input System action references.
+            /// Note: This may cause undesired effects or may impact performance if input configuration is duplicated.
+            /// </summary>
+            Both,
+        }
+
+#if !ENABLE_INPUT_SYSTEM || !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Represents which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.")]
+        ActiveInputMode m_ActiveInputMode;
+
+        /// <summary>
+        /// Configures which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.
+        /// </summary>
+        /// <seealso cref="ActiveInputMode"/>
+        public ActiveInputMode activeInputMode
+        {
+            get => m_ActiveInputMode;
+            set => m_ActiveInputMode = value;
+        }
+
         [SerializeField, HideInInspector]
         [Tooltip("The maximum distance to ray cast with tracked devices to find hit objects.")]
         float m_MaxTrackedDeviceRaycastDistance = 1000f;
@@ -99,8 +140,135 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_EnableTouchInput = value;
         }
 
+#if ENABLE_INPUT_SYSTEM
+        [Header("Input System UI Actions")]
+#else
+        [HideInInspector]
+#endif
         [SerializeField]
-        [Tooltip("If true, will forward gamepad data to UI elements.")]
+        [Tooltip("Pointer input action reference, such as a mouse or single-finger touch device.")]
+        InputActionReference m_PointAction;
+        /// <summary>
+        /// The Input System action to use to move the pointer on the currently active UI. Must be a <see cref="Vector2Control"/> Control.
+        /// </summary>
+        public InputActionReference pointAction
+        {
+            get => m_PointAction;
+            set => SetInputAction(ref m_PointAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Left-click input action reference, typically the left button on a mouse.")]
+        InputActionReference m_LeftClickAction;
+        /// <summary>
+        /// The Input System action to use to determine whether the left button of a pointer is pressed. Must be a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionReference leftClickAction
+        {
+            get => m_LeftClickAction;
+            set => SetInputAction(ref m_LeftClickAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Middle-click input action reference, typically the middle button on a mouse.")]
+        InputActionReference m_MiddleClickAction;
+        /// <summary>
+        /// The Input System action to use to determine whether the middle button of a pointer is pressed. Must be a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionReference middleClickAction
+        {
+            get => m_MiddleClickAction;
+            set => SetInputAction(ref m_MiddleClickAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Right-click input action reference, typically the right button on a mouse.")]
+        InputActionReference m_RightClickAction;
+        /// <summary>
+        /// The Input System action to use to determine whether the right button of a pointer is pressed. Must be a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionReference rightClickAction
+        {
+            get => m_RightClickAction;
+            set => SetInputAction(ref m_RightClickAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Scroll wheel input action reference, typically the scroll wheel on a mouse.")]
+        InputActionReference m_ScrollWheelAction;
+        /// <summary>
+        /// The Input System action to use to move the pointer on the currently active UI. Must be a <see cref="Vector2Control"/> Control.
+        /// </summary>
+        public InputActionReference scrollWheelAction
+        {
+            get => m_ScrollWheelAction;
+            set => SetInputAction(ref m_ScrollWheelAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Navigation input action reference will change which UI element is currently selected to the one up, down, left of or right of the currently selected one.")]
+        InputActionReference m_NavigateAction;
+        /// <summary>
+        /// The Input System action to use to navigate the currently active UI. Must be a <see cref="Vector2Control"/> Control.
+        /// </summary>
+        public InputActionReference navigateAction
+        {
+            get => m_NavigateAction;
+            set => SetInputAction(ref m_NavigateAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Submit input action reference will trigger a submission of the currently selected UI in the Event System.")]
+        InputActionReference m_SubmitAction;
+        /// <summary>
+        /// The Input System action to use for submitting or activating a UI element. Must be a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionReference submitAction
+        {
+            get => m_SubmitAction;
+            set => SetInputAction(ref m_SubmitAction, value);
+        }
+
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("Cancel input action reference will trigger canceling out of the currently selected UI in the Event System.")]
+        InputActionReference m_CancelAction;
+        /// <summary>
+        /// The Input System action to use for cancelling or backing out of a UI element. Must be a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionReference cancelAction
+        {
+            get => m_CancelAction;
+            set => SetInputAction(ref m_CancelAction, value);
+        }
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        [Header("Input Manager (Old) Gamepad/Joystick Bindings")]
+#else
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("If true, will use the Input Manager (Old) configuration to forward gamepad data to UI elements.")]
         bool m_EnableGamepadInput = true;
 
         /// <summary>
@@ -112,8 +280,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_EnableGamepadInput = value;
         }
 
+#if !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
         [SerializeField]
-        [Tooltip("If true, will forward joystick data to UI elements.")]
+        [Tooltip("If true, will use the Input Manager (Old) configuration to forward joystick data to UI elements.")]
         bool m_EnableJoystickInput = true;
 
         /// <summary>
@@ -125,7 +296,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_EnableJoystickInput = value;
         }
 
-        [Header("Input Manager (Old) Gamepad/Joystick Bindings")]
+#if !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
         [SerializeField]
         [Tooltip("Name of the horizontal axis for gamepad/joystick UI navigation when using the old Input Manager.")]
         string m_HorizontalAxis = "Horizontal";
@@ -139,6 +312,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_HorizontalAxis = value;
         }
 
+#if !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
         [SerializeField]
         [Tooltip("Name of the vertical axis for gamepad/joystick UI navigation when using the old Input Manager.")]
         string m_VerticalAxis = "Vertical";
@@ -152,6 +328,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_VerticalAxis = value;
         }
 
+#if !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
         [SerializeField]
         [Tooltip("Name of the gamepad/joystick button to use for UI selection or submission when using the old Input Manager.")]
         string m_SubmitButton = "Submit";
@@ -165,6 +344,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_SubmitButton = value;
         }
 
+#if !ENABLE_LEGACY_INPUT_MANAGER
+        [HideInInspector]
+#endif
         [SerializeField]
         [Tooltip("Name of the gamepad/joystick button to use for UI cancel or back commands when using the old Input Manager.")]
         string m_CancelButton = "Cancel";
@@ -180,12 +362,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         int m_RollingPointerId;
 
-        MouseModel m_Mouse;
-        GamepadModel m_Gamepad;
-        JoystickModel m_Joystick;
+        MouseModel m_MouseState;
+        NavigationModel m_NavigationState;
+
+        internal const float kPixelPerLine = 20f;
 
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
-
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
         /// <summary>
@@ -194,9 +376,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         protected override void OnEnable()
         {
             base.OnEnable();
-            m_Mouse = new MouseModel(m_RollingPointerId++);
-            m_Gamepad = new GamepadModel();
-            m_Joystick = new JoystickModel();
+
+            // Check active input mode is correct
+#if !ENABLE_INPUT_SYSTEM && ENABLE_LEGACY_INPUT_MANAGER
+            m_ActiveInputMode = ActiveInputMode.InputManagerBindings;
+#elif ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+            m_ActiveInputMode = ActiveInputMode.InputSystemActions;
+#endif
+            m_MouseState = new MouseModel(m_RollingPointerId++);
+            m_NavigationState = new NavigationModel();
+
+            if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
+                EnableAllActions();
         }
 
         /// <summary>
@@ -204,7 +395,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         protected override void OnDisable()
         {
-            RemovePointerEventData(m_Mouse.pointerId);
+            RemovePointerEventData(m_MouseState.pointerId);
+
+            if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
+                DisableAllActions();
+
             base.OnDisable();
         }
 
@@ -285,8 +480,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <inheritdoc />
         protected override void DoProcess()
         {
-            base.DoProcess();
-
             if (m_EnableXRInput)
             {
                 for (var i = 0; i < m_RegisteredInteractors.Count; i++)
@@ -315,47 +508,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_EnableTouchInput)
                 hasTouches = ProcessTouches();
 
-            // Process mouse input before gamepad and joystick per StandaloneInputModule (case 1004066)
-            if (!hasTouches && m_EnableMouseInput)
+            if (m_EnableMouseInput && !hasTouches)
                 ProcessMouse();
 
-            if (m_EnableGamepadInput)
-                ProcessGamepad();
-
-            if (m_EnableJoystickInput)
-                ProcessJoystick();
+            ProcessNavigation();
         }
 
         void ProcessMouse()
         {
-            if (Mouse.current != null)
+            if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
             {
-                // The Input System reports scroll in pixels, whereas the old Input class reported in lines.
-                // Example, scrolling down by one notch of a mouse wheel for Input would be (0, -1),
-                // but would be (0, -120) from Input System.
-                // For consistency between the two Active Input Handling modes and with StandaloneInputModule,
-                // scale the scroll value to the range expected by UI.
-                const float kPixelsPerLine = 120f;
-                m_Mouse.position = Mouse.current.position.ReadValue();
-                m_Mouse.scrollDelta = Mouse.current.scroll.ReadValue() * (1 / kPixelsPerLine);
-                m_Mouse.leftButtonPressed = Mouse.current.leftButton.isPressed;
-                m_Mouse.rightButtonPressed = Mouse.current.rightButton.isPressed;
-                m_Mouse.middleButtonPressed = Mouse.current.middleButton.isPressed;
-
-                ProcessMouse(ref m_Mouse);
+                if (IsActionEnabled(m_PointAction))
+                    m_MouseState.position = m_PointAction.action.ReadValue<Vector2>();
+                if (IsActionEnabled(m_ScrollWheelAction))
+                    m_MouseState.scrollDelta = m_ScrollWheelAction.action.ReadValue<Vector2>() * (1 / kPixelPerLine); ;
+                if (IsActionEnabled(m_LeftClickAction))
+                    m_MouseState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
+                if (IsActionEnabled(m_RightClickAction))
+                    m_MouseState.rightButtonPressed = m_RightClickAction.action.IsPressed();
+                if (IsActionEnabled(m_MiddleClickAction))
+                    m_MouseState.middleButtonPressed = m_MiddleClickAction.action.IsPressed();
             }
-#if ENABLE_LEGACY_INPUT_MANAGER
-            else if (Input.mousePresent)
+
+            if (m_ActiveInputMode != ActiveInputMode.InputSystemActions && Input.mousePresent)
             {
-                m_Mouse.position = Input.mousePosition;
-                m_Mouse.scrollDelta = Input.mouseScrollDelta;
-                m_Mouse.leftButtonPressed = Input.GetMouseButton(0);
-                m_Mouse.rightButtonPressed = Input.GetMouseButton(1);
-                m_Mouse.middleButtonPressed = Input.GetMouseButton(2);
-
-                ProcessMouse(ref m_Mouse);
+                m_MouseState.position = Input.mousePosition;
+                m_MouseState.scrollDelta = Input.mouseScrollDelta;
+                m_MouseState.leftButtonPressed = Input.GetMouseButton(0);
+                m_MouseState.rightButtonPressed = Input.GetMouseButton(1);
+                m_MouseState.middleButtonPressed = Input.GetMouseButton(2);
             }
-#endif
+
+            ProcessMouseState(ref m_MouseState);
         }
 
         bool ProcessTouches()
@@ -421,55 +605,80 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return true;
         }
 
-        void ProcessGamepad()
+        void ProcessNavigation()
         {
-            if (Gamepad.current != null)
+            if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
             {
-                m_Gamepad.leftStick = Gamepad.current.leftStick.ReadValue();
-                m_Gamepad.dpad = Gamepad.current.dpad.ReadValue();
-                m_Gamepad.submitButtonDown = Gamepad.current.buttonSouth.isPressed;
-                m_Gamepad.cancelButtonDown = Gamepad.current.buttonEast.isPressed;
-
-                ProcessGamepad(ref m_Gamepad);
+                if (IsActionEnabled(m_NavigateAction))
+                    m_NavigationState.move = m_NavigateAction.action.ReadValue<Vector2>();
+                if (IsActionEnabled(m_SubmitAction))
+                    m_NavigationState.submitButtonDown = m_SubmitAction.action.WasPressedThisFrame();
+                if (IsActionEnabled(m_CancelAction))
+                    m_NavigationState.cancelButtonDown = m_CancelAction.action.WasPressedThisFrame();
             }
-#if ENABLE_LEGACY_INPUT_MANAGER
-            else if (Input.GetJoystickNames().Length > 0)
+
+            if (m_ActiveInputMode != ActiveInputMode.InputSystemActions && (m_EnableGamepadInput || m_EnableJoystickInput) && Input.GetJoystickNames().Length > 0)
             {
-                m_Gamepad.leftStick = new Vector2(Input.GetAxis(m_HorizontalAxis), Input.GetAxis(m_VerticalAxis));
-                // TODO: Find best way to set dPad vector from old Input Manager
-                m_Gamepad.submitButtonDown = Input.GetButton(m_SubmitButton);
-                m_Gamepad.cancelButtonDown = Input.GetButton(m_CancelButton);
-
-                ProcessGamepad(ref m_Gamepad);
+                m_NavigationState.move = new Vector2(Input.GetAxis(m_HorizontalAxis), Input.GetAxis(m_VerticalAxis));
+                m_NavigationState.submitButtonDown = Input.GetButton(m_SubmitButton);
+                m_NavigationState.cancelButtonDown = Input.GetButton(m_CancelButton);
             }
-#endif
+
+            base.ProcessNavigationState(ref m_NavigationState);
         }
 
-        void ProcessJoystick()
+        void EnableAllActions()
         {
-            if (Joystick.current != null)
-            {
-                m_Joystick.move = Joystick.current.stick.ReadValue();
-                m_Joystick.hat = Joystick.current.hatswitch != null ? Joystick.current.hatswitch.ReadValue() : Vector2.zero;
-                m_Joystick.submitButtonDown = Joystick.current.trigger.isPressed;
-                // This will always be false until we can rely on a secondary button from the joystick
-                m_Joystick.cancelButtonDown = false;
+            EnableInputAction(m_PointAction);
+            EnableInputAction(m_LeftClickAction);
+            EnableInputAction(m_RightClickAction);
+            EnableInputAction(m_MiddleClickAction);
+            EnableInputAction(m_NavigateAction);
+            EnableInputAction(m_SubmitAction);
+            EnableInputAction(m_CancelAction);
+            EnableInputAction(m_ScrollWheelAction);
+        }
 
-                ProcessJoystick(ref m_Joystick);
-            }
-#if ENABLE_LEGACY_INPUT_MANAGER
-            // When using the legacy input manager, gamepad and joystick input are technically the same
-            // so we need to stop processing if both checkboxes are enabled.
-            else if (!m_EnableGamepadInput && Input.GetJoystickNames().Length > 0)
-            {
-                m_Joystick.move = new Vector2(Input.GetAxis(m_HorizontalAxis), Input.GetAxis(m_VerticalAxis));
-                // TODO: Find best way to set hat vector from old Input Manager
-                m_Joystick.submitButtonDown = Input.GetButton(m_SubmitButton);
-                m_Joystick.cancelButtonDown = Input.GetButton(m_CancelButton);
+        void DisableAllActions()
+        {
+            DisableInputAction(m_PointAction);
+            DisableInputAction(m_LeftClickAction);
+            DisableInputAction(m_RightClickAction);
+            DisableInputAction(m_MiddleClickAction);
+            DisableInputAction(m_NavigateAction);
+            DisableInputAction(m_SubmitAction);
+            DisableInputAction(m_CancelAction);
+            DisableInputAction(m_ScrollWheelAction);
+        }
 
-                ProcessJoystick(ref m_Joystick);
-            }
-#endif
+        static bool IsActionEnabled(InputActionReference inputAction)
+        {
+            return inputAction != null && inputAction.action != null && inputAction.action.enabled;
+        }
+
+        static void EnableInputAction(InputActionReference inputAction)
+        {
+            if (inputAction == null || inputAction.action == null)
+                return;
+            inputAction.action.Enable();
+        }
+
+        static void DisableInputAction(InputActionReference inputAction)
+        {
+            if (inputAction == null || inputAction.action == null)
+                return;
+            inputAction.action.Disable();
+        }
+
+        void SetInputAction(ref InputActionReference inputAction, InputActionReference value)
+        {
+            if (Application.isPlaying && inputAction != null)
+                inputAction.action?.Disable();
+
+            inputAction = value;
+
+            if (Application.isPlaying && isActiveAndEnabled && inputAction != null)
+                inputAction.action?.Enable();
         }
     }
 }

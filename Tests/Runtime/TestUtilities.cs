@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 using Unity.XR.CoreUtils;
+using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -9,13 +10,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         internal static void DestroyAllSceneObjects()
         {
-            var scene = SceneManager.GetActiveScene();
-            foreach (var go in scene.GetRootGameObjects())
+            for (var index = 0; index < SceneManager.sceneCount; ++index)
             {
-                if (go.name.Contains("tests runner"))
-                    continue;
-                Object.DestroyImmediate(go);
+                var scene = SceneManager.GetSceneAt(index);
+                foreach (var go in scene.GetRootGameObjects())
+                {
+                    if (go.name.Contains("tests runner"))
+                        continue;
+                    Object.DestroyImmediate(go);
+                }
             }
+        }
+
+        internal static void CreateGOBoxCollider(GameObject go, bool isTrigger = true)
+        {
+            BoxCollider collider = go.AddComponent<BoxCollider>();
+            collider.size = new Vector3(2.0f, 2.0f, 2.0f);
+            collider.isTrigger = isTrigger;
         }
 
         internal static void CreateGOSphereCollider(GameObject go, bool isTrigger = true)
@@ -67,7 +78,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             xrOrigin.Camera = cameraGO.GetComponent<Camera>();
             xrOriginGO.SetActive(true);
 
+#if ENABLE_VR
             XRDevice.DisableAutoXRCameraTracking(camera, true);
+#endif
 
             return xrOrigin;
         }
@@ -132,6 +145,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactable;
         }
 
+        internal static XRSimpleInteractable CreateSimpleInteractableWithColliders()
+        {
+            GameObject interactableGO = new GameObject("Simple Interactable with Colliders");
+            CreateGOSphereCollider(interactableGO, false);
+            CreateGOBoxCollider(interactableGO, false);
+            XRSimpleInteractable interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+            Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            return interactable;
+        }
+
         internal static XRControllerRecorder CreateControllerRecorder(XRController controller, Action<XRControllerRecording> addRecordingFrames)
         {
             var controllerRecorder = controller.gameObject.AddComponent<XRControllerRecorder>();
@@ -140,6 +165,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             addRecordingFrames(controllerRecorder.recording);
             return controllerRecorder;
+        }
+
+        internal static XRTargetFilter CreateTargetFilter()
+        {
+            GameObject filterGO = new GameObject("Target Filter");
+            return filterGO.AddComponent<XRTargetFilter>();
         }
     }
 
@@ -152,6 +183,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             targets.Clear();
             targets.AddRange(validTargets);
+        }
+    }
+
+    enum TargetFilterCallback
+    {
+        Link,
+        Unlink,
+        Process,
+    }
+
+    class MockTargetFilter : IXRTargetFilter
+    {
+        public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
+
+        public bool canProcess { get; set; } = true;
+
+        public void Link(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Link);
+        }
+
+        public void Unlink(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Unlink);
+        }
+
+        public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
+        {
+            callbackExecution.Add(TargetFilterCallback.Process);
+            results.AddRange(targets);
         }
     }
 }

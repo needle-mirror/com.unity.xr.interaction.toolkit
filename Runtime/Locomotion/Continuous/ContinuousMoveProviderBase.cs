@@ -99,6 +99,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool m_AttemptedGetCharacterController;
 
+        bool m_IsMovingXROrigin;
+
         Vector3 m_VerticalVelocity;
 
         /// <summary>
@@ -106,6 +108,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void Update()
         {
+            m_IsMovingXROrigin = false;
+
             var xrOrigin = system.xrOrigin;
             if (xrOrigin == null)
                 return;
@@ -120,13 +124,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     break;
                 case GravityApplicationMode.AttemptingMove:
                     if (input != Vector2.zero || m_VerticalVelocity != Vector3.zero)
-                    {
                         MoveRig(translationInWorldSpace);
-                    }
-
                     break;
                 default:
                     Assert.IsTrue(false, $"{nameof(m_GravityApplicationMode)}={m_GravityApplicationMode} outside expected range.");
+                    break;
+            }
+
+            switch (locomotionPhase)
+            {
+                case LocomotionPhase.Idle:
+                case LocomotionPhase.Started:
+                    if (m_IsMovingXROrigin)
+                        locomotionPhase = LocomotionPhase.Moving;
+                    break;
+                case LocomotionPhase.Moving:
+                    if (!m_IsMovingXROrigin)
+                        locomotionPhase = LocomotionPhase.Done;
+                    break;
+                case LocomotionPhase.Done:
+                    locomotionPhase = m_IsMovingXROrigin ? LocomotionPhase.Moving : LocomotionPhase.Idle;
+                    break;
+                default:
+                    Assert.IsTrue(false, $"Unhandled {nameof(LocomotionPhase)}={locomotionPhase}");
                     break;
             }
         }
@@ -213,8 +233,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (CanBeginLocomotion() && BeginLocomotion())
                 {
                     // Note that calling Move even with Vector3.zero will have an effect by causing isGrounded to update
+                    m_IsMovingXROrigin = true;
                     m_CharacterController.Move(motion);
-
                     EndLocomotion();
                 }
             }
@@ -222,8 +242,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (CanBeginLocomotion() && BeginLocomotion())
                 {
+                    m_IsMovingXROrigin = true;
                     xrOrigin.Origin.transform.position += motion;
-
                     EndLocomotion();
                 }
             }

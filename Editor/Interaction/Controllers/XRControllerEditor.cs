@@ -30,7 +30,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.moveObjectOut"/>.</summary>
         SerializedProperty m_MoveObjectOut;
 
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.poseProvider"/>.</summary>
         SerializedProperty m_PoseProvider;
 #endif
@@ -59,7 +59,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.moveObjectOut"/>.</summary>
             public static GUIContent moveObjectOut = EditorGUIUtility.TrTextContent("Move Object Out", "The input that will be used to translate the anchor towards the interactor.");
 
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.poseProvider"/>.</summary>
             public static GUIContent poseProvider = EditorGUIUtility.TrTextContent("Pose Provider", "Pose provider used to provide tracking data separate from the XR Node.");
             /// <summary>The help box message when Pose Provider is being used.</summary>
@@ -82,7 +82,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_MoveObjectIn = serializedObject.FindProperty("m_MoveObjectIn");
             m_MoveObjectOut = serializedObject.FindProperty("m_MoveObjectOut");
 
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR
             m_PoseProvider = serializedObject.FindProperty("m_PoseProvider");
 #endif
         }
@@ -91,7 +91,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected override void DrawInputConfiguration()
         {
             base.DrawInputConfiguration();
-#if LIH_PRESENT
+#if ENABLE_VR || ENABLE_AR
             EditorGUILayout.PropertyField(m_PoseProvider, Contents.poseProvider);
             if (m_PoseProvider.objectReferenceValue != null)
                 EditorGUILayout.HelpBox(Contents.poseProviderWarning.text, MessageType.Info, true);

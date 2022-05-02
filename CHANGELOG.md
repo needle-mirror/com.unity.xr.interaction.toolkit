@@ -5,6 +5,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.1.0-pre.1] - 2022-05-02
+
+### Added
+- Added properties to XR Grab Interactable to use dynamic attach transforms so the grab pose will be based on the pose of the Interactor when the selection is made. You can enable the Use Dynamic Attach property to keep the object in the same position and rotation when grabbed. ([1373337](https://issuetracker.unity3d.com/product/unity/issues/guid/1373337))
+- Added filtering for interactions to help determine the intent of the user. The new abstractions XR Target Filter and XR Target Evaluator let users configure and extend the logic of how an Interactor ranks an Interactable from a list of valid ones, specifically in the `GetValidTargets` method. Several different evaluators are included in this update, and custom ones can be created. This makes it easier to customize the Interactor without needing to create a derived behavior.
+- Added the `XRBaseInteractable.distanceCalculationMode` property. This give users the ability to configure how an Interactable calculates its distance to a location, such as to an Interactor for sorting its valid targets, at varying tradeoffs between accuracy and performance.
+- Added the `XRBaseInteractable.getDistanceOverride` property that lets users assign a method to be called when the Interactable is performing a distance calculation to a location, which is used when the Interactor is ordering its valid targets. This property makes it easier to customize the Interactable without needing to create a derived behavior.
+- Added `IsOverUIGameObject` function to `XRRayInteractor` that does a simple check to see if the ray cast result is hitting a UI GameObject.
+- Added `InputActionReference` properties to the `XRUIInputModule` for left/right/middle clicks, navigation move, submit, cancel, scroll and pointer movement actions. This allows for greater flexibility and customization of what devices can drive UI input when using the `XRUIInputModule`.
+- The `XRI Default Input Actions` asset in the `Starter Assets` sample package now includes an `XRI UI` Action Map for UI-specific Input Actions. Also included is a Preset asset to quickly map the actions onto the `XRUIInputModule` component.
+- Added a Tunneling Vignette sample. It contains assets to let users set up and configure the tunneling vignette as a comfort mode intended to mitigate motion sickness in VR.
+- Added a Tunneling Vignette Controller component used for driving the vignette material included with the Tunneling Vignette sample. Locomotion Provider components can be drag-and-dropped into a list of Locomotion Providers that will trigger the tunneling vignette effect. A custom inspector allows previewing each effect for the corresponding Locomotion Provider.
+  * Added `ITunnelingVignetteProvider` interface to allow custom behaviors to control the vignette effect.
+  * Added a `LocomotionPhase` enum in `LocomotionProvider` that can be used to describe different phases of a locomotion for use with the tunneling vignette. Added code in `ContinuousMoveProviderBase`, `ContinuousTurnProviderBase`, `SnapTurnProviderBase`, and `TeleportationProvider` to compute their `LocomotionPhase`.
+  * Added a Delay Time property to the Teleportation Provider and Snap Turn Provider components to support customization of timing for use with fading in the tunneling vignette.
+
+### Changed
+- Updated code paths with macro protections around `InputSystem` or `Input Manager` based code to prevent attempted usage when either one is not active.
+- Scroll speed when using the ScrollWheel Input System Action is now being divided by 20 pixels per line instead of 120 pixels per line to match the `InputSystemUIInputModule` scrolling speed.
+- Changed `XRSocketInteractor` hover mesh pose calculation to only ignore the current pose of the attach transform for `XRGrabInteractable` when Use Dynamic Attach is disabled instead of for all types of `IXRSelectInteractable`.
+- Changed `XRControllerRecorder.recording` from `internal` to `public`.
+
+### Fixed
+- Fixed `UIInputModule` so pointer clicks set the correct button (left/right/middle) for the `EventSystem` in the `PointerEventData`.
+- Fixed compilation errors on platforms such as Game Core where `ENABLE_VR` is not currently defined.
+
 ## [2.0.2] - 2022-04-29
 
 ### Fixed

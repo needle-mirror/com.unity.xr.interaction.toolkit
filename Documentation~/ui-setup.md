@@ -15,11 +15,15 @@ The XR Interaction Toolkit package comes with menu items that perform basic setu
 
 The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module to process input. Use the default configuration, pictured below, as a starting point. Only one Input Module can be active at one time. The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to receive Event System events from tracked devices.
 
-> [!IMPORTANT]
-> If you have an existing Canvas or Event System, you will likely have a **Standalone Input Module** or **Input System UI Input Module** component which will prevent proper input processing. Remove it by clicking the **More menu (&#8942;)** and selecting **Remove Component**. Other UI Input Modules are not compatible with the **XR UI Input Module** and may cause undesired or unexpected behavior. Therefore, only use a single Input Module to handle UI interactions.
+## XR UI Input Module
+
+The **XR UI Input Module** is the component that XRI requires to properly interface with the Event System. It works in concert with the [XR Ray Interactor](xr-ray-interactor.md) to ensure XRI interactions with the UI are processed correctly. It also handles input from other non-XR sources (such as gamepad or mouse) if configured to do so. In the component configuration pictured below, the **Input System UI Actions** and **Input Manager** options are displayed. Depending on the **Active Input Handling** setting in **Edit &gt; Project Settings &gt; Player**, one or both of these configuration options may be visible. If you are using the Input System package for handling input you have the option of manually entering the Input Action References for each of the fields or you can use the preset provided with the [Starter Assets](samples.md#starter-assets) sample.
 
 > [!NOTE]
-> **Known limitation**: When configuring the **XR UI Input Module**, gamepad and joystick input buttons are currently hard-coded to known values when using the new Input System. For the gamepad, the **submit** button is mapped to **buttonSouth** and **cancel** is mapped to **buttonEast**. The joystick **submit** button is mapped to the **trigger** and there is currently no support for the cancel button.
+> If you have **Active Input Handling** set to **Both**, you will need to make sure to set the **Active Input Mode** on the **XR UI Input Module** to your desired source of input. Keep in mind that there may be minor performance impacts by setting this option to Both.
+
+> [!IMPORTANT]
+> If you have an existing Canvas or Event System, you will likely have a **Standalone Input Module** or **Input System UI Input Module** component which will prevent proper input processing. Remove it by clicking the **More menu (&#8942;)** and selecting **Remove Component**. Other UI Input Modules are not compatible with the **XR UI Input Module** and may cause undesired or unexpected behavior. Therefore, only use a single Input Module to handle UI interactions.
 
 ![ui-event-system-setup](images/ui-event-system-setup.png)
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine.InputSystem.Controls;
+﻿#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.Scripting;
 
@@ -122,3 +123,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
     }
 }
+#endif

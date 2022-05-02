@@ -3,7 +3,8 @@
     "references": [
         "Unity.XR.Interaction.Toolkit",
         "Unity.XR.Interaction.Toolkit.Editor",
-        "Unity.XR.Interaction.Toolkit.Tests"
+        "Unity.XR.Interaction.Toolkit.Tests",
+        "Unity.XR.CoreUtils"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
