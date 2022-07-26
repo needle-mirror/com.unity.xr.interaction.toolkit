@@ -1,4 +1,5 @@
 ﻿using UnityEngine.InputSystem.Layouts;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.Scripting;
 
@@ -11,5 +12,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [Preserve]
     public class XRSimulatedHMD : XRHMD
     {
+        /// <inheritdoc />
+        protected override unsafe long ExecuteCommand(InputDeviceCommand* commandPtr)
+        {
+            return XRDeviceSimulator.TryExecuteCommand(commandPtr, out var result)
+                ? result
+                : base.ExecuteCommand(commandPtr);
+        }
     }
 }

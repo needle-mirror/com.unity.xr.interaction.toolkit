@@ -175,10 +175,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Stores the reticle that appears at the end of the line when it is valid.
         /// </summary>
+        /// <remarks>
+        /// Unity will instantiate it while playing when it is a Prefab asset.
+        /// </remarks>
         public GameObject reticle
         {
             get => m_Reticle;
-            set => m_Reticle = value;
+            set
+            {
+                m_Reticle = value;
+                if (Application.isPlaying)
+                    SetupReticle();
+            }
         }
 
         [SerializeField]
@@ -251,9 +259,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_LineRenderable = GetComponent<ILineRenderable>();
 
-            if (m_Reticle != null)
-                m_Reticle.SetActive(false);
-
+            SetupReticle();
             ClearLineRenderer();
             UpdateSettings();
         }
@@ -512,6 +518,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return false;
             }
             return true;
+        }
+
+        void SetupReticle()
+        {
+            if (m_Reticle == null)
+                return;
+
+            // Instantiate if the reticle is a Prefab asset rather than a scene GameObject
+            if (!m_Reticle.scene.IsValid())
+                m_Reticle = Instantiate(m_Reticle);
+
+            m_Reticle.SetActive(false);
         }
 
         /// <inheritdoc />

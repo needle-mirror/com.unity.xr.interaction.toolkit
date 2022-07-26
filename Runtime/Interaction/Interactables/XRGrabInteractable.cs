@@ -618,13 +618,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
                         ? m_TargetWorldPosition
                         : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
-                    m_Rigidbody.velocity = Vector3.zero;
                     m_Rigidbody.MovePosition(position);
                 }
 
                 if (m_TrackRotation)
                 {
-                    m_Rigidbody.angularVelocity = Vector3.zero;
                     m_Rigidbody.MoveRotation(m_TargetWorldRotation);
                 }
             }
@@ -736,7 +734,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var thisTransform = transform;
             m_OriginalSceneParent = thisTransform.parent;
             thisTransform.SetParent(null);
-            
+
             UpdateCurrentMovementType();
             SetupRigidbodyGrab(m_Rigidbody);
 
@@ -797,6 +795,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_ThrowOnDetach)
             {
+                if (m_Rigidbody.isKinematic)
+                {
+                    Debug.LogWarning("Cannot throw a kinematic Rigidbody since updating the velocity and angular velocity of a kinematic Rigidbody is not supported. Disable Throw On Detach or Is Kinematic to fix this issue.", this);
+                    return;
+                }
+
                 m_Rigidbody.velocity = m_DetachVelocity;
                 m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
@@ -836,7 +840,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             rigidbody.useGravity = m_UsedGravity;
             rigidbody.drag = m_OldDrag;
             rigidbody.angularDrag = m_OldAngularDrag;
-            
+
             if (!isSelected)
                 m_Rigidbody.useGravity |= m_ForceGravityOnDetach;
         }

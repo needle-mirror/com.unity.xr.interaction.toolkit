@@ -30,7 +30,7 @@ Interactable component that hooks into the interaction system (via [XRInteractio
 | **Tighten Rotation** | Reduces the maximum follow rotation difference when using smoothing.<br />Fractional amount of how close the smoothed rotation should remain to the rotation of the Interactor when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow rotation, to 1 meaning effectively no smoothing at all. |
 | **Angular Velocity Damping** | Scale factor of how much Unity dampens the existing angular velocity when tracking the rotation of the Interactor. The smaller the value, the longer it takes for the angular velocity to decay.<br />Only applies when **Movement Type** is in _VelocityTracking_ mode. |
 | **Angular Velocity Scale** | Scale factor Unity applies to the tracked angular velocity while updating the `Rigidbody` when tracking the rotation of the Interactor.<br />Only applies when **Movement Type** is in _Velocity Tracking_ mode. |
-| **Throw On Detach** | Enable to have this object inherit the velocity of the Interactor when released. |
+| **Throw On Detach** | Enable to have this object inherit the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody. |
 | **Throw Smoothing Duration** | Time period to average thrown velocity over. |
 | **Throw Smoothing Curve** | The curve to use to weight thrown velocity smoothing (most recent frames to the right). |
 | **Throw Velocity Scale** | Scale factor Unity applies to this object's velocity inherited from the Interactor when released. |

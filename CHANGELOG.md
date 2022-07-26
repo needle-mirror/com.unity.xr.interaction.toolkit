@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.3] - 2022-07-26
+
+### Fixed
+- Fixed the simulated HMD and controllers so they no longer reset to origin after switching focus away and back to the Unity Editor. ([1409417](https://issuetracker.unity3d.com/product/unity/issues/guid/1409417))
+- Fixed warnings about setting velocities of a kinematic body when updating an XR Grab Interactable with Movement Type set to Kinematic.
+- Fixed `UIInputModule` so it will use the new Main Camera if the previous one is disabled when `UIInputModule.uiCamera` is not set.
+- Fixed warning in the Inspector window for interactors missing the XR Controller component when the GameObject is deactivated by changing the find method to include inactive GameObjects.
+- Fixed XR Interactor Line Visual so it will instantiate the Reticle GameObject when it is a Prefab asset so it does not modify the asset on disk.
+- Fixed `UIInputModule` to support EventSystem `IPointerMoveHandler` for Unity 2021.1 and newer. Also added the corresponding `pointerMove` event to `UIInputModule` to allow the pointer move events to be globally handled.
+
 ## [2.0.2] - 2022-04-29
 
 ### Fixed

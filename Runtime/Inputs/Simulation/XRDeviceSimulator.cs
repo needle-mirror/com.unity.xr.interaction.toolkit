@@ -1959,5 +1959,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             return actionReference != null ? actionReference.action : null;
 #pragma warning restore IDE0031
         }
+
+        internal static unsafe bool TryExecuteCommand(InputDeviceCommand* commandPtr, out long result)
+        {
+            // This is a utility method called by XRSimulatedHMD and XRSimulatedController
+            // since both devices share the same command handling.
+            // This replicates the logic in XRToISXDevice::IOCTL (XRInputToISX.cpp).
+            var type = commandPtr->type;
+            if (type == RequestSyncCommand.Type)
+            {
+                // The state is maintained by XRDeviceSimulator, so no need for any change
+                // when focus is regained. Returning success instructs Input System to not
+                // reset the device.
+                result = InputDeviceCommand.GenericSuccess;
+                return true;
+            }
+
+            if (type == QueryCanRunInBackground.Type)
+            {
+                ((QueryCanRunInBackground*)commandPtr)->canRunInBackground = true;
+                result = InputDeviceCommand.GenericSuccess;
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
     }
 }
