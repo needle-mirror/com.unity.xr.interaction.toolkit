@@ -114,7 +114,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.tightenRotation"/>.</summary>
             public static readonly GUIContent tightenRotation = EditorGUIUtility.TrTextContent("Tighten Rotation", "Reduces the maximum follow rotation difference when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow rotation, to 1 meaning effectively no smoothing at all.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
-            public static readonly GUIContent throwOnDetach = EditorGUIUtility.TrTextContent("Throw On Detach", "Whether this object inherits the velocity of the Interactor when released.");
+            public static readonly GUIContent throwOnDetach = EditorGUIUtility.TrTextContent("Throw On Detach", "Whether this object inherits the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
             public static readonly GUIContent throwSmoothingDuration = EditorGUIUtility.TrTextContent("Throw Smoothing Duration", "Time period to average thrown velocity over.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingCurve"/>.</summary>
@@ -132,7 +132,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>Message for non-uniformly scaled parent.</summary>
             public static readonly string nonUniformScaledParentWarning = "When a child object has a non-uniformly scaled parent and is rotated relative to that parent, it may appear skewed. To avoid this, use uniform scale in all parents' Transform of this object.";
-            
+
             /// <summary>Array of type <see cref="GUIContent"/> for the options shown in the popup for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
             public static readonly GUIContent[] attachPointCompatibilityModeOptions =
             {

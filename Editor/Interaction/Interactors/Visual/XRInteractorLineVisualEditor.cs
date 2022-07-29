@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -32,6 +33,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.stopLineAtFirstRaycastHit"/>.</summary>
         protected SerializedProperty m_StopLineAtFirstRaycastHit;
 
+        readonly List<Collider> m_ReticleColliders = new List<Collider>();
+        XRRayInteractor m_RayInteractor;
+        bool m_ReticleCheckInitialized;
+
+        static readonly LayerMask s_EverythingMask = (-1);
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
@@ -58,7 +65,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineLength"/>.</summary>
             public static readonly GUIContent lineLength = EditorGUIUtility.TrTextContent("Line Length", "Controls the length of the line when overriding.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.stopLineAtFirstRaycastHit"/>.</summary>
-            public static readonly GUIContent stopLineAtFirstRaycastHit = EditorGUIUtility.TrTextContent("Stop Line At First Raycast Hit", "Controls whether the line will always be cut short by this behavior at the first ray cast hit, even when invalid.");
+            public static readonly GUIContent stopLineAtFirstRaycastHit = EditorGUIUtility.TrTextContent("Stop Line At First Raycast Hit", "Controls whether the line will be cut short by the first invalid ray cast hit. The line will always stop at valid targets, even if this is false.");
+
+            /// <summary>The help box message when the Reticle has a Collider that will disrupt the XR Ray Interactor ray cast.</summary>
+            public static readonly GUIContent reticleColliderWarning = EditorGUIUtility.TrTextContent("Reticle has a Collider which may disrupt the XR Ray Interactor ray cast. Remove or disable the Collider component on the Reticle or adjust the Raycast Mask/Collider Layer.");
         }
 
         /// <summary>
@@ -77,6 +87,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OverrideInteractorLineLength = serializedObject.FindProperty("m_OverrideInteractorLineLength");
             m_LineLength = serializedObject.FindProperty("m_LineLength");
             m_StopLineAtFirstRaycastHit = serializedObject.FindProperty("m_StopLineAtFirstRaycastHit");
+
+            m_ReticleCheckInitialized = false;
         }
 
         /// <inheritdoc />
@@ -173,7 +185,41 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawReticle()
         {
-            EditorGUILayout.PropertyField(m_Reticle, Contents.reticle);
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                EditorGUILayout.PropertyField(m_Reticle, Contents.reticle);
+
+                // Show a warning if the reticle GameObject has a Collider, which would cause
+                // a feedback loop issue with the raycast hitting the reticle.
+                if (!serializedObject.isEditingMultipleObjects && m_Reticle.objectReferenceValue != null)
+                {
+                    // Get the list of Colliders on the reticle, only doing so when the reticle property changed
+                    // or if this is the first time here in order to reduce the cost of evaluating this warning.
+                    if (check.changed || !m_ReticleCheckInitialized)
+                    {
+                        var reticle = (GameObject)m_Reticle.objectReferenceValue;
+                        reticle.GetComponentsInChildren(m_ReticleColliders);
+
+                        m_RayInteractor = ((XRInteractorLineVisual)serializedObject.targetObject).GetComponent<XRRayInteractor>();
+
+                        m_ReticleCheckInitialized = true;
+                    }
+
+                    if (m_ReticleColliders.Count > 0)
+                    {
+                        // If there is an XR Ray Interactor, allow the Collider as long as the Raycast Mask is set to ignore it
+                        var raycastMask = m_RayInteractor != null ? m_RayInteractor.raycastMask : s_EverythingMask;
+                        foreach (var collider in m_ReticleColliders)
+                        {
+                            if (collider != null && collider.enabled && (raycastMask & (1 << collider.gameObject.layer)) != 0)
+                            {
+                                EditorGUILayout.HelpBox(Contents.reticleColliderWarning.text, MessageType.Warning, true);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

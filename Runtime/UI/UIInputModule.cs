@@ -76,10 +76,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_TrackedDeviceDragThresholdMultiplier = value;
         }
 
+        Camera m_UICamera;
+
         /// <summary>
-        /// The <see cref="Camera"/> that Unity uses to perform 2D ray casts when determining the screen space location of a tracked device cursor.
+        /// The <see cref="Camera"/> that Unity uses to perform ray casts when determining the screen space location of a tracked device cursor.
         /// </summary>
-        public Camera uiCamera { get; set; }
+        public Camera uiCamera
+        {
+            get
+            {
+                // If set by the user, always use this Camera.
+                if (m_UICamera != null)
+                    return m_UICamera;
+
+                // Camera.main returns the first active and enabled Main Camera, so if the cached one
+                // is no longer enabled, find the new Main Camera. This is to support, for example,
+                // toggling between different XROrigin rigs each with their own Main Camera.
+                if (m_MainCameraCache == null || !m_MainCameraCache.isActiveAndEnabled)
+                    m_MainCameraCache = Camera.main;
+
+                return m_MainCameraCache;
+            }
+            set => m_UICamera = value;
+        }
+
+        Camera m_MainCameraCache;
 
         AxisEventData m_CachedAxisEvent;
         readonly Dictionary<int, PointerEventData> m_PointerEventByPointerId = new Dictionary<int, PointerEventData>();
@@ -317,6 +338,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             var currentPointerTarget = eventData.pointerCurrentRaycast.gameObject;
 
+            #if UNITY_2021_1_OR_NEWER
+            // If the pointer moved, send move events to all UI elements the pointer is
+            // currently over.
+            var wasMoved = eventData.IsPointerMoving();
+            if (wasMoved)
+            {
+                for (var i = 0; i < eventData.hovered.Count; ++i)
+                {
+                    pointerMove?.Invoke(eventData.hovered[i], eventData);
+                    ExecuteEvents.Execute(eventData.hovered[i], eventData, ExecuteEvents.pointerMoveHandler);
+                }
+            }
+            #endif
+
             // If we have no target or pointerEnter has been deleted,
             // we just send exit events to anything we are tracking
             // and then exit.
@@ -374,7 +409,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var targetGameObject = target.gameObject;
                     pointerEnter?.Invoke(targetGameObject, eventData);
                     ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerEnterHandler);
-
+                    #if UNITY_2021_1_OR_NEWER
+                    if (wasMoved)
+                    {
+                        pointerMove?.Invoke(targetGameObject, eventData);
+                        ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerMoveHandler);
+                    }
+                    #endif
                     eventData.hovered.Add(targetGameObject);
 
                     target = target.parent;
@@ -562,27 +603,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
             eventData.position = savedPosition;
 
-            // Get associated camera, or main-tagged camera, or camera from ray cast, and if *nothing* exists, then abort processing this frame.
-            // ReSharper disable once LocalVariableHidesMember
-            var camera = uiCamera != null ? uiCamera : (uiCamera = Camera.main);
-            if (camera == null)
-            {
-                var module = eventData.pointerCurrentRaycast.module;
-                if (module != null)
-                    camera = module.eventCamera;
-            }
-
-            if (camera != null)
+            if (TryGetCamera(eventData, out var screenPointCamera))
             {
                 Vector2 screenPosition;
                 if (eventData.pointerCurrentRaycast.isValid)
                 {
-                    screenPosition = camera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
+                    screenPosition = screenPointCamera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
                 }
                 else
                 {
                     var endPosition = eventData.rayPoints.Count > 0 ? eventData.rayPoints[eventData.rayPoints.Count - 1] : Vector3.zero;
-                    screenPosition = camera.WorldToScreenPoint(endPosition);
+                    screenPosition = screenPointCamera.WorldToScreenPoint(endPosition);
                     eventData.position = screenPosition;
                 }
 
@@ -599,6 +630,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             deviceState.OnFrameFinished();
+        }
+
+        bool TryGetCamera(PointerEventData eventData, out Camera screenPointCamera)
+        {
+            // Get associated Camera, or Main Camera, or Camera from ray cast, and if *nothing* exists, then abort processing this frame.
+            screenPointCamera = uiCamera;
+            if (screenPointCamera != null)
+                return true;
+
+            var module = eventData.pointerCurrentRaycast.module;
+            if (module != null)
+            {
+                screenPointCamera = module.eventCamera;
+                return screenPointCamera != null;
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -76,7 +76,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void Awake()
         {
             if (m_LocomotionProvider == null)
+            {
                 m_LocomotionProvider = GetComponent<ContinuousMoveProviderBase>();
+                if (m_LocomotionProvider == null)
+                {
+                    m_LocomotionProvider = FindObjectOfType<ContinuousMoveProviderBase>();
+                    if (m_LocomotionProvider == null)
+                        Debug.LogWarning("Unable to drive properties of the Character Controller without the locomotion events of a Locomotion Provider." +
+                            " Set Locomotion Provider or ensure a Continuous Move Provider component is in your scene.", this);
+                }
+            }
         }
 
         /// <summary>

@@ -300,10 +300,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         }
 
         /// <summary>
-        /// Returns the first Target Evaluator of the specified <see cref="type"/> if this Target Filter has one.
+        /// Returns the first Target Evaluator of the specified <paramref name="type"/> if this Target Filter has one.
         /// </summary>
         /// <param name="type">The Type of the Evaluator to retrieve.</param>
-        /// <returns>Returns the first Evaluator of the specified <see cref="type"/>. Returns <see langword="null"/> if this Filter has no Evaluator of the specified Type in it.</returns>
+        /// <returns>Returns the first Evaluator of the specified <paramref name="type"/>. Returns <see langword="null"/> if this Filter has no Evaluator of the specified Type in it.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is <see langword="null"/>.</exception>
         /// <seealso cref="GetEvaluator{T}"/>
         public XRTargetEvaluator GetEvaluator(Type type)

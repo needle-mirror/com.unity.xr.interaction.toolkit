@@ -1,6 +1,7 @@
 ﻿#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.Layouts;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Scripting;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
@@ -120,6 +121,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             secondary2DAxisTouch = GetChildControl<ButtonControl>(nameof(secondary2DAxisTouch));
             batteryLevel = GetChildControl<AxisControl>(nameof(batteryLevel));
             userPresence = GetChildControl<ButtonControl>(nameof(userPresence));
+        }
+
+        /// <inheritdoc />
+        protected override unsafe long ExecuteCommand(InputDeviceCommand* commandPtr)
+        {
+            return XRDeviceSimulator.TryExecuteCommand(commandPtr, out var result)
+                ? result
+                : base.ExecuteCommand(commandPtr);
         }
     }
 }

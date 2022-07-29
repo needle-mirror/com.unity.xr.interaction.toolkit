@@ -628,8 +628,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 // Update the locomotion provider names in the preview menu before drawing.
                 UpdatePreviewMenu();
 
-                // Update dropdown menu display after selecting one of its options.
-                m_PreviewIndex = EditorGUILayout.Popup(Contents.previewInEditor, m_PreviewIndex, m_PreviewList.ToArray());
+                using (var check = new EditorGUI.ChangeCheckScope())
+                {
+                    // Update dropdown menu display after selecting one of its options.
+                    m_PreviewIndex = EditorGUILayout.Popup(Contents.previewInEditor, m_PreviewIndex, m_PreviewList.ToArray());
+
+                    if (check.changed)
+                    {
+                        // This is needed for Unity versions before 2020 LTS to trigger a change of the preview in the editor without any delay or the need of having the mouse hover the game view,
+                        // because the UpdateTunnelingVignette method in the controller class uses MaterialPropertyBlock that does not automatically trigger the editor change.
+                        EditorApplication.QueuePlayerLoopUpdate();
+                    }
+                }
             }
         }
 

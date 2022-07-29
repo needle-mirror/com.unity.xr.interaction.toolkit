@@ -1,4 +1,5 @@
 * [XR Interaction Toolkit](index.md)
+  * [What's new](whats-new.md)
 * Guides
   * [Installation](installation.md)
   * [Architecture](architecture.md)

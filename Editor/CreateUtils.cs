@@ -177,7 +177,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             var parentOfNewGameObject = menuCommand?.GetContextTransform();
 
-            var editingPrefabStage = (StageUtility.GetCurrentStageHandle() != StageUtility.GetMainStageHandle());
+            var currentStage = StageUtility.GetCurrentStageHandle();
+            var editingPrefabStage = currentStage != StageUtility.GetMainStageHandle();
 
             var canvasGO = CreateAndPlaceGameObject("Canvas", parentOfNewGameObject,
                 typeof(Canvas),
@@ -196,18 +197,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 canvas.worldCamera = Camera.main;
             else
                 Debug.LogWarning("You have just added an XR UI Canvas to a prefab." +
-                    $" To function properly with an {nameof(XRRayInteractor)}, you must also set the Canvas component's worldCamera field in your scene.",
+                    " To function properly with an XR Ray Interactor, you must also set the Canvas component's Event Camera in your scene.",
                     canvasGO);
 
             // Ensure there is at least one EventSystem setup properly
-            var inputModule = Object.FindObjectOfType<XRUIInputModule>();
-            if (inputModule == null)
+            var inputModule = currentStage.FindComponentOfType<XRUIInputModule>();
+            if (inputModule == null || !inputModule.gameObject.scene.IsValid())
             {
                 if (!editingPrefabStage)
-                    CreateXRUIEventSystemWithParent(parentOfNewGameObject);
+                    CreateXRUIEventSystemWithParent(parentOfNewGameObject, out _);
                 else
                     Debug.LogWarning("You have just added an XR UI Canvas to a prefab." +
-                        $" To function properly with an {nameof(XRRayInteractor)}, you must also add an XR UI EventSystem to your scene.",
+                        " To function properly with an XR Ray Interactor, you must also add an XR UI Event System to your scene.",
                         canvasGO);
             }
 
@@ -219,7 +220,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
         public static void CreateXRUIEventSystem(MenuCommand menuCommand)
 #pragma warning restore IDE0051
         {
-            Finalize(CreateXRUIEventSystemWithParent(menuCommand?.GetContextTransform()));
+            var eventSystemGO = CreateXRUIEventSystemWithParent(menuCommand?.GetContextTransform(), out var changeSelectionOnly);
+
+            // If there was no serialization change (it already existed), only update the selection.
+            // Passing it to Undo.RegisterCreatedObjectUndo in Finalize would cause the GameObject to be destroyed
+            // upon Undo, which should not happen. This matches the behavior of GameObject > UI > Event System.
+            if (changeSelectionOnly)
+                Selection.activeGameObject = eventSystemGO;
+            else
+                Finalize(eventSystemGO);
         }
 
         [MenuItem("GameObject/XR/XR Origin (VR)", false, 10), UsedImplicitly]
@@ -255,7 +264,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var currentStage = StageUtility.GetCurrentStageHandle();
 
             var interactionManager = currentStage.FindComponentOfType<XRInteractionManager>();
-            if (interactionManager == null)
+            if (interactionManager == null || !interactionManager.gameObject.scene.IsValid())
                 return CreateAndPlaceGameObject("XR Interaction Manager", parent, typeof(XRInteractionManager));
 
             return interactionManager.gameObject;
@@ -322,18 +331,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return directInteractorGO;
         }
 
-        static GameObject CreateXRUIEventSystemWithParent(Transform parent)
+        static GameObject CreateXRUIEventSystemWithParent(Transform parent, out bool changeSelectionOnly)
         {
             var currentStage = StageUtility.GetCurrentStageHandle();
 
             var inputModule = currentStage.FindComponentOfType<XRUIInputModule>();
-            if (inputModule != null)
+            if (inputModule != null && inputModule.gameObject.scene.IsValid())
+            {
+                changeSelectionOnly = true;
                 return inputModule.gameObject;
+            }
 
             // Ensure there is at least one EventSystem setup properly
             var eventSystem = currentStage.FindComponentOfType<EventSystem>();
             GameObject eventSystemGO;
-            if (eventSystem == null)
+            if (eventSystem == null || !eventSystem.gameObject.scene.IsValid())
             {
                 eventSystemGO = CreateAndPlaceGameObject("EventSystem", parent,
                     typeof(EventSystem),
@@ -351,6 +363,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 Undo.AddComponent<XRUIInputModule>(eventSystemGO);
             }
 
+            changeSelectionOnly = false;
             return eventSystemGO;
         }
 

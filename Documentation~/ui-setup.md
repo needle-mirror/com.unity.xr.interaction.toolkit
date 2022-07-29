@@ -17,7 +17,7 @@ The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/E
 
 ## XR UI Input Module
 
-The **XR UI Input Module** is the component that XRI requires to properly interface with the Event System. It works in concert with the [XR Ray Interactor](xr-ray-interactor.md) to ensure XRI interactions with the UI are processed correctly. It also handles input from other non-XR sources (such as gamepad or mouse) if configured to do so. In the component configuration pictured below, the **Input System UI Actions** and **Input Manager** options are displayed. Depending on the **Active Input Handling** setting in **Edit &gt; Project Settings &gt; Player**, one or both of these configuration options may be visible. If you are using the Input System package for handling input you have the option of manually entering the Input Action References for each of the fields or you can use the preset provided with the [Starter Assets](samples.md#starter-assets) sample.
+The **XR UI Input Module** is the component that XRI requires to properly interface with the Event System. It works in concert with the [XR Ray Interactor](xr-ray-interactor.md) to ensure XRI interactions with the UI are processed correctly. It also handles input from other non-XR sources (such as gamepad or mouse) if configured to do so. In the component configuration pictured below, the **Input System UI Actions** and **Input Manager** options are displayed. Depending on the **Active Input Handling** setting in **Edit &gt; Project Settings &gt; Player**, one or both of these configuration options may be visible. If you are using the Input System package for handling input you have a few options for setup. We recommend using the `XRI Default Input Actions.inputactions` and `XRI Default XR UI Input Module.preset` file provided with the [Starter Assets](samples.md#starter-assets) sample, which allows for the greatest control and flexibility. Alternatively, you can create an Input Action asset with associated Action Map and Actions and manually assign the **Input System UI Actions** for each of the fields. Finally, you can leave all the **Input System UI Actions** unset (`None`) and turn on the **Enable Builtin Actions As Fallback** checkbox, which will let the default mouse, gamepad, or joystick actions drive the UI with the current Input System devices configured.
 
 > [!NOTE]
 > If you have **Active Input Handling** set to **Both**, you will need to make sure to set the **Active Input Mode** on the **XR UI Input Module** to your desired source of input. Keep in mind that there may be minor performance impacts by setting this option to Both.
@@ -28,6 +28,12 @@ The **XR UI Input Module** is the component that XRI requires to properly interf
 ![ui-event-system-setup](images/ui-event-system-setup.png)
 
 ## Canvas
-All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below) called the Tracked Device Graphic Raycaster. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
+All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below) called the **Tracked Device Graphic Raycaster**. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
 
 ![ui-canvas-setup](images/ui-canvas-setup.png)
+
+## Checking for UI Occlusion
+When using the **Tracked Device Graphic Raycaster** with the canvas components, you may run into situations where non-UI objects exist in front of the UI elements. The natural behavior would be for the non-UI object to block access to the UI. To support this behavior, enable **Check For 3D Occlusion** for 3D objects to block the ray from UI behind it. Enable **Check For 2D Occlusion** if you make use of 2D physics and those 2D objects should block the ray in a similar way.
+
+> [!IMPORTANT]
+> These occlusion options are turned off by default to save on performance. Be aware that each of these checkboxes performs additional ray casts to find 3D and 2D occlusion objects.

@@ -53,6 +53,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public static void SortByDistanceToInteractor(IXRInteractor interactor, List<IXRInteractable> unsortedTargets, List<IXRInteractable> results)
         {
             results.Clear();
+
+            if (unsortedTargets.Count == 0)
+                return;
+
+            if (unsortedTargets.Count == 1)
+            {
+                results.Add(unsortedTargets[0]);
+                return;
+            }
+
             results.AddRange(unsortedTargets);
 
             s_InteractableDistanceSqrMap.Clear();

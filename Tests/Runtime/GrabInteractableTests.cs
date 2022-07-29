@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using Unity.XR.CoreUtils;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 
@@ -615,6 +616,121 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
             Assert.That(rigidbody.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+        }
+
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void InitializesDynamicAttachTransformToInteractorAttachPose(bool matchAttachPosition, bool matchAttachRotation)
+        {
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.transform.localPosition = new Vector3(1f, 2f, 3f);
+            interactor.transform.localRotation = Quaternion.Euler(15f, 30f, 60f);
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grabInteractableGO.transform.SetWorldPose(Pose.identity);
+            var grabInteractable = grabInteractableGO.AddComponent<PublicAccessGrabInteractable>();
+            grabInteractable.useDynamicAttach = true;
+            grabInteractable.matchAttachPosition = matchAttachPosition;
+            grabInteractable.matchAttachRotation = matchAttachRotation;
+            grabInteractable.snapToColliderVolume = false;
+
+            var dynamicAttachTransform = new GameObject("Dynamic Attach Transform").transform;
+            dynamicAttachTransform.SetLocalPose(Pose.identity);
+            dynamicAttachTransform.SetParent(grabInteractable.transform, false);
+
+            grabInteractable.InitializeDynamicAttachPose(interactor, dynamicAttachTransform);
+
+            var expectedPosition = matchAttachPosition ? new Vector3(1f, 2f, 3f) : Vector3.zero;
+            var expectedRotation = matchAttachRotation ? Quaternion.Euler(15f, 30f, 60f) : Quaternion.identity;
+            Assert.That(dynamicAttachTransform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(dynamicAttachTransform.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
+        }
+
+        [Test]
+        public void MatchAttachPropertiesNotOverriddenByBaseInteractor()
+        {
+            var interactor = TestUtilities.CreateMockInteractor();
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var grabInteractable = grabInteractableGO.AddComponent<PublicAccessGrabInteractable>();
+            grabInteractable.useDynamicAttach = true;
+            grabInteractable.matchAttachPosition = true;
+            grabInteractable.matchAttachRotation = true;
+            grabInteractable.snapToColliderVolume = true;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.True);
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.True);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.True);
+
+            grabInteractable.matchAttachPosition = false;
+            grabInteractable.matchAttachRotation = false;
+            grabInteractable.snapToColliderVolume = false;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.False);
+        }
+
+        [Test]
+        public void MatchAttachPropertiesOverriddenBySocketInteractor()
+        {
+            var interactor = TestUtilities.CreateSocketInteractor();
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var grabInteractable = grabInteractableGO.AddComponent<PublicAccessGrabInteractable>();
+            grabInteractable.useDynamicAttach = true;
+            grabInteractable.matchAttachPosition = true;
+            grabInteractable.matchAttachRotation = true;
+            grabInteractable.snapToColliderVolume = true;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.True);
+
+            grabInteractable.matchAttachPosition = false;
+            grabInteractable.matchAttachRotation = false;
+            grabInteractable.snapToColliderVolume = false;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.False);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MatchAttachPropertiesOverriddenByRayInteractor(bool useForceGrab)
+        {
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.useForceGrab = useForceGrab;
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var grabInteractable = grabInteractableGO.AddComponent<PublicAccessGrabInteractable>();
+            grabInteractable.useDynamicAttach = true;
+            grabInteractable.matchAttachPosition = true;
+            grabInteractable.matchAttachRotation = true;
+            grabInteractable.snapToColliderVolume = true;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.Not.EqualTo(useForceGrab));
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.True);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.True);
+
+            grabInteractable.matchAttachPosition = false;
+            grabInteractable.matchAttachRotation = false;
+            grabInteractable.snapToColliderVolume = false;
+
+            Assert.That(grabInteractable.ShouldMatchAttachPosition(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldMatchAttachRotation(interactor), Is.False);
+            Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.False);
+        }
+
+        class PublicAccessGrabInteractable : XRGrabInteractable
+        {
+            public new bool ShouldMatchAttachPosition(IXRSelectInteractor interactor) => base.ShouldMatchAttachPosition(interactor);
+
+            public new bool ShouldMatchAttachRotation(IXRSelectInteractor interactor) => base.ShouldMatchAttachRotation(interactor);
+
+            public new bool ShouldSnapToColliderVolume(IXRSelectInteractor interactor) => base.ShouldSnapToColliderVolume(interactor);
+
+            public new void InitializeDynamicAttachPose(IXRSelectInteractor interactor, Transform dynamicAttachTransform) =>
+                base.InitializeDynamicAttachPose(interactor, dynamicAttachTransform);
         }
     }
 }

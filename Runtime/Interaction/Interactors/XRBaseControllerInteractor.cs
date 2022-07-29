@@ -519,7 +519,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             // Setup interaction controller (for sending down selection state and input)
-            m_Controller = GetComponentInParent<XRBaseController>();
+            m_Controller = FindControllerComponent();
             if (m_Controller == null)
                 Debug.LogWarning($"Could not find {nameof(XRBaseController)} component on {gameObject} or any of its parents.", this);
 
@@ -532,6 +532,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 CreateEffectsAudioSource();
             }
+        }
+
+        /// <summary>
+        /// Finds and returns the controller component in the hierarchy for this interactor.
+        /// </summary>
+        /// <returns>Returns the controller component if found, otherwise <see langword="null"/>.</returns>
+        internal XRBaseController FindControllerComponent()
+        {
+#if UNITY_2020_1_OR_NEWER
+            return gameObject.GetComponentInParent<XRBaseController>(true);
+#else
+            var t = transform;
+            do
+            {
+                if (t.TryGetComponent<XRBaseController>(out var controller))
+                    return controller;
+
+                t = t.parent;
+            } while (t != null);
+
+            return null;
+#endif
         }
 
         /// <inheritdoc />

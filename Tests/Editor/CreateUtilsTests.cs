@@ -10,7 +10,7 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 {
     [TestFixture]
-    public class CreateUtilsTests
+    class CreateUtilsTests
     {
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -106,23 +106,72 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [Test]
         public void UndoCreateXRUICanvas_RestoresStandaloneInputModule()
         {
-            var eventSystem = ObjectFactory.CreateGameObject(
+            var eventSystemGO = ObjectFactory.CreateGameObject(
                 "EventSystem",
                 typeof(EventSystem),
                 typeof(StandaloneInputModule));
             Undo.IncrementCurrentGroup();
             
             CreateUtils.CreateXRUICanvas(null);
-            var standaloneInputModule = eventSystem.GetComponent<StandaloneInputModule>();
-            var xrInputModule = eventSystem.GetComponent<XRUIInputModule>();
-            Assert.IsTrue(standaloneInputModule == null);
-            Assert.IsTrue(xrInputModule != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() == null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
             
             Undo.PerformUndo();
-            standaloneInputModule = eventSystem.GetComponent<StandaloneInputModule>();
-            xrInputModule = eventSystem.GetComponent<XRUIInputModule>();
-            Assert.IsTrue(standaloneInputModule != null);
-            Assert.IsTrue(xrInputModule == null);
+            Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() == null);
+        }
+
+        [Test]
+        public void UndoCreateXRUIEventSystem_DoesNotDestroyReusedExistingUIEventSystem()
+        {
+            // This tests to make sure the GameObject created with UI > Event System
+            // is not destroyed when the XR > UI Event System reuses the Event System.
+            // It should only replace the StandaloneInputModule with XRUIInputModule.
+
+            var eventSystemGO = ObjectFactory.CreateGameObject(
+                "EventSystem",
+                typeof(EventSystem),
+                typeof(StandaloneInputModule));
+            Undo.IncrementCurrentGroup();
+
+            CreateUtils.CreateXRUIEventSystem(null);
+            Undo.PerformUndo();
+
+            Assert.IsTrue(eventSystemGO != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() == null);
+
+            Undo.PerformRedo();
+
+            Assert.IsTrue(eventSystemGO != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() == null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
+        }
+
+        [Test]
+        public void UndoCreateXRUIEventSystem_DoesNotDestroyExistingXRUIEventSystem()
+        {
+            // This tests to make sure the GameObject created with XR > UI Event System
+            // is not destroyed upon undo when the menu item is executed again.
+            // It should only select the existing EventSystem GameObject, not destroy it.
+            // This ensures it matches the behavior of the UI > Event System menu item.
+
+            var eventSystemGO = ObjectFactory.CreateGameObject(
+                "EventSystem",
+                typeof(EventSystem),
+                typeof(XRUIInputModule));
+            Undo.IncrementCurrentGroup();
+
+            CreateUtils.CreateXRUIEventSystem(null);
+            Undo.PerformUndo();
+
+            Assert.IsTrue(eventSystemGO != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
+
+            Undo.PerformRedo();
+
+            Assert.IsTrue(eventSystemGO != null);
+            Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
         }
     }
 }

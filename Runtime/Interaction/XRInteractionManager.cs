@@ -1152,6 +1152,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/>
         protected virtual void InteractorSelectValidTargets(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
+            if (validTargets.Count == 0)
+                return;
+
             foreach (var target in validTargets)
             {
                 if (target is IXRSelectInteractable interactable)
@@ -1181,6 +1184,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/>
         protected virtual void InteractorHoverValidTargets(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
         {
+            if (validTargets.Count == 0)
+                return;
+
             foreach (var target in validTargets)
             {
                 if (target is IXRHoverInteractable interactable)
@@ -1269,6 +1275,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         static void GetOfType<TSource, TDestination>(List<TSource> source, List<TDestination> destination)
         {
             destination.Clear();
+            if (source.Count == 0)
+                return;
+
             foreach (var item in source)
             {
                 if (item is TDestination destinationItem)

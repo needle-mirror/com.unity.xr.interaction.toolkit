@@ -5,6 +5,39 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.1.1] - 2022-07-29
+
+### Added
+- Added `enableBuiltInActionsAsFallback` property on `XRUIInputModule` to provide a fallback default behavior out of the box when using the new Input System as the Active Input Handling.
+- Added missing documentation for `UI Setup` that specifies how to perform object occlusion for UI objects when using the Tracked Device Graphics Raycaster component.
+- Added a warning message to the Inspector of XR Interactor Line Visual and XR Interactor Reticle Visual when the Reticle has a Collider which may disrupt the ray cast. This added an `XRInteractorReticleVisualEditor` class.
+
+### Changed
+- Changed the dynamic attach behavior of XR Grab Interactable so it only ignores the Match Position property when being grabbed by an XR Ray Interactor with Force Grab enabled instead of ignoring both Match Position and Match Rotation. This lets you bring the object to your hand while keeping the rotation if configured. To make it easier to override the dynamic attach properties for a selecting interactor, the `protected` methods `ShouldMatchAttachPosition`, `ShouldMatchAttachRotation`, and `ShouldSnapToColliderVolume` were added to [`XRGrabInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRGrabInteractable).
+- Updated Editor tooltip and documentation to clarify how the **Stop Line At First Raycast Hit** property works on the XR Interactor Line Visual component. ([XRIT-4](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-4))
+
+### Fixed
+- Fixed rendering of the Tunneling Vignette causing issues like the Line Renderer cutting short by setting `ZWrite Off` in the shader. If the sample has already been imported into your project, you will need to import again to get the update.
+- Fixed so the `TunnelingVignette` material asset does not get modified by the `TunnelingVignetteController`.
+- Fixed `GetValidTargets` performance when there are several Interactors in the scene hovering one or no Interactables.
+- Fixed missing input binding for the `Move` action in the `XRI RightHand Locomotion` Action Map in the XRI Default Input Actions asset inside the `Starter Assets` sample.
+- Fixed the Rotate Anchor and Translate Anchor input bindings in the XRI Default Input Actions asset to be simpler by not using composite bindings.
+- Fixed `CharacterControllerDriver` so it will try to find the `ContinuousMoveProviderBase` on other active GameObjects if it isn't on the same GameObject.
+- Fixed regression introduced with version [2.1.0-pre.1](#210-pre1---2022-05-02) so Anchor Control on XR Ray Interactor does not base logic on an XR UI Input Module property.
+- Fixed the **GameObject** &gt; **XR** create menu items which find existing components sometimes using invalid or deleted GameObjects.
+- Fixed the **GameObject** &gt; **XR** &gt; **UI Event System** create menu item destroying the existing GameObject upon Undo when it already existed in the scene.
+- Fixed `CreateUtilsTests` to be `internal` instead of `public`.
+
+## [2.0.3] - 2022-07-26
+
+### Fixed
+- Fixed the simulated HMD and controllers so they no longer reset to origin after switching focus away and back to the Unity Editor. ([1409417](https://issuetracker.unity3d.com/product/unity/issues/guid/1409417))
+- Fixed warnings about setting velocities of a kinematic body when updating an XR Grab Interactable with Movement Type set to Kinematic.
+- Fixed `UIInputModule` so it will use the new Main Camera if the previous one is disabled when `UIInputModule.uiCamera` is not set.
+- Fixed warning in the Inspector window for interactors missing the XR Controller component when the GameObject is deactivated by changing the find method to include inactive GameObjects.
+- Fixed XR Interactor Line Visual so it will instantiate the Reticle GameObject when it is a Prefab asset so it does not modify the asset on disk.
+- Fixed `UIInputModule` to support EventSystem `IPointerMoveHandler` for Unity 2021.1 and newer. Also added the corresponding `pointerMove` event to `UIInputModule` to allow the pointer move events to be globally handled.
+
 ## [2.1.0-pre.1] - 2022-05-02
 
 ### Added

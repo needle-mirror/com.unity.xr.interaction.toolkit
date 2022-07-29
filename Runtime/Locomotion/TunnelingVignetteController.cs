@@ -448,6 +448,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         MeshRenderer m_MeshRender;
         MeshFilter m_MeshFilter;
         Material m_SharedMaterial;
+        MaterialPropertyBlock m_VignettePropertyBlock;
 
         /// <summary>
         /// Queues a <see cref="ITunnelingVignetteProvider"/> to trigger the ease-in vignette effect.
@@ -509,11 +510,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ProviderRecords.Add(new ProviderRecord(provider) { easeState = easeState });
         }
 
-#if UNITY_EDITOR
         /// <summary>
         /// (Editor Only) Previews a vignette effect in Editor with the given <see cref="VignetteParameters"/>.
         /// </summary>
         /// <param name="previewParameters">The <see cref="VignetteParameters"/> to preview in Editor.</param>
+        [Conditional("UNITY_EDITOR")]
         internal void PreviewInEditor(VignetteParameters previewParameters)
         {
             // Avoid previewing when inspecting the prefab asset, which may cause the editor constantly refreshing.
@@ -521,13 +522,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!Application.isPlaying && gameObject.activeInHierarchy)
                 UpdateTunnelingVignette(previewParameters);
         }
-#endif
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Awake()
         {
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.instance.DisablePicking(gameObject, false);
+#endif
             m_CurrentParameters.CopyFrom(VignetteParameters.Defaults.noEffect);
             UpdateTunnelingVignette(VignetteParameters.Defaults.noEffect);
         }
@@ -742,10 +745,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (TrySetUpMaterial())
             {
-                m_SharedMaterial.SetFloat(ShaderPropertyLookup.apertureSize, parameters.apertureSize);
-                m_SharedMaterial.SetFloat(ShaderPropertyLookup.featheringEffect, parameters.featheringEffect);
-                m_SharedMaterial.SetColor(ShaderPropertyLookup.vignetteColor, parameters.vignetteColor);
-                m_SharedMaterial.SetColor(ShaderPropertyLookup.vignetteColorBlend, parameters.vignetteColorBlend);
+                m_MeshRender.GetPropertyBlock(m_VignettePropertyBlock);
+                m_VignettePropertyBlock.SetFloat(ShaderPropertyLookup.apertureSize, parameters.apertureSize);
+                m_VignettePropertyBlock.SetFloat(ShaderPropertyLookup.featheringEffect, parameters.featheringEffect);
+                m_VignettePropertyBlock.SetColor(ShaderPropertyLookup.vignetteColor, parameters.vignetteColor);
+                m_VignettePropertyBlock.SetColor(ShaderPropertyLookup.vignetteColorBlend, parameters.vignetteColorBlend);
+                m_MeshRender.SetPropertyBlock(m_VignettePropertyBlock);
             }
 
             // Update the Transform y-position to match apertureVerticalPosition
@@ -764,6 +769,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_MeshRender = GetComponent<MeshRenderer>();
             if (m_MeshRender == null)
                 m_MeshRender = gameObject.AddComponent<MeshRenderer>();
+
+            if (m_VignettePropertyBlock == null)
+                m_VignettePropertyBlock = new MaterialPropertyBlock();
 
             if (m_MeshFilter == null)
                 m_MeshFilter = GetComponent<MeshFilter>();

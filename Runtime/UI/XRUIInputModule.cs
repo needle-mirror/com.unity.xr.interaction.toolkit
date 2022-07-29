@@ -262,6 +262,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => SetInputAction(ref m_CancelAction, value);
         }
 
+#if !ENABLE_INPUT_SYSTEM
+        [HideInInspector]
+#endif
+        [SerializeField]
+        [Tooltip("When enabled, built-in Input System actions will be used if no Input System UI Actions are assigned.")]
+        bool m_EnableBuiltinActionsAsFallback = true;
+        /// <summary>
+        /// When enabled, built-in Input System actions will be used if no Input System UI Actions are assigned. This uses the
+        /// currently enabled Input System devices: <see cref="Mouse.current"/>, <see cref="Gamepad.current"/>, and <see cref="Joystick.current"/>.
+        /// </summary>
+        public bool enableBuiltinActionsAsFallback
+        {
+            get => m_EnableBuiltinActionsAsFallback;
+            set
+            {
+                m_EnableBuiltinActionsAsFallback = value;
+                m_UseBuiltInInputSystemActions = m_EnableBuiltinActionsAsFallback && !InputActionReferencesAreSet();
+            }
+        }
+
 #if ENABLE_LEGACY_INPUT_MANAGER
         [Header("Input Manager (Old) Gamepad/Joystick Bindings")]
 #else
@@ -361,6 +381,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         int m_RollingPointerId;
+        bool m_UseBuiltInInputSystemActions;
 
         MouseModel m_MouseState;
         NavigationModel m_NavigationState;
@@ -385,6 +406,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #endif
             m_MouseState = new MouseModel(m_RollingPointerId++);
             m_NavigationState = new NavigationModel();
+
+            m_UseBuiltInInputSystemActions = m_EnableBuiltinActionsAsFallback && !InputActionReferencesAreSet();
 
             if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
                 EnableAllActions();
@@ -518,16 +541,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
             {
-                if (IsActionEnabled(m_PointAction))
-                    m_MouseState.position = m_PointAction.action.ReadValue<Vector2>();
-                if (IsActionEnabled(m_ScrollWheelAction))
-                    m_MouseState.scrollDelta = m_ScrollWheelAction.action.ReadValue<Vector2>() * (1 / kPixelPerLine); ;
-                if (IsActionEnabled(m_LeftClickAction))
-                    m_MouseState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
-                if (IsActionEnabled(m_RightClickAction))
-                    m_MouseState.rightButtonPressed = m_RightClickAction.action.IsPressed();
-                if (IsActionEnabled(m_MiddleClickAction))
-                    m_MouseState.middleButtonPressed = m_MiddleClickAction.action.IsPressed();
+                if (m_UseBuiltInInputSystemActions)
+                {
+                    if (Mouse.current != null)
+                    {
+                        m_MouseState.position = Mouse.current.position.ReadValue();
+                        m_MouseState.scrollDelta = Mouse.current.scroll.ReadValue() * (1 / kPixelPerLine);
+                        m_MouseState.leftButtonPressed = Mouse.current.leftButton.isPressed;
+                        m_MouseState.rightButtonPressed = Mouse.current.rightButton.isPressed;
+                        m_MouseState.middleButtonPressed = Mouse.current.middleButton.isPressed;
+                    }
+                }
+                else
+                {
+                    if (IsActionEnabled(m_PointAction))
+                        m_MouseState.position = m_PointAction.action.ReadValue<Vector2>();
+                    if (IsActionEnabled(m_ScrollWheelAction))
+                        m_MouseState.scrollDelta = m_ScrollWheelAction.action.ReadValue<Vector2>() * (1 / kPixelPerLine);
+                    if (IsActionEnabled(m_LeftClickAction))
+                        m_MouseState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
+                    if (IsActionEnabled(m_RightClickAction))
+                        m_MouseState.rightButtonPressed = m_RightClickAction.action.IsPressed();
+                    if (IsActionEnabled(m_MiddleClickAction))
+                        m_MouseState.middleButtonPressed = m_MiddleClickAction.action.IsPressed();
+                }
             }
 
             if (m_ActiveInputMode != ActiveInputMode.InputSystemActions && Input.mousePresent)
@@ -609,12 +646,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
             {
-                if (IsActionEnabled(m_NavigateAction))
-                    m_NavigationState.move = m_NavigateAction.action.ReadValue<Vector2>();
-                if (IsActionEnabled(m_SubmitAction))
-                    m_NavigationState.submitButtonDown = m_SubmitAction.action.WasPressedThisFrame();
-                if (IsActionEnabled(m_CancelAction))
-                    m_NavigationState.cancelButtonDown = m_CancelAction.action.WasPressedThisFrame();
+                if (m_UseBuiltInInputSystemActions)
+                {
+                    if (Gamepad.current != null)
+                    {
+                        // Combine left stick and dpad for navigation movement
+                        m_NavigationState.move = Gamepad.current.leftStick.ReadValue() + Gamepad.current.dpad.ReadValue();
+                        m_NavigationState.submitButtonDown = Gamepad.current.buttonSouth.isPressed;
+                        m_NavigationState.cancelButtonDown = Gamepad.current.buttonEast.isPressed;
+                    }
+                    if (Joystick.current != null)
+                    {
+                        // Combine main joystick and hatswitch for navigation movement
+                        m_NavigationState.move = Joystick.current.stick.ReadValue() +
+                            (Joystick.current.hatswitch != null ? Joystick.current.hatswitch.ReadValue() : Vector2.zero);
+                        m_NavigationState.submitButtonDown = Joystick.current.trigger.isPressed;
+                        // This will always be false until we can rely on a secondary button from the joystick
+                        m_NavigationState.cancelButtonDown = false;
+                    }
+                }
+                else
+                {
+                    if (IsActionEnabled(m_NavigateAction))
+                        m_NavigationState.move = m_NavigateAction.action.ReadValue<Vector2>();
+                    if (IsActionEnabled(m_SubmitAction))
+                        m_NavigationState.submitButtonDown = m_SubmitAction.action.WasPressedThisFrame();
+                    if (IsActionEnabled(m_CancelAction))
+                        m_NavigationState.cancelButtonDown = m_CancelAction.action.WasPressedThisFrame();
+                }
             }
 
             if (m_ActiveInputMode != ActiveInputMode.InputSystemActions && (m_EnableGamepadInput || m_EnableJoystickInput) && Input.GetJoystickNames().Length > 0)
@@ -625,6 +684,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             base.ProcessNavigationState(ref m_NavigationState);
+        }
+
+        bool InputActionReferencesAreSet()
+        {
+            return (m_PointAction != null ||
+                m_LeftClickAction != null ||
+                m_RightClickAction != null ||
+                m_MiddleClickAction != null ||
+                m_NavigateAction != null ||
+                m_SubmitAction != null ||
+                m_CancelAction != null ||
+                m_ScrollWheelAction != null);
         }
 
         void EnableAllActions()

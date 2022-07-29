@@ -40,6 +40,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public event Action<GameObject, PointerEventData> pointerClick;
 
+        #if UNITY_2021_1_OR_NEWER || PACKAGE_DOCS_GENERATION
+        /// <summary>
+        /// This occurs while a UI pointer is moving over elements.
+        /// </summary>
+        /// <remarks>
+        /// This may induce performance penalties due to the frequency in which this event gets called
+        /// and should be used with that consideration in mind.
+        /// Only invoked in Unity 2021.1 and newer.
+        /// </remarks>
+        public event Action<GameObject, PointerEventData> pointerMove;
+        #endif
+
         /// <summary>
         /// This occurs when a potential drag occurs on an element.
         /// </summary>

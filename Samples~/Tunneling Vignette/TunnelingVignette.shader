@@ -16,6 +16,7 @@ Shader "VR/TunnelingVignette"
         {
             Blend SrcAlpha OneMinusSrcAlpha
             ZTest Always
+            ZWrite Off
 
             CGPROGRAM
             #pragma vertex vert

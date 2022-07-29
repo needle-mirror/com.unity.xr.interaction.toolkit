@@ -2,11 +2,10 @@ using System;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 
-#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
-using UnityEngine.InputSystem.LowLevel;
-#else
+#if !(ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER))
 // Disable warnings about unused fields. This component is not functional when the simulated devices cannot be created,
 // but the class signature and SerializeField fields are kept to avoid losing data.
 #pragma warning disable 414 // The field 'field' is assigned but its value is never used
@@ -1991,6 +1990,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
             return actionReference != null ? actionReference.action : null;
 #pragma warning restore IDE0031
+        }
+
+        internal static unsafe bool TryExecuteCommand(InputDeviceCommand* commandPtr, out long result)
+        {
+            // This is a utility method called by XRSimulatedHMD and XRSimulatedController
+            // since both devices share the same command handling.
+            // This replicates the logic in XRToISXDevice::IOCTL (XRInputToISX.cpp).
+            var type = commandPtr->type;
+            if (type == RequestSyncCommand.Type)
+            {
+                // The state is maintained by XRDeviceSimulator, so no need for any change
+                // when focus is regained. Returning success instructs Input System to not
+                // reset the device.
+                result = InputDeviceCommand.GenericSuccess;
+                return true;
+            }
+
+            if (type == QueryCanRunInBackground.Type)
+            {
+                ((QueryCanRunInBackground*)commandPtr)->canRunInBackground = true;
+                result = InputDeviceCommand.GenericSuccess;
+                return true;
+            }
+
+            result = default;
+            return false;
         }
     }
 }

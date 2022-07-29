@@ -96,6 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <remarks>
         /// This will initialize the dynamic attachment point of this object using the position of the Interactor's attachment point.
+        /// This value can be overridden for a specific interactor by overriding <see cref="ShouldMatchAttachPosition"/>.
         /// </remarks>
         /// <seealso cref="useDynamicAttach"/>
         /// <seealso cref="matchAttachRotation"/>
@@ -114,6 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <remarks>
         /// This will initialize the dynamic attachment point of this object using the rotation of the Interactor's attachment point.
+        /// This value can be overridden for a specific interactor by overriding <see cref="ShouldMatchAttachRotation"/>.
         /// </remarks>
         /// <seealso cref="useDynamicAttach"/>
         /// <seealso cref="matchAttachPosition"/>
@@ -130,6 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object.
         /// </summary>
         /// <seealso cref="useDynamicAttach"/>
+        /// <seealso cref="ShouldSnapToColliderVolume"/>
         /// <seealso cref="Collider.ClosestPoint"/>
         public bool snapToColliderVolume
         {
@@ -691,13 +694,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
                         ? m_TargetWorldPosition
                         : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
-                    m_Rigidbody.velocity = Vector3.zero;
                     m_Rigidbody.MovePosition(position);
                 }
 
                 if (m_TrackRotation)
                 {
-                    m_Rigidbody.angularVelocity = Vector3.zero;
                     m_Rigidbody.MoveRotation(m_TargetWorldRotation);
                 }
             }
@@ -865,23 +866,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Unity calls this method automatically when the Interactor first initiates selection of this Interactable.
+        /// Unity calls this method automatically when initializing the dynamic attach pose.
+        /// Used to override <see cref="matchAttachPosition"/> for a specific interactor.
+        /// </summary>
+        /// <param name="interactor">The interactor that is initiating the selection.</param>
+        /// <returns>Returns whether to match the position of the interactor's attachment point when initializing the grab.</returns>
+        /// <seealso cref="matchAttachPosition"/>
+        /// <seealso cref="InitializeDynamicAttachPose"/>
+        protected virtual bool ShouldMatchAttachPosition(IXRSelectInteractor interactor)
+        {
+            if (!m_MatchAttachPosition)
+                return false;
+
+            // We assume the static pose should always be used for sockets.
+            // For Ray Interactors that bring the object to hand (Force Grab enabled), we assume that property
+            // takes precedence since otherwise this interactable wouldn't move if we copied the interactor's attach position,
+            // which would violate the interactor's expected behavior.
+            if (interactor is XRSocketInteractor ||
+                interactor is XRRayInteractor rayInteractor && rayInteractor.useForceGrab)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when initializing the dynamic attach pose.
+        /// Used to override <see cref="matchAttachRotation"/> for a specific interactor.
+        /// </summary>
+        /// <param name="interactor">The interactor that is initiating the selection.</param>
+        /// <returns>Returns whether to match the rotation of the interactor's attachment point when initializing the grab.</returns>
+        /// <seealso cref="matchAttachRotation"/>
+        /// <seealso cref="InitializeDynamicAttachPose"/>
+        protected virtual bool ShouldMatchAttachRotation(IXRSelectInteractor interactor)
+        {
+            // We assume the static pose should always be used for sockets.
+            // Unlike for position, we allow a Ray Interactor with Force Grab enabled to match the rotation
+            // based on the property in this behavior.
+            return m_MatchAttachRotation && !(interactor is XRSocketInteractor);
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when initializing the dynamic attach pose.
+        /// Used to override <see cref="snapToColliderVolume"/> for a specific interactor.
+        /// </summary>
+        /// <param name="interactor">The interactor that is initiating the selection.</param>
+        /// <returns>Returns whether to adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object.</returns>
+        /// <seealso cref="snapToColliderVolume"/>
+        /// <seealso cref="InitializeDynamicAttachPose"/>
+        protected virtual bool ShouldSnapToColliderVolume(IXRSelectInteractor interactor)
+        {
+            return m_SnapToColliderVolume;
+        }
+
+        /// <summary>
+        /// Unity calls this method automatically when the interactor first initiates selection of this interactable.
         /// Override this method to set the pose of the dynamic attachment point. Before this method is called, the transform
         /// is already set as a child GameObject with inherited Transform values.
         /// </summary>
-        /// <param name="interactor">The Interactor that is initiating the selection.</param>
-        /// <param name="dynamicAttachTransform">The dynamic attachment Transform that serves as the attachment point for the given Interactor.</param>
+        /// <param name="interactor">The interactor that is initiating the selection.</param>
+        /// <param name="dynamicAttachTransform">The dynamic attachment Transform that serves as the attachment point for the given interactor.</param>
         /// <remarks>
         /// This method is only called when <see cref="useDynamicAttach"/> is enabled.
         /// </remarks>
         /// <seealso cref="useDynamicAttach"/>
         protected virtual void InitializeDynamicAttachPose(IXRSelectInteractor interactor, Transform dynamicAttachTransform)
         {
-            // We assume the static pose should be used for sockets
-            // and for Ray Interactors that bring the object to hand.
-            // In both these cases, this object should move to the interactor.
-            if (interactor is XRSocketInteractor ||
-                interactor is XRRayInteractor rayInteractor && rayInteractor.useForceGrab)
+            var matchPosition = ShouldMatchAttachPosition(interactor);
+            var matchRotation = ShouldMatchAttachRotation(interactor);
+            if (!matchPosition && !matchRotation)
                 return;
 
             // Copy the pose of the interactor's attach transform
@@ -890,17 +942,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var rotation = interactorAttachTransform.rotation;
 
             // Optionally constrain the position to within the Collider(s) of this Interactable
-            if (m_SnapToColliderVolume && m_MatchAttachPosition &&
+            if (matchPosition && ShouldSnapToColliderVolume(interactor) &&
                 XRInteractableUtility.TryGetClosestPointOnCollider(this, position, out var distanceInfo))
             {
                 position = distanceInfo.point;
             }
 
-            if (m_MatchAttachPosition && m_MatchAttachRotation)
+            if (matchPosition && matchRotation)
                 dynamicAttachTransform.SetPositionAndRotation(position, rotation);
-            else if (m_MatchAttachPosition)
+            else if (matchPosition)
                 dynamicAttachTransform.position = position;
-            else if (m_MatchAttachRotation)
+            else
                 dynamicAttachTransform.rotation = rotation;
         }
 
@@ -914,7 +966,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var thisTransform = transform;
             m_OriginalSceneParent = thisTransform.parent;
             thisTransform.SetParent(null);
-            
+
             UpdateCurrentMovementType();
             SetupRigidbodyGrab(m_Rigidbody);
 
@@ -975,6 +1027,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_ThrowOnDetach)
             {
+                if (m_Rigidbody.isKinematic)
+                {
+                    Debug.LogWarning("Cannot throw a kinematic Rigidbody since updating the velocity and angular velocity of a kinematic Rigidbody is not supported. Disable Throw On Detach or Is Kinematic to fix this issue.", this);
+                    return;
+                }
+
                 m_Rigidbody.velocity = m_DetachVelocity;
                 m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
@@ -1014,7 +1072,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             rigidbody.useGravity = m_UsedGravity;
             rigidbody.drag = m_OldDrag;
             rigidbody.angularDrag = m_OldAngularDrag;
-            
+
             if (!isSelected)
                 m_Rigidbody.useGravity |= m_ForceGravityOnDetach;
         }

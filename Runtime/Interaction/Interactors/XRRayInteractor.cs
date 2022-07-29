@@ -1279,47 +1279,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Update the pose of the attach point
                 if (m_AllowAnchorControl && hasSelection)
                 {
-
-                    // If the m_InputModule is not set (null), we still want to process input.
-                    if (m_InputModule == null || m_InputModule.activeInputMode != XRUIInputModule.ActiveInputMode.InputSystemActions)
+                    var ctrl = xrController as XRController;
+                    if (ctrl != null && ctrl.inputDevice.isValid)
                     {
-                        var ctrl = xrController as XRController;
-                        if (ctrl != null && ctrl.inputDevice.isValid)
+                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
+                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+
+                        ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
+                        ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
+
+                        if (inPressed || outPressed)
                         {
-                            ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
-                            ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+                            var directionAmount = inPressed ? 1f : -1f;
+                            TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
+                        }
 
-                            ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
-                            ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
-
-                            if (inPressed || outPressed)
-                            {
-                                var directionAmount = inPressed ? 1f : -1f;
-                                TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
-                            }
-                            if (leftPressed || rightPressed)
-                            {
-                                var directionAmount = leftPressed ? -1f : 1f;
-                                RotateAnchor(attachTransform, directionAmount);
-                            }
+                        if (leftPressed || rightPressed)
+                        {
+                            var directionAmount = leftPressed ? -1f : 1f;
+                            RotateAnchor(attachTransform, directionAmount);
                         }
                     }
 
-                    // If the m_InputModule is not set (null), we still want to process input.
-                    if (m_InputModule == null || m_InputModule.activeInputMode != XRUIInputModule.ActiveInputMode.InputManagerBindings)
+                    var actionBasedController = xrController as ActionBasedController;
+                    if (actionBasedController != null)
                     {
-                        var actionBasedController = xrController as ActionBasedController;
-                        if (actionBasedController != null)
+                        if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
                         {
-                            if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
-                            {
-                                RotateAnchor(attachTransform, rotateAmt.x);
-                            }
+                            RotateAnchor(attachTransform, rotateAmt.x);
+                        }
 
-                            if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
-                            {
-                                TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
-                            }
+                        if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
+                        {
+                            TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
                         }
                     }
                 }
