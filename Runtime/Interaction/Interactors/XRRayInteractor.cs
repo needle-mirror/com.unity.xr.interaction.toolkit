@@ -85,6 +85,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             SphereCast,
         }
 
+        /// <summary>
+        /// Sets how anchor rotation is controlled.
+        /// </summary>
+        /// <seealso cref="anchorRotationMode"/>
+        public enum AnchorRotationMode
+        {
+            /// <summary>
+            /// The anchor rotates over time while rotation input is active.
+            /// </summary>
+            RotateOverTime,
+
+            /// <summary>
+            /// The anchor rotates to match the direction of the 2-dimensional rotation input.
+            /// </summary>
+            MatchDirection,
+        }
+
         [SerializeField]
         LineType m_LineType = LineType.StraightLine;
         /// <summary>
@@ -391,6 +408,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="rotateSpeed"/>
         /// <seealso cref="translateSpeed"/>
         /// <seealso cref="anchorRotateReferenceFrame"/>
+        /// <seealso cref="anchorRotationMode"/>
         public bool allowAnchorControl
         {
             get => m_AllowAnchorControl;
@@ -411,10 +429,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_RotateSpeed = 180f;
         /// <summary>
-        /// Speed that the anchor is rotated.
+        /// Speed that the anchor is rotated when <see cref="anchorRotationMode"/> is set to <see cref="AnchorRotationMode.RotateOverTime"/>.
         /// </summary>
         /// <seealso cref="allowAnchorControl"/>
         /// <seealso cref="translateSpeed"/>
+        /// <seealso cref="anchorRotationMode"/>
         public float rotateSpeed
         {
             get => m_RotateSpeed;
@@ -441,11 +460,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// When not set, rotates about the local up axis of the attach transform.
         /// </summary>
         /// <seealso cref="allowAnchorControl"/>
-        /// <seealso cref="RotateAnchor"/>
+        /// <seealso cref="RotateAnchor(Transform, float)"/>
+        /// <seealso cref="RotateAnchor(Transform, Vector2, Quaternion)"/>
         public Transform anchorRotateReferenceFrame
         {
             get => m_AnchorRotateReferenceFrame;
             set => m_AnchorRotateReferenceFrame = value;
+        }
+
+        [SerializeField]
+        AnchorRotationMode m_AnchorRotationMode;
+        /// <summary>
+        /// Gets or sets how the anchor rotation is controlled.
+        /// </summary>
+        /// <seealso cref="allowAnchorControl"/>
+        /// <seealso cref="AnchorRotationMode"/>
+        public AnchorRotationMode anchorRotationMode
+        {
+            get => m_AnchorRotationMode;
+            set => m_AnchorRotationMode = value;
         }
 
         /// <summary>
@@ -542,6 +575,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         static readonly Vector3[] s_ScratchControlPoints = new Vector3[3];
 
+        PhysicsScene m_LocalPhysicsScene;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -555,6 +590,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void Awake()
         {
             base.Awake();
+
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
 
             var capacity = m_LineType == LineType.StraightLine ? 2 : m_SampleFrequency;
             m_SamplePoints = new List<SamplePoint>(capacity);
@@ -620,7 +657,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var samplePoint = m_SamplePoints[i];
 
                 // Change the color of the points after the segment where a hit happened
-                const float radius = 0.025f;
+                var radius = m_HitDetectionType == HitDetectionType.SphereCast ? m_SphereCastRadius : 0.025f;
                 var color = hitIndex == 0 || i < hitIndex
                     ? new Color(163 / 255f, 73 / 255f, 164 / 255f, 0.75f)
                     : new Color(205 / 255f, 143 / 255f, 205 / 255f, 0.5f);
@@ -1204,6 +1241,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Rotates the attach anchor for this interactor to match a given direction. This can be useful to compute a direction angle for teleportation.
+        /// </summary>
+        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="direction">The directional input.</param>
+        /// <param name="referenceRotation">The reference rotation to define the up axis for rotation.</param>
+        protected virtual void RotateAnchor(Transform anchor, Vector2 direction, Quaternion referenceRotation)
+        {
+            if (Mathf.Approximately(direction.sqrMagnitude, 0f))
+                return;
+
+            var rotateAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+            var directionalQuaternion = Quaternion.AngleAxis(rotateAngle, Vector3.up);
+            anchor.rotation = referenceRotation * directionalQuaternion;
+        }
+
+        /// <summary>
         /// Translates the attach anchor for this interactor. This can be useful to move a held object closer or further away from the interactor.
         /// </summary>
         /// <param name="rayOrigin">The starting position and direction of any ray casts.</param>
@@ -1282,9 +1335,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var ctrl = xrController as XRController;
                     if (ctrl != null && ctrl.inputDevice.isValid)
                     {
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
-
                         ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
                         ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
 
@@ -1294,19 +1344,59 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
                         }
 
-                        if (leftPressed || rightPressed)
+                        switch (m_AnchorRotationMode)
                         {
-                            var directionAmount = leftPressed ? -1f : 1f;
-                            RotateAnchor(attachTransform, directionAmount);
+                            case AnchorRotationMode.RotateOverTime:
+                                ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
+                                ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+                                if (leftPressed || rightPressed)
+                                {
+                                    var directionAmount = leftPressed ? -1f : 1f;
+                                    RotateAnchor(attachTransform, directionAmount);
+                                }
+                                break;
+
+                            case AnchorRotationMode.MatchDirection:
+                                if (ctrl.inputDevice.TryReadAxis2DValue(ctrl.directionalAnchorRotation, out var directionalValue))
+                                {
+                                    var referenceRotation = m_AnchorRotateReferenceFrame != null
+                                        ? m_AnchorRotateReferenceFrame.rotation
+                                        : GetAttachPoseOnSelect(interactablesSelected[0]).rotation;
+
+                                    RotateAnchor(attachTransform, directionalValue, referenceRotation);
+                                }
+                                break;
+
+                            default:
+                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode}.");
+                                break;
                         }
                     }
 
                     var actionBasedController = xrController as ActionBasedController;
                     if (actionBasedController != null)
                     {
-                        if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                        switch (m_AnchorRotationMode)
                         {
-                            RotateAnchor(attachTransform, rotateAmt.x);
+                            case AnchorRotationMode.RotateOverTime:
+                                if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                                    RotateAnchor(attachTransform, rotateAmt.x);
+                                break;
+
+                            case AnchorRotationMode.MatchDirection:
+                                if (TryRead2DAxis(actionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
+                                {
+                                    var referenceRotation = m_AnchorRotateReferenceFrame != null
+                                        ? m_AnchorRotateReferenceFrame.rotation
+                                        : GetAttachPoseOnSelect(interactablesSelected[0]).rotation;
+
+                                    RotateAnchor(attachTransform, directionAmt, referenceRotation);
+                                }
+                                break;
+
+                            default:
+                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode}.");
+                                break;
                         }
 
                         if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
@@ -1453,11 +1543,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Cast from last point to next point to check if there are hits in between
             if (m_HitDetectionType == HitDetectionType.SphereCast && m_SphereCastRadius > 0f)
             {
-                return Physics.SphereCastNonAlloc(from, m_SphereCastRadius, (to - from).normalized,
+                return m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, (to - from).normalized,
                     m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
             }
 
-            return Physics.RaycastNonAlloc(from, (to - from).normalized,
+            return m_LocalPhysicsScene.Raycast(from, (to - from).normalized,
                 m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
         }
 

@@ -198,6 +198,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Cast a ray from a point in screen space against trackables, i.e., detected features such as planes.
         /// Can optionally fallback to hit test against Colliders in the loaded Scenes when no trackables were hit.
         /// </summary>
+        /// <remarks>
+        /// Unity uses the 3D physics scene of the camera when performing the fallback ray cast.
+        /// </remarks>
         /// <param name="screenPoint">The point, in device screen pixels, from which to cast.</param>
         /// <param name="hitResults">Contents are replaced with the ray cast results, if successful.</param>
         /// <param name="sessionOrigin">The <see cref="XROrigin"/> used for ray casting.</param>
@@ -235,7 +238,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return false;
 
             var ray = camera.ScreenPointToRay(screenPoint);
-            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, fallbackLayerMask))
+            if (camera.gameObject.scene.GetPhysicsScene().Raycast(ray.origin, ray.direction, out var hit, Mathf.Infinity, fallbackLayerMask))
             {
                 var transform = sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform;
                 hitResults.Add(new ARRaycastHit(

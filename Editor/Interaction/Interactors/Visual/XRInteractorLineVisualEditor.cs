@@ -18,6 +18,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_ValidColorGradient;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.invalidColorGradient"/>.</summary>
         protected SerializedProperty m_InvalidColorGradient;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.blockedColorGradient"/>.</summary>
+        protected SerializedProperty m_BlockedColorGradient;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.smoothMovement"/>.</summary>
         protected SerializedProperty m_SmoothMovement;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.followTightness"/>.</summary>
@@ -26,14 +28,21 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_SnapThresholdDistance;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.reticle"/>.</summary>
         protected SerializedProperty m_Reticle;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.blockedReticle"/>.</summary>
+        protected SerializedProperty m_BlockedReticle;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.overrideInteractorLineLength"/>.</summary>
         protected SerializedProperty m_OverrideInteractorLineLength;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineLength"/>.</summary>
         protected SerializedProperty m_LineLength;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.stopLineAtFirstRaycastHit"/>.</summary>
         protected SerializedProperty m_StopLineAtFirstRaycastHit;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.stopLineAtSelection"/>.</summary>
+        protected SerializedProperty m_StopLineAtSelection;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.treatSelectionAsValidState"/>.</summary>
+        protected SerializedProperty m_TreatSelectionAsValidState;
 
         readonly List<Collider> m_ReticleColliders = new List<Collider>();
+        readonly List<Collider> m_BlockedReticleColliders = new List<Collider>();
         XRRayInteractor m_RayInteractor;
         bool m_ReticleCheckInitialized;
 
@@ -52,6 +61,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent validColorGradient = EditorGUIUtility.TrTextContent("Valid Color Gradient", "Controls the color of the line as a gradient from start to end to indicate a valid state.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.invalidColorGradient"/>.</summary>
             public static readonly GUIContent invalidColorGradient = EditorGUIUtility.TrTextContent("Invalid Color Gradient", "Controls the color of the line as a gradient from start to end to indicate an invalid state.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.blockedColorGradient"/>.</summary>
+            public static readonly GUIContent blockedColorGradient = EditorGUIUtility.TrTextContent("Blocked Color Gradient", "Controls the color of the line as a gradient from start to end to indicate a state where the interactor has a valid target but selection is blocked.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.smoothMovement"/>.</summary>
             public static readonly GUIContent smoothMovement = EditorGUIUtility.TrTextContent("Smooth Movement", "Controls whether the rendered segments will be delayed from and smoothly follow the target segments.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.followTightness"/>.</summary>
@@ -60,12 +71,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent snapThresholdDistance = EditorGUIUtility.TrTextContent("Snap Threshold Distance", "Controls the threshold distance between line points at two consecutive frames to snap rendered segments to target segments when Smooth Movement is enabled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.reticle"/>.</summary>
             public static readonly GUIContent reticle = EditorGUIUtility.TrTextContent("Reticle", "Stores the reticle that will appear at the end of the line when it is valid.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.blockedReticle"/>.</summary>
+            public static readonly GUIContent blockedReticle = EditorGUIUtility.TrTextContent("Blocked Reticle", "Stores the reticle that will appear at the end of the line when the interactor has a valid target but selection is blocked.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.overrideInteractorLineLength"/>.</summary>
             public static readonly GUIContent overrideInteractorLineLength = EditorGUIUtility.TrTextContent("Override Line Length", "Controls which source is used to determine the length of the line. Set to true to use the Line Length set by this behavior. Set to false have the length of the line determined by the interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineLength"/>.</summary>
             public static readonly GUIContent lineLength = EditorGUIUtility.TrTextContent("Line Length", "Controls the length of the line when overriding.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.stopLineAtFirstRaycastHit"/>.</summary>
             public static readonly GUIContent stopLineAtFirstRaycastHit = EditorGUIUtility.TrTextContent("Stop Line At First Raycast Hit", "Controls whether the line will be cut short by the first invalid ray cast hit. The line will always stop at valid targets, even if this is false.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.stopLineAtSelection"/>.</summary>
+            public static readonly GUIContent stopLineAtSelection = EditorGUIUtility.TrTextContent("Stop Line At Selection", "Controls whether the line will stop at the attach point of the closest interactable selected by the interactor, if there is one.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.treatSelectionAsValidState"/>.</summary>
+            public static readonly GUIContent treatSelectionAsValidState = EditorGUIUtility.TrTextContent("Treat Selection As Valid State", "Forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the interactor has any valid targets.");
 
             /// <summary>The help box message when the Reticle has a Collider that will disrupt the XR Ray Interactor ray cast.</summary>
             public static readonly GUIContent reticleColliderWarning = EditorGUIUtility.TrTextContent("Reticle has a Collider which may disrupt the XR Ray Interactor ray cast. Remove or disable the Collider component on the Reticle or adjust the Raycast Mask/Collider Layer.");
@@ -80,13 +97,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_WidthCurve = serializedObject.FindProperty("m_WidthCurve");
             m_ValidColorGradient = serializedObject.FindProperty("m_ValidColorGradient");
             m_InvalidColorGradient = serializedObject.FindProperty("m_InvalidColorGradient");
+            m_BlockedColorGradient = serializedObject.FindProperty("m_BlockedColorGradient");
             m_SmoothMovement = serializedObject.FindProperty("m_SmoothMovement");
             m_FollowTightness = serializedObject.FindProperty("m_FollowTightness");
             m_SnapThresholdDistance = serializedObject.FindProperty("m_SnapThresholdDistance");
             m_Reticle = serializedObject.FindProperty("m_Reticle");
+            m_BlockedReticle = serializedObject.FindProperty("m_BlockedReticle");
             m_OverrideInteractorLineLength = serializedObject.FindProperty("m_OverrideInteractorLineLength");
             m_LineLength = serializedObject.FindProperty("m_LineLength");
             m_StopLineAtFirstRaycastHit = serializedObject.FindProperty("m_StopLineAtFirstRaycastHit");
+            m_StopLineAtSelection = serializedObject.FindProperty("m_StopLineAtSelection");
+            m_TreatSelectionAsValidState = serializedObject.FindProperty("m_TreatSelectionAsValidState");
 
             m_ReticleCheckInitialized = false;
         }
@@ -144,6 +165,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_ValidColorGradient, Contents.validColorGradient);
             EditorGUILayout.PropertyField(m_InvalidColorGradient, Contents.invalidColorGradient);
+            EditorGUILayout.PropertyField(m_BlockedColorGradient, Contents.blockedColorGradient);
+            EditorGUILayout.PropertyField(m_TreatSelectionAsValidState, Contents.treatSelectionAsValidState);
         }
 
         /// <summary>
@@ -161,6 +184,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             EditorGUILayout.PropertyField(m_StopLineAtFirstRaycastHit, Contents.stopLineAtFirstRaycastHit);
+            EditorGUILayout.PropertyField(m_StopLineAtSelection, Contents.stopLineAtSelection);
         }
 
         /// <summary>
@@ -185,31 +209,53 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawReticle()
         {
+            // Get the list of Colliders on  each reticle if this is the first time here in order to reduce the cost of evaluating the collider check warnings.
+            if (!serializedObject.isEditingMultipleObjects && !m_ReticleCheckInitialized)
+            {
+                GatherObjectColliders(m_Reticle, m_ReticleColliders);
+                GatherObjectColliders(m_BlockedReticle, m_BlockedReticleColliders);
+                m_RayInteractor = ((XRInteractorLineVisual)serializedObject.targetObject).GetComponent<XRRayInteractor>();
+                m_ReticleCheckInitialized = true;
+            }
+
+            DrawReticleProperty(m_Reticle, Contents.reticle, m_ReticleColliders);
+            DrawReticleProperty(m_BlockedReticle, Contents.blockedReticle, m_BlockedReticleColliders);
+        }
+
+        static void GatherObjectColliders(SerializedProperty gameObjectProperty, List<Collider> colliders)
+        {
+            if (gameObjectProperty.objectReferenceValue == null)
+            {
+                colliders.Clear();
+                return;
+            }
+
+            var gameObject = (GameObject)gameObjectProperty.objectReferenceValue;
+            gameObject.GetComponentsInChildren(colliders);
+        }
+
+        void DrawReticleProperty(SerializedProperty property, GUIContent label, List<Collider> reticleColliders)
+        {
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(m_Reticle, Contents.reticle);
+                EditorGUILayout.PropertyField(property, label);
 
                 // Show a warning if the reticle GameObject has a Collider, which would cause
                 // a feedback loop issue with the raycast hitting the reticle.
-                if (!serializedObject.isEditingMultipleObjects && m_Reticle.objectReferenceValue != null)
+                if (!serializedObject.isEditingMultipleObjects)
                 {
-                    // Get the list of Colliders on the reticle, only doing so when the reticle property changed
-                    // or if this is the first time here in order to reduce the cost of evaluating this warning.
-                    if (check.changed || !m_ReticleCheckInitialized)
+                    // Update the list of Colliders on the reticle if the reticle property changed.
+                    if (check.changed)
                     {
-                        var reticle = (GameObject)m_Reticle.objectReferenceValue;
-                        reticle.GetComponentsInChildren(m_ReticleColliders);
-
+                        GatherObjectColliders(property, reticleColliders);
                         m_RayInteractor = ((XRInteractorLineVisual)serializedObject.targetObject).GetComponent<XRRayInteractor>();
-
-                        m_ReticleCheckInitialized = true;
                     }
 
-                    if (m_ReticleColliders.Count > 0)
+                    if (reticleColliders.Count > 0)
                     {
                         // If there is an XR Ray Interactor, allow the Collider as long as the Raycast Mask is set to ignore it
                         var raycastMask = m_RayInteractor != null ? m_RayInteractor.raycastMask : s_EverythingMask;
-                        foreach (var collider in m_ReticleColliders)
+                        foreach (var collider in reticleColliders)
                         {
                             if (collider != null && collider.enabled && (raycastMask & (1 << collider.gameObject.layer)) != 0)
                             {

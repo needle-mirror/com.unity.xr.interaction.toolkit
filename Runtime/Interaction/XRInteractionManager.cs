@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Profiling;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
@@ -71,6 +74,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
+        [SerializeField]
+        [RequireInterface(typeof(IXRHoverFilter))]
+        List<Object> m_StartingHoverFilters = new List<Object>();
+
+        /// <summary>
+        /// The hover filters that this object uses to automatically populate the <see cref="hoverFilters"/> List at
+        /// startup (optional, may be empty).
+        /// All objects in this list should implement the <see cref="IXRHoverFilter"/> interface.
+        /// </summary>
+        /// <remarks>
+        /// To access and modify the hover filters used after startup, the <see cref="hoverFilters"/> List should
+        /// be used instead.
+        /// </remarks>
+        /// <seealso cref="hoverFilters"/>
+        public List<Object> startingHoverFilters
+        {
+            get => m_StartingHoverFilters;
+            set => m_StartingHoverFilters = value;
+        }
+
+        readonly ExposedRegistrationList<IXRHoverFilter> m_HoverFilters = new ExposedRegistrationList<IXRHoverFilter> { bufferChanges = false };
+
+        /// <summary>
+        /// The list of global hover filters in this object.
+        /// Used as additional hover validations for this manager.
+        /// </summary>
+        /// <remarks>
+        /// While processing hover filters, all changes to this list don't have an immediate effect. These changes are
+        /// buffered and applied when the processing is finished.
+        /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
+        /// </remarks>
+        /// <seealso cref="ProcessHoverFilters"/>
+        public IXRFilterList<IXRHoverFilter> hoverFilters => m_HoverFilters;
+
+        [SerializeField]
+        [RequireInterface(typeof(IXRSelectFilter))]
+        List<Object> m_StartingSelectFilters = new List<Object>();
+
+        /// <summary>
+        /// The select filters that this object uses to automatically populate the <see cref="selectFilters"/> List at
+        /// startup (optional, may be empty).
+        /// All objects in this list should implement the <see cref="IXRSelectFilter"/> interface.
+        /// </summary>
+        /// <remarks>
+        /// To access and modify the select filters used after startup, the <see cref="selectFilters"/> List should
+        /// be used instead.
+        /// </remarks>
+        /// <seealso cref="selectFilters"/>
+        public List<Object> startingSelectFilters
+        {
+            get => m_StartingSelectFilters;
+            set => m_StartingSelectFilters = value;
+        }
+
+        readonly ExposedRegistrationList<IXRSelectFilter> m_SelectFilters = new ExposedRegistrationList<IXRSelectFilter> { bufferChanges = false };
+
+        /// <summary>
+        /// The list of global select filters in this object.
+        /// Used as additional select validations for this manager.
+        /// </summary>
+        /// <remarks>
+        /// While processing select filters, all changes to this list don't have an immediate effect. Theses changes are
+        /// buffered and applied when the processing is finished.
+        /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
+        /// </remarks>
+        /// <seealso cref="ProcessSelectFilters"/>
+        public IXRFilterList<IXRSelectFilter> selectFilters => m_SelectFilters;
+
         /// <summary>
         /// (Read Only) List of enabled Interaction Manager instances.
         /// </summary>
@@ -103,6 +174,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Reusable list of Interactables for retrieving the current selected Interactables of an Interactor.
         /// </summary>
         readonly List<IXRSelectInteractable> m_CurrentSelected = new List<IXRSelectInteractable>();
+
+        /// <summary>
+        /// Map of Interactables that have the highest priority for selection in a frame.
+        /// </summary>
+        readonly Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>> m_HighestPriorityTargetMap = new Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>>();
+
+        /// <summary>
+        /// Pool of Target Priority Interactor lists. Used by m_HighestPriorityTargetMap.
+        /// </summary>
+        static readonly LinkedPool<List<IXRTargetPriorityInteractor>> s_TargetPriorityInteractorListPool = new LinkedPool<List<IXRTargetPriorityInteractor>>(() => new List<IXRTargetPriorityInteractor>(), actionOnRelease: list => list.Clear(), collectionCheck: false);
 
         /// <summary>
         /// Reusable list of valid targets for an Interactor.
@@ -145,6 +226,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
+        protected virtual void Awake()
+        {
+            // Setup the starting filters
+            m_HoverFilters.RegisterReferences(m_StartingHoverFilters, this);
+            m_SelectFilters.RegisterReferences(m_StartingSelectFilters, this);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected virtual void OnEnable()
         {
             activeInteractionManagers.Add(this);
@@ -158,6 +249,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             Application.onBeforeRender -= OnBeforeRender;
             activeInteractionManagers.Remove(this);
+            ClearPriorityForSelectionMap();
         }
 
         /// <summary>
@@ -166,6 +258,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void Update()
         {
+            ClearPriorityForSelectionMap();
             FlushRegistration();
 
             using (s_PreprocessInteractorsMarker.Auto())
@@ -316,6 +409,66 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 interactable.ProcessInteractable(updatePhase);
             }
+        }
+
+        /// <summary>
+        /// Whether the given Interactor can hover the given Interactable.
+        /// You can extend this method to add global hover validations by code.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor can hover the given Interactable.</returns>
+        /// <remarks>
+        /// You can also extend the global hover validations without needing to create a derived class by adding hover
+        /// filters to this object (see <see cref="startingHoverFilters"/> and <see cref="hoverFilters"/>).
+        /// </remarks>
+        /// <seealso cref="IsHoverPossible"/>
+        public virtual bool CanHover(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+            return interactor.isHoverActive && IsHoverPossible(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Whether the given Interactor would be able to hover the given Interactable if the Interactor were in a state where it could hover.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor would be able to hover the given Interactable if the Interactor were in a state where it could hover.</returns>
+        /// <seealso cref="CanHover"/>
+        public bool IsHoverPossible(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+            return HasInteractionLayerOverlap(interactor, interactable) && ProcessHoverFilters(interactor, interactable) &&
+                interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor);
+        }
+
+        /// <summary>
+        /// Whether the given Interactor can select the given Interactable.
+        /// You can extend this method to add global select validations by code.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor can select the given Interactable.</returns>
+        /// <remarks>
+        /// You can also extend the global select validations without needing to create a derived class by adding select
+        /// filters to this object (see <see cref="startingSelectFilters"/> and <see cref="selectFilters"/>).
+        /// </remarks>
+        /// <seealso cref="IsSelectPossible"/>
+        public virtual bool CanSelect(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+            return interactor.isSelectActive && IsSelectPossible(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Whether the given Interactor would be able to select the given Interactable if the Interactor were in a state where it could select.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor would be able to select the given Interactable if the Interactor were in a state where it could select.</returns>
+        /// <seealso cref="CanSelect"/>
+        public bool IsSelectPossible(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+            return HasInteractionLayerOverlap(interactor, interactable) && ProcessSelectFilters(interactor, interactable) &&
+                interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor);
         }
 
         /// <summary>
@@ -586,6 +739,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Gets whether the given Interactable is the highest priority candidate for selection in this frame, useful for
+        /// custom feedback.
+        /// Only <see cref="IXRTargetPriorityInteractor"/>s that are configured to monitor Targets will be considered.
+        /// </summary>
+        /// <param name="target">The Interactable to check if it's the highest priority candidate for selection.</param>
+        /// <param name="interactors">(Optional) Returns the list of Interactors where the given Interactable has the highest priority for selection.</param>
+        /// <returns>Returns <see langword="true"/> if the given Interactable is the highest priority candidate for selection. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// Clears <paramref name="interactors"/> before adding to it.
+        /// </remarks>
+        public bool IsHighestPriorityTarget(IXRSelectInteractable target, List<IXRTargetPriorityInteractor> interactors = null)
+        {
+            if (!m_HighestPriorityTargetMap.TryGetValue(target, out var targetPriortyInteractors))
+                return false;
+
+            if (interactors == null)
+                return true;
+
+            interactors.Clear();
+            interactors.AddRange(targetPriortyInteractors);
+            return true;
+        }
+
+        /// <summary>
         /// Retrieves the list of Interactables that the given Interactor could possibly interact with this frame.
         /// This list is sorted by priority (with highest priority first), and will only contain Interactables
         /// that are registered with this Interaction Manager.
@@ -676,7 +853,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var interactable = m_CurrentSelected[i];
                 // Selection, unlike hover, can control whether the interactable has to continue being a valid target
                 // to automatically cause it to be deselected.
-                if (!interactor.isSelectActive || !HasInteractionLayerOverlap(interactor, interactable) || !interactor.CanSelect(interactable) || !interactable.IsSelectableBy(interactor) || (!interactor.keepSelectedTargetValid && !m_UnorderedValidTargets.Contains(interactable)))
+                if (!CanSelect(interactor, interactable) || (!interactor.keepSelectedTargetValid && !m_UnorderedValidTargets.Contains(interactable)))
                     SelectExitInternal(interactor, interactable);
             }
         }
@@ -763,7 +940,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             for (var i = m_CurrentHovered.Count - 1; i >= 0; --i)
             {
                 var interactable = m_CurrentHovered[i];
-                if (!interactor.isHoverActive || !HasInteractionLayerOverlap(interactor, interactable) || !interactor.CanHover(interactable) || !interactable.IsHoverableBy(interactor) || !m_UnorderedValidTargets.Contains(interactable))
+                if (!CanHover(interactor, interactable) || !m_UnorderedValidTargets.Contains(interactable))
                     HoverExitInternal(interactor, interactable);
             }
         }
@@ -1149,20 +1326,49 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor to potentially enter its selection state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
+        /// <remarks>
+        /// If the Interactor implements <see cref="IXRTargetPriorityInteractor"/> and is configured to monitor Targets, this method will update its
+        /// Targets For Selection property.
+        /// </remarks>
         /// <seealso cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/>
         protected virtual void InteractorSelectValidTargets(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
             if (validTargets.Count == 0)
                 return;
 
+            var targetPriorityInteractor = interactor as IXRTargetPriorityInteractor;
+            var targetPriorityMode = TargetPriorityMode.None;
+            if (targetPriorityInteractor != null)
+                targetPriorityMode = targetPriorityInteractor.targetPriorityMode;
+
+            var foundHighestPriorityTarget = false;
             foreach (var target in validTargets)
             {
-                if (target is IXRSelectInteractable interactable)
+                if (!(target is IXRSelectInteractable interactable))
+                    continue;
+
+                if (targetPriorityMode == TargetPriorityMode.None || targetPriorityMode == TargetPriorityMode.HighestPriorityOnly && foundHighestPriorityTarget)
                 {
-                    if (interactor.isSelectActive && HasInteractionLayerOverlap(interactor, interactable) && interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor) && !interactor.IsSelecting(interactable))
-                    {
+                    if (CanSelect(interactor, interactable) && !interactor.IsSelecting(interactable))
                         SelectEnterInternal(interactor, interactable);
+                }
+                else if (CanSelect(interactor, interactable))
+                {
+                    if (!foundHighestPriorityTarget)
+                    {
+                        foundHighestPriorityTarget = true;
+
+                        if (!m_HighestPriorityTargetMap.TryGetValue(interactable, out var interactorList))
+                        {
+                            interactorList = s_TargetPriorityInteractorListPool.Get();
+                            m_HighestPriorityTargetMap[interactable] = interactorList;
+                        }
+                        interactorList.Add(targetPriorityInteractor);
                     }
+
+                    // ReSharper disable once PossibleNullReferenceException -- Guaranteed to not be null in this branch since not TargetPriorityMode.None
+                    targetPriorityInteractor.targetsForSelection?.Add(interactable);
+                    SelectEnterInternal(interactor, interactable);
                 }
             }
         }
@@ -1191,7 +1397,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (target is IXRHoverInteractable interactable)
                 {
-                    if (interactor.isHoverActive && HasInteractionLayerOverlap(interactor, interactable) && interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor) && !interactor.IsHovering(interactable))
+                    if (CanHover(interactor, interactable) && !interactor.IsHovering(interactable))
                     {
                         HoverEnterInternal(interactor, interactable);
                     }
@@ -1258,12 +1464,58 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return (interactor.interactionLayers & interactable.interactionLayers) != 0;
         }
 
+        /// <summary>
+        /// Returns the processing value of the filters in <see cref="hoverFilters"/> for the given Interactor and
+        /// Interactable.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be validated by the hover filters.</param>
+        /// <param name="interactable">The Interactable to be validated by the hover filters.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
+        /// <see cref="hoverFilters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// </returns>
+        protected bool ProcessHoverFilters(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+            return XRFilterUtility.Process(m_HoverFilters, interactor, interactable);
+        }
+
+        /// <summary>
+        /// Returns the processing value of the filters in <see cref="selectFilters"/> for the given Interactor and
+        /// Interactable.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be validated by the select filters.</param>
+        /// <param name="interactable">The Interactable to be validated by the select filters.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
+        /// <see cref="selectFilters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// </returns>
+        protected bool ProcessSelectFilters(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+            return XRFilterUtility.Process(m_SelectFilters, interactor, interactable);
+        }
+
         void ExitInteractableSelection(IXRSelectInteractable interactable)
         {
             for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
             {
                 SelectExitInternal(interactable.interactorsSelecting[i], interactable);
             }
+        }
+
+        void ClearPriorityForSelectionMap()
+        {
+            if (m_HighestPriorityTargetMap.Count == 0)
+                return;
+
+            foreach (var interactorList in m_HighestPriorityTargetMap.Values)
+            {
+                foreach (var interactor in interactorList)
+                    interactor?.targetsForSelection?.Clear();
+
+                s_TargetPriorityInteractorListPool.Release(interactorList);
+            }
+
+            m_HighestPriorityTargetMap.Clear();
         }
 
         void FlushRegistration()
@@ -1284,181 +1536,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     destination.Add(destinationItem);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Use this class to maintain a registration of Interactors or Interactables. This maintains
-        /// a synchronized list that stays constant until buffered registration status changes are
-        /// explicitly committed.
-        /// </summary>
-        /// <typeparam name="T">The type of object to register, i.e. <see cref="XRBaseInteractor"/> or <see cref="XRBaseInteractable"/>.</typeparam>
-        /// <remarks>
-        /// Objects may be registered or unregistered from an Interaction Manager
-        /// at any time, including when processing objects.
-        /// For consistency with the functionality of Unity components which do not have
-        /// Update called the same frame in which they are enabled, disabled, or destroyed,
-        /// this class will maintain multiple lists to achieve that desired result with processing
-        /// Interactors and Interactables.
-        /// </remarks>
-        internal class RegistrationList<T>
-        {
-            /// <summary>
-            /// A snapshot of registered items that should potentially be processed this update phase of the current frame.
-            /// The count of items shall only change upon a call to <see cref="Flush"/>.
-            /// </summary>
-            /// <remarks>
-            /// Items being in this collection does not imply that the item is currently registered.
-            /// <br />
-            /// Logically this should be a <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/>
-            /// to avoid allocations when iterating. Use <see cref="Register"/> and <see cref="Unregister"/>
-            /// instead of directly changing this list.
-            /// </remarks>
-            public List<T> registeredSnapshot { get; } = new List<T>();
-
-            readonly List<T> m_BufferedAdd = new List<T>();
-            readonly List<T> m_BufferedRemove = new List<T>();
-
-            readonly HashSet<T> m_UnorderedBufferedAdd = new HashSet<T>();
-            readonly HashSet<T> m_UnorderedBufferedRemove = new HashSet<T>();
-            readonly HashSet<T> m_UnorderedRegisteredSnapshot = new HashSet<T>();
-            readonly HashSet<T> m_UnorderedRegisteredItems = new HashSet<T>();
-
-            /// <summary>
-            /// Checks the registration status of <paramref name="item"/>.
-            /// </summary>
-            /// <param name="item">The item to query.</param>
-            /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
-            /// <remarks>
-            /// This includes pending changes that have not yet been pushed to <see cref="registeredSnapshot"/>.
-            /// </remarks>
-            /// <seealso cref="IsStillRegistered"/>
-
-            public bool IsRegistered(T item) => m_UnorderedRegisteredItems.Contains(item);
-
-            /// <summary>
-            /// Faster variant of <see cref="IsRegistered"/> that assumes that the <paramref name="item"/> is in the snapshot.
-            /// It short circuits the check when there are no pending changes to unregister, which is usually the case.
-            /// </summary>
-            /// <param name="item">The item to query.</param>
-            /// <returns>Returns <see langword="true"/> if registered</returns>
-            /// <remarks>
-            /// This includes pending changes that have not yet been pushed to <see cref="registeredSnapshot"/>.
-            /// Use this method instead of <see cref="IsRegistered"/> when iterating over <see cref="registeredSnapshot"/>
-            /// for improved performance.
-            /// </remarks>
-            /// <seealso cref="IsRegistered"/>
-            public bool IsStillRegistered(T item) => m_UnorderedBufferedRemove.Count == 0 || !m_UnorderedBufferedRemove.Contains(item);
-
-            /// <summary>
-            /// Register <paramref name="item"/>.
-            /// </summary>
-            /// <param name="item">The item to register.</param>
-            /// <returns>Returns <see langword="true"/> if a change in registration status occurred. Otherwise, returns <see langword="false"/>.</returns>
-            public bool Register(T item)
-            {
-                if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Contains(item))
-                    return false;
-
-                if ((m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Remove(item)) || !m_UnorderedRegisteredSnapshot.Contains(item))
-                {
-                    m_BufferedRemove.Remove(item);
-                    m_BufferedAdd.Add(item);
-                    m_UnorderedBufferedAdd.Add(item);
-                    m_UnorderedRegisteredItems.Add(item);
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Unregister <paramref name="item"/>.
-            /// </summary>
-            /// <param name="item">The item to unregister.</param>
-            /// <returns>Returns <see langword="true"/> if a change in registration status occurred. Otherwise, returns <see langword="false"/>.</returns>
-            public bool Unregister(T item)
-            {
-                if (m_UnorderedBufferedRemove.Count > 0 && m_BufferedRemove.Contains(item))
-                    return false;
-
-                if ((m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item)) || m_UnorderedRegisteredSnapshot.Contains(item))
-                {
-                    m_BufferedAdd.Remove(item);
-                    m_BufferedRemove.Add(item);
-                    m_UnorderedBufferedRemove.Add(item);
-                    m_UnorderedRegisteredItems.Remove(item);
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Flush pending registration changes into <see cref="registeredSnapshot"/>.
-            /// </summary>
-            public void Flush()
-            {
-                // This method is called multiple times each frame,
-                // so additional explicit Count checks are done for
-                // performance.
-                if (m_BufferedRemove.Count > 0)
-                {
-                    foreach (var item in m_BufferedRemove)
-                    {
-                        registeredSnapshot.Remove(item);
-                        m_UnorderedRegisteredSnapshot.Remove(item);
-                    }
-
-                    m_BufferedRemove.Clear();
-                    m_UnorderedBufferedRemove.Clear();
-                }
-
-                if (m_BufferedAdd.Count > 0)
-                {
-                    foreach (var item in m_BufferedAdd)
-                    {
-                        if (!m_UnorderedRegisteredSnapshot.Contains(item))
-                        {
-                            registeredSnapshot.Add(item);
-                            m_UnorderedRegisteredSnapshot.Add(item);
-                        }
-                    }
-
-                    m_BufferedAdd.Clear();
-                    m_UnorderedBufferedAdd.Clear();
-                }
-            }
-
-            /// <summary>
-            /// Return all registered items into List <paramref name="results"/> in the order they were registered.
-            /// </summary>
-            /// <param name="results">List to receive registered items.</param>
-            /// <remarks>
-            /// Clears <paramref name="results"/> before adding to it.
-            /// </remarks>
-            public void GetRegisteredItems(List<T> results)
-            {
-                if (results == null)
-                    throw new ArgumentNullException(nameof(results));
-
-                results.Clear();
-                EnsureCapacity(results, registeredSnapshot.Count - m_BufferedRemove.Count + m_BufferedAdd.Count);
-                foreach (var item in registeredSnapshot)
-                {
-                    if (m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Contains(item))
-                        continue;
-
-                    results.Add(item);
-                }
-
-                results.AddRange(m_BufferedAdd);
-            }
-
-            static void EnsureCapacity(List<T> list, int capacity)
-            {
-                if (list.Capacity < capacity)
-                    list.Capacity = capacity;
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -39,6 +40,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected static class Contents
         {
+            public static readonly GUIContent projectValidation = EditorGUIUtility.TrTextContentWithIcon("XR Interaction Toolkit project validation issues", ProjectValidationContents.validationWarningIcon.image);
             public static readonly GUIContent layerMaskUpdater = EditorGUIUtility.TrTextContent("Run Interaction Layer Mask Updater", "Open the dialog box to update the Interaction Layer Mask for projects upgrading from older versions of the XR Interaction Toolkit.");
         }
 
@@ -84,6 +86,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             GUI.enabled = oldGuiEnabled;
+        }
+        
+        /// <summary>
+        /// Draw the the project validation warning if there are any validation issues.
+        /// </summary>
+        static void XRInteractionValidation()
+        {
+            var validationRules = new List<XRInteractionValidationRule>();
+            XRInteractionProjectValidation.GetCurrentValidationIssues(validationRules, EditorUserBuildSettings.selectedBuildTargetGroup);
+            if (validationRules.Count < 1)
+                return;
+
+            var anyErrors = validationRules.Any(rule => rule.error);
+            var issueContent = anyErrors ? ProjectValidationContents.validationErrorIcon: ProjectValidationContents.validationWarningIcon;
+            Contents.projectValidation.image = issueContent.image;
+            Contents.projectValidation.tooltip = issueContent.tooltip;
+            
+            if (GUILayout.Button(Contents.projectValidation, EditorStyles.label, GUILayout.Height(EditorGUIUtility.singleLineHeight))) 
+            {
+                XRInteractionProjectValidationRulesSetup.ShowWindow();
+            }
         }
 
         /// <summary>
@@ -132,6 +155,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             using (new SettingsMarginScope())
             {
+                XRInteractionValidation();
                 XRInteractionEditorSettingsEditor();
                 InteractionLayerUpdateButton();
                 EditorGUILayout.Space();

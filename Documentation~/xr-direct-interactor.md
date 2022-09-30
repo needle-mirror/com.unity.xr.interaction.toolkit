@@ -13,6 +13,7 @@ Interactor used for directly interacting with Interactables that are touching. T
 | **Keep Selected Target Valid** | Whether to keep selecting an Interactable after initially selecting it even when it is no longer a valid target.<br />Enable to make the `XRInteractionManager` retain the selection even if the Interactable is not contained within the list of valid targets. Disable to make the Interaction Manager clear the selection if it isn't within the list of valid targets.<br />A common use for disabling this is for Ray Interactors used for teleportation to make the teleportation Interactable no longer selected when not currently pointing at it. |
 | **Hide Controller On Select** | Controls whether this Interactor should hide the controller model on selection. |
 | **Allow Hovered Activate** | Controls whether to send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection. By default, the interactor will only send activate and deactivate events to interactables that it's selected. |
+| **Target Track Mode** | Specifies how many Interactables that should be tracked in the Targets For Selection property, useful for custom feedback. The options are in order of best performance. |
 | **Starting Selected Interactable** | The Interactable that this Interactor automatically selects at startup (optional, may be **None**). |
 | **Audio Events** | These tie into the same selection and hover events as the **Interactor Events** further below - these audio events provide a convenient way to play specified audio clips for any of those events you want. |
 | On Select Entered | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor begins selecting an Interactable. |
@@ -21,6 +22,7 @@ Interactor used for directly interacting with Interactables that are touching. T
 | On Hover Entered | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor begins hovering over an Interactable. |
 | On Hover Exited | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor successfully ends hovering over an Interactable. |
 | On Hover Canceled | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor cancels hovering over an Interactable. |
+| Allow Hover Audio While Selecting | Whether to allow playing audio from hover events if the hovered Interactable is currently selected by this Interactor. This is enabled by default. |
 | **Haptic Events** | These tie into the same selection and hover events as the **Interactor Events** further below - these haptic events provide a convenient way to provide haptic feedback for any of those events you want. |
 | On Select Entered | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor begins selecting an Interactable. |
 | On Select Exited | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor successfully exits selection of an Interactable. |
@@ -28,4 +30,5 @@ Interactor used for directly interacting with Interactables that are touching. T
 | On Hover Entered | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor begins hovering over an Interactable. |
 | On Hover Exited | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor successfully ends hovering over an Interactable. |
 | On Hover Canceled | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor cancels hovering over an Interactable. |
+| Allow Hover Haptics While Selecting | Whether to allow playing haptics from hover events if the hovered Interactable is currently selected by this Interactor. This is enabled by default. |
 | **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |

@@ -29,6 +29,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         SerializedProperty m_MoveObjectIn;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.moveObjectOut"/>.</summary>
         SerializedProperty m_MoveObjectOut;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.directionalAnchorRotation"/>.</summary>
+        SerializedProperty m_DirectionalAnchorRotation;
 
 #if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.poseProvider"/>.</summary>
@@ -58,6 +60,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static GUIContent moveObjectIn = EditorGUIUtility.TrTextContent("Move Object In", "The input that will be used to translate the anchor away from the interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.moveObjectOut"/>.</summary>
             public static GUIContent moveObjectOut = EditorGUIUtility.TrTextContent("Move Object Out", "The input that will be used to translate the anchor towards the interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRController.directionalAnchorRotation"/>.</summary>
+            public static GUIContent directionalAnchorRotation = EditorGUIUtility.TrTextContent("Directional Anchor Rotation", "The input to use to compute a directional angle to rotate the interactor's attach point to match it.");
 
 #if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.poseProvider"/>.</summary>
@@ -81,6 +85,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_RotateAnchorRight = serializedObject.FindProperty("m_RotateAnchorRight");
             m_MoveObjectIn = serializedObject.FindProperty("m_MoveObjectIn");
             m_MoveObjectOut = serializedObject.FindProperty("m_MoveObjectOut");
+            m_DirectionalAnchorRotation = serializedObject.FindProperty("m_DirectionalAnchorRotation");
 
 #if ENABLE_VR || ENABLE_AR
             m_PoseProvider = serializedObject.FindProperty("m_PoseProvider");
@@ -112,6 +117,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_RotateAnchorRight, Contents.rotateAnchorRight);
             EditorGUILayout.PropertyField(m_MoveObjectIn, Contents.moveObjectIn);
             EditorGUILayout.PropertyField(m_MoveObjectOut, Contents.moveObjectOut);
+            EditorGUILayout.PropertyField(m_DirectionalAnchorRotation, Contents.directionalAnchorRotation);
         }
     }
 }

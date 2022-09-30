@@ -25,6 +25,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         const float k_RowHeight = 20f;
+        const int k_LayerSize = 32;
+        const string k_LayerMaskOn = "\u25A0";
+        const string k_LayerMaskOff = "\u25A1";
 
         class Item : TreeViewItem
         {
@@ -36,6 +39,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Name,
             Type,
             LayerMask,
+            LayerMaskList,
             Colliders,
             Hovered,
             Selected,
@@ -53,7 +57,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Name") };
             columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Type") };
-            columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask") };
+            columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 240f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask") };
+            columns[(int)ColumnId.LayerMaskList] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask List") };
             columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Colliders") };
             columns[(int)ColumnId.Hovered]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hovered") };
             columns[(int)ColumnId.Selected]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Selected") };
@@ -231,7 +236,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         GUI.Label(cellRect, item.interactable.GetType().Name);
                         break;
                     case (int)ColumnId.LayerMask:
-                        GUI.Label(cellRect, item.interactable.interactionLayers.value.ToString());
+                        GUI.Label(cellRect, XRInteractionDebuggerWindow.GetLayerMaskDisplay(k_LayerSize, item.interactable.interactionLayers.value, k_LayerMaskOn, k_LayerMaskOff));
+                        break;
+                    case (int)ColumnId.LayerMaskList:
+                        var activeLayers = XRInteractionDebuggerWindow.GetActiveLayers(k_LayerSize, item.interactable.interactionLayers.value);
+                        GUI.Label(cellRect, string.Join(", ", activeLayers));
                         break;
                     case (int)ColumnId.Colliders:
                         GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", item.interactable.colliders));

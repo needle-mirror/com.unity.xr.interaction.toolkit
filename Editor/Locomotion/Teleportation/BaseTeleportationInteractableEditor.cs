@@ -13,8 +13,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_TeleportationProvider;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.matchOrientation"/>.</summary>
         protected SerializedProperty m_MatchOrientation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.matchDirectionalInput"/>.</summary>
+        protected SerializedProperty m_MatchDirectionalInput;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.teleportTrigger"/>.</summary>
         protected SerializedProperty m_TeleportTrigger;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.filterSelectionByHitNormal"/>.</summary>
+        protected SerializedProperty m_FilterSelectionByHitNormal;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.upNormalToleranceDegrees"/>.</summary>
+        protected SerializedProperty m_UpNormalToleranceDegrees;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.teleporting"/>.</summary>
         protected SerializedProperty m_Teleporting;
@@ -35,7 +41,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_TeleportationProvider = serializedObject.FindProperty("m_TeleportationProvider");
             m_MatchOrientation = serializedObject.FindProperty("m_MatchOrientation");
+            m_MatchDirectionalInput = serializedObject.FindProperty("m_MatchDirectionalInput");
             m_TeleportTrigger = serializedObject.FindProperty("m_TeleportTrigger");
+            m_FilterSelectionByHitNormal = serializedObject.FindProperty("m_FilterSelectionByHitNormal");
+            m_UpNormalToleranceDegrees = serializedObject.FindProperty("m_UpNormalToleranceDegrees");
 
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(BaseTeleportationInteractableEditor) + ".Initialized";
@@ -81,8 +90,25 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawTeleportationConfigurationNested()
         {
             EditorGUILayout.PropertyField(m_MatchOrientation);
+            if (m_MatchOrientation.intValue == (int)MatchOrientation.WorldSpaceUp ||
+                m_MatchOrientation.intValue == (int)MatchOrientation.TargetUp)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_MatchDirectionalInput);
+                }
+            }
+
             EditorGUILayout.PropertyField(m_TeleportTrigger);
             EditorGUILayout.PropertyField(m_TeleportationProvider);
+            EditorGUILayout.PropertyField(m_FilterSelectionByHitNormal);
+            if (m_FilterSelectionByHitNormal.boolValue)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_UpNormalToleranceDegrees);
+                }
+            }
         }
 
         /// <inheritdoc />

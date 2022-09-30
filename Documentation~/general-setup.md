@@ -67,7 +67,9 @@ Actions must be enabled before they react to input. See [Using Actions](https://
 
 The Input Action Manager component can be used to automatically enable or disable the Actions defined in an Input Action Asset during its own `OnEnable` and `OnDisable` events.
 
-Use **GameObject &gt; Create Empty** and rename the GameObject Input Action Manager. Use **Component &gt; Input &gt; Input Action Manager** to add the component to the GameObject you created. Select **Add (+)** or set **Size** to **1** in the Inspector window to add an element to the **Action Assets** list. Select the element's object picker (circle icon) and choose **XRI Default Input Actions**.
+If you created the XR Origin using **GameObject &gt; XR &gt; XR Origin (VR)**, you will already have an Input Action Manager attached to the **XR Origin**, if not, use **GameObject &gt; Create Empty** and rename the GameObject Input Action Manager. Use **Component &gt; Input &gt; Input Action Manager** to add the component to the GameObject you created.
+
+If you have imported the **Starter Assets** sample package, the **XRI Default Input Actions** should already be set in the **Action Assets** configuration for the component. If **Starter Assets** are not available or you are creating this object manually, select **Add (+)** or set **Size** to **1** in the Inspector window to add an element to the **Action Assets** list. Select the element's object picker (circle icon) and choose **XRI Default Input Actions**.
 
 ![input-action-manager](images/input-action-manager.png)
 

@@ -2,6 +2,7 @@
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -92,6 +93,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRTargetFilter = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(XRTargetFilter) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="GrabMoveProvider"/>.
+        /// </summary>
+        public const string k_GrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(GrabMoveProvider) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="InputActionManager"/>.
         /// </summary>
         public const string k_InputActionManager = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(InputActionManager) + ".html";
@@ -122,9 +128,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + nameof(TeleportationProvider) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRDualGrabFreeTransformer"/>.
+        /// </summary>
+        public const string k_XRDualGrabFreeTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRDualGrabFreeTransformer) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRLegacyGrabTransformer"/>.
+        /// </summary>
+#pragma warning disable 618 // Deprecated component for compatibility with existing user projects.
+        public const string k_XRLegacyGrabTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRLegacyGrabTransformer) + ".html";
+#pragma warning restore 618
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRSingleGrabFreeTransformer"/>.
+        /// </summary>
+        public const string k_XRSingleGrabFreeTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRSingleGrabFreeTransformer) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="TunnelingVignetteController"/>
         /// </summary>
         public const string k_TunnelingVignetteController = k_BaseApi + k_BaseNamespace + nameof(TunnelingVignetteController) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="TwoHandedGrabMoveProvider"/>.
+        /// </summary>
+        public const string k_TwoHandedGrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(TwoHandedGrabMoveProvider) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="TrackedDeviceGraphicRaycaster"/>.
@@ -201,7 +229,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
 
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.1/api/";
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.2/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

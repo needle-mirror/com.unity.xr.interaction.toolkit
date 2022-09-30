@@ -1,9 +1,44 @@
-﻿using UnityEditor.XR.Interaction.Toolkit.Utilities;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
+    class GrabTransformersReorderableList : ReorderableList
+    {
+        public Action<IXRGrabTransformer, int> moveGrabTransformerTo { get; set; }
+
+        public GrabTransformersReorderableList(IList elements)
+            : base(elements, typeof(IXRGrabTransformer), true, false, false, false)
+        {
+            drawElementCallback += OnDrawListElement;
+            onReorderCallbackWithDetails += OnReorderList;
+            elementHeight = EditorGUIUtility.singleLineHeight;
+            footerHeight = 0f;
+        }
+
+        void OnDrawListElement(Rect rect, int elementIndex, bool isActive, bool isFocused)
+        {
+            var element = list[elementIndex];
+            rect.yMin += 1;
+            EditorGUI.ObjectField(rect, $"Element {elementIndex}", element as Object, typeof(IXRGrabTransformer), true);
+        }
+
+        void OnReorderList(ReorderableList reorderableList, int oldIndex, int newIndex)
+        {
+            // The list has already been reordered when this callback is invoked,
+            // so obtain the transform that was moved using the new index.
+            if (list[newIndex] is IXRGrabTransformer transformer)
+                moveGrabTransformerTo?.Invoke(transformer, newIndex);
+        }
+    }
+
     /// <summary>
     /// Custom editor for an <see cref="XRGrabInteractable"/>.
     /// </summary>
@@ -64,11 +99,28 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_RetainTransformParent;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
         protected SerializedProperty m_AttachPointCompatibilityMode;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
+        protected SerializedProperty m_AddDefaultGrabTransformers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>.</summary>
+        protected SerializedProperty m_StartingMultipleGrabTransformers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.startingSingleGrabTransformers"/>.</summary>
+        protected SerializedProperty m_StartingSingleGrabTransformers;
 
         /// <summary>Value to be checked before recalculate if the inspected object has a non-uniformly scaled parent.</summary>
         bool m_RecalculateHasNonUniformScale = true;
         /// <summary>Caches if the inspected object has a non-uniformly scaled parent.</summary>
         bool m_HasNonUniformScale;
+
+        List<IXRGrabTransformer> m_SingleGrabTransformers;
+        List<IXRGrabTransformer> m_MultipleGrabTransformers;
+        GrabTransformersReorderableList m_SingleGrabTransformersReorderableList;
+        GrabTransformersReorderableList m_MultipleGrabTransformersReorderableList;
+
+        bool m_SingleGrabTransformersExpanded = true;
+        bool m_MultipleGrabTransformersExpanded = true;
+
+        const string k_SingleGrabTransformersExpandedKey = "XRI." + nameof(XRGrabInteractableEditor) + ".SingleGrabTransformersExpanded";
+        const string k_MultipleGrabTransformersExpandedKey = "XRI." + nameof(XRGrabInteractableEditor) + ".MultipleGrabTransformersExpanded";
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -129,6 +181,19 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
             public static readonly GUIContent attachPointCompatibilityMode = EditorGUIUtility.TrTextContent("Attach Point Compatibility Mode", "Use Default for consistent attach points between all Movement Type values. Use Legacy for older projects that want to maintain the incorrect method which was partially based on center of mass.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
+            public static readonly GUIContent addDefaultGrabTransformers = EditorGUIUtility.TrTextContent("Add Default Grab Transformers", "Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>.</summary>
+            public static readonly GUIContent startingMultipleGrabTransformers = EditorGUIUtility.TrTextContent("Starting Multiple Grab Transformers", "The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for multi-interactor selection.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.startingSingleGrabTransformers"/>.</summary>
+            public static readonly GUIContent startingSingleGrabTransformers = EditorGUIUtility.TrTextContent("Starting Single Grab Transformers", "The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for single-interactor selection.");
+
+            /// <summary><see cref="GUIContent"/> for the Multiple Grab Transformers list in Play mode.</summary>
+            public static readonly GUIContent grabTransformersConfiguration = EditorGUIUtility.TrTextContent("Grab Transformers Configuration");
+            /// <summary><see cref="GUIContent"/> for the Multiple Grab Transformers list in Play mode.</summary>
+            public static readonly GUIContent multipleGrabTransformers = EditorGUIUtility.TrTextContent("Multiple Grab Transformers", "The grab transformers used when there are multiple interactors selecting this object.");
+            /// <summary><see cref="GUIContent"/> for the Single Grab Transformers list in Play mode.</summary>
+            public static readonly GUIContent singleGrabTransformers = EditorGUIUtility.TrTextContent("Single Grab Transformers", "The grab transformers used when there is a single interactor selecting this object.");
 
             /// <summary>Message for non-uniformly scaled parent.</summary>
             public static readonly string nonUniformScaledParentWarning = "When a child object has a non-uniformly scaled parent and is rotated relative to that parent, it may appear skewed. To avoid this, use uniform scale in all parents' Transform of this object.";
@@ -173,6 +238,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
             m_AttachPointCompatibilityMode = serializedObject.FindProperty("m_AttachPointCompatibilityMode");
+            m_AddDefaultGrabTransformers = serializedObject.FindProperty("m_AddDefaultGrabTransformers");
+            m_StartingMultipleGrabTransformers = serializedObject.FindProperty("m_StartingMultipleGrabTransformers");
+            m_StartingSingleGrabTransformers = serializedObject.FindProperty("m_StartingSingleGrabTransformers");
+
+            m_SingleGrabTransformers = new List<IXRGrabTransformer>();
+            m_SingleGrabTransformersReorderableList = new GrabTransformersReorderableList(m_SingleGrabTransformers)
+            {
+                moveGrabTransformerTo = ((XRGrabInteractable)target).MoveSingleGrabTransformerTo,
+            };
+            m_MultipleGrabTransformers = new List<IXRGrabTransformer>();
+            m_MultipleGrabTransformersReorderableList = new GrabTransformersReorderableList(m_MultipleGrabTransformers)
+            {
+                moveGrabTransformerTo = ((XRGrabInteractable)target).MoveMultipleGrabTransformerTo,
+            };
+
+            m_SingleGrabTransformersExpanded = SessionState.GetBool(k_SingleGrabTransformersExpandedKey, true);
+            m_MultipleGrabTransformersExpanded = SessionState.GetBool(k_MultipleGrabTransformersExpandedKey, true);
 
             Undo.postprocessModifications += OnPostprocessModifications;
         }
@@ -183,6 +265,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="MonoBehaviour"/>
         protected virtual void OnDisable()
         {
+            SessionState.SetBool(k_SingleGrabTransformersExpandedKey, m_SingleGrabTransformersExpanded);
+            SessionState.SetBool(k_MultipleGrabTransformersExpandedKey, m_MultipleGrabTransformersExpanded);
+
             Undo.postprocessModifications -= OnPostprocessModifications;
         }
 
@@ -197,6 +282,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawTrackConfiguration();
             DrawDetachConfiguration();
             DrawAttachConfiguration();
+            DrawGrabTransformersConfiguration();
         }
 
         /// <summary>
@@ -301,6 +387,63 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
             XRInteractionEditorGUI.EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
+        }
+
+        /// <summary>
+        /// Draw the Grab Transformers Configuration foldout.
+        /// </summary>
+        protected virtual void DrawGrabTransformersConfiguration()
+        {
+            m_AddDefaultGrabTransformers.isExpanded = EditorGUILayout.Foldout(m_AddDefaultGrabTransformers.isExpanded, Contents.grabTransformersConfiguration, true);
+            if (m_AddDefaultGrabTransformers.isExpanded)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    DrawGrabTransformersConfigurationNested();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draw property fields related to grab transformers.
+        /// </summary>
+        protected virtual void DrawGrabTransformersConfigurationNested()
+        {
+            using (new EditorGUI.DisabledScope(m_AttachPointCompatibilityMode.intValue == (int)XRGrabInteractable.AttachPointCompatibilityMode.Legacy))
+            {
+                EditorGUILayout.PropertyField(m_AddDefaultGrabTransformers, Contents.addDefaultGrabTransformers);
+
+                using (new EditorGUI.DisabledScope(Application.isPlaying))
+                {
+                    EditorGUILayout.PropertyField(m_StartingMultipleGrabTransformers, Contents.startingMultipleGrabTransformers);
+                    EditorGUILayout.PropertyField(m_StartingSingleGrabTransformers, Contents.startingSingleGrabTransformers);
+                }
+            }
+
+            if (Application.isPlaying)
+            {
+                if (serializedObject.isEditingMultipleObjects)
+                {
+                    EditorGUILayout.HelpBox("Grab Transformers cannot be multi-edited.", MessageType.None);
+                }
+                else
+                {
+                    var grabInteractable = (XRGrabInteractable)target;
+                    m_MultipleGrabTransformersExpanded = EditorGUILayout.Foldout(m_MultipleGrabTransformersExpanded, Contents.multipleGrabTransformers, true);
+                    if (m_MultipleGrabTransformersExpanded)
+                    {
+                        grabInteractable.GetMultipleGrabTransformers(m_MultipleGrabTransformers);
+                        m_MultipleGrabTransformersReorderableList.DoLayoutList();
+                    }
+
+                    m_SingleGrabTransformersExpanded = EditorGUILayout.Foldout(m_SingleGrabTransformersExpanded, Contents.singleGrabTransformers, true);
+                    if (m_SingleGrabTransformersExpanded)
+                    {
+                        grabInteractable.GetSingleGrabTransformers(m_SingleGrabTransformers);
+                        m_SingleGrabTransformersReorderableList.DoLayoutList();
+                    }
+                }
+            }
         }
 
         /// <summary>

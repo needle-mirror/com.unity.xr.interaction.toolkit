@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -33,6 +34,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HapticDeviceAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
         protected SerializedProperty m_RotateAnchorAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.directionalAnchorRotationAction"/>.</summary>
+        protected SerializedProperty m_DirectionalAnchorRotationAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
         protected SerializedProperty m_TranslateAnchorAction;
 
@@ -62,9 +65,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.hapticDeviceAction"/>.</summary>
             public static GUIContent hapticDeviceAction = EditorGUIUtility.TrTextContent("Haptic Device Action", "The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.rotateAnchorAction"/>.</summary>
-            public static GUIContent rotateAnchorAction = EditorGUIUtility.TrTextContent("Rotate Anchor Action", "The Input System action to use for rotating the interactor's attach point. Must be a Vector2 Control. Will use the X-axis as the rotation input.");
+            public static GUIContent rotateAnchorAction = EditorGUIUtility.TrTextContent("Rotate Anchor Action", "The Input System action to use for rotating the interactor's attach point over time. Must be a Vector2 Control. Will use the x-axis as the rotation input.");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.directionalAnchorRotationAction"/>.</summary>
+            public static GUIContent directionalAnchorRotationAction = EditorGUIUtility.TrTextContent("Directional Anchor Rotation Action", "The Input System action to use for computing a direction angle to rotate the interactor's attach point to match it. Must be a Vector2 Control.");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
-            public static GUIContent translateAnchorAction = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a Vector2 Control. Will use the Y-axis as the translation input.");
+            public static GUIContent translateAnchorAction = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a Vector2 Control. Will use the y-axis as the translation input.");
+
+            /// <summary>The help box message when Update Tracking Type is not Fixed.</summary>
+            public static readonly GUIContent updateModeNotFixed = EditorGUIUtility.TrTextContent("Input System Update Mode is set to Process Events In Fixed Update, but the controller Update Tracking Type is not set to Fixed. This means that input querying of the controller pose will not be in sync with the Input System.");
+            /// <summary>The help box message when Update Tracking Type is not Fixed.</summary>
+            public static readonly GUIContent updateModeIsFixed = EditorGUIUtility.TrTextContent("Input System Update Mode is set to Process Events In Dynamic Update, but the controller Update Tracking Type is set to Fixed. This means that input querying of the controller pose will not be in sync with the Input System.");
         }
 
         /// <inheritdoc />
@@ -83,6 +93,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_UIPressActionValue = serializedObject.FindProperty("m_UIPressActionValue");
             m_HapticDeviceAction = serializedObject.FindProperty("m_HapticDeviceAction");
             m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
+            m_DirectionalAnchorRotationAction = serializedObject.FindProperty("m_DirectionalAnchorRotationAction");
             m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
         }
 
@@ -90,6 +101,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected override void DrawTrackingConfiguration()
         {
             base.DrawTrackingConfiguration();
+
+            if (m_EnableInputTracking.boolValue)
+            {
+                switch (InputSystem.settings.updateMode)
+                {
+                    case InputSettings.UpdateMode.ProcessEventsInFixedUpdate when m_UpdateTrackingType.intValue != (int)XRBaseController.UpdateType.Fixed:
+                        EditorGUILayout.HelpBox(Contents.updateModeNotFixed.text, MessageType.Warning);
+                        break;
+                    case InputSettings.UpdateMode.ProcessEventsInDynamicUpdate when m_UpdateTrackingType.intValue == (int)XRBaseController.UpdateType.Fixed:
+                        EditorGUILayout.HelpBox(Contents.updateModeIsFixed.text, MessageType.Warning);
+                        break;
+                }
+            }
+
             EditorGUILayout.PropertyField(m_PositionAction, Contents.positionAction);
             EditorGUILayout.PropertyField(m_RotationAction, Contents.rotationAction);
             EditorGUILayout.PropertyField(m_TrackingStateAction, Contents.trackingStateAction);
@@ -113,6 +138,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             base.DrawOtherActions();
             EditorGUILayout.PropertyField(m_HapticDeviceAction, Contents.hapticDeviceAction);
             EditorGUILayout.PropertyField(m_RotateAnchorAction, Contents.rotateAnchorAction);
+            EditorGUILayout.PropertyField(m_DirectionalAnchorRotationAction, Contents.directionalAnchorRotationAction);
             EditorGUILayout.PropertyField(m_TranslateAnchorAction, Contents.translateAnchorAction);
         }
     }

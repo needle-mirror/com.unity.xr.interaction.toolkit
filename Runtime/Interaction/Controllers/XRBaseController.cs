@@ -33,6 +33,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Only sample input directly before rendering.
             /// </summary>
             BeforeRender,
+
+            /// <summary>
+            /// Sample input corresponding to <see cref="FixedUpdate"/>.
+            /// </summary>
+            Fixed,
         }
 
         [SerializeField]
@@ -366,10 +371,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Corresponds to <see cref="FixedUpdate"/>. It has the frequency of the physics system and is called
+        /// every fixed framerate frame.
+        /// </summary>
+        protected virtual void FixedUpdate()
+        {
+            if (m_EnableInputTracking && m_UpdateTrackingType == UpdateType.Fixed)
+            {
+                UpdateTrackingInput(m_ControllerState);
+            }
+
+            ApplyControllerState(XRInteractionUpdateOrder.UpdatePhase.Fixed, m_ControllerState);
+        }
+
+        /// <summary>
         /// Applies the given controller state to this <see cref="XRBaseController"/>.
         /// Depending on the update phase, the XR Interaction states may be copied
         /// and/or the pose value may be applied to the transform of the GameObject.
-        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/>.
+        /// Unity calls this automatically from <see cref="FixedUpdate"/>, <see cref="OnBeforeRender"/>, and <see cref="UpdateController"/>.
         /// </summary>
         /// <param name="updatePhase">The update phase during this call.</param>
         /// <param name="controllerState">The state of the controller to apply.</param>
@@ -387,7 +406,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||
-                updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
+                updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender ||
+                updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
                 if ((controllerState.inputTrackingState & InputTrackingState.Position) != 0)
                 {
@@ -403,7 +423,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// Updates the pose values in the given controller state based on the current tracking input of the controller device.
-        /// Unity calls this automatically from <see cref="OnBeforeRender"/> and <see cref="UpdateController"/> so explicit calls
+        /// Unity calls this automatically from <see cref="FixedUpdate"/>, <see cref="OnBeforeRender"/>, and <see cref="UpdateController"/> so explicit calls
         /// to this function are not required.
         /// </summary>
         /// <param name="controllerState">The state of the controller.</param>

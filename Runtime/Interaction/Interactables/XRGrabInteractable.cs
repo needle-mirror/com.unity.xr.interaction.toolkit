@@ -1,19 +1,52 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Interactable component that allows basic "grab" functionality.
-    /// Can attach to an Interactor that selects this Interactable component and follow it around while obeying physics
-    /// (and inherit velocity when released).
+    /// Interactable component that allows for basic grab functionality.
+    /// When this behavior is selected (grabbed) by an Interactor, this behavior will follow it around
+    /// and inherit velocity when released.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This behavior is responsible for applying the position, rotation, and local scale calculated
+    /// by one or more <see cref="IXRGrabTransformer"/> implementations. A default set of grab transformers
+    /// are automatically added by Unity, but this functionality can be disabled to manually set those
+    /// used by this behavior, allowing you to customize where this component should move and rotate to.
+    /// </para>
+    /// <para>
+    /// Grab transformers are classified into two different types: Single and Multiple.
+    /// Those added to the Single Grab Transformers list are used when there is a single interactor selecting this object.
+    /// Those added to the Multiple Grab Transformers list are used when there are multiple interactors selecting this object.
+    /// You can add multiple grab transformers in a category and they will each be processed in sequence.
+    /// The Multiple Grab Transformers are given first opportunity to process when there are multiple grabs, and
+    /// the Single Grab Transformer processing will be skipped if a Multiple Grab Transformer can process in that case.
+    /// </para>
+    /// <para>
+    /// There are fallback rules that could allow a Single Grab Transformer to be processed when there are multiple grabs,
+    /// and for a Multiple Grab Transformer to be processed when there is a single grab (though a grab transformer will never be
+    /// processed if its <see cref="IXRGrabTransformer.canProcess"/> returns <see langword="false"/>).
+    /// <list type="bullet">
+    /// <item>
+    /// <description>When there is a single interactor selecting this object, the Multiple Grab Transformer will be processed only
+    ///  if the Single Grab Transformer list is empty or if all transformers in the Single Grab Transformer list return false during processing.</description>
+    /// </item>
+    /// <item>
+    /// <description>When there are multiple interactors selecting this object, the Single Grab Transformer will be processed only
+    /// if the Multiple Grab Transformer list is empty or if all transformers in the Multiple Grab Transformer list return false during processing.</description>
+    /// </item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    /// <seealso cref="IXRGrabTransformer"/>
     [SelectionBase]
     [DisallowMultipleComponent]
-    [CanSelectMultiple(false)]
     [RequireComponent(typeof(Rigidbody))]
     [AddComponentMenu("XR/XR Grab Interactable", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
@@ -30,6 +63,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const float k_DefaultThrowSmoothingDuration = 0.25f;
         const float k_DefaultThrowVelocityScale = 1.5f;
         const float k_DefaultThrowAngularVelocityScale = 1f;
+        const float k_DeltaTimeThreshold = 0.001f;
 
         /// <summary>
         /// Controls the method used when calculating the target position of the object.
@@ -481,13 +515,84 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AttachPointCompatibilityMode = value;
         }
 
-        // Point we are attaching to on this Interactable (in Interactor's attach coordinate space)
-        Vector3 m_InteractorLocalPosition;
-        Quaternion m_InteractorLocalRotation;
+        [SerializeField]
+        List<XRBaseGrabTransformer> m_StartingSingleGrabTransformers = new List<XRBaseGrabTransformer>();
 
-        // Point we are moving towards each frame (eventually will be at Interactor's attach point)
-        Vector3 m_TargetWorldPosition;
-        Quaternion m_TargetWorldRotation;
+        /// <summary>
+        /// The grab transformers that this Interactable automatically links at startup (optional, may be empty).
+        /// These are used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <remarks>
+        /// To modify the grab transformers used after startup,
+        /// the <see cref="AddSingleGrabTransformer"/> or <see cref="RemoveSingleGrabTransformer"/> methods should be used instead.
+        /// </remarks>
+        /// <seealso cref="startingMultipleGrabTransformers"/>
+        public List<XRBaseGrabTransformer> startingSingleGrabTransformers
+        {
+            get => m_StartingSingleGrabTransformers;
+            set => m_StartingSingleGrabTransformers = value;
+        }
+
+        [SerializeField]
+        List<XRBaseGrabTransformer> m_StartingMultipleGrabTransformers = new List<XRBaseGrabTransformer>();
+
+        /// <summary>
+        /// The grab transformers that this Interactable automatically links at startup (optional, may be empty).
+        /// These are used when there are multiple interactors selecting this object.
+        /// </summary>
+        /// <remarks>
+        /// To modify the grab transformers used after startup,
+        /// the <see cref="AddMultipleGrabTransformer"/> or <see cref="RemoveMultipleGrabTransformer"/> methods should be used instead.
+        /// </remarks>
+        /// <seealso cref="startingSingleGrabTransformers"/>
+        public List<XRBaseGrabTransformer> startingMultipleGrabTransformers
+        {
+            get => m_StartingMultipleGrabTransformers;
+            set => m_StartingMultipleGrabTransformers = value;
+        }
+
+        [SerializeField]
+        bool m_AddDefaultGrabTransformers = true;
+
+        /// <summary>
+        /// Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty.
+        /// </summary>
+        /// <remarks>
+        /// Set this to <see langword="false"/> if you want to manually set the grab transformers used by populating
+        /// <see cref="startingSingleGrabTransformers"/> and <see cref="startingMultipleGrabTransformers"/>.
+        /// </remarks>
+        /// <seealso cref="AddDefaultSingleGrabTransformer"/>
+        /// <seealso cref="AddDefaultMultipleGrabTransformer"/>
+        public bool addDefaultGrabTransformers
+        {
+            get => m_AddDefaultGrabTransformers;
+            set => m_AddDefaultGrabTransformers = value;
+        }
+
+        /// <summary>
+        /// The number of single grab transformers.
+        /// These are the grab transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <seealso cref="AddSingleGrabTransformer"/>
+        public int singleGrabTransformersCount => m_SingleGrabTransformers.flushedCount;
+
+        /// <summary>
+        /// The number of multiple grab transformers.
+        /// These are the grab transformers used when there are multiple interactors selecting this object.
+        /// </summary>
+        /// <seealso cref="AddMultipleGrabTransformer"/>
+        public int multipleGrabTransformersCount => m_MultipleGrabTransformers.flushedCount;
+
+        readonly SmallRegistrationList<IXRGrabTransformer> m_SingleGrabTransformers = new SmallRegistrationList<IXRGrabTransformer>();
+        readonly SmallRegistrationList<IXRGrabTransformer> m_MultipleGrabTransformers = new SmallRegistrationList<IXRGrabTransformer>();
+
+        List<IXRGrabTransformer> m_GrabTransformersAddedWhenGrabbed;
+        bool m_GrabCountChanged;
+        bool m_IsProcessingGrabTransformers;
+
+        // World pose we are moving towards each frame (eventually will be at Interactor's attach point assuming default single grab algorithm)
+        Pose m_TargetPose;
+        Vector3 m_TargetLocalScale;
 
         float m_CurrentAttachEaseTime;
         MovementType m_CurrentMovementType;
@@ -500,10 +605,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly float[] m_ThrowSmoothingFrameTimes = new float[k_ThrowSmoothingFrameCount];
         readonly Vector3[] m_ThrowSmoothingVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
         readonly Vector3[] m_ThrowSmoothingAngularVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
+        bool m_ThrowSmoothingFirstUpdate;
+        Pose m_LastThrowReferencePose;
 
         Rigidbody m_Rigidbody;
-        Vector3 m_LastPosition;
-        Quaternion m_LastRotation;
 
         // Rigidbody's settings upon select, kept to restore these values when dropped
         bool m_WasKinematic;
@@ -514,22 +619,85 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_OriginalSceneParent;
 
         // Account for teleportation to avoid throws with unintentionally high energy
-        TeleportationProvider m_TeleportationProvider;
-        Pose m_PoseBeforeTeleport;
+        TeleportationMonitor m_TeleportationMonitor;
 
         readonly Dictionary<IXRSelectInteractor, Transform> m_DynamicAttachTransforms = new Dictionary<IXRSelectInteractor, Transform>();
 
         static readonly LinkedPool<Transform> s_DynamicAttachTransformPool = new LinkedPool<Transform>(OnCreatePooledItem, OnGetPooledItem, OnReleasePooledItem, OnDestroyPooledItem);
+
+        static readonly ProfilerMarker s_ProcessGrabTransformersMarker = new ProfilerMarker("XRI.ProcessGrabTransformers");
 
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
 
+            m_TeleportationMonitor = new TeleportationMonitor();
+            m_TeleportationMonitor.teleported += OnTeleported;
+
             m_CurrentMovementType = m_MovementType;
             m_Rigidbody = GetComponent<Rigidbody>();
             if (m_Rigidbody == null)
-                Debug.LogError("Grab Interactable does not have a required Rigidbody.", this);
+                Debug.LogError("XR Grab Interactable does not have a required Rigidbody.", this);
+
+            if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
+            {
+#pragma warning disable 618 // Adding deprecated component to help with backwards compatibility with existing user projects.
+                var legacyGrabTransformer = GetOrAddComponent<XRLegacyGrabTransformer>();
+#pragma warning restore 618
+                legacyGrabTransformer.enabled = true;
+                return;
+            }
+
+            // Load the starting grab transformers into the Play mode lists.
+            // It is more efficient to add than move, but if there are existing items
+            // use move to ensure the correct order dictated by the starting lists.
+            if (m_SingleGrabTransformers.flushedCount > 0)
+            {
+                var index = 0;
+                foreach (var transformer in m_StartingSingleGrabTransformers)
+                {
+                    if (transformer != null)
+                        MoveSingleGrabTransformerTo(transformer, index++);
+                }
+            }
+            else
+            {
+                foreach (var transformer in m_StartingSingleGrabTransformers)
+                {
+                    if (transformer != null)
+                        AddSingleGrabTransformer(transformer);
+                }
+            }
+
+            if (m_MultipleGrabTransformers.flushedCount > 0)
+            {
+                var index = 0;
+                foreach (var transformer in m_StartingMultipleGrabTransformers)
+                {
+                    if (transformer != null)
+                        MoveMultipleGrabTransformerTo(transformer, index++);
+                }
+            }
+            else
+            {
+                foreach (var transformer in m_StartingMultipleGrabTransformers)
+                {
+                    if (transformer != null)
+                        AddMultipleGrabTransformer(transformer);
+                }
+            }
+
+            FlushRegistration();
+        }
+
+        /// <inheritdoc />
+        protected override void OnDestroy()
+        {
+            // Unlink this interactable from the grab transformers
+            ClearSingleGrabTransformers();
+            ClearMultipleGrabTransformers();
+            base.OnDestroy();
         }
 
         /// <inheritdoc />
@@ -537,48 +705,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.ProcessInteractable(updatePhase);
 
+            // This is done here instead of Start since adding a Start method would be a breaking change.
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                AddDefaultGrabTransformers();
+
+            FlushRegistration();
+
             switch (updatePhase)
             {
-                // During Fixed update we want to perform any physics-based updates (e.g., Kinematic or VelocityTracking).
+                // During Fixed update we want to apply any Rigidbody-based updates (e.g., Kinematic or VelocityTracking).
                 case XRInteractionUpdateOrder.UpdatePhase.Fixed:
                     if (isSelected)
                     {
                         if (m_CurrentMovementType == MovementType.Kinematic)
                             PerformKinematicUpdate(updatePhase);
                         else if (m_CurrentMovementType == MovementType.VelocityTracking)
-                            PerformVelocityTrackingUpdate(Time.deltaTime, updatePhase);
+                            PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
                     }
 
                     break;
 
-                // During Dynamic update we want to perform any Transform-based manipulation (e.g., Instantaneous).
+                // During Dynamic update and OnBeforeRender we want to update the target pose and apply any Transform-based updates (e.g., Instantaneous).
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
-                    if (isSelected)
-                    {
-                        var interactor = interactorsSelecting[0];
-                        // Legacy does not support the Attach Transform position changing after being grabbed
-                        // due to depending on the Physics update to compute the world center of mass.
-                        if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
-                            UpdateInteractorLocalPose(interactor);
-                        UpdateTarget(interactor, Time.deltaTime);
-                        SmoothVelocityUpdate(interactor);
-
-                        if (m_CurrentMovementType == MovementType.Instantaneous)
-                            PerformInstantaneousUpdate(updatePhase);
-                    }
-
-                    break;
-
-                // During OnBeforeRender we want to perform any last minute Transform position changes before rendering (e.g., Instantaneous).
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
                     if (isSelected)
                     {
-                        var interactor = interactorsSelecting[0];
-                        // Legacy does not support the Attach Transform position changing after being grabbed
-                        // due to depending on the Physics update to compute the world center of mass.
-                        if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
-                            UpdateInteractorLocalPose(interactor);
-                        UpdateTarget(interactor, Time.deltaTime);
+                        UpdateTarget(updatePhase, Time.deltaTime);
 
                         if (m_CurrentMovementType == MovementType.Instantaneous)
                             PerformInstantaneousUpdate(updatePhase);
@@ -616,54 +768,425 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return m_AttachTransform != null ? m_AttachTransform : base.GetAttachTransform(interactor);
         }
 
-        void UpdateTarget(IXRInteractor interactor, float timeDelta)
+        /// <summary>
+        /// Adds the given grab transformer to the list of transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to add.</param>
+        /// <seealso cref="AddMultipleGrabTransformer"/>
+        public void AddSingleGrabTransformer(IXRGrabTransformer transformer) => AddGrabTransformer(transformer, m_SingleGrabTransformers);
+
+        /// <summary>
+        /// Adds the given grab transformer to the list of transformers used when there are multiple interactors selecting this object.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to add.</param>
+        /// <seealso cref="AddSingleGrabTransformer"/>
+        public void AddMultipleGrabTransformer(IXRGrabTransformer transformer) => AddGrabTransformer(transformer, m_MultipleGrabTransformers);
+
+        /// <summary>
+        /// Removes the given grab transformer from the list of transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to remove.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if <paramref name="transformer"/> was removed from the list.
+        /// Otherwise, returns <see langword="false"/> if <paramref name="transformer"/> was not found in the list.
+        /// </returns>
+        /// <seealso cref="RemoveMultipleGrabTransformer"/>
+        public bool RemoveSingleGrabTransformer(IXRGrabTransformer transformer) => RemoveGrabTransformer(transformer, m_SingleGrabTransformers);
+
+        /// <summary>
+        /// Removes the given grab transformer from the list of transformers used when there is are multiple interactors selecting this object.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to remove.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if <paramref name="transformer"/> was removed from the list.
+        /// Otherwise, returns <see langword="false"/> if <paramref name="transformer"/> was not found in the list.
+        /// </returns>
+        /// <seealso cref="RemoveSingleGrabTransformer"/>
+        public bool RemoveMultipleGrabTransformer(IXRGrabTransformer transformer) => RemoveGrabTransformer(transformer, m_MultipleGrabTransformers);
+
+        /// <summary>
+        /// Removes all grab transformers from the list of transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <seealso cref="ClearMultipleGrabTransformers"/>
+        public void ClearSingleGrabTransformers() => ClearGrabTransformers(m_SingleGrabTransformers);
+
+        /// <summary>
+        /// Removes all grab transformers from the list of transformers used when there is are multiple interactors selecting this object.
+        /// </summary>
+        /// <seealso cref="ClearSingleGrabTransformers"/>
+        public void ClearMultipleGrabTransformers() => ClearGrabTransformers(m_MultipleGrabTransformers);
+
+        /// <summary>
+        /// Returns all transformers used when there is a single interactor selecting this object into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive grab transformers.</param>
+        /// <remarks>
+        /// This method populates the list with the grab transformers at the time the
+        /// method is called. It is not a live view, meaning grab transformers
+        /// added or removed afterward will not be reflected in the
+        /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
+        /// </remarks>
+        /// <seealso cref="GetMultipleGrabTransformers"/>
+        public void GetSingleGrabTransformers(List<IXRGrabTransformer> results) => GetGrabTransformers(m_SingleGrabTransformers, results);
+
+        /// <summary>
+        /// Returns all transformers used when there are multiple interactors selecting this object into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive grab transformers.</param>
+        /// <remarks>
+        /// This method populates the list with the grab transformers at the time the
+        /// method is called. It is not a live view, meaning grab transformers
+        /// added or removed afterward will not be reflected in the
+        /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
+        /// </remarks>
+        /// <seealso cref="GetSingleGrabTransformers"/>
+        public void GetMultipleGrabTransformers(List<IXRGrabTransformer> results) => GetGrabTransformers(m_MultipleGrabTransformers, results);
+
+        /// <summary>
+        /// Returns the grab transformer at <paramref name="index"/> in the list of transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <param name="index">Index of the grab transformer to return. Must be smaller than <see cref="singleGrabTransformersCount"/> and not negative.</param>
+        /// <returns>Returns the grab transformer at the given index.</returns>
+        /// <seealso cref="GetMultipleGrabTransformerAt"/>
+        public IXRGrabTransformer GetSingleGrabTransformerAt(int index) => m_SingleGrabTransformers.GetRegisteredItemAt(index);
+
+        /// <summary>
+        /// Returns the grab transformer at <paramref name="index"/> in the list of transformers used when there are multiple interactors selecting this object.
+        /// </summary>
+        /// <param name="index">Index of the grab transformer to return. Must be smaller than <see cref="multipleGrabTransformersCount"/> and not negative.</param>
+        /// <returns>Returns the grab transformer at the given index.</returns>
+        /// <seealso cref="GetSingleGrabTransformerAt"/>
+        public IXRGrabTransformer GetMultipleGrabTransformerAt(int index) => m_MultipleGrabTransformers.GetRegisteredItemAt(index);
+
+        /// <summary>
+        /// Moves the given grab transformer in the list of transformers used when there is a single interactor selecting this object.
+        /// If the grab transformer is not in the list, this can be used to insert the grab transformer at the specified index.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to move or add.</param>
+        /// <param name="newIndex">New index of the grab transformer.</param>
+        /// <seealso cref="MoveMultipleGrabTransformerTo"/>
+        public void MoveSingleGrabTransformerTo(IXRGrabTransformer transformer, int newIndex) => MoveGrabTransformerTo(transformer, newIndex, m_SingleGrabTransformers);
+
+        /// <summary>
+        /// Moves the given grab transformer in the list of transformers used when there are multiple interactors selecting this object.
+        /// If the grab transformer is not in the list, this can be used to insert the grab transformer at the specified index.
+        /// </summary>
+        /// <param name="transformer">The grab transformer to move or add.</param>
+        /// <param name="newIndex">New index of the grab transformer.</param>
+        /// <seealso cref="MoveSingleGrabTransformerTo"/>
+        public void MoveMultipleGrabTransformerTo(IXRGrabTransformer transformer, int newIndex) => MoveGrabTransformerTo(transformer, newIndex, m_MultipleGrabTransformers);
+
+        void AddGrabTransformer(IXRGrabTransformer transformer, BaseRegistrationList<IXRGrabTransformer> grabTransformers)
         {
-            // Compute the unsmoothed target world pose
-            Vector3 rawTargetWorldPosition;
-            Quaternion rawTargetWorldRotation;
+            if (transformer == null)
+                throw new ArgumentNullException(nameof(transformer));
 
-            var interactorAttachTransform = interactor.GetAttachTransform(this);
-            var interactorAttachPose = new Pose(interactorAttachTransform.position, interactorAttachTransform.rotation);
-            if (m_TrackRotation)
+            if (m_IsProcessingGrabTransformers)
+                Debug.LogWarning($"{transformer} added while {name} is processing grab transformers. It won't be processed until the next process.", this);
+
+            if (grabTransformers.Register(transformer))
+                OnAddedGrabTransformer(transformer);
+        }
+
+        bool RemoveGrabTransformer(IXRGrabTransformer transformer, BaseRegistrationList<IXRGrabTransformer> grabTransformers)
+        {
+            if (grabTransformers.Unregister(transformer))
             {
-                rawTargetWorldPosition = interactorAttachPose.rotation * m_InteractorLocalPosition + interactorAttachPose.position;
-                rawTargetWorldRotation = interactorAttachPose.rotation * m_InteractorLocalRotation;
-            }
-            else
-            {
-                var thisAttachTransform = GetAttachTransform(interactor);
-                rawTargetWorldPosition = thisAttachTransform.TransformDirection(m_InteractorLocalPosition) + interactorAttachPose.position;
-                rawTargetWorldRotation = m_TargetWorldRotation;
+                OnRemovedGrabTransformer(transformer);
+                return true;
             }
 
-            // Apply smoothing (if configured)
+            return false;
+        }
+
+        void ClearGrabTransformers(BaseRegistrationList<IXRGrabTransformer> grabTransformers)
+        {
+            for (var index = grabTransformers.flushedCount - 1; index >= 0; --index)
+            {
+                var transformer = grabTransformers.GetRegisteredItemAt(index);
+                RemoveGrabTransformer(transformer, grabTransformers);
+            }
+        }
+
+        static void GetGrabTransformers(BaseRegistrationList<IXRGrabTransformer> grabTransformers, List<IXRGrabTransformer> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            grabTransformers.GetRegisteredItems(results);
+        }
+
+        void MoveGrabTransformerTo(IXRGrabTransformer transformer, int newIndex, BaseRegistrationList<IXRGrabTransformer> grabTransformers)
+        {
+            if (transformer == null)
+                throw new ArgumentNullException(nameof(transformer));
+
+            // BaseRegistrationList<T> does not yet support reordering with pending registration changes.
+            if (m_IsProcessingGrabTransformers)
+            {
+                Debug.LogError($"Cannot move {transformer} while {name} is processing grab transformers.", this);
+                return;
+            }
+
+            grabTransformers.Flush();
+            if (grabTransformers.MoveItemImmediately(transformer, newIndex))
+                OnAddedGrabTransformer(transformer);
+        }
+
+        void FlushRegistration()
+        {
+            m_SingleGrabTransformers.Flush();
+            m_MultipleGrabTransformers.Flush();
+        }
+
+        void InvokeGrabTransformersOnGrab()
+        {
+            m_IsProcessingGrabTransformers = true;
+
+            if (m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+            {
+                foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                {
+                    if (m_SingleGrabTransformers.IsStillRegistered(transformer))
+                        transformer.OnGrab(this);
+                }
+            }
+
+            if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0)
+            {
+                foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                {
+                    if (m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                        transformer.OnGrab(this);
+                }
+            }
+
+            m_IsProcessingGrabTransformers = false;
+        }
+
+        void InvokeGrabTransformersProcess(XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale)
+        {
+            m_IsProcessingGrabTransformers = true;
+
+            // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+            using (s_ProcessGrabTransformersMarker.Auto())
+            {
+                // Let the transformers setup if the grab count changed.
+                if (m_GrabCountChanged)
+                {
+                    if (m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+                    {
+                        foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                        {
+                            if (m_SingleGrabTransformers.IsStillRegistered(transformer))
+                                transformer.OnGrabCountChanged(this, targetPose, localScale);
+                        }
+                    }
+
+                    if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0)
+                    {
+                        foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                        {
+                            if (m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                                transformer.OnGrabCountChanged(this, targetPose, localScale);
+                        }
+                    }
+
+                    m_GrabCountChanged = false;
+                    m_GrabTransformersAddedWhenGrabbed?.Clear();
+                }
+                else if (m_GrabTransformersAddedWhenGrabbed?.Count > 0)
+                {
+                    // Calling OnGrabCountChanged on just the grab transformers added when this was already grabbed
+                    // avoids calling it needlessly on all linked grab transformers.
+                    foreach (var transformer in m_GrabTransformersAddedWhenGrabbed)
+                    {
+                        transformer.OnGrabCountChanged(this, targetPose, localScale);
+                    }
+
+                    m_GrabTransformersAddedWhenGrabbed.Clear();
+                }
+
+                // Give the Multiple Grab Transformers first chance to process,
+                // and if one actually does, skip the Single Grab Transformers.
+                // Also let the Multiple Grab Transformers process if there aren't any Single Grab Transformers.
+                // An empty Single Grab Transformers list is treated the same as a populated list where none can process.
+                var processed = false;
+                if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0 && (interactorsSelecting.Count > 1 || !CanProcessAnySingleGrabTransformer()))
+                {
+                    foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                    {
+                        if (!m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                            continue;
+
+                        if (transformer.canProcess)
+                        {
+                            transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                            processed = true;
+                        }
+                    }
+                }
+
+                if (!processed && m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+                {
+                    foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                    {
+                        if (!m_SingleGrabTransformers.IsStillRegistered(transformer))
+                            continue;
+
+                        if (transformer.canProcess)
+                            transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                    }
+                }
+            }
+
+            m_IsProcessingGrabTransformers = false;
+        }
+
+        /// <summary>
+        /// Same check as Linq code for: <c>Any(t => t.canProcess)</c>.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if the source list is not empty and at least
+        /// one element passes the test; otherwise, <see langword="false"/>.</returns>
+        bool CanProcessAnySingleGrabTransformer()
+        {
+            if (m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+            {
+                foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                {
+                    if (!m_SingleGrabTransformers.IsStillRegistered(transformer))
+                        continue;
+
+                    if (transformer.canProcess)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        void OnAddedGrabTransformer(IXRGrabTransformer transformer)
+        {
+            transformer.OnLink(this);
+
+            if (interactorsSelecting.Count == 0)
+                return;
+
+            // OnGrab is invoked immediately, but OnGrabCountChanged is only invoked right before Process so
+            // it must be added to a list to maintain those that still need to have it invoked. It functions
+            // like a setup method and users should be able to rely on it always being called at least once
+            // when grabbed.
+            transformer.OnGrab(this);
+
+            if (m_GrabTransformersAddedWhenGrabbed == null)
+                m_GrabTransformersAddedWhenGrabbed = new List<IXRGrabTransformer>();
+
+            m_GrabTransformersAddedWhenGrabbed.Add(transformer);
+        }
+
+        void OnRemovedGrabTransformer(IXRGrabTransformer transformer)
+        {
+            transformer.OnUnlink(this);
+            m_GrabTransformersAddedWhenGrabbed?.Remove(transformer);
+        }
+
+        void AddDefaultGrabTransformers()
+        {
+            if (!m_AddDefaultGrabTransformers)
+                return;
+
+            if (m_SingleGrabTransformers.flushedCount == 0)
+                AddDefaultSingleGrabTransformer();
+
+            // Avoid adding the multiple grab transformer component unnecessarily since it may never be needed.
+            if (m_MultipleGrabTransformers.flushedCount == 0 && selectMode == InteractableSelectMode.Multiple && interactorsSelecting.Count > 1)
+                AddDefaultMultipleGrabTransformer();
+        }
+
+        /// <summary>
+        /// Adds the default grab transformer (if the Single Grab Transformers list is empty)
+        /// to the list of transformers used when there is a single interactor selecting this object.
+        /// </summary>
+        /// <seealso cref="addDefaultGrabTransformers"/>
+        protected virtual void AddDefaultSingleGrabTransformer()
+        {
+            if (m_SingleGrabTransformers.flushedCount == 0)
+            {
+                var transformer = GetOrAddComponent<XRSingleGrabFreeTransformer>();
+                AddSingleGrabTransformer(transformer);
+            }
+        }
+
+        /// <summary>
+        /// Adds the default grab transformer (if the Multiple Grab Transformers list is empty)
+        /// to the list of transformers used when there are multiple interactors selecting this object.
+        /// </summary>
+        /// <seealso cref="addDefaultGrabTransformers"/>
+        protected virtual void AddDefaultMultipleGrabTransformer()
+        {
+            if (m_MultipleGrabTransformers.flushedCount == 0)
+            {
+                var transformer = GetOrAddComponent<XRDualGrabFreeTransformer>();
+                AddMultipleGrabTransformer(transformer);
+            }
+        }
+
+        T GetOrAddComponent<T>() where T : Component
+        {
+            return TryGetComponent<T>(out var component) ? component : gameObject.AddComponent<T>();
+        }
+
+        void UpdateTarget(XRInteractionUpdateOrder.UpdatePhase updatePhase, float deltaTime)
+        {
+            var rawTargetPose = m_TargetPose;
+            InvokeGrabTransformersProcess(updatePhase, ref rawTargetPose, ref m_TargetLocalScale);
+
+            // Skip during OnBeforeRender since it doesn't require that high accuracy.
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            {
+                // Track the target pose before easing.
+                // This avoids an unintentionally high detach velocity if grabbing with an XRRayInteractor
+                // with Force Grab enabled causing the target pose to move very quickly between this transform's
+                // initial position and the target pose after easing when the easing time is short.
+                // By always tracking the target pose result from the grab transformers, it avoids the issue.
+                StepThrowSmoothing(rawTargetPose, deltaTime);
+            }
+
+            // Apply easing and smoothing (if configured)
+            StepSmoothing(rawTargetPose, deltaTime);
+        }
+
+        void StepSmoothing(Pose rawTargetPose, float deltaTime)
+        {
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
             {
                 var easePercent = m_CurrentAttachEaseTime / m_AttachEaseInTime;
-                m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, easePercent);
-                m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, easePercent);
-                m_CurrentAttachEaseTime += timeDelta;
+                m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, easePercent);
+                m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, easePercent);
+                m_CurrentAttachEaseTime += deltaTime;
             }
             else
             {
                 if (m_SmoothPosition)
                 {
-                    m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, m_SmoothPositionAmount * timeDelta);
-                    m_TargetWorldPosition = Vector3.Lerp(m_TargetWorldPosition, rawTargetWorldPosition, m_TightenPosition);
+                    m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, m_SmoothPositionAmount * deltaTime);
+                    m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, m_TightenPosition);
                 }
                 else
                 {
-                    m_TargetWorldPosition = rawTargetWorldPosition;
+                    m_TargetPose.position = rawTargetPose.position;
                 }
 
                 if (m_SmoothRotation)
                 {
-                    m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, m_SmoothRotationAmount * timeDelta);
-                    m_TargetWorldRotation = Quaternion.Slerp(m_TargetWorldRotation, rawTargetWorldRotation, m_TightenRotation);
+                    m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, m_SmoothRotationAmount * deltaTime);
+                    m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, m_TightenRotation);
                 }
                 else
                 {
-                    m_TargetWorldRotation = rawTargetWorldRotation;
+                    m_TargetPose.rotation = rawTargetPose.rotation;
                 }
             }
         }
@@ -673,15 +1196,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
             {
-                if (m_TrackPosition)
-                {
-                    transform.position = m_TargetWorldPosition;
-                }
+                if (m_TrackPosition && m_TrackRotation)
+                    transform.SetPositionAndRotation(m_TargetPose.position, m_TargetPose.rotation);
+                else if (m_TrackPosition)
+                    transform.position = m_TargetPose.position;
+                else if (m_TrackRotation)
+                    transform.rotation = m_TargetPose.rotation;
 
-                if (m_TrackRotation)
-                {
-                    transform.rotation = m_TargetWorldRotation;
-                }
+                transform.localScale = m_TargetLocalScale;
             }
         }
 
@@ -692,20 +1214,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_TrackPosition)
                 {
                     var position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
-                        ? m_TargetWorldPosition
-                        : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
+                        ? m_TargetPose.position
+                        : m_TargetPose.position - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
                     m_Rigidbody.MovePosition(position);
                 }
 
                 if (m_TrackRotation)
                 {
-                    m_Rigidbody.MoveRotation(m_TargetWorldRotation);
+                    m_Rigidbody.MoveRotation(m_TargetPose.rotation);
                 }
+
+                transform.localScale = m_TargetLocalScale;
             }
         }
 
-        void PerformVelocityTrackingUpdate(float timeDelta, XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        void PerformVelocityTrackingUpdate(XRInteractionUpdateOrder.UpdatePhase updatePhase, float deltaTime)
         {
+            // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (deltaTime < k_DeltaTimeThreshold)
+                return;
+
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
                 // Do velocity tracking
@@ -714,12 +1242,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.velocity *= (1f - m_VelocityDamping);
                     var positionDelta = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
-                        ? m_TargetWorldPosition - transform.position
-                        : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
-                    var velocity = positionDelta / timeDelta;
-
-                    if (!float.IsNaN(velocity.x))
-                        m_Rigidbody.velocity += (velocity * m_VelocityScale);
+                        ? m_TargetPose.position - transform.position
+                        : m_TargetPose.position - m_Rigidbody.worldCenterOfMass;
+                    var velocity = positionDelta / deltaTime;
+                    m_Rigidbody.velocity += (velocity * m_VelocityScale);
                 }
 
                 // Do angular velocity tracking
@@ -727,63 +1253,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.angularVelocity *= (1f - m_AngularVelocityDamping);
-                    var rotationDelta = m_TargetWorldRotation * Quaternion.Inverse(transform.rotation);
+                    var rotationDelta = m_TargetPose.rotation * Quaternion.Inverse(transform.rotation);
                     rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
                     if (angleInDegrees > 180f)
                         angleInDegrees -= 360f;
 
                     if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
                     {
-                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / timeDelta;
-                        if (!float.IsNaN(angularVelocity.x))
-                            m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
+                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / deltaTime;
+                        m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
                     }
                 }
+
+                transform.localScale = m_TargetLocalScale;
             }
-        }
-
-        void UpdateInteractorLocalPose(IXRInteractor interactor)
-        {
-            if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
-            {
-                UpdateInteractorLocalPoseLegacy(interactor);
-                return;
-            }
-
-            // In order to move the Interactable to the Interactor we need to
-            // calculate the Interactable attach point in the coordinate system of the
-            // Interactor's attach point.
-            var thisAttachTransform = GetAttachTransform(interactor);
-            var attachOffset = transform.position - thisAttachTransform.position;
-            var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
-
-            m_InteractorLocalPosition = localAttachOffset;
-            m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
-        }
-
-        void UpdateInteractorLocalPoseLegacy(IXRInteractor interactor)
-        {
-            // In order to move the Interactable to the Interactor we need to
-            // calculate the Interactable attach point in the coordinate system of the
-            // Interactor's attach point.
-            var thisAttachTransform = GetAttachTransform(interactor);
-            var attachOffset = m_Rigidbody.worldCenterOfMass - thisAttachTransform.position;
-            var localAttachOffset = thisAttachTransform.InverseTransformDirection(attachOffset);
-
-            var inverseLocalScale = interactor.GetAttachTransform(this).lossyScale;
-            inverseLocalScale = new Vector3(1f / inverseLocalScale.x, 1f / inverseLocalScale.y, 1f / inverseLocalScale.z);
-            localAttachOffset.Scale(inverseLocalScale);
-
-            m_InteractorLocalPosition = localAttachOffset;
-            m_InteractorLocalRotation = Quaternion.Inverse(Quaternion.Inverse(transform.rotation) * thisAttachTransform.rotation);
         }
 
         void UpdateCurrentMovementType()
         {
-            // Special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors)
-            var interactor = interactorsSelecting[0];
-            var baseInteractor = interactor as XRBaseInteractor;
-            m_CurrentMovementType = (baseInteractor != null ? baseInteractor.selectedInteractableMovementTypeOverride : null) ?? m_MovementType;
+            // Special case where the interactor will override this objects movement type (used for Sockets and other absolute interactors).
+            // Iterates in reverse order so the most recent interactor with an override will win since that seems like it would
+            // be the strategy most users would want by default.
+            MovementType? movementTypeOverride = null;
+            for (var index = interactorsSelecting.Count - 1; index >= 0; --index)
+            {
+                var baseInteractor = interactorsSelecting[index] as XRBaseInteractor;
+                if (baseInteractor != null && baseInteractor.selectedInteractableMovementTypeOverride.HasValue)
+                {
+                    if (movementTypeOverride.HasValue)
+                    {
+                        Debug.LogWarning($"Multiple interactors selecting \"{name}\" have different movement type override values set" +
+                            $" ({nameof(XRBaseInteractor.selectedInteractableMovementTypeOverride)})." +
+                            $" Conflict resolved using {movementTypeOverride.Value} from the most recent interactor to select this object with an override.", this);
+                        break;
+                    }
+
+                    movementTypeOverride = baseInteractor.selectedInteractableMovementTypeOverride.Value;
+                }
+            }
+
+            m_CurrentMovementType = movementTypeOverride ?? m_MovementType;
         }
 
         /// <inheritdoc />
@@ -798,14 +1307,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             base.OnSelectEntering(args);
-            Grab();
+
+            m_GrabCountChanged = true;
+            m_CurrentAttachEaseTime = 0f;
+
+            // Reset the throw data every time the number of grabs increases since
+            // each additional grab could cause a large change in target position,
+            // making it throw at an unwanted velocity. It is not called when the number
+            // of grabs decreases even though it would have the same issue, but doing so
+            // would make it almost impossible to throw with both hands.
+            ResetThrowSmoothing();
+
+            if (interactorsSelecting.Count == 1)
+            {
+                Grab();
+                InvokeGrabTransformersOnGrab();
+            }
+
+            // Add the default grab transformers if needed.
+            // This will notify of the grab, so it is done after the above code so the transformer is not notified twice.
+            AddDefaultGrabTransformers();
+
+            SubscribeTeleportationProvider(args.interactorObject);
         }
 
         /// <inheritdoc />
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
-            Drop();
+
+            m_GrabCountChanged = true;
+            m_CurrentAttachEaseTime = 0f;
+
+            if (interactorsSelecting.Count == 0)
+                Drop();
+
+            UnsubscribeTeleportationProvider(args.interactorObject);
         }
 
         /// <inheritdoc />
@@ -974,15 +1511,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_DetachVelocity = Vector3.zero;
             m_DetachAngularVelocity = Vector3.zero;
 
-            // Initialize target pose for easing and smoothing
-            m_TargetWorldPosition = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
-            m_TargetWorldRotation = thisTransform.rotation;
-            m_CurrentAttachEaseTime = 0f;
-
-            var interactor = interactorsSelecting[0];
-            UpdateInteractorLocalPose(interactor);
-
-            SmoothVelocityStart(interactor);
+            // Initialize target pose
+            m_TargetPose.position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
+            m_TargetPose.rotation = thisTransform.rotation;
+            m_TargetLocalScale = thisTransform.localScale;
         }
 
         /// <summary>
@@ -1012,7 +1544,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_CurrentMovementType = m_MovementType;
             m_DetachInLateUpdate = true;
-            SmoothVelocityEnd();
+            EndThrowSmoothing();
         }
 
         /// <summary>
@@ -1077,55 +1609,61 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_Rigidbody.useGravity |= m_ForceGravityOnDetach;
         }
 
-        void SmoothVelocityStart(IXRInteractor interactor)
+        void ResetThrowSmoothing()
         {
-            SetTeleportationProvider(interactor);
-
-            var interactorAttachTransform = interactor.GetAttachTransform(this);
-            m_LastPosition = interactorAttachTransform.position;
-            m_LastRotation = interactorAttachTransform.rotation;
             Array.Clear(m_ThrowSmoothingFrameTimes, 0, m_ThrowSmoothingFrameTimes.Length);
             Array.Clear(m_ThrowSmoothingVelocityFrames, 0, m_ThrowSmoothingVelocityFrames.Length);
             Array.Clear(m_ThrowSmoothingAngularVelocityFrames, 0, m_ThrowSmoothingAngularVelocityFrames.Length);
             m_ThrowSmoothingCurrentFrame = 0;
+            m_ThrowSmoothingFirstUpdate = true;
         }
 
-        void SmoothVelocityEnd()
+        void EndThrowSmoothing()
         {
             if (m_ThrowOnDetach)
             {
+                // This can be potentially improved for multi-hand throws by ignoring the frames
+                // after the first interactor releases if the second interactor also releases within
+                // a short period of time. Since the target pose is tracked before easing, the most
+                // recent frames might have been a large change.
                 var smoothedVelocity = GetSmoothedVelocityValue(m_ThrowSmoothingVelocityFrames);
                 var smoothedAngularVelocity = GetSmoothedVelocityValue(m_ThrowSmoothingAngularVelocityFrames);
                 m_DetachVelocity = smoothedVelocity * m_ThrowVelocityScale;
                 m_DetachAngularVelocity = smoothedAngularVelocity * m_ThrowAngularVelocityScale;
             }
-
-            ClearTeleportationProvider();
         }
 
-        void SmoothVelocityUpdate(IXRInteractor interactor)
+        void StepThrowSmoothing(Pose targetPose, float deltaTime)
         {
-            var interactorAttachTransform = interactor.GetAttachTransform(this);
-            var interactorPosition = interactorAttachTransform.position;
-            var interactorRotation = interactorAttachTransform.rotation;
+            // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (deltaTime < k_DeltaTimeThreshold)
+                return;
+
+            if (m_ThrowSmoothingFirstUpdate)
+            {
+                m_ThrowSmoothingFirstUpdate = false;
+            }
+            else
+            {
+                m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (targetPose.position - m_LastThrowReferencePose.position) / deltaTime;
+
+                var rotationDiff = targetPose.rotation * Quaternion.Inverse(m_LastThrowReferencePose.rotation);
+                var eulerAngles = rotationDiff.eulerAngles;
+                var deltaAngles = new Vector3(Mathf.DeltaAngle(0f, eulerAngles.x),
+                    Mathf.DeltaAngle(0f, eulerAngles.y),
+                    Mathf.DeltaAngle(0f, eulerAngles.z));
+                m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] = (deltaAngles / deltaTime) * Mathf.Deg2Rad;
+            }
+
             m_ThrowSmoothingFrameTimes[m_ThrowSmoothingCurrentFrame] = Time.time;
-            m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (interactorPosition - m_LastPosition) / Time.deltaTime;
-
-            var velocityDiff = (interactorRotation * Quaternion.Inverse(m_LastRotation));
-            m_ThrowSmoothingAngularVelocityFrames[m_ThrowSmoothingCurrentFrame] =
-                (new Vector3(Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.x),
-                        Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.y),
-                        Mathf.DeltaAngle(0f, velocityDiff.eulerAngles.z))
-                    / Time.deltaTime) * Mathf.Deg2Rad;
-
             m_ThrowSmoothingCurrentFrame = (m_ThrowSmoothingCurrentFrame + 1) % k_ThrowSmoothingFrameCount;
-            m_LastPosition = interactorPosition;
-            m_LastRotation = interactorRotation;
+
+            m_LastThrowReferencePose = targetPose;
         }
 
         Vector3 GetSmoothedVelocityValue(Vector3[] velocityFrames)
         {
-            var calcVelocity = new Vector3();
+            var calcVelocity = Vector3.zero;
             var totalWeights = 0f;
             for (var frameCounter = 0; frameCounter < k_ThrowSmoothingFrameCount; ++frameCounter)
             {
@@ -1147,17 +1685,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return Vector3.zero;
         }
 
-        void OnBeginTeleportation(LocomotionSystem locomotionSystem)
+        void SubscribeTeleportationProvider(IXRInteractor interactor)
         {
-            var originTransform = locomotionSystem.xrOrigin.Origin.transform;
-            m_PoseBeforeTeleport = new Pose(originTransform.position, originTransform.rotation);
+            m_TeleportationMonitor.AddInteractor(interactor);
         }
 
-        void OnEndTeleportation(LocomotionSystem locomotionSystem)
+        void UnsubscribeTeleportationProvider(IXRInteractor interactor)
         {
-            var originTransform = locomotionSystem.xrOrigin.Origin.transform;
-            var translated = originTransform.position - m_PoseBeforeTeleport.position;
-            var rotated = originTransform.rotation * Quaternion.Inverse(m_PoseBeforeTeleport.rotation);
+            m_TeleportationMonitor.RemoveInteractor(interactor);
+        }
+
+        void OnTeleported(Pose offset)
+        {
+            var translated = offset.position;
+            var rotated = offset.rotation;
 
             for (var frameIdx = 0; frameIdx < k_ThrowSmoothingFrameCount; ++frameIdx)
             {
@@ -1167,33 +1708,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_ThrowSmoothingVelocityFrames[frameIdx] = rotated * m_ThrowSmoothingVelocityFrames[frameIdx];
             }
 
-            m_LastPosition += translated;
-            m_LastRotation = rotated * m_LastRotation;
-        }
-
-        void SetTeleportationProvider(IXRInteractor interactor)
-        {
-            ClearTeleportationProvider();
-            var interactorTransform = interactor?.transform;
-            if (interactorTransform == null)
-                return;
-
-            m_TeleportationProvider = interactorTransform.GetComponentInParent<TeleportationProvider>();
-            if (m_TeleportationProvider == null)
-                return;
-
-            m_TeleportationProvider.beginLocomotion += OnBeginTeleportation;
-            m_TeleportationProvider.endLocomotion += OnEndTeleportation;
-        }
-
-        void ClearTeleportationProvider()
-        {
-            if (m_TeleportationProvider == null)
-                return;
-
-            m_TeleportationProvider.beginLocomotion -= OnBeginTeleportation;
-            m_TeleportationProvider.endLocomotion -= OnEndTeleportation;
-            m_TeleportationProvider = null;
+            m_LastThrowReferencePose.position += translated;
+            m_LastThrowReferencePose.rotation = rotated * m_LastThrowReferencePose.rotation;
         }
 
         static Transform OnCreatePooledItem()

@@ -15,6 +15,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HideControllerOnSelect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.allowHoveredActivate"/>.</summary>
         protected SerializedProperty m_AllowHoveredActivate;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.targetPriorityMode"/>.</summary>
+        protected SerializedProperty m_TargetPriorityMode;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.playAudioClipOnSelectEntered"/>.</summary>
         protected SerializedProperty m_PlayAudioClipOnSelectEntered;
@@ -40,6 +42,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_PlayAudioClipOnHoverCanceled;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.audioClipForOnHoverCanceled"/>.</summary>
         protected SerializedProperty m_AudioClipForOnHoverCanceled;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.allowHoverAudioWhileSelecting"/>.</summary>
+        protected SerializedProperty m_AllowHoverAudioWhileSelecting;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.playHapticsOnSelectEntered"/>.</summary>
         protected SerializedProperty m_PlayHapticsOnSelectEntered;
@@ -77,6 +81,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HapticHoverCancelIntensity;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.hapticHoverCancelDuration"/>.</summary>
         protected SerializedProperty m_HapticHoverCancelDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.allowHoverHapticsWhileSelecting"/>.</summary>
+        protected SerializedProperty m_AllowHoverHapticsWhileSelecting;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -89,6 +95,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent hideControllerOnSelect = EditorGUIUtility.TrTextContent("Hide Controller On Select", "Hide the controller model on select.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.allowHoveredActivate"/>.</summary>
             public static readonly GUIContent allowHoveredActivate = EditorGUIUtility.TrTextContent("Allow Hovered Activate", "Send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.targetPriorityMode"/>.</summary>
+            public static readonly GUIContent targetPriorityMode = EditorGUIUtility.TrTextContent("Target Priority Mode", "Specifies how many Interactables should be monitored in the Targets For Selection property, useful for custom feedback. The options are in order of best performance.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.playAudioClipOnSelectEntered"/>.</summary>
             public static readonly GUIContent playAudioClipOnSelectEntered = EditorGUIUtility.TrTextContent("On Select Entered", "Play an audio clip when the Select state is entered.");
@@ -114,6 +122,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent playAudioClipOnHoverCanceled = EditorGUIUtility.TrTextContent("On Hover Canceled", "Play an audio clip when the Hover state is exited due to being canceled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.audioClipForOnHoverCanceled"/>.</summary>
             public static readonly GUIContent audioClipForOnHoverCanceled = EditorGUIUtility.TrTextContent("AudioClip To Play", "The audio clip to play when the Hover state is exited due to being canceled.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.allowHoverAudioWhileSelecting"/>.</summary>
+            public static readonly GUIContent allowHoverAudioWhileSelecting = EditorGUIUtility.TrTextContent("Allow Hover Audio While Selecting", "Allow playing audio from Hover events if the Hovered Interactable is currently Selected by this Interactor.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.playHapticsOnSelectEntered"/>.</summary>
             public static readonly GUIContent playHapticsOnSelectEntered = EditorGUIUtility.TrTextContent("On Select Entered", "Play haptics when the Select state is entered.");
@@ -151,6 +161,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent hapticHoverCancelIntensity = EditorGUIUtility.TrTextContent("Haptic Intensity", "Haptics intensity to play when the Hover state is exited due to being canceled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.hapticHoverCancelDuration"/>.</summary>
             public static readonly GUIContent hapticHoverCancelDuration = EditorGUIUtility.TrTextContent("Duration", "Haptics duration (in seconds) to play when the Hover state is exited due to being canceled.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.allowHoverHapticsWhileSelecting"/>.</summary>
+            public static readonly GUIContent allowHoverHapticsWhileSelecting = EditorGUIUtility.TrTextContent("Allow Hover Haptics While Selecting", "Allow playing haptics from Hover events if the Hovered Interactable is currently Selected by this Interactor.");
 
             /// <summary>The help box message when <see cref="XRBaseController"/> is missing.</summary>
             public static readonly string missingRequiredController = "This component requires the GameObject to have an XR Controller component. Add one to ensure this component can respond to user input.";
@@ -166,6 +178,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
             m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
             m_AllowHoveredActivate = serializedObject.FindProperty("m_AllowHoveredActivate");
+            m_TargetPriorityMode = serializedObject.FindProperty("m_TargetPriorityMode");
 
             m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
             m_AudioClipForOnSelectEntered = serializedObject.FindProperty("m_AudioClipForOnSelectEntered");
@@ -179,6 +192,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AudioClipForOnHoverExited = serializedObject.FindProperty("m_AudioClipForOnHoverExited");
             m_PlayAudioClipOnHoverCanceled = serializedObject.FindProperty("m_PlayAudioClipOnHoverCanceled");
             m_AudioClipForOnHoverCanceled = serializedObject.FindProperty("m_AudioClipForOnHoverCanceled");
+            m_AllowHoverAudioWhileSelecting = serializedObject.FindProperty("m_AllowHoverAudioWhileSelecting");
 
             m_PlayHapticsOnSelectEntered = serializedObject.FindProperty("m_PlayHapticsOnSelectEntered");
             m_HapticSelectEnterIntensity = serializedObject.FindProperty("m_HapticSelectEnterIntensity");
@@ -198,6 +212,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_PlayHapticsOnHoverCanceled = serializedObject.FindProperty("m_PlayHapticsOnHoverCanceled");
             m_HapticHoverCancelIntensity = serializedObject.FindProperty("m_HapticHoverCancelIntensity");
             m_HapticHoverCancelDuration = serializedObject.FindProperty("m_HapticHoverCancelDuration");
+            m_AllowHoverHapticsWhileSelecting = serializedObject.FindProperty("m_AllowHoverHapticsWhileSelecting");
         }
 
         /// <inheritdoc />
@@ -217,6 +232,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
             EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
             EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
+            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
         }
 
         /// <inheritdoc />
@@ -339,6 +355,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_AudioClipForOnHoverCanceled, BaseControllerContents.audioClipForOnHoverCanceled);
                 }
             }
+
+            EditorGUILayout.PropertyField(m_AllowHoverAudioWhileSelecting, BaseControllerContents.allowHoverAudioWhileSelecting);
         }
 
         /// <summary>
@@ -422,6 +440,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_HapticHoverCancelDuration, BaseControllerContents.hapticHoverCancelDuration);
                 }
             }
+
+            EditorGUILayout.PropertyField(m_AllowHoverHapticsWhileSelecting, BaseControllerContents.allowHoverHapticsWhileSelecting);
         }
     }
 }

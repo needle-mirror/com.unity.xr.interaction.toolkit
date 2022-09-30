@@ -22,7 +22,7 @@ To use the AR interaction components in the package, you must have the [AR Found
 
 This version of the XR Interaction Toolkit is compatible with the following versions of the Unity Editor:
 
-* 2019.4 and later
+* 2020.3 and later
 
 ### Dependencies
 
@@ -45,8 +45,9 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 
 ### Known limitations
 
+* When using multiple interactor support on XR Grab Interactables and transferring between a socket interactor and direct/ray interactor, if **Attach Ease In Time** is set to 0, there can be a 1 frame visual skip that can occur. To mitigate this visual disturbance, set the **Attach Ease In Time** to a minimum of 0.15. You can also resolve this issue by loading the scene containing the socket interactors after the controller interactors are registered with the XR Interaction Manager if your project does not enable or disable the direct/ray interactors at runtime in order to make the sockets registered last.
+
 * Mouse inputs don't interact with world space UIs when an XR Plug-in Provider in **Edit &gt; Project Settings &gt; XR Plug-in Management** is enabled and running. For more information, please follow the issue tracker. ([1400186](https://issuetracker.unity3d.com/product/unity/issues/guid/1400186/))
-* When configuring the **XR UI Input Module**, gamepad and joystick input buttons are currently hard-coded to known values when using the new Input System. For the gamepad, the **submit** button is mapped to **buttonSouth** and **cancel** is mapped to **buttonEast**. The joystick **submit** button is mapped to the **trigger** and there is currently no support for the cancel button.
 
 ### Helpful links
 

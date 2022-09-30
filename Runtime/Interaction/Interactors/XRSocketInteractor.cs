@@ -371,13 +371,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Unity calls this method automatically in order to draw the Interactables that are currently being hovered over.
         /// </summary>
+        /// <seealso cref="GetHoveredInteractableMaterial"/>
         protected virtual void DrawHoveredInteractables()
         {
             if (m_InteractableHoverScale <= 0f)
-                return;
-
-            var materialToDrawWith = hasSelection ? m_InteractableCantHoverMeshMaterial : m_InteractableHoverMeshMaterial;
-            if (materialToDrawWith == null)
                 return;
 
             var mainCamera = Camera.main;
@@ -396,6 +393,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     continue;
 
                 if (interactableTuples == null || interactableTuples.Length == 0)
+                    continue;
+
+                var materialToDrawWith = GetHoveredInteractableMaterial(interactable);
+                if (materialToDrawWith == null)
                     continue;
 
                 foreach (var tuple in interactableTuples)
@@ -419,6 +420,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the material used to draw the given hovered Interactable.
+        /// </summary>
+        /// <param name="interactable">The hovered Interactable to get the material for.</param>
+        /// <returns>Returns the material Unity should use to draw the given hovered Interactable.</returns>
+        protected virtual Material GetHoveredInteractableMaterial(IXRHoverInteractable interactable)
+        {
+            return hasSelection ? m_InteractableCantHoverMeshMaterial : m_InteractableHoverMeshMaterial;
         }
 
         /// <inheritdoc />

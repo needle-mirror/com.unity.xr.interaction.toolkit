@@ -509,6 +509,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         float GetElementHeight(int index)
         {
+            // ReorderableList will still invoke this callback when List is Empty,
+            // so return the default element height as a fallback (even though this value isn't used)
+            // to avoid indexing out of bounds.
+            if (index >= m_LocomotionVignetteProviders.arraySize)
+                return m_EditorProviderList.elementHeight;
+
             var element = m_LocomotionVignetteProviders.GetArrayElementAtIndex(index);
             var enabled = element.FindPropertyRelative("m_Enabled");
             var useOverrideParameters = element.FindPropertyRelative("m_OverrideDefaultParameters");

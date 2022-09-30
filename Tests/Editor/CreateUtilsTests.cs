@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Tests;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -34,6 +35,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             var origin = Object.FindObjectOfType<XROrigin>();
             Assert.IsTrue(origin != null);
             Assert.IsTrue(origin.Camera != null);
+
+            var inputActionManager = origin.GetComponent<InputActionManager>();
+            Assert.IsTrue(inputActionManager != null);
         }
 
         [Test]
@@ -72,6 +76,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         }
 
         [Test]
+#if UNITY_2021_3
+        [Ignore("This test fails due to regression in 2021.3.9f1 and 2021.3.10f1.")]
+#endif
         public void UndoRedoCreateRayInteractor_WorksWithNoErrors()
         {
             var parentTransform = new GameObject().transform;

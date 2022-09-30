@@ -1,4 +1,5 @@
 using System;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -132,6 +133,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        Gradient m_BlockedColorGradient = new Gradient
+        {
+            colorKeys = new[] { new GradientColorKey(Color.yellow, 0f), new GradientColorKey(Color.yellow, 1f) },
+            alphaKeys = new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) },
+        };
+        /// <summary>
+        /// Controls the color of the line as a gradient from start to end to indicate a state where the interactor has
+        /// a valid target but selection is blocked.
+        /// </summary>
+        public Gradient blockedColorGradient
+        {
+            get => m_BlockedColorGradient;
+            set => m_BlockedColorGradient = value;
+        }
+
+        [SerializeField]
+        bool m_TreatSelectionAsValidState;
+        /// <summary>
+        /// Forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the Interactor has any valid targets.
+        /// </summary>
+        /// <seealso cref="validColorGradient"/>
+        public bool treatSelectionAsValidState
+        {
+            get => m_TreatSelectionAsValidState;
+            set => m_TreatSelectionAsValidState = value;
+        }
+
+        [SerializeField]
         bool m_SmoothMovement;
         /// <summary>
         /// Controls whether the rendered segments will be delayed from and smoothly follow the target segments.
@@ -190,6 +219,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        GameObject m_BlockedReticle;
+        /// <summary>
+        /// Stores the reticle that appears at the end of the line when the interactor has a valid target but selection is blocked.
+        /// </summary>
+        /// <remarks>
+        /// Unity will instantiate it while playing when it is a Prefab asset.
+        /// </remarks>
+        public GameObject blockedReticle
+        {
+            get => m_BlockedReticle;
+            set
+            {
+                m_BlockedReticle = value;
+                if (Application.isPlaying)
+                    SetupBlockedReticle();
+            }
+        }
+
+        [SerializeField]
         bool m_StopLineAtFirstRaycastHit = true;
         /// <summary>
         /// Controls whether this behavior always cuts the line short at the first ray cast hit, even when invalid.
@@ -206,6 +254,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_StopLineAtFirstRaycastHit = value;
         }
 
+        [SerializeField]
+        bool m_StopLineAtSelection;
+        /// <summary>
+        /// Controls whether the line will stop at the attach point of the closest interactable selected by the interactor, if there is one.
+        /// </summary>
+        public bool stopLineAtSelection
+        {
+            get => m_StopLineAtSelection;
+            set => m_StopLineAtSelection = value;
+        }
+
         Vector3 m_ReticlePos;
         Vector3 m_ReticleNormal;
         int m_EndPositionInLine;
@@ -218,6 +277,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         // interface to get target point
         ILineRenderable m_LineRenderable;
+        IXRSelectInteractor m_LineRenderableAsSelectInteractor;
+        XRBaseInteractor m_LineRenderableAsBaseInteractor;
 
         // reusable lists of target points
         Vector3[] m_TargetPoints;
@@ -235,6 +296,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         GameObject m_CustomReticle;
         bool m_CustomReticleAttached;
+
+        XROrigin m_XROrigin;
+
+        /// <summary>
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
+        /// </summary>
+        static XROrigin s_XROriginCache;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -259,8 +327,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void Awake()
         {
             m_LineRenderable = GetComponent<ILineRenderable>();
+            if (m_LineRenderable != null)
+            {
+                m_LineRenderableAsBaseInteractor = m_LineRenderable as XRBaseInteractor;
+                m_LineRenderableAsSelectInteractor = m_LineRenderable as IXRSelectInteractor;
+            }
 
+            FindXROrigin();
             SetupReticle();
+            SetupBlockedReticle();
             ClearLineRenderer();
             UpdateSettings();
         }
@@ -271,7 +346,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void OnEnable()
         {
             m_SnapCurve = true;
-            m_ReticleToUse = null;
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
 
             Application.onBeforeRender += OnBeforeRenderLineVisual;
         }
@@ -283,7 +362,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_LineRenderer != null)
                 m_LineRenderer.enabled = false;
-            m_ReticleToUse = null;
+
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
 
             Application.onBeforeRender -= OnBeforeRenderLineVisual;
         }
@@ -303,15 +387,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateLineVisual();
         }
 
-        void UpdateLineVisual()
+        internal void UpdateLineVisual()
         {
             if (m_PerformSetup)
             {
                 UpdateSettings();
                 m_PerformSetup = false;
             }
+
             if (m_LineRenderer == null)
                 return;
+
+            if (m_LineRenderer.useWorldSpace && m_XROrigin != null)
+            {
+                // Update line width with user scale
+                var xrOrigin = m_XROrigin.Origin;
+                var userScale = xrOrigin != null ? xrOrigin.transform.localScale.x : 1f;
+                m_LineRenderer.widthMultiplier = userScale * Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
+            }
+            
             if (m_LineRenderable == null)
             {
                 m_LineRenderer.enabled = false;
@@ -379,8 +473,68 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // End the line at the current hit point.
                 if ((isValidTarget || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
                 {
+                    // The hit position might not lie within the line segment, for example if a sphere cast is used, so use a point projected onto the
+                    // segment so that the endpoint is continuous with the rest of the curve.
+                    var lastSegmentStartPoint = m_TargetPoints[m_EndPositionInLine - 1];
+                    var lastSegmentEndPoint = m_TargetPoints[m_EndPositionInLine];
+                    var lastSegment = lastSegmentEndPoint - lastSegmentStartPoint;
+                    var projectedHitSegment = Vector3.Project(m_ReticlePos - lastSegmentStartPoint, lastSegment);
+
+                    // Don't bend the line backwards
+                    if (Vector3.Dot(projectedHitSegment, lastSegment) < 0)
+                        projectedHitSegment = Vector3.zero;
+
+                    m_ReticlePos = lastSegmentStartPoint + projectedHitSegment;
                     m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
                     m_NoTargetPoints = m_EndPositionInLine + 1;
+                }
+            }
+
+            var hasSelection = m_LineRenderableAsSelectInteractor != null && m_LineRenderableAsSelectInteractor.hasSelection;
+            if (m_StopLineAtSelection && hasSelection)
+            {
+                // Use the selected interactable closest to the start of the line.
+                var interactablesSelected = m_LineRenderableAsSelectInteractor.interactablesSelected;
+                var firstPoint = m_TargetPoints[0];
+                var closestEndPoint = m_LineRenderableAsSelectInteractor.GetAttachTransform(interactablesSelected[0]).position;
+                var closestSqDistance = Vector3.SqrMagnitude(closestEndPoint - firstPoint);
+                for (var i = 1; i < interactablesSelected.Count; i++)
+                {
+                    var endPoint = m_LineRenderableAsSelectInteractor.GetAttachTransform(interactablesSelected[i]).position;
+                    var sqDistance = Vector3.SqrMagnitude(endPoint - firstPoint);
+                    if (sqDistance < closestSqDistance)
+                    {
+                        closestEndPoint = endPoint;
+                        closestSqDistance = sqDistance;
+                    }
+                }
+
+                // Only stop at selection if it is closer than the current end point.
+                var currentEndSqDistance = Vector3.SqrMagnitude(m_TargetPoints[m_EndPositionInLine] - firstPoint);
+                if (closestSqDistance < currentEndSqDistance || m_EndPositionInLine == 0)
+                {
+                    // Find out where the selection point belongs in the line points. Use the closest target point.
+                    var endPositionForSelection = 1;
+                    var sqDistanceFromEndPoint = Vector3.SqrMagnitude(m_TargetPoints[endPositionForSelection] - closestEndPoint);
+                    for (var i = 2; i < m_NoTargetPoints; i++)
+                    {
+                        var sqDistance = Vector3.SqrMagnitude(m_TargetPoints[i] - closestEndPoint);
+                        if (sqDistance < sqDistanceFromEndPoint)
+                        {
+                            endPositionForSelection = i;
+                            sqDistanceFromEndPoint = sqDistance;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    m_EndPositionInLine = endPositionForSelection;
+                    m_NoTargetPoints = m_EndPositionInLine + 1;
+                    m_ReticlePos = closestEndPoint;
+                    m_ReticleNormal = Vector3.Normalize(m_TargetPoints[m_EndPositionInLine - 1] - m_ReticlePos);
+                    m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
                 }
             }
 
@@ -457,25 +611,63 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // When a straight line has only two points and color gradients have more than two keys,
             // interpolate points between the two points to enable better color gradient effects.
-            if (isValidTarget)
+            if (isValidTarget || m_TreatSelectionAsValidState && hasSelection)
             {
-                m_LineRenderer.colorGradient = m_ValidColorGradient;
+                // Use regular valid state visuals unless we are hovering and selection is blocked.
+                // We use regular valid state visuals if not hovering because the blocked state does not apply
+                // (e.g. we could have a valid target that is UI and therefore not hoverable or selectable as an interactable).
+                var useBlockedVisuals = false;
+                if (!hasSelection && m_LineRenderableAsBaseInteractor != null && m_LineRenderableAsBaseInteractor.hasHover)
+                {
+                    var interactionManager = m_LineRenderableAsBaseInteractor.interactionManager;
+                    var canSelectSomething = false;
+                    foreach (var interactable in m_LineRenderableAsBaseInteractor.interactablesHovered)
+                    {
+                        if (interactable is IXRSelectInteractable selectInteractable && interactionManager.IsSelectPossible(m_LineRenderableAsBaseInteractor, selectInteractable))
+                        {
+                            canSelectSomething = true;
+                            break;
+                        }
+                    }
+
+                    useBlockedVisuals = !canSelectSomething;
+                }
+
+                m_LineRenderer.colorGradient = useBlockedVisuals ? m_BlockedColorGradient : m_ValidColorGradient;
                 // Set reticle position and show reticle
-                m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : m_Reticle;
+                var previouslyUsedReticle = m_ReticleToUse;
+                var validStateReticle = useBlockedVisuals ? m_BlockedReticle : m_Reticle;
+                m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : validStateReticle;
+                if (previouslyUsedReticle != null && previouslyUsedReticle != m_ReticleToUse)
+                    previouslyUsedReticle.SetActive(false);
+
                 if (m_ReticleToUse != null)
                 {
                     m_ReticleToUse.transform.position = m_ReticlePos;
-                    m_ReticleToUse.transform.up = m_ReticleNormal;
+                    var hoverInteractor = m_LineRenderable as IXRHoverInteractor;
+                    if (hoverInteractor?.GetOldestInteractableHovered() is IXRReticleDirectionProvider reticleDirectionProvider)
+                    {
+                        reticleDirectionProvider.GetReticleDirection(hoverInteractor, m_ReticleNormal, out var reticleUp, out var reticleForward);
+                        if (reticleForward.HasValue)
+                            m_ReticleToUse.transform.rotation = Quaternion.LookRotation(reticleForward.Value, reticleUp);
+                        else
+                            m_ReticleToUse.transform.up = reticleUp;
+                    }
+                    else
+                    {
+                        m_ReticleToUse.transform.up = m_ReticleNormal;
+                    }
+
                     m_ReticleToUse.SetActive(true);
                 }
             }
             else
             {
                 m_LineRenderer.colorGradient = m_InvalidColorGradient;
-                m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : m_Reticle;
                 if (m_ReticleToUse != null)
                 {
                     m_ReticleToUse.SetActive(false);
+                    m_ReticleToUse = null;
                 }
             }
 
@@ -496,7 +688,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Array.Copy(m_RenderPoints, m_PreviousRenderPoints, m_NoRenderPoints);
             m_NoPreviousRenderPoints = m_NoRenderPoints;
             m_SnapCurve = false;
-            m_ReticleToUse = null;
         }
 
         void UpdateSettings()
@@ -521,6 +712,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
+        void FindXROrigin()
+        {
+            if (m_XROrigin != null)
+                return;
+
+            if (s_XROriginCache == null)
+                s_XROriginCache = FindObjectOfType<XROrigin>();
+
+            m_XROrigin = s_XROriginCache;
+        }
+
         void SetupReticle()
         {
             if (m_Reticle == null)
@@ -533,30 +735,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_Reticle.SetActive(false);
         }
 
+        void SetupBlockedReticle()
+        {
+            if (m_BlockedReticle == null)
+                return;
+
+            // Instantiate if the reticle is a Prefab asset rather than a scene GameObject
+            if (!m_BlockedReticle.scene.IsValid())
+                m_BlockedReticle = Instantiate(m_BlockedReticle);
+
+            m_BlockedReticle.SetActive(false);
+        }
+
         /// <inheritdoc />
         public bool AttachCustomReticle(GameObject reticleInstance)
         {
-            if (!m_CustomReticleAttached)
-            {
-                if (m_Reticle != null)
-                {
-                    m_Reticle.SetActive(false);
-                }
-            }
-            else
-            {
-                if (m_CustomReticle != null)
-                {
-                    m_CustomReticle.SetActive(false);
-                }
-            }
-
             m_CustomReticle = reticleInstance;
-            if (m_CustomReticle != null)
-            {
-                m_CustomReticle.SetActive(true);
-            }
-
             m_CustomReticleAttached = true;
             return false;
         }
@@ -564,16 +758,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool RemoveCustomReticle()
         {
-            if (m_CustomReticle != null)
-            {
-                m_CustomReticle.SetActive(false);
-            }
-
-            if (m_Reticle != null)
-            {
-                m_Reticle.SetActive(true);
-            }
-
             m_CustomReticle = null;
             m_CustomReticleAttached = false;
             return false;

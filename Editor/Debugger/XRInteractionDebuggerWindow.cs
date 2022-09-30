@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.XR.Interaction.Toolkit.Filtering;
 using UnityEngine;
@@ -298,6 +299,33 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             return string.Join(separator, s_Names);
+        }
+
+        internal static string GetLayerMaskDisplay(int layerSize, int interactionLayerMaskValue, string maskOn, string maskOff)
+        {            
+            var stringBuilder = new StringBuilder();
+            for (var i = 0; i < layerSize; i++)
+            {
+                var layerMaskValue = 1 << i;
+                var maskString = (layerMaskValue & interactionLayerMaskValue) != 0? maskOn : maskOff;
+                stringBuilder.Append(maskString);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        internal static List<int> GetActiveLayers(int layerSize, int interactionLayerMaskValue)
+        {
+            var layers = new List<int>();
+            for (var i = 0; i < layerSize; i++)
+            {
+                var layerMaskValue = 1 << i;
+                if ((layerMaskValue & interactionLayerMaskValue) != 0)
+                {
+                    layers.Add(i);
+                }
+            }
+            return layers;
         }
 
         internal static string GetDisplayName(object obj)

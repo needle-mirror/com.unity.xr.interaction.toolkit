@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling
         /// <summary>
         /// Creates a new LinkedPool instance.
         /// </summary>
-        /// <param name="createFunc">Used to create a new instance when the pool is empty. In most cases this will just be `() = new T()`.</param>
+        /// <param name="createFunc">Used to create a new instance when the pool is empty. In most cases this will just be `() =&gt; new T()`.</param>
         /// <param name="actionOnGet">Called when the instance is taken from the pool.</param>
         /// <param name="actionOnRelease">Called when the instance is returned to the pool. This can be used to clean up or disable the instance.</param>
         /// <param name="actionOnDestroy">Called when the element could not be returned to the pool due to the pool reaching the maximum size.</param>

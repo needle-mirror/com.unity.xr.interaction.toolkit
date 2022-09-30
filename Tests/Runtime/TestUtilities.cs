@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using Unity.XR.CoreUtils;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -213,6 +215,103 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             callbackExecution.Add(TargetFilterCallback.Process);
             results.AddRange(targets);
+        }
+    }
+
+    class MockGrabTransformer : IXRGrabTransformer
+    {
+        public enum MethodTrace
+        {
+            OnLink,
+            OnGrab,
+            OnGrabCountChanged,
+            ProcessFixed,
+            ProcessDynamic,
+            ProcessLate,
+            ProcessOnBeforeRender,
+            OnUnlink,
+        }
+
+        public List<MethodTrace> methodTraces { get; } = new List<MethodTrace>();
+
+        public Dictionary<XRInteractionUpdateOrder.UpdatePhase, bool> phasesTraced { get; } = new Dictionary<XRInteractionUpdateOrder.UpdatePhase, bool>
+        {
+            { XRInteractionUpdateOrder.UpdatePhase.Fixed, false},
+            { XRInteractionUpdateOrder.UpdatePhase.Dynamic, true},
+            { XRInteractionUpdateOrder.UpdatePhase.Late, false},
+            { XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender, false},
+        };
+
+        /// <summary>
+        /// The <see cref="Pose"/> value to set in <see cref="Process"/>.
+        /// Set to <see langword="null"/> to skip using it.
+        /// </summary>
+        public Pose? targetPoseValue { get; set; }
+
+        /// <summary>
+        /// The <see cref="Vector3"/> local scale value to set in <see cref="Process"/>.
+        /// Set to <see langword="null"/> to skip using it.
+        /// </summary>
+        public Vector3? localScaleValue { get; set; }
+
+        /// <inheritdoc />
+        public bool canProcess { get; set; } = true;
+
+        /// <inheritdoc />
+        public void OnLink(XRGrabInteractable grabInteractable)
+        {
+            methodTraces.Add(MethodTrace.OnLink);
+        }
+
+        /// <inheritdoc />
+        public void OnGrab(XRGrabInteractable grabInteractable)
+        {
+            methodTraces.Add(MethodTrace.OnGrab);
+        }
+
+        /// <inheritdoc />
+        public void OnGrabCountChanged(XRGrabInteractable grabInteractable, Pose targetPose, Vector3 localScale)
+        {
+            methodTraces.Add(MethodTrace.OnGrabCountChanged);
+        }
+
+        /// <inheritdoc />
+        public void Process(XRGrabInteractable grabInteractable, XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale)
+        {
+            switch (updatePhase)
+            {
+                case XRInteractionUpdateOrder.UpdatePhase.Fixed:
+                    if (phasesTraced[updatePhase])
+                        methodTraces.Add(MethodTrace.ProcessFixed);
+                    break;
+                case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
+                    if (phasesTraced[updatePhase])
+                        methodTraces.Add(MethodTrace.ProcessDynamic);
+                    break;
+                case XRInteractionUpdateOrder.UpdatePhase.Late:
+                    if (phasesTraced[updatePhase])
+                        methodTraces.Add(MethodTrace.ProcessLate);
+                    break;
+                case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
+                    if (phasesTraced[updatePhase])
+                        methodTraces.Add(MethodTrace.ProcessOnBeforeRender);
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(XRInteractionUpdateOrder.UpdatePhase)}={updatePhase}");
+                    break;
+            }
+
+            if (targetPoseValue.HasValue)
+                targetPose = targetPoseValue.Value;
+
+            if (localScaleValue.HasValue)
+                localScale = localScaleValue.Value;
+        }
+
+        /// <inheritdoc />
+        public void OnUnlink(XRGrabInteractable grabInteractable)
+        {
+            methodTraces.Add(MethodTrace.OnUnlink);
         }
     }
 }

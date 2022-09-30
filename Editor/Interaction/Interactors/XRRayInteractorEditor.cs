@@ -67,6 +67,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_TranslateSpeed;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
         protected SerializedProperty m_AnchorRotateReferenceFrame;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
+        protected SerializedProperty m_AnchorRotationMode;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -127,6 +129,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent translateSpeed = EditorGUIUtility.TrTextContent("Translate Speed", "Speed that the anchor is translated.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
             public static readonly GUIContent anchorRotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
+            public static readonly GUIContent anchorRotationMode = EditorGUIUtility.TrTextContent("Rotation Mode", "How the anchor rotation is controlled.");
         }
 
         /// <inheritdoc />
@@ -165,6 +169,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_RotateSpeed = serializedObject.FindProperty("m_RotateSpeed");
             m_TranslateSpeed = serializedObject.FindProperty("m_TranslateSpeed");
             m_AnchorRotateReferenceFrame = serializedObject.FindProperty("m_AnchorRotateReferenceFrame");
+            m_AnchorRotationMode = serializedObject.FindProperty("m_AnchorRotationMode");
 
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
@@ -215,9 +220,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(m_RotateSpeed, Contents.rotateSpeed);
                     EditorGUILayout.PropertyField(m_TranslateSpeed, Contents.translateSpeed);
                     EditorGUILayout.PropertyField(m_AnchorRotateReferenceFrame, Contents.anchorRotateReferenceFrame);
+                    EditorGUILayout.PropertyField(m_AnchorRotationMode, Contents.anchorRotationMode);
+                    if (m_AnchorRotationMode.intValue == (int)XRRayInteractor.AnchorRotationMode.RotateOverTime)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_RotateSpeed, Contents.rotateSpeed);
+                        }
+                    }
                 }
             }
 
@@ -325,8 +337,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_HoverTimeToSelect, Contents.hoverTimeToSelect);
                 }
             }
+            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
-            EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
         }
     }
 }

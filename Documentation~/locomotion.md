@@ -7,6 +7,8 @@ The XR Interaction Toolkit package provides a set of locomotion primitives that 
 - A Snap Turn Provider that rotates the user by fixed angles
 - A Continuous Turn Provider that smoothly rotates the user over time
 - A Continuous Move Provider that smoothly moves the user over time
+- A Grab Move Provider that moves the user counter to controller movement
+- A Two Handed Grab Move Provider that can move, rotate, and scale the user counter to controller movement
 
 This documentation outlines how to use and extend these components.
 
@@ -26,6 +28,7 @@ This documentation outlines how to use and extend these components.
 | **Snap Turn** | A type of locomotion that rotates the user by a fixed angle. |
 | **Continuous Turn** | A type of locomotion that smoothly rotates the user by an amount over time. |
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
+| **Grab Move** | A type of locomotion that moves the user counter to controller movement, as if the user is grabbing the world around them. |
 | **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
@@ -226,7 +229,7 @@ The **System** field should reference the Locomotion System MonoBehaviour that y
 
 The Teleportation Area Interactable is a specialization of the `BaseTeleportInteractable` class. It allows the user to select any location on the surface as their destination.
 
-The Teleportation Area Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. The Teleportation Area Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
+The Teleportation Area Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. It can also optionally match the user's rotation to the forward direction of the attach transform of the selecting Interactor. The Teleportation Area Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
 
 The following image shows an example of a portion of the Teleportation Area Interactable as it appears in the Inspector:
 
@@ -237,8 +240,11 @@ The properties on the Teleportation Area Interactable are similar to other Inter
 | **Property** | **Description** |
 |-|-|
 |**Match Orientation** |Specifies how to orient the Origin after teleportation. You can choose from the following options:<br/><ul><li>**World Space Up** to stay oriented according to the world space up vector.</li><li>**Target Up** to orient according to the target `BaseTeleportationInteractable` Transform's up vector.</li><li>**Target Up And Forward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation.</li><li>**None** to maintain the same orientation before and after teleporting.</li></ul>|
+|**Match Directional Input**|Specifies whether or not to rotate the Origin to match the forward direction of the attach transform of the selecting interactor. This option is only available when **Match Orientation** is set to **World Space Up** or **Target Up**.|
 |**Teleport Trigger**|Specifies whether the teleportation triggers when the user enters or exits the selection.
 |**Teleportation Provider** |Indicates which Teleportation Provider this Interactable communicates with. If a Teleportation Provider is not configured, the Interactable attempts to find a Teleportation Provider in the current scene(s).|
+| **Filter Selection By Hit Normal** | When enabled, this teleportation interactable will only be selectable by a ray interactor if its current hit normal is aligned with this object's up vector. |
+| **Up Normal Tolerance Degrees** | Sets the tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector. Only used and displayed when **Filter Selection By Hit Normal** is enabled. |
 
 **Match Orientation** is used to specify how the rotation of the XR Origin changes when teleporting.
 - If your application does not rotate the Origin in any way, and you always want the Origin's up vector to match World Space's Up vector, use the **World Space Up** option.
@@ -250,7 +256,7 @@ The properties on the Teleportation Area Interactable are similar to other Inter
 
 The Teleportation Anchor is a specialization of the `BaseTeleportInteractable` class that allows the user to teleport to an anchor location by selecting the anchor or an area around it.
 
-The Teleportation Anchor Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. The Teleportation Anchor Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
+The Teleportation Anchor Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. It can also optionally match the user's rotation to the forward direction of the attach transform of the selecting Interactor. The Teleportation Anchor Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
 
 The following image shows an example of a portion of the Teleportation Anchor Interactable as it appears in the Inspector:
 
@@ -354,7 +360,8 @@ The following image shows an example of the Continuous Move Provider (Action-bas
 |**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Move Speed**|The speed, in units per second, to move forward.|
 |**Enable Strafe**|Controls whether to enable strafing (sideways movement).|
-|**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used.|
+|**Enable Fly**|Controls whether to enable flying (unconstrained movement). This overrides **Use Gravity**.|
+|**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used. This only applies when **Enable Fly** is disabled.|
 |**Gravity Application Mode**|Controls when gravity begins to take effect.|
 |**Forward Source**|The source Transform to define the forward direction.|
 |**Left Hand Move Action**|The Action that will be used to read input from the left hand controller.|
@@ -371,7 +378,8 @@ The following image shows an example of the Continuous Move Provider (Device-bas
 |**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
 |**Move Speed**|The speed, in units per second, to move forward.|
 |**Enable Strafe**|Controls whether to enable strafing (sideways movement).|
-|**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used.|
+|**Enable Fly**|Controls whether to enable flying (unconstrained movement). This overrides **Use Gravity**.|
+|**Use Gravity**|Controls whether gravity affects this provider when a Character Controller is used. This only applies when **Enable Fly** is disabled.|
 |**Gravity Application Mode**|Controls when gravity begins to take effect.|
 |**Forward Source**|The source Transform to define the forward direction.|
 |**Input Binding**|The 2D Input Axis on the controller devices that will be used to trigger moving.|
@@ -379,7 +387,62 @@ The following image shows an example of the Continuous Move Provider (Device-bas
 |**Deadzone Min**|Value below which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.|
 |**Deadzone Max**|Value above which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.|
 
-#### Character Controller Driver
+### Grab Move Providers
+
+The package provides example implementations of a Grab Move Provider and a Two Handed Grab Move Provider. A grab movement translates the Origin counter to controller movement while a button input is held. This allows the user to move as if grabbing the whole world around them.
+
+If a [Character Controller](https://docs.unity3d.com/Manual/class-CharacterController.html) is present on the Origin, the Grab Move Provider or Two Handed Grab Move Provider will move the Origin using [`CharacterController.Move`](https://docs.unity3d.com/ScriptReference/CharacterController.Move.html) rather than directly translating the Transform of the Origin.
+
+#### Grab Move Provider
+
+A Grab Move Provider allows for grab movement with one hand.
+
+The following image shows an example of the Grab Move Provider.
+
+![grab-move-provider](images/grab-move-provider.png)
+
+|**Property**|**Description**|
+|---|---|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**Enable Free X Movement**|Controls whether to enable unconstrained movement along the x-axis.|
+|**Enable Free Y Movement**|Controls whether to enable unconstrained movement along the y-axis.|
+|**Enable Free Z Movement**|Controls whether to enable unconstrained movement along the z-axis.|
+|**Use Gravity**|Controls whether gravity applies to constrained axes when a `CharacterController` is used.|
+|**Gravity Application Mode**|Controls when gravity begins to take effect.|
+|**Controller Transform**|The controller Transform that will drive grab movement with its local position. Will use this GameObject's Transform if not set.|
+|**Enable Move While Selecting**|Controls whether to allow grab movement while the controller is selecting an interactable.|
+|**Move Factor**|The ratio of actual movement distance to controller movement distance.|
+|**Grab Move Action**|The Action that will be used to perform grab movement while held.|
+
+#### Two Handed Grab Move Provider
+
+A Two Handed Grab Move Provider allows for grab movement with both hands by using two Grab Move Providers. In addition to performing translation, this provider is able to rotate and scale the Origin counter to hand movements. It uses the vector from the left hand to the right hand to determine yaw rotation and uniform scale.
+
+When a Two Handed Grab Move Provider is used, either of its Grab Move Providers will only perform locomotion by itself if the other single-handed provider is not trying to perform locomotion. This means that when both grab move inputs are held, the Two Handed Grab Move Provider is the Locomotion Provider performing translation of the Origin.
+
+The following image shows an example of the Two Handed Grab Move Provider.
+
+![two-handed-grab-move-provider](images/two-handed-grab-move-provider.png)
+
+|**Property**|**Description**|
+|---|---|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**Enable Free X Movement**|Controls whether to enable unconstrained movement along the x-axis.|
+|**Enable Free Y Movement**|Controls whether to enable unconstrained movement along the y-axis.|
+|**Enable Free Z Movement**|Controls whether to enable unconstrained movement along the z-axis.|
+|**Use Gravity**|Controls whether gravity applies to constrained axes when a `CharacterController` is used.|
+|**Gravity Application Mode**|Controls when gravity begins to take effect.|
+|**Left Grab Move Provider**|The left hand grab move instance which will be used as one half of two-handed locomotion.|
+|**Right Grab Move Provider**|The right hand grab move instance which will be used as one half of two-handed locomotion.|
+|**Override Shared Settings On Init**|Controls whether to override the settings for individual handed providers with this provider's settings on initialization.|
+|**Move Factor**|The ratio of actual movement distance to controller movement distance.|
+|**Require Two Hands For Translation**|Controls whether translation requires both grab move inputs to be active.|
+|**Enable Rotation**|Controls whether to enable yaw rotation of the user.|
+|**Enable Scaling**|Controls whether to enable uniform scaling of the user.|
+|**Minimum Scale**|The minimum user scale allowed.|
+|**Maximum Scale**|The maximum user scale allowed.|
+
+### Character Controller Driver
 
 You can use the Character Controller Driver to drive the height of a Character Controller on the Origin upon locomotion events emitted by, for example, a Continuous Move Provider. This can allow for the capsule collider of the Origin (that is, the user) to be automatically resized when the user crouches down or stands up and tries to move with a joystick. This can be useful, together with other Collider objects, to constrain the user from moving forward unless their head would be lower than an obstacle, for instance.
 

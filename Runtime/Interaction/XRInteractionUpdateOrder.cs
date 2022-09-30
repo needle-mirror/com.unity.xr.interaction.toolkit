@@ -4,7 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// The update order for <see cref="MonoBehaviour"/>s in XR Interaction.
+    /// The update order for <see cref="MonoBehaviour"/> types in XR Interaction Toolkit.
     /// </summary>
     /// <remarks>
     /// This is primarily used to control initialization order as the update of interactors / interaction manager / interactables is handled by the
@@ -20,17 +20,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Order when instances of type <see cref="XRDeviceSimulator"/> are updated.
         /// </summary>
-        public const int k_DeviceSimulator = k_Controllers - 1;
+        public const int k_DeviceSimulator = -29991; // Before XRBaseController
 
         /// <summary>
         /// Order when instances of type <see cref="XRBaseController"/> are updated.
         /// </summary>
-        public const int k_Controllers = k_ControllerRecorder + 10;
+        public const int k_Controllers = -29990; // After XRControllerRecorder
 
         /// <summary>
         /// Order when instances of type <see cref="LocomotionProvider"/> are updated.
         /// </summary>
-        public const int k_LocomotionProviders = k_UIInputModule - 10;
+        public const int k_LocomotionProviders = -210; // Before UIInputModule
+
+        /// <summary>
+        /// Order when instances of type <see cref="TwoHandedGrabMoveProvider"/> are updated.
+        /// </summary>
+        public const int k_TwoHandedGrabMoveProviders = -209; // After GrabMoveProvider
 
         /// <summary>
         /// Order when instances of type <see cref="UIInputModule"/> are updated.
@@ -45,12 +50,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Order when instances of type <see cref="XRBaseInteractor"/> are updated.
         /// </summary>
-        public const int k_Interactors = k_InteractionManager + 1;
+        public const int k_Interactors = -99; // After XRInteractionManager
 
         /// <summary>
         /// Order when instances of type <see cref="XRBaseInteractable"/> are updated.
         /// </summary>
-        public const int k_Interactables = k_Interactors + 1;
+        public const int k_Interactables = -98; // After XRBaseInteractor
 
         /// <summary>
         /// Order when instances of type <see cref="XRInteractorLineVisual"/> are updated.
@@ -65,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Order when <see cref="XRInteractorLineVisual.OnBeforeRenderLineVisual"/> is called.
         /// </summary>
-        public const int k_BeforeRenderLineVisual = k_BeforeRenderOrder + 1;
+        public const int k_BeforeRenderLineVisual = 101; // After XRInteractionManager.OnBeforeRender
 
         /// <summary>
         /// The phase in which updates happen.

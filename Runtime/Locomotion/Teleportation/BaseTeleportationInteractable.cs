@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -56,7 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// This is intended to be the base class for all Teleportation Interactables. This abstracts the teleport request process for specializations of this class.
     /// </summary>
-    public abstract partial class BaseTeleportationInteractable : XRBaseInteractable
+    public abstract partial class BaseTeleportationInteractable : XRBaseInteractable, IXRReticleDirectionProvider
     {
         /// <summary>
         /// Indicates when the teleportation action happens.
@@ -107,6 +109,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated")]
             OnDeactivate = OnDeactivated,
         }
+
+        const float k_DefaultNormalToleranceDegrees = 30f;
 
         [SerializeField]
         [Tooltip("The teleportation provider that this teleportation interactable will communicate teleport requests to." +
@@ -163,6 +167,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        [Tooltip("Whether or not to rotate the rig to match the forward direction of the attach transform of the selecting interactor.")]
+        bool m_MatchDirectionalInput;
+
+        /// <summary>
+        /// Whether or not to rotate the rig to match the forward direction of the attach transform of the selecting interactor.
+        /// This only applies when <see cref="matchOrientation"/> is set to <see cref="MatchOrientation.WorldSpaceUp"/> or <see cref="MatchOrientation.TargetUp"/>.
+        /// </summary>
+        public bool matchDirectionalInput
+        {
+            get => m_MatchDirectionalInput;
+            set => m_MatchDirectionalInput = value;
+        }
+
+        [SerializeField]
         [Tooltip("Specify when the teleportation will be triggered. Options map to when the trigger is pressed or when it is released.")]
         TeleportTrigger m_TeleportTrigger = TeleportTrigger.OnSelectExited;
 
@@ -173,6 +191,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_TeleportTrigger;
             set => m_TeleportTrigger = value;
+        }
+
+        [SerializeField]
+        [Tooltip("When enabled, this teleportation interactable will only be selectable by a ray interactor if its current " +
+                 "hit normal is aligned with this object's up vector.")]
+        bool m_FilterSelectionByHitNormal;
+
+        /// <summary>
+        /// When set to <see langword="true"/>, this teleportation interactable will only be selectable by a ray interactor if its current
+        /// hit normal is aligned with this object's up vector.
+        /// </summary>
+        /// <seealso cref="upNormalToleranceDegrees"/>
+        public bool filterSelectionByHitNormal
+        {
+            get => m_FilterSelectionByHitNormal;
+            set => m_FilterSelectionByHitNormal = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Sets the tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector.")]
+        float m_UpNormalToleranceDegrees = k_DefaultNormalToleranceDegrees;
+
+        /// <summary>
+        /// The tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector.
+        /// </summary>
+        /// <seealso cref="filterSelectionByHitNormal"/>
+        public float upNormalToleranceDegrees
+        {
+            get => m_UpNormalToleranceDegrees;
+            set => m_UpNormalToleranceDegrees = value;
         }
 
         [SerializeField]
@@ -194,6 +242,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         // Reusable event args
         readonly LinkedPool<TeleportingEventArgs> m_TeleportingEventArgs = new LinkedPool<TeleportingEventArgs>(() => new TeleportingEventArgs(), collectionCheck: false);
+
+        readonly Dictionary<IXRInteractor, Vector3> m_TeleportForwardPerInteractor = new Dictionary<IXRInteractor, Vector3>();
 
         /// <inheritdoc />
         protected override void Awake()
@@ -233,18 +283,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit))
                 {
-                    // Are we still selecting this object?
-                    var found = false;
-                    foreach (var interactionCollider in colliders)
-                    {
-                        if (interactionCollider == raycastHit.collider)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found)
+                    // Are we still selecting this object and within the tolerated normal threshold?
+                    if (!rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit) ||
+                        !interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var hitInteractable) ||
+                        hitInteractable != (IXRInteractable)this ||
+                        (m_FilterSelectionByHitNormal && Vector3.Angle(transform.up, raycastHit.normal) > m_UpNormalToleranceDegrees))
                     {
                         return;
                     }
@@ -267,6 +310,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (success)
             {
+                UpdateTeleportRequestRotation(interactor, ref teleportRequest);
                 success = m_TeleportationProvider.QueueTeleportRequest(teleportRequest);
 
                 if (success && m_Teleporting != null)
@@ -278,6 +322,54 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         args.teleportRequest = teleportRequest;
                         m_Teleporting.Invoke(args);
                     }
+                }
+            }
+        }
+
+        void UpdateTeleportRequestRotation(IXRInteractor interactor, ref TeleportRequest teleportRequest)
+        {
+            if (!m_MatchDirectionalInput || !m_TeleportForwardPerInteractor.TryGetValue(interactor, out var forward))
+                return;
+
+            switch (teleportRequest.matchOrientation)
+            {
+                case MatchOrientation.WorldSpaceUp:
+                    teleportRequest.destinationRotation = Quaternion.LookRotation(forward, Vector3.up);
+
+                    // Change the match orientation value to request that the teleportation provider should apply the destination rotation with the directional input.
+                    teleportRequest.matchOrientation = MatchOrientation.TargetUpAndForward;
+                    break;
+
+                case MatchOrientation.TargetUp:
+                    teleportRequest.destinationRotation = Quaternion.LookRotation(forward, transform.up);
+
+                    // Change the match orientation value to request that the teleportation provider should apply the destination rotation with the directional input.
+                    teleportRequest.matchOrientation = MatchOrientation.TargetUpAndForward;
+                    break;
+            }
+        }
+
+        /// <inheritdoc />
+        public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractable(updatePhase);
+
+            if (updatePhase != XRInteractionUpdateOrder.UpdatePhase.Dynamic || !isSelected || !m_MatchDirectionalInput)
+                return;
+
+            // Update the reticle direction for each interactor that is selecting this interactable.
+            foreach (var interactorSelecting in interactorsSelecting)
+            {
+                var attachTransform = interactorSelecting.GetAttachTransform(this);
+                switch (matchOrientation)
+                {
+                    case MatchOrientation.WorldSpaceUp:
+                        m_TeleportForwardPerInteractor[interactorSelecting] = Vector3.ProjectOnPlane(attachTransform.forward, Vector3.up).normalized;
+                        break;
+
+                    case MatchOrientation.TargetUp:
+                        m_TeleportForwardPerInteractor[interactorSelecting] = Vector3.ProjectOnPlane(attachTransform.forward, transform.up).normalized;
+                        break;
                 }
             }
         }
@@ -316,6 +408,58 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 SendTeleportRequest(args.interactorObject);
 
             base.OnDeactivated(args);
+        }
+
+        /// <inheritdoc />
+        public override bool IsSelectableBy(IXRSelectInteractor interactor)
+        {
+            var isSelectable = base.IsSelectableBy(interactor);
+            if (isSelectable && m_FilterSelectionByHitNormal &&
+                interactor is XRRayInteractor rayInteractor && rayInteractor != null &&
+                rayInteractor.TryGetCurrent3DRaycastHit(out var raycastHit) &&
+                interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var hitInteractable) &&
+                hitInteractable == (IXRInteractable)this)
+            {
+                // The ray interactor should only be able to select if its current hit is this interactable
+                // and the hit normal is within the tolerated threshold.
+                isSelectable &= Vector3.Angle(transform.up, raycastHit.normal) <= m_UpNormalToleranceDegrees;
+            }
+
+            return isSelectable;
+        }
+
+        /// <inheritdoc />
+        public void GetReticleDirection(IXRInteractor interactor, Vector3 hitNormal, out Vector3 reticleUp, out Vector3? optionalReticleForward)
+        {
+            optionalReticleForward = null;
+            reticleUp = hitNormal;
+            Vector3 reticleForward;
+            switch (matchOrientation)
+            {
+                case MatchOrientation.WorldSpaceUp:
+                    reticleUp = Vector3.up;
+                    if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
+                        optionalReticleForward = reticleForward;
+                    break;
+
+                case MatchOrientation.TargetUp:
+                    reticleUp = transform.up;
+                    if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
+                        optionalReticleForward = reticleForward;
+                    break;
+
+                case MatchOrientation.TargetUpAndForward:
+                    reticleUp = transform.up;
+                    optionalReticleForward = transform.forward;
+                    break;
+
+                case MatchOrientation.None:
+                    break;
+
+                default:
+                    Assert.IsTrue(false, $"Unhandled {nameof(MatchOrientation)}={matchOrientation}.");
+                    break;
+            }
         }
     }
 }

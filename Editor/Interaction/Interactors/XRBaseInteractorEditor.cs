@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEditor.XR.Interaction.Toolkit.Utilities;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -9,6 +12,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [CustomEditor(typeof(XRBaseInteractor), true), CanEditMultipleObjects]
     public partial class XRBaseInteractorEditor : BaseInteractionEditor
     {
+        const string k_FiltersExpandedKey = "XRI." + nameof(XRBaseInteractorEditor) + ".FiltersExpanded";
+        const string k_HoverFiltersExpandedKey = "XRI." + nameof(XRBaseInteractorEditor) + ".HoverFiltersExpanded";
+        const string k_SelectFiltersExpandedKey = "XRI." + nameof(XRBaseInteractorEditor) + ".SelectFiltersExpanded";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionManager"/>.</summary>
         protected SerializedProperty m_InteractionManager;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
@@ -23,6 +30,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_StartingSelectedInteractable;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingTargetFilter"/>.</summary>
         protected SerializedProperty m_StartingTargetFilter;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingHoverFilters"/>.</summary>
+        protected SerializedProperty m_StartingHoverFilters;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingSelectFilters"/>.</summary>
+        protected SerializedProperty m_StartingSelectFilters;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.hoverEntered"/>.</summary>
         protected SerializedProperty m_HoverEntered;
@@ -51,6 +62,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
         protected SerializedProperty m_OnSelectExitedCalls;
 
+        bool m_FiltersExpanded;
+        ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
+        ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
@@ -60,7 +75,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent interactionManager = EditorGUIUtility.TrTextContent("Interaction Manager", "The XR Interaction Manager that this Interactor will communicate with (will find one if None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
             public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Deprecated Interaction Layer Mask", "Deprecated Interaction Layer Mask that uses the Unity physics Layers. Hide this property by disabling \'Show Old Interaction Layer Mask In Inspector\' in the XR Interaction Toolkit project settings.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayers"/>.</summary>
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactables whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.attachTransform"/>.</summary>
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables. Will create an empty GameObject if None.");
@@ -68,8 +83,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent keepSelectedTargetValid = EditorGUIUtility.TrTextContent("Keep Selected Target Valid", "Keep selecting the target when not touching or pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
-            public static readonly GUIContent startingTargetFilter = EditorGUIUtility.TrTextContent("Starting Target Filter", "The Target Filter that this Interactor will automatically link at startup (optional, may be None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
             public static readonly GUIContent onHoverEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Entered");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
@@ -85,6 +98,19 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>The help box message when deprecated Interactor Events are being used.</summary>
             public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactor Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");
+
+            /// <summary>The Interactor filters foldout.</summary>
+            public static readonly GUIContent interactorFilters = EditorGUIUtility.TrTextContent("Interactor Filters", "Add filters to extend this Interactor without needing to create a derived behavior.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
+            public static readonly GUIContent startingTargetFilter = EditorGUIUtility.TrTextContent("Starting Target Filter", "The target filter that this Interactor will automatically link at startup (optional, may be None).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectFilters"/>.</summary>
+            public static readonly GUIContent startingHoverFilters = EditorGUIUtility.TrTextContent("Starting Hover Filters", "The hover filters that this Interactor will automatically link at startup (optional, may be empty). Used as additional hover validations for this Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectFilters"/>.</summary>
+            public static readonly GUIContent startingSelectFilters = EditorGUIUtility.TrTextContent("Starting Select Filters", "The select filters that this Interactor will automatically link at startup (optional, may be empty). Used as additional select validations for this Interactor.");
+            /// <summary>The list of runtime hover filters.</summary>
+            public static readonly GUIContent hoverFiltersHeader = EditorGUIUtility.TrTextContent("Hover Filters", "This list is populated in Awake, during Play mode.");
+            /// <summary>The list of runtime select filters.</summary>
+            public static readonly GUIContent selectFiltersHeader = EditorGUIUtility.TrTextContent("Select Filters", "This list is populated in Awake, during Play mode.");
         }
 
         /// <summary>
@@ -99,7 +125,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
-            m_StartingTargetFilter = serializedObject.FindProperty("m_StartingTargetFilter");
 
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
             m_HoverExited = serializedObject.FindProperty("m_HoverExited");
@@ -115,18 +140,45 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OnHoverExitedCalls = m_OnHoverExited.FindPropertyRelative("m_PersistentCalls.m_Calls");
             m_OnSelectEnteredCalls = m_OnSelectEntered.FindPropertyRelative("m_PersistentCalls.m_Calls");
             m_OnSelectExitedCalls = m_OnSelectExited.FindPropertyRelative("m_PersistentCalls.m_Calls");
+
+            m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
+
+            m_StartingHoverFilters = serializedObject.FindProperty("m_StartingHoverFilters");
+            m_StartingSelectFilters = serializedObject.FindProperty("m_StartingSelectFilters");
+
+            m_StartingTargetFilter = serializedObject.FindProperty("m_StartingTargetFilter");
+
+            var interactor = (XRBaseInteractor)target;
+            m_HoverFilters = new ReadOnlyReorderableList<IXRHoverFilter>(new List<IXRHoverFilter>(), BaseContents.hoverFiltersHeader, k_HoverFiltersExpandedKey)
+            {
+                isExpanded = SessionState.GetBool(k_HoverFiltersExpandedKey, true),
+                updateElements = list => interactor.hoverFilters.GetAll(list),
+                onListReordered = (element, newIndex) => interactor.hoverFilters.MoveTo(element, newIndex),
+            };
+
+            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_HoverFiltersExpandedKey)
+            {
+                isExpanded = SessionState.GetBool(k_SelectFiltersExpandedKey, true),
+                updateElements = list => interactor.selectFilters.GetAll(list),
+                onListReordered = (element, newIndex) => interactor.selectFilters.MoveTo(element, newIndex),
+            };
         }
 
         /// <inheritdoc />
         /// <seealso cref="DrawBeforeProperties"/>
         /// <seealso cref="DrawProperties"/>
         /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
+        /// <seealso cref="DrawFilters"/>
         /// <seealso cref="DrawEvents"/>
         protected override void DrawInspector()
         {
             DrawBeforeProperties();
             DrawProperties();
             DrawDerivedProperties();
+
+            EditorGUILayout.Space();
+
+            DrawFilters();
 
             EditorGUILayout.Space();
 
@@ -177,7 +229,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawInteractionManagement();
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
-            EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
         }
 
         /// <summary>
@@ -194,6 +245,52 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
                 }
             }
+        }
+
+        /// <summary>
+        /// Draw the Interactor Filter foldout.
+        /// </summary>
+        protected virtual void DrawFilters()
+        {
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                m_FiltersExpanded = EditorGUILayout.Foldout(m_FiltersExpanded, BaseContents.interactorFilters, true);
+                if (check.changed)
+                    SessionState.SetBool(k_FiltersExpandedKey, m_FiltersExpanded);
+            }
+
+            if (!m_FiltersExpanded)
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                DrawFiltersNested();
+            }
+        }
+
+        /// <summary>
+        /// Draw the property fields related to the hover and select filters.
+        /// </summary>
+        protected virtual void DrawFiltersNested()
+        {
+            using (new EditorGUI.DisabledScope(Application.isPlaying))
+            {
+                EditorGUILayout.PropertyField(m_StartingTargetFilter, BaseContents.startingTargetFilter);
+                EditorGUILayout.PropertyField(m_StartingHoverFilters, BaseContents.startingHoverFilters);
+                EditorGUILayout.PropertyField(m_StartingSelectFilters, BaseContents.startingSelectFilters);
+            }
+
+            if (!Application.isPlaying)
+                return;
+
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                EditorGUILayout.HelpBox("Filters cannot be multi-edited.", MessageType.None);
+                return;
+            }
+
+            m_HoverFilters.DoLayoutList();
+            m_SelectFilters.DoLayoutList();
         }
 
         /// <summary>

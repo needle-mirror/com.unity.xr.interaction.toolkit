@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8429981633443581380}
   - component: {fileID: -7375739841766313277}
   - component: {fileID: 8429981633443581383}
+  - component: {fileID: 5564773904428835032}
   m_Layer: 0
   m_Name: TunnelingVignette
   m_TagString: Untagged
@@ -48,6 +49,7 @@ MeshRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -72,6 +74,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &-7375739841766313277
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -113,3 +116,14 @@ MonoBehaviour:
     m_VignetteColorBlend: {r: 0, g: 0, b: 0, a: 1}
     m_ApertureVerticalPosition: 0
   m_LocomotionVignetteProviders: []
+--- !u!210 &5564773904428835032
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8429981633443581377}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 10

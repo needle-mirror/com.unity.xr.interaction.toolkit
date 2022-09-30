@@ -1,10 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -507,145 +507,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [Test]
-        public void RegistrationListRegisterReturnsStatusChange()
-        {
-            var registrationList = new XRInteractionManager.RegistrationList<string>();
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            Assert.That(registrationList.Register("A"), Is.False);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.Register("A"), Is.False);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-        }
-
-        [Test]
-        public void RegistrationListUnregisterReturnsStatusChange()
-        {
-            var registrationList = new XRInteractionManager.RegistrationList<string>();
-            Assert.That(registrationList.Unregister("A"), Is.False);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-            Assert.That(registrationList.Unregister("A"), Is.False);
-
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-        }
-
-        [Test]
-        public void RegistrationListSnapshotUnaffectedUntilFlush()
-        {
-            var registrationList = new XRInteractionManager.RegistrationList<string>();
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-            Assert.That(registrationList.registeredSnapshot, Is.Empty);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
-
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-            Assert.That(registrationList.Register("B"), Is.True);
-            Assert.That(registrationList.IsRegistered("B"), Is.True);
-            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-            Assert.That(registrationList.IsRegistered("B"), Is.True);
-            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "B" }));
-        }
-
-        [Test]
-        public void RegistrationListGetRegisteredItemsIncludesAll()
-        {
-            var registrationList = new XRInteractionManager.RegistrationList<string>();
-            var registeredItems = new List<string>();
-            registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems, Is.Empty);
-
-            // Should include pending adds
-            Assert.That(registrationList.Register("A"), Is.True);
-            registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
-
-            registrationList.Flush();
-
-            // Should still be equal after flush
-            registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
-
-            // Should include all in the order they were registered
-            Assert.That(registrationList.Register("B"), Is.True);
-            registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems, Is.EqualTo(new[] { "A", "B" }));
-
-            // Should filter out pending removes from the snapshot
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems, Is.EqualTo(new[] { "B" }));
-        }
-
-        [Test]
-        public void RegistrationListFastPathMatches()
-        {
-            var registrationList = new XRInteractionManager.RegistrationList<string>();
-            Assert.That(registrationList.Register("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-
-            registrationList.Flush();
-
-            Assert.That(registrationList.IsRegistered("A"), Is.True);
-            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
-
-            Assert.That(registrationList.Unregister("A"), Is.True);
-            Assert.That(registrationList.IsRegistered("A"), Is.False);
-            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
-        }
-
-        [Test]
         public void NestedSelectEnterEventHasCorrectEventArgs()
         {
             var manager = TestUtilities.CreateInteractionManager();
@@ -895,6 +756,137 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactables[2], Is.SameAs(secondInteractable));
             Assert.That(interactors[3], Is.SameAs(secondInteractor));
             Assert.That(interactables[3], Is.SameAs(secondInteractable));
+        }
+
+        [UnityTest]
+        public IEnumerator ManagerCanProcessHoverFilters()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactor.validTargets.Add(interactable);
+
+            var filter1WasProcessed = false;
+            var filter1 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter1WasProcessed = true;
+                return true;
+            });
+            manager.hoverFilters.Add(filter1);
+
+            var filter2WasProcessed = false;
+            var filter2 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter2WasProcessed = true;
+                return true;
+            });
+            manager.hoverFilters.Add(filter2);
+
+            yield return null;
+
+            Assert.That(filter1WasProcessed, Is.True);
+            Assert.That(filter2WasProcessed, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EquivalentTo(new[] { interactor }));
+
+            // Add filter that returns false
+            var filter3WasProcessed = false;
+            var filter3 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter3WasProcessed = true;
+                return false;
+            });
+            manager.hoverFilters.Add(filter3);
+
+            yield return null;
+
+            Assert.That(filter3WasProcessed, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator ManagerCanProcessSelectFilters()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactor.validTargets.Add(interactable);
+
+            var filter1WasProcessed = false;
+            var filter1 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter1WasProcessed = true;
+                return true;
+            });
+            manager.selectFilters.Add(filter1);
+
+            var filter2WasProcessed = false;
+            var filter2 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter2WasProcessed = true;
+                return true;
+            });
+            manager.selectFilters.Add(filter2);
+
+            yield return null;
+
+            Assert.That(filter1WasProcessed, Is.True);
+            Assert.That(filter2WasProcessed, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] {interactor}));
+
+            // Add filter that returns false
+            var filter3WasProcessed = false;
+            var filter3 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter3WasProcessed = true;
+                return false;
+            });
+            manager.selectFilters.Add(filter3);
+
+            yield return null;
+
+            Assert.That(filter3WasProcessed, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBePriorityForSelection()
+        {
+            var interactionManager = TestUtilities.CreateInteractionManager();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+            var interactor3 = TestUtilities.CreateMockInteractor();
+            var interactable1 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+
+            interactor1.targetPriorityMode = TargetPriorityMode.HighestPriorityOnly;
+            interactor1.targetsForSelection = new List<IXRSelectInteractable>();
+            interactor2.targetPriorityMode = TargetPriorityMode.All;
+            interactor2.targetsForSelection = new List<IXRSelectInteractable>();
+            interactor3.targetPriorityMode = TargetPriorityMode.None;
+
+            interactor1.validTargets.Add(interactable1);
+            interactor1.validTargets.Add(interactable2);
+
+            // interactable2 is the highest priority target for the interactor2
+            interactor2.validTargets.Add(interactable2);
+            interactor2.validTargets.Add(interactable1);
+
+            interactor3.validTargets.Add(interactable1);
+            interactor3.validTargets.Add(interactable2);
+
+            yield return null;
+
+            var interactorList = new List<IXRTargetPriorityInteractor>();
+            var isInteractablePriorityForSelection = interactionManager.IsHighestPriorityTarget(interactable1, interactorList);
+            Assert.That(isInteractablePriorityForSelection, Is.True);
+            Assert.That(interactorList, Is.EquivalentTo(new[] { interactor1 }));
+
+            isInteractablePriorityForSelection = interactionManager.IsHighestPriorityTarget(interactable2, interactorList);
+            Assert.That(isInteractablePriorityForSelection, Is.True);
+            Assert.That(interactorList, Is.EquivalentTo(new[] { interactor2 }));
+
+            Assert.That(interactor1.targetsForSelection, Is.EquivalentTo(new[] { interactable1 }));
+            Assert.That(interactor2.targetsForSelection, Is.EquivalentTo(new[] { interactable2, interactable1 }));
         }
 
         /// <summary>

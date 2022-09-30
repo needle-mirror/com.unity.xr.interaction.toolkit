@@ -19,11 +19,14 @@ An anchor is a teleportation destination which teleports the user to a pre-deter
 | &emsp;TargetUp | Set **Match Orientation** to **TargetUp** to orient according to the target `TeleportAnchor` Transform's up vector. |
 | &emsp;TargetUpAndForward | Set **Match Orientation** to **TargetUpAndForward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation. |
 | &emsp;None | Set **Match Orientation** to **None** to maintain the same orientation before and after teleporting. |
+|**Match Directional Input**|Specifies whether or not to rotate the rig to match the forward direction of the attach transform of the selecting interactor. This option is only available when **Match Orientation** is set to **World Space Up** or **Target Up**.|
 | **Teleport Trigger** | Specifies when the teleportation triggers. |
 | &emsp;OnSelectEntered | Set **Teleport Trigger** to **OnSelectEntered** to teleport when the Interactable is selected. |
 | &emsp;OnSelectExited | Set **Teleport Trigger** to **OnSelectEntered** to teleport when the Interactable is no longer selected after having been selected. |
 | &emsp;OnActivated | Set **Teleport Trigger** to **OnActivated** to teleport when the Interactable is activated.<br />Not to be confused with the active state of a GameObject, an activate event in this context refers to a contextual command action, such as toggling a flashlight on and off. |
 | &emsp;OnDeactivated | Set **Teleport Trigger** to **OnActivated** to teleport when the Interactable is deactivated.<br />Not to be confused with the active state of a GameObject, an activate event in this context refers to a contextual command action, such as toggling a flashlight on and off. |
 | **Teleportation Provider** | The teleportation provider that this teleportation interactable communicates teleport requests to. If no teleportation provider is configured, will attempt to find a teleportation provider during `Awake`. |
+| **Filter Selection By Hit Normal** | When enabled, this teleportation interactable will only be selectable by a ray interactor if its current hit normal is aligned with this object's up vector. |
+| **Up Normal Tolerance Degrees** | Sets the tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector. Only used and displayed when **Filter Selection By Hit Normal** is enabled. |
 | **Interactable Events** | For other events, see the [Interactable Events](interactable-events.md) page. |
 | **Teleporting** | Gets or sets the event that Unity calls when queuing to teleport via `TeleportationProvider`.<br />The `TeleportingEventArgs` passed to each listener is only valid while the event is invoked, do not hold a reference to it. |

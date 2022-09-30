@@ -1,9 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.XR.CoreUtils;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -616,6 +618,411 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
             Assert.That(rigidbody.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator GrabTransformerMethodsInvoked()
+        {
+            // This method will test a sequence of adds, selections, and removes to make sure the grab transformer methods
+            // are called as expected after each change of state. This also tests some of the fallback rules.
+            // Splitting each of these to their own different test would cause a huge amount of code duplication
+            // since the setup needed for each depends a lot on the previous steps.
+            // 1. Add -> OnLink
+            // 2. Single Select -> OnGrab, OnGrabCountChanged; Process called on Single only
+            // 3. No change -> Process called on Single only
+            // 4. Single Select but Single can't process -> Process called on Multiple only as fallback
+            // 5. Multiple Select -> OnGrabCountChanged; Process called on Multiple only
+            // 6. No change -> Process called on Multiple only
+            // 7. Multiple Select but Multiple can't process -> Process called on Single only as fallback
+            // 8. Multiple Select but both can't process -> No method calls
+            // 9. Remove -> OnUnlink
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var singleGrabTransformer = new MockGrabTransformer();
+            var multipleGrabTransformer = new MockGrabTransformer();
+
+            Assert.That(singleGrabTransformer.canProcess, Is.True);
+            Assert.That(multipleGrabTransformer.canProcess, Is.True);
+
+            // 1. Add -> OnLink
+            grabInteractable.AddSingleGrabTransformer(singleGrabTransformer);
+            grabInteractable.AddMultipleGrabTransformer(multipleGrabTransformer);
+
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            ClearMethodTraces();
+
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            // 2. Single Select -> OnGrab, OnGrabCountChanged; Process called on Single only
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor1.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrab,
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+                MockGrabTransformer.MethodTrace.ProcessDynamic,
+            }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrab,
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+            }));
+            ClearMethodTraces();
+
+            // 3. No change -> Process called on Single only
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.Empty);
+            ClearMethodTraces();
+
+            // 4. Single Select but Single can't process -> Process called on Multiple only as fallback
+            singleGrabTransformer.canProcess = false;
+            multipleGrabTransformer.canProcess = true;
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.Empty);
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            ClearMethodTraces();
+
+            // 5. Multiple Select -> OnGrabCountChanged; Process called on Multiple only
+            singleGrabTransformer.canProcess = true;
+            multipleGrabTransformer.canProcess = true;
+
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor2.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+            }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+                MockGrabTransformer.MethodTrace.ProcessDynamic,
+            }));
+            ClearMethodTraces();
+
+            // 6. No change -> Process called on Multiple only
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.Empty);
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            ClearMethodTraces();
+
+            // 7. Multiple Select but Multiple can't process -> Process called on Single only as fallback
+            singleGrabTransformer.canProcess = true;
+            multipleGrabTransformer.canProcess = false;
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.Empty);
+            ClearMethodTraces();
+
+            // 8. Multiple Select but both can't process -> No method calls
+            singleGrabTransformer.canProcess = false;
+            multipleGrabTransformer.canProcess = false;
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.Empty);
+            Assert.That(multipleGrabTransformer.methodTraces, Is.Empty);
+
+            // 9. Remove -> OnUnlink
+            grabInteractable.RemoveSingleGrabTransformer(singleGrabTransformer);
+            grabInteractable.RemoveMultipleGrabTransformer(multipleGrabTransformer);
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnUnlink }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnUnlink }));
+
+            void ClearMethodTraces()
+            {
+                singleGrabTransformer.methodTraces.Clear();
+                multipleGrabTransformer.methodTraces.Clear();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator GrabTransformerAddedAfterGrabHasGrabMethodsInvoked()
+        {
+            // Tests to make sure OnGrab is called when a new Grab Transformer is added when already selected
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            // The first will be added before the grab, the second will be added after the grab
+            var grabTransformer1 = new MockGrabTransformer();
+            var grabTransformer2 = new MockGrabTransformer();
+
+            grabInteractable.AddSingleGrabTransformer(grabTransformer1);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer1 }));
+
+            Assert.That(grabTransformer1.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            grabTransformer1.methodTraces.Clear();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(grabTransformer1.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrab,
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+                MockGrabTransformer.MethodTrace.ProcessDynamic,
+            }));
+            grabTransformer1.methodTraces.Clear();
+
+            grabInteractable.AddSingleGrabTransformer(grabTransformer2);
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer1, grabTransformer2 }));
+
+            Assert.That(grabTransformer2.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnLink,
+                MockGrabTransformer.MethodTrace.OnGrab,
+            }));
+            grabTransformer2.methodTraces.Clear();
+
+            yield return null;
+
+            Assert.That(grabTransformer1.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            Assert.That(grabTransformer2.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+                MockGrabTransformer.MethodTrace.ProcessDynamic,
+            }));
+        }
+
+        [UnityTest]
+        public IEnumerator GrabTransformerUnlinkedWhenInteractableDestroyed()
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var singleGrabTransformer = new MockGrabTransformer();
+            var multipleGrabTransformer = new MockGrabTransformer();
+
+            grabInteractable.AddSingleGrabTransformer(singleGrabTransformer);
+            grabInteractable.AddMultipleGrabTransformer(multipleGrabTransformer);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { singleGrabTransformer }));
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { multipleGrabTransformer }));
+
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            singleGrabTransformer.methodTraces.Clear();
+            multipleGrabTransformer.methodTraces.Clear();
+
+            Object.Destroy(grabInteractable);
+
+            yield return null;
+
+            Assert.That(singleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnUnlink }));
+            Assert.That(multipleGrabTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnUnlink }));
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator AutomaticAddingOfDefaultGrabTransformersCanBeDisabled()
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.addDefaultGrabTransformers = false;
+
+            yield return null;
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+        }
+
+        [UnityTest]
+        public IEnumerator XRBaseGrabTransformersAutomaticallyLink()
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.addDefaultGrabTransformers = false;
+
+            yield return null;
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            Assert.That(typeof(XRSingleGrabFreeTransformer).IsSubclassOf(typeof(XRBaseGrabTransformer)), Is.True);
+            var singleGrabTransformer = grabInteractable.gameObject.AddComponent<XRSingleGrabFreeTransformer>();
+
+            Assert.That(typeof(XRDualGrabFreeTransformer).IsSubclassOf(typeof(XRBaseGrabTransformer)), Is.True);
+            var multipleGrabTransformer = grabInteractable.gameObject.AddComponent<XRDualGrabFreeTransformer>();
+
+            yield return null;
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { singleGrabTransformer }));
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { multipleGrabTransformer }));
+
+            Object.Destroy(singleGrabTransformer);
+            Object.Destroy(multipleGrabTransformer);
+
+            yield return null;
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator GrabTransformerCanSetTargetPose([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.movementType = movementType;
+            DisableDelayProperties(grabInteractable);
+            grabInteractable.transform.SetPositionAndRotation(new Vector3(1f, 2f, 3f), Quaternion.Euler(15f, 30f, 60f));
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var grabTransformer = new MockGrabTransformer();
+            grabInteractable.AddSingleGrabTransformer(grabTransformer);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer }));
+
+            yield return WaitForSteadyState(movementType);
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer }));
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+
+            var interactor = TestUtilities.CreateMockInteractor();
+
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return WaitForSteadyState(movementType);
+
+            // Keeps the same pose if Process does not change the values
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.Euler(15f, 30f, 60f)).Using(QuaternionEqualityComparer.Instance));
+
+            grabTransformer.targetPoseValue = new Pose(new Vector3(4f, 5f, 6f), Quaternion.Euler(80f, 20f, -100f));
+
+            yield return WaitForSteadyState(movementType);
+
+            Assert.That(grabInteractable.transform.position, Is.EqualTo(grabTransformer.targetPoseValue.Value.position).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(grabTransformer.targetPoseValue.Value.rotation).Using(QuaternionEqualityComparer.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator GrabTransformerCanSetScale([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.movementType = movementType;
+            DisableDelayProperties(grabInteractable);
+            grabInteractable.transform.localScale = Vector3.one;
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var grabTransformer = new MockGrabTransformer();
+            grabInteractable.AddSingleGrabTransformer(grabTransformer);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer }));
+
+            yield return WaitForSteadyState(movementType);
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { grabTransformer }));
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.transform.localScale, Is.EqualTo(Vector3.one).Using(Vector3ComparerWithEqualsOperator.Instance));
+
+            var interactor = TestUtilities.CreateMockInteractor();
+
+            // Set valid so it will be selected next frame by the Interaction Manager
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return WaitForSteadyState(movementType);
+
+            // Keeps the same scale if Process does not change the values
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.transform.localScale, Is.EqualTo(Vector3.one).Using(Vector3ComparerWithEqualsOperator.Instance));
+
+            grabTransformer.localScaleValue = new Vector3(0.5f, 0.25f, 0.75f);
+
+            yield return WaitForSteadyState(movementType);
+
+            Assert.That(grabInteractable.transform.localScale, Is.EqualTo(grabTransformer.localScaleValue.Value).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [TestCase(false, false)]

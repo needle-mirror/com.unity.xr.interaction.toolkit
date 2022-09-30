@@ -39,11 +39,13 @@
 - [Continuous Move Provider (Device-based)](continuous-move-provider-device-based.md)
 - [Continuous Turn Provider (Action-based)](continuous-turn-provider-action-based.md)
 - [Continuous Turn Provider (Device-based)](continuous-turn-provider-device-based.md)
+- [Grab Move Provider](grab-move-provider.md)
 - [Locomotion System](locomotion-system.md)
 - [Snap Turn Provider (Action-based)](snap-turn-provider-action-based.md)
 - [Snap Turn Provider (Device-based)](snap-turn-provider-device-based.md)
 - [Teleportation Provider](teleportation-provider.md)
 - [Tunneling Vignette Controller](tunneling-vignette-controller.md)
+- [Two Handed Grab Move Provider](two-handed-grab-move-provider.md)
 
 ## Visuals
 

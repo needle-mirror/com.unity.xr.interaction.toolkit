@@ -8,7 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Filtering;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    class InteractableFilteringTests
+    class TargetFilterTests
     {
         [TearDown]
         public void TearDown()

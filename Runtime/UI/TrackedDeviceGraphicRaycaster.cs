@@ -164,6 +164,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [NonSerialized]
         static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
 
+        PhysicsScene m_LocalPhysicsScene;
+
         static RaycastHit FindClosestHit(RaycastHit[] hits, int count)
         {
             var index = 0;
@@ -197,6 +199,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hits[index];
         }
 #endif
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
+        }
 
         void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
         {
@@ -242,7 +251,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var hitDistance = rayDistance;
             if (m_CheckFor3DOcclusion)
             {
-                var hitCount = Physics.RaycastNonAlloc(ray, m_OcclusionHits3D, hitDistance, m_BlockingMask, m_RaycastTriggerInteraction);
+                var hitCount = m_LocalPhysicsScene.Raycast(ray.origin, ray.direction, m_OcclusionHits3D, hitDistance, m_BlockingMask, m_RaycastTriggerInteraction);
 
                 if (hitCount > 0)
                 {

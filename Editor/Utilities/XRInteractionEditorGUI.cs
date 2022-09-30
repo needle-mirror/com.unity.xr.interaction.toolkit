@@ -114,6 +114,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                      IsMainActionKeyForControl(currentEvent, controlId))
             {
                 currentEvent.Use();
+
+                for (var i = 0; i < valueOptions.Count; i++)
+                {
+                    valueOptions[i] = 1 << valueOptions[i];
+                }
+
+                CalculateMaskValues(mask, valueOptions, out var optionMaskValues);
              
                 // show the interaction layer options menu
                 var menu = new GenericMenu();
@@ -124,9 +131,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                 for (var i = 0; i < size; i++)
                 {
                     var displayedOption = displayOptions[i];
-                    var optionMaskValue = 1 << valueOptions[i];
+                    var optionMaskValue = valueOptions[i];
                 
-                    menu.AddItem(new GUIContent(displayedOption), (mask & optionMaskValue) != 0, SetPropertyMask, new SetPropertyMaskParameter(mask ^ optionMaskValue, property));
+                    menu.AddItem(new GUIContent(displayedOption), (mask & optionMaskValue) != 0, SetPropertyMask, new SetPropertyMaskParameter(optionMaskValues[i + 2], property));
                 }
                 
                 if (onAddLayerCallback != null)
@@ -137,6 +144,39 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                 
                 menu.DropDown(position);
                 GUIUtility.keyboardControl = controlId;
+            }
+        }
+
+        // Logic pulled from MaskFieldGUI.GetMenuOptions
+        static void CalculateMaskValues(int mask, IList<int> valueOptions, out int[] layerMaskValues)
+        {
+            // Account for "Nothing" and "Everything" options
+            var bufferLength = valueOptions.Count + 2;
+            var numberOfUserLayers = valueOptions.Count;
+            
+            var totalMaskValue = 0;
+            var selectedOptionsMaskValue = 0;
+            // Calculate mask for selected options 
+            for (var index = 0; index < numberOfUserLayers; ++index)
+            {
+                var flagValue = valueOptions[index];
+                totalMaskValue |= flagValue;
+                if ((mask & flagValue) == flagValue)
+                    selectedOptionsMaskValue |= flagValue;
+            }
+
+            layerMaskValues = new int[bufferLength];
+            layerMaskValues[0] = 0; // Default mask value for "Nothing"
+            layerMaskValues[1] = -1; // Default mask value for "Everything" 
+
+            for (var valueOptionIndex = 0; valueOptionIndex < numberOfUserLayers; ++valueOptionIndex)
+            {
+                var layerMaskValueIndex = valueOptionIndex + 2;
+                var flagValue = valueOptions[valueOptionIndex];
+                var optionMaskValue = (selectedOptionsMaskValue & flagValue) == flagValue ? selectedOptionsMaskValue & ~flagValue : selectedOptionsMaskValue | flagValue;
+                if (optionMaskValue == totalMaskValue)
+                    optionMaskValue = -1;
+                layerMaskValues[layerMaskValueIndex] = optionMaskValue;
             }
         }
 

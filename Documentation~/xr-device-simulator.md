@@ -141,3 +141,4 @@ When **Primary/Secondary 2D Axis** is enabled:
 | **Desired Cursor Lock Mode** | The desired cursor lock mode to toggle to from `CursorLockMode.None`. |
 | &emsp;Locked | Set **Desired Cursor Lock Mode** to **Locked** to toggle between `CursorLockMode.None` and locking the cursor to the center of the game window. |
 | &emsp;Confined | Set **Desired Cursor Lock Mode** to **Confined** to toggle between `CursorLockMode.None` and confining the cursor to the game window. |
+| **Remove Other HMD Devices** | Whether or not to remove other XR HMD devices in this session so that they don't conflict with the XR Device Simulator. |

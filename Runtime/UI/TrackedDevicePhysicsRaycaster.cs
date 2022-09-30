@@ -177,6 +177,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         // Use this list on each ray cast to avoid continually allocating.
         readonly List<RaycastHit> m_RaycastResultsCache = new List<RaycastHit>();
 
+        PhysicsScene m_LocalPhysicsScene;
+
         /// <summary>
         /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html">MonoBehaviour.Awake</a>.
         /// </summary>
@@ -184,6 +186,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             base.Awake();
 
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RaycastHits = new RaycastHit[m_MaxRayIntersections];
             m_RaycastArrayWrapper = new RaycastHitArraySegment(m_RaycastHits, 0);
         }
@@ -232,7 +235,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_RaycastHits.Length != m_MaxRayIntersections)
                 Array.Resize(ref m_RaycastHits, m_MaxRayIntersections);
 
-            var hitCount = Physics.RaycastNonAlloc(ray, m_RaycastHits, hitDistance, layerMask, m_RaycastTriggerInteraction);
+            var hitCount = m_LocalPhysicsScene.Raycast(ray.origin, ray.direction, m_RaycastHits, hitDistance, layerMask, m_RaycastTriggerInteraction);
             m_RaycastArrayWrapper.count = hitCount;
 
             m_RaycastResultsCache.Clear();

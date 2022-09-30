@@ -143,6 +143,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
             GripPressed = GripButton,
         }
 
+        /// <summary>
+        /// A list of 2D axis inputs that can be bound to.
+        /// </summary>
+        public enum Axis2D
+        {
+            /// <summary>
+            /// Represents an invalid 2D axis.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Represents the primary touchpad or joystick on a device.
+            /// </summary>
+            PrimaryAxis2D,
+
+            /// <summary>
+            /// Represents the secondary touchpad or joystick on a device.
+            /// </summary>
+            SecondaryAxis2D,
+        }
+
         enum ButtonReadType
         {
             None = 0,
@@ -190,6 +211,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DDown),
             new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DLeft),
             new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DRight),
+        };
+
+        static readonly string[] s_Axis2DNames =
+        {
+            "",
+            "Primary2DAxis",
+            "Secondary2DAxis",
         };
 
         const float k_DefaultPressThreshold = 0.1f;
@@ -289,7 +317,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="device">The input device.</param>
         /// <param name="button">The button to read the value.</param>
         /// <param name="singleValue">The button value; it will have the default <see langword="float"/> value (<c>0f</c>) if the button value can't be read.</param>
-        /// <returns>Returns <see langword="true"/> if the button value can be read. Otherwise, returns <see langword="false"/></returns>
+        /// <returns>Returns <see langword="true"/> if the button value can be read. Otherwise, returns <see langword="false"/>.</returns>
         public static bool TryReadSingleValue(this InputDevice device, Button button, out float singleValue)
         {
             if ((int)button >= s_ButtonData.Length)
@@ -363,6 +391,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             singleValue = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to read and return the supplied 2D axis value.
+        /// </summary>
+        /// <param name="device">The input device.</param>
+        /// <param name="axis2D">The 2D axis to read the value.</param>
+        /// <param name="value">The 2D axis value; it will have the default <see cref="Vector2"/> value if the 2D axis value can't be read.</param>
+        /// <returns>Returns <see langword="true"/> if the 2D axis value can be read. Otherwise, returns <see langword="false"/>.</returns>
+        public static bool TryReadAxis2DValue(this InputDevice device, Axis2D axis2D, out Vector2 value)
+        {
+            if ((int)axis2D >= s_Axis2DNames.Length)
+            {
+                throw new ArgumentException("[InputHelpers.TryReadAxis2DValue] The value of <axis2D> is out of the supported range.");
+            }
+
+            if (!device.isValid)
+            {
+                value = default;
+                return false;
+            }
+
+            var name = s_Axis2DNames[(int)axis2D];
+            if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(name), out value))
+                return true;
+
+            value = default;
             return false;
         }
     }

@@ -51,12 +51,15 @@ See the [Starter Assets](samples.md#starter-assets) sample for steps to import a
 | **Haptic Device Action** | |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action. |
-| **Rotate Anchor Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled. |
+| **Rotate Anchor Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled and Rotation Mode is set to Rotate Over Time. |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
-| &emsp;Reference | The Input System action to use for rotating the interactor's attach point. Must be a `Vector2Control` Control. Uses the X-axis as the rotation input. |
+| &emsp;Reference | The Input System action to use for rotating the interactor's attach point over time. Must be a `Vector2Control` Control. Uses the x-axis as the rotation input. |
+| **Directional Anchor Rotation Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled and Rotation Mode is set to Match Direction. |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
+| &emsp;Reference | The Input System action to use for computing a direction angle to rotate the interactor's attach point to match it. Must be a `Vector2Control` Control. The direction angle is computed as the arctangent function of x/y. |
 | **Translate Anchor Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled. |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
-| &emsp;Reference | The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a `Vector2Control` Control. Uses the Y-axis as the translation input. |
+| &emsp;Reference | The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a `Vector2Control` Control. Uses the y-axis as the translation input. |
 | **Model Prefab** | The prefab of a controller model to show for this controller that this behavior automatically instantiates.<br />This behavior automatically instantiates an instance of the prefab as a child of `modelParent` (see below) upon startup unless `model` (see further below) is already set, in which case this value is ignored. |
 | **Model Parent** | The transform that this behavior uses as the parent for the model prefab when it is instantiated.<br />Automatically instantiated and set in `Awake` if not already set. Setting this will not automatically destroy the previous object. |
 | **Model** | The instance of the controller model in the scene. You can set this to an existing object instead of using `modelPrefab` (see above).<br />If set, it should reference a child GameObject of this behavior so it will update with the controller pose. |

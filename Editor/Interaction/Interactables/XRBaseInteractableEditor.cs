@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -11,6 +13,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [CustomEditor(typeof(XRBaseInteractable), true), CanEditMultipleObjects]
     public partial class XRBaseInteractableEditor : BaseInteractionEditor
     {
+        const string k_FiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".FiltersExpanded";
+        const string k_HoverFiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".HoverFiltersExpanded";
+        const string k_SelectFiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".SelectFiltersExpanded";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.interactionManager"/>.</summary>
         protected SerializedProperty m_InteractionManager;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.colliders"/>.</summary>
@@ -23,6 +29,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_DistanceCalculationMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectMode"/>.</summary>
         protected SerializedProperty m_SelectMode;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingHoverFilters"/>.</summary>
+        protected SerializedProperty m_StartingHoverFilters;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
+        protected SerializedProperty m_StartingSelectFilters;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.customReticle"/>.</summary>
         protected SerializedProperty m_CustomReticle;
 
@@ -84,6 +94,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_OnActivateCalls;
         /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractable.onDeactivate"/>.</summary>
         protected SerializedProperty m_OnDeactivateCalls;
+
+        bool m_FiltersExpanded;
+        ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
+        ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
 
         /// <summary>
         /// Whether <see cref="InteractableSelectMode.Multiple"/> is allowed by the script of the object being inspected.
@@ -147,6 +161,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>The help box message when the distance calculation is being overriden.</summary>
             public static readonly GUIContent distanceCalculationOverride = EditorGUIUtility.TrTextContent("The distance calculation is being overridden and driven by another method.");
+
+            /// <summary>The Interactable filters foldout.</summary>
+            public static readonly GUIContent interactableFilters = EditorGUIUtility.TrTextContent("Interactable Filters", "Add filters to extend this interactable without needing to create a derived behavior.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
+            public static readonly GUIContent startingHoverFilters = EditorGUIUtility.TrTextContent("Starting Hover Filters", "The hover filters that this Interactable will automatically link at startup (optional, may be empty). Used as additional hover validations for this Interactable.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
+            public static readonly GUIContent startingSelectFilters = EditorGUIUtility.TrTextContent("Starting Select Filters", "The select filters that this Interactable will automatically link at startup (optional, may be empty). Used as additional select validations for this Interactable.");
+            /// <summary>The list of runtime hover filters.</summary>
+            public static readonly GUIContent hoverFiltersHeader = EditorGUIUtility.TrTextContent("Hover Filters", "The list is populated in Awake, during Play mode.");
+            /// <summary>The list of runtime select filters.</summary>
+            public static readonly GUIContent selectFiltersHeader = EditorGUIUtility.TrTextContent("Select Filters", "The list is populated in Awake, during Play mode.");
         }
 
         /// <summary>
@@ -196,18 +221,43 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             var attribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
             selectMultipleAllowed = attribute?.allowMultiple ?? true;
+
+            m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
+
+            m_StartingHoverFilters = serializedObject.FindProperty("m_StartingHoverFilters");
+            m_StartingSelectFilters = serializedObject.FindProperty("m_StartingSelectFilters");
+
+            var interactable = (XRBaseInteractable)target;
+            m_HoverFilters = new ReadOnlyReorderableList<IXRHoverFilter>(new List<IXRHoverFilter>(), BaseContents.hoverFiltersHeader, k_HoverFiltersExpandedKey)
+            {
+                isExpanded = SessionState.GetBool(k_HoverFiltersExpandedKey, true),
+                updateElements = list => interactable.hoverFilters.GetAll(list),
+                onListReordered = (element, newIndex) => interactable.hoverFilters.MoveTo(element, newIndex),
+            };
+
+            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_HoverFiltersExpandedKey)
+            {
+                isExpanded = SessionState.GetBool(k_SelectFiltersExpandedKey, true),
+                updateElements = list => interactable.selectFilters.GetAll(list),
+                onListReordered = (element, newIndex) => interactable.selectFilters.MoveTo(element, newIndex),
+            };
         }
 
         /// <inheritdoc />
         /// <seealso cref="DrawBeforeProperties"/>
         /// <seealso cref="DrawProperties"/>
         /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
+        /// <seealso cref="DrawFilters"/>
         /// <seealso cref="DrawEvents"/>
         protected override void DrawInspector()
         {
             DrawBeforeProperties();
             DrawProperties();
             DrawDerivedProperties();
+
+            EditorGUILayout.Space();
+
+            DrawFilters();
 
             EditorGUILayout.Space();
 
@@ -269,6 +319,51 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUILayout.HelpBox(BaseContents.multipleNotSupported.text, MessageType.Error);
 
             XRInteractionEditorGUI.EnumPropertyField<InteractableSelectMode>(m_SelectMode, BaseContents.selectMode, IsSelectModeOptionEnabled);
+        }
+
+        /// <summary>
+        /// Draw the Interactable Filter foldout.
+        /// </summary>
+        protected virtual void DrawFilters()
+        {
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                m_FiltersExpanded = EditorGUILayout.Foldout(m_FiltersExpanded, BaseContents.interactableFilters, true);
+                if (check.changed)
+                    SessionState.SetBool(k_FiltersExpandedKey, m_FiltersExpanded);
+            }
+
+            if (!m_FiltersExpanded)
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                DrawFiltersNested();
+            }
+        }
+
+        /// <summary>
+        /// Draw the property fields related to the hover and select filters.
+        /// </summary>
+        protected virtual void DrawFiltersNested()
+        {
+            using (new EditorGUI.DisabledScope(Application.isPlaying))
+            {
+                EditorGUILayout.PropertyField(m_StartingHoverFilters, BaseContents.startingHoverFilters);
+                EditorGUILayout.PropertyField(m_StartingSelectFilters, BaseContents.startingSelectFilters);
+            }
+
+            if (!Application.isPlaying)
+                return;
+
+            if (serializedObject.isEditingMultipleObjects)
+            {
+                EditorGUILayout.HelpBox("Filters cannot be multi-edited.", MessageType.None);
+                return;
+            }
+
+            m_HoverFilters.DoLayoutList();
+            m_SelectFilters.DoLayoutList();
         }
 
         bool IsSelectModeOptionEnabled(Enum arg) => (InteractableSelectMode)arg != InteractableSelectMode.Multiple || selectMultipleAllowed;

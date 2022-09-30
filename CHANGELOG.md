@@ -5,6 +5,53 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.2.0] - 2022-09-30
+
+### Added
+- Added ability for the target position, rotation, and scale of an XR Grab Interactable to be calculated by another component. Developers can derive from [XRBaseGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer) and add those components to the same GameObject as the XR Grab Interactable. The existing logic was moved to [XRSingleGrabFreeTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRSingleGrabFreeTransformer). For more information, see [Grab transformers](../manual/xr-grab-interactable.html#grab-transformers).
+- Added properties `allowHoverAudioWhileSelecting` and `allowHoverHapticsWhileSelecting` to `XRBaseControllerInteractor`, which control whether to allow the Interactor from playing audio and haptics, respectively, in response to a Hover event if the Hovered Interactable is currently Selected by the Interactor.
+- Added property `stopLineAtSelection` to `XRInteractorLineVisual`, which controls whether the line will stop at the attach point of the closest interactable selected by the interactor, if there is one.
+- Added property `treatSelectionAsValidState` to `XRInteractorLineVisual`, which forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the interactor has any valid targets.
+- Added support for teleportation directionality so that users can specify the direction they will face when teleportation finishes.
+  - Added a `Teleport Direction` input action for each hand in the `XRI Default Input Actions` asset in the `Starter Assets` sample.
+  - Added the property `anchorRotationMode` as an option for how `XRRayInteractor` controls anchor rotation. `RotateOverTime` is the existing and default behavior, which is useful for rotating a held object. The other option is `MatchDirection`, which is useful for controlling teleportation direction by matching rotation to the direction of the 2-dimensional input.
+  - Added input options for directional anchor rotation to `ActionBasedController` and `XRController`.
+  - Added the property `matchDirectionalInput` as an option for a `BaseTeleportationInteractable` to apply directional input (based on anchor rotation) when its `matchOrientation` is set to `WorldSpaceUp` or `TargetUp`.
+  - Added an interface `IXRReticleDirectionProvider` for teleportation interactables to override the direction of the reticle.
+- Added `Fixed` update type to [XRBaseController](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseController) which is in sync with `MonoBehavior.FixedUpdate`.
+- Added the `IXRTargetPriorityInteractor` interface that allow Interactors to monitor the Interactables priority for selection in the current frame. There are different monitoring options (None, Highest Priority Only, and All) with different performance tradeoffs.
+- Added the `XRInteractionManager.IsHighestPriorityTarget` method to check if an Interactable is the highest priority candidate for selection of an Interactor (`IXRTargetPriorityInteractor`) in the current frame, which is useful for custom affordance feedback.
+- Added the `IXRHoverFilter` interface. Instances of this interface can be added to Interactors, Interactables, or to the Interaction Manager to extend their hover validations without needing to create a derived class.
+- Added the `IXRSelectFilter` interface. Instances of this interface can be added to Interactors, Interactables, or to the Interaction Manager to extend their select validations without needing to create a derived class.
+- Added color gradient and reticle options to XR Interactor Line Visual for when the Interactor has a valid target but it selection is blocked. These can be configured by setting the properties **Blocked Color Gradient** and **Blocked Reticle**, respectively.
+- Added the `public` method `CanHover` to `XRInteractionManager`, which checks whether a given Interactor is able to hover a given Interactable.
+- Added the `public` method `CanSelect` to `XRInteractionManager`, which checks whether a given Interactor is able to select a given Interactable.
+- Added the `public` method `IsHoverPossible` to `XRInteractionManager`, which checks whether a given Interactor would be able to hover a given Interactable if the Interactor were in a state where it could hover.
+- Added the `public` method `IsSelectPossible` to `XRInteractionManager`, which checks whether a given Interactor would be able to select a given Interactable if the Interactor were in a state where it could select.
+- Added **Enable Fly** option to Continuous Move Provider, which allows for unconstrained movement in any direction.
+- Added properties `filterSelectionByHitNormal` and `upNormalToleranceDegrees` to `BaseTeleportationInteractable`, which are used to configure whether a user can teleport to a location if the hit normal is not aligned with the interactable's up vector.
+- Added Grab Move Provider and Two Handed Grab Move Provider, which provide locomotion based on tracked controller position while a button is held. Grab Move Provider provides translation of the user, and Two Handed Grab Move Provider provides translation, yaw rotation, and uniform scaling of the user.
+  - Added a `Grab Move` input action for each hand in the `XRI Default Input Actions` asset in the `Starter Assets` sample.
+  - Added `XRI Default Left Grab Move` and `XRI Default Right Grab Move` presets to the `Starter Assets` sample.
+  - Added `ConstrainedMoveProvider` base class for `GrabMoveProvider` and `TwoHandedGrabMoveProvider`, to hold logic for constrained movement with a `CharacterController`.
+
+### Changed
+- Changed XR Grab Interactable to support being selected by multiple Interactors. To enable that ability in the Inspector window, set **Select Mode** to **Multiple**. If your derived class does not properly handle multiple selections and you want to disable the Multiple option, you will need to add `[CanSelectMultiple(false)]` to your component script.
+- Ray casts now query the local [PhysicsScene](https://docs.unity3d.com/ScriptReference/PhysicsScene.html) instead of using static Physics routines which uses the default physics scene. Gesture classes that perform ray casts use the camera's scene, and components that perform ray casts use its scene during `Awake`.
+- Changed `XRInteractionManager` by adding the `Awake` method. Users who had already implemented `Awake` in derived classes will need to call the base method.
+- Creating a new `XR Origin (VR)` now automatically adds an `Input Action Manager` component and sets the `Action Assets` to `XRI Default Input Action.inputactions` asset if available from the `Starter Assets` sample package.
+- Move speed in Continuous Move Providers and line width in XR Interactor Line Visual are now scaled by the scale of the XR Origin.
+- Changed the Ray Interactor GameObject created through the **GameObject** &gt; **XR** create menu to have a Sorting Group to make it render in front of UI and changed the `TunnelingVignette` prefab in the Tunneling Vignette sample to have a Sorting Group to make it render in front of the Line Renderer of a Ray Interactor.
+- Changed minimum supported version of the Unity Editor from 2019.4 to 2020.3 (LTS).
+
+### Fixed
+- Fixed issue where the last point in the curve rendered by XR Interactor Line Visual would not always be continuous with the rest of the curve (for example when sphere cast is used).
+- Fixed issue where using the [MockHMD XR Plugin package](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/) with the `XRDeviceSimulator` would cause the device simulator's rotation to be overwritten. This issue can also be fixed by upgrading the [Input System package](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) to 1.4.1+.
+- Fixed issue where `XRInteractorReticleVisual` script did not properly detect ray casts with UI objects. ([XRIT-18](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-18))
+- Fixed an issue with throwing physics on Quest devices where bad frame-timing would cause unexpectedly high velocities to be applied.
+- Fixed "Retrieving array element that was out of bounds" error when viewing the Tunneling Vignette Controller in the Inspector window when the Locomotion Vignette Providers list is empty.
+- Fixed XR Interactor Line Visual so it deactivates the current reticle GameObject when the behavior is enabled or disabled.
+
 ## [2.1.1] - 2022-07-29
 
 ### Added

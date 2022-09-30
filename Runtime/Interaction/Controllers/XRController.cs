@@ -130,6 +130,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_MoveObjectOut = value;
         }
 
+        [SerializeField]
+        InputHelpers.Axis2D m_DirectionalAnchorRotation = InputHelpers.Axis2D.PrimaryAxis2D;
+
+        /// <summary>
+        /// The input to use to compute a directional angle to rotate the interactor's attach point to match it.
+        /// </summary>
+        public InputHelpers.Axis2D directionalAnchorRotation
+        {
+            get => m_DirectionalAnchorRotation;
+            set => m_DirectionalAnchorRotation = value;
+        }
+
 #if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
         [SerializeField]
         BasePoseProvider m_PoseProvider;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -312,6 +313,96 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Since interactable2's collider is disabled, it should not show up in the list of valid targets.
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable1 }));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanProcessHoverFilters()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactor.validTargets.Add(interactable);
+
+            var filter1WasProcessed = false;
+            var filter1 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter1WasProcessed = true;
+                return true;
+            });
+            interactor.hoverFilters.Add(filter1);
+
+            var filter2WasProcessed = false;
+            var filter2 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter2WasProcessed = true;
+                return true;
+            });
+            interactor.hoverFilters.Add(filter2);
+
+            yield return null;
+
+            Assert.That(filter1WasProcessed, Is.True);
+            Assert.That(filter2WasProcessed, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EquivalentTo(new[] { interactor }));
+
+            // Add filter that returns false
+            var filter3WasProcessed = false;
+            var filter3 = new XRHoverFilterDelegate((x, y) =>
+            {
+                filter3WasProcessed = true;
+                return false;
+            });
+            interactor.hoverFilters.Add(filter3);
+
+            yield return null;
+
+            Assert.That(filter3WasProcessed, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanProcessSelectFilters()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactor.validTargets.Add(interactable);
+
+            var filter1WasProcessed = false;
+            var filter1 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter1WasProcessed = true;
+                return true;
+            });
+            interactor.selectFilters.Add(filter1);
+
+            var filter2WasProcessed = false;
+            var filter2 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter2WasProcessed = true;
+                return true;
+            });
+            interactor.selectFilters.Add(filter2);
+
+            yield return null;
+
+            Assert.That(filter1WasProcessed, Is.True);
+            Assert.That(filter2WasProcessed, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] { interactor }));
+
+            // Add filter that returns false
+            var filter3WasProcessed = false;
+            var filter3 = new XRSelectFilterDelegate((x, y) =>
+            {
+                filter3WasProcessed = true;
+                return false;
+            });
+            interactor.selectFilters.Add(filter3);
+
+            yield return null;
+
+            Assert.That(filter3WasProcessed, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
         }
     }
 }

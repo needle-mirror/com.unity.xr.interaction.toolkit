@@ -3,6 +3,10 @@
     /// <summary>
     /// Interactor helper object that draws a targeting <see cref="reticlePrefab"/> over a ray casted point in front of the Interactor.
     /// </summary>
+    /// <remarks>
+    /// When attached to an <see cref="XRRayInteractor"/>, the <see cref="XRRayInteractor.TryGetCurrentRaycast"/> 
+    /// method will be used instead of the internal ray cast function of this behavior.
+    /// </remarks>
     [AddComponentMenu("XR/Visual/XR Interactor Reticle Visual", 11)]
     [DisallowMultipleComponent]
     [HelpURL(XRHelpURLConstants.k_XRInteractorReticleVisual)]
@@ -121,6 +125,7 @@
         XRBaseInteractor m_Interactor;
         Vector3 m_TargetEndPoint;
         Vector3 m_TargetEndNormal;
+        PhysicsScene m_LocalPhysicsScene;
 
         /// <summary>
         /// Reusable array of ray cast hits.
@@ -132,6 +137,8 @@
         /// </summary>
         protected void Awake()
         {
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
+
             m_Interactor = GetComponent<XRBaseInteractor>();
             if (m_Interactor != null)
             {
@@ -193,7 +200,7 @@
             var raycastHit = false;
 
             // Raycast against physics
-            var hitCount = Physics.RaycastNonAlloc(m_Interactor.attachTransform.position, m_Interactor.attachTransform.forward,
+            var hitCount = m_LocalPhysicsScene.Raycast(m_Interactor.attachTransform.position, m_Interactor.attachTransform.forward,
                 m_RaycastHits, m_MaxRaycastDistance, m_RaycastMask);
             if (hitCount != 0)
             {
@@ -211,9 +218,37 @@
             if (!m_DrawWhileSelecting && m_Interactor.hasSelection)
                 return false;
 
+            var hasRaycastHit = false;
             var raycastPos = Vector3.zero;
             var raycastNormal = Vector3.zero;
-            if (TryGetRaycastPoint(ref raycastPos, ref raycastNormal))
+
+            if (m_Interactor is XRRayInteractor rayInteractor)
+            {
+                if (rayInteractor.TryGetCurrentRaycast(out var raycastHit, out _, out var uiRaycastHit, out _, out var isUIHitClosest))
+                {
+                    if (isUIHitClosest)
+                    {
+                        Debug.Assert(uiRaycastHit.HasValue, this);
+                        var hit = uiRaycastHit.Value;
+                        raycastPos = hit.worldPosition;
+                        raycastNormal = hit.worldNormal;
+                        hasRaycastHit = true;
+                    }
+                    else if (raycastHit.HasValue)
+                    {
+                        var hit = raycastHit.Value;
+                        raycastPos = hit.point;
+                        raycastNormal = hit.normal;
+                        hasRaycastHit = true;
+                    }
+                }
+            }
+            else if (TryGetRaycastPoint(ref raycastPos, ref raycastNormal))
+            {
+                hasRaycastHit = true;
+            }
+
+            if (hasRaycastHit)
             {
                 // Smooth target
                 var velocity = Vector3.zero;

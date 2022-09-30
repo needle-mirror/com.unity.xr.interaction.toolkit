@@ -11,9 +11,12 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Enable Interaction with UI GameObjects** | Enable to allow this Interactor to affect UI. |
 | **Force Grab** | Force grab moves the object to your hand rather than interacting with it at a distance. |
 | **Anchor Control** | Allows the user to move the attach anchor point using the joystick. |
-| **Rotate Speed** | Only used and displayed in **Anchor Control** is enabled. Speed that the anchor is rotated. |
-| **Translate Speed** | Only used and displayed in **Anchor Control** is enabled. Speed that the anchor is translated. |
-| **Rotate Reference Frame** | Only used and displayed in **Anchor Control** is enabled. The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform. |
+| **Translate Speed** | Speed that the anchor is translated. Only used and displayed when **Anchor Control** is enabled. |
+| **Rotate Reference Frame** | The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform. Only used and displayed when **Anchor Control** is enabled. |
+| **Rotation Mode** | Specifies how the anchor rotation is controlled. Only used and displayed when **Anchor Control** is enabled. |
+| &emsp;Rotate Over Time | Set **Rotation Mode** to **Rotate Over Time** to control anchor rotation over time while rotation input is active. |
+| &emsp;Match Direction | Set **Rotation Mode** to **Match Direction** to match the anchor rotation to the direction of the 2-dimensional rotation input. |
+| **Rotate Speed** | Speed that the anchor is rotated. Only used and displayed when **Anchor Control** is enabled and **Rotation Mode** is set to **Rotate Over Time**. |
 | **Attach Transform** | The `Transform` that is used as the attach point for Interactables.<br />Automatically instantiated and set in `Awake` if **None**.<br />Setting this will not automatically destroy the previous object. |
 | **Ray Origin Transform** | The starting position and direction of any ray casts.<br />Automatically instantiated and set in `Awake` if **None** and initialized with the pose of the `XRBaseInteractor.attachTransform`. Setting this will not automatically destroy the previous object. |
 | **Line Type** | The type of ray cast. |
@@ -42,6 +45,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Keep Selected Target Valid** | Whether to keep selecting an Interactable after initially selecting it even when it is no longer a valid target.<br />Enable to make the `XRInteractionManager` retain the selection even if the Interactable is not contained within the list of valid targets. Disable to make the Interaction Manager clear the selection if it isn't within the list of valid targets.<br />A common use for disabling this is for Ray Interactors used for teleportation to make the teleportation Interactable no longer selected when not currently pointing at it. |
 | **Hide Controller On Select** | Controls whether this Interactor should hide the controller model on selection. |
 | **Allow Hovered Activate** | Controls whether to send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection. By default, the interactor will only send activate and deactivate events to interactables that it's selected. |
+| **Target Track Mode** | Specifies how many Interactables that should be tracked in the Targets For Selection property, useful for custom feedback. The options are in order of best performance. |
 | **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. |
 | **Starting Selected Interactable** | The Interactable that this Interactor automatically selects at startup (optional, may be **None**). |
 | **Audio Events** | These tie into the same selection and hover events as the **Interactor Events** further below - these audio events provide a convenient way to play specified audio clips for any of those events you want. |
@@ -51,6 +55,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | &emsp;On Hover Entered | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor begins hovering over an Interactable. |
 | &emsp;On Hover Exited | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor successfully ends hovering over an Interactable. |
 | &emsp;On Hover Canceled | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor cancels hovering over an Interactable. |
+| &emsp;Allow Hover Audio While Selecting | Whether to allow playing audio from hover events if the hovered Interactable is currently selected by this Interactor. This is enabled by default. |
 | **Haptic Events** | These tie into the same selection and hover events as the **Interactor Events** further below - these haptic events provide a convenient way to provide haptic feedback for any of those events you want. |
 | &emsp;On Select Entered | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor begins selecting an Interactable. |
 | &emsp;On Select Exited | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor successfully exits selection of an Interactable. |
@@ -58,4 +63,5 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | &emsp;On Hover Entered | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor begins hovering over an Interactable. |
 | &emsp;On Hover Exited | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor successfully ends hovering over an Interactable. |
 | &emsp;On Hover Canceled | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor cancels hovering over an Interactable. |
+| &emsp;Allow Hover Haptics While Selecting | Whether to allow playing haptics from hover events if the hovered Interactable is currently selected by this Interactor. This is enabled by default. |
 | **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |

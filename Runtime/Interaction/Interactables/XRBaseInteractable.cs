@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 #if UNITY_EDITOR
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 #endif
@@ -338,6 +340,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool isSelected => interactorsSelecting.Count > 0;
 
+        [SerializeField]
+        [RequireInterface(typeof(IXRHoverFilter))]
+        List<Object> m_StartingHoverFilters = new List<Object>();
+
+        /// <summary>
+        /// The hover filters that this object uses to automatically populate the <see cref="hoverFilters"/> List at
+        /// startup (optional, may be empty).
+        /// All objects in this list should implement the <see cref="IXRHoverFilter"/> interface.
+        /// </summary>
+        /// <remarks>
+        /// To access and modify the hover filters used after startup, the <see cref="hoverFilters"/> List should
+        /// be used instead.
+        /// </remarks>
+        /// <seealso cref="hoverFilters"/>
+        public List<Object> startingHoverFilters
+        {
+            get => m_StartingHoverFilters;
+            set => m_StartingHoverFilters = value;
+        }
+
+        readonly ExposedRegistrationList<IXRHoverFilter> m_HoverFilters = new ExposedRegistrationList<IXRHoverFilter> { bufferChanges = false };
+
+        /// <summary>
+        /// The list of hover filters in this object.
+        /// Used as additional hover validations for this Interactable.
+        /// </summary>
+        /// <remarks>
+        /// While processing hover filters, all changes to this list don't have an immediate effect. These changes are
+        /// buffered and applied when the processing is finished.
+        /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
+        /// </remarks>
+        /// <seealso cref="ProcessHoverFilters"/>
+        public IXRFilterList<IXRHoverFilter> hoverFilters => m_HoverFilters;
+
+        [SerializeField]
+        [RequireInterface(typeof(IXRSelectFilter))]
+        List<Object> m_StartingSelectFilters = new List<Object>();
+
+        /// <summary>
+        /// The select filters that this object uses to automatically populate the <see cref="selectFilters"/> List at
+        /// startup (optional, may be empty).
+        /// All objects in this list should implement the <see cref="IXRSelectFilter"/> interface.
+        /// </summary>
+        /// <remarks>
+        /// To access and modify the select filters used after startup, the <see cref="selectFilters"/> List should
+        /// be used instead.
+        /// </remarks>
+        /// <seealso cref="selectFilters"/>
+        public List<Object> startingSelectFilters
+        {
+            get => m_StartingSelectFilters;
+            set => m_StartingSelectFilters = value;
+        }
+
+        readonly ExposedRegistrationList<IXRSelectFilter> m_SelectFilters = new ExposedRegistrationList<IXRSelectFilter> { bufferChanges = false };
+
+        /// <summary>
+        /// The list of select filters in this object.
+        /// Used as additional select validations for this Interactable.
+        /// </summary>
+        /// <remarks>
+        /// While processing select filters, all changes to this list don't have an immediate effect. Theses changes are
+        /// buffered and applied when the processing is finished.
+        /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
+        /// </remarks>
+        /// <seealso cref="ProcessSelectFilters"/>
+        public IXRFilterList<IXRSelectFilter> selectFilters => m_SelectFilters;
+
         readonly Dictionary<IXRSelectInteractor, Pose> m_AttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
 
         readonly Dictionary<IXRSelectInteractor, Pose> m_LocalAttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
@@ -370,6 +440,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // If no colliders were set, populate with children colliders
             if (m_Colliders.Count == 0)
                 GetComponentsInChildren(m_Colliders);
+
+            // Setup the starting filters
+            m_HoverFilters.RegisterReferences(m_StartingHoverFilters, this);
+            m_SelectFilters.RegisterReferences(m_StartingSelectFilters, this);
 
             // Setup Interaction Manager
             FindCreateInteractionManager();
@@ -655,9 +729,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (interactor is XRBaseInteractor baseInteractor)
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return IsHoverableBy(baseInteractor);
+                return IsHoverableBy(baseInteractor) && ProcessHoverFilters(interactor);
 #pragma warning restore 618
-            return IsHoverableBy(interactor);
+            return IsHoverableBy(interactor) && ProcessHoverFilters(interactor);
         }
 
         /// <inheritdoc />
@@ -677,9 +751,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (interactor is XRBaseInteractor baseInteractor)
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return IsSelectableBy(baseInteractor);
+                return IsSelectableBy(baseInteractor) && ProcessSelectFilters(interactor);
 #pragma warning restore 618
-            return IsSelectableBy(interactor);
+            return IsSelectableBy(interactor) && ProcessSelectFilters(interactor);
         }
 
         /// <inheritdoc />
@@ -969,6 +1043,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             OnDeactivate(args.interactor);
 #pragma warning restore 618
+        }
+
+        /// <summary>
+        /// Returns the processing value of the filters in <see cref="hoverFilters"/> for the given Interactor and this
+        /// Interactable.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be validated by the hover filters.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
+        /// <see cref="hoverFilters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// </returns>
+        protected bool ProcessHoverFilters(IXRHoverInteractor interactor)
+        {
+            return XRFilterUtility.Process(m_HoverFilters, interactor, this);
+        }
+
+        /// <summary>
+        /// Returns the processing value of the filters in <see cref="selectFilters"/> for the given Interactor and this
+        /// Interactable.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be validated by the select filters.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
+        /// <see cref="selectFilters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// </returns>
+        protected bool ProcessSelectFilters(IXRSelectInteractor interactor)
+        {
+            return XRFilterUtility.Process(m_SelectFilters, interactor, this);
         }
     }
 }

@@ -59,10 +59,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls whether gravity affects this provider when a Character Controller is used.")]
+        [Tooltip("Controls whether to enable flying (unconstrained movement). This overrides the use of gravity.")]
+        bool m_EnableFly;
+        /// <summary>
+        /// Controls whether to enable flying (unconstrained movement). This overrides <see cref="useGravity"/>.
+        /// </summary>
+        public bool enableFly
+        {
+            get => m_EnableFly;
+            set => m_EnableFly = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Controls whether gravity affects this provider when a Character Controller is used and flying is disabled.")]
         bool m_UseGravity = true;
         /// <summary>
         /// Controls whether gravity affects this provider when a <see cref="CharacterController"/> is used.
+        /// This only applies when <see cref="enableFly"/> is <see langword="false"/>.
         /// </summary>
         public bool useGravity
         {
@@ -176,12 +189,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // while still allowing for analog input to move slower (which would be lost if simply normalizing).
             var inputMove = Vector3.ClampMagnitude(new Vector3(m_EnableStrafe ? input.x : 0f, 0f, input.y), 1f);
 
-            var originTransform = xrOrigin.Origin.transform;
-            var originUp = originTransform.up;
-
             // Determine frame of reference for what the input direction is relative to
             var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;
             var inputForwardInWorldSpace = forwardSourceTransform.forward;
+
+            var originTransform = xrOrigin.Origin.transform;
+            var speedFactor = m_MoveSpeed * Time.deltaTime * originTransform.localScale.x; // Adjust speed with user scale
+
+            // If flying, just compute move directly from input and forward source
+            if (m_EnableFly)
+            {
+                var inputRightInWorldSpace = forwardSourceTransform.right;
+                var combinedMove = inputMove.x * inputRightInWorldSpace + inputMove.z * inputForwardInWorldSpace;
+                return combinedMove * speedFactor;
+            }
+
+            var originUp = originTransform.up;
+
             if (Mathf.Approximately(Mathf.Abs(Vector3.Dot(inputForwardInWorldSpace, originUp)), 1f))
             {
                 // When the input forward direction is parallel with the rig normal,
@@ -195,7 +219,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var inputForwardProjectedInWorldSpace = Vector3.ProjectOnPlane(inputForwardInWorldSpace, originUp);
             var forwardRotation = Quaternion.FromToRotation(originTransform.forward, inputForwardProjectedInWorldSpace);
 
-            var translationInRigSpace = forwardRotation * inputMove * (m_MoveSpeed * Time.deltaTime);
+            var translationInRigSpace = forwardRotation * inputMove * speedFactor;
             var translationInWorldSpace = originTransform.TransformDirection(translationInRigSpace);
 
             return translationInWorldSpace;
@@ -219,7 +243,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_CharacterController != null && m_CharacterController.enabled)
             {
                 // Step vertical velocity from gravity
-                if (m_CharacterController.isGrounded || !m_UseGravity)
+                if (m_CharacterController.isGrounded || !m_UseGravity || m_EnableFly)
                 {
                     m_VerticalVelocity = Vector3.zero;
                 }

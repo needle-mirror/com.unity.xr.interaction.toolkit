@@ -165,8 +165,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         InputActionProperty m_RotateAnchorAction;
         /// <summary>
-        /// The Input System action to use for rotating the interactor's attach point.
-        /// Must be a <see cref="Vector2Control"/> Control. Uses the X-axis as the rotation input.
+        /// The Input System action to use for rotating the interactor's attach point over time.
+        /// Must be a <see cref="Vector2Control"/> Control. Uses the x-axis as the rotation input.
         /// </summary>
         public InputActionProperty rotateAnchorAction
         {
@@ -175,10 +175,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        InputActionProperty m_DirectionalAnchorRotationAction;
+        /// <summary>
+        /// The Input System action to use for computing a direction angle to rotate the interactor's attach point to match it.
+        /// Must be a <see cref="Vector2Control"/> Control. The direction angle should be computed as the arctangent function of x/y.
+        /// </summary>
+        public InputActionProperty directionalAnchorRotationAction
+        {
+            get => m_DirectionalAnchorRotationAction;
+            set => SetInputActionProperty(ref m_DirectionalAnchorRotationAction, value);
+        }
+
+        [SerializeField]
         InputActionProperty m_TranslateAnchorAction;
         /// <summary>
         /// The Input System action to use for translating the interactor's attach point closer or further away from the interactor.
-        /// Must be a <see cref="Vector2Control"/> Control. Uses the Y-axis as the translation input.
+        /// Must be a <see cref="Vector2Control"/> Control. Uses the y-axis as the translation input.
         /// </summary>
         public InputActionProperty translateAnchorAction
         {
@@ -403,6 +415,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_UIPressActionValue.EnableDirectAction();
             m_HapticDeviceAction.EnableDirectAction();
             m_RotateAnchorAction.EnableDirectAction();
+            m_DirectionalAnchorRotationAction.EnableDirectAction();
             m_TranslateAnchorAction.EnableDirectAction();
         }
 
@@ -419,6 +432,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_UIPressActionValue.DisableDirectAction();
             m_HapticDeviceAction.DisableDirectAction();
             m_RotateAnchorAction.DisableDirectAction();
+            m_DirectionalAnchorRotationAction.DisableDirectAction();
             m_TranslateAnchorAction.DisableDirectAction();
         }
 

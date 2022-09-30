@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using JetBrains.Annotations;
 using Unity.XR.CoreUtils;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 #if AR_FOUNDATION_PRESENT
@@ -293,9 +296,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 GetControllerType(inputType),
                 typeof(XRRayInteractor),
                 typeof(LineRenderer),
-                typeof(XRInteractorLineVisual));
+                typeof(XRInteractorLineVisual),
+                typeof(SortingGroup));
 
             SetupLineRenderer(rayInteractableGO.GetComponent<LineRenderer>());
+
+            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            var sortingGroup = rayInteractableGO.GetComponent<SortingGroup>();
+            sortingGroup.sortingOrder = 5;
 
             return rayInteractableGO;
         }
@@ -307,14 +315,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             lineRenderer.materials = materials;
             lineRenderer.loop = false;
             lineRenderer.widthMultiplier = 0.005f;
-            lineRenderer.startColor = Color.blue;
-            lineRenderer.endColor = Color.blue;
             lineRenderer.numCornerVertices = 4;
             lineRenderer.numCapVertices = 4;
             lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
             lineRenderer.receiveShadows = false;
             lineRenderer.useWorldSpace = true;
-            lineRenderer.sortingOrder = 5;
         }
 
         static GameObject CreateDirectInteractor(Transform parent, InputType inputType, string name = "Direct Interactor")
@@ -391,6 +396,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
             offsetGo.transform.localPosition = desiredPosition;
 
             AddXRControllersToOrigin(origin, inputType);
+
+            if (inputType == InputType.ActionBased)
+            {
+                var inputActionManager = originGo.AddComponent<InputActionManager>();
+
+                const string assetName = "XRI Default Input Actions";
+                const string searchFilter = "\"" + assetName + "\" t:InputActionAsset";
+                foreach (var guid in AssetDatabase.FindAssets(searchFilter))
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
+                    // The search filter string will return all assets that contains the name,
+                    // so ensure an exact match to the expected asset we want to set.
+                    if (asset.name.Equals(assetName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        inputActionManager.actionAssets = new List<InputActionAsset> { asset };
+                        break;
+                    }
+                }
+            }
+
             return originGo;
         }
 

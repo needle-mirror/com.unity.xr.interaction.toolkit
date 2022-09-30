@@ -1,6 +1,6 @@
 # XR Grab Interactable
 
-Interactable component that hooks into the interaction system (via [XRInteractionManager](xr-interaction-manager.md)) to allow basic "grab" functionality. Can attach to an Interactor that selects this Interactable component and follow it around while obeying physics (and inherit velocity when released).
+Interactable component that allows for basic grab functionality. When this behavior is selected (grabbed) by an Interactor, this behavior will follow it around and inherit velocity when released.
 
 ![XRGrabInteractable component](images/xr-grab-interactable.png)
 
@@ -47,4 +47,15 @@ Interactable component that hooks into the interaction system (via [XRInteractio
 | **Snap To Collider Volume** | Adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object. |
 | **Attach Ease In Time** | Time in seconds Unity eases in the attach when selected (a value of 0 indicates no easing). |
 | **Attach Point Compatibility Mode** | Controls the method used when calculating the target position of the object. Use `AttachPointCompatibilityMode.Default` for consistent attach points between all `XRBaseInteractable.MovementType` values. Marked for deprecation, this property will be removed in a future version.<br />This is a backwards compatibility option in order to keep the old, incorrect method of calculating the attach point. Projects that already accounted for the difference can use the Legacy option to maintain the same attach positioning from older versions without needing to modify the **Attach Transform** position. |
+| **Add Default Grab Transformers** | Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty. |
+| **Starting Multiple Grab Transformers** | The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for multi-interactor selection. After startup, this property is not used. Useful when there is more than one Grab Transformer that should be processed and you need to specify the order. |
+| **Starting Single Grab Transformers** | The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for single-interactor selection. After startup, this property is not used. Useful when there is more than one Grab Transformer that should be processed and you need to specify the order. |
+| **Multiple Grab Transformers** | (Play mode only) The grab transformers used when there are multiple interactors selecting this object. |
+| **Single Grab Transformers** | (Play mode only) The grab transformers used when there is a single interactor selecting this object. |
 | **Interactable Events** | See the [Interactable Events](interactable-events.md) page. |
+
+## Grab transformers
+
+This XR Grab Interactable behavior is responsible for applying the position, rotation, and local scale calculated by one or more [IXRGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.IXRGrabTransformer) implementations. A default set of grab transformers are automatically added by Unity (when **Add Default Grab Transformers** is enabled), but this functionality can be disabled to manually set those used by this behavior, allowing you to customize where this component should move and rotate to.
+
+Grab transformer components can be added to the GameObject to link them with the XR Grab Interactable. They can be found in the **Component** &gt; **XR** &gt; **Transformers** menu. You can then add references to those components explicitly to **Starting Single Grab Transformers** or **Starting Multiple Grab Transformers** if you have more than one and need to specify the order in which they execute, or if you need to override which list the grab transformer is automatically added to.

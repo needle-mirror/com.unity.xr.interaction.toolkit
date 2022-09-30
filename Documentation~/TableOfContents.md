@@ -1,5 +1,7 @@
 * [XR Interaction Toolkit](index.md)
-  * [What's new](whats-new.md)
+  * What's new
+    * [2.2.0](whats-new-2.2.0.md)
+    * [2.1.0](whats-new-2.1.0.md)
 * Guides
   * [Installation](installation.md)
   * [Architecture](architecture.md)

@@ -4,7 +4,7 @@ To install samples included with this package, follow the instructions for [Inst
 
 |**Sample**|**Description**|
 |---|---|
-|**[Starter Assets](#starter-assets)**|Assets to streamline setup of behaviors, including a default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System.|
+|**[Starter Assets](#starter-assets)**|Assets to streamline setup of behaviors, including a default set of input actions, presets for use with XR Interaction Toolkit behaviors that use the Input System, and prefabs for getting started.|
 |**[XR Device Simulator](#xr-device-simulator)**|Assets related to the simulation of XR HMD and controllers.|
 |**[Tunneling Vignette](#tunneling-vignette)**|Assets to let users set up and configure tunneling vignette effects as a comfort mode option.|
 
@@ -12,7 +12,7 @@ To install samples included with this package, follow the instructions for [Inst
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
 
-This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
+This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
 
 This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
@@ -22,7 +22,9 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 |**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
 |**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
 |**`XRI Default Left Controller.preset`**|Preset for left hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](locomotion.md#grab-move-providers).|
 |**`XRI Default Right Controller.preset`**|Preset for right hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](locomotion.md#grab-move-providers).|
 |**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
 |**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](ui-setup.md#xr-ui-input-module).|
 
@@ -68,6 +70,24 @@ Access the Preset Manager from Unity's main menu (go to **Edit &gt; Project Sett
 The following image shows the Preset Manager with the included presets set as default for their associated behavior. For the presets which depend on the hand of the controller, a Filter value of **Left** and **Right** is set for XRI Default Left Controller and XRI Default Right Controller to allow the appropriate preset to be chosen based on the name of the GameObject.
 
 ![preset-manager](images/preset-manager.png)
+
+### Prefabs
+
+|**Prefab**|**Description**|
+|---|---|
+|**`Complete Teleport Area Set Up`**|Teleportation prefab which includes the `Teleportation Area` and `Teleportation Anchor` prefabs. Configured to the `Teleport Interactor` in the `Complete XR Origin Setup` prefab included in these starter assets.|
+|**`Complete XR Origin Set Up`**|XR Origin prefab configured for smooth locomotion, grab locomotion, teleportation locomotion, as well as smooth and snap turn. Each hand also contains a `Direct Interactor` and a `Ray Interactor`.|
+|**`Interactables Sample`**|Prefab containing preconfigured `XR Grab Interactables`.|
+|**`UI Sample`**|Prefab containing interactable UI elements.|
+
+### Scripts
+
+The following scripts are included to support the prefabs.
+
+|**Script**|**Description**|
+|---|---|
+|**`ActionBasedControllerManager`**|Script used to mediate the controllers and their associated interactors and input actions under different interaction states.|
+|**`DynamicMoveProvider`**|A version of action-based continuous movement that automatically controls the frame of reference that determines the forward direction of movement based on user preference for each hand.|
 
 ## XR Device Simulator
 

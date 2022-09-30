@@ -19,15 +19,11 @@ To install this package, follow the instructions for [adding a package by name](
 |Text Field|Value|
 |---|---|
 |**Name**|`com.unity.xr.interaction.toolkit`|
-|**Version (optional)**|`2.1.1`|
+|**Version (optional)**|`2.2.0`|
 
 ## Version 2020.3
 
 To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2020.3/Documentation/Manual/upm-ui-install.html).
-
-## Version 2019.4 
-
-To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2019.4/Documentation/Manual/upm-ui-install.html).
 
 ## Input System
 

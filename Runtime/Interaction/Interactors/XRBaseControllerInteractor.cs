@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
@@ -94,6 +93,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_AllowHoveredActivate;
             set => m_AllowHoveredActivate = value;
+        }
+
+        [SerializeField]
+        TargetPriorityMode m_TargetPriorityMode;
+
+        /// <inheritdoc />
+        public override TargetPriorityMode targetPriorityMode
+        {
+            get => m_TargetPriorityMode;
+            set => m_TargetPriorityMode = value;
         }
 
         [SerializeField, FormerlySerializedAs("m_PlayAudioClipOnSelectEnter")]
@@ -238,6 +247,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_AudioClipForOnHoverCanceled;
             set => m_AudioClipForOnHoverCanceled = value;
+        }
+
+        [SerializeField]
+        bool m_AllowHoverAudioWhileSelecting = true;
+        /// <summary>
+        /// Controls whether Unity allows playing an <see cref="AudioClip"/> from a Hover event if the Hovered Interactable is currently Selected by this Interactor.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnHoverEntered"/>
+        /// <seealso cref="playAudioClipOnHoverExited"/>
+        /// <seealso cref="playAudioClipOnHoverCanceled"/>
+        public bool allowHoverAudioWhileSelecting
+        {
+            get => m_AllowHoverAudioWhileSelecting;
+            set => m_AllowHoverAudioWhileSelecting = value;
         }
 
         [SerializeField, FormerlySerializedAs("m_PlayHapticsOnSelectEnter")]
@@ -480,6 +503,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_HapticHoverCancelDuration = value;
         }
 
+        [SerializeField]
+        bool m_AllowHoverHapticsWhileSelecting = true;
+        /// <summary>
+        /// Controls whether Unity allows playing haptics from a Hover event if the Hovered Interactable is currently Selected by this Interactor.
+        /// </summary>
+        /// <seealso cref="playHapticsOnHoverEntered"/>
+        /// <seealso cref="playHapticsOnHoverExited"/>
+        /// <seealso cref="playHapticsOnHoverCanceled"/>
+        public bool allowHoverHapticsWhileSelecting
+        {
+            get => m_AllowHoverHapticsWhileSelecting;
+            set => m_AllowHoverHapticsWhileSelecting = value;
+        }
+
         bool m_AllowActivate = true;
         /// <summary>
         /// Defines whether this interactor allows sending activate and deactivate events.
@@ -516,6 +553,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void Awake()
         {
+            targetsForSelection = new List<IXRSelectInteractable>();
+
             base.Awake();
 
             // Setup interaction controller (for sending down selection state and input)
@@ -762,10 +801,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnHoverEntering(args);
 
-            if (m_PlayHapticsOnHoverEntered)
+            var hoveredInteractable = args.interactableObject;
+            if (m_PlayHapticsOnHoverEntered && CanPlayHoverHaptics(hoveredInteractable))
                 SendHapticImpulse(m_HapticHoverEnterIntensity, m_HapticHoverEnterDuration);
 
-            if (m_PlayAudioClipOnHoverEntered)
+            if (m_PlayAudioClipOnHoverEntered && CanPlayHoverAudio(hoveredInteractable))
                 PlayAudio(m_AudioClipForOnHoverEntered);
         }
 
@@ -774,22 +814,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnHoverExiting(args);
 
+            var hoveredInteractable = args.interactableObject;
             if (args.isCanceled)
             {
-                if (m_PlayHapticsOnHoverCanceled)
+                if (m_PlayHapticsOnHoverCanceled && CanPlayHoverHaptics(hoveredInteractable))
                     SendHapticImpulse(m_HapticHoverCancelIntensity, m_HapticHoverCancelDuration);
 
-                if (m_PlayAudioClipOnHoverCanceled)
+                if (m_PlayAudioClipOnHoverCanceled && CanPlayHoverAudio(hoveredInteractable))
                     PlayAudio(m_AudioClipForOnHoverCanceled);
             }
             else
             {
-                if (m_PlayHapticsOnHoverExited)
+                if (m_PlayHapticsOnHoverExited && CanPlayHoverHaptics(hoveredInteractable))
                     SendHapticImpulse(m_HapticHoverExitIntensity, m_HapticHoverExitDuration);
 
-                if (m_PlayAudioClipOnHoverExited)
+                if (m_PlayAudioClipOnHoverExited && CanPlayHoverAudio(hoveredInteractable))
                     PlayAudio(m_AudioClipForOnHoverExited);
             }
+        }
+
+        bool CanPlayHoverAudio(IXRHoverInteractable hoveredInteractable)
+        {
+            return m_AllowHoverAudioWhileSelecting || !IsSelecting(hoveredInteractable);
+        }
+
+        bool CanPlayHoverHaptics(IXRHoverInteractable hoveredInteractable)
+        {
+            return m_AllowHoverHapticsWhileSelecting || !IsSelecting(hoveredInteractable);
         }
 
         /// <summary>
