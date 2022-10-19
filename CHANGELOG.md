@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.0.4] - 2022-10-19
+
+### Changed
+- Ray casts now query the local [PhysicsScene](https://docs.unity3d.com/ScriptReference/PhysicsScene.html) instead of using static Physics routines which uses the default physics scene. Gesture classes that perform ray casts use the camera's scene, and components that perform ray casts use its scene during `Awake`.
+- Creating a new `XR Origin (VR)` now automatically adds an `Input Action Manager` component and sets the `Action Assets` to `XRI Default Input Action.inputactions` asset if available from the `Starter Assets` sample package.
+
+### Fixed
+- Fixed XR Interactor Line Visual so it deactivates the current reticle GameObject when the behavior is enabled or disabled.
+- Fixed `XRUIInputModule` to use the correct button type for middle and right mouse buttons when sending mouse button events.
+- Fixed issue where the last point in the curve rendered by XR Interactor Line Visual would not always be continuous with the rest of the curve (for example when sphere cast is used).
+- Fixed issue where `XRInteractorReticleVisual` script did not properly detect ray casts with UI objects. ([XRIT-18](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-18))
+- Fixed an issue with throwing physics on Quest devices where bad frame-timing would cause unexpectedly high velocities to be applied.
+- Fixed issue where using the [MockHMD XR Plugin package](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/) with the `XRDeviceSimulator` would cause the device simulator's rotation to be overwritten. This issue can also be fixed by upgrading the [Input System package](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) to 1.4.1+.
+- Fixed Tracked Device Graphic Raycaster to use the correct ray cast method when Check for 2D Occlusion is enabled, and changed it to use the local [PhysicsScene2D](https://docs.unity3d.com/ScriptReference/PhysicsScene2D.html).
+
+
 ## [2.0.3] - 2022-07-26
 
 ### Fixed

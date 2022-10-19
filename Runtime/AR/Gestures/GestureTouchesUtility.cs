@@ -285,6 +285,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Performs a Raycast from the camera.
         /// </summary>
+        /// <remarks>
+        /// Unity uses the 3D physics scene of the camera when performing the ray cast.
+        /// </remarks>
         /// <param name="screenPos">The screen position to perform the ray cast from.</param>
         /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for ray casting.</param>
         /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for ray casting.</param>
@@ -303,7 +306,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
 
             var ray = camera.ScreenPointToRay(screenPos);
-            return Physics.Raycast(ray, out result);
+            return camera.gameObject.scene.GetPhysicsScene().Raycast(ray.origin, ray.direction, out result);
         }
 
         /// <summary>

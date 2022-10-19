@@ -152,7 +152,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
 #if PHYSICS2D_MODULE_PRESENT
-        readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
+        // Create for a single hit only. In 2D physics it'll always be the closest hit.
+        readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[1];
 #endif
         static readonly RaycastHitComparer s_RaycastHitComparer = new RaycastHitComparer();
 
@@ -163,6 +164,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         [NonSerialized]
         static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
+
+        PhysicsScene m_LocalPhysicsScene;
+#if PHYSICS2D_MODULE_PRESENT
+        PhysicsScene2D m_LocalPhysicsScene2D;
+#endif
 
         static RaycastHit FindClosestHit(RaycastHit[] hits, int count)
         {
@@ -180,23 +186,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hits[index];
         }
 
-#if PHYSICS2D_MODULE_PRESENT
-        static RaycastHit2D FindClosestHit(RaycastHit2D[] hits, int count)
+        /// <inheritdoc />
+        protected override void Awake()
         {
-            var index = 0;
-            var distance = float.MaxValue;
-            for (var i = 0; i < count; i++)
-            {
-                if (hits[i].distance < distance)
-                {
-                    distance = hits[i].distance;
-                    index = i;
-                }
-            }
-
-            return hits[index];
-        }
+            base.Awake();
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
+#if PHYSICS2D_MODULE_PRESENT
+            m_LocalPhysicsScene2D = gameObject.scene.GetPhysicsScene2D();
 #endif
+        }
 
         void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
         {
@@ -242,7 +240,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var hitDistance = rayDistance;
             if (m_CheckFor3DOcclusion)
             {
-                var hitCount = Physics.RaycastNonAlloc(ray, m_OcclusionHits3D, hitDistance, m_BlockingMask, m_RaycastTriggerInteraction);
+                var hitCount = m_LocalPhysicsScene.Raycast(ray.origin, ray.direction, m_OcclusionHits3D, hitDistance, m_BlockingMask, m_RaycastTriggerInteraction);
 
                 if (hitCount > 0)
                 {
@@ -255,12 +253,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_CheckFor2DOcclusion)
             {
 #if PHYSICS2D_MODULE_PRESENT
-                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, hitDistance, m_BlockingMask);
-
-                if (hitCount > 0)
+                if (m_LocalPhysicsScene2D.GetRayIntersection(ray, hitDistance, m_OcclusionHits2D, m_BlockingMask) > 0)
                 {
-                    var hit = FindClosestHit(m_OcclusionHits2D, hitCount);
-                    hitDistance = hit.distance > hitDistance ? hitDistance : hit.distance;
+                    // Unlike 3D physics, all 2D physics spatial queries are sorted by distance or in this case,
+                    // sorted by Z depth along the ray so there's no need to find the closest hit, it'll always be the first result.
+                    hitDistance = m_OcclusionHits2D[0].distance;
                     hitSomething = true;
                 }
 #endif

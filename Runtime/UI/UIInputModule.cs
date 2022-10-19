@@ -280,6 +280,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
             var buttonState = mouseState.leftButton;
+            eventData.button = PointerEventData.InputButton.Left;
             buttonState.CopyTo(eventData);
             ProcessMouseButton(buttonState.lastFrameDelta, eventData);
 
@@ -295,6 +296,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             // Right Mouse Button
             buttonState = mouseState.rightButton;
+            eventData.button = PointerEventData.InputButton.Right;
             buttonState.CopyTo(eventData);
 
             ProcessMouseButton(buttonState.lastFrameDelta, eventData);
@@ -305,6 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             // Middle Mouse Button
             buttonState = mouseState.middleButton;
+            eventData.button = PointerEventData.InputButton.Middle;
             buttonState.CopyTo(eventData);
 
             ProcessMouseButton(buttonState.lastFrameDelta, eventData);

@@ -26,6 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const float k_DefaultThrowSmoothingDuration = 0.25f;
         const float k_DefaultThrowVelocityScale = 1.5f;
         const float k_DefaultThrowAngularVelocityScale = 1f;
+        const float k_DeltaTimeThreshold = 0.001f;
 
         /// <summary>
         /// Controls the method used when calculating the target position of the object.
@@ -463,7 +464,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         if (m_CurrentMovementType == MovementType.Kinematic)
                             PerformKinematicUpdate(updatePhase);
                         else if (m_CurrentMovementType == MovementType.VelocityTracking)
-                            PerformVelocityTrackingUpdate(Time.deltaTime, updatePhase);
+                            PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
                     }
 
                     break;
@@ -478,7 +479,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default)
                             UpdateInteractorLocalPose(interactor);
                         UpdateTarget(interactor, Time.deltaTime);
-                        SmoothVelocityUpdate(interactor);
+                        SmoothVelocityUpdate(interactor, Time.deltaTime);
 
                         if (m_CurrentMovementType == MovementType.Instantaneous)
                             PerformInstantaneousUpdate(updatePhase);
@@ -628,8 +629,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void PerformVelocityTrackingUpdate(float timeDelta, XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        void PerformVelocityTrackingUpdate(XRInteractionUpdateOrder.UpdatePhase updatePhase, float deltaTime)
         {
+            // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (deltaTime < k_DeltaTimeThreshold)
+                return;
+
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
                 // Do velocity tracking
@@ -640,10 +645,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var positionDelta = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
                         ? m_TargetWorldPosition - transform.position
                         : m_TargetWorldPosition - m_Rigidbody.worldCenterOfMass;
-                    var velocity = positionDelta / timeDelta;
-
-                    if (!float.IsNaN(velocity.x))
-                        m_Rigidbody.velocity += (velocity * m_VelocityScale);
+                    var velocity = positionDelta / deltaTime;
+                    m_Rigidbody.velocity += (velocity * m_VelocityScale);
                 }
 
                 // Do angular velocity tracking
@@ -658,9 +661,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
                     {
-                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / timeDelta;
-                        if (!float.IsNaN(angularVelocity.x))
-                            m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
+                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / deltaTime;
+                        m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
                     }
                 }
             }
@@ -871,8 +873,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             ClearTeleportationProvider();
         }
 
-        void SmoothVelocityUpdate(IXRInteractor interactor)
+        void SmoothVelocityUpdate(IXRInteractor interactor, float deltaTime)
         {
+            // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (deltaTime < k_DeltaTimeThreshold)
+                return;
+
             var interactorAttachTransform = interactor.GetAttachTransform(this);
             var interactorPosition = interactorAttachTransform.position;
             var interactorRotation = interactorAttachTransform.rotation;

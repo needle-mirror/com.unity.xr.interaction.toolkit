@@ -1,15 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.SpatialTracking;
 using UnityEngine.XR;
 using UnityEditor.SceneManagement;
-using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using Unity.XR.CoreUtils;
 using Object = UnityEngine.Object;
@@ -374,6 +376,26 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             Place(leftHandRayInteractorGO, cameraOffsetTransform);
             Place(rightHandRayInteractorGO, cameraOffsetTransform);
+
+            if (inputType == InputType.ActionBased)
+            {
+                var inputActionManager = xrOrigin.gameObject.AddComponent<InputActionManager>();
+
+                const string assetName = "XRI Default Input Actions";
+                const string searchFilter = "\"" + assetName + "\" t:InputActionAsset";
+                foreach (var guid in AssetDatabase.FindAssets(searchFilter))
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guid);
+                    var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
+                    // The search filter string will return all assets that contains the name,
+                    // so ensure an exact match to the expected asset we want to set.
+                    if (asset.name.Equals(assetName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        inputActionManager.actionAssets = new List<InputActionAsset> { asset };
+                        break;
+                    }
+                }
+            }
 
             // Need to set this again since creating the ray interactors would have overwritten this
             Undo.SetCurrentGroupName("Create " + xrOrigin.gameObject.name);

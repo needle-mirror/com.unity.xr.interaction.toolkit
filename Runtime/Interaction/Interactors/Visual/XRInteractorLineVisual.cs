@@ -270,7 +270,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void OnEnable()
         {
             m_SnapCurve = true;
-            m_ReticleToUse = null;
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
 
             Application.onBeforeRender += OnBeforeRenderLineVisual;
         }
@@ -282,7 +286,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_LineRenderer != null)
                 m_LineRenderer.enabled = false;
-            m_ReticleToUse = null;
+ 
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
 
             Application.onBeforeRender -= OnBeforeRenderLineVisual;
         }
@@ -378,6 +387,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // End the line at the current hit point.
                 if ((isValidTarget || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
                 {
+                    // The hit position might not lie within the line segment, for example if a sphere cast is used, so use a point projected onto the
+                    // segment so that the endpoint is continuous with the rest of the curve.
+                    var lastSegmentStartPoint = m_TargetPoints[m_EndPositionInLine - 1];
+                    var lastSegmentEndPoint = m_TargetPoints[m_EndPositionInLine];
+                    var lastSegment = lastSegmentEndPoint - lastSegmentStartPoint;
+                    var projectedHitSegment = Vector3.Project(m_ReticlePos - lastSegmentStartPoint, lastSegment);
+
+                    // Don't bend the line backwards
+                    if (Vector3.Dot(projectedHitSegment, lastSegment) < 0)
+                        projectedHitSegment = Vector3.zero;
+
+                    m_ReticlePos = lastSegmentStartPoint + projectedHitSegment;
                     m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
                     m_NoTargetPoints = m_EndPositionInLine + 1;
                 }

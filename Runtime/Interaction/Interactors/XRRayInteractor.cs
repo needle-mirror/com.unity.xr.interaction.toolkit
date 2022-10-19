@@ -537,6 +537,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         static readonly Vector3[] s_ScratchControlPoints = new Vector3[3];
 
+        PhysicsScene m_LocalPhysicsScene;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -550,6 +552,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void Awake()
         {
             base.Awake();
+
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
 
             var capacity = m_LineType == LineType.StraightLine ? 2 : m_SampleFrequency;
             m_SamplePoints = new List<SamplePoint>(capacity);
@@ -615,7 +619,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var samplePoint = m_SamplePoints[i];
 
                 // Change the color of the points after the segment where a hit happened
-                const float radius = 0.025f;
+                var radius = m_HitDetectionType == HitDetectionType.SphereCast ? m_SphereCastRadius : 0.025f;
                 var color = hitIndex == 0 || i < hitIndex
                     ? new Color(163 / 255f, 73 / 255f, 164 / 255f, 0.75f)
                     : new Color(205 / 255f, 143 / 255f, 205 / 255f, 0.5f);
@@ -1423,11 +1427,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Cast from last point to next point to check if there are hits in between
             if (m_HitDetectionType == HitDetectionType.SphereCast && m_SphereCastRadius > 0f)
             {
-                return Physics.SphereCastNonAlloc(from, m_SphereCastRadius, (to - from).normalized,
+                return m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, (to - from).normalized,
                     m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
             }
 
-            return Physics.RaycastNonAlloc(from, (to - from).normalized,
+            return m_LocalPhysicsScene.Raycast(from, (to - from).normalized,
                 m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
         }
 

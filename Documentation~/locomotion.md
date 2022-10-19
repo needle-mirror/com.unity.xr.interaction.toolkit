@@ -26,7 +26,7 @@ This documentation outlines how to use and extend these components.
 | **Snap Turn** | A type of locomotion that rotates the user by a fixed angle. |
 | **Continuous Turn** | A type of locomotion that smoothly rotates the user by an amount over time. |
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
-| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.2/manual/Actions.html) and their controller bindings in the Input System. |
+| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
 ## Set up a basic scene for snap turn and teleportation
