@@ -5,7 +5,7 @@ Manipulates the position of an object via a drag gesture. If not selected, the o
 ![ARTranslationInteractable component](images/ar-translation-interactable.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactable will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactors whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Colliders** | Colliders to use for interaction with this Interactable (if empty, will use any child Colliders). |

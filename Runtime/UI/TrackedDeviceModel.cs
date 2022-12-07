@@ -5,6 +5,23 @@ using UnityEngine.EventSystems;
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
+    /// Defines the type of interaction expected from the interactor when interacting with UI.
+    /// </summary>
+    /// <seealso cref="TrackedDeviceModel.interactionType"/>
+    internal enum UIInteractionType
+    {
+        /// <summary>
+        /// The UI interaction is a ray interaction.
+        /// </summary>
+        Ray,
+
+        /// <summary>
+        /// The UI interaction is a poke interaction.
+        /// </summary>
+        Poke,
+    }
+
+    /// <summary>
     /// Models a tracked device.
     /// </summary>
     public partial struct TrackedDeviceModel
@@ -237,6 +254,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (m_ScrollDelta != value)
                 {
                     m_ScrollDelta = value;
+                    changedThisFrame = true;
+                }
+            }
+        }
+
+        float m_PokeDepth;
+
+        /// <summary>
+        /// Distance along the poke interactable interaction axis that allows for a poke to be triggered.
+        /// Only applies with <see cref="UIInteractionType.Poke"/>.
+        /// </summary>
+        /// <seealso cref="XRPokeInteractor.pokeDepth"/>
+        internal float pokeDepth
+        {
+            get => m_PokeDepth;
+            set
+            {
+                if (m_PokeDepth != value)
+                {
+                    m_PokeDepth = value;
+                    changedThisFrame = true;
+                }
+            }
+        }
+
+        UIInteractionType m_InteractionType;
+
+        /// <summary>
+        /// The interaction type expected by this <see cref="TrackedDeviceModel"/>.
+        /// It affects the handling of raycasts in the <see cref="TrackedDeviceGraphicRaycaster"/>.
+        /// </summary>
+        /// <seealso cref="UIInteractionType"/>
+        internal UIInteractionType interactionType
+        {
+            get => m_InteractionType;
+            set
+            {
+                if (m_InteractionType != value)
+                {
+                    m_InteractionType = value;
                     changedThisFrame = true;
                 }
             }

@@ -24,18 +24,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
         }
 
-        internal static void CreateGOBoxCollider(GameObject go, bool isTrigger = true)
+        internal static BoxCollider CreateGOBoxCollider(GameObject go, bool isTrigger = true)
         {
             BoxCollider collider = go.AddComponent<BoxCollider>();
             collider.size = new Vector3(2.0f, 2.0f, 2.0f);
             collider.isTrigger = isTrigger;
+            return collider;
         }
 
-        internal static void CreateGOSphereCollider(GameObject go, bool isTrigger = true)
+        internal static SphereCollider CreateGOSphereCollider(GameObject go, bool isTrigger = true)
         {
             SphereCollider collider = go.AddComponent<SphereCollider>();
             collider.radius = 1.0f;
             collider.isTrigger = isTrigger;
+            return collider;
         }
 
         internal static XRInteractionManager CreateInteractionManager()
@@ -108,6 +110,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
+        internal static XRGazeInteractor CreateGazeInteractor()
+        {
+            GameObject interactorGO = new GameObject("Gaze Interactor");
+            XRController controller = interactorGO.AddComponent<XRController>();
+            XRGazeInteractor interactor = interactorGO.AddComponent<XRGazeInteractor>();
+            interactor.xrController = controller;
+            controller.enableInputTracking = false;
+            interactor.enableUIInteraction = false;
+            controller.enableInputActions = false;
+            return interactor;
+        }
+        
         internal static XRSocketInteractor CreateSocketInteractor()
         {
             GameObject interactorGO = new GameObject("Socket Interactor");
@@ -123,6 +137,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactorGO.transform.localRotation = Quaternion.identity;
             var interactor = interactorGO.AddComponent<MockInteractor>();
             return interactor;
+        }
+
+        internal static MockClassInteractable CreateMockClassInteractable()
+        {
+            var interactableGO = new GameObject("Mock Interactable");
+            interactableGO.transform.localPosition = Vector3.zero;
+            interactableGO.transform.localRotation = Quaternion.identity;
+            var interactable = new MockClassInteractable(interactableGO.transform);
+            return interactable;
         }
 
         internal static XRGrabInteractable CreateGrabInteractable()
@@ -144,6 +167,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
+            return interactable;
+        }
+
+        internal static XRInteractableSnapVolume CreateSnapVolume()
+        {
+            GameObject snapVolumeGO = new GameObject("Snap Volume");
+            CreateGOBoxCollider(snapVolumeGO, true);
+            var boxCollider = snapVolumeGO.GetComponent<BoxCollider>();
+            XRInteractableSnapVolume snapVolume = snapVolumeGO.AddComponent<XRInteractableSnapVolume>();
+            snapVolume.snapCollider = boxCollider;
+            return snapVolume;
+        }
+
+        internal static XRSimpleInteractable CreateMultiSelectableSimpleInteractable()
+        {
+            var interactable = CreateSimpleInteractable();
+            interactable.selectMode = InteractableSelectMode.Multiple;
             return interactable;
         }
 
@@ -174,17 +214,162 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject filterGO = new GameObject("Target Filter");
             return filterGO.AddComponent<XRTargetFilter>();
         }
+
+        internal static XRInteractionGroup CreateInteractionGroup()
+        {
+            var groupGO = new GameObject("Interaction Group");
+            groupGO.transform.localPosition = Vector3.zero;
+            groupGO.transform.localRotation = Quaternion.identity;
+            var group = groupGO.AddComponent<XRInteractionGroup>();
+            return group;
+        }
+
+        internal static XRInteractionGroup CreateGroupWithMockInteractors(out MockInteractor memberInteractor1,
+            out MockInteractor memberInteractor2, out MockInteractor memberInteractor3)
+        {
+            var group = CreateInteractionGroup();
+            memberInteractor1 = CreateMockInteractor();
+            memberInteractor2 = CreateMockInteractor();
+            memberInteractor3 = CreateMockInteractor();
+            group.AddGroupMember(memberInteractor1);
+            group.AddGroupMember(memberInteractor2);
+            group.AddGroupMember(memberInteractor3);
+            return group;
+        }
+
+        internal static XRInteractionGroup CreateGroupWithHoverOnlyMockInteractors(out MockInteractor memberInteractor1,
+            out MockInteractor memberInteractor2, out MockInteractor memberInteractor3)
+        {
+            var group = CreateInteractionGroup();
+            memberInteractor1 = CreateMockInteractor();
+            memberInteractor2 = CreateMockInteractor();
+            memberInteractor3 = CreateMockInteractor();
+            memberInteractor1.allowSelect = false;
+            memberInteractor2.allowSelect = false;
+            memberInteractor3.allowSelect = false;
+            group.AddGroupMember(memberInteractor1);
+            group.AddGroupMember(memberInteractor2);
+            group.AddGroupMember(memberInteractor3);
+            return group;
+        }
+
+        internal static XRInteractionGroup CreateGroupWithEmptyGroups(out XRInteractionGroup memberGroup1,
+            out XRInteractionGroup memberGroup2, out XRInteractionGroup memberGroup3)
+        {
+            var group = CreateInteractionGroup();
+            memberGroup1 = CreateInteractionGroup();
+            memberGroup2 = CreateInteractionGroup();
+            memberGroup3 = CreateInteractionGroup();
+            group.AddGroupMember(memberGroup1);
+            group.AddGroupMember(memberGroup2);
+            group.AddGroupMember(memberGroup3);
+            return group;
+        }
     }
 
     class MockInteractor : XRBaseInteractor
     {
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> preprocessed;
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> processed;
         public List<IXRInteractable> validTargets { get; } = new List<IXRInteractable>();
+
+        /// <inheritdoc />
+        public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.PreprocessInteractor(updatePhase);
+            preprocessed?.Invoke(updatePhase);
+        }
+
+        /// <inheritdoc />
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractor(updatePhase);
+            processed?.Invoke(updatePhase);
+        }
 
         /// <inheritdoc />
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
             targets.AddRange(validTargets);
+        }
+    }
+
+    /// <summary>
+    /// An interactable that is a plain C# object that uses a given GameObject.
+    /// </summary>
+    class MockClassInteractable : IXRInteractable
+    {
+        /// <inheritdoc />
+        public event Action<InteractableRegisteredEventArgs> registered;
+
+        /// <inheritdoc />
+        public event Action<InteractableUnregisteredEventArgs> unregistered;
+
+        /// <summary>
+        /// Invoked when <see cref="ProcessInteractable"/> is called.
+        /// </summary>
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> processed;
+
+        /// <inheritdoc />
+        public InteractionLayerMask interactionLayers { get; set; } = 1;
+
+        /// <inheritdoc />
+        public List<Collider> colliders { get; } = new List<Collider>();
+
+        /// <inheritdoc />
+        public Transform transform { get; }
+
+        /// <summary>
+        /// Whether this interactable is registered;
+        /// </summary>
+        public bool isRegistered { get; private set; }
+
+        /// <summary>
+        /// Constructs a new interactable. Populates <see cref="colliders"/> with non-trigger colliders.
+        /// </summary>
+        /// <param name="transform">The <see cref="Transform"/> associated with the Interactable.</param>
+        public MockClassInteractable(Transform transform)
+        {
+            this.transform = transform;
+            transform.GetComponentsInChildren(colliders);
+            colliders.RemoveAll(col => col.isTrigger);
+        }
+
+        /// <inheritdoc />
+        public Transform GetAttachTransform(IXRInteractor interactor)
+        {
+            return transform;
+        }
+
+        /// <inheritdoc />
+        public void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            processed?.Invoke(updatePhase);
+        }
+
+        /// <inheritdoc />
+        public float GetDistanceSqrToInteractor(IXRInteractor interactor)
+        {
+            var interactorAttachTransform = interactor?.GetAttachTransform(this);
+            if (interactorAttachTransform == null)
+                return float.MaxValue;
+
+            return (transform.position - interactorAttachTransform.position).sqrMagnitude;
+        }
+
+        /// <inheritdoc />
+        public void OnRegistered(InteractableRegisteredEventArgs args)
+        {
+            isRegistered = true;
+            registered?.Invoke(args);
+        }
+
+        /// <inheritdoc />
+        public void OnUnregistered(InteractableUnregisteredEventArgs args)
+        {
+            isRegistered = false;
+            unregistered?.Invoke(args);
         }
     }
 
@@ -213,6 +398,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
         {
+            results.Clear();
             callbackExecution.Add(TargetFilterCallback.Process);
             results.AddRange(targets);
         }

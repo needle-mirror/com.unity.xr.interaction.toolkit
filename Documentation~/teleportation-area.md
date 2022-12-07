@@ -5,7 +5,7 @@ An area is a teleportation destination which teleports the user to their pointed
 ![TeleportationArea component](images/teleportation-area.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactable will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactors whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Colliders** | Colliders to use for interaction with this Interactable (if empty, will use any child Colliders). |
@@ -17,7 +17,7 @@ An area is a teleportation destination which teleports the user to their pointed
 | **Match Orientation** | How to orient the rig after teleportation. |
 | &emsp;World Space Up | Set **Match Orientation** to **World Space Up** to stay oriented according to the world space up vector. |
 | &emsp;Target Up | Set **Match Orientation** to **Target Up** to orient according to the target `TeleportAnchor` Transform's up vector. |
-| &emsp;Target Up And Forward | Set **Match Orientation** to **Target Up And Forward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation.
+| &emsp;Target Up And Forward | Set **Match Orientation** to **Target Up And Forward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation.|
 | &emsp;None | Set **Match Orientation** to **None** to maintain the same orientation before and after teleporting. |
 |**Match Directional Input**|Specifies whether or not to rotate the rig to match the forward direction of the attach transform of the selecting interactor. This option is only available when **Match Orientation** is set to **World Space Up** or **Target Up**.|
 | **Teleport Trigger** | Specifies when the teleportation triggers. |

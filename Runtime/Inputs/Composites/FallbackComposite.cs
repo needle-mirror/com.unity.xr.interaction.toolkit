@@ -140,6 +140,71 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
     }
 
     /// <summary>
+    /// A single <see cref="int"/> value, such as the tracking state, computed from an ordered list of bindings.
+    /// Unity reads from the first binding that has a valid control.
+    /// </summary>
+    /// <inheritdoc />
+#if UNITY_EDITOR
+    [InitializeOnLoad]
+#endif
+    [Preserve]
+    public class IntegerFallbackComposite : FallbackComposite<int>
+    {
+        /// <summary>
+        /// The first input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Integer")]
+        public int first;
+
+        /// <summary>
+        /// The second input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Integer")]
+        public int second;
+
+        /// <summary>
+        /// The third input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Integer")]
+        public int third;
+
+        /// <summary>
+        /// See <see cref="FallbackComposite{TValue}" />
+        /// </summary>
+        /// <param name="context">Callback context for the binding composite. Unity
+        /// uses this to access the values supplied by part bindings.</param>
+        /// <returns><see cref="int" /> read from the context.</returns>
+        public override int ReadValue(ref InputBindingCompositeContext context)
+        {
+            var value = context.ReadValue<int>(first, out var sourceControl);
+            if (sourceControl != null)
+                return value;
+
+            value = context.ReadValue<int>(second, out sourceControl);
+            if (sourceControl != null)
+                return value;
+
+            value = context.ReadValue<int>(third);
+            return value;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad), Preserve]
+#pragma warning disable IDE0051 // Remove unused private members
+        // ReSharper disable once UnusedMember.Local
+        static void Initialize()
+#pragma warning restore IDE0051
+        {
+            // Will execute the static constructor as a side effect.
+        }
+
+        [Preserve]
+        static IntegerFallbackComposite()
+        {
+            InputSystem.InputSystem.RegisterBindingComposite<IntegerFallbackComposite>();
+        }
+    }
+
+    /// <summary>
     /// Base class for a composite that returns a single value computed from an ordered list of bindings.
     /// </summary>
     /// <typeparam name="TValue">Type of value returned by the composite.</typeparam>

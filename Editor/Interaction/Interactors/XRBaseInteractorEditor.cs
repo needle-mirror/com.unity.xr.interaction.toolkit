@@ -26,6 +26,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_AttachTransform;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
         protected SerializedProperty m_KeepSelectedTargetValid;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.disableVisualsWhenBlockedInGroup"/>.</summary>
+        protected SerializedProperty m_DisableVisualsWhenBlockedInGroup;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
         protected SerializedProperty m_StartingSelectedInteractable;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingTargetFilter"/>.</summary>
@@ -81,6 +83,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables. Will create an empty GameObject if None.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
             public static readonly GUIContent keepSelectedTargetValid = EditorGUIUtility.TrTextContent("Keep Selected Target Valid", "Keep selecting the target when not touching or pointing to it after initially selecting it. It is recommended to set this value to true for grabbing objects, false for teleportation.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.disableVisualsWhenBlockedInGroup"/>.</summary>
+            public static readonly GUIContent disableVisualsWhenBlockedInGroup = EditorGUIUtility.TrTextContent("Disable Visuals When Blocked In Group", "Whether to disable visuals when this Interactor is part of an Interaction Group and is incapable of interacting due to active interaction by another Interactor in the Group.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
@@ -124,6 +128,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
+            m_DisableVisualsWhenBlockedInGroup = serializedObject.FindProperty("m_DisableVisualsWhenBlockedInGroup");
             m_StartingSelectedInteractable = serializedObject.FindProperty("m_StartingSelectedInteractable");
 
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
@@ -156,7 +161,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 onListReordered = (element, newIndex) => interactor.hoverFilters.MoveTo(element, newIndex),
             };
 
-            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_HoverFiltersExpandedKey)
+            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_SelectFiltersExpandedKey)
             {
                 isExpanded = SessionState.GetBool(k_SelectFiltersExpandedKey, true),
                 updateElements = list => interactor.selectFilters.GetAll(list),
@@ -228,6 +233,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             DrawInteractionManagement();
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
+            EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
         }
 

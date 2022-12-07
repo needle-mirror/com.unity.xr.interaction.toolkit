@@ -69,9 +69,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (bufferedAddCount > 0 && m_BufferedAdd.Contains(item))
                 return false;
 
-            if ((bufferedRemoveCount > 0 && RemoveFromBufferedRemove(item)) || !registeredSnapshot.Contains(item))
+            var snapshotContainsItem = registeredSnapshot.Contains(item);
+            if ((bufferedRemoveCount > 0 && RemoveFromBufferedRemove(item)) || !snapshotContainsItem)
             {
-                AddToBufferedAdd(item);
+                if (!snapshotContainsItem)
+                    AddToBufferedAdd(item);
+
                 return true;
             }
 
@@ -87,7 +90,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (bufferedRemoveCount > 0 && m_BufferedRemove.Contains(item))
                 return false;
 
-            if ((bufferedAddCount > 0 && RemoveFromBufferedAdd(item)) || registeredSnapshot.Contains(item))
+            if (bufferedAddCount > 0 && RemoveFromBufferedAdd(item))
+                return true;
+
+            if (registeredSnapshot.Contains(item))
             {
                 AddToBufferedRemove(item);
                 return true;

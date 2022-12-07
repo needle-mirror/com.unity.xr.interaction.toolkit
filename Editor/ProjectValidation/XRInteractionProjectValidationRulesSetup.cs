@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.XR.CoreUtils.Editor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Callbacks;
@@ -17,12 +18,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         public static readonly GUIContent helpIcon = EditorGUIUtility.IconContent("_Help@2x");
 
         public static readonly GUIContent validation = new GUIContent("Your project has some settings that are incompatible with XR Interaction Toolkit. Click to open the project validator.");
-        public static readonly GUIContent validationErrorIcon = new GUIContent("", ProjectValidationContents.errorIcon.image, validation.text);
-        public static readonly GUIContent validationWarningIcon = new GUIContent("", ProjectValidationContents.warningIcon.image, validation.text);
+        public static readonly GUIContent validationErrorIcon = new GUIContent("", errorIcon.image, validation.text);
+        public static readonly GUIContent validationWarningIcon = new GUIContent("", warningIcon.image, validation.text);
     }
     
     [InitializeOnLoad]
-    internal class XRInteractionProjectValidationRulesSetup : EditorWindow
+    class XRInteractionProjectValidationRulesSetup : EditorWindow
     {
         static XRInteractionProjectValidationRulesSetup()
         {
@@ -30,7 +31,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             {
                 if (playModeState == PlayModeStateChange.EnteredPlayMode)
                 {
-                    var playmodeIssues = XRInteractionProjectValidation.LogPlaymodeValidationIssues();
+                    var playmodeIssues = XRInteractionProjectValidation.LogBuildValidationIssues();
                     if (playmodeIssues)
                     {
                         EditorApplication.ExitPlaymode();
@@ -40,10 +41,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
 
         Vector2 m_ScrollViewPos = Vector2.zero;
-        readonly List<XRInteractionValidationRule> m_Failures = new List<XRInteractionValidationRule>();
+        readonly List<BuildValidationRule> m_Failures = new List<BuildValidationRule>();
 
         // Fix all stack. 
-        List<XRInteractionValidationRule> m_FixAllStack = new List<XRInteractionValidationRule>();
+        List<BuildValidationRule> m_FixAllStack = new List<BuildValidationRule>();
 
         /// <summary>
         /// Last time the issues in the window were updated.
@@ -84,8 +85,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         
         static void ShowWindowIfIssuesExist()
         {
-            List<XRInteractionValidationRule> issues = new List<XRInteractionValidationRule>();
-            XRInteractionProjectValidation.GetCurrentValidationIssues(issues, EditorUserBuildSettings.selectedBuildTargetGroup);
+            List<BuildValidationRule> issues = new List<BuildValidationRule>();
+            XRInteractionProjectValidation.GetCurrentValidationIssues(issues);
 
             if (issues.Count > 0)
             {
@@ -165,8 +166,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
 
         void DrawIssuesList()
         {
-            var hasFix = m_Failures.Any(f => f.fixIt != null);
-            var hasAutoFix = hasFix && m_Failures.Any(f => f.fixIt != null && f.fixItAutomatic);
+            var hasFix = m_Failures.Any(f => f.FixIt != null);
+            var hasAutoFix = hasFix && m_Failures.Any(f => f.FixIt != null && f.FixItAutomatic);
 
             // Header
             EditorGUILayout.BeginHorizontal();
@@ -181,7 +182,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                 using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || m_FixAllStack.Count > 0))
                 {
                     if (GUILayout.Button("Fix All", Styles.fixAll))
-                        m_FixAllStack = m_Failures.Where(i => i.fixIt != null && i.fixItAutomatic).ToList();
+                        m_FixAllStack = m_Failures.Where(i => i.FixIt != null && i.FixItAutomatic).ToList();
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -194,37 +195,37 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                 {
                     EditorGUILayout.BeginHorizontal(Styles.listLabel);
 
-                    GUILayout.Label(result.error ? ProjectValidationContents.errorIcon : ProjectValidationContents.warningIcon, Styles.icon, GUILayout.Width(Content.iconSize.x));
+                    GUILayout.Label(result.Error ? ProjectValidationContents.errorIcon : ProjectValidationContents.warningIcon, Styles.icon, GUILayout.Width(Content.iconSize.x));
 
-                    var message = result.message;
+                    var message = result.Message;
 
                     GUILayout.Label(message, Styles.wrap);
                     GUILayout.FlexibleSpace();
 
-                    if (!string.IsNullOrEmpty(result.helpText) || !string.IsNullOrEmpty(result.helpLink))
+                    if (!string.IsNullOrEmpty(result.HelpText) || !string.IsNullOrEmpty(result.HelpLink))
                     {
-                        Content.helpButton.tooltip = result.helpText;
+                        Content.helpButton.tooltip = result.HelpText;
                         if (GUILayout.Button(Content.helpButton, Styles.icon, GUILayout.Width(Content.iconSize.x * 1.5f)))
                         {
-                            if (!string.IsNullOrEmpty(result.helpLink))
-                                UnityEngine.Application.OpenURL(result.helpLink);
+                            if (!string.IsNullOrEmpty(result.HelpLink))
+                                Application.OpenURL(result.HelpLink);
                         }
                     }
                     else
                         GUILayout.Label("", GUILayout.Width(Content.iconSize.x * 1.5f));
 
-                    if (result.fixIt != null)
+                    if (result.FixIt != null)
                     {
                         using (new EditorGUI.DisabledScope(m_FixAllStack.Count != 0))
                         {
-                            var button = result.fixItAutomatic ? Content.fixButton : Content.editButton;
-                            button.tooltip = result.fixItMessage;
+                            var button = result.FixItAutomatic ? Content.fixButton : Content.editButton;
+                            button.tooltip = result.FixItMessage;
                             if (GUILayout.Button(button, GUILayout.Width(80.0f)))
                             {
-                                if (result.fixItAutomatic)
+                                if (result.FixItAutomatic)
                                     m_FixAllStack.Add(result);
                                 else
-                                    result.fixIt();
+                                    result.FixIt();
                             }
                         }
                     }
@@ -249,13 +250,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             
             if (m_FixAllStack.Count > 0)
             {
-                m_FixAllStack[0].fixIt?.Invoke();
+                m_FixAllStack[0].FixIt?.Invoke();
                 m_FixAllStack.RemoveAt(0);
             }
 
             var failureCount = m_Failures.Count;
 
-            XRInteractionProjectValidation.GetCurrentValidationIssues(m_Failures, EditorUserBuildSettings.selectedBuildTargetGroup);
+            XRInteractionProjectValidation.GetCurrentValidationIssues(m_Failures);
 
             // Repaint the window if the failure count has changed
             if(m_Failures.Count > 0 || failureCount > 0)
@@ -284,7 +285,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
     }
     
-    internal class XRInteractionProjectValidationBuildStep : IPreprocessBuildWithReport
+    class XRInteractionProjectValidationBuildStep : IPreprocessBuildWithReport
     {
         [OnOpenAsset(0)]
         static bool ConsoleErrorDoubleClicked(int instanceId, int line)
@@ -303,7 +304,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (XRInteractionProjectValidation.LogBuildValidationIssues(report.summary.platformGroup))
+            if (XRInteractionProjectValidation.LogBuildValidationIssues())
                 throw new BuildFailedException("Build Failed - XR Interaction Validation issue.");
         }
     }

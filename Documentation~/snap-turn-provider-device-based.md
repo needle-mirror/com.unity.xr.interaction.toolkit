@@ -5,7 +5,7 @@ A locomotion provider that allows the user to rotate their rig using a specified
 ![DeviceBasedSnapTurnProvider component](images/snap-turn-provider-device-based.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **System** | The [LocomotionSystem](locomotion-system.md) that this `LocomotionProvider` communicates with for exclusive access to an XR Origin. If one is not provided, the behavior will attempt to locate one during its Awake call. |
 | **Turn Input Source** | The 2D Input Axis on the controller devices that will be used to trigger a snap turn: `Primary2DAxis` or `Secondary2DAxis`. |
 | **Controllers** | The XRControllers that allow SnapTurn.  An XRController must be enabled in order to Snap Turn. |

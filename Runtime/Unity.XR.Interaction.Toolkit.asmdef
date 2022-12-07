@@ -7,7 +7,9 @@
         "Unity.XR.ARFoundation",
         "UnityEngine.XR.LegacyInputHelpers",
         "Unity.InputSystem",
-        "Unity.XR.CoreUtils"
+        "Unity.XR.CoreUtils",
+        "Unity.Mathematics",
+        "Unity.Burst"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -56,6 +58,11 @@
             "name": "com.unity.modules.physics2d",
             "expression": "1.0.0",
             "define": "PHYSICS2D_MODULE_PRESENT"
+        },
+        {
+            "name": "com.unity.burst",
+            "expression": "1.6.6",
+            "define": "BURST_PRESENT"
         }
     ],
     "noEngineReferences": false

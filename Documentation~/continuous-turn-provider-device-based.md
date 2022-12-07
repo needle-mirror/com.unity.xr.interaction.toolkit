@@ -5,7 +5,7 @@ Locomotion provider that allows the user to smoothly rotate their rig continuous
 ![DeviceBasedContinuousTurnProvider component](images/continuous-turn-provider-device-based.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **System** | The [LocomotionSystem](locomotion-system.md) that this `LocomotionProvider` communicates with for exclusive access to an XR Origin. If one is not provided, the behavior will attempt to locate one during its Awake call. |
 | **Turn Speed** | The number of degrees/second clockwise to rotate when turning clockwise. |
 | **Input Binding** | The 2D Input Axis on the controller devices that will be used to trigger a turn. |

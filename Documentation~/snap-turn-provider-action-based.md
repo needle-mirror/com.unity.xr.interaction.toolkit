@@ -5,7 +5,7 @@ A locomotion provider that allows the user to rotate their rig using a 2D axis i
 ![ActionBasedSnapTurnProvider component](images/snap-turn-provider-action-based.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **System** | The [LocomotionSystem](locomotion-system.md) that this `LocomotionProvider` communicates with for exclusive access to an XR Origin. If one is not provided, the behavior will attempt to locate one during its Awake call. |
 | **Turn Amount** | The number of degrees clockwise Unity rotates the rig when snap turning clockwise. |
 | **Debounce Time** | The amount of time that Unity waits before starting another snap turn. |

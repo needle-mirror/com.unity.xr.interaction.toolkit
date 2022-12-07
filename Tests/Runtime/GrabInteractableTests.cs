@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -17,6 +18,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRBaseInteractable.MovementType.VelocityTracking,
             XRBaseInteractable.MovementType.Kinematic,
             XRBaseInteractable.MovementType.Instantaneous,
+        };
+
+        static readonly Type[] s_GrabTransformers =
+        {
+            typeof(XRSingleGrabFreeTransformer),
+            typeof(XRDualGrabFreeTransformer),
+            typeof(XRGeneralGrabTransformer),
         };
 
         [TearDown]
@@ -47,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator CenteredObjectWithAttachTransformMovesToExpectedPosition([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        public IEnumerator CenteredObjectWithAttachTransformMovesToExpectedPosition([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType, [ValueSource(nameof(s_GrabTransformers))] Type grabTransformerType)
         {
             // Create Grab Interactable at some arbitrary point
             var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -60,6 +68,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             rigidbody.isKinematic = true;
             var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
             grabInteractable.movementType = movementType;
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractableGO.AddComponent(grabTransformerType);
             DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from the transform position (which is also its center).
@@ -133,21 +143,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
 
-            // Move the attach transform on the Interactable to the back lower-right corner of the cube
-            attachOffset = new Vector3(0.5f, -0.5f, -0.5f);
-            grabInteractable.attachTransform.localPosition = attachOffset;
+            // The XR General Grab Transformer does not support the attach transform of the interactable being modified after
+            // it is already grabbed (it only supports that with the interactor's attach transform changing).
+            if (grabTransformerType != typeof(XRGeneralGrabTransformer))
+            {
+                // Move the attach transform on the Interactable to the back lower-right corner of the cube
+                attachOffset = new Vector3(0.5f, -0.5f, -0.5f);
+                grabInteractable.attachTransform.localPosition = attachOffset;
 
-            yield return WaitForSteadyState(movementType);
+                yield return WaitForSteadyState(movementType);
 
-            Assert.That(grabInteractable.isSelected, Is.True);
-            Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.isSelected, Is.True);
+                Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+            }
         }
 
         [UnityTest]
@@ -231,7 +246,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator NonCenteredObjectMovesToExpectedPosition([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        public IEnumerator NonCenteredObjectMovesToExpectedPosition([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType, [ValueSource(nameof(s_GrabTransformers))] Type grabTransformerType)
         {
             // Create a cube mesh with the pivot position at the bottom center
             // rather than the built-in Cube resource which has its center at the
@@ -261,6 +276,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             rigidbody.isKinematic = true;
             var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
             grabInteractable.movementType = movementType;
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractableGO.AddComponent(grabTransformerType);
             DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from both the transform position and center.
@@ -331,21 +348,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
 
-            // Move the attach transform on the Interactable to the back lower-right corner of the cube
-            attachOffset = new Vector3(0.5f, 0f, -0.5f);
-            grabInteractable.attachTransform.localPosition = attachOffset;
+            // The XR General Grab Transformer does not support the attach transform of the interactable being modified after
+            // it is already grabbed (it only supports that with the interactor's attach transform changing).
+            if (grabTransformerType != typeof(XRGeneralGrabTransformer))
+            {
+                // Move the attach transform on the Interactable to the back lower-right corner of the cube
+                attachOffset = new Vector3(0.5f, 0f, -0.5f);
+                grabInteractable.attachTransform.localPosition = attachOffset;
 
-            yield return WaitForSteadyState(movementType);
+                yield return WaitForSteadyState(movementType);
 
-            Assert.That(grabInteractable.isSelected, Is.True);
-            Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.isSelected, Is.True);
+                Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(interactor.attachTransform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+            }
         }
 
         [UnityTest]
@@ -443,7 +465,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
         
         [UnityTest]
-        public IEnumerator TrackRotationDisabledObjectMovesAndRotatesToExpectedPositionAndOrientation([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        public IEnumerator TrackRotationDisabledObjectMovesAndRotatesToExpectedPositionAndOrientation([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType, [ValueSource(nameof(s_GrabTransformers))] Type grabTransformerType)
         {
             // Create a cube mesh with the pivot position at the bottom center
             // rather than the built-in Cube resource which has its center at the
@@ -473,6 +495,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             rigidbody.isKinematic = true;
             var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
             grabInteractable.movementType = movementType;
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractableGO.AddComponent(grabTransformerType);
             DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from both the transform position and center.
@@ -550,21 +574,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
 
-            // Move the attach transform on the Interactable to the back lower-right corner of the cube
-            attachOffset = new Vector3(0.5f, 0f, -0.5f);
-            grabInteractable.attachTransform.localPosition = attachOffset;
+            // The XR General Grab Transformer does not support the attach transform of the interactable being modified after
+            // it is already grabbed (it only supports that with the interactor's attach transform changing).
+            if (grabTransformerType != typeof(XRGeneralGrabTransformer))
+            {
+                // Move the attach transform on the Interactable to the back lower-right corner of the cube
+                attachOffset = new Vector3(0.5f, 0f, -0.5f);
+                grabInteractable.attachTransform.localPosition = attachOffset;
 
-            yield return WaitForSteadyState(movementType);
+                yield return WaitForSteadyState(movementType);
 
-            Assert.That(grabInteractable.isSelected, Is.True);
-            Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(interactor.attachTransform.rotation, Is.EqualTo(interactorAttachTransformRotation).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.isSelected, Is.True);
+                Assert.That(grabInteractable.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.attachTransform.rotation, Is.EqualTo(attachRotation).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(grabInteractable.transform.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(grabInteractable.transform.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(interactor.attachTransform.position, Is.EqualTo(targetPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(interactor.attachTransform.rotation, Is.EqualTo(interactorAttachTransformRotation).Using(QuaternionEqualityComparer.Instance));
+                Assert.That(rigidbody.position, Is.EqualTo(targetPosition - attachOffset).Using(Vector3ComparerWithEqualsOperator.Instance));
+                Assert.That(rigidbody.rotation, Is.EqualTo(Quaternion.identity).Using(QuaternionEqualityComparer.Instance));
+            }
         }
 
         [UnityTest]
@@ -887,6 +916,100 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
             Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+        }
+
+        [UnityTest]
+        public IEnumerator AutomaticAddingOfDefaultMultipleGrabTransformerDoesNotReplaceExistingSingle()
+        {
+            // Test adding a Single Grab Transformer, and then adding the default XR General Transformer
+            // (which registers as both a single and multiple transformer)
+            // for an empty Multiple Grab Transformer list does not append it to the Single list.
+            // Essentially, the XR Grab Interactable should override the registrationMode of the transform behavior.
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            grabInteractable.addDefaultGrabTransformers = true;
+
+            var singleGrabTransformer = new MockGrabTransformer();
+            grabInteractable.AddSingleGrabTransformer(singleGrabTransformer);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { singleGrabTransformer }));
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(1));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            interactor1.validTargets.Add(grabInteractable);
+            interactor2.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(interactor1.IsSelecting(grabInteractable), Is.True);
+            Assert.That(interactor2.IsSelecting(grabInteractable), Is.True);
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { singleGrabTransformer }));
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Has.Count.EqualTo(1));
+            Assert.That(grabTransformers[0], Is.TypeOf<XRGeneralGrabTransformer>());
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(1));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator AutomaticAddingOfDefaultSingleGrabTransformerDoesNotReplaceExistingMultiple()
+        {
+            // Test adding a Multiple Grab Transformer, and then adding the default XR General Transformer
+            // (which registers as both a single and multiple transformer)
+            // for an empty Single Grab Transformer list does not append it to the Multiple list.
+            // Essentially, the XR Grab Interactable should override the registrationMode of the transform behavior.
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            grabInteractable.addDefaultGrabTransformers = true;
+
+            var multipleGrabTransformer = new MockGrabTransformer();
+            grabInteractable.AddMultipleGrabTransformer(multipleGrabTransformer);
+
+            var grabTransformers = new List<IXRGrabTransformer>();
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.Empty);
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { multipleGrabTransformer }));
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(1));
+
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            interactor1.validTargets.Add(grabInteractable);
+            interactor2.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(interactor1.IsSelecting(grabInteractable), Is.True);
+            Assert.That(interactor2.IsSelecting(grabInteractable), Is.True);
+
+            grabInteractable.GetSingleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Has.Count.EqualTo(1));
+            Assert.That(grabTransformers[0], Is.TypeOf<XRGeneralGrabTransformer>());
+
+            grabInteractable.GetMultipleGrabTransformers(grabTransformers);
+            Assert.That(grabTransformers, Is.EqualTo(new[] { multipleGrabTransformer }));
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(1));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(1));
         }
 
         [UnityTest]

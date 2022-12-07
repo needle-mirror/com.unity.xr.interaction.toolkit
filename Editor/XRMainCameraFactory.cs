@@ -103,6 +103,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
 #if INPUT_SYSTEM_1_1_OR_NEWER && !INPUT_SYSTEM_1_1_PREVIEW // 1.1.0-pre.6 or newer, excluding older preview
             trackedPoseDriver.positionInput = new InputActionProperty(positionAction);
             trackedPoseDriver.rotationInput = new InputActionProperty(rotationAction);
+#if INPUT_SYSTEM_1_5_OR_NEWER
+            var trackingStateAction = new InputAction("Tracking State", binding: "<XRHMD>/trackingState", expectedControlType: "Integer");
+            trackedPoseDriver.trackingStateInput = new InputActionProperty(trackingStateAction);
+            trackedPoseDriver.ignoreTrackingState = false;
+#endif
 #else
             trackedPoseDriver.positionAction = positionAction;
             trackedPoseDriver.rotationAction = rotationAction;

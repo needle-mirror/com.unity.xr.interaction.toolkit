@@ -298,7 +298,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var layerNamesProperty = interactionLayerSettingsSo.FindProperty(layerNamesPropertyPath);
             
             // built-in Interaction Layer names are not editable, so they are ignored 
-            for (var i = InteractionLayerSettings.k_BuiltInLayerSize; i < InteractionLayerSettings.k_LayerSize; i++)
+            for (var i = InteractionLayerSettings.builtInLayerSize; i < InteractionLayerSettings.layerSize; i++)
             {
                 var layerBit = 1 << i;
                 if ((unityLayerMask.value & layerBit) == 0)

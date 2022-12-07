@@ -13,9 +13,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [CustomEditor(typeof(XRBaseInteractable), true), CanEditMultipleObjects]
     public partial class XRBaseInteractableEditor : BaseInteractionEditor
     {
+        const string k_GazeConfigurationExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".GazeConfigurationExpanded";
         const string k_FiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".FiltersExpanded";
         const string k_HoverFiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".HoverFiltersExpanded";
         const string k_SelectFiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".SelectFiltersExpanded";
+        const string k_InteractionStrengthFiltersExpandedKey = "XRI." + nameof(XRBaseInteractableEditor) + ".InteractionStrengthFiltersExpanded";
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.interactionManager"/>.</summary>
         protected SerializedProperty m_InteractionManager;
@@ -33,8 +35,25 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_StartingHoverFilters;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
         protected SerializedProperty m_StartingSelectFilters;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingInteractionStrengthFilters"/>.</summary>
+        protected SerializedProperty m_StartingInteractionStrengthFilters;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.customReticle"/>.</summary>
         protected SerializedProperty m_CustomReticle;
+
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.allowGazeInteraction"/>.</summary>
+        protected SerializedProperty m_AllowGazeInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.allowGazeSelect"/>.</summary>
+        protected SerializedProperty m_AllowGazeSelect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.overrideGazeTimeToSelect"/>.</summary>
+        protected SerializedProperty m_OverrideGazeTimeToSelect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.gazeTimeToSelect"/>.</summary>
+        protected SerializedProperty m_GazeTimeToSelect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.allowGazeAssistance"/>.</summary>
+        protected SerializedProperty m_AllowGazeAssistance;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.overrideTimeToAutoDeselectGaze"/>.</summary>
+        protected SerializedProperty m_OverrideTimeToAutoDeselectGaze;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.timeToAutoDeselectGaze"/>.</summary>
+        protected SerializedProperty m_TimeToAutoDeselectGaze;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.firstHoverEntered"/>.</summary>
         protected SerializedProperty m_FirstHoverEntered;
@@ -95,9 +114,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractable.onDeactivate"/>.</summary>
         protected SerializedProperty m_OnDeactivateCalls;
 
+        bool m_GazeConfigurationExpanded;
         bool m_FiltersExpanded;
         ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
         ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
+        ReadOnlyReorderableList<IXRInteractionStrengthFilter> m_InteractionStrengthFilters;
 
         /// <summary>
         /// Whether <see cref="InteractableSelectMode.Multiple"/> is allowed by the script of the object being inspected.
@@ -162,16 +183,37 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary>The help box message when the distance calculation is being overriden.</summary>
             public static readonly GUIContent distanceCalculationOverride = EditorGUIUtility.TrTextContent("The distance calculation is being overridden and driven by another method.");
 
+            /// <summary>The gaze configuration foldout.</summary>
+            public static readonly GUIContent gazeConfiguration = EditorGUIUtility.TrTextContent("Gaze Configuration", "Settings for gaze interactions.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeInteraction"/>.</summary>
+            public static readonly GUIContent allowGazeInteraction = EditorGUIUtility.TrTextContent("Allow Gaze Interaction", "Allows gaze Interactors to interact with this Interactable. If false, this Interactor will recieve no interactable events from gaze Interactors. ");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeSelect"/>.</summary>
+            public static readonly GUIContent allowGazeSelect = EditorGUIUtility.TrTextContent("Allow Gaze Select", "Allows gaze Interactors to select this Interactable.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.overrideGazeTimeToSelect"/>.</summary>
+            public static readonly GUIContent overrideGazeTimeToSelect = EditorGUIUtility.TrTextContent("Override Gaze Time To Select", "Enables this Interactable to override hover to select time of a gaze Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.gazeTimeToSelect"/>.</summary>
+            public static readonly GUIContent gazeTimeToSelect = EditorGUIUtility.TrTextContent("Gaze Time To Select", "Number of seconds for which a gaze Interactor must hover over this Interactable to select it if Hover To Select is enabled on the Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.overrideTimeToAutoDeselectGaze"/>.</summary>
+            public static readonly GUIContent overrideTimeToAutoDeselectGaze = EditorGUIUtility.TrTextContent("Override Time To Auto Deselect", "Enables this interactable to override the auto deselect time of a gaze Interactor.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.timeToAutoDeselectGaze"/>.</summary>
+            public static readonly GUIContent timeToAutoDeselectGaze = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds that the interactable will remain selected by a gaze Interactor before being automatically deselected if Auto Deselect is enabled on the Interactor .");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeAssistance"/>.</summary>
+            public static readonly GUIContent allowGazeAssistance = EditorGUIUtility.TrTextContent("Allow Gaze Assistance", "Enables gaze assistance, which allows a gaze Interactor to place a snap volume at this interactable for ray Interactors to snap to.");
+            
             /// <summary>The Interactable filters foldout.</summary>
             public static readonly GUIContent interactableFilters = EditorGUIUtility.TrTextContent("Interactable Filters", "Add filters to extend this interactable without needing to create a derived behavior.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
             public static readonly GUIContent startingHoverFilters = EditorGUIUtility.TrTextContent("Starting Hover Filters", "The hover filters that this Interactable will automatically link at startup (optional, may be empty). Used as additional hover validations for this Interactable.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
             public static readonly GUIContent startingSelectFilters = EditorGUIUtility.TrTextContent("Starting Select Filters", "The select filters that this Interactable will automatically link at startup (optional, may be empty). Used as additional select validations for this Interactable.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingInteractionStrengthFilters"/>.</summary>
+            public static readonly GUIContent startingInteractionStrengthFilters = EditorGUIUtility.TrTextContent("Starting Interaction Strength Filters", "The interaction strength filters that this Interactable will automatically link at startup (optional, may be empty). Used to modify the default interaction strength of an Interactor relative to this Interactable.");
             /// <summary>The list of runtime hover filters.</summary>
             public static readonly GUIContent hoverFiltersHeader = EditorGUIUtility.TrTextContent("Hover Filters", "The list is populated in Awake, during Play mode.");
             /// <summary>The list of runtime select filters.</summary>
             public static readonly GUIContent selectFiltersHeader = EditorGUIUtility.TrTextContent("Select Filters", "The list is populated in Awake, during Play mode.");
+            /// <summary>The list of runtime interaction strength filters.</summary>
+            public static readonly GUIContent interactionStrengthFiltersHeader = EditorGUIUtility.TrTextContent("Interaction Strength Filters", "The list is populated in Awake, during Play mode.");
         }
 
         /// <summary>
@@ -188,6 +230,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_SelectMode = serializedObject.FindProperty("m_SelectMode");
             m_CustomReticle = serializedObject.FindProperty("m_CustomReticle");
 
+            m_AllowGazeInteraction = serializedObject.FindProperty("m_AllowGazeInteraction");
+            m_AllowGazeSelect = serializedObject.FindProperty("m_AllowGazeSelect");
+            m_OverrideGazeTimeToSelect = serializedObject.FindProperty("m_OverrideGazeTimeToSelect");
+            m_GazeTimeToSelect = serializedObject.FindProperty("m_GazeTimeToSelect");
+            m_AllowGazeAssistance = serializedObject.FindProperty("m_AllowGazeAssistance");
+            m_OverrideTimeToAutoDeselectGaze = serializedObject.FindProperty("m_OverrideTimeToAutoDeselectGaze");
+            m_TimeToAutoDeselectGaze = serializedObject.FindProperty("m_TimeToAutoDeselectGaze");
+            
             m_FirstHoverEntered = serializedObject.FindProperty("m_FirstHoverEntered");
             m_LastHoverExited = serializedObject.FindProperty("m_LastHoverExited");
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
@@ -222,10 +272,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var attribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
             selectMultipleAllowed = attribute?.allowMultiple ?? true;
 
+            m_GazeConfigurationExpanded = SessionState.GetBool(k_GazeConfigurationExpandedKey, false);
             m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
 
             m_StartingHoverFilters = serializedObject.FindProperty("m_StartingHoverFilters");
             m_StartingSelectFilters = serializedObject.FindProperty("m_StartingSelectFilters");
+            m_StartingInteractionStrengthFilters = serializedObject.FindProperty("m_StartingInteractionStrengthFilters");
 
             var interactable = (XRBaseInteractable)target;
             m_HoverFilters = new ReadOnlyReorderableList<IXRHoverFilter>(new List<IXRHoverFilter>(), BaseContents.hoverFiltersHeader, k_HoverFiltersExpandedKey)
@@ -235,11 +287,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 onListReordered = (element, newIndex) => interactable.hoverFilters.MoveTo(element, newIndex),
             };
 
-            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_HoverFiltersExpandedKey)
+            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), BaseContents.selectFiltersHeader, k_SelectFiltersExpandedKey)
             {
                 isExpanded = SessionState.GetBool(k_SelectFiltersExpandedKey, true),
                 updateElements = list => interactable.selectFilters.GetAll(list),
                 onListReordered = (element, newIndex) => interactable.selectFilters.MoveTo(element, newIndex),
+            };
+
+            m_InteractionStrengthFilters = new ReadOnlyReorderableList<IXRInteractionStrengthFilter>(new List<IXRInteractionStrengthFilter>(), BaseContents.interactionStrengthFiltersHeader, k_InteractionStrengthFiltersExpandedKey)
+            {
+                isExpanded = SessionState.GetBool(k_InteractionStrengthFiltersExpandedKey, true),
+                updateElements = list => interactable.interactionStrengthFilters.GetAll(list),
+                onListReordered = (element, newIndex) => interactable.interactionStrengthFilters.MoveTo(element, newIndex),
             };
         }
 
@@ -308,8 +367,58 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawDistanceCalculationMode();
             EditorGUILayout.PropertyField(m_CustomReticle, BaseContents.customReticle);
             DrawSelectionConfiguration();
+            DrawGazeConfiguration();
         }
 
+        /// <summary>
+        /// Draw the property fields related to gaze configuration.
+        /// </summary>
+        protected virtual void DrawGazeConfiguration()
+        {
+            using (var check = new EditorGUI.ChangeCheckScope())
+            {
+                m_GazeConfigurationExpanded = EditorGUILayout.Foldout(m_GazeConfigurationExpanded, BaseContents.gazeConfiguration, true);
+                if (check.changed)
+                    SessionState.SetBool(k_GazeConfigurationExpandedKey, m_GazeConfigurationExpanded);
+            }
+
+            if (!m_GazeConfigurationExpanded)
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(m_AllowGazeInteraction, BaseContents.allowGazeInteraction);
+                if (m_AllowGazeInteraction.boolValue)
+                {
+                    EditorGUILayout.PropertyField(m_AllowGazeSelect, BaseContents.allowGazeSelect);
+                    if (m_AllowGazeSelect.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_OverrideGazeTimeToSelect, BaseContents.overrideGazeTimeToSelect);
+                            if (m_OverrideGazeTimeToSelect.boolValue)
+                            {
+                                using (new EditorGUI.IndentLevelScope())
+                                {
+                                    EditorGUILayout.PropertyField(m_GazeTimeToSelect, BaseContents.gazeTimeToSelect);
+                                }
+                            }
+                            EditorGUILayout.PropertyField(m_OverrideTimeToAutoDeselectGaze, BaseContents.overrideTimeToAutoDeselectGaze);
+                            if (m_OverrideTimeToAutoDeselectGaze.boolValue)
+                            {
+                                using (new EditorGUI.IndentLevelScope())
+                                {
+                                    EditorGUILayout.PropertyField(m_TimeToAutoDeselectGaze, BaseContents.timeToAutoDeselectGaze);
+                                }
+                            }
+                        }
+                    }
+                        
+                    EditorGUILayout.PropertyField(m_AllowGazeAssistance, BaseContents.allowGazeAssistance);
+                }
+            }
+        }
+        
         /// <summary>
         /// Draw the property fields related to selection configuration.
         /// </summary>
@@ -351,6 +460,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 EditorGUILayout.PropertyField(m_StartingHoverFilters, BaseContents.startingHoverFilters);
                 EditorGUILayout.PropertyField(m_StartingSelectFilters, BaseContents.startingSelectFilters);
+                EditorGUILayout.PropertyField(m_StartingInteractionStrengthFilters, BaseContents.startingInteractionStrengthFilters);
             }
 
             if (!Application.isPlaying)
@@ -364,6 +474,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             m_HoverFilters.DoLayoutList();
             m_SelectFilters.DoLayoutList();
+            m_InteractionStrengthFilters.DoLayoutList();
         }
 
         bool IsSelectModeOptionEnabled(Enum arg) => (InteractableSelectMode)arg != InteractableSelectMode.Multiple || selectMultipleAllowed;

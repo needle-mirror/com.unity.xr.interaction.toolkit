@@ -5,7 +5,7 @@ Interactable component that allows for basic grab functionality. When this behav
 ![XRGrabInteractable component](images/xr-grab-interactable.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactable will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactors whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Colliders** | Colliders to use for interaction with this Interactable (if empty, will use any child Colliders). |
@@ -17,6 +17,13 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Select Mode** | Indicates the selection policy of an Interactable. This controls how many Interactors can select this Interactable.<br />The value is only read by the Interaction Manager when a selection attempt is made, so changing this value from **Multiple** to **Single** will not cause selections to be exited. |
 | &emsp;Single | Set **Select Mode** to **Single** to prevent additional simultaneous selections from more than one Interactor at a time. |
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
+| **Allow Gaze Interaction** | Enable for basic interaction events from an [XRGazeInteractor](xr-gaze-interactor.md) and other gaze features. |
+| **Allow Gaze Select** | Enable selection from an [XRGazeInteractor](xr-gaze-interactor.md). |
+| **Override Gaze Time To Select** | Enables this Interactable to override the hover to select time on an [XRGazeInteractor](xr-gaze-interactor.md). |
+| **Gaze Time To Select** | Number of seconds an [XRGazeInteractor](xr-gaze-interactor.md) must hover this interactable to select it if **Hover To Select** is enabled on the gaze Interactor. |
+| **Override Time To Auto Deselect** | Enables this Interactable to override the auto deselect time on an [XRGazeInteractor](xr-gaze-interactor.md). |
+| **Time To Auto Deselect** | Number of seconds this Interactable will be selected by an [XRGazeInteractor](xr-gaze-interactor.md) before being automatically deselected if **Auto Deselect** is enabled on the gaze Interactor. |
+| **Allow Gaze Assistance** | If enabled, an [XRGazeInteractor](xr-gaze-interactor.md) will place an [XRInteractableSnapVolume](xr-interactable-snap-volume.md) at this interactable to allow a properly configured [XRRayInteractor](xr-ray-interactor.md) to snap to this interactable. See the [XR Interactable Snap Volume](xr-interactable-snap-volume.md) or [XR Ray Interactor](xr-ray-interactor.md) pages for further information about correctly configuring an `XRRayInteractor` to support an `XRInteractableSnapVolume`. |
 | **Movement Type** | Specifies how this object moves when selected, either through setting the velocity of the `Rigidbody`, moving the kinematic `Rigidbody` during Fixed Update, or by directly updating the `Transform` each frame. |
 | &emsp;Velocity Tracking | Set **Movement Type** to Velocity Tracking to move the Interactable object by setting the velocity and angular velocity of the Rigidbody. Use this if you don't want the object to be able to move through other Colliders without a Rigidbody as it follows the Interactor, however with the tradeoff that it can appear to lag behind and not move as smoothly as Instantaneous. |
 | &emsp;Kinematic | Set **Movement Type** to Kinematic to move the Interactable object by moving the kinematic Rigidbody towards the target position and orientation. Use this if you want to keep the visual representation synchronized to match its Physics state, and if you want to allow the object to be able to move through other Colliders without a Rigidbody as it follows the Interactor. |
@@ -45,6 +52,7 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Match Position** | Match the position of the Interactor's attachment point when initializing the grab. This will override the position of Attach Transform. |
 | **Match Rotation** | Match the rotation of the Interactor's attachment point when initializing the grab. This will override the rotation of Attach Transform. |
 | **Snap To Collider Volume** | Adjust the dynamic attachment point to keep it on or inside the Colliders that make up this object. |
+| **Reinitialize Every Single Grab** | Re-initialize the dynamic attachment pose when changing from multiple grabs back to a single grab. Use this if you want to keep the current pose of the object after releasing a second hand rather than reverting back to the attach pose from the original grab. |
 | **Attach Ease In Time** | Time in seconds Unity eases in the attach when selected (a value of 0 indicates no easing). |
 | **Attach Point Compatibility Mode** | Controls the method used when calculating the target position of the object. Use `AttachPointCompatibilityMode.Default` for consistent attach points between all `XRBaseInteractable.MovementType` values. Marked for deprecation, this property will be removed in a future version.<br />This is a backwards compatibility option in order to keep the old, incorrect method of calculating the attach point. Projects that already accounted for the difference can use the Legacy option to maintain the same attach positioning from older versions without needing to modify the **Attach Transform** position. |
 | **Add Default Grab Transformers** | Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty. |
@@ -56,6 +64,6 @@ Interactable component that allows for basic grab functionality. When this behav
 
 ## Grab transformers
 
-This XR Grab Interactable behavior is responsible for applying the position, rotation, and local scale calculated by one or more [IXRGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.IXRGrabTransformer) implementations. A default set of grab transformers are automatically added by Unity (when **Add Default Grab Transformers** is enabled), but this functionality can be disabled to manually set those used by this behavior, allowing you to customize where this component should move and rotate to.
+This XR Grab Interactable behavior is responsible for applying the position, rotation, and local scale calculated by one or more [IXRGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.IXRGrabTransformer) implementations. The (xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRGeneralTransformer) grab transformer is automatically added by Unity (when **Add Default Grab Transformers** is enabled), but this functionality can be disabled to manually set the grab transformers used by this behavior, allowing you to customize how this component determines where the object should move and rotate to. This default grab transformer also comes with a set of configurable options to allow axis constraints for translation, two handed rotation, and two handed scaling (which is disabled by default).
 
 Grab transformer components can be added to the GameObject to link them with the XR Grab Interactable. They can be found in the **Component** &gt; **XR** &gt; **Transformers** menu. You can then add references to those components explicitly to **Starting Single Grab Transformers** or **Starting Multiple Grab Transformers** if you have more than one and need to specify the order in which they execute, or if you need to override which list the grab transformer is automatically added to.

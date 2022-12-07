@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputTriggerType m_SelectActionTrigger = InputTriggerType.State;
+        InputTriggerType m_SelectActionTrigger = InputTriggerType.StateChange;
         /// <summary>
         /// Choose how Unity interprets the select input action from the controller.
         /// Controls between different input styles for determining if this Interactor can select,

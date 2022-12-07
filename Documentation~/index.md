@@ -16,6 +16,8 @@ To use the AR interaction components in the package, you must have the [AR Found
 - AR gesture interactor and interactables to translate gestures such as place, select, translate, rotate, and scale into object manipulation
 - AR annotations to inform users about AR objects placed in the real world
 
+Finally, its possible to simulate all of your interactions with the [XR Device Simulator](xr-device-simulator.md) in case you don't have the hardware for the project you are working on, or just want to test interactions without entering the headset. For more information, see [XR Device Simulator overview](xr-device-simulator-overview.md).
+
 ## Technical details
 
 ### Requirements
@@ -28,9 +30,9 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 
 The XR Interaction Toolkit package has several dependencies which are automatically added to your project when installing:
 
-* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/index.html)
+* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/index.html)
 * [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
-* [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.0/manual/index.html)
+* [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/index.html)
 * [XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers)](https://docs.unity3d.com/Packages/com.unity.xr.legacyinputhelpers@2.1/manual/index.html)
 * Built-in modules
   * [Audio](https://docs.unity3d.com/Manual/com.unity.modules.audio.html)

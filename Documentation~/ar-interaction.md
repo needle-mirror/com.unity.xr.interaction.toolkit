@@ -10,7 +10,7 @@ AR interaction is mostly driven by an AR Gesture Interactor component that trans
 The XR Interaction Toolkit package comes with a number of pre-defined gestures and gesture interactables, but you can always extend this package by defining your own gestures.
 
 | Gesture | Triggered by input | Maps to interactable |
-|-|-|-|
+|---|---|---|
 | **Tap** | User touches the screen | [AR Placement Interactable](ar-placement-interactable.md), [AR Selection Interactable](ar-selection-interactable.md) |
 | **Drag** | User drags finger across screen | [AR Translation Interactable](ar-translation-interactable.md) |
 | **Pinch** | User moves two fingers together or apart in a straight line | [AR Scale Interactable](ar-scale-interactable.md) |

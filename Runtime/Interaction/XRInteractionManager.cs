@@ -31,6 +31,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public partial class XRInteractionManager : MonoBehaviour
     {
         /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> is registered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractionGroupRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractionGroup(IXRInteractionGroup)"/>
+        /// <seealso cref="IXRInteractionGroup.registered"/>
+        public event Action<InteractionGroupRegisteredEventArgs> interactionGroupRegistered;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> is unregistered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractionGroupUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractionGroup(IXRInteractionGroup)"/>
+        /// <seealso cref="IXRInteractionGroup.unregistered"/>
+        public event Action<InteractionGroupUnregisteredEventArgs> interactionGroupUnregistered;
+
+        /// <summary>
         /// Calls the methods in its invocation list when an <see cref="IXRInteractor"/> is registered.
         /// </summary>
         /// <remarks>
@@ -156,9 +178,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly Dictionary<Collider, IXRInteractable> m_ColliderToInteractableMap = new Dictionary<Collider, IXRInteractable>();
 
         /// <summary>
+        /// Map of colliders and their associated <see cref="XRInteractableSnapVolume"/>.
+        /// </summary>
+        readonly Dictionary<Collider, XRInteractableSnapVolume> m_ColliderToSnapVolumes = new Dictionary<Collider, XRInteractableSnapVolume>();
+
+        /// <summary>
         /// List of registered Interactors.
         /// </summary>
         readonly RegistrationList<IXRInteractor> m_Interactors = new RegistrationList<IXRInteractor>();
+
+        /// <summary>
+        /// List of registered Interaction Groups.
+        /// </summary>
+        readonly RegistrationList<IXRInteractionGroup> m_InteractionGroups = new RegistrationList<IXRInteractionGroup>();
 
         /// <summary>
         /// List of registered Interactables.
@@ -195,7 +227,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         readonly HashSet<IXRInteractable> m_UnorderedValidTargets = new HashSet<IXRInteractable>();
 
+        /// <summary>
+        /// Set of all Interactors that are in an Interaction Group.
+        /// </summary>
+        readonly HashSet<IXRInteractor> m_InteractorsInGroup = new HashSet<IXRInteractor>();
+
+        /// <summary>
+        /// Set of all Interaction Groups that are in an Interaction Group.
+        /// </summary>
+        readonly HashSet<IXRInteractionGroup> m_GroupsInGroup = new HashSet<IXRInteractionGroup>();
+
         readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
+        readonly List<IXRInteractionGroup> m_ScratchInteractionGroups = new List<IXRInteractionGroup>();
         readonly List<IXRInteractor> m_ScratchInteractors = new List<IXRInteractor>();
         readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
 
@@ -204,20 +247,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly LinkedPool<SelectExitEventArgs> m_SelectExitEventArgs = new LinkedPool<SelectExitEventArgs>(() => new SelectExitEventArgs(), collectionCheck: false);
         readonly LinkedPool<HoverEnterEventArgs> m_HoverEnterEventArgs = new LinkedPool<HoverEnterEventArgs>(() => new HoverEnterEventArgs(), collectionCheck: false);
         readonly LinkedPool<HoverExitEventArgs> m_HoverExitEventArgs = new LinkedPool<HoverExitEventArgs>(() => new HoverExitEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractionGroupRegisteredEventArgs> m_InteractionGroupRegisteredEventArgs = new LinkedPool<InteractionGroupRegisteredEventArgs>(() => new InteractionGroupRegisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractionGroupUnregisteredEventArgs> m_InteractionGroupUnregisteredEventArgs = new LinkedPool<InteractionGroupUnregisteredEventArgs>(() => new InteractionGroupUnregisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractorRegisteredEventArgs> m_InteractorRegisteredEventArgs = new LinkedPool<InteractorRegisteredEventArgs>(() => new InteractorRegisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractorUnregisteredEventArgs> m_InteractorUnregisteredEventArgs = new LinkedPool<InteractorUnregisteredEventArgs>(() => new InteractorUnregisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractableRegisteredEventArgs> m_InteractableRegisteredEventArgs = new LinkedPool<InteractableRegisteredEventArgs>(() => new InteractableRegisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractableUnregisteredEventArgs> m_InteractableUnregisteredEventArgs = new LinkedPool<InteractableUnregisteredEventArgs>(() => new InteractableUnregisteredEventArgs(), collectionCheck: false);
 
         static readonly ProfilerMarker s_PreprocessInteractorsMarker = new ProfilerMarker("XRI.PreprocessInteractors");
+        static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength");
         static readonly ProfilerMarker s_ProcessInteractorsMarker = new ProfilerMarker("XRI.ProcessInteractors");
         static readonly ProfilerMarker s_ProcessInteractablesMarker = new ProfilerMarker("XRI.ProcessInteractables");
-        static readonly ProfilerMarker s_GetValidTargetsMarker = new ProfilerMarker("XRI.GetValidTargets");
+        static readonly ProfilerMarker s_UpdateGroupMemberInteractionsMarker = new ProfilerMarker("XRI.UpdateGroupMemberInteractions");
+        internal static readonly ProfilerMarker s_GetValidTargetsMarker = new ProfilerMarker("XRI.GetValidTargets");
         static readonly ProfilerMarker s_FilterRegisteredValidTargetsMarker = new ProfilerMarker("XRI.FilterRegisteredValidTargets");
-        static readonly ProfilerMarker s_EvaluateInvalidSelectionsMarker = new ProfilerMarker("XRI.EvaluateInvalidSelections");
-        static readonly ProfilerMarker s_EvaluateInvalidHoversMarker = new ProfilerMarker("XRI.EvaluateInvalidHovers");
-        static readonly ProfilerMarker s_EvaluateValidSelectionsMarker = new ProfilerMarker("XRI.EvaluateValidSelections");
-        static readonly ProfilerMarker s_EvaluateValidHoversMarker = new ProfilerMarker("XRI.EvaluateValidHovers");
+        internal static readonly ProfilerMarker s_EvaluateInvalidSelectionsMarker = new ProfilerMarker("XRI.EvaluateInvalidSelections");
+        internal static readonly ProfilerMarker s_EvaluateInvalidHoversMarker = new ProfilerMarker("XRI.EvaluateInvalidHovers");
+        internal static readonly ProfilerMarker s_EvaluateValidSelectionsMarker = new ProfilerMarker("XRI.EvaluateValidSelections");
+        internal static readonly ProfilerMarker s_EvaluateValidHoversMarker = new ProfilerMarker("XRI.EvaluateValidHovers");
         static readonly ProfilerMarker s_SelectEnterMarker = new ProfilerMarker("XRI.SelectEnter");
         static readonly ProfilerMarker s_SelectExitMarker = new ProfilerMarker("XRI.SelectExit");
         static readonly ProfilerMarker s_HoverEnterMarker = new ProfilerMarker("XRI.HoverEnter");
@@ -264,9 +311,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             using (s_PreprocessInteractorsMarker.Auto())
                 PreprocessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
+            foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
+            {
+                if (!m_InteractionGroups.IsStillRegistered(interactionGroup) || m_GroupsInGroup.Contains(interactionGroup))
+                    continue;
+
+                using (s_UpdateGroupMemberInteractionsMarker.Auto())
+                    interactionGroup.UpdateGroupMemberInteractions();
+            }
+
             foreach (var interactor in m_Interactors.registeredSnapshot)
             {
-                if (!m_Interactors.IsStillRegistered(interactor))
+                if (!m_Interactors.IsStillRegistered(interactor) || m_InteractorsInGroup.Contains(interactor))
                     continue;
 
                 using (s_GetValidTargetsMarker.Auto())
@@ -302,6 +358,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         InteractorHoverValidTargetsInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
                 }
             }
+
+            using (s_ProcessInteractionStrengthMarker.Auto())
+                ProcessInteractionStrength(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
             using (s_ProcessInteractorsMarker.Auto())
                 ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
@@ -362,9 +421,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         protected virtual void PreprocessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
+            foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
+            {
+                if (!m_InteractionGroups.IsStillRegistered(interactionGroup) || m_GroupsInGroup.Contains(interactionGroup))
+                    continue;
+
+                interactionGroup.PreprocessGroupMembers(updatePhase);
+            }
+
             foreach (var interactor in m_Interactors.registeredSnapshot)
             {
-                if (!m_Interactors.IsStillRegistered(interactor))
+                if (!m_Interactors.IsStillRegistered(interactor) || m_InteractorsInGroup.Contains(interactor))
                     continue;
 
                 interactor.PreprocessInteractor(updatePhase);
@@ -382,9 +449,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         protected virtual void ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
+            foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
+            {
+                if (!m_InteractionGroups.IsStillRegistered(interactionGroup) || m_GroupsInGroup.Contains(interactionGroup))
+                    continue;
+
+                interactionGroup.ProcessGroupMembers(updatePhase);
+            }
+
             foreach (var interactor in m_Interactors.registeredSnapshot)
             {
-                if (!m_Interactors.IsStillRegistered(interactor))
+                if (!m_Interactors.IsStillRegistered(interactor) || m_InteractorsInGroup.Contains(interactor))
                     continue;
 
                 interactor.ProcessInteractor(updatePhase);
@@ -408,6 +483,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     continue;
 
                 interactable.ProcessInteractable(updatePhase);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called each frame to process interaction strength of interactables and interactors registered with this manager.
+        /// </summary>
+        /// <param name="updatePhase">The update phase.</param>
+        /// <seealso cref="IXRInteractionStrengthInteractable.ProcessInteractionStrength"/>
+        /// <seealso cref="IXRInteractionStrengthInteractor.ProcessInteractionStrength"/>
+        /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
+        protected virtual void ProcessInteractionStrength(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            // Unlike other processing, with interaction strength, interactables are processed before interactors
+            // since interactables with the ability to be poked dictate the interaction strength. After the
+            // interaction strength of interactables are computed for this frame, they are gathered into
+            // the interactor for use in affordances or within the process step.
+            foreach (var interactable in m_Interactables.registeredSnapshot)
+            {
+                if (!m_Interactables.IsStillRegistered(interactable))
+                    continue;
+
+                if (interactable is IXRInteractionStrengthInteractable interactionStrengthInteractable)
+                    interactionStrengthInteractable.ProcessInteractionStrength(updatePhase);
+            }
+
+            foreach (var interactor in m_Interactors.registeredSnapshot)
+            {
+                if (!m_Interactors.IsStillRegistered(interactor))
+                    continue;
+
+                if (interactor is IXRInteractionStrengthInteractor interactionStrengthInteractor)
+                    interactionStrengthInteractor.ProcessInteractionStrength(updatePhase);
             }
         }
 
@@ -472,17 +579,150 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Registers a new Interaction Group to be processed.
+        /// </summary>
+        /// <param name="interactionGroup">The Interaction Group to be registered.</param>
+        public virtual void RegisterInteractionGroup(IXRInteractionGroup interactionGroup)
+        {
+            IXRInteractionGroup containingGroup = null;
+            if (interactionGroup is IXRGroupMember groupMember)
+                containingGroup = groupMember.containingGroup;
+
+            if (containingGroup != null && !IsRegistered(containingGroup))
+            {
+                Debug.LogError($"Cannot register {interactionGroup} with Interaction Manager before its containing " +
+                               "Interaction Group is registered.", this);
+                return;
+            }
+
+            if (m_InteractionGroups.Register(interactionGroup))
+            {
+                if (containingGroup != null)
+                    m_GroupsInGroup.Add(interactionGroup);
+
+                using (m_InteractionGroupRegisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactionGroupObject = interactionGroup;
+                    args.containingGroupObject = containingGroup;
+                    OnRegistered(args);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an Interaction Group is registered with this Interaction Manager.
+        /// Notifies the Interaction Group, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the registered Interaction Group.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractionGroup(IXRInteractionGroup)"/>
+        protected virtual void OnRegistered(InteractionGroupRegisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.interactionGroupObject.OnRegistered(args);
+            interactionGroupRegistered?.Invoke(args);
+        }
+
+        /// <summary>
+        /// Unregister an Interaction Group so it is no longer processed.
+        /// </summary>
+        /// <param name="interactionGroup">The Interaction Group to be unregistered.</param>
+        public virtual void UnregisterInteractionGroup(IXRInteractionGroup interactionGroup)
+        {
+            if (!IsRegistered(interactionGroup))
+                return;
+
+            interactionGroup.OnBeforeUnregistered();
+
+            // Make sure no registered interactors or groups still reference this group
+            if (m_InteractionGroups.flushedCount > 0)
+            {
+                m_InteractionGroups.GetRegisteredItems(m_ScratchInteractionGroups);
+                foreach (var group in m_ScratchInteractionGroups)
+                {
+                    if (group is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
+                    {
+                        Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
+                            "Group Members have been re-registered as not part of the Group.", this);
+                        return;
+                    }
+                }
+            }
+
+            if (m_Interactors.flushedCount > 0)
+            {
+                m_Interactors.GetRegisteredItems(m_ScratchInteractors);
+                foreach (var interactor in m_ScratchInteractors)
+                {
+                    if (interactor is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
+                    {
+                        Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
+                            "Group Members have been re-registered as not part of the Group.", this);
+                        return;
+                    }
+                }
+            }
+
+            if (m_InteractionGroups.Unregister(interactionGroup))
+            {
+                m_GroupsInGroup.Remove(interactionGroup);
+                using (m_InteractionGroupUnregisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.interactionGroupObject = interactionGroup;
+                    OnUnregistered(args);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an Interaction Group is unregistered from this Interaction Manager.
+        /// Notifies the Interaction Group, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the unregistered Interaction Group.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractionGroup(IXRInteractionGroup)"/>
+        protected virtual void OnUnregistered(InteractionGroupUnregisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.interactionGroupObject.OnUnregistered(args);
+            interactionGroupUnregistered?.Invoke(args);
+        }
+
+        /// <summary>
         /// Registers a new Interactor to be processed.
         /// </summary>
         /// <param name="interactor">The Interactor to be registered.</param>
         public virtual void RegisterInteractor(IXRInteractor interactor)
         {
+            IXRInteractionGroup containingGroup = null;
+            if (interactor is IXRGroupMember groupMember)
+                containingGroup = groupMember.containingGroup;
+
+            if (containingGroup != null && !IsRegistered(containingGroup))
+            {
+                Debug.LogError($"Cannot register {interactor} with Interaction Manager before its containing " +
+                               "Interaction Group is registered.", this);
+                return;
+            }
+
             if (m_Interactors.Register(interactor))
             {
+                if (containingGroup != null)
+                    m_InteractorsInGroup.Add(interactor);
+
                 using (m_InteractorRegisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
                     args.interactorObject = interactor;
+                    args.containingGroupObject = containingGroup;
                     OnRegistered(args);
                 }
             }
@@ -522,6 +762,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactors.Unregister(interactor))
             {
+                m_InteractorsInGroup.Remove(interactor);
                 using (m_InteractorUnregisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
@@ -576,7 +817,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     else
 #endif
                     {
-                        Debug.LogWarning("A Collider used by an Interactable object is already registered with another Interactable object." +
+                        Debug.LogWarning("A collider used by an Interactable object is already registered with another Interactable object." +
                             $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
                             $" The value returned by {nameof(XRInteractionManager)}.{nameof(TryGetInteractableForCollider)} will be the first association.",
                             interactable as Object);
@@ -665,6 +906,72 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Registers a new snap volume to associate the snap collider and interactable.
+        /// </summary>
+        /// <param name="snapVolume">The snap volume to be registered.</param>
+        /// <seealso cref="UnregisterSnapVolume"/>
+        public void RegisterSnapVolume(XRInteractableSnapVolume snapVolume)
+        {
+            if (snapVolume == null)
+                return;
+
+            var snapCollider = snapVolume.snapCollider;
+            if (snapCollider == null)
+                return;
+
+            if (!m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume))
+            {
+                m_ColliderToSnapVolumes.Add(snapCollider, snapVolume);
+            }
+            else
+            {
+                Debug.LogWarning("A collider used by a snap volume component is already registered with another snap volume component." +
+                    $" The {snapCollider} will remain associated with {associatedSnapVolume}, which was registered before {snapVolume}." +
+                    $" The value returned by {nameof(XRInteractionManager)}.{nameof(TryGetInteractableForCollider)} will be the first association.",
+                    snapVolume);
+            }
+        }
+
+        /// <summary>
+        /// Unregister the snap volume so it is no longer associated with the snap collider or interactable.
+        /// </summary>
+        /// <param name="snapVolume">The snap volume to be unregistered.</param>
+        /// <seealso cref="RegisterSnapVolume"/>
+        public void UnregisterSnapVolume(XRInteractableSnapVolume snapVolume)
+        {
+            if (snapVolume == null)
+                return;
+
+            // This makes the assumption that the snap collider has not been changed after
+            // the snap volume is registered.
+            var snapCollider = snapVolume.snapCollider;
+            if (snapCollider == null)
+                return;
+
+            if (m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume) && associatedSnapVolume == snapVolume)
+                m_ColliderToSnapVolumes.Remove(snapCollider);
+        }
+
+        /// <summary>
+        /// Returns all registered Interaction Groups into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive registered Interaction Groups.</param>
+        /// <remarks>
+        /// This method populates the list with the registered Interaction Groups at the time the
+        /// method is called. It is not a live view, meaning Interaction Groups
+        /// registered or unregistered afterward will not be reflected in the
+        /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
+        /// </remarks>
+        public void GetRegisteredInteractionGroups(List<IXRInteractionGroup> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            m_InteractionGroups.GetRegisteredItems(results);
+        }
+
+        /// <summary>
         /// Returns all registered Interactors into List <paramref name="results"/>.
         /// </summary>
         /// <param name="results">List to receive registered Interactors.</param>
@@ -705,6 +1012,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Checks whether the <paramref name="interactionGroup"/> is registered with this Interaction Manager.
+        /// </summary>
+        /// <param name="interactionGroup">The Interaction Group to check.</param>
+        /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="RegisterInteractionGroup(IXRInteractionGroup)"/>
+        public bool IsRegistered(IXRInteractionGroup interactionGroup)
+        {
+            return m_InteractionGroups.IsRegistered(interactionGroup);
+        }
+
+        /// <summary>
         /// Checks whether the <paramref name="interactor"/> is registered with this Interaction Manager.
         /// </summary>
         /// <param name="interactor">The Interactor to check.</param>
@@ -735,7 +1053,51 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool TryGetInteractableForCollider(Collider interactableCollider, out IXRInteractable interactable)
         {
             interactable = null;
-            return interactableCollider != null && m_ColliderToInteractableMap.TryGetValue(interactableCollider, out interactable) && interactable != null;
+            if (interactableCollider == null)
+                return false;
+
+            // Try direct association, and then fallback to snap volume association
+            var hasDirectAssociation = m_ColliderToInteractableMap.TryGetValue(interactableCollider, out interactable);
+            if (!hasDirectAssociation)
+            {
+                if (m_ColliderToSnapVolumes.TryGetValue(interactableCollider, out var snapVolume) && snapVolume != null)
+                    interactable = snapVolume.interactable;
+            }
+
+            return interactable != null && (!(interactable is Object unityObject) || unityObject != null);
+        }
+
+        /// <summary>
+        /// Gets the Interactable a specific <see cref="Collider"/> is attached to.
+        /// </summary>
+        /// <param name="interactableCollider">The collider of the Interactable to retrieve.</param>
+        /// <param name="interactable">The returned Interactable associated with the collider.</param>
+        /// <param name="snapVolume">The returned snap volume associated with the collider.</param>
+        /// <returns>Returns <see langword="true"/> if an Interactable was associated with the collider. Otherwise, returns <see langword="false"/>.</returns>
+        public bool TryGetInteractableForCollider(Collider interactableCollider, out IXRInteractable interactable, out XRInteractableSnapVolume snapVolume)
+        {
+            interactable = null;
+            snapVolume = null;
+            if (interactableCollider == null)
+                return false;
+
+            // Populate both out params
+            var hasDirectAssociation = m_ColliderToInteractableMap.TryGetValue(interactableCollider, out interactable);
+            if (m_ColliderToSnapVolumes.TryGetValue(interactableCollider, out snapVolume) && snapVolume != null)
+            {
+                if (hasDirectAssociation)
+                {
+                    // Detect mismatch, ignore the snap volume
+                    if (snapVolume.interactable != interactable)
+                        snapVolume = null;
+                }
+                else
+                {
+                    interactable = snapVolume.interactable;
+                }
+            }
+
+            return interactable != null && (!(interactable is Object unityObject) || unityObject != null);
         }
 
         /// <summary>
@@ -858,7 +1220,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void ClearInteractorSelectionInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
+        internal void ClearInteractorSelectionInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
             ClearInteractorSelection(interactor, validTargets);
             if (interactor is XRBaseInteractor baseInteractor)
@@ -945,7 +1307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void ClearInteractorHoverInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        internal void ClearInteractorHoverInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
         {
             ClearInteractorHover(interactor, validTargets);
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
@@ -1048,7 +1410,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        internal void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
@@ -1129,7 +1491,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        internal void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
@@ -1349,10 +1711,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 if (targetPriorityMode == TargetPriorityMode.None || targetPriorityMode == TargetPriorityMode.HighestPriorityOnly && foundHighestPriorityTarget)
                 {
-                    if (CanSelect(interactor, interactable) && !interactor.IsSelecting(interactable))
+                    if (CanSelect(interactor, interactable))
                         SelectEnterInternal(interactor, interactable);
                 }
-                else if (CanSelect(interactor, interactable))
+                else if (IsSelectPossible(interactor, interactable))
                 {
                     if (!foundHighestPriorityTarget)
                     {
@@ -1368,12 +1730,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     // ReSharper disable once PossibleNullReferenceException -- Guaranteed to not be null in this branch since not TargetPriorityMode.None
                     targetPriorityInteractor.targetsForSelection?.Add(interactable);
-                    SelectEnterInternal(interactor, interactable);
+
+                    if (interactor.isSelectActive)
+                        SelectEnterInternal(interactor, interactable);
                 }
             }
         }
 
-        void InteractorSelectValidTargetsInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        internal void InteractorSelectValidTargetsInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
         {
             InteractorSelectValidTargets(interactor, validTargets);
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
@@ -1405,7 +1769,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void InteractorHoverValidTargetsInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
+        internal void InteractorHoverValidTargetsInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
         {
             InteractorHoverValidTargets(interactor, validTargets);
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
@@ -1520,11 +1884,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void FlushRegistration()
         {
+            m_InteractionGroups.Flush();
             m_Interactors.Flush();
             m_Interactables.Flush();
         }
 
-        static void GetOfType<TSource, TDestination>(List<TSource> source, List<TDestination> destination)
+        internal static void GetOfType<TSource, TDestination>(List<TSource> source, List<TDestination> destination)
         {
             destination.Clear();
             if (source.Count == 0)

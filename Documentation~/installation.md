@@ -19,7 +19,7 @@ To install this package, follow the instructions for [adding a package by name](
 |Text Field|Value|
 |---|---|
 |**Name**|`com.unity.xr.interaction.toolkit`|
-|**Version (optional)**|`2.2.0`|
+|**Version (optional)**|`2.3.0-pre.1`|
 
 ## Version 2020.3
 
@@ -27,7 +27,7 @@ To install this package, follow the [installation instructions in the Unity User
 
 ## Input System
 
-This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it. For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
+This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it. For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
 
 ![installation-prompt-input-backends](images/installation-prompt-input-backends.png)
 

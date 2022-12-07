@@ -11,7 +11,8 @@
                     "id": "d4eb7006-5077-4816-9d5c-f570b6d586f3",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Keyboard Z Translate",
@@ -19,7 +20,8 @@
                     "id": "3ea275ac-e111-4610-891f-105676c72cd5",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Keyboard Y Translate",
@@ -27,39 +29,53 @@
                     "id": "5cc58f95-e9dc-4675-a42e-dd66874c3ba3",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
-                    "name": "Manipulate LeftHand",
-                    "type": "Button",
-                    "id": "07c46cc4-c35d-4364-a878-68fad8ab8c64",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Manipulate RightHand",
-                    "type": "Button",
-                    "id": "307cb608-f32e-48a3-8ce6-d1cd83a5fb90",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Toggle Manipulate LeftHand",
+                    "name": "Toggle Manipulate Left",
                     "type": "Button",
                     "id": "847b79d9-a69b-4484-8688-a4bf40e58163",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
-                    "name": "Toggle Manipulate RightHand",
+                    "name": "Toggle Manipulate Right",
                     "type": "Button",
                     "id": "241f6068-ebc8-4c6d-b747-8bc2c1f74f87",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Toggle Manipulate Body",
+                    "type": "Button",
+                    "id": "c81093ea-c17e-4430-a3df-bccabef74af4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Manipulate Left",
+                    "type": "Button",
+                    "id": "07c46cc4-c35d-4364-a878-68fad8ab8c64",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Manipulate Right",
+                    "type": "Button",
+                    "id": "307cb608-f32e-48a3-8ce6-d1cd83a5fb90",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Manipulate Head",
@@ -67,7 +83,26 @@
                     "id": "f5febf74-651b-4f73-8d0a-08b0acdabc4d",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Cycle Devices",
+                    "type": "Button",
+                    "id": "d728c6fb-4deb-4268-9110-d64c7861cd17",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Stop Manipulation",
+                    "type": "Button",
+                    "id": "974ae49e-da4e-4dc8-a6be-cb63986d8f8e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Mouse Delta",
@@ -75,7 +110,8 @@
                     "id": "0b945dbf-d750-40cb-97c6-593686fcf012",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Mouse Scroll",
@@ -83,7 +119,8 @@
                     "id": "b2a408da-a9fd-4638-9af3-17fb9bc2811d",
                     "expectedControlType": "Vector2",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Rotate Mode Override",
@@ -91,7 +128,8 @@
                     "id": "2e390909-c0f6-4ca5-b8bc-4c54090f96d9",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Toggle Mouse Transformation Mode",
@@ -99,7 +137,8 @@
                     "id": "ae2b5c7f-b5e0-4b93-b674-172de9f68380",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Negate Mode",
@@ -107,7 +146,8 @@
                     "id": "8c837143-e018-41f0-9e0e-907acb9d7360",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Z Constraint",
@@ -115,7 +155,8 @@
                     "id": "d3e9308c-6f8c-46f7-bb6f-14422c345983",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "X Constraint",
@@ -123,7 +164,8 @@
                     "id": "11dc7a94-7230-49ff-b56d-06e6473e9951",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Y Constraint",
@@ -131,7 +173,8 @@
                     "id": "11ab79c6-b9c6-4301-8086-3e9c6904ef14",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Reset",
@@ -139,7 +182,8 @@
                     "id": "339ccb79-aee9-4ba4-8864-3b6c81c199db",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Toggle Cursor Lock",
@@ -147,7 +191,35 @@
                     "id": "9bd36ab1-f676-4ff4-8a4d-ba0c6fb36268",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Toggle Primary 2D Axis Target",
+                    "type": "Button",
+                    "id": "e0fdec2d-309b-4313-aad7-9dcc71f1394d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Toggle Secondary 2D Axis Target",
+                    "type": "Button",
+                    "id": "b3b49ea5-f80f-4d24-a782-d61a13a004b3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Toggle Device Position Target",
+                    "type": "Button",
+                    "id": "15cd3c4a-56b1-4a43-a924-a2118e2adaf4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -257,7 +329,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Manipulate LeftHand",
+                    "action": "Manipulate Left",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -268,29 +340,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Manipulate RightHand",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b62df009-54c9-4b03-9721-07ca66fe1bdf",
-                    "path": "<Keyboard>/t",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Toggle Manipulate LeftHand",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e8a0a3b9-06cf-40a8-86d8-1d8f1d704451",
-                    "path": "<Keyboard>/y",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Toggle Manipulate RightHand",
+                    "action": "Manipulate Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -414,208 +464,6 @@
                     "action": "Reset",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "Input Controls",
-            "id": "404d9e15-a8bc-4b52-89e8-048203e913fa",
-            "actions": [
-                {
-                    "name": "Axis 2D",
-                    "type": "Value",
-                    "id": "12cda119-7fbf-4f67-9db5-e5ad3b7905ca",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Resting Hand Axis 2D",
-                    "type": "Value",
-                    "id": "a2176ee2-e6ed-44a9-a5ee-858b1a6089fa",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Toggle Device Position Target",
-                    "type": "Button",
-                    "id": "15cd3c4a-56b1-4a43-a924-a2118e2adaf4",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Toggle Primary 2D Axis Target",
-                    "type": "Button",
-                    "id": "e0fdec2d-309b-4313-aad7-9dcc71f1394d",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Toggle Secondary 2D Axis Target",
-                    "type": "Button",
-                    "id": "b3b49ea5-f80f-4d24-a782-d61a13a004b3",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Grip",
-                    "type": "Button",
-                    "id": "99383123-529b-44b3-be25-fc03e45b0117",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Trigger",
-                    "type": "Button",
-                    "id": "4c755f54-9a5b-4ab4-8971-86e750cce8c5",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Primary Button",
-                    "type": "Button",
-                    "id": "f21a59fc-ba2d-43ac-9051-f61598c360bd",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Secondary Button",
-                    "type": "Button",
-                    "id": "33caae29-953d-46ee-8327-c9279a3e6112",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Menu",
-                    "type": "Button",
-                    "id": "4c344ddd-429e-4075-bf61-7d7a4915c0f8",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Primary 2D Axis Click",
-                    "type": "Button",
-                    "id": "c98dc3c2-51e8-4d47-b5e8-9fbe8f357cea",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Secondary 2D Axis Click",
-                    "type": "Button",
-                    "id": "9a69a85f-8b0d-4959-94ff-a159876275d2",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Primary 2D Axis Touch",
-                    "type": "Button",
-                    "id": "068c19f3-3201-418a-b101-88dcc47aa2fd",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Secondary 2D Axis Touch",
-                    "type": "Button",
-                    "id": "ec51a057-e484-434d-b335-03f16cfcf26d",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Primary Touch",
-                    "type": "Button",
-                    "id": "7ce78a0e-a94b-49fa-b3d5-5fca18de3391",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Secondary Touch",
-                    "type": "Button",
-                    "id": "bd4f8d55-321e-4d2c-8215-c85c461b37eb",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                }
-            ],
-            "bindings": [
-                {
-                    "name": "2D Vector",
-                    "id": "909c7e62-e6ea-4683-8b23-883ad4898d18",
-                    "path": "2DVector",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Axis 2D",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "0c29f651-2c07-4554-b2e8-dab5be5b2e87",
-                    "path": "<Keyboard>/w",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "7a9f0789-f285-4c25-b1f4-c4f34c4d0451",
-                    "path": "<Keyboard>/s",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "905af182-924d-46b5-94d3-e22db48c4085",
-                    "path": "<Keyboard>/a",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "88e79231-cdb4-400a-8980-b4576ee0a263",
-                    "path": "<Keyboard>/d",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "",
-                    "id": "9404bec7-672a-4fb1-adb3-e2dc4e32801b",
-                    "path": "<Keyboard>/3",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Toggle Device Position Target",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -640,233 +488,68 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "2D Vector",
-                    "id": "82126405-60e1-49f1-9b69-e965eaacb8ee",
-                    "path": "2DVector",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "e27996d4-255f-4240-a9a6-fd8714a69a0c",
-                    "path": "<Mouse>/forwardButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "77a74547-37ef-4713-a31b-725b210d98e9",
-                    "path": "<Mouse>/backButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "823b1a5b-780d-4b61-8fd3-cb363e37df26",
-                    "path": "<Keyboard>/q",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "ed43b77d-dba1-4b89-a867-d4bb242c19e3",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "2D Vector",
-                    "id": "38ceacb7-94a0-455f-8b09-eab87cdb5abb",
-                    "path": "2DVector",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "up",
-                    "id": "0499cb7f-9e2c-4ac7-b2bf-6a71a4457ea1",
-                    "path": "<Keyboard>/i",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "down",
-                    "id": "b95888ad-1760-4389-8e11-9129f9744211",
-                    "path": "<Keyboard>/k",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "left",
-                    "id": "fe8ea864-1ec3-4bd6-9c30-854922a9bf73",
-                    "path": "<Keyboard>/j",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "right",
-                    "id": "d3516be4-3963-4077-82fc-347a180d6949",
-                    "path": "<Keyboard>/l",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Resting Hand Axis 2D",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
                     "name": "",
-                    "id": "aac14b93-d556-4433-8893-0eeafd6190f8",
-                    "path": "<Keyboard>/g",
+                    "id": "9404bec7-672a-4fb1-adb3-e2dc4e32801b",
+                    "path": "<Keyboard>/3",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grip",
+                    "action": "Toggle Device Position Target",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "bc242731-d17f-4b22-aa06-3988e7cffc87",
-                    "path": "<Mouse>/leftButton",
+                    "id": "5dacc4c7-2e70-4500-8c72-99595c72b49e",
+                    "path": "<Keyboard>/tab",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Trigger",
+                    "action": "Cycle Devices",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "5b853efd-1a70-4a8b-bd1b-84100070d99c",
-                    "path": "<Keyboard>/b",
+                    "id": "84760c74-7de6-46dd-a097-3bc198cf63cd",
+                    "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Primary Button",
+                    "action": "Stop Manipulation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "86def88d-725b-4541-8677-68ae5946fbd4",
-                    "path": "<Keyboard>/n",
+                    "id": "e8a0a3b9-06cf-40a8-86d8-1d8f1d704451",
+                    "path": "<Keyboard>/y",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Secondary Button",
+                    "action": "Toggle Manipulate Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "c8b72a5c-4ece-44b9-b4a0-a84ce577c393",
-                    "path": "<Keyboard>/m",
+                    "id": "b62df009-54c9-4b03-9721-07ca66fe1bdf",
+                    "path": "<Keyboard>/t",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Menu",
+                    "action": "Toggle Manipulate Left",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "91ad530e-a4db-4a8c-8e21-599db3968011",
-                    "path": "<Keyboard>/4",
+                    "id": "51f71c9d-9024-4bdd-8ea6-19b987e261b1",
+                    "path": "<Keyboard>/u",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Primary 2D Axis Click",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1504de2d-a743-4608-a126-5b3ef5695007",
-                    "path": "<Keyboard>/5",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Secondary 2D Axis Click",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "73f9a145-85de-4e35-97d5-824ab21ea67c",
-                    "path": "<Keyboard>/6",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Primary 2D Axis Touch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "0d5d8b6c-3d19-481a-8d8f-9f099a1a43e3",
-                    "path": "<Keyboard>/7",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Secondary 2D Axis Touch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d431c3c8-2dbc-43fb-9062-1a7e478bbc11",
-                    "path": "<Keyboard>/8",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Primary Touch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "02d5a7f4-ea4a-465a-8232-b5419ca49f69",
-                    "path": "<Keyboard>/9",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Secondary Touch",
+                    "action": "Toggle Manipulate Body",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

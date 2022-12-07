@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -10,6 +11,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class RayInteractorTests
     {
+        static readonly Type[] s_RayInteractorTypes =
+        {
+            typeof(XRRayInteractor),
+            typeof(XRGazeInteractor),
+        };
+
         static readonly XRRayInteractor.LineType[] s_LineTypes =
         {
             XRRayInteractor.LineType.StraightLine,
@@ -41,13 +48,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            yield return new WaitForSeconds(0.1f);
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
 
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+        }
+        
+        [UnityTest]
+        public IEnumerator RayInteractorCanAutoDeselect([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = CreateRayInteractor(rayInteractorType);
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            interactor.hoverToSelect = true;
+            interactor.hoverTimeToSelect = 0.1f;
+            interactor.autoDeselect = true;
+            interactor.timeToAutoDeselect = 0.1f;
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.allowGazeInteraction = true;
+            interactable.allowGazeSelect = true;
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactable.isSelected, Is.True);
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+
+            // Disable hover to select to ensure it doesn't reselect after auto deselect
+            interactor.hoverToSelect = false;
+
+            yield return new WaitForSeconds(0.15f);
+
+            Assert.That(interactable.isSelected, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
         }
 
         [UnityTest]
@@ -418,15 +459,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorCanLimitClosestOnly()
+        public IEnumerator RayInteractorCanLimitClosestOnly([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
         {
             TestUtilities.CreateInteractionManager();
             TestUtilities.CreateXROrigin();
-            var interactor = TestUtilities.CreateRayInteractor();
+            var interactor = CreateRayInteractor(rayInteractorType);
             interactor.xrController.enabled = false;
             interactor.hitClosestOnly = false;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
             yield return null;
 
             // Verify that valid targets and hover targets is empty
@@ -437,10 +480,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.interactablesHovered, Is.Empty);
 
-            var nearInteractable = TestUtilities.CreateGrabInteractable();
+            var nearInteractable = TestUtilities.CreateSimpleInteractable();
+            nearInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
             nearInteractable.transform.localPosition = new Vector3(0f, 0f, 10f);
 
-            var farInteractable = TestUtilities.CreateGrabInteractable();
+            var farInteractable = TestUtilities.CreateSimpleInteractable();
+            farInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
             farInteractable.transform.localPosition = new Vector3(0f, 0f, 20f);
 
             // Wait for Physics update for hit
@@ -538,11 +583,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorSamplePointsContinuesThroughGeometry([ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
+        public IEnumerator RayInteractorSamplePointsContinuesThroughGeometry([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType, [ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
         {
             TestUtilities.CreateInteractionManager();
             TestUtilities.CreateXROrigin();
-            var interactor = TestUtilities.CreateRayInteractor();
+            var interactor = CreateRayInteractor(rayInteractorType);
+            if (rayInteractorType == typeof(XRGazeInteractor))
+                interactor.gameObject.AddComponent<XRInteractorLineVisual>();
             interactor.xrController.enabled = false;
             interactor.transform.position = Vector3.zero;
             interactor.transform.rotation = Quaternion.Euler(-45f, 0f, 0f);
@@ -662,13 +709,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorCanUseTargetFilter()
+        public IEnumerator RayInteractorCanUseTargetFilter([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
         {
             TestUtilities.CreateInteractionManager();
-            var interactor = TestUtilities.CreateRayInteractor();
+            TestUtilities.CreateXROrigin();
+            var interactor = CreateRayInteractor(rayInteractorType);
             interactor.transform.position = Vector3.zero;
             interactor.transform.forward = Vector3.forward;
             var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
             yield return new WaitForFixedUpdate();
@@ -716,6 +765,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Process,
                 TargetFilterCallback.Unlink
             }));
+        }
+
+        [UnityTest]
+        public IEnumerator RayInteractorCanSelectInteractorWithSnapVolume()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+            var snapVolume = TestUtilities.CreateSnapVolume();
+            snapVolume.interactable = interactable;
+            snapVolume.snapToCollider = interactable.colliders[0];
+            snapVolume.transform.position = interactable.transform.position;
+            
+            var controller = interactor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                    true, false, false));
+            });
+            controllerRecorder.isPlaying = true;
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+        }
+
+        static XRRayInteractor CreateRayInteractor(Type type)
+        {
+            if (type == typeof(XRGazeInteractor))
+                return TestUtilities.CreateGazeInteractor();
+            if (type == typeof(XRRayInteractor))
+                return TestUtilities.CreateRayInteractor();
+
+            Assert.Fail("Unhandled Ray Interactor type.");
+            return null;
         }
     }
 }

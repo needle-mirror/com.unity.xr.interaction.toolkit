@@ -61,7 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 onListReordered = (element, newIndex) => manager.hoverFilters.MoveTo(element, newIndex),
             };
 
-            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), Contents.selectFiltersHeader, k_HoverFiltersExpandedKey)
+            m_SelectFilters = new ReadOnlyReorderableList<IXRSelectFilter>(new List<IXRSelectFilter>(), Contents.selectFiltersHeader, k_SelectFiltersExpandedKey)
             {
                 isExpanded = SessionState.GetBool(k_SelectFiltersExpandedKey, true),
                 updateElements = list => manager.selectFilters.GetAll(list),

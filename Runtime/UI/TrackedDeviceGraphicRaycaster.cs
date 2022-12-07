@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -13,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// </summary>
     [AddComponentMenu("Event/Tracked Device Graphic Raycaster", 11)]
     [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
-    public class TrackedDeviceGraphicRaycaster : BaseRaycaster
+    public class TrackedDeviceGraphicRaycaster : BaseRaycaster, IPokeStateDataProvider
     {
         const int k_MaxRaycastHits = 10;
 
@@ -152,7 +155,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly RaycastHit[] m_OcclusionHits3D = new RaycastHit[k_MaxRaycastHits];
 #if PHYSICS2D_MODULE_PRESENT
-        readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[k_MaxRaycastHits];
+        // Create for a single hit only. In 2D physics it'll always be the closest hit.
+        readonly RaycastHit2D[] m_OcclusionHits2D = new RaycastHit2D[1];
 #endif
         static readonly RaycastHitComparer s_RaycastHitComparer = new RaycastHitComparer();
 
@@ -164,7 +168,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [NonSerialized]
         static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
 
+        // Poke-specific variables and methods
+        XRPokeLogic m_PokeLogic;
+
+        [NonSerialized]
+        static readonly Dictionary<IUIInteractor, TrackedDeviceGraphicRaycaster> s_InteractorRaycasters = new Dictionary<IUIInteractor, TrackedDeviceGraphicRaycaster>();
+
+        /// <inheritdoc />
+        public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeLogic?.pokeStateData;
+
+        /// <summary>
+        /// This method is used to determine if the <see cref="IUIInteractor"/> has a currently active selection using poke.
+        /// </summary>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
+        /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> meets requirements for poke with any <see cref="TrackedDeviceGraphicRaycaster"/>.</returns>
+        internal static bool HasPokeSelect(IUIInteractor interactor)
+        {
+            return s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null;
+        }
+
         PhysicsScene m_LocalPhysicsScene;
+#if PHYSICS2D_MODULE_PRESENT
+        PhysicsScene2D m_LocalPhysicsScene2D;
+#endif
 
         static RaycastHit FindClosestHit(RaycastHit[] hits, int count)
         {
@@ -182,29 +208,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hits[index];
         }
 
-#if PHYSICS2D_MODULE_PRESENT
-        static RaycastHit2D FindClosestHit(RaycastHit2D[] hits, int count)
-        {
-            var index = 0;
-            var distance = float.MaxValue;
-            for (var i = 0; i < count; i++)
-            {
-                if (hits[i].distance < distance)
-                {
-                    distance = hits[i].distance;
-                    index = i;
-                }
-            }
-
-            return hits[index];
-        }
-#endif
-
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
+#if PHYSICS2D_MODULE_PRESENT
+            m_LocalPhysicsScene2D = gameObject.scene.GetPhysicsScene2D();
+#endif
+            SetupPoke();
+        }
+
+        void SetupPoke()
+        {
+            if (m_PokeLogic == null)
+                m_PokeLogic = new XRPokeLogic();
+
+            var pokeData = new PokeThresholdData
+            {
+                pokeDirection = PokeAxis.Z,
+                interactionDepthOffset = 0f,
+                enablePokeAngleThreshold = true,
+                pokeAngleThreshold = 89.9f,
+            };
+
+            m_PokeLogic.Initialize(transform, pokeData, null);
+            m_PokeLogic.SetPokeDepth(0.1f);
         }
 
         void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
@@ -227,18 +256,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return;
             }
 
-            var rayPoints = eventData.rayPoints;
             var layerMask = eventData.layerMask;
-            for (var i = 1; i < rayPoints.Count; i++)
+            var interactor = eventData.interactor;
+            if (interactor != null && interactor.TryGetUIModel(out var uiModel) && uiModel.interactionType == UIInteractionType.Poke)
             {
-                var from = rayPoints[i - 1];
-                var to = rayPoints[i];
-                if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList))
+                // if interactor is selecting any thing else, then it is claimed, so skip for this raycaster
+                if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null && raycaster != this && raycaster.canvas.sortingOrder >= canvas.sortingOrder)
+                    return;
+
+                if (PerformSpherecast(uiModel.position, uiModel.pokeDepth, layerMask, currentEventCamera, resultAppendList) && resultAppendList.Count > 0)
                 {
-                    eventData.rayHitIndex = i;
-                    break;
+                    eventData.rayHitIndex = 1;
+                    var firstHit = resultAppendList[0];
+                    var hitTransform = firstHit.gameObject.transform;
+
+                    m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
+                    m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
+                    
+                    if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, firstHit.worldPosition, uiModel.position, 0f, hitTransform))
+                    {
+                        s_InteractorRaycasters[interactor] = this;
+                    }
+                    else
+                    {
+                        s_InteractorRaycasters.Remove(interactor);
+                    }
+                }
+                else
+                {                    
+                    m_PokeLogic.OnHoverExited(interactor);
+                    s_InteractorRaycasters.Remove(interactor);
                 }
             }
+            else
+            {
+                var rayPoints = eventData.rayPoints;
+                for (var i = 1; i < rayPoints.Count; i++)
+                {
+                    var from = rayPoints[i - 1];
+                    var to = rayPoints[i];
+                    if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList))
+                    {
+                        eventData.rayHitIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        bool PerformSpherecast(Vector3 origin, float radius, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
+        {
+            m_RaycastResultsCache.Clear();
+            SortedSpherecastGraphics(canvas, origin, radius, layerMask, currentEventCamera, m_RaycastResultsCache);
+
+            if (m_RaycastResultsCache.Count <= 0)
+                return false;
+
+            var firstResult = m_RaycastResultsCache[0];
+            var ray = new Ray(origin, firstResult.worldHitPosition - origin);
+
+            // Results from spherecast aim every which direction! We only want to test the nearest first direction.
+            m_RaycastResultsCache.Clear();
+            m_RaycastResultsCache.Add(firstResult);
+
+            return ProcessSortedHitsResults(ray, float.PositiveInfinity, false, m_RaycastResultsCache, resultAppendList);
         }
 
         bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
@@ -246,7 +327,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var hitSomething = false;
 
             var rayDistance = Vector3.Distance(to, from);
-            var ray = new Ray(from, (to - from).normalized * rayDistance);
+            var ray = new Ray(from, to - from);
 
             var hitDistance = rayDistance;
             if (m_CheckFor3DOcclusion)
@@ -264,12 +345,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_CheckFor2DOcclusion)
             {
 #if PHYSICS2D_MODULE_PRESENT
-                var hitCount = Physics2D.RaycastNonAlloc(ray.origin, ray.direction, m_OcclusionHits2D, hitDistance, m_BlockingMask);
-
-                if (hitCount > 0)
+                if (m_LocalPhysicsScene2D.GetRayIntersection(ray, hitDistance, m_OcclusionHits2D, m_BlockingMask) > 0)
                 {
-                    var hit = FindClosestHit(m_OcclusionHits2D, hitCount);
-                    hitDistance = hit.distance > hitDistance ? hitDistance : hit.distance;
+                    // Unlike 3D physics, all 2D physics spatial queries are sorted by distance or in this case,
+                    // sorted by Z depth along the ray so there's no need to find the closest hit, it'll always be the first result.
+                    hitDistance = m_OcclusionHits2D[0].distance;
                     hitSomething = true;
                 }
 #endif
@@ -278,8 +358,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_RaycastResultsCache.Clear();
             SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, currentEventCamera, m_RaycastResultsCache);
 
+            return ProcessSortedHitsResults(ray, hitDistance, hitSomething, m_RaycastResultsCache, resultAppendList);
+        }
+
+        bool ProcessSortedHitsResults(Ray ray, float hitDistance, bool hitSomething, List<RaycastHitData> raycastHitDatums, List<RaycastResult> resultAppendList)
+        {
             // Now that we have a list of sorted hits, process any extra settings and filters.
-            foreach (var hitData in m_RaycastResultsCache)
+            foreach (var hitData in raycastHitDatums)
             {
                 var validHit = true;
 
@@ -320,6 +405,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hitSomething;
         }
 
+        static void SortedSpherecastGraphics(Canvas canvas, Vector3 origin, float radius, LayerMask layerMask, Camera eventCamera, List<RaycastHitData> results)
+        {
+            var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
+
+            s_SortedGraphics.Clear();
+            for (int i = 0; i < graphics.Count; ++i)
+            {
+                var graphic = graphics[i];
+
+                if (!ShouldTestGraphic(graphic, layerMask))
+                    continue;
+
+#if UNITY_2020_1_OR_NEWER
+                var raycastPadding = graphic.raycastPadding;
+#else
+                var raycastPadding = Vector4.zero;
+#endif
+
+                if (SphereIntersectsRectTransform(graphic.rectTransform, raycastPadding, origin, out var worldPos, out var distance))
+                {
+                    if (distance <= radius)
+                    {
+                        Vector2 screenPos = eventCamera.WorldToScreenPoint(worldPos);
+                        s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
+                    }
+                }
+            }
+
+            SortingHelpers.Sort(s_SortedGraphics, s_RaycastHitComparer);
+            results.AddRange(s_SortedGraphics);
+        }
+
         static void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, Camera eventCamera, List<RaycastHitData> results)
         {
             var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
@@ -329,11 +446,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 var graphic = graphics[i];
 
-                // -1 means it hasn't been processed by the canvas, which means it isn't actually drawn
-                if (graphic.depth == -1 || !graphic.raycastTarget || graphic.canvasRenderer.cull)
-                    continue;
-
-                if (((1 << graphic.gameObject.layer) & layerMask) == 0)
+                if (!ShouldTestGraphic(graphic, layerMask))
                     continue;
 
 #if UNITY_2020_1_OR_NEWER
@@ -360,11 +473,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             results.AddRange(s_SortedGraphics);
         }
 
+        static bool ShouldTestGraphic(Graphic graphic, LayerMask layerMask)
+        {
+            // -1 means it hasn't been processed by the canvas, which means it isn't actually drawn
+            if (graphic.depth == -1 || !graphic.raycastTarget || graphic.canvasRenderer.cull)
+                return false;
+
+            if (((1 << graphic.gameObject.layer) & layerMask) == 0)
+                return  false;
+
+            return true;
+        }
+
+        static bool SphereIntersectsRectTransform(RectTransform transform, Vector4 raycastPadding, Vector3 from, out Vector3 worldPosition, out float distance)
+        {
+            var plane = GetRectTransformPlane(transform, raycastPadding, s_Corners);
+            var closestPoint = plane.ClosestPointOnPlane(from);
+            var ray = new Ray(from, closestPoint - from);
+            return RayIntersectsRectTransform(ray, plane, out worldPosition, out distance);
+        }
+
         static bool RayIntersectsRectTransform(RectTransform transform, Vector4 raycastPadding, Ray ray, out Vector3 worldPosition, out float distance)
         {
-            GetRectTransformWorldCorners(transform, raycastPadding, s_Corners);
-            var plane = new Plane(s_Corners[0], s_Corners[1], s_Corners[2]);
+            var plane = GetRectTransformPlane(transform, raycastPadding, s_Corners);
+            return RayIntersectsRectTransform(ray, plane, out worldPosition, out distance);
+        }
 
+        static bool RayIntersectsRectTransform(Ray ray, Plane plane, out Vector3 worldPosition, out float distance)
+        {
             if (plane.Raycast(ray, out var enter))
             {
                 var intersection = ray.GetPoint(enter);
@@ -397,6 +533,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return false;
         }
 
+        static Plane GetRectTransformPlane(RectTransform transform, Vector4 raycastPadding, Vector3[] fourCornersArray)
+        {
+            GetRectTransformWorldCorners(transform, raycastPadding, fourCornersArray);
+            return new Plane(fourCornersArray[0], fourCornersArray[1], fourCornersArray[2]);
+        }
+
         // This method is similar to RecTransform.GetWorldCorners, but with support for the raycastPadding offset.
         static void GetRectTransformWorldCorners(RectTransform transform, Vector4 offset, Vector3[] fourCornersArray)
         {
@@ -425,6 +567,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var localToWorldMatrix = transform.localToWorldMatrix;
             for (var index = 0; index < 4; ++index)
                 fourCornersArray[index] = localToWorldMatrix.MultiplyPoint(fourCornersArray[index]);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        protected void OnDrawGizmosSelected()
+        {
+#if UNITY_EDITOR
+            if (!enabled)
+                return;
+
+            if (m_PokeLogic != null)
+                m_PokeLogic?.DrawGizmos();
+#endif
         }
     }
 }

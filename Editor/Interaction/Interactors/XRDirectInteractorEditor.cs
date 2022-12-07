@@ -27,6 +27,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawInteractionConfiguration()
         {
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
+            EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
         }
 
         /// <summary>

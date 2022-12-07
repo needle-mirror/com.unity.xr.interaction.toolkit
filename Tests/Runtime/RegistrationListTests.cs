@@ -85,6 +85,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [Test, TestCaseSource(nameof(GetRegistrationList))]
+        public void RegistrationListMoveItemImmediatelyReturnsStatusChange(BaseRegistrationList<string> registrationList)
+        {
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.False);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+
+            Assert.That(registrationList.Unregister("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.False);
+
+            registrationList.Flush();
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+
+            Assert.That(registrationList.MoveItemImmediately("B", 0), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.True);
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.False);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.True);
+
+            Assert.That(registrationList.MoveItemImmediately("B", 1), Is.False);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.True);
+        }
+
+        [Test, TestCaseSource(nameof(GetRegistrationList))]
+        public void RegistrationListMoveItemImmediatelyAffectsSnapshotImmediately(BaseRegistrationList<string> registrationList)
+        {
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.True);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+
+            Assert.That(registrationList.Unregister("A"), Is.True);
+            registrationList.Flush();
+            Assert.That(registrationList.registeredSnapshot, Is.Empty);
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.True);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+
+            Assert.That(registrationList.MoveItemImmediately("B", 0), Is.True);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "B", "A" }));
+
+            Assert.That(registrationList.MoveItemImmediately("A", 0), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A", "B" }));
+
+            Assert.That(registrationList.MoveItemImmediately("B", 1), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A", "B" }));
+        }
+
+        [Test, TestCaseSource(nameof(GetRegistrationList))]
         public void RegistrationListSnapshotUnaffectedUntilFlush(BaseRegistrationList<string> registrationList)
         {
             Assert.That(registrationList.Register("A"), Is.True);
@@ -125,6 +181,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             registrationList.Flush();
 
             // Should still be equal after flush
+            registrationList.GetRegisteredItems(registeredItems);
+            Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
+            Assert.That(registrationList.GetRegisteredItemAt(0), Is.EqualTo("A"));
+
+            // Removing and adding the same item should have no net change
+            Assert.That(registrationList.Unregister("A"), Is.True);
+            Assert.That(registrationList.Register("A"), Is.True);
             registrationList.GetRegisteredItems(registeredItems);
             Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
             Assert.That(registrationList.GetRegisteredItemAt(0), Is.EqualTo("A"));
@@ -187,23 +250,71 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Unregister all items
             registrationList.UnregisterAll();
             registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems,  Is.Empty);
+            Assert.That(registeredItems, Is.Empty);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A", "B" }));
-            Assert.That(registrationList.IsRegistered("A"),  Is.False);
-            Assert.That(registrationList.IsStillRegistered("A"),  Is.False);
-            Assert.That(registrationList.IsRegistered("B"),  Is.False);
-            Assert.That(registrationList.IsStillRegistered("B"),  Is.False);
-            Assert.That(registrationList.IsRegistered("C"),  Is.False);
-            Assert.That(registrationList.IsStillRegistered("C"),  Is.False);
+            Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
+            Assert.That(registrationList.IsRegistered("B"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("B"), Is.False);
+            Assert.That(registrationList.IsRegistered("C"), Is.False);
+            // Not calling IsStillRegistered("C") since it was not part of the registered snapshot,
+            // so it is not valid to call that method. The IsStillRegistered method is used while
+            // iterating the registered snapshot, and it was already verified that "C" is not in it.
 
             // Flush and retest
             registrationList.Flush();
             registrationList.GetRegisteredItems(registeredItems);
-            Assert.That(registeredItems,  Is.Empty);
+            Assert.That(registeredItems, Is.Empty);
             Assert.That(registrationList.registeredSnapshot, Is.Empty);
-            Assert.That(registrationList.IsRegistered("A"),  Is.False);
-            Assert.That(registrationList.IsRegistered("B"),  Is.False);
-            Assert.That(registrationList.IsRegistered("C"),  Is.False);
+            Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsRegistered("B"), Is.False);
+            Assert.That(registrationList.IsRegistered("C"), Is.False);
+        }
+
+        [Test, TestCaseSource(nameof(GetRegistrationList))]
+        public void RegistrationListRemoveBufferedRemove(BaseRegistrationList<string> registrationList)
+        {
+            // Register A and Flush
+            Assert.That(registrationList.Register("A"), Is.True);
+            registrationList.Flush();
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+            Assert.That(registrationList.flushedCount, Is.EqualTo(1));
+            Assert.That(registrationList.GetRegisteredItemAt(0), Is.EqualTo("A"));
+            var registeredItems = new List<string>();
+            registrationList.GetRegisteredItems(registeredItems);
+            Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
+
+            // Register B (as a buffered change)
+            Assert.That(registrationList.Register("B"), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.True);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+            Assert.That(registrationList.flushedCount, Is.EqualTo(2));
+            Assert.That(registrationList.GetRegisteredItemAt(0), Is.EqualTo("A"));
+            Assert.That(registrationList.GetRegisteredItemAt(1), Is.EqualTo("B"));
+            registrationList.GetRegisteredItems(registeredItems);
+            Assert.That(registeredItems, Is.EqualTo(new[] { "A", "B" }));
+
+            // Unregister B (without first calling Flush) to remove buffered add
+            Assert.That(registrationList.Unregister("B"), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("B"), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+            Assert.That(registrationList.flushedCount, Is.EqualTo(1));
+            Assert.That(registrationList.GetRegisteredItemAt(0), Is.EqualTo("A"));
+            registrationList.GetRegisteredItems(registeredItems);
+            Assert.That(registeredItems, Is.EqualTo(new[] { "A" }));
+
+            // Unregister A
+            Assert.That(registrationList.Unregister("A"), Is.True);
+            Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsRegistered("B"), Is.False);
+            Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
+            Assert.That(registrationList.flushedCount, Is.EqualTo(0));
+            registrationList.GetRegisteredItems(registeredItems);
+            Assert.That(registeredItems, Is.Empty);
         }
 
         [Test]

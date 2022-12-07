@@ -25,6 +25,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HoverToSelect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hoverTimeToSelect"/>.</summary>
         protected SerializedProperty m_HoverTimeToSelect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.autoDeselect"/>.</summary>
+        protected SerializedProperty m_AutoDeselect;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.timeToAutoDeselect"/>.</summary>
+        protected SerializedProperty m_TimeToAutoDeselect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
         protected SerializedProperty m_EnableUIInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
@@ -89,6 +93,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent hoverToSelect = EditorGUIUtility.TrTextContent("Hover To Select", "Automatically select an Interactable after hovering over it for a period of time.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverTimeToSelect"/>.</summary>
             public static readonly GUIContent hoverTimeToSelect = EditorGUIUtility.TrTextContent("Hover Time To Select", "Number of seconds for which this Interactor must hover over an Interactable to select it.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.autoDeselect"/>.</summary>
+            public static readonly GUIContent autoDeselect = EditorGUIUtility.TrTextContent("Auto Deselect", "Automatically deselect an Interactable after selecting it via hover to select for a period of time.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.timeToAutoDeselect"/>.</summary>
+            public static readonly GUIContent timeToAutoDeselect = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds for which this Interactor will select an Interactable before the Interactable is automatically deselected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
@@ -146,6 +154,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_HitClosestOnly = serializedObject.FindProperty("m_HitClosestOnly");
             m_HoverToSelect = serializedObject.FindProperty("m_HoverToSelect");
             m_HoverTimeToSelect = serializedObject.FindProperty("m_HoverTimeToSelect");
+            m_AutoDeselect = serializedObject.FindProperty("m_AutoDeselect");
+            m_TimeToAutoDeselect = serializedObject.FindProperty("m_TimeToAutoDeselect");
             m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
             m_RayOriginTransform = serializedObject.FindProperty("m_RayOriginTransform");
 
@@ -235,6 +245,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_RayOriginTransform, Contents.rayOriginTransform);
+            EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
         }
 
         /// <summary>
@@ -335,6 +346,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_HoverTimeToSelect, Contents.hoverTimeToSelect);
+                }
+                EditorGUILayout.PropertyField(m_AutoDeselect, Contents.autoDeselect);
+                if (m_AutoDeselect.boolValue)
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(m_TimeToAutoDeselect, Contents.timeToAutoDeselect);
+                    }
                 }
             }
             EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);

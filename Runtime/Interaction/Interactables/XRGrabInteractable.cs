@@ -99,6 +99,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AttachTransform = value;
         }
 
+        [HideInInspector]
+        [SerializeField]
+        Transform m_SecondaryAttachTransform;
+        
+        /// <summary>
+        /// The secondary attachment point to use on this Interactable for multi-hand interaction (will use the second interactor's attach transform if none set).
+        /// Used for multi-grab interactions.
+        /// </summary>
+        public Transform secondaryAttachTransform
+        {
+            get => m_SecondaryAttachTransform;
+            set => m_SecondaryAttachTransform = value;
+        }
+
         [SerializeField]
         bool m_UseDynamicAttach;
 
@@ -172,6 +186,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_SnapToColliderVolume;
             set => m_SnapToColliderVolume = value;
+        }
+
+        [SerializeField]
+        bool m_ReinitializeDynamicAttachEverySingleGrab = true;
+
+        /// <summary>
+        /// Re-initialize the dynamic attachment pose when changing from multiple grabs back to a single grab.
+        /// Use this if you want to keep the current pose of the object after releasing a second hand
+        /// rather than reverting back to the attach pose from the original grab.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="IXRSelectInteractable.selectMode"/> must be set to <see cref="InteractableSelectMode.Multiple"/> for
+        /// this setting to take effect.
+        /// </remarks>
+        /// <seealso cref="useDynamicAttach"/>
+        /// <seealso cref="IXRSelectInteractable.selectMode"/>
+        public bool reinitializeDynamicAttachEverySingleGrab
+        {
+            get => m_ReinitializeDynamicAttachEverySingleGrab;
+            set => m_ReinitializeDynamicAttachEverySingleGrab = value;
         }
 
         [SerializeField]
@@ -588,6 +622,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         List<IXRGrabTransformer> m_GrabTransformersAddedWhenGrabbed;
         bool m_GrabCountChanged;
+        (int, int) m_GrabCountBeforeAndAfterChange;
         bool m_IsProcessingGrabTransformers;
 
         // World pose we are moving towards each frame (eventually will be at Interactor's attach point assuming default single grab algorithm)
@@ -705,7 +740,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.ProcessInteractable(updatePhase);
 
-            // This is done here instead of Start since adding a Start method would be a breaking change.
+            // Add the default grab transformers if needed.
+            // This is done here (as opposed to Awake) since transformer behaviors automatically register in their Start,
+            // so existing components should have a chance to register before we add the default grab transformers.
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
                 AddDefaultGrabTransformers();
 
@@ -754,7 +791,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override Transform GetAttachTransform(IXRInteractor interactor)
         {
-            if (m_UseDynamicAttach && interactor is IXRSelectInteractor selectInteractor &&
+            bool isFirst = interactorsSelecting.Count <= 1 || ReferenceEquals(interactor, interactorsSelecting[0]);
+            
+            // If first selector, do normal behavior.
+            // If second, we ignore dynamic attach setting if there is no secondary attach transform.
+            var shouldUseDynamicAttach = m_UseDynamicAttach || (!isFirst && m_SecondaryAttachTransform == null);
+            
+            if (shouldUseDynamicAttach && interactor is IXRSelectInteractor selectInteractor &&
                 m_DynamicAttachTransforms.TryGetValue(selectInteractor, out var dynamicAttachTransform))
             {
                 if (dynamicAttachTransform != null)
@@ -763,6 +806,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_DynamicAttachTransforms.Remove(selectInteractor);
                 Debug.LogWarning($"Dynamic Attach Transform created by {this} for {interactor} was destroyed after being created." +
                     " Continuing as if Use Dynamic Attach was disabled for this pair.", this);
+            }
+
+            // If not first, and not using dynamic attach, then we must have a secondary attach transform set.
+            if (!isFirst && !shouldUseDynamicAttach)
+            {
+                return m_SecondaryAttachTransform;
             }
 
             return m_AttachTransform != null ? m_AttachTransform : base.GetAttachTransform(interactor);
@@ -1106,7 +1155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Adds the default grab transformer (if the Single Grab Transformers list is empty)
+        /// Adds the default <seealso cref="XRGeneralGrabTransformer"/> (if the Single or Multiple Grab Transformers lists are empty)
         /// to the list of transformers used when there is a single interactor selecting this object.
         /// </summary>
         /// <seealso cref="addDefaultGrabTransformers"/>
@@ -1114,7 +1163,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_SingleGrabTransformers.flushedCount == 0)
             {
-                var transformer = GetOrAddComponent<XRSingleGrabFreeTransformer>();
+                var transformer = GetOrAddDefaultGrabTransformer();
                 AddSingleGrabTransformer(transformer);
             }
         }
@@ -1128,11 +1177,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_MultipleGrabTransformers.flushedCount == 0)
             {
-                var transformer = GetOrAddComponent<XRDualGrabFreeTransformer>();
+                var transformer = GetOrAddDefaultGrabTransformer();
                 AddMultipleGrabTransformer(transformer);
             }
         }
 
+        IXRGrabTransformer GetOrAddDefaultGrabTransformer()
+        {
+            return GetOrAddComponent<XRGeneralGrabTransformer>();
+        }
+        
         T GetOrAddComponent<T>() where T : Component
         {
             return TryGetComponent<T>(out var component) ? component : gameObject.AddComponent<T>();
@@ -1140,6 +1194,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void UpdateTarget(XRInteractionUpdateOrder.UpdatePhase updatePhase, float deltaTime)
         {
+            // If the grab count changed to a lower number, and it is now 1, we need to recompute the dynamic attach transform for the interactor.
+            if (m_ReinitializeDynamicAttachEverySingleGrab && m_GrabCountChanged && m_GrabCountBeforeAndAfterChange.Item2 < m_GrabCountBeforeAndAfterChange.Item1 && interactorsSelecting.Count == 1 &&
+                m_DynamicAttachTransforms.Count > 0 && m_DynamicAttachTransforms.TryGetValue(interactorsSelecting[0], out var dynamicAttachTransform))
+            {
+                InitializeDynamicAttachPoseInternal(interactorsSelecting[0], dynamicAttachTransform);
+            }
+
             var rawTargetPose = m_TargetPose;
             InvokeGrabTransformersProcess(updatePhase, ref rawTargetPose, ref m_TargetLocalScale);
 
@@ -1300,15 +1361,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             // Setup the dynamic attach transform.
             // Done before calling the base method so the attach pose captured is the dynamic one.
-            if (m_UseDynamicAttach)
-            {
-                var dynamicAttachTransform = CreateDynamicAttach(args.interactorObject);
-                InitializeDynamicAttachPose(args.interactorObject, dynamicAttachTransform);
-            }
+            var dynamicAttachTransform = CreateDynamicAttachTransform(args.interactorObject);
+            InitializeDynamicAttachPoseInternal(args.interactorObject, dynamicAttachTransform);
 
+            // Store the grab count change.
+            var grabCountBeforeChange = interactorsSelecting.Count;
             base.OnSelectEntering(args);
+            var grabCountAfterChange = interactorsSelecting.Count;
 
             m_GrabCountChanged = true;
+            m_GrabCountBeforeAndAfterChange = (grabCountBeforeChange, grabCountAfterChange);
             m_CurrentAttachEaseTime = 0f;
 
             // Reset the throw data every time the number of grabs increases since
@@ -1324,19 +1386,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 InvokeGrabTransformersOnGrab();
             }
 
-            // Add the default grab transformers if needed.
-            // This will notify of the grab, so it is done after the above code so the transformer is not notified twice.
-            AddDefaultGrabTransformers();
-
             SubscribeTeleportationProvider(args.interactorObject);
         }
 
         /// <inheritdoc />
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
+            // Store the grab count change.
+            var grabCountBeforeChange = interactorsSelecting.Count;
             base.OnSelectExiting(args);
+            var grabCountAfterChange = interactorsSelecting.Count;
 
             m_GrabCountChanged = true;
+            m_GrabCountBeforeAndAfterChange = (grabCountBeforeChange, grabCountAfterChange);
             m_CurrentAttachEaseTime = 0f;
 
             if (interactorsSelecting.Count == 0)
@@ -1350,19 +1412,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnSelectExited(args);
 
-            // Skip checking m_UseDynamicAttach since it may have changed after being grabbed,
-            // and we should ensure it is released. We instead check Count first as a faster way to avoid hashing
-            // and the Dictionary lookup, which should handle when it was never enabled in the first place.
-            if (m_DynamicAttachTransforms.Count > 0 && m_DynamicAttachTransforms.TryGetValue(args.interactorObject, out var dynamicAttachTransform))
-            {
-                if (dynamicAttachTransform != null)
-                    s_DynamicAttachTransformPool.Release(dynamicAttachTransform);
-
-                m_DynamicAttachTransforms.Remove(args.interactorObject);
-            }
+            ReleaseDynamicAttachTransform(args.interactorObject);
         }
 
-        Transform CreateDynamicAttach(IXRSelectInteractor interactor)
+        Transform CreateDynamicAttachTransform(IXRSelectInteractor interactor)
         {
             Transform dynamicAttachTransform;
 
@@ -1371,14 +1424,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 dynamicAttachTransform = s_DynamicAttachTransformPool.Get();
             } while (dynamicAttachTransform == null);
 
-            m_DynamicAttachTransforms.Remove(interactor);
-            var staticAttachTransform = GetAttachTransform(interactor);
-            m_DynamicAttachTransforms[interactor] = dynamicAttachTransform;
-
 #if UNITY_EDITOR
             dynamicAttachTransform.name = $"[{interactor.transform.name}] Dynamic Attach";
 #endif
             dynamicAttachTransform.SetParent(transform, false);
+
+            return dynamicAttachTransform;
+        }
+
+        void InitializeDynamicAttachPoseInternal(IXRSelectInteractor interactor, Transform dynamicAttachTransform)
+        {
+            // InitializeDynamicAttachPose expects it to be initialized with the static pose first
+            InitializeDynamicAttachPoseWithStatic(interactor, dynamicAttachTransform);
+            InitializeDynamicAttachPose(interactor, dynamicAttachTransform);
+        }
+
+        void InitializeDynamicAttachPoseWithStatic(IXRSelectInteractor interactor, Transform dynamicAttachTransform)
+        {
+            m_DynamicAttachTransforms.Remove(interactor);
+            var staticAttachTransform = GetAttachTransform(interactor);
+            m_DynamicAttachTransforms[interactor] = dynamicAttachTransform;
 
             // Base the initial pose on the Attach Transform.
             // Technically we could just do the final else statement, but setting the local position and rotation this way
@@ -1398,8 +1463,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 dynamicAttachTransform.SetPositionAndRotation(staticAttachTransform.position, staticAttachTransform.rotation);
             }
+        }
 
-            return dynamicAttachTransform;
+        void ReleaseDynamicAttachTransform(IXRSelectInteractor interactor)
+        {
+            // Skip checking m_UseDynamicAttach since it may have changed after being grabbed,
+            // and we should ensure it is released. We instead check Count first as a faster way to avoid hashing
+            // and the Dictionary lookup, which should handle when it was never enabled in the first place.
+            if (m_DynamicAttachTransforms.Count > 0 && m_DynamicAttachTransforms.TryGetValue(interactor, out var dynamicAttachTransform))
+            {
+                if (dynamicAttachTransform != null)
+                    s_DynamicAttachTransformPool.Release(dynamicAttachTransform);
+
+                m_DynamicAttachTransforms.Remove(interactor);
+            }
         }
 
         /// <summary>

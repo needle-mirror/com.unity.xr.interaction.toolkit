@@ -6,7 +6,8 @@
         "UnityEngine.SpatialTracking",
         "Unity.XR.ARFoundation",
         "Unity.InputSystem",
-        "Unity.XR.CoreUtils"
+        "Unity.XR.CoreUtils",
+        "Unity.XR.CoreUtils.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -18,6 +19,11 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.5.0",
+            "define": "INPUT_SYSTEM_1_5_OR_NEWER"
+        },
         {
             "name": "com.unity.inputsystem",
             "expression": "1.1.0-pre.6",

@@ -5,7 +5,7 @@ Locomotion provider that allows the user to smoothly move their rig continuously
 ![DeviceBasedContinuousMoveProvider component](images/continuous-move-provider-device-based.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **System** | The [LocomotionSystem](locomotion-system.md) that this `LocomotionProvider` communicates with for exclusive access to an XR Origin. If one is not provided, the behavior will attempt to locate one during its Awake call. |
 | **Move Speed** | The speed, in units per second, to move forward. |
 | **Enable Strafe** | Controls whether to enable strafing (sideways movement). |

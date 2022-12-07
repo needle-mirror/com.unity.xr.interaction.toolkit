@@ -2,12 +2,12 @@
 
 Interprets feature values on a tracked input controller device from the XR input subsystem into XR Interaction states, such as Select. Additionally, it applies the current Pose value of a tracked device to the transform of the `GameObject`.
 
-It is recommended to use the [action-based controller](xr-controller-action-based.md) instead of this behavior. This behavior does not need as much initial setup as compared to the action-based controller, however input processing is less customizable and [XRDeviceSimulator](xr-device-simulator.md) cannot be used to drive this behavior.
+It is recommended to use the [action-based controller](xr-controller-action-based.md) instead of this behavior. This behavior does not need as much initial setup as compared to the action-based controller, however input processing is less customizable and [`XRDeviceSimulator`](xr-device-simulator.md) cannot be used to drive this behavior.
 
 ![XRController component](images/xr-controller-device-based.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Update Tracking Type** | The time within the frame that the controller samples tracking input. |
 | &emsp;Update | Set **Update Tracking Type** to **Update** to sample tracking input only during the `MonoBehaviour` `Update` step. |
 | &emsp;Before Render | Set **Update Tracking Type** to **Before Render** to sample tracking input only during the step immediately before rendering. |

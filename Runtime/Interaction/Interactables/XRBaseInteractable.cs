@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Profiling;
+using Unity.XR.CoreUtils.Bindings.Variables;
+using Unity.XR.CoreUtils.Collections;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
@@ -17,8 +20,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [SelectionBase]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactables)]
-    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable
+    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect
     {
+        const float k_InteractionStrengthHover = 0f;
+        const float k_InteractionStrengthSelect = 1f;
+
         /// <summary>
         /// Options for how to process and perform movement of an Interactable.
         /// </summary>
@@ -99,19 +105,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             TransformPosition,
 
             /// <summary>
-            /// Calculates the distance using the Interactable's Colliders list using the shortest distance to each.
+            /// Calculates the distance using the Interactable's colliders list using the shortest distance to each.
             /// This option has moderate performance cost and should have moderate distance calculation accuracy for most objects.
             /// </summary>
             /// <seealso cref="XRInteractableUtility.TryGetClosestCollider"/>
             ColliderPosition,
 
             /// <summary>
-            /// Calculates the distance using the Interactable's Colliders list using the shortest distance to the closest point of each
+            /// Calculates the distance using the Interactable's colliders list using the shortest distance to the closest point of each
             /// (either on the surface or inside the Collider).
             /// This option has high performance cost but high distance calculation accuracy.
             /// </summary>
             /// <remarks>
-            /// The Interactable's Colliders can only be BoxColliders, SphereColliders, CapsuleColliders or convex MeshColliders.
+            /// The Interactable's colliders can only be of type <see cref="BoxCollider"/>, <see cref="SphereCollider"/>, <see cref="CapsuleCollider"/>, or convex <see cref="MeshCollider"/>.
             /// </remarks>
             /// <seealso cref="Collider.ClosestPoint"/>
             /// <seealso cref="XRInteractableUtility.TryGetClosestPointOnCollider"/>
@@ -226,6 +232,76 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        bool m_AllowGazeInteraction;
+        /// <summary>
+        /// Enables interaction with <see cref="XRGazeInteractor"/>.
+        /// </summary>
+        public bool allowGazeInteraction
+        {
+            get => m_AllowGazeInteraction;
+            set => m_AllowGazeInteraction = value;
+        }
+
+        [SerializeField]
+        bool m_AllowGazeSelect;
+        /// <summary>
+        /// Enables <see cref="XRGazeInteractor"/> to select this <see cref="XRBaseInteractable"/>.
+        /// </summary>
+        /// <seealso cref="XRRayInteractor.hoverToSelect"/>
+        public bool allowGazeSelect
+        {
+            get => m_AllowGazeSelect;
+            set => m_AllowGazeSelect = value;
+        }
+
+        [SerializeField]
+        bool m_OverrideGazeTimeToSelect;
+        /// <inheritdoc />
+        public bool overrideGazeTimeToSelect
+        {
+            get => m_OverrideGazeTimeToSelect;
+            set => m_OverrideGazeTimeToSelect = value;
+        }
+
+        [SerializeField]
+        float m_GazeTimeToSelect = 0.5f;
+        /// <inheritdoc />
+        public float gazeTimeToSelect
+        {
+            get => m_GazeTimeToSelect;
+            set => m_GazeTimeToSelect = value;
+        }
+
+        [SerializeField]
+        bool m_OverrideTimeToAutoDeselectGaze;
+        /// <inheritdoc />
+        public bool overrideTimeToAutoDeselectGaze
+        {
+            get => m_OverrideTimeToAutoDeselectGaze;
+            set => m_OverrideTimeToAutoDeselectGaze = value;
+        }
+
+        [SerializeField]
+        float m_TimeToAutoDeselectGaze = 3f;
+        /// <inheritdoc />
+        public float timeToAutoDeselectGaze
+        {
+            get => m_TimeToAutoDeselectGaze;
+            set => m_TimeToAutoDeselectGaze = value;
+        }
+
+        [SerializeField]
+        bool m_AllowGazeAssistance;
+        /// <summary>
+        /// Enables gaze assistance with this interactable.
+        /// </summary>
+        public bool allowGazeAssistance
+        {
+            get => m_AllowGazeAssistance;
+            set => m_AllowGazeAssistance = value;
+        }
+
+        [SerializeField]
         HoverEnterEvent m_FirstHoverEntered = new HoverEnterEvent();
 
         /// <inheritdoc />
@@ -325,20 +401,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_Deactivated = value;
         }
 
-        /// <inheritdoc />
-        public List<IXRHoverInteractor> interactorsHovering { get; } = new List<IXRHoverInteractor>();
+        readonly HashSetList<IXRHoverInteractor> m_InteractorsHovering = new HashSetList<IXRHoverInteractor>();
 
         /// <inheritdoc />
-        public bool isHovered => interactorsHovering.Count > 0;
+        public List<IXRHoverInteractor> interactorsHovering => (List<IXRHoverInteractor>)m_InteractorsHovering.AsList();
 
         /// <inheritdoc />
-        public List<IXRSelectInteractor> interactorsSelecting { get; } = new List<IXRSelectInteractor>();
+        public bool isHovered => m_InteractorsHovering.Count > 0;
+
+        readonly HashSetList<IXRSelectInteractor> m_InteractorsSelecting = new HashSetList<IXRSelectInteractor>();
+
+        /// <inheritdoc />
+        public List<IXRSelectInteractor> interactorsSelecting => (List<IXRSelectInteractor>)m_InteractorsSelecting.AsList();
 
         /// <inheritdoc />
         public IXRSelectInteractor firstInteractorSelecting { get; private set; }
 
         /// <inheritdoc />
-        public bool isSelected => interactorsSelecting.Count > 0;
+        public bool isSelected => m_InteractorsSelecting.Count > 0;
 
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
@@ -408,11 +488,65 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ProcessSelectFilters"/>
         public IXRFilterList<IXRSelectFilter> selectFilters => m_SelectFilters;
 
+        [SerializeField]
+        [RequireInterface(typeof(IXRInteractionStrengthFilter))]
+        List<Object> m_StartingInteractionStrengthFilters = new List<Object>();
+
+        /// <summary>
+        /// The interaction strength filters that this object uses to automatically populate the <see cref="interactionStrengthFilters"/> List at
+        /// startup (optional, may be empty).
+        /// All objects in this list should implement the <see cref="IXRInteractionStrengthFilter"/> interface.
+        /// </summary>
+        /// <remarks>
+        /// To access and modify the select filters used after startup, the <see cref="interactionStrengthFilters"/> List should
+        /// be used instead.
+        /// </remarks>
+        /// <seealso cref="interactionStrengthFilters"/>
+        public List<Object> startingInteractionStrengthFilters
+        {
+            get => m_StartingInteractionStrengthFilters;
+            set => m_StartingInteractionStrengthFilters = value;
+        }
+
+        readonly ExposedRegistrationList<IXRInteractionStrengthFilter> m_InteractionStrengthFilters = new ExposedRegistrationList<IXRInteractionStrengthFilter> { bufferChanges = false };
+
+        /// <summary>
+        /// The list of interaction strength filters in this object.
+        /// Used to modify the default interaction strength of an Interactor relative to this Interactable.
+        /// This is useful for interactables that can be poked to report the depth of the poke interactor as a percentage
+        /// while the poke interactor is hovering over this object.
+        /// </summary>
+        /// <remarks>
+        /// While processing interaction strength filters, all changes to this list don't have an immediate effect. Theses changes are
+        /// buffered and applied when the processing is finished.
+        /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
+        /// </remarks>
+        /// <seealso cref="ProcessInteractionStrengthFilters"/>
+        public IXRFilterList<IXRInteractionStrengthFilter> interactionStrengthFilters => m_InteractionStrengthFilters;
+
+        readonly BindableVariable<float> m_LargestInteractionStrength = new BindableVariable<float>();
+
+        /// <inheritdoc />
+        public IReadOnlyBindableVariable<float> largestInteractionStrength => m_LargestInteractionStrength;
+
         readonly Dictionary<IXRSelectInteractor, Pose> m_AttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
 
         readonly Dictionary<IXRSelectInteractor, Pose> m_LocalAttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
 
         readonly Dictionary<IXRInteractor, GameObject> m_ReticleCache = new Dictionary<IXRInteractor, GameObject>();
+
+        /// <summary>
+        /// The set of hovered and/or selected interactors that supports returning a variable select input value,
+        /// which is used as the pre-filtered interaction strength.
+        /// </summary>
+        /// <remarks>
+        /// Uses <see cref="XRBaseControllerInteractor"/> as the type to get the select input value to use as the pre-filtered
+        /// interaction strength. This will be replaced with the interface for the select input value when the dependency
+        /// on the <see cref="XRBaseController"/> is removed in a future version of XRI.
+        /// </remarks>
+        readonly HashSetList<XRBaseControllerInteractor> m_VariableSelectInteractors = new HashSetList<XRBaseControllerInteractor>();
+
+        readonly Dictionary<IXRInteractor, float> m_InteractionStrengths = new Dictionary<IXRInteractor, float>();
 
         XRInteractionManager m_RegisteredInteractionManager;
 
@@ -420,6 +554,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Cached reference to an <see cref="XRInteractionManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static XRInteractionManager s_InteractionManagerCache;
+
+        static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength.Interactables");
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -439,11 +575,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             // If no colliders were set, populate with children colliders
             if (m_Colliders.Count == 0)
+            {
                 GetComponentsInChildren(m_Colliders);
+                // Skip any that are trigger colliders since these are usually associated with snap volumes.
+                // If a user wants to use a trigger collider, they must serialize the reference manually.
+                m_Colliders.RemoveAll(col => col.isTrigger);
+            }
 
             // Setup the starting filters
             m_HoverFilters.RegisterReferences(m_StartingHoverFilters, this);
             m_SelectFilters.RegisterReferences(m_StartingSelectFilters, this);
+            m_InteractionStrengthFilters.RegisterReferences(m_StartingInteractionStrengthFilters, this);
 
             // Setup Interaction Manager
             FindCreateInteractionManager();
@@ -610,13 +752,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <inheritdoc />
+        public float GetInteractionStrength(IXRInteractor interactor)
+        {
+            if (m_InteractionStrengths.TryGetValue(interactor, out var interactionStrength))
+                return interactionStrength;
+
+            return 0f;
+        }
+
         /// <summary>
         /// Determines if a given Interactor can hover over this Interactable.
         /// </summary>
         /// <param name="interactor">Interactor to check for a valid hover state with.</param>
         /// <returns>Returns <see langword="true"/> if hovering is valid this frame. Returns <see langword="false"/> if not.</returns>
         /// <seealso cref="IXRHoverInteractor.CanHover"/>
-        public virtual bool IsHoverableBy(IXRHoverInteractor interactor) => true;
+        public virtual bool IsHoverableBy(IXRHoverInteractor interactor)
+        {
+            return m_AllowGazeInteraction || !(interactor is XRGazeInteractor);
+        }
 
         /// <summary>
         /// Determines if a given Interactor can select this Interactable.
@@ -624,12 +778,81 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">Interactor to check for a valid selection with.</param>
         /// <returns>Returns <see langword="true"/> if selection is valid this frame. Returns <see langword="false"/> if not.</returns>
         /// <seealso cref="IXRSelectInteractor.CanSelect"/>
-        public virtual bool IsSelectableBy(IXRSelectInteractor interactor) => true;
+        public virtual bool IsSelectableBy(IXRSelectInteractor interactor)
+        {
+            return (m_AllowGazeInteraction && m_AllowGazeSelect) || !(interactor is XRGazeInteractor);
+        }
+
+        /// <summary>
+        /// Determines whether this Interactable is currently being hovered by the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor to check.</param>
+        /// <returns>Returns <see langword="true"/> if this Interactable is currently being hovered by the Interactor.
+        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// <remarks>
+        /// In other words, returns whether <see cref="interactorsHovering"/> contains <paramref name="interactor"/>.
+        /// </remarks>
+        /// <seealso cref="interactorsHovering"/>
+        public bool IsHovered(IXRHoverInteractor interactor) => m_InteractorsHovering.Contains(interactor);
+
+        /// <summary>
+        /// Determines whether this Interactable is currently being selected by the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor to check.</param>
+        /// <returns>Returns <see langword="true"/> if this Interactable is currently being selected by the Interactor.
+        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// <remarks>
+        /// In other words, returns whether <see cref="interactorsSelecting"/> contains <paramref name="interactor"/>.
+        /// </remarks>
+        /// <seealso cref="interactorsSelecting"/>
+        public bool IsSelected(IXRSelectInteractor interactor) => m_InteractorsSelecting.Contains(interactor);
+
+        /// <summary>
+        /// Determines whether this Interactable is currently being hovered by the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor to check.</param>
+        /// <returns>Returns <see langword="true"/> if this Interactable is currently being hovered by the Interactor.
+        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// <remarks>
+        /// In other words, returns whether <see cref="interactorsHovering"/> contains <paramref name="interactor"/>.
+        /// </remarks>
+        /// <seealso cref="interactorsHovering"/>
+        /// <seealso cref="IsHovered(IXRHoverInteractor)"/>
+        protected bool IsHovered(IXRInteractor interactor) => interactor is IXRHoverInteractor hoverInteractor && IsHovered(hoverInteractor);
+
+        /// <summary>
+        /// Determines whether this Interactable is currently being selected by the Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor to check.</param>
+        /// <returns>Returns <see langword="true"/> if this Interactable is currently being selected by the Interactor.
+        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// <remarks>
+        /// In other words, returns whether <see cref="interactorsSelecting"/> contains <paramref name="interactor"/>.
+        /// </remarks>
+        /// <seealso cref="interactorsSelecting"/>
+        /// <seealso cref="IsSelected(IXRSelectInteractor)"/>
+        protected bool IsSelected(IXRInteractor interactor) => interactor is IXRSelectInteractor selectInteractor && IsSelected(selectInteractor);
+
+        /// <summary>
+        /// Looks for the current custom reticle that is attached based on a specific Interactor.
+        /// </summary>
+        /// <param name="interactor">Interactor that is interacting with this Interactable.</param>
+        /// <returns>Returns <see cref="GameObject"/> that represents the attached custom reticle.</returns>
+        /// <seealso cref="AttachCustomReticle(IXRInteractor)"/>
+        public virtual GameObject GetCustomReticle(IXRInteractor interactor)
+        {
+            if (m_ReticleCache.TryGetValue(interactor, out var reticle))
+            {
+                return reticle;
+            }
+            return null;
+        }
 
         /// <summary>
         /// Attaches the custom reticle to the Interactor.
         /// </summary>
         /// <param name="interactor">Interactor that is interacting with this Interactable.</param>
+        /// <seealso cref="RemoveCustomReticle(IXRInteractor)"/>
         public virtual void AttachCustomReticle(IXRInteractor interactor)
         {
             var interactorTransform = interactor?.transform;
@@ -659,6 +882,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Removes the custom reticle from the Interactor.
         /// </summary>
         /// <param name="interactor">Interactor that is no longer interacting with this Interactable.</param>
+        /// <seealso cref="AttachCustomReticle(IXRInteractor)"/>
         public virtual void RemoveCustomReticle(IXRInteractor interactor)
         {
             var interactorTransform = interactor?.transform;
@@ -711,6 +935,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public virtual void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
         }
+
+        /// <inheritdoc />
+        void IXRInteractionStrengthInteractable.ProcessInteractionStrength(XRInteractionUpdateOrder.UpdatePhase updatePhase) => ProcessInteractionStrength(updatePhase);
 
         /// <inheritdoc />
         void IXRInteractable.OnRegistered(InteractableRegisteredEventArgs args) => OnRegistered(args);
@@ -826,7 +1053,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     AttachCustomReticle(args.interactorObject);
             }
 
-            interactorsHovering.Add(args.interactorObject);
+            var added = m_InteractorsHovering.Add(args.interactorObject);
+            Debug.Assert(added, "An Interactable received a Hover Enter event for an Interactor that was already hovering over it.", this);
+
+            if (args.interactorObject is XRBaseControllerInteractor variableSelectInteractor)
+                m_VariableSelectInteractors.Add(variableSelectInteractor);
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             hoveringInteractors.Add(args.interactor);
@@ -846,7 +1077,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnHoverExited(HoverExitEventArgs)"/>
         protected virtual void OnHoverEntered(HoverEnterEventArgs args)
         {
-            if (interactorsHovering.Count == 1)
+            if (m_InteractorsHovering.Count == 1)
                 m_FirstHoverEntered?.Invoke(args);
 
             m_HoverEntered?.Invoke(args);
@@ -878,7 +1109,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     RemoveCustomReticle(args.interactorObject);
             }
 
-            interactorsHovering.Remove(args.interactorObject);
+            var removed = m_InteractorsHovering.Remove(args.interactorObject);
+            Debug.Assert(removed, "An Interactable received a Hover Exit event for an Interactor that was not hovering over it.", this);
+
+            if (m_VariableSelectInteractors.Count > 0 &&
+                args.interactorObject is XRBaseControllerInteractor variableSelectInteractor &&
+                !IsSelected(variableSelectInteractor))
+            {
+                m_VariableSelectInteractors.Remove(variableSelectInteractor);
+            }
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             hoveringInteractors.Remove(args.interactor);
@@ -898,7 +1137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnHoverEntered(HoverEnterEventArgs)"/>
         protected virtual void OnHoverExited(HoverExitEventArgs args)
         {
-            if (interactorsHovering.Count == 0)
+            if (m_InteractorsHovering.Count == 0)
                 m_LastHoverExited?.Invoke(args);
 
             m_HoverExited?.Invoke(args);
@@ -920,9 +1159,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectEntered(SelectEnterEventArgs)"/>
         protected virtual void OnSelectEntering(SelectEnterEventArgs args)
         {
-            interactorsSelecting.Add(args.interactorObject);
+            var added = m_InteractorsSelecting.Add(args.interactorObject);
+            Debug.Assert(added, "An Interactable received a Select Enter event for an Interactor that was already selecting it.", this);
 
-            if (interactorsSelecting.Count == 1)
+            if (args.interactorObject is XRBaseControllerInteractor variableSelectInteractor)
+                m_VariableSelectInteractors.Add(variableSelectInteractor);
+
+            if (m_InteractorsSelecting.Count == 1)
                 firstInteractorSelecting = args.interactorObject;
 
             CaptureAttachPose(args.interactorObject);
@@ -944,7 +1187,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectExited(SelectExitEventArgs)"/>
         protected virtual void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (interactorsSelecting.Count == 1)
+            if (m_InteractorsSelecting.Count == 1)
                 m_FirstSelectEntered?.Invoke(args);
 
             m_SelectEntered?.Invoke(args);
@@ -966,7 +1209,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectExited(SelectExitEventArgs)"/>
         protected virtual void OnSelectExiting(SelectExitEventArgs args)
         {
-            interactorsSelecting.Remove(args.interactorObject);
+            var removed = m_InteractorsSelecting.Remove(args.interactorObject);
+            Debug.Assert(removed, "An Interactable received a Select Exit event for an Interactor that was not selecting it.", this);
+
+            if (m_VariableSelectInteractors.Count > 0 &&
+                args.interactorObject is XRBaseControllerInteractor variableSelectInteractor &&
+                !IsHovered(variableSelectInteractor))
+            {
+                m_VariableSelectInteractors.Remove(variableSelectInteractor);
+            }
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
             if (args.isCanceled)
@@ -988,7 +1239,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="OnSelectEntered(SelectEnterEventArgs)"/>
         protected virtual void OnSelectExited(SelectExitEventArgs args)
         {
-            if (interactorsSelecting.Count == 0)
+            if (m_InteractorsSelecting.Count == 0)
                 m_LastSelectExited?.Invoke(args);
 
             m_SelectExited?.Invoke(args);
@@ -1001,7 +1252,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning restore 618
 
             // The dictionaries are pruned so that they don't infinitely grow in size as selections are made.
-            if (interactorsSelecting.Count == 0)
+            if (m_InteractorsSelecting.Count == 0)
             {
                 firstInteractorSelecting = null;
                 m_AttachPoseOnSelect.Clear();
@@ -1046,6 +1297,68 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method to signal to update the interaction strength.
+        /// </summary>
+        /// <param name="updatePhase">The update phase during which this method is called.</param>
+        /// <seealso cref="GetInteractionStrength"/>
+        /// <seealso cref="IXRInteractionStrengthInteractable.ProcessInteractionStrength"/>
+        protected virtual void ProcessInteractionStrength(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            var maxInteractionStrength = 0f;
+
+            using (s_ProcessInteractionStrengthMarker.Auto())
+            {
+                m_InteractionStrengths.Clear();
+
+                // Select is checked before Hover to allow process to only be called once per interactor hovering and selecting
+                // using the largest initial interaction strength.
+                for (int i = 0, count = m_InteractorsSelecting.Count; i < count; ++i)
+                {
+                    var interactor = m_InteractorsSelecting[i];
+                    if (interactor is XRBaseControllerInteractor)
+                        continue;
+
+                    var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthSelect);
+                    m_InteractionStrengths[interactor] = interactionStrength;
+
+                    maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                }
+
+                for (int i = 0, count = m_InteractorsHovering.Count; i < count; ++i)
+                {
+                    var interactor = m_InteractorsHovering[i];
+                    if (interactor is XRBaseControllerInteractor || IsSelected(interactor))
+                        continue;
+
+                    var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthHover);
+                    m_InteractionStrengths[interactor] = interactionStrength;
+
+                    maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                }
+
+                for (int i = 0, count = m_VariableSelectInteractors.Count; i < count; ++i)
+                {
+                    var interactor = m_VariableSelectInteractors[i];
+
+                    // Use the Select input value as the initial interaction strength.
+                    // For interactors that use motion controller input, this is typically the analog trigger or grip press amount.
+                    // Fall back to the default values for selected and hovered interactors in the case when the interactor
+                    // is misconfigured and is missing the component reference.
+                    var interactionStrength = interactor.xrController != null
+                        ? interactor.xrController.selectInteractionState.value
+                        : (IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover);
+                    interactionStrength = ProcessInteractionStrengthFilters(interactor, interactionStrength);
+                    m_InteractionStrengths[interactor] = interactionStrength;
+
+                    maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                }
+            }
+
+            // This is done outside of the ProfilerMarker since it could trigger user callbacks
+            m_LargestInteractionStrength.Value = maxInteractionStrength;
+        }
+
+        /// <summary>
         /// Returns the processing value of the filters in <see cref="hoverFilters"/> for the given Interactor and this
         /// Interactable.
         /// </summary>
@@ -1071,6 +1384,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected bool ProcessSelectFilters(IXRSelectInteractor interactor)
         {
             return XRFilterUtility.Process(m_SelectFilters, interactor, this);
+        }
+
+        /// <summary>
+        /// Returns the processing value of the interaction strength filters in <see cref="interactionStrengthFilters"/> for the given Interactor and this
+        /// Interactable.
+        /// </summary>
+        /// <param name="interactor">The Interactor to process by the interaction strength filters.</param>
+        /// <param name="interactionStrength">The interaction strength before processing.</param>
+        /// <returns>Returns the modified interaction strength that is the result of passing the interaction strength through each filter.</returns>
+        protected float ProcessInteractionStrengthFilters(IXRInteractor interactor, float interactionStrength)
+        {
+            return XRFilterUtility.Process(m_InteractionStrengthFilters, interactor, this, interactionStrength);
         }
     }
 }

@@ -230,8 +230,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 registeredSnapshot.RemoveAt(currentIndex);
 
             registeredSnapshot.Insert(newIndex, item);
-
+            OnItemMovedImmediately(item, newIndex);
             return currentIndex < 0;
+        }
+
+        /// <summary>
+        /// Called after the given item has been inserted at or moved to the specified index.
+        /// </summary>
+        /// <param name="item">The item that was moved or registered.</param>
+        /// <param name="newIndex">New index of the item.</param>
+        protected virtual void OnItemMovedImmediately(T item, int newIndex)
+        {
         }
 
         /// <summary>
@@ -275,12 +284,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Contains(item))
                 return false;
 
-            if ((m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Remove(item)) || !m_UnorderedRegisteredSnapshot.Contains(item))
+            var snapshotContainsItem = m_UnorderedRegisteredSnapshot.Contains(item);
+            if ((m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Remove(item)) || !snapshotContainsItem)
             {
                 RemoveFromBufferedRemove(item);
-                AddToBufferedAdd(item);
-                m_UnorderedBufferedAdd.Add(item);
                 m_UnorderedRegisteredItems.Add(item);
+                if (!snapshotContainsItem)
+                {
+                    AddToBufferedAdd(item);
+                    m_UnorderedBufferedAdd.Add(item);
+                }
+
                 return true;
             }
 
@@ -293,9 +307,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Contains(item))
                 return false;
 
-            if ((m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item)) || m_UnorderedRegisteredSnapshot.Contains(item))
+            if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item))
             {
                 RemoveFromBufferedAdd(item);
+                m_UnorderedRegisteredItems.Remove(item);
+                return true;
+            }
+
+            if (m_UnorderedRegisteredSnapshot.Contains(item))
+            {
                 AddToBufferedRemove(item);
                 m_UnorderedBufferedRemove.Add(item);
                 m_UnorderedRegisteredItems.Remove(item);
@@ -385,6 +405,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
             // Unreachable code
             throw new ArgumentOutOfRangeException(nameof(index), "Index was out of range. Must be non-negative and less than the size of the registration collection.");
+        }
+
+        /// <inheritdoc />
+        protected override void OnItemMovedImmediately(T item, int newIndex)
+        {
+            base.OnItemMovedImmediately(item, newIndex);
+            m_UnorderedRegisteredItems.Add(item);
+            m_UnorderedRegisteredSnapshot.Add(item);
         }
     }
 }

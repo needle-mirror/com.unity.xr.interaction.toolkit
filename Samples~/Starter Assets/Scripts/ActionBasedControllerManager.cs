@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
@@ -22,6 +23,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         [Space]
         [Header("Interactors")]
+
+        [SerializeField]
+        [Tooltip("The GameObject containing the interaction group used for direct and distant manipulation.")]
+        XRInteractionGroup m_ManipulationInteractionGroup;
 
         [SerializeField]
         [Tooltip("The GameObject containing the interactor used for direct manipulation.")]
@@ -70,8 +75,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [Tooltip("The reference to the action of moving the XR Origin with this controller.")]
         InputActionReference m_Move;
 
-        bool m_DirectHover;
-        bool m_DirectSelect;
         bool m_Teleporting;
 
         [Space]
@@ -105,22 +108,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             }
         }
 
+        /// <summary>
+        /// Temporary scratch list to populate with the group members of the interaction group.
+        /// </summary>
+        static readonly List<IXRGroupMember> s_GroupMembers = new List<IXRGroupMember>();
+
         // For our input mediation, we are enforcing a few rules between direct, ray, and teleportation interaction:
-        // 1. If the Teleportation Ray is engaged, the Direct and Ray interactors are disabled
-        // 2. If the Direct interactor is not idle (hovering or select), the ray interactor is disabled
+        // 1. If the Teleportation Ray is engaged, the Ray interactor is disabled
+        // 2. The interaction group ensures that the Direct and Ray interactors cannot interact at the same time, with the Direct interactor taking priority
         // 3. If the Ray interactor is selecting, all locomotion controls are disabled (teleport ray and snap controls) to prevent input collision
         void SetupInteractorEvents()
         {
             UpdateLocomotionActions();
             UpdateTurnActions();
-
-            if (m_DirectInteractor != null)
-            {
-                m_DirectInteractor.hoverEntered.AddListener(DirectHoverEntered);
-                m_DirectInteractor.hoverExited.AddListener(DirectHoverExited);
-                m_DirectInteractor.selectEntered.AddListener(DirectSelectEntered);
-                m_DirectInteractor.selectExited.AddListener(DirectSelectExited);
-            }
 
             if (m_RayInteractor != null)
             {
@@ -140,14 +140,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void TeardownInteractorEvents()
         {
-            if (m_DirectInteractor != null)
-            {
-                m_DirectInteractor.hoverEntered.RemoveListener(DirectHoverEntered);
-                m_DirectInteractor.hoverExited.RemoveListener(DirectHoverExited);
-                m_DirectInteractor.selectEntered.RemoveListener(DirectSelectEntered);
-                m_DirectInteractor.selectExited.RemoveListener(DirectSelectExited);
-            }
-
             if (m_RayInteractor != null)
             {
                 m_RayInteractor.selectEntered.RemoveListener(RaySelectEntered);
@@ -182,57 +174,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             RayInteractorUpdate();
         }
 
-        void DirectHoverEntered(HoverEnterEventArgs args)
-        {
-            m_DirectHover = true;
-            DirectInteractorUpdate();
-        }
-
-        void DirectHoverExited(HoverExitEventArgs args)
-        {
-            m_DirectHover = false;
-            DirectInteractorUpdate();
-        }
-
-        void DirectSelectEntered(SelectEnterEventArgs args)
-        {
-            m_DirectSelect = true;
-            DirectInteractorUpdate();
-        }
-
-        void DirectSelectExited(SelectExitEventArgs args)
-        {
-            m_DirectSelect = false;
-            DirectInteractorUpdate();
-        }
-
-        void DirectInteractorUpdate()
-        {
-            RayInteractorUpdate();
-        }
-
         void RayInteractorUpdate()
         {
             if (m_RayInteractor != null)
-                m_RayInteractor.gameObject.SetActive(!(m_DirectHover || m_DirectSelect || m_Teleporting));
+                m_RayInteractor.gameObject.SetActive(!m_Teleporting);
         }
 
         void RaySelectEntered(SelectEnterEventArgs args)
         {
-            // Disable direct selection
-            if (m_DirectInteractor != null)
-                m_DirectInteractor.gameObject.SetActive(false);
-
             // Disable locomotion and turn actions
             DisableLocomotionAndTurnActions();
         }
 
         void RaySelectExited(SelectExitEventArgs args)
         {
-            // Enable direct selection
-            if (m_DirectInteractor != null)
-                m_DirectInteractor.gameObject.SetActive(true);
-            
             // Re-enable the locomotion and turn actions
             UpdateLocomotionActions();
             UpdateTurnActions();
@@ -253,6 +208,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             // Ensure actions are properly setup
             UpdateLocomotionActions();
             UpdateTurnActions();
+
+            // Ensure interactors are properly setup in group
+            var directInteractorIndex = -1;
+            var rayInteractorIndex = -1;
+            m_ManipulationInteractionGroup.GetGroupMembers(s_GroupMembers);
+            for (var i = 0; i < s_GroupMembers.Count; ++i)
+            {
+                var groupMember = s_GroupMembers[i];
+                if (ReferenceEquals(groupMember, m_DirectInteractor))
+                    directInteractorIndex = i;
+                else if (ReferenceEquals(groupMember, m_RayInteractor))
+                    rayInteractorIndex = i;
+            }
+
+            if (directInteractorIndex < 0)
+            {
+                // Must add Direct interactor to group, and make sure it is ordered before the Ray interactor
+                if (rayInteractorIndex < 0)
+                {
+                    // Must add Ray interactor to group
+                    m_ManipulationInteractionGroup.AddGroupMember(m_DirectInteractor);
+                    m_ManipulationInteractionGroup.AddGroupMember(m_RayInteractor);
+                }
+                else
+                {
+                    m_ManipulationInteractionGroup.MoveGroupMemberTo(m_DirectInteractor, rayInteractorIndex);
+                }
+            }
+            else
+            {
+                if (rayInteractorIndex < 0)
+                {
+                    // Must add Ray interactor to group
+                    m_ManipulationInteractionGroup.AddGroupMember(m_RayInteractor);
+                }
+                else
+                {
+                    // Must make sure Direct interactor is ordered before the Ray interactor
+                    if (rayInteractorIndex < directInteractorIndex)
+                    {
+                        m_ManipulationInteractionGroup.MoveGroupMemberTo(m_DirectInteractor, rayInteractorIndex);
+                    }
+                }
+            }
         }
 
         protected void OnEnable()

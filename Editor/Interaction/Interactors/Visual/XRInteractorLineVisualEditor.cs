@@ -40,6 +40,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_StopLineAtSelection;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.treatSelectionAsValidState"/>.</summary>
         protected SerializedProperty m_TreatSelectionAsValidState;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.snapEndpointIfAvailable"/>.</summary>
+        protected SerializedProperty m_SnapEndpointIfAvailable;
 
         readonly List<Collider> m_ReticleColliders = new List<Collider>();
         readonly List<Collider> m_BlockedReticleColliders = new List<Collider>();
@@ -83,6 +85,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent stopLineAtSelection = EditorGUIUtility.TrTextContent("Stop Line At Selection", "Controls whether the line will stop at the attach point of the closest interactable selected by the interactor, if there is one.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.treatSelectionAsValidState"/>.</summary>
             public static readonly GUIContent treatSelectionAsValidState = EditorGUIUtility.TrTextContent("Treat Selection As Valid State", "Forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the interactor has any valid targets.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.snapEndpointIfAvailable"/>.</summary>
+            public static readonly GUIContent snapEndpointIfAvailable = EditorGUIUtility.TrTextContent("Snap Endpoint If Available", "Controls whether the visualized line will snap endpoint if the ray hits a XRInteractableSnapVolume.");
 
             /// <summary>The help box message when the Reticle has a Collider that will disrupt the XR Ray Interactor ray cast.</summary>
             public static readonly GUIContent reticleColliderWarning = EditorGUIUtility.TrTextContent("Reticle has a Collider which may disrupt the XR Ray Interactor ray cast. Remove or disable the Collider component on the Reticle or adjust the Raycast Mask/Collider Layer.");
@@ -108,6 +112,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_StopLineAtFirstRaycastHit = serializedObject.FindProperty("m_StopLineAtFirstRaycastHit");
             m_StopLineAtSelection = serializedObject.FindProperty("m_StopLineAtSelection");
             m_TreatSelectionAsValidState = serializedObject.FindProperty("m_TreatSelectionAsValidState");
+            m_SnapEndpointIfAvailable = serializedObject.FindProperty("m_SnapEndpointIfAvailable");
 
             m_ReticleCheckInitialized = false;
         }
@@ -146,6 +151,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawColorConfiguration();
             DrawLengthConfiguration();
             DrawSmoothMovement();
+            DrawSnappingSettings();
             DrawReticle();
         }
 
@@ -202,6 +208,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     EditorGUILayout.PropertyField(m_SnapThresholdDistance, Contents.snapThresholdDistance);
                 }
             }
+        }
+        
+        /// <summary>
+        /// Draw property fields related to snapping.
+        /// </summary>
+        protected virtual void DrawSnappingSettings()
+        {
+            EditorGUILayout.PropertyField(m_SnapEndpointIfAvailable, Contents.snapEndpointIfAvailable);
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 # Glossary
 
 | Term | Meaning |
-|-|-|
+|---|---|
 | **Controller** | A component that turns XR controller input such as a button press into interaction events like hover, or select. Also provides a way to show controller models and send haptic feedback to the controller. |
 | **Object** | Anything that the user sees or interacts with in the virtual world. |
 | **Interactor** | An object in a scene that can select or move another object in that scene. |

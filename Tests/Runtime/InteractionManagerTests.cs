@@ -18,6 +18,60 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [Test]
+        public void InteractionGroupRegisteredOnEnable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            IXRInteractionGroup registeredInteractionGroup = null;
+            manager.interactionGroupRegistered += args => registeredInteractionGroup = args.interactionGroupObject;
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.EqualTo(new[] { interactionGroup }));
+            Assert.That(registeredInteractionGroup, Is.SameAs(interactionGroup));
+            Assert.That(manager.IsRegistered(interactionGroup), Is.True);
+        }
+
+        [Test]
+        public void InteractionGroupUnregisteredOnDisable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            IXRInteractionGroup unregisteredInteractionGroup = null;
+            manager.interactionGroupUnregistered += args => unregisteredInteractionGroup = args.interactionGroupObject;
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+            interactionGroup.enabled = false;
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.Empty);
+            Assert.That(unregisteredInteractionGroup, Is.SameAs(interactionGroup));
+            Assert.That(manager.IsRegistered(interactionGroup), Is.False);
+        }
+
+        [Test]
+        public void InteractionGroupRegistrationEventsInvoked()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+            IXRInteractionGroup registeredInteractionGroup = null;
+            IXRInteractionGroup unregisteredInteractionGroup = null;
+            interactionGroup.registered += args => registeredInteractionGroup = args.interactionGroupObject;
+            interactionGroup.unregistered += args => unregisteredInteractionGroup = args.interactionGroupObject;
+            interactionGroup.enabled = false;
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.Empty);
+            Assert.That(unregisteredInteractionGroup, Is.SameAs(interactionGroup));
+
+            interactionGroup.enabled = true;
+
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.EqualTo(new[] { interactionGroup }));
+            Assert.That(registeredInteractionGroup, Is.SameAs(interactionGroup));
+        }
+
+        [Test]
         public void InteractorRegisteredOnEnable()
         {
             var manager = TestUtilities.CreateInteractionManager();
@@ -171,7 +225,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(manager.TryGetInteractableForCollider(firstInteractable.colliders[1], out associatedInteractable), Is.True);
             Assert.That(associatedInteractable, Is.SameAs(firstInteractable));
 
-            LogAssert.Expect(LogType.Warning, new Regex("A Collider used by an Interactable object is already registered with another Interactable object*"));
+            LogAssert.Expect(LogType.Warning, new Regex("A collider used by an Interactable object is already registered with another Interactable object*"));
             manager.RegisterInteractable((IXRInteractable)secondInteractable);
 
             // Interactables registered afterward do not replace the existing Collider association
@@ -194,6 +248,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(associatedInteractable, Is.Null);
             Assert.That(manager.TryGetInteractableForCollider(firstInteractable.colliders[1], out associatedInteractable), Is.False);
             Assert.That(associatedInteractable, Is.Null);
+        }
+
+        [Test]
+        public void InteractableSnapColliderRedirectsAssociatedInteractable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var snapVolume = TestUtilities.CreateSnapVolume();
+            snapVolume.interactable = interactable;
+
+            Assert.That(snapVolume.snapCollider, Is.Not.Null);
+
+            Assert.That(manager.TryGetInteractableForCollider(interactable.colliders.First(), out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+
+            Assert.That(manager.TryGetInteractableForCollider(interactable.colliders.First(), out associatedInteractable, out var associatedSnapVolume), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+            Assert.That(associatedSnapVolume, Is.Null);
+
+            Assert.That(manager.TryGetInteractableForCollider(snapVolume.snapCollider, out associatedInteractable, out associatedSnapVolume), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+            Assert.That(associatedSnapVolume, Is.SameAs(snapVolume));
         }
 
         // Tests that Interactors and Interactables can register or unregister
@@ -368,6 +444,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator InteractionGroupRegistrationEventsOccurSameFrame()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+            interactionGroup.enabled = false;
+
+            var numRegistered = 0;
+            var numUnregistered = 0;
+
+            interactionGroup.registered += args =>
+            {
+                ++numRegistered;
+            };
+            interactionGroup.unregistered += args =>
+            {
+                ++numUnregistered;
+            };
+
+            interactionGroup.enabled = true;
+
+            Assert.That(numRegistered, Is.EqualTo(1));
+            Assert.That(numUnregistered, Is.EqualTo(0));
+
+            interactionGroup.enabled = false;
+
+            Assert.That(numRegistered, Is.EqualTo(1));
+            Assert.That(numUnregistered, Is.EqualTo(1));
+
+            interactionGroup.enabled = true;
+
+            Assert.That(numRegistered, Is.EqualTo(2));
+            Assert.That(numUnregistered, Is.EqualTo(1));
+
+            yield return null;
+
+            Assert.That(numRegistered, Is.EqualTo(2));
+            Assert.That(numUnregistered, Is.EqualTo(1));
+        }
+
+        [UnityTest]
         public IEnumerator InteractorRegistrationEventsOccurSameFrame()
         {
             TestUtilities.CreateInteractionManager();
@@ -445,6 +561,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(numRegistered, Is.EqualTo(2));
             Assert.That(numUnregistered, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractionGroupCanDestroy()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+
+            Object.Destroy(interactionGroup);
+
+            yield return null;
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.Empty);
+            Assert.That(manager.IsRegistered(interactionGroup), Is.False);
         }
 
         [UnityTest]

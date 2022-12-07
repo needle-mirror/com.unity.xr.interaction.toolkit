@@ -5,7 +5,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 ![XRRayInteractor component](images/xr-ray-interactor.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactor will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactables whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Enable Interaction with UI GameObjects** | Enable to allow this Interactor to affect UI. |
@@ -19,6 +19,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Rotate Speed** | Speed that the anchor is rotated. Only used and displayed when **Anchor Control** is enabled and **Rotation Mode** is set to **Rotate Over Time**. |
 | **Attach Transform** | The `Transform` that is used as the attach point for Interactables.<br />Automatically instantiated and set in `Awake` if **None**.<br />Setting this will not automatically destroy the previous object. |
 | **Ray Origin Transform** | The starting position and direction of any ray casts.<br />Automatically instantiated and set in `Awake` if **None** and initialized with the pose of the `XRBaseInteractor.attachTransform`. Setting this will not automatically destroy the previous object. |
+| **Disable Visuals When Blocked In Group** | Whether to disable visuals when this Interactor is part of an [Interaction Group](xr-interaction-group.md) and is incapable of interacting due to active interaction by another Interactor in the Group. |
 | **Line Type** | The type of ray cast. |
 | &emsp;Straight Line | Set **Line Type** to **Straight Line** to perform a single ray cast into the scene with a set ray length. |
 | &emsp;Projectile Curve | Set **Line Type** to **Projectile Curve** to sample the trajectory of a projectile to generate a projectile curve. |
@@ -47,6 +48,9 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Allow Hovered Activate** | Controls whether to send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection. By default, the interactor will only send activate and deactivate events to interactables that it's selected. |
 | **Target Track Mode** | Specifies how many Interactables that should be tracked in the Targets For Selection property, useful for custom feedback. The options are in order of best performance. |
 | **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. |
+| **Hover Time To Select** | Number of seconds an Interactor must hover over an Interactable to select it. |
+| **Auto Deselect** | Enable to have Interactor automatically deselect an Interactable after selecting it for a period of time. |
+| **Time To Auto Deselect** | Number of seconds an Interactor must select an Interactable before it is automatically deselected when **Auto Deselect** is true. |
 | **Starting Selected Interactable** | The Interactable that this Interactor automatically selects at startup (optional, may be **None**). |
 | **Audio Events** | These tie into the same selection and hover events as the **Interactor Events** further below - these audio events provide a convenient way to play specified audio clips for any of those events you want. |
 | &emsp;On Select Entered | If enabled, the Unity editor will display UI for supplying the audio clip to play when this Interactor begins selecting an Interactable. |
@@ -65,3 +69,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | &emsp;On Hover Canceled | If enabled, the Unity editor will display UI for supplying the duration (in seconds) and intensity (normalized) to play in haptic feedback when this Interactor cancels hovering over an Interactable. |
 | &emsp;Allow Hover Haptics While Selecting | Whether to allow playing haptics from hover events if the hovered Interactable is currently selected by this Interactor. This is enabled by default. |
 | **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |
+
+## Supporting XR Interactable Snap Volume
+
+For an XR Ray Interactor to snap to an [XR Interactable Snap Volume](xr-interactable-snap-volume.md), the ray interactor must be properly configured. The **Raycast Trigger Interaction** property of the XR Ray Interactor must be set to **Collide**. Additionally, the XR Ray Interactor GameObject must have an [XR Interactor Line Visual](xr-interactor-line-visual.md) component with the **Snap Endpoint If Available** property enabled.

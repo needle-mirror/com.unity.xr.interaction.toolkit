@@ -29,8 +29,14 @@
 
 - [AR Gesture Interactor](ar-gesture-interactor.md)
 - [XR Direct Interactor](xr-direct-interactor.md)
+- [XR Poke Interactor](xr-poke-interactor.md)
 - [XR Ray Interactor](xr-ray-interactor.md)
 - [XR Socket Interactor](xr-socket-interactor.md)
+
+## Filters
+
+- [XR Poke Filter](xr-poke-filter.md)
+- [XR Target Filter](target-filters.md#xr-target-filter)
 
 ## Locomotion
 
@@ -53,9 +59,14 @@
 - [XR Interactor Reticle Visual](xr-interactor-reticle-visual.md)
 - [XR Tint Interactable Visual](xr-tint-interactable-visual.md)
 
+## Affordance system
+- [XR Interactable Affordance State Provider](xr-interactable-affordance-state-provider.md)
+
 ## Other Components
 
 - [Input Action Manager](input-action-manager.md)
+- [Lazy Follow](lazy-follow.md)
 - [XR Device Simulator](xr-device-simulator.md)
+- [XR Interactable Snap Volume](xr-interactable-snap-volume.md)
+- [XR Interaction Group](xr-interaction-group.md)
 - [XR Interaction Manager](xr-interaction-manager.md)
-- [XR Target Filter](target-filters.md#xr-target-filter)

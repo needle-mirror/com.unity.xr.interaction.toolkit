@@ -8,6 +8,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class InteractableTests
     {
+        public enum InteractorPositionOption
+        {
+            InteractorInsideCollider,
+            InteractorOutsideCollider,
+        }
+
+        public enum InteractionOption
+        {
+            HoverOnly,
+            SelectOnly,
+            HoverAndSelect,
+        }
+
+        static readonly InteractionOption[] s_InteractionOptions =
+        {
+            InteractionOption.HoverOnly,
+            InteractionOption.SelectOnly,
+            InteractionOption.HoverAndSelect,
+        };
+
         static readonly InteractableSelectMode[] s_SelectModes =
         {
             InteractableSelectMode.Single,
@@ -279,10 +299,85 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.interactorsSelecting, Is.Empty);
         }
 
-        public enum InteractorPositionOption
+        [UnityTest]
+        public IEnumerator InteractableCanProcessInteractionStrengthFilters([ValueSource(nameof(s_InteractionOptions))] InteractionOption interactionOption)
         {
-            InteractorInsideCollider,
-            InteractorOutsideCollider,
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactor.validTargets.Add(interactable);
+
+            switch (interactionOption)
+            {
+                case InteractionOption.HoverOnly:
+                    interactor.allowSelect = false;
+                    break;
+                case InteractionOption.SelectOnly:
+                    interactor.allowHover = false;
+                    break;
+                case InteractionOption.HoverAndSelect:
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(InteractionOption)}={interactionOption}");
+                    break;
+            }
+
+            var filter1ProcessedCount = 0;
+            var filter1InputStrength = -1f;
+            const float filter1Strength = 0.5f;
+            var filter1 = new XRInteractionStrengthFilterDelegate((_, __, strength) =>
+            {
+                filter1ProcessedCount++;
+                filter1InputStrength = strength;
+                return filter1Strength;
+            });
+            interactable.interactionStrengthFilters.Add(filter1);
+
+            var filter2ProcessedCount = 0;
+            var filter2InputStrength = -1f;
+            const float filter2Strength = 0.75f;
+            var filter2 = new XRInteractionStrengthFilterDelegate((_, __, strength) =>
+            {
+                filter2ProcessedCount++;
+                filter2InputStrength = strength;
+                return filter2Strength;
+            });
+            interactable.interactionStrengthFilters.Add(filter2);
+
+            yield return null;
+
+            var expectedInitialInputStrength = 0f;
+            switch (interactionOption)
+            {
+                case InteractionOption.HoverOnly:
+                    Assert.That(interactable.interactorsHovering, Is.EquivalentTo(new[] { interactor }));
+                    Assert.That(interactable.interactorsSelecting, Is.Empty);
+                    expectedInitialInputStrength = 0f;
+                    break;
+                case InteractionOption.SelectOnly:
+                    Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] { interactor }));
+                    Assert.That(interactable.interactorsHovering, Is.Empty);
+                    expectedInitialInputStrength = 1f;
+                    break;
+                case InteractionOption.HoverAndSelect:
+                    Assert.That(interactable.interactorsHovering, Is.EquivalentTo(new[] { interactor }));
+                    Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] { interactor }));
+                    expectedInitialInputStrength = 1f;
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(InteractionOption)}={interactionOption}");
+                    break;
+            }
+
+            Assert.That(filter1ProcessedCount, Is.EqualTo(1));
+            Assert.That(filter2ProcessedCount, Is.EqualTo(1));
+            Assert.That(filter1InputStrength, Is.EqualTo(expectedInitialInputStrength));
+            Assert.That(filter2InputStrength, Is.EqualTo(filter1Strength));
+
+            Assert.That(interactable.largestInteractionStrength.Value, Is.EqualTo(filter2Strength));
+            Assert.That(interactor.largestInteractionStrength.Value, Is.EqualTo(filter2Strength));
+            Assert.That(interactable.GetInteractionStrength(interactor), Is.EqualTo(filter2Strength));
+            Assert.That(interactor.GetInteractionStrength(interactable), Is.EqualTo(filter2Strength));
         }
     }
 }

@@ -5,6 +5,62 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.3.0-pre.1] - 2022-12-07
+
+### Added
+- Added new Affordance System. This introduces the XRI Affordance state provider, which connects to an XR Interactable to determine new affordance states, which then power Affordance Receivers to animate tweens using Affordance Theme scriptable Objects. This can be used for audio, ui, material and other kinds of animation tweens, reactive to interaction state changes, all powered by the Job System.
+- Added an option to **Edit** &gt; **Project Settings** &gt; **XR Interaction Toolkit** to automatically instantiate the prefab in the [XR Device Simulator](../manual/samples.md#xr-device-simulator) sample.
+- Added XR Interaction Group component, which allows only one member Interactor or Group within the Group to be interacting at a time.
+- Added the option **Disable Visuals When Blocked In Group** to XR Base Interactor, which controls whether to disable the Interactor's visuals when the Interactor is part of an Interaction Group and is unable to interact due to active interaction by another Interactor in the Group. This option is enabled by default.
+- Added an XR Interaction Group to each hand in the `XR Origin Preconfigured` prefab in the `Starter Assets` sample. Each Group prioritizes Direct interaction over Ray interaction.
+- Added a runtime UI for the XR Device Simulator. Users can now also move the player position around the physical play space using `WASD` and `Q`/`E` to simulate the user walking around. Reimport the XR Device Simulator sample to access this new functionality and UI.
+- Added ability to control the tracking state of the simulated devices in the XR Device Simulator Inspector window.
+- Added properties to XR Device Simulator to control the `[0.0, 1.0]` amount of the simulated grip and trigger inputs when those controls are activated.
+- Added lazy follow functionality for UI which can be enabled by adding the [LazyFollow](xref:UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow) component to a GameObject.
+- Added [`IXRInteractionStrengthInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractionStrengthInteractor) and [`IXRInteractionStrengthInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractionStrengthInteractable) interfaces that are implemented by [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable), respectively. These add additional properties and methods related to interaction strength, which conveys a variable (that is, analog) selection interaction strength between an interactor and interactable. This is typically based on a motion controller's grip or trigger amount, or based on a poke depth for those interactable objects that support being poked.
+- Added the [`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) interface. Instances of this interface can be added to Interactables to extend their interaction strength computation without needing to create a derived class.
+- Added `IsHovered` and `IsSelected` methods to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable) that works similarly to `IsHovering` and `IsSelecting` on [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor) for querying whether a specific interactor is hovering or selecting that interactable.
+- Added [XRPokeInteractor](xref:UnityEngine.XR.Interaction.Toolkit.XRPokeInteractor) and [XRPokeFilter](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.XRPokeFilter) classes that provide basic poking functionality for both hands and controllers.
+- Added XR Poke Follow Affordance component in the `Starter Assets` sample to control the smooth visual pressing of a Transform component (such as a button, for example) driven by the current select value of a poke interaction.
+- Added XR General Grab Transformer which supports moving and rotating unconstrained with one or two interactors, and scaling when using two interactors.
+- Added [`XRGazeInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRGazeInteractor), driven by either eye-gaze or head-gaze pose information. This allows a developer to use eye or head gaze to hover or select by dwelling on interactables.
+- Added [`XRInteractableSnapVolume`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractableSnapVolume) to allow snapping a ray interactor to a nearby target interactable. This can be combined with the `XRGazeInteractor` to achieve gaze-assisted hover and selection.
+- Added Gaze Configuration properties to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable) related to gaze interactions, automatic selection and deselection from hover, and gaze-assisted hover and selection.
+- Added a `drawOnNoHit` property to `XRInteractorReticleVisual` that forces the reticle to draw when no ray cast hits are detected.
+- Added a `snapEndpointIfAvailable` property to `XRInteractorLineVisual` to allow bending the visual ray towards a specified target point, such as guided by an `XRInteractableSnapVolume` for more user-friendly object selection.
+- Added `Eye Gaze Position` and `Eye Gaze Rotation` actions to the `XRI Default Input Actions` asset along with corresponding `XRI Default Gaze Controller` preset to the `Starter Assets` sample.
+- Added an Integer Fallback Composite binding for Input System input actions, which is useful for a tracking state action. This composite works similarly to the Vector 3 Fallback and Quaternion Fallback Composite bindings.
+- Added `GetCustomReticle` method to `XRBaseInteractable` to allow lookup of the custom reticle associated with a particular Interactor.
+- Added `Poke Interactor` to each hand in the `Complete XR Origin Set Up` prefab in `Starter Assets`
+
+### Changed
+- Changed the default grab transformers from XR Single Grab Free Transformer and XR Dual Grab Free Transformer to XR General Grab Transformer. This new grab transformer does not respond to the pose of the Attach Transform of the XR Grab Interactable changing while grabbed. If you need to modify the pose after being grabbed, you will need to add a different grab transformer from the **Component** &gt; **XR** &gt; **Transformers** menu.
+- Changed **GameObject** &gt; **XR** &gt; **Grab Interactable** to add the XR General Grab Transformer component by default.
+- Changed XR Grab Interactable to re-initialize the dynamic attach pose when changing from multiple grabs back to a single grab by default. Disable **Reinitialize Every Single Grab** (`reinitializeDynamicAttachEverySingleGrab`) for previous behavior.
+- Changed `XRDeviceSimulator` to destroy itself if another instance already exists at runtime.
+- Changed XR Device Simulator to initialize the simulated controllers to position them in front of the HMD instead of at (0, 0, 0).
+- Changed XR Device Simulator to start manipulating the HMD and controllers as if the whole player was turning their torso, similar to a typical FPS style configuration, to simplify its use. Press `Tab` to cycle between manipulating all devices in this mode, the left controller individually, and the right controller individually.
+- Changed **GameObject** &gt; **XR** &gt; **XR Origin (VR)** to set the Tracking State Input property on the Tracked Pose Driver of the Main Camera on versions of Input System that support it.
+- Changed `XRSimulatedController` and `XRSimulatedHMD` to report support for updating during the before render phase.
+- Changed `DefaultExecutionOrder` of the `XRInteractionManager` from `-100` to `-105`.
+- Changed `InteractorRegisteredEventArgs` by adding a `containingGroupObject` property of type `IXRInteractionGroup` which is set when the Interactor is contained in an Interaction Group.
+- Changed `XRBaseInteractable` initialization logic of the `IXRInteractable.colliders` list to exclude trigger colliders when no colliders are set in the Inspector window.
+- Changed `XRInteractableUtility.TryGetClosestCollider` and `XRInteractableUtility.TryGetClosestPointOnCollider` to ignore trigger colliders.
+- Changed the default value of Select Action Trigger (`XRBaseControllerInteractor.selectActionTrigger`) on interactors from State to State Change.
+- Changed `com.unity.inputsystem` dependency to 1.4.4.
+- Changed `com.unity.xr.core-utils` dependency to 2.2.0-pre.2.
+- Changed `com.unity.xr.legacyinputhelpers` dependency to 2.1.10.
+
+### Fixed
+- Fixed Tracked Device Graphic Raycaster to use the correct ray cast method when Check for 2D Occlusion is enabled, and changed it to use the local [PhysicsScene2D](https://docs.unity3d.com/ScriptReference/PhysicsScene2D.html).
+- Fixed issue with `RegistrationList` and `SmallRegistrationList` where unregistering and then registering an item that already exists in the registered snapshot would result in the item being counted twice due to being added to the buffered add list.
+- Fixed issue with `RegistrationList` and `SmallRegistrationList` where unregistering an item that was not yet flushed to the registered snapshot would result in the list returning an incorrect `flushedCount` due to being incorrectly added to the buffered remove list instead of just removing from the buffered add list.
+- Fixed issue with `RegistrationList` not reporting the registration status of items added via `MoveItemImmediately`.
+- Fixed Grab Transformers (that derive from `XRBaseGrabTransformer`) to skip automatic registration specified by `registrationMode` when it has already been added to the `XRGrabInteractable`. It previously only checked the Starting Single/Multiple Grab Transformers lists.
+- Fixed expansion state of Select Filters in the Inspector window reusing the Hover Filters state in some cases.
+- Fixed `XRRayInteractor` null reference exception that causes editor spam when sample points are deleted upon hot-reload.
+- Fixed incorrectly false return values for `AddCustomReticle` and `RemoveCustomReticle` on the `XRInteractorLineVisual` class.
+
 ## [2.2.0] - 2022-09-30
 
 ### Added

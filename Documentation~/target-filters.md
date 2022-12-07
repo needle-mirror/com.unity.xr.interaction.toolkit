@@ -16,7 +16,7 @@ The `XRTargetFilter` component is a highly configurable component for filtering 
 
 ### Setup
 
-Add the component `XRTargetFilter` to a Game Object and link it to the `Starting Target Filter` property of an Interactor. When the Interactor becomes active in Play mode, it'll link itself to the assigned Filter and forward its logic to prioritize the Valid Target list.
+Add the component `XRTargetFilter` to a GameObject and link it to the `Starting Target Filter` property of an Interactor. When the Interactor becomes active in Play mode, it'll link itself to the assigned Filter and forward its logic to prioritize the Valid Target list.
 
 ![xr-target-filter-setup](images/xr-target-filter-setup.png)
 

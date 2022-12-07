@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -383,6 +382,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        bool m_AutoDeselect;
+        /// <summary>
+        /// Whether this Interactor will automatically deselect an Interactable after selecting it via hover for a period of time.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when an interactable is selected due to <see cref="hoverToSelect"/>.
+        /// </remarks>
+        /// <seealso cref="timeToAutoDeselect"/>
+        public bool autoDeselect
+        {
+            get => m_AutoDeselect;
+            set => m_AutoDeselect = value;
+        }
+
+        [SerializeField]
+        float m_TimeToAutoDeselect = 3f;
+        /// <summary>
+        /// Number of seconds for which this Interactor will keep an Interactable selected before automatically deselecting it.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when an interactable is selected due to <see cref="hoverToSelect"/>.
+        /// </remarks>
+        /// <seealso cref="hoverToSelect"/>
+        public float timeToAutoDeselect
+        {
+            get => m_TimeToAutoDeselect;
+            set => m_TimeToAutoDeselect = value;
+        }
+
+        [SerializeField]
         bool m_EnableUIInteraction = true;
         /// <summary>
         /// Gets or sets whether this Interactor is able to affect UI.
@@ -395,7 +424,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_EnableUIInteraction != value)
                 {
                     m_EnableUIInteraction = value;
-                    RegisterOrUnregisterXRUIInputModule();
+                    m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
                 }
             }
         }
@@ -499,6 +528,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// The nearest <see cref="IXRInteractable"/> object hit by the ray that was inserted into the valid targets
+        /// list when not selecting anything.
+        /// </summary>
+        /// <remarks>
+        /// Updated during <see cref="PreprocessInteractor"/>.
+        /// </remarks>
+        protected IXRInteractable currentNearestValidTarget { get; private set; }
+
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
         /// <summary>
@@ -514,13 +552,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             ? Mathf.Min(m_RaycastHitEndpointIndex, m_UIRaycastHitEndpointIndex) // When both are valid, return the closer one
             : (m_RaycastHitEndpointIndex > 0 ? m_RaycastHitEndpointIndex : m_UIRaycastHitEndpointIndex); // Otherwise return the valid one
 
-        XRUIInputModule m_InputModule;
-        XRUIInputModule m_RegisteredInputModule;
-
-        // state to manage hover selection
-        IXRInteractable m_CurrentNearestObject;
         float m_LastTimeHoveredObjectChanged;
         bool m_PassedHoverTimeToSelect;
+        float m_LastTimeAutoSelected;
+        bool m_PassedTimeToAutoDeselect;
 
         readonly RaycastHit[] m_RaycastHits = new RaycastHit[k_MaxRaycastHits];
         int m_RaycastHitsCount;
@@ -577,13 +612,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         PhysicsScene m_LocalPhysicsScene;
 
+        RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void OnValidate()
         {
             m_SampleFrequency = SanitizeSampleFrequency(m_SampleFrequency);
-            RegisterOrUnregisterXRUIInputModule();
+            m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
         }
 
         /// <inheritdoc />
@@ -592,11 +629,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
+            m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
 
-            var capacity = m_LineType == LineType.StraightLine ? 2 : m_SampleFrequency;
-            m_SamplePoints = new List<SamplePoint>(capacity);
-            if (s_ScratchSamplePoints == null)
-                s_ScratchSamplePoints = new List<SamplePoint>(capacity);
+            CreateSamplePointsListsIfNecessary();
 
             FindReferenceFrame();
             CreateRayOrigin();
@@ -608,7 +643,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnEnable();
 
             if (m_EnableUIInteraction)
-                RegisterWithXRUIInputModule();
+                m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
         }
 
         /// <inheritdoc />
@@ -617,10 +652,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnDisable();
 
             // Clear lines
-            m_SamplePoints.Clear();
+            m_SamplePoints?.Clear();
 
             if (m_EnableUIInteraction)
-                UnregisterFromXRUIInputModule();
+                m_RegisteredUIInteractorCache.UnregisterFromXRUIInputModule();
         }
 
         /// <summary>
@@ -754,73 +789,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void FindOrCreateXRUIInputModule()
-        {
-            var eventSystem = FindObjectOfType<EventSystem>();
-            if (eventSystem == null)
-                eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
-            else
-            {
-                // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
-                var standaloneInputModule = eventSystem.GetComponent<StandaloneInputModule>();
-                if (standaloneInputModule != null)
-                    Destroy(standaloneInputModule);
-            }
-
-            m_InputModule = eventSystem.GetComponent<XRUIInputModule>();
-            if (m_InputModule == null)
-                m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
-        }
-
         /// <summary>
-        /// Register with the <see cref="XRUIInputModule"/> (if necessary).
-        /// </summary>
-        /// <seealso cref="UnregisterFromXRUIInputModule"/>
-        void RegisterWithXRUIInputModule()
-        {
-            if (m_InputModule == null)
-                FindOrCreateXRUIInputModule();
-
-            if (m_RegisteredInputModule == m_InputModule)
-                return;
-
-            UnregisterFromXRUIInputModule();
-
-            m_InputModule.RegisterInteractor(this);
-            m_RegisteredInputModule = m_InputModule;
-        }
-
-        /// <summary>
-        /// Unregister from the <see cref="XRUIInputModule"/> (if necessary).
-        /// </summary>
-        /// <seealso cref="RegisterWithXRUIInputModule"/>
-        void UnregisterFromXRUIInputModule()
-        {
-            if (m_RegisteredInputModule != null)
-                m_RegisteredInputModule.UnregisterInteractor(this);
-
-            m_RegisteredInputModule = null;
-        }
-
-        /// <summary>
-        /// Register with or unregister from the Input Module (if necessary).
-        /// </summary>
-        /// <remarks>
-        /// If this behavior is not active and enabled, this function does nothing.
-        /// </remarks>
-        void RegisterOrUnregisterXRUIInputModule()
-        {
-            if (!isActiveAndEnabled || !Application.isPlaying)
-                return;
-
-            if (m_EnableUIInteraction)
-                RegisterWithXRUIInputModule();
-            else
-                UnregisterFromXRUIInputModule();
-        }
-
-        /// <summary>
-        /// Use this to determine if the ray is currenlty hovering over a UI GameObject.
+        /// Use this to determine if the ray is currently hovering over a UI GameObject.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if hovering over a UI element. Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
@@ -830,7 +800,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="EventSystem.IsPointerOverGameObject(int)"/>
         public bool IsOverUIGameObject()
         {
-            return m_EnableUIInteraction && m_InputModule != null && TryGetUIModel(out var uiModel) && m_InputModule.IsPointerOverGameObject(uiModel.pointerId);
+            return m_EnableUIInteraction && m_RegisteredUIInteractorCache != null && m_RegisteredUIInteractorCache.IsOverUIGameObject();
         }
 
         /// <inheritdoc />
@@ -856,6 +826,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Because this method may be invoked during OnBeforeRender, the current positions
             // of sample points may be different as the controller moves. Recompute the current
             // positions of sample points.
+            CreateSamplePointsListsIfNecessary();
             UpdateSamplePoints(m_SamplePoints.Count, s_ScratchSamplePoints);
 
             if (m_LineType == LineType.StraightLine)
@@ -980,6 +951,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             model.orientation = effectiveRayOrigin.rotation;
             model.select = isUISelectActive;
             model.raycastLayerMask = raycastMask;
+            model.interactionType = UIInteractionType.Ray;
 
             var raycastPoints = model.raycastPoints;
             raycastPoints.Clear();
@@ -1003,13 +975,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
-            if (m_InputModule != null)
-            {
-                return m_InputModule.GetTrackedDeviceModel(this, out model);
-            }
-
-            model = TrackedDeviceModel.invalid;
-            return false;
+            return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 
         /// <inheritdoc cref="TryGetCurrent3DRaycastHit(out RaycastHit, out int)"/>
@@ -1289,35 +1255,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 // Update curve approximation used for ray casts
                 // if it hasn't already been done earlier in the frame for the UI Input Module.
+                CreateSamplePointsListsIfNecessary();
                 if (m_SamplePointsFrameUpdated != Time.frameCount)
                 {
                     UpdateSamplePoints(m_SampleFrequency, m_SamplePoints);
                     m_SamplePointsFrameUpdated = Time.frameCount;
                 }
 
-                Assert.IsTrue(m_SamplePoints.Count >= 2);
-
-                // Perform ray casts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
-                UpdateRaycastHits();
-                UpdateUIHitIndex();
-                CreateBezierCurve(m_SamplePoints, closestAnyHitIndex, m_HitChordControlPoints);
+                if (m_SamplePoints != null && m_SamplePoints.Count >= 2)
+                {
+                    // Perform ray casts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
+                    UpdateRaycastHits();
+                    UpdateUIHitIndex();
+                    CreateBezierCurve(m_SamplePoints, closestAnyHitIndex, m_HitChordControlPoints);
+                }
 
                 // Determine the Interactables that this Interactor could possibly interact with this frame
                 GetValidTargets(m_ValidTargets);
 
                 // Check to see if we have a new hover object
-                var nearestObject = m_ValidTargets.FirstOrDefault();
-                if (nearestObject != m_CurrentNearestObject)
+                var nearestObject = (m_ValidTargets.Count > 0) ? m_ValidTargets[0] : null;
+                if (nearestObject != currentNearestValidTarget && !hasSelection)
                 {
-                    m_CurrentNearestObject = nearestObject;
+                    currentNearestValidTarget = nearestObject;
                     m_LastTimeHoveredObjectChanged = Time.time;
                     m_PassedHoverTimeToSelect = false;
                 }
                 else if (!m_PassedHoverTimeToSelect && nearestObject != null)
                 {
-                    var progressToHoverSelect = Mathf.Clamp01((Time.time - m_LastTimeHoveredObjectChanged) / m_HoverTimeToSelect);
-                    if (progressToHoverSelect >= 1f)
+                    var progressToHoverSelect = Mathf.Clamp01((Time.time - m_LastTimeHoveredObjectChanged) / GetHoverTimeToSelect(currentNearestValidTarget));
+
+                    // If we have a selection and we're processing hover to select, don't allow hover to pass
+                    // Selection likely came from non-hover method and we don't want to auto-deselect
+                    if (progressToHoverSelect >= 1f && !hasSelection)
                         m_PassedHoverTimeToSelect = true;
+                }
+
+                // If we have a selection and interactable is set to auto deselect, process the select time
+                if (m_AutoDeselect && hasSelection && !m_PassedTimeToAutoDeselect)
+                {
+                    var progressToDeselect = Mathf.Clamp01((Time.time - m_LastTimeAutoSelected) / GetTimeToAutoDeselect(currentNearestValidTarget));
+                    if (progressToDeselect >= 1f)
+                        m_PassedTimeToAutoDeselect = true;
                 }
             }
         }
@@ -1450,6 +1429,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        void CreateSamplePointsListsIfNecessary()
+        {
+            if (m_SamplePoints != null && s_ScratchSamplePoints != null)
+                return;
+
+            var capacity = m_LineType == LineType.StraightLine ? 2 : m_SampleFrequency;
+
+            if (m_SamplePoints == null)
+                m_SamplePoints = new List<SamplePoint>(capacity);
+
+            if (s_ScratchSamplePoints == null)
+                s_ScratchSamplePoints = new List<SamplePoint>(capacity);
+        }
+
         /// <summary>
         /// Approximates the curve into a polygonal chain of endpoints, whose line segments can be used as
         /// the rays for doing Physics ray casts.
@@ -1459,6 +1452,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void UpdateSamplePoints(int count, List<SamplePoint> samplePoints)
         {
             Assert.IsTrue(count >= 2);
+            Assert.IsNotNull(samplePoints);
 
             samplePoints.Clear();
             var samplePoint = new SamplePoint
@@ -1617,16 +1611,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)
         {
-            if (m_HoverToSelect && m_PassedHoverTimeToSelect && m_CurrentNearestObject != interactable)
+            if (currentNearestValidTarget == interactable && m_AutoDeselect && hasSelection && m_PassedHoverTimeToSelect && m_PassedTimeToAutoDeselect)
+                return false;
+
+            if (m_HoverToSelect && m_PassedHoverTimeToSelect && currentNearestValidTarget != interactable)
                 return false;
 
             return base.CanSelect(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
+        /// <summary>
+        /// Gets the number of seconds for which this interactor must hover over the interactable to select it if <see cref="hoverToSelect"/> is enabled.
+        /// </summary>
+        /// <param name="interactable">The interactable to get the duration for.</param>
+        /// <returns>Returns the number of seconds for which this Interactor must hover over an Interactable to select it.</returns>
+        /// <seealso cref="hoverTimeToSelect"/>
+        protected virtual float GetHoverTimeToSelect(IXRInteractable interactable) => m_HoverTimeToSelect;
+
+        /// <summary>
+        /// Gets the number of seconds for which this interactor will keep the interactable selected before automatically deselecting it.
+        /// </summary>
+        /// <param name="interactable">The interactable to get the duration for.</param>
+        /// <returns>Returns the number of seconds for which this Interactor will keep an Interactable selected before automatically deselecting it.</returns>
+        /// <seealso cref="timeToAutoDeselect"/>
+        protected virtual float GetTimeToAutoDeselect(IXRInteractable interactable) => m_TimeToAutoDeselect;
+
         /// <inheritdoc />
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
             base.OnSelectEntering(args);
+
+            // Update when selecting via hover to select
+            if (m_AutoDeselect && m_PassedHoverTimeToSelect)
+            {
+                m_LastTimeAutoSelected = Time.time;
+                m_PassedTimeToAutoDeselect = false;
+            }
 
             if (!m_UseForceGrab && interactablesSelected.Count == 1 && TryGetCurrent3DRaycastHit(out var raycastHit))
                 attachTransform.position = raycastHit.point;
@@ -1636,6 +1656,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
             base.OnSelectExiting(args);
+
+            // Reset to allow stop hover from automatically selecting again after auto deselect
+            m_PassedHoverTimeToSelect = false;
+
+            // Reset the auto select/deselect properties to allow this Interactor to select again after select exit
+            m_LastTimeHoveredObjectChanged = Time.time;
+            m_PassedTimeToAutoDeselect = false;
 
             if (!hasSelection)
                 RestoreAttachTransform();

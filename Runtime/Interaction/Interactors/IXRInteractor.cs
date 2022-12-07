@@ -16,6 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="IXRActivateInteractor"/>
     /// <seealso cref="IXRHoverInteractor"/>
     /// <seealso cref="IXRSelectInteractor"/>
+    /// <seealso cref="IXRGroupMember"/>
     /// <seealso cref="IXRInteractable"/>
     public interface IXRInteractor
     {
@@ -97,8 +98,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void OnUnregistered(InteractorUnregisteredEventArgs args);
 
         /// <summary>
-        /// The <see cref="XRInteractionManager"/> calls this method to update the Interactor
-        /// before interaction events occur. Interactors should use this method to
+        /// The <see cref="XRInteractionManager"/> or containing <see cref="IXRInteractionGroup"/> calls this method to
+        /// update the Interactor before interaction events occur. Interactors should use this method to
         /// do tasks like determine their valid targets.
         /// </summary>
         /// <param name="updatePhase">The update phase this is called during.</param>
@@ -110,8 +111,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase);
 
         /// <summary>
-        /// The <see cref="XRInteractionManager"/> calls this method to update the Interactor
-        /// after interaction events occur.
+        /// The <see cref="XRInteractionManager"/> or containing <see cref="IXRInteractionGroup"/> calls this method to
+        /// update the Interactor after interaction events occur.
         /// </summary>
         /// <param name="updatePhase">The update phase this is called during.</param>
         /// <remarks>
@@ -121,5 +122,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         /// <seealso cref="IXRInteractable.ProcessInteractable"/>
         void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase);
+    }
+
+    /// <summary>
+    /// Extension methods for <see cref="IXRInteractor"/>.
+    /// </summary>
+    /// <seealso cref="IXRInteractor"/>
+    public static class XRInteractorExtensions
+    {
+        /// <summary>
+        /// Checks whether this Interactor is currently incapable of interacting due to active interaction by another
+        /// Interactor in its top level containing <see cref="IXRInteractionGroup"/>.
+        /// </summary>
+        /// <param name="interactor">The Interactor to operate on.</param>
+        /// <returns>Returns <see langword="true"/> if <paramref name="interactor"/> is currently incapable of interacting
+        /// due to active interaction by another Interactor in its top level containing <see cref="IXRInteractionGroup"/>. Returns
+        /// <see langword="false"/> otherwise. Always returns <see langword="false"/> if <paramref name="interactor"/>
+        /// is not contained within a Group.</returns>
+        public static bool IsBlockedByInteractionWithinGroup(this IXRInteractor interactor)
+        {
+            if (!(interactor is IXRGroupMember groupMember))
+                return false;
+
+            var topLevelGroup = groupMember.GetTopLevelContainingGroup();
+            if (topLevelGroup == null)
+                return false;
+
+            var activeInteractorInGroup = topLevelGroup.activeInteractor;
+            return activeInteractorInGroup != null && activeInteractorInGroup != interactor;
+        }
     }
 }

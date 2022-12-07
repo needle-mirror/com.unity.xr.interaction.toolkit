@@ -85,7 +85,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         public static FourCC formatId => new FourCC('X', 'R', 'S', 'C');
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
         /// </summary>
         public FourCC format => formatId;
 
@@ -185,6 +185,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             else
                 buttons &= (ushort)~bit;
             return this;
+        }
+
+        /// <summary>
+        /// Gets whether the button mask has the given <paramref name="button"/> set.
+        /// </summary>
+        /// <param name="button">Button whose state is queried.</param>
+        /// <returns>Returns <see langword="true"/> if the button bit mask has the button set.</returns>
+        /// <seealso cref="buttons"/>
+        public bool HasButton(ControllerButton button)
+        {
+            var bit = 1 << (int)button;
+            return (buttons & bit) != 0;
         }
 
         /// <summary>

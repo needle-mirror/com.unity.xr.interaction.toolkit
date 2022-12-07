@@ -8,7 +8,8 @@
         "UnityEngine.SpatialTracking",
         "Unity.InputSystem.TestFramework",
         "Unity.InputSystem",
-        "Unity.XR.CoreUtils"
+        "Unity.XR.CoreUtils",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

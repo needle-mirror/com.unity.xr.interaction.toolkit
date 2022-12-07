@@ -1,8 +1,7 @@
 ﻿using NUnit.Framework;
-using UnityEngine.TestTools;
 using System.Collections;
+using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
-using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -30,6 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller
@@ -80,6 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller
@@ -129,6 +130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller
@@ -179,6 +181,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller
@@ -250,7 +253,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
-            interactor.lineType = XRRayInteractor.LineType.ProjectileCurve; // projectile curve
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
+            interactor.lineType = XRRayInteractor.LineType.ProjectileCurve;
 
             // controller
             var controller = interactor.GetComponent<XRController>();
@@ -299,7 +303,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
-            interactor.lineType = XRRayInteractor.LineType.BezierCurve; // projectile curve
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
+            interactor.lineType = XRRayInteractor.LineType.BezierCurve;
 
             // controller
             var controller = interactor.GetComponent<XRController>();
@@ -350,6 +355,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller
@@ -407,6 +413,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateRayInteractor();
 
             interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseControllerInteractor.InputTriggerType.State;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
             // controller

@@ -264,7 +264,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_StopLineAtSelection;
             set => m_StopLineAtSelection = value;
         }
-
+        
+        [SerializeField]
+        bool m_SnapEndpointIfAvailable = true;
+        /// <summary>
+        /// Controls whether the visualized line will snap endpoint if the ray hits a XRInteractableSnapVolume.
+        /// </summary>
+        /// <remarks>
+        /// Currently snapping only works with an <see cref="XRRayInteractor"/>.
+        /// </remarks>
+        public bool snapEndpointIfAvailable
+        {
+            get => m_SnapEndpointIfAvailable;
+            set => m_SnapEndpointIfAvailable = value;
+        }
+        
         Vector3 m_ReticlePos;
         Vector3 m_ReticleNormal;
         int m_EndPositionInLine;
@@ -279,6 +293,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         ILineRenderable m_LineRenderable;
         IXRSelectInteractor m_LineRenderableAsSelectInteractor;
         XRBaseInteractor m_LineRenderableAsBaseInteractor;
+        XRRayInteractor m_LineRenderableAsRayInteractor;
 
         // reusable lists of target points
         Vector3[] m_TargetPoints;
@@ -296,6 +311,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         GameObject m_CustomReticle;
         bool m_CustomReticleAttached;
+        
+        // Snapping 
+        bool m_Snapping;
+        XRInteractableSnapVolume m_XRInteractableSnapVolume;
+        int m_NumberOfSegmentsForBendableLine = 20;
+
+        // List of raycast points from m_LineRenderable
+        Vector3[] m_LineRenderablePoints = Array.Empty<Vector3>();
+
+        // Most recent hit information
+        Vector3 m_CurrentHitPoint;
+        bool m_HasHitInfo;
+        bool m_ValidHit;
+        
+        // The position at which we want to render the end point (used for bending ray visuals)
+        Vector3 m_CurrentRenderEndpoint;
+        // Previously hit collider 
+        Collider m_PreviousCollider;
 
         XROrigin m_XROrigin;
 
@@ -331,6 +364,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_LineRenderableAsBaseInteractor = m_LineRenderable as XRBaseInteractor;
                 m_LineRenderableAsSelectInteractor = m_LineRenderable as IXRSelectInteractor;
+                m_LineRenderableAsRayInteractor = m_LineRenderable as XRRayInteractor;
             }
 
             FindXROrigin();
@@ -387,8 +421,78 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateLineVisual();
         }
 
+        /// <summary>
+        /// Tries to get the hit info from the current <see cref="ILineRenderable"/> and checks for any <see cref="XRInteractableSnapVolume"/> collisions.  
+        /// </summary>
+        /// <returns>Returns whether or not we have a valid hit in this current frame.</returns>
+        bool UpdateCurrentHitInfo()
+        {
+            m_LineRenderable.GetLinePoints(ref m_LineRenderablePoints, out _);
+
+            Collider hitCollider = null;
+            m_Snapping = false;
+            
+            if (m_LineRenderablePoints.Length < 1)
+                return false;
+
+            if (m_LineRenderable.TryGetHitInfo(out m_CurrentHitPoint, out m_ReticleNormal, out m_EndPositionInLine, out m_ValidHit))
+            {
+                m_HasHitInfo = true;
+                m_CurrentRenderEndpoint = m_CurrentHitPoint;
+                if (m_ValidHit && m_SnapEndpointIfAvailable && m_LineRenderableAsRayInteractor != null && !m_LineRenderableAsRayInteractor.hasSelection)
+                {
+                    // When hovering a new collider, check if it has a specified snapping volume, if it does then get the closest point on it
+                    if (m_LineRenderableAsRayInteractor.TryGetCurrent3DRaycastHit(out var raycastHit, out _))
+                        hitCollider = raycastHit.collider;
+
+                    if (hitCollider != m_PreviousCollider && hitCollider != null)
+                        m_LineRenderableAsBaseInteractor.interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
+
+                    if (m_XRInteractableSnapVolume != null)
+                    {
+                        m_CurrentRenderEndpoint = m_XRInteractableSnapVolume.GetClosestPoint(m_CurrentRenderEndpoint);
+                        m_EndPositionInLine = m_NumberOfSegmentsForBendableLine - 1; // Override hit index because we're going to use a custom line where the hit point is the end
+                        m_Snapping = true;
+                    }
+                }
+            }
+            else
+            {
+                m_CurrentRenderEndpoint = (m_LineRenderablePoints.Length > 0) ? m_LineRenderablePoints[m_LineRenderablePoints.Length - 1] : Vector3.zero;
+            }
+
+            if (hitCollider == null)
+                m_XRInteractableSnapVolume = null;
+
+            m_PreviousCollider = hitCollider;
+            return m_ValidHit;
+        }
+
+        /// <summary>
+        /// Calculates the target render points based on the targeted snapped endpoint and the actual position of the raycast line.  
+        /// </summary>
+        void CalculateSnapRenderPoints()
+        {
+            var startPosition = m_LineRenderablePoints.Length > 0 ? m_LineRenderablePoints[0] : Vector3.zero;
+            var forward = Vector3.Normalize(m_CurrentHitPoint - startPosition);
+            var straightLineEndPoint = startPosition + forward * Vector3.Distance(m_CurrentRenderEndpoint, startPosition);
+
+            var normalizedPointValue = 0f;
+            var increment = 1f / (m_NoTargetPoints - 1);
+            
+            for (var i = 0; i < m_NoTargetPoints; i++)
+            {
+                var manipToEndPoint = Vector3.LerpUnclamped(startPosition, m_CurrentRenderEndpoint, normalizedPointValue);
+                var manipToAnchor = Vector3.LerpUnclamped(startPosition, straightLineEndPoint, normalizedPointValue);
+                m_TargetPoints[i] = Vector3.LerpUnclamped(manipToAnchor, manipToEndPoint, normalizedPointValue);
+                normalizedPointValue += increment;
+            }
+        }
+        
         internal void UpdateLineVisual()
         {
+            UpdateCurrentHitInfo();
+
             if (m_PerformSetup)
             {
                 UpdateSettings();
@@ -412,6 +516,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             }
 
+            if (m_LineRenderableAsBaseInteractor != null &&
+                m_LineRenderableAsBaseInteractor.disableVisualsWhenBlockedInGroup &&
+                m_LineRenderableAsBaseInteractor.IsBlockedByInteractionWithinGroup())
+            {
+                m_LineRenderer.enabled = false;
+                return;
+            }
+
             m_NoRenderPoints = 0;
 
             // Get all the line sample points from the ILineRenderable interface
@@ -422,6 +534,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             }
 
+            // If we're snapping, override the target points from the m_LineRenderable and use custom point data
+            if (m_Snapping)
+            {
+                m_NoTargetPoints = m_NumberOfSegmentsForBendableLine;
+                if (m_TargetPoints == null || m_TargetPoints.Length < m_NumberOfSegmentsForBendableLine)
+                    m_TargetPoints = new Vector3[m_NumberOfSegmentsForBendableLine];
+                CalculateSnapRenderPoints();
+            }
+            
             // Sanity check.
             if (m_TargetPoints == null ||
                 m_TargetPoints.Length == 0 ||
@@ -442,8 +563,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_NoPreviousRenderPoints = 0;
             }
 
+            // Unchanged
             // If there is a big movement (snap turn, teleportation), snap the curve
-            if (m_PreviousRenderPoints.Length != m_NoTargetPoints)
+            if (m_NoPreviousRenderPoints != m_NoTargetPoints)
             {
                 m_SnapCurve = true;
             }
@@ -468,10 +590,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // If the line hits, insert reticle position into the list for smoothing.
             // Remove the last point in the list to keep the number of points consistent.
-            if (m_LineRenderable.TryGetHitInfo(out m_ReticlePos, out m_ReticleNormal, out m_EndPositionInLine, out var isValidTarget))
+            if (m_HasHitInfo)
             {
+                m_ReticlePos = m_CurrentRenderEndpoint;
+            
                 // End the line at the current hit point.
-                if ((isValidTarget || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
+                if ((m_ValidHit || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
                 {
                     // The hit position might not lie within the line segment, for example if a sphere cast is used, so use a point projected onto the
                     // segment so that the endpoint is continuous with the rest of the curve.
@@ -490,6 +614,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
 
+            // Stop line if there is a selection 
             var hasSelection = m_LineRenderableAsSelectInteractor != null && m_LineRenderableAsSelectInteractor.hasSelection;
             if (m_StopLineAtSelection && hasSelection)
             {
@@ -611,7 +736,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // When a straight line has only two points and color gradients have more than two keys,
             // interpolate points between the two points to enable better color gradient effects.
-            if (isValidTarget || m_TreatSelectionAsValidState && hasSelection)
+            if (m_ValidHit || m_TreatSelectionAsValidState && hasSelection)
             {
                 // Use regular valid state visuals unless we are hovering and selection is blocked.
                 // We use regular valid state visuals if not hovering because the blocked state does not apply
@@ -752,7 +877,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_CustomReticle = reticleInstance;
             m_CustomReticleAttached = true;
-            return false;
+            return true;
         }
 
         /// <inheritdoc />
@@ -760,7 +885,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_CustomReticle = null;
             m_CustomReticleAttached = false;
-            return false;
+            return true;
         }
     }
 }

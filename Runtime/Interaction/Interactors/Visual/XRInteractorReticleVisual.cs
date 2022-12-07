@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using System;
+
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interactor helper object that draws a targeting <see cref="reticlePrefab"/> over a ray casted point in front of the Interactor.
@@ -96,6 +98,18 @@
         }
 
         [SerializeField]
+        bool m_DrawOnNoHit;        
+        /// <summary>
+        /// Whether Unity draws the <see cref="reticlePrefab"/> when there is no hit. If <see langword="true"/>, Unity will draw the <see cref="reticlePrefab"/>
+        /// at the last point of a <see cref="XRRayInteractor"/>.
+        /// </summary>
+        public bool drawOnNoHit
+        {
+            get => m_DrawOnNoHit;
+            set => m_DrawOnNoHit = value;
+        }
+
+        [SerializeField]
         LayerMask m_RaycastMask = -1;
         /// <summary>
         /// Layer mask for ray cast.
@@ -123,6 +137,7 @@
 
         GameObject m_ReticleInstance;
         XRBaseInteractor m_Interactor;
+        Vector3[] m_InteractorLinePoints;
         Vector3 m_TargetEndPoint;
         Vector3 m_TargetEndNormal;
         PhysicsScene m_LocalPhysicsScene;
@@ -218,6 +233,9 @@
             if (!m_DrawWhileSelecting && m_Interactor.hasSelection)
                 return false;
 
+            if (m_Interactor.disableVisualsWhenBlockedInGroup && m_Interactor.IsBlockedByInteractionWithinGroup())
+                return false;
+
             var hasRaycastHit = false;
             var raycastPos = Vector3.zero;
             var raycastNormal = Vector3.zero;
@@ -242,13 +260,19 @@
                         hasRaycastHit = true;
                     }
                 }
+                else if (m_DrawOnNoHit && rayInteractor.GetLinePoints(ref m_InteractorLinePoints, out _))
+                {
+                    raycastPos = m_InteractorLinePoints != null && m_InteractorLinePoints.Length > 0
+                        ? m_InteractorLinePoints[m_InteractorLinePoints.Length - 1]
+                        : Vector3.zero;
+                }
             }
             else if (TryGetRaycastPoint(ref raycastPos, ref raycastNormal))
             {
                 hasRaycastHit = true;
             }
 
-            if (hasRaycastHit)
+            if (hasRaycastHit || m_DrawOnNoHit)
             {
                 // Smooth target
                 var velocity = Vector3.zero;

@@ -1,9 +1,19 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AR;
+﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Transformation;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.UI;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
+using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -31,6 +41,131 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="ActionBasedSnapTurnProvider"/>.
         /// </summary>
         public const string k_ActionBasedSnapTurnProvider = k_BaseApi + k_BaseNamespace + nameof(ActionBasedSnapTurnProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="AudioAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_AudioAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Audio." + nameof(AudioAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ColorAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_ColorAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(ColorAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="FloatAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_FloatAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(FloatAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="QuaternionAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_QuaternionAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(QuaternionAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="QuaternionEulerAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_QuaternionEulerAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(QuaternionEulerAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector2AffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector2AffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(Vector2AffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector3AffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector3AffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(Vector3AffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector4AffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector4AffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Primitives." + nameof(Vector4AffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="BlendShapeAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_BlendShapeAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(BlendShapeAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ColorMaterialPropertyAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_ColorMaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(ColorMaterialPropertyAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="FloatMaterialPropertyAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_FloatMaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(FloatMaterialPropertyAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector2MaterialPropertyAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector2MaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(Vector2MaterialPropertyAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector3MaterialPropertyAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector3MaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(Vector3MaterialPropertyAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector4MaterialPropertyAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_Vector4MaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(Vector4MaterialPropertyAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ImageColorAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_ImageColorAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.UI." + nameof(ImageColorAffordanceReceiver) + ".html";
+        
+        /// <summary>
+        /// Scripting API URL for <see cref="UniformTransformScaleAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_UniformTransformScaleAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Transformation." + nameof(UniformTransformScaleAffordanceReceiver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="MaterialInstanceHelper"/>.
+        /// </summary>
+        public const string k_MaterialInstanceHelper = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Rendering." + nameof(MaterialInstanceHelper) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="MaterialPropertyBlockHelper"/>.
+        /// </summary>
+        public const string k_MaterialPropertyBlockHelper = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Rendering." + nameof(MaterialPropertyBlockHelper) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInteractableAffordanceStateProvider"/>.
+        /// </summary>
+        public const string k_XRInteractableAffordanceStateProvider = k_BaseApi + k_BaseNamespace + "AffordanceSystem.State." + nameof(XRInteractableAffordanceStateProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="AudioAffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_AudioAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Audio." + nameof(AudioAffordanceThemeDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ColorAffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_ColorAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(ColorAffordanceThemeDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="FloatAffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_FloatAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(FloatAffordanceThemeDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector2AffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_Vector2AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector2AffordanceThemeDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector3AffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_Vector3AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector3AffordanceThemeDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="Vector4AffordanceThemeDatum"/>.
+        /// </summary>
+        public const string k_Vector4AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector4AffordanceThemeDatum) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="ARAnnotationInteractable"/>.
@@ -88,6 +223,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_DeviceBasedSnapTurnProvider = k_BaseApi + k_BaseNamespace + nameof(DeviceBasedSnapTurnProvider) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="PokeThresholdDatum"/>.
+        /// </summary>
+        public const string k_PokeThresholdDatum = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(PokeThresholdDatum) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRPokeFilter"/>.
+        /// </summary>
+        public const string k_XRPokeFilter = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(XRPokeFilter) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRTargetFilter"/>.
         /// </summary>
         public const string k_XRTargetFilter = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(XRTargetFilter) + ".html";
@@ -133,6 +278,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRDualGrabFreeTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRDualGrabFreeTransformer) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRGeneralGrabTransformer"/>.
+        /// </summary>
+        public const string k_XRGeneralGrabTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRGeneralGrabTransformer) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRLegacyGrabTransformer"/>.
         /// </summary>
 #pragma warning disable 618 // Deprecated component for compatibility with existing user projects.
@@ -143,6 +293,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRSingleGrabFreeTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabFreeTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRSingleGrabFreeTransformer) + ".html";
+        
+        /// <summary>
+        /// Scripting API URL for <see cref="XRSingleGrabOffsetPreserveTransformer"/>.
+        /// </summary>
+        public const string k_XRSingleGrabOffsetPreserveTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(k_XRSingleGrabOffsetPreserveTransformer) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="TunnelingVignetteController"/>
@@ -153,6 +308,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="TwoHandedGrabMoveProvider"/>.
         /// </summary>
         public const string k_TwoHandedGrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(TwoHandedGrabMoveProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="LazyFollow"/>.
+        /// </summary>
+        public const string k_LazyFollow = k_BaseApi + k_BaseNamespace + "UI." + nameof(LazyFollow) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="TrackedDeviceGraphicRaycaster"/>.
@@ -168,6 +328,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRUIInputModule"/>.
         /// </summary>
         public const string k_XRUIInputModule = k_BaseApi + k_BaseNamespace + "UI." + nameof(XRUIInputModule) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="DisposableManagerSingleton"/>.
+        /// </summary>
+        public const string k_DisposableManagerSingleton = k_BaseApi + k_BaseNamespace + "Utilities." + nameof(DisposableManagerSingleton) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRController"/>.
@@ -190,9 +355,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRDirectInteractor = k_BaseApi + k_BaseNamespace + nameof(XRDirectInteractor) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRGazeInteractor"/>.
+        /// </summary>
+        public const string k_XRGazeInteractor = k_BaseApi + k_BaseNamespace + nameof(XRGazeInteractor) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRGrabInteractable"/>.
         /// </summary>
         public const string k_XRGrabInteractable = k_BaseApi + k_BaseNamespace + nameof(XRGrabInteractable) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInteractableSnapVolume"/>.
+        /// </summary>
+        public const string k_XRInteractableSnapVolume = k_BaseApi + k_BaseNamespace + nameof(XRInteractableSnapVolume) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInteractionGroup"/>.
+        /// </summary>
+        public const string k_XRInteractionGroup = k_BaseApi + k_BaseNamespace + nameof(XRInteractionGroup) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractionManager"/>.
@@ -208,6 +388,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRInteractorReticleVisual"/>.
         /// </summary>
         public const string k_XRInteractorReticleVisual = k_BaseApi + k_BaseNamespace + nameof(XRInteractorReticleVisual) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRPokeInteractor"/>.
+        /// </summary>
+        public const string k_XRPokeInteractor = k_BaseApi + k_BaseNamespace + nameof(XRPokeInteractor) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRRayInteractor"/>.
@@ -229,7 +414,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
 
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.2/api/";
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.3/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

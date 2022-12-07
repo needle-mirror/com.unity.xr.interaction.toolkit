@@ -307,6 +307,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     /// <summary>
+    /// Event data associated with the event when an <see cref="IXRInteractionGroup"/> is registered with an <see cref="XRInteractionManager"/>.
+    /// </summary>
+    public class InteractionGroupRegisteredEventArgs : BaseRegistrationEventArgs
+    {
+        /// <summary>
+        /// The Interaction Group that was registered.
+        /// </summary>
+        public IXRInteractionGroup interactionGroupObject { get; set; }
+
+        /// <summary>
+        /// The Interaction Group that contains the registered Group. Will be <see langword="null"/> if there is no containing Group.
+        /// </summary>
+        public IXRInteractionGroup containingGroupObject { get; set; }
+    }
+
+    /// <summary>
     /// Event data associated with the event when an Interactor is registered with an <see cref="XRInteractionManager"/>.
     /// </summary>
     public partial class InteractorRegisteredEventArgs : BaseRegistrationEventArgs
@@ -315,6 +331,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Interactor that was registered.
         /// </summary>
         public IXRInteractor interactorObject { get; set; }
+
+        /// <summary>
+        /// The Interaction Group that contains the registered Interactor. Will be <see langword="null"/> if there is no containing Group.
+        /// </summary>
+        public IXRInteractionGroup containingGroupObject { get; set; }
     }
 
     /// <summary>
@@ -326,6 +347,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Interactable that was registered.
         /// </summary>
         public IXRInteractable interactableObject { get; set; }
+    }
+
+    /// <summary>
+    /// Event data associated with the event when an Interaction Group is unregistered from an <see cref="XRInteractionManager"/>.
+    /// </summary>
+    public class InteractionGroupUnregisteredEventArgs : BaseRegistrationEventArgs
+    {
+        /// <summary>
+        /// The Interaction Group that was unregistered.
+        /// </summary>
+        public IXRInteractionGroup interactionGroupObject { get; set; }
     }
 
     /// <summary>

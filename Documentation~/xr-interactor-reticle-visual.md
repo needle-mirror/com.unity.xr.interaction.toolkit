@@ -5,7 +5,7 @@ Interactor helper object that draws a targeting **Reticle Prefab** over a ray ca
 ![XRInteractorReticleVisual component](images/xr-interactor-reticle-visual.png)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Max Raycast Distance** | The max distance to ray cast from this Interactor. |
 | **Reticle Prefab** | Prefab which Unity draws over ray cast destination. |
 | **Prefab Scaling Factor** | Amount to scale Prefab (before applying distance scaling). |

@@ -45,12 +45,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Order when <see cref="XRInteractionManager"/> is updated.
         /// </summary>
-        public const int k_InteractionManager = -100;
+        public const int k_InteractionManager = -105;
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRInteractionGroup"/> are updated.
+        /// </summary>
+        public const int k_InteractionGroups = -100; // After XRInteractionManager
 
         /// <summary>
         /// Order when instances of type <see cref="XRBaseInteractor"/> are updated.
         /// </summary>
-        public const int k_Interactors = -99; // After XRInteractionManager
+        public const int k_Interactors = -99; // After XRInteractionGroup
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRInteractableSnapVolume"/> are updated.
+        /// </summary>
+        /// <remarks>
+        /// Executes before interactables to ensure colliders have been found and set to trigger colliders
+        /// so they are filtered out in the <see cref="XRBaseInteractable"/>.
+        /// </remarks>
+        public const int k_InteractableSnapVolume = -99; // Before XRBaseInteractable
 
         /// <summary>
         /// Order when instances of type <see cref="XRBaseInteractable"/> are updated.

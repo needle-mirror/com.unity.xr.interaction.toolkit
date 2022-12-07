@@ -15,7 +15,7 @@ This documentation outlines how to use and extend these components.
 ## Glossary
 
 | **Term** | **Meaning** |
-|-|-|
+|---|---|
 | **XR Origin** | The component that implements the generic concept of a camera rig. It also provides options of tracking origin modes to configure the reference frame for positions reported by the XR device. It has properties to specify an Origin, a Camera Floor Offset Object, and a Camera Object. |
 | **Origin** | By default, the Origin is the GameObject that the XR Origin component is attached to, and the term is generally used interchangeably with XR Origin. This is the GameObject that the application will manipulate via locomotion. |
 | **Camera Floor Offset Object** | The GameObject to move the Camera to the desired height off the floor depending on the tracking origin mode. |
@@ -29,7 +29,7 @@ This documentation outlines how to use and extend these components.
 | **Continuous Turn** | A type of locomotion that smoothly rotates the user by an amount over time. |
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
 | **Grab Move** | A type of locomotion that moves the user counter to controller movement, as if the user is grabbing the world around them. |
-| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/manual/Actions.html) and their controller bindings in the Input System. |
+| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
 ## Set up a basic scene for snap turn and teleportation
@@ -83,7 +83,7 @@ These options are described below.
 If you select the **Straight Line** option, the XR Ray Interactor performs a single ray cast into the scene with a ray length set by the **Max Raycast Distance** property. The image above shows the configuration options.
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 | **Max Raycast Distance** | The distance to be ray cast into the scene. |
 
 #### Projectile Curve
@@ -95,7 +95,7 @@ The **Projectile Curve** option is recommended for use in teleportation scenario
 ![raycast-configuration-projectile-curve](images/raycast-configuration-projectile-curve.png)
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 | **Reference Frame** | The reference frame of the projectile. If you don't set this, the XR Ray Interactor attempts to use the local XR Origin, which makes the curve always go up then down in the tracking space. If the XR Origin doesn't exist, the curve rotates with the Controller. |
 | **Velocity** | Initial velocity of the projectile. Increase this value to make the curve reach further. |
 | **Acceleration** | Gravity of the projectile in the reference frame. |
@@ -109,7 +109,7 @@ The **Projectile Curve** option is recommended for use in teleportation scenario
 In addition to its start point, the **Bezier Curve** uses a control point and an end point. The start point is the position of the **Attach Transform** of the **XR Ray Interactor**. Both the **Projectile Curve** and the **Bezier Curve** use the reference frame of the Origin unless otherwise set by the user.
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 | **End Point Distance** | Define how far away the end point is from the start point. Increase the value to increase the distance. |
 | **End Point Height** | Define how high the end point is in relation to the start point. Increase this value to increase the height. |
 | **Control Point Distance** | Define how far away the peak of the curve is from the start point. Increase this value to increase the distance. |
@@ -123,7 +123,7 @@ The XR Interactor Line Visual provides additional options to customize the appea
 ![xr-interactor-line-visual](images/xr-interactor-line-visual.png)
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 | **Line Width** | The width of the line, in centimeters. |
 | **Width Curve** | The relative width of the line from start to end. |
 | **Valid Color Gradient** | When the line hits any collider of a valid target, it changes to this color gradient. |
@@ -163,7 +163,7 @@ The image below shows the XR Origin component.
 ![xr-origin](images/xr-origin.png)
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 |**Origin Base Game Object**|Indicates which GameObject acts as the Transform from tracking space into world space. In the recommended hierarchy, this is the XR Origin GameObject.|
 |**Camera Floor Offset Object**|Sets which GameObject has a vertical offset applied if the device tracking origin doesn't contain the user's height.|
 |**Camera Game Object**|Indicates which GameObject holds the user's Camera. This is important because the user's Camera might not be at the origin of the tracking volume. In the suggested hierarchy, this is the Camera GameObject.|
@@ -179,7 +179,7 @@ The following is an image of the Locomotion System component:
 ![locomotion-system](images/locomotion-system.png)
 
 | **Property** | **Description** |
-|-|-|
+|---|---|
 |**Timeout**|Controls the maximum amount of time a single Locomotion Provider can keep exclusive access of the Locomotion System. By default, the value is set to 10 seconds.|
 |**XR Origin**|Selects which XR Origin this Locomotion System will control. You can have as many Locomotion Systems and XR Origins in your scene as necessary. By default, it will find the object of type XR Origin in the scene.|
 
@@ -237,14 +237,14 @@ The following image shows an example of a portion of the Teleportation Area Inte
 
 The properties on the Teleportation Area Interactable are similar to other Interactables. The table below only covers the elements that support teleportation.
 
-| **Property** | **Description** |
-|-|-|
-|**Match Orientation** |Specifies how to orient the Origin after teleportation. You can choose from the following options:<br/><ul><li>**World Space Up** to stay oriented according to the world space up vector.</li><li>**Target Up** to orient according to the target `BaseTeleportationInteractable` Transform's up vector.</li><li>**Target Up And Forward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation.</li><li>**None** to maintain the same orientation before and after teleporting.</li></ul>|
+|**Property**|**Description**|
+|---|---|
+|**Match Orientation**|Specifies how to orient the Origin after teleportation. You can choose from the following options:<br/><ul><li>**World Space Up** to stay oriented according to the world space up vector.</li><li>**Target Up** to orient according to the target `BaseTeleportationInteractable` Transform's up vector.</li><li>**Target Up And Forward** to orient according to the target `BaseTeleportationInteractable` Transform's rotation.</li><li>**None** to maintain the same orientation before and after teleporting.</li></ul>|
 |**Match Directional Input**|Specifies whether or not to rotate the Origin to match the forward direction of the attach transform of the selecting interactor. This option is only available when **Match Orientation** is set to **World Space Up** or **Target Up**.|
-|**Teleport Trigger**|Specifies whether the teleportation triggers when the user enters or exits the selection.
-|**Teleportation Provider** |Indicates which Teleportation Provider this Interactable communicates with. If a Teleportation Provider is not configured, the Interactable attempts to find a Teleportation Provider in the current scene(s).|
-| **Filter Selection By Hit Normal** | When enabled, this teleportation interactable will only be selectable by a ray interactor if its current hit normal is aligned with this object's up vector. |
-| **Up Normal Tolerance Degrees** | Sets the tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector. Only used and displayed when **Filter Selection By Hit Normal** is enabled. |
+|**Teleport Trigger**|Specifies whether the teleportation triggers when the user enters or exits the selection.|
+|**Teleportation Provider**|Indicates which Teleportation Provider this Interactable communicates with. If a Teleportation Provider is not configured, the Interactable attempts to find a Teleportation Provider in the current scene(s).|
+|**Filter Selection By Hit Normal**|When enabled, this teleportation interactable will only be selectable by a ray interactor if its current hit normal is aligned with this object's up vector. |
+|**Up Normal Tolerance Degrees**|Sets the tolerance in degrees from this object's up vector for a hit normal to be considered aligned with the up vector. Only used and displayed when **Filter Selection By Hit Normal** is enabled. |
 
 **Match Orientation** is used to specify how the rotation of the XR Origin changes when teleporting.
 - If your application does not rotate the Origin in any way, and you always want the Origin's up vector to match World Space's Up vector, use the **World Space Up** option.

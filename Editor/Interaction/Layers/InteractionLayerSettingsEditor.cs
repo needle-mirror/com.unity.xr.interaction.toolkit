@@ -17,7 +17,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             public static readonly string userLayerLabelText = "User Layer {0}";
             public static readonly string builtinLayerLabelText = "Builtin Layer {0}";
-            
+
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layers");
         }
 
@@ -33,7 +33,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         void OnEnable()
         {
             m_Layers = serializedObject.FindProperty("m_LayerNames");
-            
+
             if (m_LayersList == null)
             {
                 m_LayersList = new ReorderableList(serializedObject, m_Layers, false, false, false, false)
@@ -44,7 +44,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 };
             }
         }
-        
+
         /// <summary>
         /// Called by the layers list do draw a layer element.
         /// </summary>
@@ -57,7 +57,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             rect.yMin += 1;
             rect.yMax -= 1;
 
-            var isUserLayer = index >= InteractionLayerSettings.k_BuiltInLayerSize;
+            var isUserLayer = index >= InteractionLayerSettings.builtInLayerSize;
 
             var oldEnabled = GUI.enabled;
             GUI.enabled = isUserLayer;
@@ -79,13 +79,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             serializedObject.Update();
 
-            m_Layers.isExpanded = EditorGUILayout.Foldout(m_Layers.isExpanded, Contents.interactionLayers, true);
-            if (m_Layers.isExpanded)
+            using (var changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                m_LayersList.DoLayoutList();
+                m_Layers.isExpanded = EditorGUILayout.Foldout(m_Layers.isExpanded, Contents.interactionLayers, true);
+                if (m_Layers.isExpanded)
+                {
+                    m_LayersList.DoLayoutList();
+                }
+
+                if (changeCheck.changed)
+                    serializedObject.ApplyModifiedProperties();
             }
-            
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

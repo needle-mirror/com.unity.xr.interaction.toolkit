@@ -57,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the name of the supplied Interaction Layer value.</returns>
         public static string LayerToName(int layer)
         {
-            if (layer < 0 || layer >= InteractionLayerSettings.k_LayerSize)
+            if (layer < 0 || layer >= InteractionLayerSettings.layerSize)
                 return string.Empty;
 
             return InteractionLayerSettings.instance.GetLayerNameAt(layer);

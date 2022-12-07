@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="distanceInfo">If <see langword="true"/> is returned, <paramref name="distanceInfo"/> will contain the closest Collider, its position (in world space) and its distance squared to the given location.</param>
         /// <returns>Returns <see langword="true"/> if the closest Collider can be computed, for this the <paramref name="interactable"/> must have at least one active and enabled Collider. Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
-        /// Only active and enabled Colliders are used in the calculation.
+        /// Only active and enabled non-trigger colliders are used in the calculation.
         /// </remarks>
         /// <seealso cref="DistanceInfo"/>
         /// <seealso cref="TryGetClosestPointOnCollider"/>
@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var hasCollider = false;
             foreach (var col in interactable.colliders)
             {
-                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled)
+                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || col.isTrigger)
                     continue;
 
                 var colPosition = col.transform.position;
@@ -65,8 +65,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// </param>
         /// <returns> Returns <see langword="true"/> if the closest point can be computed, for this the <paramref name="interactable"/> must have at least one active and enabled Collider. Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
-        /// Only active and enabled Colliders are used in the calculation.
-        /// The Colliders can only be BoxColliders, SphereColliders, CapsuleColliders or convex MeshColliders.
+        /// Only active and enabled non-trigger colliders are used in the calculation.
+        /// The colliders can only be a <see cref="BoxCollider"/>, <see cref="SphereCollider"/>, <see cref="CapsuleCollider"/>, or convex <see cref="MeshCollider"/>.
         /// </remarks>
         /// <seealso cref="DistanceInfo"/>
         /// <seealso cref="TryGetClosestCollider"/>
@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var hasCollider = false;
             foreach (var col in interactable.colliders)
             {
-                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled)
+                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || col.isTrigger)
                     continue;
 
                 var colClosestPoint = col.ClosestPoint(position);

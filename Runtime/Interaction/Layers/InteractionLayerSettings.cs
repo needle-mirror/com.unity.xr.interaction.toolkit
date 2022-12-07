@@ -13,14 +13,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         const string k_DefaultLayerName = "Default";
 
-        internal const int k_LayerSize = 32;
-        internal const int k_BuiltInLayerSize = 1;
+        internal const int layerSize = 32;
+        internal const int builtInLayerSize = 1;
 
         [SerializeField]
         string[] m_LayerNames;
 
         /// <summary>
-        /// Gets the interaction layer name at the supplied index. 
+        /// Check if the interaction layer name at the supplied index is empty.
+        /// </summary>
+        /// <param name="index">The index of the target interaction layer.</param>
+        /// <returns>Returns <see langword="true"/> if the target interaction layer is empty.</returns>
+        internal bool IsLayerEmpty(int index)
+        {
+            return string.IsNullOrEmpty(m_LayerNames[index]);
+        }
+
+        /// <summary>
+        /// Sets the interaction layer name at the supplied index.
+        /// </summary>
+        /// <param name="index">The index of the target interaction layer.</param>
+        /// <param name="layerName">The name of the target interaction layer.</param>
+        internal void SetLayerNameAt(int index, string layerName)
+        {
+            m_LayerNames[index] = layerName;
+        }
+
+        /// <summary>
+        /// Gets the interaction layer name at the supplied index.
         /// </summary>
         /// <param name="index">The index of the target interaction layer.</param>
         /// <returns>Returns the target interaction layer name.</returns>
@@ -32,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets the value (or bit index) of the supplied interaction layer name.
         /// </summary>
-        /// <param name="layerName">The name of the interaction layer ot search for its value.</param>
+        /// <param name="layerName">The name of the interaction layer to search for its value.</param>
         /// <returns>Returns the interaction layer value.</returns>
         internal int GetLayer(string layerName)
         {
@@ -44,7 +64,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             return -1;
         }
-        
+
         /// <summary>
         /// Fills in the supplied lists with the interaction layer name and its correspondent value in the same index.
         /// </summary>
@@ -55,9 +75,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             for (var i = 0; i < m_LayerNames.Length; i++)
             {
                 var layerName = m_LayerNames[i];
-                if (string.IsNullOrEmpty(layerName)) 
+                if (string.IsNullOrEmpty(layerName))
                     continue;
-                
+
                 names.Add(layerName);
                 values.Add(i);
             }
@@ -67,10 +87,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public void OnBeforeSerialize()
         {
             if (m_LayerNames == null)
-                m_LayerNames = new string[k_LayerSize];
-            
-            if (m_LayerNames.Length != k_LayerSize)
-                Array.Resize(ref m_LayerNames, k_LayerSize);
+                m_LayerNames = new string[layerSize];
+
+            if (m_LayerNames.Length != layerSize)
+                Array.Resize(ref m_LayerNames, layerSize);
 
             if (!string.Equals(m_LayerNames[0], k_DefaultLayerName))
                 m_LayerNames[0] = k_DefaultLayerName;

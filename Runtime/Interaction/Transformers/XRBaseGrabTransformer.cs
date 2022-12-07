@@ -78,6 +78,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                     return;
                 }
 
+                // If this grab transformer is already registered to either
+                // of the runtime lists, assume that this was added as part of the default
+                // grab transformer addition (or by code for some other reason) so automatic
+                // registration should be skipped.
+                for (var index = grabInteractable.singleGrabTransformersCount - 1; index >= 0; --index)
+                {
+                    if (ReferenceEquals(grabInteractable.GetSingleGrabTransformerAt(index), this))
+                        return;
+                }
+
+                for (var index = grabInteractable.multipleGrabTransformersCount - 1; index >= 0; --index)
+                {
+                    if (ReferenceEquals(grabInteractable.GetMultipleGrabTransformerAt(index), this))
+                        return;
+                }
+
                 switch (registrationMode)
                 {
                     case RegistrationMode.None:

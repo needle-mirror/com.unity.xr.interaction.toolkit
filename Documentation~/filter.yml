@@ -75,10 +75,16 @@ apiRules:
       uidRegex: XRDirectInteractorEditor
       type: Type
   - exclude:
+      uidRegex: XRGazeInteractorEditor
+      type: Type
+  - exclude:
       uidRegex: XRGrabInteractableEditor
       type: Type
   - exclude:
       uidRegex: XRHelpURLConstants
+      type: Type
+  - exclude:
+      uidRegex: XRInteractableSnapVolumeEditor
       type: Type
   - exclude:
       uidRegex: XRInteractionEditorSettingsEditor

@@ -12,6 +12,7 @@ using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 #if AR_FOUNDATION_PRESENT
@@ -78,6 +79,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform(), InputType.DeviceBased));
         }
+        
+        [MenuItem("GameObject/XR/Gaze Interactor (Action-based)", false, 10), UsedImplicitly]
+#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
+        public static void CreateGazeInteractorActionBased(MenuCommand menuCommand)
+#pragma warning restore IDE0051
+        {
+            CreateInteractionManager();
+
+            Finalize(CreateGazeInteractor(menuCommand?.GetContextTransform(), InputType.ActionBased));
+        }
 
         [MenuItem("GameObject/XR/Socket Interactor", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
@@ -105,7 +116,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             var grabInteractableGO = CreateAndPlacePrimitive("Grab Interactable", menuCommand?.GetContextTransform(),
                 PrimitiveType.Cube,
-                typeof(XRGrabInteractable));
+                typeof(XRGrabInteractable), typeof(XRGeneralGrabTransformer));
 
             var transform = grabInteractableGO.transform;
             var localScale = InverseTransformScale(transform, new Vector3(0.1f, 0.1f, 0.1f));
@@ -116,6 +127,36 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // so ensure the size accounts for any negative scaling.
             boxCollider.size = Vector3.Scale(boxCollider.size, Sign(localScale));
             Finalize(grabInteractableGO);
+        }
+
+        [MenuItem("GameObject/XR/Interactable Snap Volume", false, 10), UsedImplicitly]
+#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
+        public static void CreateInteractableSnapVolume(MenuCommand menuCommand)
+#pragma warning restore IDE0051
+        {
+            CreateInteractionManager();
+
+            var snapVolumeGO = CreateAndPlaceGameObject("Interactable Snap Volume", menuCommand?.GetContextTransform(),
+                typeof(SphereCollider),
+                typeof(XRInteractableSnapVolume));
+
+            var sphereCollider = snapVolumeGO.GetComponent<SphereCollider>();
+            sphereCollider.isTrigger = true;
+            sphereCollider.radius = GetScaledRadius(sphereCollider, 0.2f);
+
+            // The Reset method will not find the Interactable up the hierarchy because it runs before being re-parented,
+            // so the initialization of the property is repeated here.
+            var snapVolume = snapVolumeGO.GetComponent<XRInteractableSnapVolume>();
+            var interactable = snapVolumeGO.GetComponentInParent<IXRInteractable>();
+            snapVolume.interactableObject = interactable as Object;
+            if (snapVolume.interactableObject != null)
+            {
+                var col = interactable.transform.GetComponent<Collider>();
+                if (col != null && col.enabled && !col.isTrigger)
+                    snapVolume.snapToCollider = col;
+            }
+
+            Finalize(snapVolumeGO);
         }
 
         [MenuItem("GameObject/XR/Interaction Manager", false, 10), UsedImplicitly]
@@ -306,6 +347,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
             sortingGroup.sortingOrder = 5;
 
             return rayInteractableGO;
+        }
+
+        static GameObject CreateGazeInteractor(Transform parent, InputType inputType, string name = "Gaze Interactor")
+        {
+            var gazeInteractableGO = CreateAndPlaceGameObject(name, parent,
+                GetControllerType(inputType),
+                typeof(XRGazeInteractor),
+                typeof(SortingGroup));
+
+            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            var sortingGroup = gazeInteractableGO.GetComponent<SortingGroup>();
+            sortingGroup.sortingOrder = 5;
+
+            return gazeInteractableGO;
         }
 
         static void SetupLineRenderer(LineRenderer lineRenderer)

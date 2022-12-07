@@ -14,6 +14,6 @@ Locomotion Providers:
 - [Teleportation Provider](teleportation-provider.md)
 
 | **Property** | **Description** |
-|--|--|
+|---|---|
 | **Timeout** | The timeout (in seconds) for exclusive access to the XR Origin. |
 | **XR Origin** | The XR Origin object to provide access control to. |
