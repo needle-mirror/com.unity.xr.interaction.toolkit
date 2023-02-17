@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
         /// </summary>
-        static List<IXRInteractable> s_Results = new List<IXRInteractable>();
+        static readonly List<IXRInteractable> s_Results = new List<IXRInteractable>();
 
         /// <summary>
         /// Compares ray cast hits by distance, to sort in ascending order.
@@ -69,8 +69,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Sets whether ray cast queries hit Trigger colliders and include or ignore snap volume trigger colliders.
+        /// </summary>
+        /// <seealso cref="raycastSnapVolumeInteraction"/>
+        public enum QuerySnapVolumeInteraction
+        {
+            /// <summary>
+            /// Queries never report Trigger hits that are registered with a snap volume.
+            /// </summary>
+            Ignore,
+
+            /// <summary>
+            /// Queries always report Trigger hits that are registered with a snap volume.
+            /// </summary>
+            Collide,
+        }
+
+        /// <summary>
         /// Sets which shape of physics cast to use for the cast when detecting collisions.
         /// </summary>
+        /// <seealso cref="hitDetectionType"/>
         public enum HitDetectionType
         {
             /// <summary>
@@ -333,12 +351,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
         /// <summary>
-        /// Gets or sets type of interaction with trigger volumes via ray cast.
+        /// Gets or sets type of interaction with trigger colliders via ray cast.
         /// </summary>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
             get => m_RaycastTriggerInteraction;
             set => m_RaycastTriggerInteraction = value;
+        }
+
+        [SerializeField]
+        QuerySnapVolumeInteraction m_RaycastSnapVolumeInteraction = QuerySnapVolumeInteraction.Collide;
+        /// <summary>
+        /// Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders,
+        /// even if the ray cast is set to ignore triggers.
+        /// If you are not using gaze assistance or XR Interactable Snap Volume components, you should set this property
+        /// to <see cref="QuerySnapVolumeInteraction.Ignore"/> to avoid the performance cost.
+        /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QuerySnapVolumeInteraction.Collide"/> when <see cref="raycastTriggerInteraction"/> is set to ignore trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
+        /// the ray cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
+        /// hits that are not snap volumes.
+        /// <br />
+        /// When set to <see cref="QuerySnapVolumeInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
+        /// this behavior will ignore any trigger collider hits that are snap volumes.
+        /// </remarks>
+        /// <seealso cref="raycastTriggerInteraction"/>
+        /// <seealso cref="XRInteractableSnapVolume.snapCollider"/>
+        public QuerySnapVolumeInteraction raycastSnapVolumeInteraction
+        {
+            get => m_RaycastSnapVolumeInteraction;
+            set => m_RaycastSnapVolumeInteraction = value;
         }
 
         [SerializeField]
@@ -570,7 +616,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <summary>
         /// The <see cref="Time.frameCount"/> when Unity last updated the sample points.
-        /// Used as an optimization to avoid recomputing the points during <see cref="ProcessInteractor"/>
+        /// Used as an optimization to avoid recomputing the points during <see cref="PreprocessInteractor"/>
         /// when it was already computed and used for an input module in <see cref="UpdateUIModel"/>.
         /// </summary>
         int m_SamplePointsFrameUpdated = -1;
@@ -950,17 +996,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             model.position = effectiveRayOrigin.position;
             model.orientation = effectiveRayOrigin.rotation;
             model.select = isUISelectActive;
-            model.raycastLayerMask = raycastMask;
+            model.raycastLayerMask = m_RaycastMask;
             model.interactionType = UIInteractionType.Ray;
 
             var raycastPoints = model.raycastPoints;
             raycastPoints.Clear();
 
-            // Update curve approximation used for ray casts.
-            // This method will be called before ProcessInteractor.
-            UpdateSamplePoints(m_SampleFrequency, m_SamplePoints);
-            m_SamplePointsFrameUpdated = Time.frameCount;
-
+            UpdateSamplePointsIfNecessary();
             var numPoints = m_SamplePoints.Count;
             if (numPoints > 0)
             {
@@ -1253,15 +1295,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                // Update curve approximation used for ray casts
-                // if it hasn't already been done earlier in the frame for the UI Input Module.
-                CreateSamplePointsListsIfNecessary();
-                if (m_SamplePointsFrameUpdated != Time.frameCount)
-                {
-                    UpdateSamplePoints(m_SampleFrequency, m_SamplePoints);
-                    m_SamplePointsFrameUpdated = Time.frameCount;
-                }
-
+                UpdateSamplePointsIfNecessary();
                 if (m_SamplePoints != null && m_SamplePoints.Count >= 2)
                 {
                     // Perform ray casts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
@@ -1273,7 +1307,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Determine the Interactables that this Interactor could possibly interact with this frame
                 GetValidTargets(m_ValidTargets);
 
-                // Check to see if we have a new hover object
+                // Check to see if we have a new hover object.
+                // This handles auto select and deselect.
                 var nearestObject = (m_ValidTargets.Count > 0) ? m_ValidTargets[0] : null;
                 if (nearestObject != currentNearestValidTarget && !hasSelection)
                 {
@@ -1392,6 +1427,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             targets.Clear();
 
+            if (!isActiveAndEnabled)
+                return;
+
             if (m_RaycastHitsCount > 0)
             {
                 var hasUIHit = TryGetCurrentUIRaycastResult(out var uiRaycastResult, out var uiHitIndex);
@@ -1436,11 +1474,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var capacity = m_LineType == LineType.StraightLine ? 2 : m_SampleFrequency;
 
-            if (m_SamplePoints == null)
-                m_SamplePoints = new List<SamplePoint>(capacity);
+            m_SamplePoints ??= new List<SamplePoint>(capacity);
+            s_ScratchSamplePoints ??= new List<SamplePoint>(capacity);
+        }
 
-            if (s_ScratchSamplePoints == null)
-                s_ScratchSamplePoints = new List<SamplePoint>(capacity);
+        /// <summary>
+        /// Update curve approximation used for ray casts for this frame.
+        /// </summary>
+        /// <remarks>
+        /// This method is called first by <see cref="UpdateUIModel"/> due to the UI Input Module
+        /// before <see cref="PreprocessInteractor"/> gets called later in the frame, so this
+        /// method is a performance optimization so it only gets done once each frame.
+        /// </remarks>
+        void UpdateSamplePointsIfNecessary()
+        {
+            CreateSamplePointsListsIfNecessary();
+            if (m_SamplePointsFrameUpdated != Time.frameCount)
+            {
+                UpdateSamplePoints(m_SampleFrequency, m_SamplePoints);
+                m_SamplePointsFrameUpdated = Time.frameCount;
+            }
         }
 
         /// <summary>
@@ -1518,31 +1571,90 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var fromPoint = m_SamplePoints[i - 1].position;
                 var toPoint = m_SamplePoints[i].position;
 
-                m_RaycastHitsCount = CheckCollidersBetweenPoints(fromPoint, toPoint);
+                CheckCollidersBetweenPoints(fromPoint, toPoint);
                 if (m_RaycastHitsCount > 0)
                 {
                     m_RaycastHitEndpointIndex = i;
-                    // Sort all the hits by distance along the curve
-                    // since the results of the ray cast are not ordered.
-                    SortingHelpers.Sort(m_RaycastHits, m_RaycastHitComparer);
                     break;
                 }
             }
         }
 
-        int CheckCollidersBetweenPoints(Vector3 from, Vector3 to)
+        void CheckCollidersBetweenPoints(Vector3 from, Vector3 to)
         {
             Array.Clear(m_RaycastHits, 0, k_MaxRaycastHits);
 
-            // Cast from last point to next point to check if there are hits in between
+            var direction = (to - from).normalized;
+            var maxDistance = Vector3.Distance(to, from);
+            var queryTriggerInteraction = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide
+                ? QueryTriggerInteraction.Collide
+                : m_RaycastTriggerInteraction;
+
             if (m_HitDetectionType == HitDetectionType.SphereCast && m_SphereCastRadius > 0f)
             {
-                return m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, (to - from).normalized,
-                    m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
+                m_RaycastHitsCount = m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, direction,
+                    m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+            }
+            else
+            {
+                m_RaycastHitsCount = m_LocalPhysicsScene.Raycast(from, direction,
+                    m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
             }
 
-            return m_LocalPhysicsScene.Raycast(from, (to - from).normalized,
-                m_RaycastHits, Vector3.Distance(to, from), raycastMask, raycastTriggerInteraction);
+            if (m_RaycastHitsCount > 0)
+            {
+                var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
+                    (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
+
+                if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
+                {
+                    // Filter out Snap Volume trigger collider hits
+                    m_RaycastHitsCount = FilterTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount, snapVolume => snapVolume != null);
+                }
+                else if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide && !baseQueryHitsTriggers)
+                {
+                    // Filter out trigger collider hits that are not Snap Volume snap colliders
+                    m_RaycastHitsCount = FilterTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount, snapVolume => snapVolume == null);
+                }
+
+                // Sort all the hits by distance along the curve since the results of the 3D ray cast are not ordered.
+                // Sorting is done after filtering above for performance.
+                SortingHelpers.Sort(m_RaycastHits, m_RaycastHitComparer, m_RaycastHitsCount);
+            }
+        }
+
+        static int FilterTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count, Func<XRInteractableSnapVolume, bool> removeRule)
+        {
+            for (var index = 0; index < count; ++index)
+            {
+                var hitCollider = raycastHits[index].collider;
+                if (hitCollider.isTrigger)
+                {
+                    interactionManager.TryGetInteractableForCollider(hitCollider, out _, out var snapVolume);
+                    if (removeRule(snapVolume))
+                    {
+                        RemoveAt(raycastHits, index, count);
+                        --count;
+                        --index;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Remove the array element by shifting the remaining elements down by one index.
+        /// This does not resize the length of the array.
+        /// </summary>
+        /// <typeparam name="T">The struct type.</typeparam>
+        /// <param name="array">The array to modify.</param>
+        /// <param name="index">The index of the array element to effectively remove.</param>
+        /// <param name="count">The number of elements contained in the array, which may be less than the array length.</param>
+        static void RemoveAt<T>(T[] array, int index, int count) where T : struct
+        {
+            Array.Copy(array, index + 1, array, index, count - index - 1);
+            Array.Clear(array, count - 1, 1);
         }
 
         void UpdateUIHitIndex()

@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
@@ -36,7 +40,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="layerName">The name of the target interaction layer.</param>
         internal void SetLayerNameAt(int index, string layerName)
         {
+#if UNITY_EDITOR
+            Undo.RecordObject(this, "Interaction Layer");
+#endif
             m_LayerNames[index] = layerName;
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
         }
 
         /// <summary>

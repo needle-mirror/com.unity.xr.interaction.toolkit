@@ -281,16 +281,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             RaycastHit raycastHit = default;
             if (interactor is XRRayInteractor rayInteractor && rayInteractor != null)
             {
-                if (rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit))
+                // Are we still selecting this object and within the tolerated normal threshold?
+                if (!rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit) ||
+                    !interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var hitInteractable) ||
+                    hitInteractable != (IXRInteractable)this ||
+                    (m_FilterSelectionByHitNormal && Vector3.Angle(transform.up, raycastHit.normal) > m_UpNormalToleranceDegrees))
                 {
-                    // Are we still selecting this object and within the tolerated normal threshold?
-                    if (!rayInteractor.TryGetCurrent3DRaycastHit(out raycastHit) ||
-                        !interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var hitInteractable) ||
-                        hitInteractable != (IXRInteractable)this ||
-                        (m_FilterSelectionByHitNormal && Vector3.Angle(transform.up, raycastHit.normal) > m_UpNormalToleranceDegrees))
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
 

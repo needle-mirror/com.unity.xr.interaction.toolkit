@@ -15,5 +15,7 @@ Interactor used for interacting with interactables through poking.
 | **Poke Select Width** | The width threshold within which an interaction can be evaluated as a poke select. |
 | **Poke Hover Radius** | The radius threshold within which an interaction can be evaluated as a poke hover. |
 | **Poke Interaction Offset** | Distance along the poke interactable interaction axis that allows for a poke to be triggered sooner/with less precision. |
+| **Physics Layer Mask** | Physics layer mask used for limiting poke sphere overlap. |
+| **Physics Trigger Interaction** | Determines whether the poke sphere overlap will hit triggers. |
 | **Require Poke Filter** | Denotes whether or not valid targets will only include objects with a poke filter. |
 | **Debug Visualizations Enabled** | Whether to display the debug visuals for the poke interaction. The visuals include a sphere that changes to green when hover is triggered, and a smaller sphere behind it that turns green when select is triggered. |

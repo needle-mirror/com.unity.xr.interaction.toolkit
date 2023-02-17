@@ -15,6 +15,7 @@ Controls the scale of an object via a Pinch gesture. If an object is selected, t
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
 | **XR Origin** | The `XROrigin` that this Interactable will use (such as to get the `Camera` or to transform from Session space). Will find one if **None**. |
 | **AR Session Origin** | This is deprecated. Use the above **XR Origin** instead. |
+| **Exclude UI Touches** | Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it. |
 | **Min Scale** | The minimum scale of the object. |
 | **Max Scale** | The maximum scale of the object. |
 | **Elastic Ratio Limit** | The limit of the elastic ratio. |

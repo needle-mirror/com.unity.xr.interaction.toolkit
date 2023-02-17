@@ -15,12 +15,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
     {
         [SerializeField]
         [Tooltip("Transform that will move in the poke direction when this or a parent GameObject is poked." +
-                 "\nNote: Should be a child GameObject.")]
+                 "\nNote: Should be a direct child GameObject.")]
         Transform m_PokeFollowTransform;
 
         /// <summary>
         /// Transform that will animate along the axis of interaction when this interactable is poked.
-        /// Note: Must be a child GameObject as it moves in local space relative to the poke filter's transform.
+        /// Note: Must be a direct child GameObject as it moves in local space relative to the poke target's transform.
         /// </summary>
         public Transform pokeFollowTransform
         {
@@ -55,6 +55,48 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             set => m_ReturnToInitialPosition = value;
         }
 
+        [SerializeField]
+        [Tooltip("Whether to apply the follow animation if the target of the poke is a child of this transform. " +
+                 "This is useful for UI objects that may have child graphics.")]
+        bool m_ApplyIfChildIsTarget = true;
+
+        /// <summary>
+        /// Whether to apply the follow animation if the target of the poke is a child of this transform.
+        /// This is useful for UI objects that may have child graphics.
+        /// </summary>
+        public bool applyIfChildIsTarget
+        {
+            get => m_ApplyIfChildIsTarget;
+            set => m_ApplyIfChildIsTarget = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Whether to keep the Poke Follow Transform from moving past a maximum distance from the poke target.")]
+        bool m_ClampToMaxDistance;
+
+        /// <summary>
+        /// Whether to keep the <see cref="pokeFollowTransform"/> from moving past <see cref="maxDistance"/> from the poke target.
+        /// </summary>
+        public bool clampToMaxDistance
+        {
+            get => m_ClampToMaxDistance;
+            set => m_ClampToMaxDistance = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The maximum distance from this transform that the Poke Follow Transform can move.")]
+        float m_MaxDistance;
+
+        /// <summary>
+        /// The maximum distance from this transform that the <see cref="pokeFollowTransform"/> can move when
+        /// <see cref="clampToMaxDistance"/> is <see langword="true"/>.
+        /// </summary>
+        public float maxDistance
+        {
+            get => m_MaxDistance;
+            set => m_MaxDistance = value;
+        }
+
         IPokeStateDataProvider m_PokeDataProvider;
 
         readonly Vector3TweenableVariable m_TransformTweenableVariable = new Vector3TweenableVariable();
@@ -67,10 +109,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         /// </summary>
         protected void Awake()
         {
-            if (m_PokeFollowTransform == null)
-                m_PokeFollowTransform = transform;
-
-            m_InitialPosition = m_PokeFollowTransform.localPosition;
             m_PokeDataProvider = GetComponentInParent<IPokeStateDataProvider>();
         }
 
@@ -81,13 +119,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             if (m_PokeFollowTransform != null)
             {
+                m_InitialPosition = m_PokeFollowTransform.localPosition;
                 m_BindingsGroup.AddBinding(m_TransformTweenableVariable.Subscribe(OnTransformTweenableVariableUpdated));
                 m_BindingsGroup.AddBinding(m_PokeDataProvider.pokeStateData.SubscribeAndUpdate(OnPokeStateDataUpdated));
             }
             else
             {
                 enabled = false;
-                Debug.LogWarning($"Poke Follow Affordance: missing Transform on {this}. Disabling component.", this);
+                Debug.LogWarning($"Missing Poke Follow Transform assignment on {this}. Disabling component.", this);
             }
         }
 
@@ -121,10 +160,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void OnPokeStateDataUpdated(PokeStateData data)
         {
-            if (data.target == transform)
-                m_TransformTweenableVariable.target = transform.InverseTransformPoint(data.axisAlignedPokeInteractionPoint);
+            var pokeTarget = data.target;
+            var applyFollow = m_ApplyIfChildIsTarget
+                ? pokeTarget != null && pokeTarget.IsChildOf(transform)
+                : pokeTarget == transform;
+
+            if (applyFollow)
+            {
+                var targetPosition = pokeTarget.InverseTransformPoint(data.axisAlignedPokeInteractionPoint);
+                if (m_ClampToMaxDistance && targetPosition.sqrMagnitude > m_MaxDistance * m_MaxDistance)
+                    targetPosition = Vector3.ClampMagnitude(targetPosition, m_MaxDistance);
+
+                m_TransformTweenableVariable.target = targetPosition;
+            }
             else if (m_ReturnToInitialPosition)
+            {
                 m_TransformTweenableVariable.target = m_InitialPosition;
+            }
         }
     }
 }

@@ -51,6 +51,8 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 
 * Mouse inputs don't interact with world space UIs when an XR Plug-in Provider in **Edit &gt; Project Settings &gt; XR Plug-in Management** is enabled and running. For more information, please follow the issue tracker. ([1400186](https://issuetracker.unity3d.com/product/unity/issues/guid/1400186/))
 
+* The Poke Point visual in the Poke Interactor prefab in the Starter Assets sample does not hide with the controller model when the Hide Controller On Select property is enabled on the direct/ray interactor.
+
 ### Helpful links
 
 If you have a question after reading the documentation, you can:
@@ -64,6 +66,7 @@ If you have a question after reading the documentation, you can:
 
 |Date|Reason|
 |---|---|
+|**February 10, 2023**|Updated known limitations and package dependency versions. Matches package version 2.3.0.|
 |**March 4, 2022**|Samples updated and added link to example projects. Matches package version 2.0.1.|
 |**February 10, 2022**|Documentation split into multiple pages, added known limitations, and updated for transition from pre-release to released version 2.0.0.|
 |**November 17, 2021**|Documentation updated due to change in Input System package related to Game view focus, interaction interfaces, and multiple selections. Matches package version 2.0.0-pre.4.|

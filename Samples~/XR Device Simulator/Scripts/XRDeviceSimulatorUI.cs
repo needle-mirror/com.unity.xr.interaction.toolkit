@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 
@@ -135,10 +136,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         [Space]
 
         [SerializeField]
-        Image m_ShowCursorButton;
+        [FormerlySerializedAs("m_ShowCursorButton")]
+        Image m_CursorLockButton;
 
         [SerializeField]
-        Text m_ShowCursorValueText;
+        [FormerlySerializedAs("m_ShowCursorValueText")]
+        Text m_CursorLockValueText;
 
         [Space]
 
@@ -416,12 +419,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
             m_HeadsetMoveValueText.text = $"{ctrlsBinding1[0].displayName},{ctrlsBinding1[1].displayName},{ctrlsBinding1[2].displayName},{ctrlsBinding1[3].displayName} + " +
                 $"{ctrlsBinding2[0].displayName},{ctrlsBinding2[1].displayName}";
 
-            // Show hide cursor
-            m_ShowCursorValueText.text = m_Simulator.toggleCursorLockAction.action.controls[0].displayName;
-            m_HeadsetLookButtonText.text = m_Simulator.mouseTransformationMode == XRDeviceSimulator.TransformationMode.Translate ? k_TranslateLookText : k_RotateLookText;
+            m_CursorLockValueText.text = m_Simulator.toggleCursorLockAction.action.controls[0].displayName;
+            m_CursorLockButton.color = Cursor.lockState == CursorLockMode.Locked ? selectedColor : buttonColor;
 
+            m_HeadsetLookButtonText.text = m_Simulator.mouseTransformationMode == XRDeviceSimulator.TransformationMode.Translate ? k_TranslateLookText : k_RotateLookText;
             m_MouseModeValueText.text = m_Simulator.toggleMouseTransformationModeAction.action.controls[0].displayName;
-            m_ShowCursorButton.color = Cursor.lockState == CursorLockMode.Locked ? selectedColor : buttonColor;
 
             var manipulateHeadActionControl = m_Simulator.manipulateHeadAction.action.controls[0];
             m_HeadsetLookValueIcon.sprite = GetInputIcon(manipulateHeadActionControl);
@@ -819,7 +821,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
 
         void OnCursorLockChanged()
         {
-            m_ShowCursorButton.color = Cursor.lockState == CursorLockMode.Locked ? selectedColor : buttonColor;
+            m_CursorLockButton.color = Cursor.lockState == CursorLockMode.Locked ? selectedColor : buttonColor;
         }
 
         // x-axis [A-D]

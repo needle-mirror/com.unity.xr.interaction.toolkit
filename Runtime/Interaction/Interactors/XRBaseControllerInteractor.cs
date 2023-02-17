@@ -23,7 +23,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// A user can hold the button before the interaction is possible
             /// and still trigger the interaction when it is possible.
             /// </summary>
+            /// <remarks>
+            /// When multiple interactors select an interactable at the same time and that interactable's
+            /// <see cref="InteractableSelectMode"/> is set to <see cref="InteractableSelectMode.Single"/>, you may
+            /// experience undesired behavior of selection repeatedly passing between the interactors and the select
+            /// interaction events firing each frame. State Change is the recommended and default option. 
+            /// </remarks>
             /// <seealso cref="InteractionState.active"/>
+            /// <seealso cref="InteractableSelectMode"/>
             State,
 
             /// <summary>

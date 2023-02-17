@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.3.0-pre.1",
+  "version": "2.3.0",
   "unity": "2020.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -13,13 +13,13 @@
   "category": "XR",
   "dependencies": {
     "com.unity.inputsystem": "1.4.4",
+    "com.unity.mathematics": "1.2.6",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.core-utils": "2.2.0-pre.2",
+    "com.unity.xr.core-utils": "2.2.0",
     "com.unity.xr.legacyinputhelpers": "2.1.10",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
-    "com.unity.modules.physics": "1.0.0",
-    "com.unity.mathematics": "1.2.6"
+    "com.unity.modules.physics": "1.0.0"
   },
   "samples": [
     {
@@ -36,15 +36,28 @@
       "displayName": "Tunneling Vignette",
       "description": "Assets to let users set up and configure tunneling vignette effects as a comfort mode option.",
       "path": "Samples~/Tunneling Vignette"
+    },
+    {
+      "displayName": "Meta Gaze Adapter",
+      "description": "This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor.",
+      "path": "Samples~/Meta Gaze Adapter"
+    },
+    {
+      "displayName": "Hands Interaction Demo",
+      "description": "Sample scene and other assets for hand-tracking integration with the XR Interaction Toolkit.",
+      "path": "Samples~/Hands Interaction Demo"
     }
   ],
+  "_upm": {
+    "changelog": "### Added\n- Added a Raycast Snap Volume Interaction property to control whether the XR Ray Interactor will collide with or ignore trigger snap colliders from an XR Interactable Snap Volume (used by gaze assistance). This allows a user to set Raycast Trigger Interaction to Ignore but still collide with trigger colliders that are associated with a snap volume.\n- Added options to XR Poke Follow Affordance in the Starter Assets sample to apply the follow animation if the poke target is a child and to clamp the follow target to a maximum distance from the poke target.\n- Added an XR Poke Follow Affordance to the `TextButton` prefab in the Starter Assets sample so that the button graphics can move in response to poke.\n- Added Tracking State and Is Tracked input actions to the `XRI Default Input Actions` in the Starter Assets sample.\n- Added [Meta Gaze Adapter](../manual/samples.md#meta-gaze-adapter) sample to allow developers to request permission and initialize eye tracking for the Meta Quest Pro.\n- Added [Hands Interaction Demo](../manual/samples.md#hands-interaction-demo) sample to demonstrate interactions with hand tracking.\n- Added poke interaction examples to the `DemoScene` in the Starter Assets sample.\n- Added ability to customize the layer mask and trigger interaction when the XR Poke Interactor performs the physics sphere overlap call.\n- Added documentation regarding behavior when Select Action Trigger is set to State on XR Direct Interactor and XR Ray Interactor.\n\n### Changed\n- Changed the Stop Manipulation action (default binding `Escape`) in the XR Device Simulator to always stop manipulation every time it is pressed instead of cycling between None and FPS mode. Trigger the Cycle Devices action (default binding `Tab`) to switch back to FPS mode instead.\n- Changed `Ray Interactor` prefab in the Starter Assets sample to enable Treat Selection As Valid State on the XR Interactor Line Visual.\n- Changed the  **GameObject** &gt; **XR** &gt; **Grab Interactable** menu item to set the Rigidbody Interpolate property on the created GameObject to Interpolate.\n- Changed the Rigidbody Interpolate property from None to Interpolate in each of the Starter Assets sample grab interactable prefabs.\n- Changed the default value of the Color Property Name property on the Color Material Property Affordance Receiver component to an empty string instead of `\"_BaseColor\"`. An empty string will now use either `\"_BaseColor\"` or `\"_Color\"` depending on the current render pipeline to add support for the Built-In Render Pipeline.\n- Changed `GetValidTargets` on each interactor type to return an empty list when the interactor is disabled.\n- Changed `ActionBasedControllerManager` in Starter Assets sample to make use of XR Interaction Group and removed some unused serialized fields.\n- Changed `XR Origin Preconfigured` in Starter Assets sample so it instantiates the controller model prefab at runtime instead of being in the prefab hierarchy to make it easier for users to override the model used.\n- Changed `Teleport Interactor` in Starter Assets sample so it instantiates the reticle prefabs at runtime instead of being in the prefab hierarchy to make it easier for users to override the reticle used.\n- Changed `com.unity.xr.core-utils` dependency to 2.2.0.\n\n### Fixed\n- Fixed Teleportation Anchor incorrectly triggering a teleport when the Ray Interactor stops pointing at the anchor when it no longer has any ray cast hits.\n- Fixed Starter Assets sample prefabs and `DemoScene` to have the Gaze Interactor prefab.\n- Fixed `XRPokeInteractor` so it uses the `targetFilter` for filtering the valid targets returned by `GetValidTargets`.\n- Fixed the Fix button for project validation issue \"Interaction Layer 31 is not set to 'Teleport'\" not persisting to the settings asset when closing the Unity Editor.\n- Fixed missing references in device simulator UI button images by assigning to null.\n- Fixed the `PokeStateData` that is generated from UI poke interaction so that its `axisAlignedPokeInteractionPoint` is relative to the world position of the target transform.\n- Fixed broken click animations in `XRInteractableAffordanceStateProvider`.\n- Fixed XR Device Simulator so it will use the new main camera if the previous one is disabled or destroyed.\n- Fixed issue where AR gestures did not take into account UI in `ARBaseGestureInteractable` behaviors (such as AR Placement Interactable) by adding an `excludeUITouches` property, which is enabled by default.\n- Fixed potential invalid stayed colliders list in `XRDirectInteractor` and `XRSocketInteractor` when the interactor is disabled while in contact with a collider.\n- Fixed hover and select events being incorrectly fired when an `XRDirectInteractor` or `XRSocketInteractor` GameObject or component is disabled while in contact with an interactable, moved away from the interactable, and then enabled.\n- Fixed XR Poke Interactor to query the local [PhysicsScene](https://docs.unity3d.com/ScriptReference/PhysicsScene.html) instead of using static physics calls.\n- Fixed poke in UI scrolling in a scroll view outside of the viewport by ensuring the Tracked Device Graphic Raycaster respects the alpha hit test threshold.\n- Fixed the `Teleport Anchor` prefab in Starter Assets to place the teleport destination at the top of the platform, fixing a bump that would occur when moving with locomotion after teleporting."
+  },
   "upmCi": {
-    "footprint": "7fbe1505235bed1cf7007f1a7fd3ab8f160a498f"
+    "footprint": "c793299a54c5f71a9f8fa40827cc83cfb22a7037"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.3/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "94e87a568f8ce9aeebe5091e5d53d42c4deea64f"
+    "revision": "a2490553b104eafd4c1371fe490ebebc66434627"
   }
 }

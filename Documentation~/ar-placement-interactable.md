@@ -15,6 +15,7 @@ Controls the placement of Prefabs via a tap gesture.
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
 | **XR Origin** | The `XROrigin` that this Interactable will use (such as to get the `Camera` or to transform from Session space). Will find one if **None**. |
 | **AR Session Origin** | This is deprecated. Use the above **XR Origin** instead. |
+| **Exclude UI Touches** | Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it. |
 | **Placement Prefab** | A `GameObject` to place when a ray cast from a user touch hits a plane. |
 | **Fallback Layer Mask** | The `LayerMask` that Unity uses during an additional ray cast when a user touch does not hit any AR trackable planes. |
 | **Interactable Events** | See the [Interactable Events](interactable-events.md) page. |

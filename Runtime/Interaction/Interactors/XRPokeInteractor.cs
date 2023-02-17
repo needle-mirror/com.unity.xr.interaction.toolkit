@@ -13,6 +13,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
     public class XRPokeInteractor : XRBaseInteractor, IUIInteractor
     {
+        /// <summary>
+        /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
+        /// </summary>
+        static readonly List<IXRInteractable> s_Results = new List<IXRInteractable>();
+
         [SerializeField]
         [Tooltip("The depth threshold within which an interaction can begin to be evaluated as a poke.")]
         float m_PokeDepth = 0.1f;
@@ -79,6 +84,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        [Tooltip("Physics layer mask used for limiting poke sphere overlap.")]
+        LayerMask m_PhysicsLayerMask = Physics.AllLayers;
+
+        /// <summary>
+        /// Physics layer mask used for limiting poke sphere overlap.
+        /// </summary>
+        public LayerMask physicsLayerMask
+        {
+            get => m_PhysicsLayerMask;
+            set => m_PhysicsLayerMask = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Determines whether the poke sphere overlap will hit triggers.")]
+        QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
+
+        /// <summary>
+        /// Determines whether the poke sphere overlap will hit triggers.
+        /// </summary>
+        public QueryTriggerInteraction physicsTriggerInteraction
+        {
+            get => m_PhysicsTriggerInteraction;
+            set => m_PhysicsTriggerInteraction = value;
+        }
+
+        [SerializeField]
         [Tooltip("Denotes whether or not valid targets will only include objects with a poke filter.")]
         bool m_RequirePokeFilter = true;
 
@@ -137,12 +168,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         CapsuleCollider m_CapsuleCollider;
 
+        PhysicsScene m_LocalPhysicsScene;
+
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
 
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
+            m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
         }
 
@@ -207,9 +241,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             targets.Clear();
 
+            if (!isActiveAndEnabled)
+                return;
+
             foreach (var pokeCollision in m_PokeCollisions)
             {
                 targets.Add(pokeCollision.interactable);
+            }
+
+            var filter = targetFilter;
+            if (filter != null && filter.canProcess)
+            {
+                filter.Process(this, targets, s_Results);
+
+                // Copy results elements to targets
+                targets.Clear();
+                targets.AddRange(s_Results);
             }
         }
 
@@ -273,9 +320,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_PokeCollisions.Clear();
 
             // Hover Check
-            Vector3 pokeInteractionPoint = GetAttachTransform(null).position;
-            // $TODO: Use local physics scene
-            var numHoverOverlaps = Physics.OverlapSphereNonAlloc(pokeInteractionPoint, m_PokeHoverRadius, m_OverlapColliders);
+            var pokeInteractionPoint = GetAttachTransform(null).position;
+            var numHoverOverlaps = m_LocalPhysicsScene.OverlapSphere(pokeInteractionPoint, m_PokeHoverRadius, m_OverlapColliders, m_PhysicsLayerMask, m_PhysicsTriggerInteraction);
             for (var i = 0; i < numHoverOverlaps; ++i)
             {
                 if (interactionManager.TryGetInteractableForCollider(m_OverlapColliders[i], out var interactable))
@@ -287,9 +333,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             var interactableSelectFilters = baseInteractable.selectFilters;
                             for (int index = 0, count = interactableSelectFilters.count; index < count; ++index)
                             {
-                                // $TODO: Should this also require IXRSelectFilter.canProcess?
                                 var filter = interactableSelectFilters.GetAt(index);
-                                if (filter is XRPokeFilter pokeFilter)
+                                if (filter is XRPokeFilter pokeFilter && pokeFilter.canProcess)
                                 {
                                     m_PokeCollisions.Add(new PokeCollision(m_OverlapColliders[i], interactable, pokeFilter));
                                     break;
@@ -325,12 +370,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var pokeInteractable = closestPokeCollision.interactable;
             var pokeInteractableTransform = pokeInteractable.transform;
             var pokeInteractablePose = pokeInteractableTransform.GetWorldPose();
-            // $TODO: Use interactable colliders list (loop all?) or poke bounds collider of poke filter?
-            // $TODO: Does this need to skip if the Collider is not enabled?
-            var pokeBoundsCollider = closestPokeCollision.collider;
 
             var hasPenetration = Physics.ComputePenetration(capsuleCollider, midPoint, pokeInteractionPose.rotation,
-                pokeBoundsCollider, pokeInteractablePose.position, pokeInteractablePose.rotation,
+                closestPokeCollision.collider, pokeInteractablePose.position, pokeInteractablePose.rotation,
                 out _, out _);
 
             capsuleCollider.enabled = false;
@@ -442,7 +484,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             model.position = position;
             model.orientation = orientation;
             model.select = TrackedDeviceGraphicRaycaster.HasPokeSelect(this);
-            model.raycastLayerMask = Physics.AllLayers;
+            model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;
 

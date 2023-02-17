@@ -60,6 +60,143 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
         
         [UnityTest]
+        public IEnumerator RayInteractorValidTargetsListEmptyWhenInteractorDisabled()
+        {
+            // This tests that the ray interactor will return an empty list of valid 
+            // targets when the interactor component or the GameObject is disabled and
+            // will correctly add the target back into the list upon enabling the interactor
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            
+            // Disable interactor GameObject
+            interactor.gameObject.SetActive(false);
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            
+            // Enable interactor GameObject
+            interactor.gameObject.SetActive(true);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Disable interactor component
+            interactor.enabled = false;
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            
+            // Enable interactor component
+            interactor.enabled = true;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+        }
+
+        [UnityTest]
+        public IEnumerator RayInteractorValidTargetsRemainEmptyWhenInteractorEnabledWithNoRayHit()
+        {
+            // This tests that the ray interactor will return an empty list of valid 
+            // targets when the interactor component or the GameObject is disabled
+            // while it has a valid target and the valid targets will remain empty
+            // when the interactor is enabled again facing away from the interactable.
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            
+            // Disable interactor GameObject
+            interactor.gameObject.SetActive(false);
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            
+            // Face interactor away from valid target and enable interactor GameObject 
+            interactor.transform.forward = Vector3.back;
+            interactor.gameObject.SetActive(true);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            
+            // Face interactor towards the valid target
+            interactor.transform.forward = Vector3.forward;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Disable interactor component
+            interactor.enabled = false;
+
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            
+            // Face interactor away from valid target and enable interactor 
+            interactor.transform.forward = Vector3.back;
+            interactor.enabled = true;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            // Face interactor towards the valid target
+            interactor.transform.forward = Vector3.forward;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+        }
+
+        [UnityTest]
         public IEnumerator RayInteractorCanAutoDeselect([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
         {
             var manager = TestUtilities.CreateInteractionManager();
@@ -514,6 +651,79 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { nearInteractable }));
             Assert.That(nearInteractable.interactorsHovering, Is.EqualTo(new[] { interactor }));
             Assert.That(farInteractable.interactorsHovering, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator RayInteractorCanLimitHitsOnSnapVolumes([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateRayInteractor(rayInteractorType);
+            interactor.xrController.enabled = false;
+            interactor.lineType = XRRayInteractor.LineType.StraightLine;
+            interactor.maxRaycastDistance = 50f;
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+
+            // Create 3 objects, from furthest to closest to the ray interactor:
+            // Interactable, "Far" Snap Volume, Trigger collider, "Near" Snap Volume <--- Ray Interactor
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 40f;
+            Assert.That(interactable.colliders, Has.Count.EqualTo(1));
+
+            var farSnapVolume = TestUtilities.CreateSnapVolume();
+            farSnapVolume.transform.position = interactor.transform.position + interactor.transform.forward * 30f;
+            farSnapVolume.interactable = interactable;
+
+            var triggerCollider = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<BoxCollider>();
+            triggerCollider.isTrigger = true;
+            triggerCollider.size = Vector3.one;
+            triggerCollider.transform.position = interactor.transform.position + interactor.transform.forward * 20f;
+
+            var nearSnapVolume = TestUtilities.CreateSnapVolume();
+            nearSnapVolume.transform.position = interactor.transform.position + interactor.transform.forward * 10f;
+            nearSnapVolume.interactable = interactable;
+
+            // Ignore trigger, ignore snap volume --> Hit Interactable
+            interactor.raycastTriggerInteraction = QueryTriggerInteraction.Ignore;
+            interactor.raycastSnapVolumeInteraction = XRRayInteractor.QuerySnapVolumeInteraction.Ignore;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var hasHit = interactor.TryGetCurrent3DRaycastHit(out var hit);
+            Assert.That(hasHit, Is.True);
+            Assert.That(hit.collider, Is.SameAs(interactable.colliders[0]));
+
+            // Ignore trigger, collide snap volume --> Hit "Near" Snap Volume
+            interactor.raycastTriggerInteraction = QueryTriggerInteraction.Ignore;
+            interactor.raycastSnapVolumeInteraction = XRRayInteractor.QuerySnapVolumeInteraction.Collide;
+
+            yield return null;
+
+            hasHit = interactor.TryGetCurrent3DRaycastHit(out hit);
+            Assert.That(hasHit, Is.True);
+            Assert.That(hit.collider, Is.SameAs(nearSnapVolume.snapCollider));
+
+            // Collide trigger, ignore snap volume --> Hit Trigger collider
+            interactor.raycastTriggerInteraction = QueryTriggerInteraction.Collide;
+            interactor.raycastSnapVolumeInteraction = XRRayInteractor.QuerySnapVolumeInteraction.Ignore;
+
+            yield return null;
+
+            hasHit = interactor.TryGetCurrent3DRaycastHit(out hit);
+            Assert.That(hasHit, Is.True);
+            Assert.That(hit.collider, Is.SameAs(triggerCollider));
+
+            // Collide trigger, collide snap volume --> Hit "Near" Snap Volume
+            interactor.raycastTriggerInteraction = QueryTriggerInteraction.Collide;
+            interactor.raycastSnapVolumeInteraction = XRRayInteractor.QuerySnapVolumeInteraction.Collide;
+
+            yield return null;
+
+            hasHit = interactor.TryGetCurrent3DRaycastHit(out hit);
+            Assert.That(hasHit, Is.True);
+            Assert.That(hit.collider, Is.SameAs(nearSnapVolume.snapCollider));
         }
 
         [UnityTest]

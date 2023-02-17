@@ -208,7 +208,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return hits[index];
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html">MonoBehaviour.Awake</a>.
+        /// </summary>
         protected override void Awake()
         {
             base.Awake();
@@ -273,7 +275,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
                     m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
                     
-                    if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, firstHit.worldPosition, uiModel.position, 0f, hitTransform))
+                    if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
                         s_InteractorRaycasters[interactor] = this;
                     }
@@ -428,7 +430,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     if (distance <= radius)
                     {
                         Vector2 screenPos = eventCamera.WorldToScreenPoint(worldPos);
-                        s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
+                        // mask/image intersection - See Unity docs on eventAlphaThreshold for when this does anything
+                        if (graphic.Raycast(screenPos, eventCamera))
+                        {
+                            s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
+                        }
                     }
                 }
             }

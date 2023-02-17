@@ -42,8 +42,8 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Angular Velocity Damping** | Scale factor of how much Unity dampens the existing angular velocity when tracking the rotation of the Interactor. The smaller the value, the longer it takes for the angular velocity to decay.<br />Only applies when **Movement Type** is in _VelocityTracking_ mode. |
 | **Angular Velocity Scale** | Scale factor Unity applies to the tracked angular velocity while updating the `Rigidbody` when tracking the rotation of the Interactor.<br />Only applies when **Movement Type** is in Velocity Tracking mode. |
 | **Throw On Detach** | Enable to have this object inherit the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody. |
-| **Throw Smoothing Duration** | Time period to average thrown velocity over. |
-| **Throw Smoothing Curve** | The curve to use to weight thrown velocity smoothing (most recent frames to the right). |
+| **Throw Smoothing Duration** | This value represents the time over which collected samples are used for velocity calculation (up to a max of 20 previous frames, which is dependent on both Smoothing Duration and framerate). As an example, if this value is set to 0.25, position and velocity values will be averaged over the past 0.25 seconds. Each of those values is weighted (multiplied) by the Throw Smoothing Curve as well. |
+| **Throw Smoothing Curve** | The curve used to weight velocity smoothing upon throwing (most recent frames to the right). By default this curve is flat with a 1.0 value so all smoothing values are treated equally across the smoothing duration. |
 | **Throw Velocity Scale** | Scale factor Unity applies to this object's velocity inherited from the Interactor when released. |
 | **Throw Angular Velocity Scale** | Scale factor Unity applies to this object's angular velocity inherited from the Interactor when released. |
 | **Force Gravity On Detach** | Forces this object to have gravity when released (will still use pre-grab value if this is `false` / unchecked). |

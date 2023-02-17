@@ -99,7 +99,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AttachTransform = value;
         }
 
-        [HideInInspector]
         [SerializeField]
         Transform m_SecondaryAttachTransform;
         
@@ -454,8 +453,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_ThrowSmoothingDuration = k_DefaultThrowSmoothingDuration;
 
         /// <summary>
-        /// Time period to average thrown velocity over.
+        /// This value represents the time over which collected samples are used for velocity calculation
+        /// (up to a max of 20 previous frames, which is dependent on both Smoothing Duration and framerate).
         /// </summary>
+        /// <remarks>
+        /// As an example, if this value is set to 0.25, position and velocity values will be averaged over the past 0.25 seconds.
+        /// Each of those values is weighted (multiplied) by the <see cref="throwSmoothingCurve"/> as well.</remarks>
+        /// <seealso cref="throwSmoothingCurve"/>
         /// <seealso cref="throwOnDetach"/>
         public float throwSmoothingDuration
         {
@@ -467,8 +471,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         AnimationCurve m_ThrowSmoothingCurve = AnimationCurve.Linear(1f, 1f, 1f, 0f);
 
         /// <summary>
-        /// The curve to use to weight thrown velocity smoothing (most recent frames to the right).
+        /// The curve used to weight velocity smoothing upon throwing (most recent frames to the right).
         /// </summary>
+        /// <remarks>
+        /// By default this curve is flat with a 1.0 value so all smoothing values are treated equally across the smoothing duration.
+        /// </remarks>
+        /// <seealso cref="throwSmoothingDuration"/>
         /// <seealso cref="throwOnDetach"/>
         public AnimationCurve throwSmoothingCurve
         {

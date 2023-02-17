@@ -31,7 +31,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected static class BaseTeleportationContents
         {
             /// <summary><see cref="GUIContent"/> for the header label of Teleport events.</summary>
-            public static readonly GUIContent teleportEventsHeader = EditorGUIUtility.TrTextContent("Teleport", "Called when the XRRig is queued to teleport via the Teleportation Provider.");
+            public static readonly GUIContent teleportEventsHeader = EditorGUIUtility.TrTextContent("Teleport", "Called when the XR Origin is queued to teleport via the Teleportation Provider.");
         }
 
         /// <inheritdoc />

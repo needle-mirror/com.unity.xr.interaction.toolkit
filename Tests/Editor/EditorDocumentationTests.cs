@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor.PackageManager;
+using UnityEngine;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 {
@@ -34,7 +35,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             // Verify that the 2021.3 installation instructions to install the package by name
             // has the correct version of this package.
 
-            var documentationDirectory = new DirectoryInfo("Packages/com.unity.xr.interaction.toolkit/Documentation~");
+            const string docRoot = "Packages/com.unity.xr.interaction.toolkit/Documentation~";
+            var documentationDirectory = new DirectoryInfo(docRoot);
             Assert.That(documentationDirectory, Is.Not.Null);
             Assert.That(documentationDirectory.Exists, Is.True);
 
@@ -47,16 +49,39 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Assert.That(lines, Is.Not.Empty);
 
             // Find the lines in the file with the Version (optional) row in the table
-            var versionLines = lines.Where(line => line.StartsWith("|**Version (optional)**|")).ToArray();
-            Assert.That(versionLines, Is.Not.Empty, "Could not find version row of table. Has installation.md been updated to remove instructions for installing by name?");
+            var installationVersionLines = lines.Where(line => line.StartsWith("|**Version (optional)**|")).ToArray();
+            Assert.That(installationVersionLines, Is.Not.Empty, "Could not find version row of table. Has installation.md been updated to remove instructions for installing by name?");
 
             // Parse version
-            foreach (var line in versionLines)
+            foreach (var line in installationVersionLines)
             {
                 var version = ExtractCode(line);
                 Assert.That(version, Is.Not.Empty, $"Could not parse the version field from the table line: {line}");
-                Assert.That(version, Is.EqualTo(m_PackageInfo.version), "Version string in installation.md should match current version of package.");
+                Assert.That(version, Is.EqualTo("[!include[](includes/version.md)]"), "Version string in installation.md should match current version of package.");
             }
+
+            // Setup includes folder for parsing
+            var includesDirectory = new DirectoryInfo(Path.Combine(docRoot, "includes"));
+            Assert.That(includesDirectory, Is.Not.Null);
+            Assert.That(includesDirectory.Exists, Is.True);
+
+            var versionFile = new FileInfo(Path.Combine(includesDirectory.FullName, "version.md"));
+            Assert.That(versionFile, Is.Not.Null);
+            Assert.That(versionFile.Exists, Is.True);
+
+            // Read all lines and make sure it's not empty or null and there is only 1 line in the file to prevent malformed documentation.
+            var versionLines = File.ReadAllLines(versionFile.FullName);
+            Assert.That(versionLines, Is.Not.Null);
+            Assert.That(versionLines, Is.Not.Empty);
+            Assert.That(versionLines.Length, Is.EqualTo(1));
+
+            // Grab the first line of the file 
+            var versionLine = versionLines.First().Trim();
+            Assert.That(versionLine, Is.Not.Empty, "Could not find version line. Has version.md been erased or removed?");
+
+            // Parse version
+            Assert.That(versionLine, Is.Not.Empty, $"Could not parse the version from the file line: {versionLine}");
+            Assert.That(versionLine, Is.EqualTo(m_PackageInfo.version), $"Version string in version.md should match current version of package: {versionLine} vs {m_PackageInfo.version}");
         }
 
         [Test]
@@ -69,8 +94,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Assert.That(documentationDirectory, Is.Not.Null);
             Assert.That(documentationDirectory.Exists, Is.True);
 
-            // Create a list of all package dependencies in the form name@major.minor
+            // Create two lists of all package dependencies in the forms:
+            // name
+            // name@major.minor
+            var nameNoVersions = new List<string>(m_PackageInfo.dependencies.Length);
             var nameAndVersions = new List<string>(m_PackageInfo.dependencies.Length);
+            nameNoVersions.AddRange(m_PackageInfo.dependencies.Select(dependency => dependency.name));
             nameAndVersions.AddRange(m_PackageInfo.dependencies.Select(dependency => $"{dependency.name}@{GetMajorMinor(dependency)}"));
 
             // Package name must contain only lowercase letters, digits, hyphens(-), underscores (_), and periods (.)
@@ -92,7 +121,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
                     foreach (Match match in regex.Matches(line))
                     {
                         var reference = match.ToString();
-                        Assert.That(nameAndVersions, Has.Member(reference), $"{reference} in {fileInfo.Name}:{lineNumber} does not match dependency version.");
+                        // Skip requiring external references to specific versions of the package that aren't a package dependency.
+                        // This is because we do not have a dependency on com.unity.xr.openxr
+                        // but sometimes want to link to a specific version of that package.
+                        var referencePackageName = reference.Split('@')[0];
+                        if (nameNoVersions.Contains(referencePackageName))
+                        {
+                            Assert.That(nameAndVersions, Has.Member(reference), $"{reference} in {fileInfo.Name}:{lineNumber} does not match dependency version.");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"{reference} in {fileInfo.Name}:{lineNumber} has a specific version but {referencePackageName} is not a package dependency.");
+                        }
                     }
                 }
             }
@@ -100,14 +140,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 
         static string ExtractCode(string value)
         {
-            // Extract the code from the string.
-            // For example, "`1.2.3`" would return "1.2.3"
-            var firstIndex = value.IndexOf('`');
-            var lastIndex = value.LastIndexOf('`');
+            // Extract the placeholder text from the string: **[!include[](includes/version.md)]**
+            var firstIndex = value.IndexOf("**[");
+            var lastIndex = value.LastIndexOf("]**");
             if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex)
                 return string.Empty;
 
-            return value.Substring(firstIndex + 1, lastIndex - firstIndex - 1);
+            return value.Substring(firstIndex + 2, lastIndex - firstIndex - 1);
         }
 
         static string GetMajorMinor(DependencyInfo dependency) => GetMajorMinor(dependency.version);

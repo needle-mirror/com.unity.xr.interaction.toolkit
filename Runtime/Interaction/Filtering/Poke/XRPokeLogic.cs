@@ -312,7 +312,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         {
             Vector3 localScale = targetTransform.localScale;
             Vector3 adjustedSize = localScale.Multiply(targetBounds.size);
-            // $TODO resolve issues where collider compresses to zero -> Find better approach for rotation
             Vector3 rotatedSize = rotateBoundsScale ? targetTransform.rotation * adjustedSize : adjustedSize;
             return new Bounds(targetTransform.position + localScale.Multiply(targetBounds.center), rotatedSize);
         }

@@ -1,4 +1,5 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+﻿using UnityEngine.Rendering;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
@@ -25,8 +26,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
         }
 
         [SerializeField]
-        [Tooltip("Shader property name to set the color of.")]
-        string m_ColorPropertyName = "_BaseColor";
+        [Tooltip("Shader property name to set the color of. When empty, the component will attempt to use the default for the current render pipeline.")]
+        string m_ColorPropertyName;
 
         /// <summary>
         /// Shader property name to set the color of.
@@ -37,7 +38,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
             set
             {
                 m_ColorPropertyName = value;
-                m_ColorProperty = Shader.PropertyToID(m_ColorPropertyName);
+                UpdateColorPropertyID();
             }
         }
 
@@ -60,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
             if (m_MaterialPropertyBlockHelper == null)
                 m_MaterialPropertyBlockHelper = GetComponent<MaterialPropertyBlockHelper>();
 
-            m_ColorProperty = Shader.PropertyToID(m_ColorPropertyName);
+            UpdateColorPropertyID();
         }
 
         /// <inheritdoc/>
@@ -74,6 +75,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
         protected override Color GetCurrentValueForCapture()
         {
             return m_MaterialPropertyBlockHelper.GetSharedMaterialForTarget().GetColor(m_ColorProperty);
+        }
+
+        void UpdateColorPropertyID()
+        {
+            if (!string.IsNullOrEmpty(m_ColorPropertyName))
+            {
+                m_ColorProperty = Shader.PropertyToID(m_ColorPropertyName);
+            }
+            else
+            {
+                m_ColorProperty = GraphicsSettings.currentRenderPipeline != null ? ShaderPropertyLookup.baseColor : ShaderPropertyLookup.color;
+            }
+        }
+
+        readonly struct ShaderPropertyLookup
+        {
+            public static readonly int baseColor = Shader.PropertyToID("_BaseColor");
+            public static readonly int color = Shader.PropertyToID("_Color"); // Legacy
         }
     }
 }

@@ -15,5 +15,6 @@ Controls the selection of an object via a Tap gesture.
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
 | **XR Origin** | The `XROrigin` that this Interactable will use (such as to get the `Camera` or to transform from Session space). Will find one if **None**. |
 | **AR Session Origin** | This is deprecated. Use the above **XR Origin** instead. |
+| **Exclude UI Touches** | Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it. |
 | **Selection Visualization** | The visualization `GameObject` that will become active when the object (that this component is attached to) is selected. |
 | **Interactable Events** | See the [Interactable Events](interactable-events.md) page. |

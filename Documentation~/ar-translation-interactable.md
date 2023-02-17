@@ -15,6 +15,7 @@ Manipulates the position of an object via a drag gesture. If not selected, the o
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
 | **XR Origin** | The `XROrigin` that this Interactable will use (such as to get the `Camera` or to transform from Session space). Will find one if **None**. |
 | **AR Session Origin** | This is deprecated. Use the above **XR Origin** instead. |
+| **Exclude UI Touches** | Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it. |
 | **Object Gesture Translation Mode** | Controls whether the object will be constrained vertically, horizontally, or free to move in all axes. |
 | &emsp;Horizontal | Allow translation when the plane is horizontal. |
 | &emsp;Vertical | Allow translation when the plane is vertical. |

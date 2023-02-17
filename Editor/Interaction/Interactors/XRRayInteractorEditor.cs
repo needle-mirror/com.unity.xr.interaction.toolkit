@@ -19,6 +19,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_RaycastMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
         protected SerializedProperty m_RaycastTriggerInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastSnapVolumeInteraction"/>.</summary>
+        protected SerializedProperty m_RaycastSnapVolumeInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
         protected SerializedProperty m_HitClosestOnly;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
@@ -87,6 +89,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
             public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastSnapVolumeInteraction"/>.</summary>
+            public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
             public static readonly GUIContent hitClosestOnly = EditorGUIUtility.TrTextContent("Hit Closest Only", "Consider only the closest Interactable as a valid target for interaction. Enable this to make only the closest Interactable receive hover events.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
@@ -151,6 +155,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_SphereCastRadius = serializedObject.FindProperty("m_SphereCastRadius");
             m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
+            m_RaycastSnapVolumeInteraction = serializedObject.FindProperty("m_RaycastSnapVolumeInteraction");
             m_HitClosestOnly = serializedObject.FindProperty("m_HitClosestOnly");
             m_HoverToSelect = serializedObject.FindProperty("m_HoverToSelect");
             m_HoverTimeToSelect = serializedObject.FindProperty("m_HoverTimeToSelect");
@@ -302,6 +307,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
             EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
+            EditorGUILayout.PropertyField(m_RaycastSnapVolumeInteraction, Contents.raycastSnapVolumeInteraction);
             EditorGUILayout.PropertyField(m_HitDetectionType, Contents.hitDetectionType);
             if (m_HitDetectionType.intValue == (int)XRRayInteractor.HitDetectionType.SphereCast)
             {

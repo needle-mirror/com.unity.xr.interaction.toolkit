@@ -16,4 +16,5 @@ To make use of this, add an `ARGestureInteractor` to your scene and an `ARBaseGe
 | **Keep Selected Target Valid** | Whether to keep selecting an Interactable after initially selecting it even when it is no longer a valid target.<br />Enable to make the `XRInteractionManager` retain the selection even if the Interactable is not contained within the list of valid targets.<br />Disable to make the Interaction Manager clear the selection if it isn't within the list of valid targets. A common use for disabling this is for XR Ray Interactors used for teleportation to make the teleportation Interactable no longer selected when not currently pointing at it. |
 | **XR Origin** | The `XROrigin` that this Interactor will use (such as to get the `Camera` or to transform from Session space). Will find one if **None**. |
 | **AR Session Origin** | This is deprecated. Use the above **XR Origin** instead. |
+| **Exclude UI Touches** | Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it. |
 | **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |

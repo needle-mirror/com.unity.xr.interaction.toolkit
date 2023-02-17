@@ -176,7 +176,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
             public static readonly GUIContent throwOnDetach = EditorGUIUtility.TrTextContent("Throw On Detach", "Whether this object inherits the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
-            public static readonly GUIContent throwSmoothingDuration = EditorGUIUtility.TrTextContent("Throw Smoothing Duration", "Time period to average thrown velocity over.");
+            public static readonly GUIContent throwSmoothingDuration = EditorGUIUtility.TrTextContent("Throw Smoothing Duration", "This value represents the time over which collected samples are used for velocity calculation, up to a max of 20 previous frames.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingCurve"/>.</summary>
             public static readonly GUIContent throwSmoothingCurve = EditorGUIUtility.TrTextContent("Throw Smoothing Curve", "The curve to use to weight thrown velocity smoothing (most recent frames to the right).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwVelocityScale"/>.</summary>

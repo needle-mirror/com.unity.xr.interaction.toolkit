@@ -19,20 +19,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         static readonly Comparison<IXRInteractable> s_InteractableDistanceComparison = InteractableDistanceComparison;
 
-        public static void Sort<T>(IList<T> hits, IComparer<T> comparer) where T : struct
+        public static void Sort<T>(IList<T> hits, IComparer<T> comparer) where T : struct => Sort(hits, comparer, hits.Count);
+
+        public static void Sort<T>(IList<T> hits, IComparer<T> comparer, int count) where T : struct
         {
+            if (count <= 1)
+                return;
+
             bool fullPass;
             do
             {
                 fullPass = true;
-                for (var i = 1; i < hits.Count; ++i)
+                for (var i = 1; i < count; ++i)
                 {
                     var result = comparer.Compare(hits[i - 1], hits[i]);
                     if (result > 0)
                     {
-                        var temp = hits[i - 1];
-                        hits[i - 1] = hits[i];
-                        hits[i] = temp;
+                        (hits[i - 1], hits[i]) = (hits[i], hits[i - 1]);
                         fullPass = false;
                     }
                 }

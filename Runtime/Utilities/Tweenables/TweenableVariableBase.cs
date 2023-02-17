@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
         /// <summary>
         /// Target value used when tweening variable value.
         /// </summary>
-        /// <seealso cref="BindableVariable{T}.Value"/>
+        /// <seealso cref="BindableVariableBase{T}.Value"/>
         public T target { get; set; }
 
         /// <summary>

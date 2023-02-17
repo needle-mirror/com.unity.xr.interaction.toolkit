@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Datums;
@@ -234,6 +234,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         bool m_IsActivated;
         bool m_IsRegistered;
         bool m_IsHoveredPriority;
+        bool m_HasInteractionStrengthInteractable;
 
         int m_HoveringPriorityInteractorCount;
 
@@ -477,6 +478,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <param name="value">The new largest interaction strength value of all interactors hovering or selecting the interactable.</param>
         protected virtual void OnLargestInteractionStrengthChanged(float value)
         {
+            // If currently executing animation, do not update interaction strength state.
+            if(m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
+                return;
             RefreshState();
         }
 
@@ -542,7 +546,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
             if (isSelected && !m_IgnoreSelectEvents)
             {
-                var transitionAmount = m_InteractionStrengthInteractable?.largestInteractionStrength.Value ?? 1f;
+                var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 1f;
                 return new AffordanceStateData(AffordanceStateShortcuts.selected, transitionAmount);
             }
 
@@ -554,7 +558,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             if (isHovered && !m_IgnoreHoverEvents)
             {
                 var stateIndex = m_IsHoveredPriority ? AffordanceStateShortcuts.hoveredPriority : AffordanceStateShortcuts.hovered;
-                var transitionAmount = m_InteractionStrengthInteractable?.largestInteractionStrength.Value ?? 0f;
+                var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 0f;
                 return new AffordanceStateData(stateIndex, transitionAmount);
             }
 
@@ -613,6 +617,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 if (m_InteractionStrengthInteractable != null)
                 {
                     AddBinding(m_InteractionStrengthInteractable.largestInteractionStrength.Subscribe(OnLargestInteractionStrengthChanged));
+                    m_HasInteractionStrengthInteractable = true;
+                }
+                else
+                {
+                    m_HasInteractionStrengthInteractable = false;
                 }
 
                 m_IsActivated = false;

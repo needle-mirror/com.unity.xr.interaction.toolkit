@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.XR.CoreUtils;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
@@ -56,6 +57,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.xrController = controller;
             controller.enableInputTracking = false;
             controller.enableInputActions = false;
+            return interactor;
+        }
+
+        internal static XRPokeInteractor CreatePokeInteractor()
+        {
+            GameObject interactorGO = new GameObject("Poke Interactor");
+            XRPokeInteractor interactor = interactorGO.AddComponent<XRPokeInteractor>();
             return interactor;
         }
 
@@ -121,7 +129,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controller.enableInputActions = false;
             return interactor;
         }
-        
+
         internal static XRSocketInteractor CreateSocketInteractor()
         {
             GameObject interactorGO = new GameObject("Socket Interactor");
@@ -500,4 +508,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             methodTraces.Add(MethodTrace.OnUnlink);
         }
     }
+
+    // TODO: This is a placeholder until we can get mock touches to work with XRUIInputModule. See ARTests.
+    class MockInputModule : BaseInputModule
+    {
+        public override void Process()
+        {
+        }
+
+        public override bool IsPointerOverGameObject(int pointerId) => true;
+    }
+
 }

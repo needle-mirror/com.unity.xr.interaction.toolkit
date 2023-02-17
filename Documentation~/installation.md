@@ -1,6 +1,6 @@
 # Installation
 
-To install this package, refer to the instructions that match your Unity Editor version:
+To install this package, refer to the instructions that match your Unity Editor version. Keep in mind that each version of the Unity Editor will ship with a specific verified version of the XR Interaction Toolkit (XRI). To ensure you have access to the latest version of the XRI package, please update to the latest patch release of the Unity Editor for your project (if you are able to). If you are unable to update to the latest patch version of the Unity Editor, to access newer releases of XRI, please refer to the [`Manual Installation`](#manual-installation) steps below to modify your manifest.json. 
 
 ## Version 2022.1 and later
 
@@ -10,7 +10,7 @@ To install this package, follow the [installation instructions in the Unity User
 
 ### 2021.3.9f1 and later
 
-To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-install.html).
+To install this package (minimum version: 2.0.4), follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-install.html).
 
 ### 2021.3.8f1 and earlier
 
@@ -19,11 +19,21 @@ To install this package, follow the instructions for [adding a package by name](
 |Text Field|Value|
 |---|---|
 |**Name**|`com.unity.xr.interaction.toolkit`|
-|**Version (optional)**|`2.3.0-pre.1`|
+|**Version (optional)**|**[!include[](includes/version.md)]**|
 
 ## Version 2020.3
 
 To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2020.3/Documentation/Manual/upm-ui-install.html).
+
+## Manual Installation
+
+In some cases, you may not be able to update the Unity Editor or may wish to manually install the latest verified or preview version of XRI. To do this, follow these steps: 
+1. Open your project folder in File Explorer, Finder or equivalent file browser.
+1. Navigate to the `Packages` folder and then open the `manifest.json` file in your favorite text editor. 
+1. If you already have XRI installed in your project, locate the line starting with `com.unity.xr.interaction.toolkit` and change it to **[!include[](includes/version.md)]**. If you are installing XRI for the first time, paste the following line into your manifest file inside of the `dependencies` block: **"com.unity.xr.interaction.toolkit": "[!include[](includes/version.md)]",** making sure to add commas to preserve a valid json structure.
+1. Save the file and close.
+1. Return to your project or open the project back up and ensure there are no errors related to the changes you just made.
+1. Open `Package Manager` and verify that the list now XR Interaction Toolkit with the correct version.
 
 ## Input System
 

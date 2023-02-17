@@ -1337,6 +1337,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_TargetedDeviceInput = value;
         }
 
+        (Transform transform, Camera camera) m_CachedCamera;
+
         /// <summary>
         /// Current value of the x-axis when using keyboard translate.
         /// </summary>
@@ -1475,13 +1477,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 #endif
 
-            // Find the Camera if necessary
-            if (m_CameraTransform == null)
-            {
-                var mainCamera = Camera.main;
-                if (mainCamera != null)
-                    m_CameraTransform = mainCamera.transform;
-            }
+            FindCameraTransform();
 
             AddDevices();
 
@@ -1621,6 +1617,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
+        /// Finds and sets <see cref="cameraTransform"/> if necessary.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if the camera reference is valid. Otherwise, returns <see langword="false"/>.</returns>
+        bool FindCameraTransform()
+        {
+            // Sync the cache tuple if necessary
+            if (m_CachedCamera.transform != m_CameraTransform)
+                m_CachedCamera = (m_CameraTransform, m_CameraTransform != null ? m_CameraTransform.GetComponent<Camera>() : null);
+
+            // Camera.main returns the first active and enabled main camera, so if the cached one
+            // is no longer enabled, find the new main camera. This is to support, for example,
+            // toggling between different XROrigin rigs each with their own main camera.
+            if (m_CachedCamera.transform == null ||
+                (m_CachedCamera.camera != null && !m_CachedCamera.camera.isActiveAndEnabled))
+            {
+                var mainCamera = Camera.main;
+                if (mainCamera == null)
+                    return false;
+
+                m_CameraTransform = mainCamera.transform;
+                m_CachedCamera = (m_CameraTransform, m_CameraTransform.GetComponent<Camera>());
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Process input from the user and update the state of manipulated device(s)
         /// related to position and rotation.
         /// </summary>
@@ -1638,7 +1661,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_TargetedDeviceInput == TargetedDevices.None)
                 return;
 
-            if (m_CameraTransform == null)
+            if (!FindCameraTransform())
                 return;
 
             var cameraParent = m_CameraTransform.parent;
@@ -2416,11 +2439,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 targetedDeviceInput = TargetedDevices.FPS;
         }
 
-        void OnStopManipulationPerformed(InputAction.CallbackContext context)
-        {
-            // Cycle logic is Disable > FPS
-            targetedDeviceInput = targetedDeviceInput != TargetedDevices.None ? TargetedDevices.None : TargetedDevices.FPS;
-        }
+        void OnStopManipulationPerformed(InputAction.CallbackContext context) => targetedDeviceInput = TargetedDevices.None;
 
         void OnMouseDeltaPerformed(InputAction.CallbackContext context) => m_MouseDeltaInput = context.ReadValue<Vector2>();
         void OnMouseDeltaCanceled(InputAction.CallbackContext context) => m_MouseDeltaInput = Vector2.zero;

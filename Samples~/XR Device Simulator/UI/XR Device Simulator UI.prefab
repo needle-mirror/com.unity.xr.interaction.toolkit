@@ -1721,7 +1721,7 @@ GameObject:
   - component: {fileID: 2406183980836748438}
   - component: {fileID: 2419496096052406531}
   m_Layer: 5
-  m_Name: ShowCursorValues
+  m_Name: CursorLockValues
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1847,7 +1847,7 @@ GameObject:
   - component: {fileID: 9029590796770340829}
   - component: {fileID: 7120185377061894656}
   m_Layer: 5
-  m_Name: ShowCursorValuesText
+  m_Name: CursorLockValuesText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1913,7 +1913,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Cursor Bind
+  m_Text: Cursor Lock Bind
 --- !u!1 &1995946693877701722
 GameObject:
   m_ObjectHideFlags: 0
@@ -4355,7 +4355,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4a96e57115104b54fb8291e464e0d1a2, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4590,7 +4590,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4a96e57115104b54fb8291e464e0d1a2, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5607,7 +5607,7 @@ GameObject:
   - component: {fileID: 422230263331092271}
   - component: {fileID: 8284150429798826035}
   m_Layer: 5
-  m_Name: ShowCursorIcon
+  m_Name: CursorLockIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6377,7 +6377,7 @@ GameObject:
   - component: {fileID: 6306803474220772754}
   - component: {fileID: 7134225087827827873}
   m_Layer: 5
-  m_Name: ShowCursorButton
+  m_Name: CursorLockButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6432,7 +6432,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4a96e57115104b54fb8291e464e0d1a2, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6454,7 +6454,7 @@ GameObject:
   - component: {fileID: 7213067749628437573}
   - component: {fileID: 8592730955871035129}
   m_Layer: 5
-  m_Name: ShowCursorText
+  m_Name: CursorLockText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6520,7 +6520,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Cursor
+  m_Text: Cursor Lock
 --- !u!1 &6446265796040595061
 GameObject:
   m_ObjectHideFlags: 0
@@ -7553,7 +7553,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4a96e57115104b54fb8291e464e0d1a2, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8003,7 +8003,8 @@ MonoBehaviour:
   m_KeyboardSprite: {fileID: 21300000, guid: 76dc0abb2ebb44c9a9bd39266f0b3c91, type: 3}
   m_MouseSprite: {fileID: 21300000, guid: f997d60d79a4e45cab6b1814e377a1b3, type: 3}
   m_RMouseSpriteDark: {fileID: 21300000, guid: 308cc8b73722e43eab64c228a76560a6, type: 3}
-  m_RMouseSpriteLight: {fileID: 21300000, guid: 14e910c1fb9c7514a8106ffd25f1d892, type: 3}
+  m_RMouseSpriteLight: {fileID: 21300000, guid: 14e910c1fb9c7514a8106ffd25f1d892,
+    type: 3}
   m_RMouseSprite: {fileID: 0}
   m_CycleDevicesText: {fileID: 3371161537473467337}
   m_CurrentSelectedDeviceText: {fileID: 5399548881570719173}
@@ -8017,8 +8018,8 @@ MonoBehaviour:
   m_HeadsetLookButtonText: {fileID: 5211343494943572565}
   m_HeadsetLookValueIcon: {fileID: 1961592952334493289}
   m_HeadsetLookValueText: {fileID: 1382989206379361076}
-  m_ShowCursorButton: {fileID: 7134225087827827873}
-  m_ShowCursorValueText: {fileID: 7120185377061894656}
+  m_CursorLockButton: {fileID: 7134225087827827873}
+  m_CursorLockValueText: {fileID: 7120185377061894656}
   m_MouseModeButtonText: {fileID: 5592230383290526872}
   m_MouseModeValueText: {fileID: 1452563728541468582}
   m_HeadsetSelectedButton: {fileID: 1467215871600972289}
@@ -8311,7 +8312,7 @@ GameObject:
   - component: {fileID: 5007860049523255694}
   - component: {fileID: 8734094869249158643}
   m_Layer: 5
-  m_Name: ShowCursorValuesIcon
+  m_Name: CursorLockValuesIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8665,7 +8666,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1525949943038772175}
   m_Layer: 0
-  m_Name: ShowCursorRow
+  m_Name: CursorLockRow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

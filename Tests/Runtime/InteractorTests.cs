@@ -257,6 +257,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             interactable.enabled = true;
             interactor.enabled = true;
+            yield return new WaitForFixedUpdate();
 
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
@@ -313,6 +314,162 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Since interactable2's collider is disabled, it should not show up in the list of valid targets.
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable1 }));
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorValidTargetsListEmptyWhenInteractorDisabled([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        {
+            // This will test that the Direct and Socket Interactor will clear valid targets
+            // and stayed colliders when the interactor or its GameObject is disabled and
+            // the targets will be correctly added back in when the interactor is enabled again.
+            var interactionManager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractor interactor = null;
+            if (interactorType == typeof(XRDirectInteractor))
+                interactor = TestUtilities.CreateDirectInteractor();
+            else if (interactorType == typeof(XRSocketInteractor))
+            {
+                interactor = TestUtilities.CreateSocketInteractor();
+                ((XRSocketInteractor)interactor).recycleDelayTime = 0f;
+            }
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Create Interactable
+            var interactable = TestUtilities.CreateGrabInteractable();
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.hasHover, Is.True);
+            
+            // De-activate the interactor GameObject
+            interactor.gameObject.SetActive(false);
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            // Reactivate the interactor GameObject
+            interactor.gameObject.SetActive(true);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // De-activate the interactor component.
+            interactor.enabled = false;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            // Reactivate the interactor component
+            interactor.enabled = true;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorValidTargetsRemainClearWhenEnabledWithNoContact([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        {
+            // This will test that the Direct and Socket Interactor will clear valid targets
+            // and colliders when the interactor is disabled during contact and the valid 
+            // targets and colliders will remain clear when the interactor is enabled again
+            // while not touching any colliders.
+            var interactionManager = TestUtilities.CreateInteractionManager();
+            XRBaseInteractor interactor = null;
+            if (interactorType == typeof(XRDirectInteractor))
+                interactor = TestUtilities.CreateDirectInteractor();
+            else if (interactorType == typeof(XRSocketInteractor))
+            {
+                interactor = TestUtilities.CreateSocketInteractor();
+                ((XRSocketInteractor)interactor).recycleDelayTime = 0f;
+            }
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Create Interactable
+            var interactable = TestUtilities.CreateGrabInteractable();
+            Vector3 interactorInitPosition = interactor.transform.position;
+            Vector3 interactorMovedPosition = Vector3.one * 2f;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // De-activate the interactor component.
+            interactor.enabled = false;
+
+            // Reposition the interactor away from the interactable and re-enable the interactor via Component
+            interactor.transform.position = interactorMovedPosition;
+            interactor.enabled = true;
+
+            // Ensure no lingering hovers when interactor is moved away when disabled
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            // Move the interactor to the initial position
+            interactor.transform.position = interactorInitPosition;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+            
+            // De-activate the interactor GameObject.
+            interactor.gameObject.SetActive(false);
+
+            // Reposition the interactor away from the interactable and re-enable the interactor via GameObject
+            interactor.transform.position = interactorMovedPosition;
+            interactor.gameObject.SetActive(true);
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            // Move the interactor to the initial position
+            interactor.transform.position = interactorInitPosition;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
         }
 
         [UnityTest]

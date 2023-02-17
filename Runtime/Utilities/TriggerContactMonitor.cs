@@ -183,17 +183,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Remove colliders that no longer stay during this frame but previously entered.
+        /// Remove colliders that no longer stay during this frame but previously entered and
+        /// adds stayed colliders that are not currently tracked.
         /// </summary>
         /// <param name="stayedColliders">Colliders that stayed during the fixed update.</param>
         /// <remarks>
         /// Can be called in the fixed update phase by interactors after OnTriggerStay.
         /// </remarks>
-        public void UpdateStayedColliders(List<Collider> stayedColliders)
+        public void UpdateStayedColliders(HashSet<Collider> stayedColliders)
         {
-            if (m_EnteredColliders.Count == 0)
-                return;
-
             s_ExitedColliders.Clear();
 
             foreach (var collider in m_EnteredColliders.Keys)
@@ -202,6 +200,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                     // Add to temporary list to remove in a second pass to avoid modifying
                     // the collection being iterated.
                     s_ExitedColliders.Add(collider);
+                else
+                    // Remove collider that is already synced
+                    stayedColliders.Remove(collider);
+            }
+
+            foreach (var collider in stayedColliders)
+            {
+                // Add a stayed Collider to the entered colliders list if the
+                // Collider is not currently tracked
+                AddCollider(collider);
             }
 
             foreach (var collider in s_ExitedColliders)

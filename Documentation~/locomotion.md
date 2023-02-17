@@ -209,7 +209,7 @@ This implementation has two types of teleportation destinations: a Teleportation
 
 - Teleportation Areas allow the user to choose a location on a surface that they wish to teleport to.
 
-- Teleportation Anchors teleport the user to a pre-determined specific position and/or rotation that they specify. Techinically, it functions like the Teleportation Area but has the additional anchor functionality.
+- Teleportation Anchors teleport the user to a pre-determined specific position and/or rotation that they specify. Technically, it functions like the Teleportation Area but has the additional anchor functionality.
 
 Both types of teleportation destinations are implemented on top of the XR Interaction system using the `BaseTeleportationInteractable` as the starting point for shared code.
 
@@ -268,7 +268,7 @@ The **Teleport Anchor Transform** field defines the transform that the Origin te
 
 ### Snap Turn Provider
 
-The package provides an example implementation of a Snap Turn Provider. A snap turn means the Orgin rotates by a fixed amount when the application receives a configured input (for example, a joystick is moved to the left, or a D-pad is pressed to the right).
+The package provides an example implementation of a Snap Turn Provider. A snap turn means the Origin rotates by a fixed amount when the application receives a configured input (for example, a joystick is moved to the left, or a D-pad is pressed to the right).
 
 It is recommended that you use the Action-based variant instead of the Device-based variant to take advantage of the benefits that the Input System package provides.
 

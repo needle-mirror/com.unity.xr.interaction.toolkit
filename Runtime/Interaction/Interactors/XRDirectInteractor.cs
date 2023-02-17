@@ -25,33 +25,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The set of Colliders that stayed in touch with this Interactor on fixed updated.
         /// This list will be populated by colliders in OnTriggerStay.
         /// </summary>
-        readonly List<Collider> m_StayedColliders = new List<Collider>();
+        readonly HashSet<Collider> m_StayedColliders = new HashSet<Collider>();
 
         readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
-
         /// <summary>
         /// Reusable value of <see cref="WaitForFixedUpdate"/> to reduce allocations.
         /// </summary>
         static readonly WaitForFixedUpdate s_WaitForFixedUpdate = new WaitForFixedUpdate();
 
+        /// <summary>
+        /// Reference to Coroutine that updates the trigger contact monitor with the current
+        /// stayed colliders. 
+        /// </summary>
+        IEnumerator m_UpdateCollidersAfterTriggerStay;
+
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
-
             m_TriggerContactMonitor.interactionManager = interactionManager;
-            m_TriggerContactMonitor.contactAdded += OnContactAdded;
-            m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
+            m_UpdateCollidersAfterTriggerStay = UpdateCollidersAfterOnTriggerStay();
 
             ValidateTriggerCollider();
         }
 
         /// <inheritdoc />
-        protected override void Start()
+        protected override void OnEnable()
         {
-            base.Start();
+            base.OnEnable();
+            m_TriggerContactMonitor.contactAdded += OnContactAdded;
+            m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
+            ResetCollidersAndValidTargets();
+            StartCoroutine(m_UpdateCollidersAfterTriggerStay);
+        }
 
-            StartCoroutine(UpdateCollidersAfterOnTriggerStay());
+        /// <inheritdoc />
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            m_TriggerContactMonitor.contactAdded -= OnContactAdded;
+            m_TriggerContactMonitor.contactRemoved -= OnContactRemoved;
+            ResetCollidersAndValidTargets();
+            StopCoroutine(m_UpdateCollidersAfterTriggerStay);
         }
 
         /// <summary>
@@ -108,7 +123,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Clear stayed Colliders at the beginning of the physics cycle before
                 // the OnTriggerStay method populates this list.
                 // Then the UpdateCollidersAfterOnTriggerStay coroutine will use this list to remove Colliders
-                // that no longer stay in this frame after previously entered.
+                // that no longer stay in this frame after previously entered and add any stayed Colliders
+                // that are not currently tracked by the TriggerContactMonitor. 
                 m_StayedColliders.Clear();
             }
         }
@@ -139,6 +155,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
+            targets.Clear();
+            
+            if (!isActiveAndEnabled)
+                return;
+
             var filter = targetFilter;
             if (filter != null && filter.canProcess)
                 filter.Process(this, unsortedValidTargets, targets);
@@ -201,6 +222,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void OnContactRemoved(IXRInteractable interactable)
         {
             unsortedValidTargets.Remove(interactable);
+        }
+
+        /// <summary>
+        /// Clears current valid targets and stayed colliders. 
+        /// </summary>
+        void ResetCollidersAndValidTargets()
+        {
+            unsortedValidTargets.Clear();
+            m_StayedColliders.Clear();
+            m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
         }
     }
 }

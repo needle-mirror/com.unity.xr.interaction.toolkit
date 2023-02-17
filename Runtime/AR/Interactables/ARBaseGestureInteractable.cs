@@ -36,6 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
+using UnityEngine.EventSystems;
 using UnityEngine.XR.ARFoundation;
 
 #if UNITY_EDITOR
@@ -61,6 +62,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             get => m_XROrigin;
             set => m_XROrigin = value;
+        }
+
+        [SerializeField]
+        bool m_ExcludeUITouches = true;
+
+        /// <summary>
+        /// When <see langword="true"/>, will exclude touches that are over UI.
+        /// Used to make screen space canvas elements block touches from hitting planes behind it.
+        /// </summary>
+        /// <seealso cref="EventSystem.IsPointerOverGameObject(int)"/>
+        public bool excludeUITouches
+        {
+            get => m_ExcludeUITouches;
+            set => m_ExcludeUITouches = value;
         }
 
         /// <summary>
@@ -566,6 +581,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             if (m_IsManipulating)
                 return;
 
+            if (m_ExcludeUITouches && IsGestureBlockedByUI(gesture))
+                return;
+
             if (CanStartManipulationForGesture(gesture))
             {
                 m_IsManipulating = true;
@@ -634,6 +652,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     OnEndManipulation(twoFingerDragGesture);
                     break;
             }
+        }
+
+        static bool IsTouchPositionBlockedByUI(int fingerId)
+        {
+            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(fingerId);
+        }
+
+        static bool IsGestureBlockedByUI<T>(Gesture<T> gesture) where T : Gesture<T>
+        {
+            switch (gesture)
+            {
+                case DragGesture dragGesture:
+                    return IsTouchPositionBlockedByUI(dragGesture.fingerId);
+                case PinchGesture pinchGesture:
+                    return IsTouchPositionBlockedByUI(pinchGesture.fingerId1) || IsTouchPositionBlockedByUI(pinchGesture.fingerId2);
+                case TapGesture tapGesture:
+                    return IsTouchPositionBlockedByUI(tapGesture.fingerId);
+                case TwistGesture twistGesture:
+                    return IsTouchPositionBlockedByUI(twistGesture.fingerId1) || IsTouchPositionBlockedByUI(twistGesture.fingerId2);
+                case TwoFingerDragGesture twoFingerDragGesture:
+                    return IsTouchPositionBlockedByUI(twoFingerDragGesture.fingerId1) || IsTouchPositionBlockedByUI(twoFingerDragGesture.fingerId2);
+            }
+
+            return false;
         }
     }
 }

@@ -1137,6 +1137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRInteractor.GetValidTargets"/>
         public void GetValidTargets(IXRInteractor interactor, List<IXRInteractable> targets)
         {
+            targets.Clear();
             interactor.GetValidTargets(targets);
 
             // To attempt to be backwards compatible with user scripts that have not been upgraded to use the interfaces,

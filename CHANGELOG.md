@@ -5,6 +5,47 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.3.0] - 2023-02-17
+
+### Added
+- Added a Raycast Snap Volume Interaction property to control whether the XR Ray Interactor will collide with or ignore trigger snap colliders from an XR Interactable Snap Volume (used by gaze assistance). This allows a user to set Raycast Trigger Interaction to Ignore but still collide with trigger colliders that are associated with a snap volume.
+- Added options to XR Poke Follow Affordance in the Starter Assets sample to apply the follow animation if the poke target is a child and to clamp the follow target to a maximum distance from the poke target.
+- Added an XR Poke Follow Affordance to the `TextButton` prefab in the Starter Assets sample so that the button graphics can move in response to poke.
+- Added Tracking State and Is Tracked input actions to the `XRI Default Input Actions` in the Starter Assets sample.
+- Added [Meta Gaze Adapter](../manual/samples.md#meta-gaze-adapter) sample to allow developers to request permission and initialize eye tracking for the Meta Quest Pro.
+- Added [Hands Interaction Demo](../manual/samples.md#hands-interaction-demo) sample to demonstrate interactions with hand tracking.
+- Added poke interaction examples to the `DemoScene` in the Starter Assets sample.
+- Added ability to customize the layer mask and trigger interaction when the XR Poke Interactor performs the physics sphere overlap call.
+- Added documentation regarding behavior when Select Action Trigger is set to State on XR Direct Interactor and XR Ray Interactor.
+
+### Changed
+- Changed the Stop Manipulation action (default binding `Escape`) in the XR Device Simulator to always stop manipulation every time it is pressed instead of cycling between None and FPS mode. Trigger the Cycle Devices action (default binding `Tab`) to switch back to FPS mode instead.
+- Changed `Ray Interactor` prefab in the Starter Assets sample to enable Treat Selection As Valid State on the XR Interactor Line Visual.
+- Changed the  **GameObject** &gt; **XR** &gt; **Grab Interactable** menu item to set the Rigidbody Interpolate property on the created GameObject to Interpolate.
+- Changed the Rigidbody Interpolate property from None to Interpolate in each of the Starter Assets sample grab interactable prefabs.
+- Changed the default value of the Color Property Name property on the Color Material Property Affordance Receiver component to an empty string instead of `"_BaseColor"`. An empty string will now use either `"_BaseColor"` or `"_Color"` depending on the current render pipeline to add support for the Built-In Render Pipeline.
+- Changed `GetValidTargets` on each interactor type to return an empty list when the interactor is disabled.
+- Changed `ActionBasedControllerManager` in Starter Assets sample to make use of XR Interaction Group and removed some unused serialized fields.
+- Changed `XR Origin Preconfigured` in Starter Assets sample so it instantiates the controller model prefab at runtime instead of being in the prefab hierarchy to make it easier for users to override the model used.
+- Changed `Teleport Interactor` in Starter Assets sample so it instantiates the reticle prefabs at runtime instead of being in the prefab hierarchy to make it easier for users to override the reticle used.
+- Changed `com.unity.xr.core-utils` dependency to 2.2.0.
+
+### Fixed
+- Fixed Teleportation Anchor incorrectly triggering a teleport when the Ray Interactor stops pointing at the anchor when it no longer has any ray cast hits.
+- Fixed Starter Assets sample prefabs and `DemoScene` to have the Gaze Interactor prefab.
+- Fixed `XRPokeInteractor` so it uses the `targetFilter` for filtering the valid targets returned by `GetValidTargets`.
+- Fixed the Fix button for project validation issue "Interaction Layer 31 is not set to 'Teleport'" not persisting to the settings asset when closing the Unity Editor.
+- Fixed missing references in device simulator UI button images by assigning to null.
+- Fixed the `PokeStateData` that is generated from UI poke interaction so that its `axisAlignedPokeInteractionPoint` is relative to the world position of the target transform.
+- Fixed broken click animations in `XRInteractableAffordanceStateProvider`.
+- Fixed XR Device Simulator so it will use the new main camera if the previous one is disabled or destroyed.
+- Fixed issue where AR gestures did not take into account UI in `ARBaseGestureInteractable` behaviors (such as AR Placement Interactable) by adding an `excludeUITouches` property, which is enabled by default.
+- Fixed potential invalid stayed colliders list in `XRDirectInteractor` and `XRSocketInteractor` when the interactor is disabled while in contact with a collider.
+- Fixed hover and select events being incorrectly fired when an `XRDirectInteractor` or `XRSocketInteractor` GameObject or component is disabled while in contact with an interactable, moved away from the interactable, and then enabled.
+- Fixed XR Poke Interactor to query the local [PhysicsScene](https://docs.unity3d.com/ScriptReference/PhysicsScene.html) instead of using static physics calls.
+- Fixed poke in UI scrolling in a scroll view outside of the viewport by ensuring the Tracked Device Graphic Raycaster respects the alpha hit test threshold.
+- Fixed the `Teleport Anchor` prefab in Starter Assets to place the teleport destination at the top of the platform, fixing a bump that would occur when moving with locomotion after teleporting.
+
 ## [2.3.0-pre.1] - 2022-12-07
 
 ### Added

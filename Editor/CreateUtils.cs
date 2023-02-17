@@ -126,6 +126,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // BoxCollider does not support a negative effective size,
             // so ensure the size accounts for any negative scaling.
             boxCollider.size = Vector3.Scale(boxCollider.size, Sign(localScale));
+
+            var rigidbody = grabInteractableGO.GetComponent<Rigidbody>();
+            // Enable interpolation on the Rigidbody to smooth movement
+            rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            
             Finalize(grabInteractableGO);
         }
 
