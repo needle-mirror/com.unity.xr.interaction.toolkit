@@ -94,7 +94,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         [SerializeField]
         [Tooltip("The maximum allowed angle (in degrees) from the poke direction axis that will trigger a select interaction.")]
         [Range(0f, 89.9f)]
-        float m_PokeAngleThreshold = 45;
+        float m_PokeAngleThreshold = 45f;
 
         /// <summary>
         /// The maximum allowed angle (in degrees) from the poke direction axis that will trigger a select interaction.

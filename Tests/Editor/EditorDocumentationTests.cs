@@ -55,9 +55,19 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             // Parse version
             foreach (var line in installationVersionLines)
             {
-                var version = ExtractCode(line);
+                var version = ExtractCode(line, "**[", "]**");
                 Assert.That(version, Is.Not.Empty, $"Could not parse the version field from the table line: {line}");
-                Assert.That(version, Is.EqualTo("[!include[](includes/version.md)]"), "Version string in installation.md should match current version of package.");
+                Assert.That(version, Is.EqualTo("!include[](includes/version.md)"), "Version string in installation.md should match current version of package.");
+            }
+
+            var installationKharmaLinkVersionLines = lines.Where(line => line.Contains($"(com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@")).ToArray();
+            Assert.That(installationKharmaLinkVersionLines, Is.Not.Empty, "Could not find version kharma link. Has installation.md been updated to remove kharma links?");
+            // Parse version
+            foreach (var line in installationKharmaLinkVersionLines)
+            {
+                var version = ExtractCode(line, "@", ")");
+                Assert.That(version, Is.Not.Empty, $"Could not parse the version field from the kharma link: {line}");
+                Assert.That(version, Is.EqualTo(m_PackageInfo.version), "Version strings in installation.md kharma links should match current version of package.");
             }
 
             // Setup includes folder for parsing
@@ -138,15 +148,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             }
         }
 
-        static string ExtractCode(string value)
+        static string ExtractCode(string value, string start, string end)
         {
             // Extract the placeholder text from the string: **[!include[](includes/version.md)]**
-            var firstIndex = value.IndexOf("**[");
-            var lastIndex = value.LastIndexOf("]**");
+            var firstIndex = value.IndexOf(start);
+            var lastIndex = value.LastIndexOf(end);
             if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex)
                 return string.Empty;
 
-            return value.Substring(firstIndex + 2, lastIndex - firstIndex - 1);
+            return value.Substring(firstIndex + start.Length, lastIndex - firstIndex - end.Length);
         }
 
         static string GetMajorMinor(DependencyInfo dependency) => GetMajorMinor(dependency.version);

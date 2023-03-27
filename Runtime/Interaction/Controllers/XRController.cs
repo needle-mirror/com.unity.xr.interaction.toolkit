@@ -25,6 +25,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         XRNode m_ControllerNode = XRNode.RightHand;
 
+        XRNode m_InputDeviceControllerNode;
+
         /// <summary>
         /// The <see cref="XRNode"/> for this controller.
         /// </summary>
@@ -160,7 +162,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// (Read Only) The <see cref="InputDevice"/> Unity uses to read data from.
         /// </summary>
-        public InputDevice inputDevice => m_InputDevice.isValid ? m_InputDevice : m_InputDevice = InputDevices.GetDeviceAtXRNode(controllerNode);
+        public InputDevice inputDevice
+        {
+            get
+            {
+                if (m_InputDeviceControllerNode != m_ControllerNode || !m_InputDevice.isValid)
+                {
+                    m_InputDevice = InputDevices.GetDeviceAtXRNode(m_ControllerNode);
+                    m_InputDeviceControllerNode = m_ControllerNode;
+                }
+                return m_InputDevice;
+            }
+        }
 
         /// <inheritdoc />
         protected override void UpdateTrackingInput(XRControllerState controllerState)

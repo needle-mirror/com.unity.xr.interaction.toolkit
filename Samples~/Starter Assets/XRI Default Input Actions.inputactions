@@ -316,6 +316,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Aim Flags",
+                    "type": "Value",
+                    "id": "f98e71db-49b4-4882-8991-a0e386733e87",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Pinch Position",
                     "type": "Value",
                     "id": "cac52a91-5970-4ad2-8c86-a8c0e91a1837",
@@ -539,6 +548,17 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Is Tracked",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "286f44f6-74a5-4f92-8468-42445c7a3cb8",
+                    "path": "<MetaAimHand>{LeftHand}/aimFlags",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Aim Flags",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -992,6 +1012,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Aim Flags",
+                    "type": "Value",
+                    "id": "93a75a21-033e-440c-9954-ff264afb2db9",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Pinch Position",
                     "type": "Value",
                     "id": "7a2e5dcd-3e49-4622-90ea-6607994f2be0",
@@ -1215,6 +1244,17 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Is Tracked",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5469d4d1-9645-4397-a596-d74f876eafc2",
+                    "path": "<MetaAimHand>{RightHand}/aimFlags",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Aim Flags",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

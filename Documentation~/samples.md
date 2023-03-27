@@ -188,7 +188,7 @@ In order for this sample to function properly, a few additional packages are req
   * [Starter Assets](#starter-assets) - [version] - imported from Package Manager under XR Interaction Toolkit in the Samples area 
   * [XR Plug-in Management (com.unity.xr.management)](https://docs.unity3d.com/Manual/com.unity.xr.management.html) - 4.3.1 or newer
   * [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) - 1.6.0 or newer
-  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.1.0-pre.2 or newer
+  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.1.0-pre.3 or newer
     * HandVisualizer - imported from Package Manager under XR Hands in the Samples area
   * [Universal RP](https://docs.unity3d.com/Manual/com.unity.render-pipelines.universal.html) - Universal Render Pipeline v10.10.1+
 
@@ -214,6 +214,11 @@ On the left half of the scene you will find the UI interactions. The UI elements
   * Ray & Pinch: UI can be clicked by pointing the hand Ray Interactor and then bringing your index finger and thumb together in a pinch gesture to activate selection.
   * Poke: UI can also be clicked by pressing into the UI with your index finger. Some UI buttons have included the Poke Follow Affordance sample script which uses the finger depth to depress the UI buttons.
 
+### Hierarchy configuration
+
+A Hands And Controllers Manager component is on the XR Origin GameObject which manages automatically swapping between sets of interactors used for hand tracking (Left Hand and Right Hand GameObjects) and for motion controllers (Left Controller and Right Controller GameObjects) by activating or deactivating those GameObjects.
+
+A Poke Gesture Detector component and System Gesture Detector component are on the hand tracking GameObjects which manages automatically toggling interactors to disable them and their visuals by activating or deactivating those child GameObjects when the hand is making certain gestures.
 
 ### Troubleshooting
 

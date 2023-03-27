@@ -5,6 +5,38 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.3.1] - 2023-03-27
+
+### Added
+- Added System Gesture Detector component to the Hands Interaction Demo sample to add system gesture and menu palm pinch gesture events. Added sound upon menu press as an example. Added Aim Flags input actions to the `XRI Default Input Actions` in the Starter Assets sample to support this.
+- Added [Interaction filters](../manual/interaction-filters.md) documentation for `IXRHoverFilter`, `IXRSelectFilter`, `IXRInteractionStrengthFilter`, and the corresponding filter delegates with examples.
+
+### Changed
+- Changed the Poke Gesture Detector component in the Hands Interaction Demo sample to no longer end the poke gesture when hand tracking is lost. This fixes the Ray Interactor line visual reappearing when hand tracking is lost while doing the poke gesture.
+- Changed `XRInteractorReticleVisual` to ensure consistent attempts to align the reticle prefab's `z` axis with the `transform.up` of the XROrigin when `AlignPrefabWithSurfaceNormal` is `true` and aligning with a non-horizontal surface.
+- Changed `XRInteractorReticleVisual` to align the reticle prefab's `z` axis with the forward direction of the reticle's interactor when `AlignPrefabWithSurfaceNormal` is `true` and aligning with a horizontal surface.
+- Updated installation documentation with convenience links for installing the XRI package on older versions of Unity 2021 where the package was not included in the main Editor manifest.
+- Changed so UGUI poke interactions are now considered to be blocking interactions for interaction groups. This allows rays to be properly hidden when hovering or selecting a UGUI canvas with poke.
+- Changed to use velocity estimation of poke interactor to add an extra validation mechanism in the XR Poke Filter hover validation check to allow poke selection to occur in cases where it was previously rejected, while still preventing poking from behind and other non-desireable cases.
+- Changed to cache poke selection validation check so that it's easier to hold a poke when the selection conditions are met. This makes scrolling UGUI canvases easier and makes poke interactions feel more consistent.
+- Changed AR Scale Interactable so changing the Min Scale and/or Max Scale during runtime will keep the current object scale if still within range instead of resizing the object to keep the same scale ratio.
+
+### Fixed
+- Fixed the Hands Interaction Demo sample to wait to activate the controller GameObjects until they are reconnected instead of each time hand tracking is lost. Also fixed the controllers appearing at the origin if they have never been tracked.
+- Fixed the Hands Interaction Demo sample so it disables the hand interactors while doing a system gesture (such as a user looking at their open palm at eye level).
+- Fixed warning about a self-intersecting polygon in the `Frame.fbx` model in the Hands Interaction Demo sample.
+- Fixed warning in Hands Interaction Demo sample about obsolete API usage coming from the hands subsystem. 
+- Fixed `XRSimulatedController` and `XRSimulatedHMD` to have identifying characteristics information in the `capabilities` field of their corresponding `InputDeviceDescription`. ([XRIT-50](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-50))
+- Fixed an issue in the `XRController` class where the `inputDevice` property was not reinitialized when the `controllerNode` property was changed. ([XRIT-52](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-52))
+- UGUI ray interactions are now correctly blocked when interaction groups block ray interactions and the ray is hidden.
+- Fixed an issue with `TrackedDeviceGraphicRaycaster`, when using the `XRPokeInteractor` on UGUI canvases with different sort orders, where interaction was blocked on all but the highest Order in Layer valued canvas. ([XRIT-48](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-48))
+- Fixed an issue with `TrackedDeviceGraphicsRaycaster`, where opening a dropdown would block all other UGUI canvases to become non-interactable with an `XRPokeInteractor` until the dropdown was closed.
+- Fixed the `Starter Assets` and `Hands Interaction Demo` prefabs which contained components and shaders with a mix of both Built-in Render Pipeline and Universal Render Pipeline. They are all now using Built-in Render Pipeline for consistency.
+- Fixed `XRInteractorReticleVisual` incorrect rotation around `y` axis when aligning prefab to surface normal. ([XRIT-18](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-18))
+- Fixed `XRInteractorReticleVisual` incorrect rotation when `AlignPrefabWithSurfaceNormal` is `false`.
+- Fixed `XRInteractorReticleVisual` inconsistent rotation when `AlignPrefabWithSurfaceNormal` and `DrawOnNoHit` are `true` but there is no active hit.
+- Fixed `UIInputModule` issue where tracked devices cannot drag on UI elements when `Cursor.lockState` is set to `Locked`.
+
 ## [2.3.0] - 2023-02-17
 
 ### Added

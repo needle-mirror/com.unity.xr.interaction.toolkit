@@ -37,3 +37,7 @@ When using the **Tracked Device Graphic Raycaster** with the canvas components, 
 
 > [!IMPORTANT]
 > These occlusion options are turned off by default to save on performance. Be aware that each of these checkboxes performs additional ray casts to find 3D and 2D occlusion objects.
+
+## Known Issues with Input Fields
+- When building for UWP (Universal Windows Platform) and using standard UGUI Input Fields, the input field does not receive text input from the software keyboard provided by the Mixed Reality Portal. The TextMeshPro - Input Field component should be used instead, which responds correctly to software keyboard events.
+- There is an issue where the software keyboard cannot be closed on Quest platform builds when using an **Input Field** with **Line Type** set to **Multi Line Newline**.

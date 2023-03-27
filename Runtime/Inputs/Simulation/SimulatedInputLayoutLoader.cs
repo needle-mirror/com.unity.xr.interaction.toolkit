@@ -1,4 +1,5 @@
 ﻿#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER) || PACKAGE_DOCS_GENERATION
+using UnityEngine.InputSystem.Layouts;
 using UnityEngine.Scripting;
 
 #if UNITY_EDITOR
@@ -35,8 +36,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         static void RegisterInputLayouts()
         {
-            InputSystem.InputSystem.RegisterLayout<XRSimulatedHMD>();
-            InputSystem.InputSystem.RegisterLayout<XRSimulatedController>();
+            // See XRDeviceSimulator.AddDevices for product pattern
+            InputSystem.InputSystem.RegisterLayout<XRSimulatedHMD>(
+                matches: new InputDeviceMatcher()
+                    .WithProduct(nameof(XRSimulatedHMD)));
+            InputSystem.InputSystem.RegisterLayout<XRSimulatedController>(
+                matches: new InputDeviceMatcher()
+                    .WithProduct(nameof(XRSimulatedController)));
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -12,25 +13,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         static readonly (PokeAxis axis, Vector3 startingPoint, bool valid)[] s_PokeDirections =
         {
+            // Note, since test interactables are 1x1x1 in size, we need a starting pos
+            // greater than 1 in any direction to start outside the bounds of the object.
+            
             // Valid directions:
-            (PokeAxis.X, Vector3.left, true),
-            (PokeAxis.Y, Vector3.down, true),
-            (PokeAxis.Z, Vector3.back, true),
-            (PokeAxis.NegativeX, Vector3.right, true),
-            (PokeAxis.NegativeY, Vector3.up, true),
-            (PokeAxis.NegativeZ, Vector3.forward, true),
+            (PokeAxis.X, Vector3.left * 2f, true),
+            (PokeAxis.Y, Vector3.down * 2f, true),
+            (PokeAxis.Z, Vector3.back * 2f, true),
+            (PokeAxis.NegativeX, Vector3.right * 2f, true),
+            (PokeAxis.NegativeY, Vector3.up * 2f, true),
+            (PokeAxis.NegativeZ, Vector3.forward * 2f, true),
             // Within angle threshold
-            (PokeAxis.Z, Quaternion.AngleAxis(44f, Vector3.up) * Vector3.back, true),
+            (PokeAxis.Z, Quaternion.AngleAxis(44f, Vector3.up) * Vector3.back * 2f, true),
 
             // Invalid directions:
-            (PokeAxis.X, Vector3.right, false),
-            (PokeAxis.Y, Vector3.up, false),
-            (PokeAxis.Z, Vector3.forward, false),
-            (PokeAxis.NegativeX, Vector3.left, false),
-            (PokeAxis.NegativeY, Vector3.down, false),
-            (PokeAxis.NegativeZ, Vector3.back, false),
+            (PokeAxis.X, Vector3.right * 2f, false),
+            (PokeAxis.Y, Vector3.up * 2f, false),
+            (PokeAxis.Z, Vector3.forward * 2f, false),
+            (PokeAxis.NegativeX, Vector3.left * 2f, false),
+            (PokeAxis.NegativeY, Vector3.down * 2f, false),
+            (PokeAxis.NegativeZ, Vector3.back * 2f, false),
             // Outside angle threshold
-            (PokeAxis.Z, Quaternion.AngleAxis(45f, Vector3.up) * Vector3.back, false),
+            (PokeAxis.Z, Quaternion.AngleAxis(45f, Vector3.up) * Vector3.back * 2f, false),
         };
 
         static readonly (Vector3 interactorPosition, bool valid)[] s_PokeHovers =
@@ -54,17 +58,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreatePokeInteractor();
             var interactable = TestUtilities.CreateGrabInteractable();
             var filter = interactable.gameObject.AddComponent<XRPokeFilter>();
+            filter.pokeConfiguration.Value.enablePokeAngleThreshold = true;
             filter.pokeConfiguration.Value.pokeDirection = args.axis;
-
-            interactor.transform.position = args.startingPoint;
-
-            yield return new WaitForFixedUpdate();
+            
             yield return null;
 
-            interactor.transform.position = Vector3.zero;
-
-            yield return new WaitForFixedUpdate();
-            yield return null;
+            // Need minimum of 7 frames for an accurate velocity check to occur
+            for (int i = 0, displacementFrames = 7; i <= displacementFrames; i++)
+            {
+                interactor.transform.position = Vector3.Lerp(args.startingPoint, Vector3.zero, (float)i / displacementFrames);
+                yield return new WaitForFixedUpdate();
+                yield return null;
+            }
 
             if (args.valid)
             {

@@ -30,7 +30,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands
                 IsRuleEnabled = () => s_HandsPackageAddRequest == null || s_HandsPackageAddRequest.IsCompleted,
                 Message = $"[{k_SampleDisplayName}] XR Hands (com.unity.xr.hands) package must be installed to use this sample.",
                 Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.IsPackageInstalled("com.unity.xr.hands"),
+                CheckPredicate = () => PackageVersionUtility.GetPackageVersion("com.unity.xr.hands") >= new PackageVersion("1.1.0"),
                 FixIt = () =>
                 {
                     s_HandsPackageAddRequest = Client.Add("com.unity.xr.hands");
@@ -44,7 +44,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands
             },
             new BuildValidationRule
             {
-                IsRuleEnabled = () => PackageVersionUtility.IsPackageInstalled("com.unity.xr.hands"),
+                IsRuleEnabled = () => PackageVersionUtility.GetPackageVersion("com.unity.xr.hands") >= new PackageVersion("1.1.0"),
                 Message = $"[{k_SampleDisplayName}] {k_HandVisualizerSampleName} sample from XR Hands (com.unity.xr.hands) package must be imported or updated to use this sample.",
                 Category = k_Category,
                 CheckPredicate = () => TryFindSample("com.unity.xr.hands", string.Empty, k_HandVisualizerSampleName, out var sample) && sample.isImported,

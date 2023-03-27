@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -125,6 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         [Tooltip("When enabled, this allows the poke interactor to hover and select UI elements.")]
         bool m_EnableUIInteraction = true;
+        
         /// <summary>
         /// Gets or sets whether this Interactor is able to affect UI.
         /// </summary>
@@ -155,27 +157,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_DebugVisualizationsEnabled = value;
         }
 
-        GameObject m_SelectDebugCapsule;
         GameObject m_HoverDebugSphere;
-        MeshRenderer m_SelectDebugRenderer;
         MeshRenderer m_HoverDebugRenderer;
 
+        Vector3 m_LastPokeInteractionPoint;
+
         bool m_PokeCanSelect;
+        bool m_FirstFrame = true;
         IXRSelectInteractable m_CurrentPokeTarget;
 
-        readonly Collider[] m_OverlapColliders = new Collider[25];
-        readonly List<PokeCollision> m_PokeCollisions = new List<PokeCollision>();
-
-        CapsuleCollider m_CapsuleCollider;
-
+        readonly RaycastHit[] m_SphereCastHits = new RaycastHit[25];
+        readonly Collider[] m_OverlapSphereHits = new Collider[25];
+        readonly List<PokeCollision> m_PokeTargets = new List<PokeCollision>();
+        readonly List<IXRSelectFilter> m_InteractableSelectFilters = new List<IXRSelectFilter>();
+                        
+        RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
         PhysicsScene m_LocalPhysicsScene;
 
-        RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
 
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
+            useAttachPointVelocity = true;
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
         }
@@ -185,6 +189,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnEnable();
             SetDebugObjectVisibility(true);
+            m_FirstFrame = true;
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
@@ -204,13 +209,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void OnDestroy()
         {
             base.OnDestroy();
-
-            if (m_CapsuleCollider != null)
-            {
-                m_CapsuleCollider.enabled = false;
-                Destroy(m_CapsuleCollider);
-                m_CapsuleCollider = null;
-            }
         }
 
         /// <inheritdoc />
@@ -220,8 +218,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                var interactable = this.GetOldestInteractableSelected();
-                m_PokeCanSelect = EvaluatePokeInteraction(GetAttachTransform(interactable), interactable, out m_CurrentPokeTarget);
+                isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
+                m_PokeCanSelect = EvaluatePokeInteraction(out m_CurrentPokeTarget);
             }
         }
 
@@ -244,7 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!isActiveAndEnabled)
                 return;
 
-            foreach (var pokeCollision in m_PokeCollisions)
+            foreach (var pokeCollision in m_PokeTargets)
             {
                 targets.Add(pokeCollision.interactable);
             }
@@ -269,29 +267,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Evaluates whether or not an attempted poke interaction is valid.
         /// </summary>
-        /// <param name="interactionPose">The transform from which the interaction will be evaluated.</param>
-        /// <param name="currentSelectedInteractable"> The interactable that is currently selected.</param>
         /// <param name="newHoveredInteractable"> The newly hovered interactable. </param>
         /// <returns>
         /// Returns <see langword="true"/> if poke interaction can be completed.
         /// Otherwise, returns <see langword="false"/>.
         /// </returns>
-        bool EvaluatePokeInteraction(Transform interactionPose, IXRSelectInteractable currentSelectedInteractable, out IXRSelectInteractable newHoveredInteractable)
+        bool EvaluatePokeInteraction(out IXRSelectInteractable newHoveredInteractable)
         {
-            newHoveredInteractable = hasSelection ? currentSelectedInteractable : null;
+            newHoveredInteractable = null;
             int sphereOverlapCount = EvaluateSphereOverlap();
             bool hasOverlap = sphereOverlapCount > 0;
             bool canCompletePokeInteraction = false;
 
-            if (hasOverlap || hasHover)
+            if (hasOverlap)
             {
                 var smallestSqrDistance = float.MaxValue;
+                int pokeTargetsCount = m_PokeTargets.Count;
                 IXRSelectInteractable closestInteractable = null;
-                var closestPokeCollisionIndex = -1;
 
-                for (var i = 0; i < m_PokeCollisions.Count; ++i)
+                for (var i = 0; i < pokeTargetsCount; ++i)
                 {
-                    var interactable = m_PokeCollisions[i].interactable;
+                    var interactable = m_PokeTargets[i].interactable;
                     if (interactable is IXRSelectInteractable selectable &&
                         interactable is IXRHoverInteractable hoverable && hoverable.IsHoverableBy(this))
                     {
@@ -300,14 +296,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         {
                             smallestSqrDistance = sqrDistance;
                             closestInteractable  = selectable;
-                            closestPokeCollisionIndex = i;
                         }
                     }
                 }
 
                 if (closestInteractable != null)
                 {
-                    canCompletePokeInteraction = EvaluatePokePenetration(m_PokeCollisions[closestPokeCollisionIndex], interactionPose, hasSelection);
+                    canCompletePokeInteraction = true;
                     newHoveredInteractable = closestInteractable;
                 }
             }
@@ -317,101 +312,92 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         int EvaluateSphereOverlap()
         {
-            m_PokeCollisions.Clear();
+            m_PokeTargets.Clear();
 
             // Hover Check
-            var pokeInteractionPoint = GetAttachTransform(null).position;
-            var numHoverOverlaps = m_LocalPhysicsScene.OverlapSphere(pokeInteractionPoint, m_PokeHoverRadius, m_OverlapColliders, m_PhysicsLayerMask, m_PhysicsTriggerInteraction);
-            for (var i = 0; i < numHoverOverlaps; ++i)
+            Vector3 pokeInteractionPoint = GetAttachTransform(null).position;
+            Vector3 interFramePokeStart = m_LastPokeInteractionPoint;
+            Vector3 interFrameEnd = pokeInteractionPoint;
+
+            Vector3 interFrameDirectionVector = pokeInteractionPoint - m_LastPokeInteractionPoint;
+            float interFrameSqrMagnitude = math.distancesq(pokeInteractionPoint, m_LastPokeInteractionPoint);
+
+            // If no movement is recorded.
+            // Check if spherecast size is sufficient for proper cast, or if first frame since last frame poke position will be invalid.
+            if (interFrameSqrMagnitude <= 0.001f || m_FirstFrame)
             {
-                if (interactionManager.TryGetInteractableForCollider(m_OverlapColliders[i], out var interactable))
+                int numberOfOverlaps = m_LocalPhysicsScene.OverlapSphere(interFrameEnd, m_PokeHoverRadius, m_OverlapSphereHits,
+                    interactionLayers, QueryTriggerInteraction.UseGlobal);
+
+                for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    if (m_RequirePokeFilter)
+                    if(FindPokeTarget(m_OverlapSphereHits[i], out var newPokeCollision))
                     {
-                        if (interactable is XRBaseInteractable baseInteractable)
-                        {
-                            var interactableSelectFilters = baseInteractable.selectFilters;
-                            for (int index = 0, count = interactableSelectFilters.count; index < count; ++index)
-                            {
-                                var filter = interactableSelectFilters.GetAt(index);
-                                if (filter is XRPokeFilter pokeFilter && pokeFilter.canProcess)
-                                {
-                                    m_PokeCollisions.Add(new PokeCollision(m_OverlapColliders[i], interactable, pokeFilter));
-                                    break;
-                                }
-                            }
-                        }
+                        m_PokeTargets.Add(newPokeCollision);
                     }
-                    else
+                }
+            }
+            else
+            {
+                int numberOfOverlaps = m_LocalPhysicsScene.SphereCast(
+                    interFramePokeStart,
+                    m_PokeHoverRadius,
+                    interFrameDirectionVector.normalized,
+                    m_SphereCastHits,
+                    math.sqrt(interFrameSqrMagnitude),
+                    interactionLayers);
+
+                if (numberOfOverlaps > 0)
+                {
+                    for (var i = 0; i < numberOfOverlaps; ++i)
                     {
-                        m_PokeCollisions.Add(new PokeCollision(m_OverlapColliders[i], interactable, null));
+                        if(FindPokeTarget(m_SphereCastHits[i].collider, out var newPokeCollision))
+                        {
+                            m_PokeTargets.Add(newPokeCollision);
+                        }
                     }
                 }
             }
 
-            return m_PokeCollisions.Count;
+            m_LastPokeInteractionPoint = pokeInteractionPoint;
+            m_FirstFrame = false;
+
+            return m_PokeTargets.Count;
         }
 
-        bool EvaluatePokePenetration(PokeCollision closestPokeCollision, Transform pokeInteractionTransform, bool isCurrentlySelecting)
+        bool FindPokeTarget(Collider hitCollider, out PokeCollision newPokeCollision)
         {
-            // PokeInteraction Test
-            var capsuleCollider = GetCapsuleCollider();
-            capsuleCollider.enabled = true;
-
-            // calculate the midpoint of the interaction points
-            var pokeInteractionPose = pokeInteractionTransform.GetWorldPose();
-            var endPoint = pokeInteractionPose.position;
-            var penetrationDirection = pokeInteractionPose.forward;
-            var startPoint = endPoint - (penetrationDirection * m_PokeDepth);
-            var midPoint = (startPoint + endPoint) * 0.5f;
-
-            capsuleCollider.radius = isCurrentlySelecting ? m_PokeSelectWidth : m_PokeWidth;
-
-            var pokeInteractable = closestPokeCollision.interactable;
-            var pokeInteractableTransform = pokeInteractable.transform;
-            var pokeInteractablePose = pokeInteractableTransform.GetWorldPose();
-
-            var hasPenetration = Physics.ComputePenetration(capsuleCollider, midPoint, pokeInteractionPose.rotation,
-                closestPokeCollision.collider, pokeInteractablePose.position, pokeInteractablePose.rotation,
-                out _, out _);
-
-            capsuleCollider.enabled = false;
-            return hasPenetration;
-        }
-
-        CapsuleCollider GetCapsuleCollider()
-        {
-            if (m_CapsuleCollider == null)
+            newPokeCollision = default;
+            if (interactionManager.TryGetInteractableForCollider(hitCollider, out var interactable))
             {
-                m_CapsuleCollider = GetOrAddComponent<CapsuleCollider>();
-                m_CapsuleCollider.isTrigger = true;
-                m_CapsuleCollider.height = m_PokeDepth;
-                m_CapsuleCollider.radius = m_PokeWidth;
-                m_CapsuleCollider.direction = 2; // 2 = Z-Axis
+                if (m_RequirePokeFilter)
+                {
+                    if (interactable is XRBaseInteractable baseInteractable)
+                    {
+                        baseInteractable.selectFilters.GetAll(m_InteractableSelectFilters);
+                        foreach (var filter in m_InteractableSelectFilters)
+                        {
+                            if (filter is XRPokeFilter pokeFilter && filter.canProcess)
+                            {
+                                newPokeCollision = new PokeCollision(hitCollider, interactable, pokeFilter);
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    newPokeCollision = new PokeCollision(hitCollider, interactable, null);
+                    return true;
+                }
             }
-
-            return m_CapsuleCollider;
+            return false;
         }
 
         void SetDebugObjectVisibility(bool isVisible)
         {
             if (m_DebugVisualizationsEnabled)
             {
-                if (m_SelectDebugCapsule == null)
-                {
-                    m_SelectDebugCapsule = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    m_SelectDebugCapsule.name = "[Debug] Poke - SelectVisual: " + this;
-                    m_SelectDebugCapsule.transform.SetParent(GetAttachTransform(null), false);
-                    m_SelectDebugCapsule.transform.localScale = new Vector3(m_PokeWidth, m_PokeWidth, m_PokeWidth);
-                    m_SelectDebugCapsule.transform.eulerAngles = new Vector3(90f, 0f, 0f);
-                    m_SelectDebugCapsule.transform.localPosition = new Vector3(0f, 0f, m_PokeWidth - m_PokeHoverRadius);
-
-                    if (m_SelectDebugCapsule.TryGetComponent<Collider>(out var debugCollider))
-                        Destroy(debugCollider);
-
-                    m_SelectDebugRenderer = GetOrAddComponent<MeshRenderer>(m_SelectDebugCapsule);
-                }
-
                 if (m_HoverDebugSphere == null)
                 {
                     m_HoverDebugSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -427,10 +413,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             var visibility = m_DebugVisualizationsEnabled && isVisible;
-            if (m_SelectDebugCapsule != null && m_SelectDebugCapsule.activeSelf != visibility)
-                m_SelectDebugCapsule.SetActive(visibility);
 
-            if (m_HoverDebugSphere != null && m_SelectDebugCapsule.activeSelf != visibility)
+            if (m_HoverDebugSphere != null && m_HoverDebugSphere.activeSelf != visibility)
                 m_HoverDebugSphere.SetActive(visibility);
         }
 
@@ -441,8 +425,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!m_DebugVisualizationsEnabled)
                 return;
 
-            m_HoverDebugRenderer.material.color = m_PokeCollisions.Count > 0 ? new Color(0f, 0.8f, 0f, 0.1f) : new Color(0.8f, 0f, 0f, 0.1f);
-            m_SelectDebugRenderer.material.color = m_PokeCanSelect ? Color.green : Color.red;
+            m_HoverDebugRenderer.material.color = m_PokeTargets.Count > 0 ? new Color(0f, 0.8f, 0f, 0.1f) : new Color(0.8f, 0f, 0f, 0.1f);
         }
 
         T GetOrAddComponent<T>() where T : Component => GetOrAddComponent<T>(gameObject);
@@ -471,8 +454,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public virtual void UpdateUIModel(ref TrackedDeviceModel model)
         {
-            if (!isActiveAndEnabled)
+            if (!isActiveAndEnabled || this.IsBlockedByInteractionWithinGroup())
+            {
+                model.Reset(false);
                 return;
+            }
 
             var pokeInteractionTransform = GetAttachTransform(null);
             var position = pokeInteractionTransform.position;
@@ -483,6 +469,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             model.position = position;
             model.orientation = orientation;
+            model.positionGetter = GetPokePosition;
             model.select = TrackedDeviceGraphicRaycaster.HasPokeSelect(this);
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
@@ -492,6 +479,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             raycastPoints.Clear();
             raycastPoints.Add(startPoint);
             raycastPoints.Add(endPoint);
+        }
+
+        Vector3 GetPokePosition()
+        {
+            return GetAttachTransform(null).position;
         }
 
         /// <inheritdoc />

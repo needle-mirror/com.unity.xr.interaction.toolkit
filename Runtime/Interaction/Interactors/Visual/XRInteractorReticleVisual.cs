@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -67,8 +68,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_AlignPrefabWithSurfaceNormal = true;
         /// <summary>
-        /// Whether Unity aligns the prefab to the ray casted surface normal.
+        /// Whether Unity aligns y-axis of the prefab to the ray casted surface normal. On non-horizontal surfaces this
+        /// will use the xrOrigin.up to align the z-axis of the prefab. On horizontal surfaces this will use the interactor
+        /// forward vector to align the z-axis of the prefab.
         /// </summary>
+        /// <remarks>
+        /// If xrOrigin is null it will default to Vector3.up to align the z-axis of the prefab.
+        /// </remarks>
         public bool alignPrefabWithSurfaceNormal
         {
             get => m_AlignPrefabWithSurfaceNormal;
@@ -135,13 +141,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        /// <summary>
+        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
+        /// </summary>
+        static XROrigin s_XROriginCache;
+
+        XROrigin m_XROrigin;
         GameObject m_ReticleInstance;
         XRBaseInteractor m_Interactor;
         Vector3[] m_InteractorLinePoints;
         Vector3 m_TargetEndPoint;
         Vector3 m_TargetEndNormal;
         PhysicsScene m_LocalPhysicsScene;
-
+        bool m_HasRaycastHit;
+        
         /// <summary>
         /// Reusable array of ray cast hits.
         /// </summary>
@@ -159,6 +172,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_Interactor.selectEntered.AddListener(OnSelectEntered);
             }
+            FindXROrigin();
             SetupReticlePrefab();
             reticleActive = false;
         }
@@ -183,6 +197,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_Interactor.selectEntered.RemoveListener(OnSelectEntered);
             }
+        }
+        
+        void FindXROrigin()
+        {
+            if (m_XROrigin != null)
+                return;
+
+            if (s_XROriginCache == null)
+                s_XROriginCache = FindObjectOfType<XROrigin>();
+
+            m_XROrigin = s_XROriginCache;
         }
 
         void SetupReticlePrefab()
@@ -250,6 +275,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         var hit = uiRaycastHit.Value;
                         raycastPos = hit.worldPosition;
                         raycastNormal = hit.worldNormal;
+                        // If the raycast hits the back of a UI canvas, ensure the normal refers to back of the UI canvas
+                        // instead of the front facing world normal of the UI canvas
+                        var isHittingBackOfCanvas = Vector3.Dot(rayInteractor.rayOriginTransform.forward, raycastNormal) > 0.0f;
+                        if (isHittingBackOfCanvas)
+                            raycastNormal *= -1;
                         hasRaycastHit = true;
                     }
                     else if (raycastHit.HasValue)
@@ -272,6 +302,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 hasRaycastHit = true;
             }
 
+            m_HasRaycastHit = hasRaycastHit;
+            
             if (hasRaycastHit || m_DrawOnNoHit)
             {
                 // Smooth target
@@ -288,10 +320,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_ReticleInstance != null)
             {
                 m_ReticleInstance.transform.position = m_TargetEndPoint;
-                if (m_AlignPrefabWithSurfaceNormal)
-                    m_ReticleInstance.transform.rotation = Quaternion.FromToRotation(Vector3.up, m_TargetEndNormal);
+
+                // Attempt to align reticle's Z axis with the XR Origin's up vector.  
+                var relativeUpVector = (m_XROrigin != null && m_XROrigin.Origin != null)? m_XROrigin.Origin.transform.up : Vector3.up;
+
+                if (m_AlignPrefabWithSurfaceNormal && m_HasRaycastHit)
+                {
+                    var vectorToProject = relativeUpVector;
+                    
+                    // If surface normal is directly up indicating a horizontal surface, align the reticle's Z axis with
+                    // the direction of the interactor's raycast direction. Multiple by dot product to flip reticle when
+                    // on the underside of a horizontal surface.
+                    var targetNormalProjectedVectorDotProduct = Vector3.Dot(m_TargetEndNormal, vectorToProject);
+                    if (Mathf.Approximately(Mathf.Abs(targetNormalProjectedVectorDotProduct), 1f)) 
+                        vectorToProject = m_Interactor.transform.forward * targetNormalProjectedVectorDotProduct;
+
+                    // Calculate the projected forward vector on the target normal
+                    var forwardVector = Vector3.ProjectOnPlane(vectorToProject, m_TargetEndNormal);
+                    if(forwardVector != Vector3.zero)
+                        m_ReticleInstance.transform.rotation = Quaternion.LookRotation(forwardVector, m_TargetEndNormal);
+                }
                 else
-                    m_ReticleInstance.transform.rotation = Quaternion.FromToRotation(Vector3.up, (m_Interactor.attachTransform.position - m_TargetEndPoint).normalized);
+                {
+                    m_ReticleInstance.transform.rotation = Quaternion.LookRotation(relativeUpVector, (m_Interactor.attachTransform.position - m_TargetEndPoint).normalized);
+                }
+
                 var scaleFactor = m_PrefabScalingFactor;
                 if (m_UndoDistanceScaling)
                     scaleFactor *= Vector3.Distance(m_Interactor.attachTransform.position, m_TargetEndPoint);

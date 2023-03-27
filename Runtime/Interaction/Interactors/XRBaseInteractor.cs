@@ -266,6 +266,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool hasSelection => m_InteractablesSelected.Count > 0;
 
+        /// <summary>
+        /// Determines if interactor is interacting with UGUI canvas.
+        /// </summary>
+        internal bool isInteractingWithUI { get; set; }
+        
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
         List<Object> m_StartingHoverFilters = new List<Object>();
@@ -357,6 +362,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         static XRInteractionManager s_InteractionManagerCache;
 
         static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength.Interactors");
+
+        /// <summary>
+        /// When set to <see langword="true"/>, <see cref="attachPointVelocity"/> and <see cref="attachPointAngularVelocity"/> will be updated
+        /// during the <see cref="PreprocessInteractor"/> calls. Set to <see langword="false"/> to avoid unnecessary performance cost
+        /// when the velocity values are not needed.
+        /// </summary>
+        internal bool useAttachPointVelocity { get; set; }
+
+        /// <summary>
+        /// Last computed default attach point velocity, based on multi-frame sampling of the pose.
+        /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
+        /// </summary>
+        /// <seealso cref="attachPointAngularVelocity"/>
+        internal Vector3 attachPointVelocity { get; private set; }
+
+        /// <summary>
+        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose.
+        /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
+        /// </summary>
+        /// <seealso cref="attachPointVelocity"/>
+        internal Vector3 attachPointAngularVelocity { get; private set; }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -614,6 +640,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public virtual void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
+            if (useAttachPointVelocity)
+                UpdateVelocityAndAngularVelocity();
         }
 
         /// <inheritdoc />
@@ -1052,6 +1080,61 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void IXRGroupMember.OnRegisteringAsNonGroupMember()
         {
             containingGroup = null;
+        }
+        
+        // Velocity logic taken from MRTK:
+        // https://github.com/microsoft/MixedRealityToolkit-Unity/blob/6e061451d7caed1fcb7c324baf92be293efda4cf/Assets/MRTK/Core/Providers/Hands/BaseHand.cs#L42
+        // Velocity internal states
+        float m_DeltaTimeStart;
+        const int k_VelocityUpdateInterval = 6;
+        int m_FrameOn;
+
+        readonly Vector3[] m_VelocityPositionsCache = new Vector3[k_VelocityUpdateInterval];
+        readonly Vector3[] m_VelocityNormalsCache = new Vector3[k_VelocityUpdateInterval];
+        Vector3 m_VelocityPositionsSum;
+        Vector3 m_VelocityNormalsSum;
+
+        /// <summary>
+        /// Compute and updates the velocity and angular velocity properties using the attach transform pose as a reference.
+        /// </summary>
+        void UpdateVelocityAndAngularVelocity()
+        {
+            // $TODO: Update to take/use IXRInteractable instead of 'null'
+            var currentAttachTransform = GetAttachTransform(null);
+            
+            if (m_FrameOn < k_VelocityUpdateInterval)
+            {
+                m_VelocityPositionsCache[m_FrameOn] = currentAttachTransform.position;
+                m_VelocityPositionsSum += m_VelocityPositionsCache[m_FrameOn];
+                m_VelocityNormalsCache[m_FrameOn] = currentAttachTransform.up;
+                m_VelocityNormalsSum += m_VelocityNormalsCache[m_FrameOn];
+            }
+            else
+            {
+                var frameIndex = m_FrameOn % k_VelocityUpdateInterval;
+
+                var deltaTime = Time.unscaledTime - m_DeltaTimeStart;
+
+                var newPosition = currentAttachTransform.position;
+                var newNormal = currentAttachTransform.up;
+
+                var newPositionsSum = m_VelocityPositionsSum - m_VelocityPositionsCache[frameIndex] + newPosition;
+                var newNormalsSum = m_VelocityNormalsSum - m_VelocityNormalsCache[frameIndex] + newNormal;
+
+                attachPointVelocity = (newPositionsSum - m_VelocityPositionsSum) / deltaTime / k_VelocityUpdateInterval;
+
+                var rotation = Quaternion.FromToRotation(m_VelocityNormalsSum / k_VelocityUpdateInterval, newNormalsSum / k_VelocityUpdateInterval);
+                var rotationRate = rotation.eulerAngles * Mathf.Deg2Rad;
+                attachPointAngularVelocity = rotationRate / deltaTime;
+
+                m_VelocityPositionsCache[frameIndex] = newPosition;
+                m_VelocityNormalsCache[frameIndex] = newNormal;
+                m_VelocityPositionsSum = newPositionsSum;
+                m_VelocityNormalsSum = newNormalsSum;
+            }
+
+            m_DeltaTimeStart = Time.unscaledTime;
+            m_FrameOn++;
         }
     }
 }

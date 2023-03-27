@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public interface IXRInteractable
     {
         /// <summary>
-        /// Unity calls the methods in this invocation list when this Interactable is registered with an <see cref="XRInteractionManager"/>.
+        /// Calls the methods in its invocation list when this Interactable is registered with an <see cref="XRInteractionManager"/>.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractableRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
@@ -30,7 +30,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         event Action<InteractableRegisteredEventArgs> registered;
 
         /// <summary>
-        /// Unity calls the methods in this invocation list when this Interactable is unregistered from an <see cref="XRInteractionManager"/>.
+        /// Calls the methods in its invocation list when this Interactable is unregistered from an <see cref="XRInteractionManager"/>.
         /// </summary>
         /// <remarks>
         /// The <see cref="InteractableUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,

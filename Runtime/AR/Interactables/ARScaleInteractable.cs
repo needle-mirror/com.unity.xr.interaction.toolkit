@@ -112,13 +112,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             get
             {
-                if (minScale > maxScale)
+                if (m_MinScale > m_MaxScale)
                 {
                     Debug.LogError("minScale must be smaller than maxScale.", this);
                     return 0f;
                 }
 
-                return maxScale - minScale;
+                return m_MaxScale - m_MinScale;
             }
         }
 
@@ -129,12 +129,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             get
             {
                 var elasticScaleRatio = clampedScaleRatio + ElasticDelta();
-                var elasticScale = minScale + (elasticScaleRatio * scaleDelta);
+                var elasticScale = m_MinScale + (elasticScaleRatio * scaleDelta);
                 return new Vector3(elasticScale, elasticScale, elasticScale);
             }
         }
 
         float m_CurrentScaleRatio;
+        float m_CapturedMinScale;
+        float m_CapturedMaxScale;
         bool m_IsScaling;
 
         /// <summary>
@@ -142,15 +144,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected void OnValidate()
         {
-            minScale = Mathf.Max(0f, minScale);
-            maxScale = Mathf.Max(Mathf.Max(0f, minScale), maxScale);
+            m_MinScale = Mathf.Max(0f, m_MinScale);
+            m_MaxScale = Mathf.Max(Mathf.Max(0f, m_MinScale), m_MaxScale);
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
             base.OnEnable();
-            m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
+            UpdateCurrentScaleRatio();
         }
 
         /// <inheritdoc />
@@ -162,8 +164,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (!m_IsScaling)
                 {
-                    m_CurrentScaleRatio =
-                        Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
+                    // Re-adjust ratio in case of min and max scale change.
+                    if (!Mathf.Approximately(m_CapturedMinScale, m_MinScale) ||
+                        !Mathf.Approximately(m_CapturedMaxScale, m_MaxScale))
+                    {
+                        UpdateCurrentScaleRatio();
+                    }
+
+                    m_CurrentScaleRatio = Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
                     transform.localScale = currentScale;
                 }
             }
@@ -183,7 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnStartManipulation(PinchGesture gesture)
         {
             m_IsScaling = true;
-            m_CurrentScaleRatio = (transform.localScale.x - minScale) / scaleDelta;
+            UpdateCurrentScaleRatio();
         }
 
         /// <summary>
@@ -214,6 +222,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected override void OnEndManipulation(PinchGesture gesture)
         {
             m_IsScaling = false;
+        }
+
+        void UpdateCurrentScaleRatio()
+        {
+            m_CurrentScaleRatio = scaleDelta != 0f ? (transform.localScale.x - m_MinScale) / scaleDelta : 1f;
+            m_CapturedMinScale = m_MinScale;
+            m_CapturedMaxScale = m_MaxScale;
         }
 
         float ElasticDelta()

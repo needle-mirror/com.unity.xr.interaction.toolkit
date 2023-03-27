@@ -32,8 +32,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         PokeThresholdData m_PokeThresholdData;
         float m_SelectEntranceVectorDotThreshold;
 
-        readonly Dictionary<object, Pose> m_LastHoverEnterPose = new Dictionary<object, Pose>();
-        readonly Dictionary<object, Transform> m_LastHoverTransform = new Dictionary<object, Transform>();
+        readonly Dictionary<object, Vector3> m_LastHoverEnterLocalPosition = new Dictionary<object, Vector3>();
+        readonly Dictionary<object, Transform> m_LastHoveredTransform = new Dictionary<object, Transform>();
+        readonly Dictionary<object, bool> m_HoldingHoverCheck = new Dictionary<object, bool>();
 
         /// <summary>
         /// Initializes <see cref="XRPokeLogic"/> with properties calculated from the collider of the associated interactable.
@@ -72,7 +73,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </summary>
         public void Dispose()
         {
-            m_LastHoverEnterPose.Clear();
+            m_LastHoverEnterLocalPosition.Clear();
         }
 
         /// <summary>
@@ -107,15 +108,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
             // Compare with hover pose, to ensure interaction started on the right side of the interaction bounds
             bool meetsHoverRequirements = true;
-            if (m_PokeThresholdData.enablePokeAngleThreshold && m_LastHoverEnterPose.TryGetValue(interactor, out var hoverPose))
+            if (m_PokeThresholdData.enablePokeAngleThreshold)
             {
-                Vector3 hoverInteractionPointOffset = (hoverPose.position - pokableAttachPosition).normalized;
-                meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > m_SelectEntranceVectorDotThreshold;
+                // If we previously passed the hover check for this select, then we hold it.
+                // This allows us to hold a button without moving.
+                if (m_HoldingHoverCheck.TryGetValue(interactor, out bool isHolding) && !isHolding)
+                {
+                    bool meetsVelocityCheck = false;
+                    if (interactor is XRBaseInteractor baseInteractor && baseInteractor.useAttachPointVelocity)
+                    {
+                        var interactorVelocity = baseInteractor.attachPointVelocity;
+
+                        bool isVelocitySufficient = Vector3.SqrMagnitude(interactorVelocity) > 0.001f;
+
+                        // If interactor velocity is sufficiently large, check approach vector
+                        if (isVelocitySufficient)
+                        {
+                            // Start with hover check based on velocity
+                            float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity .normalized, axisNormal);
+                            meetsHoverRequirements = velocityAxisDotProduct > m_SelectEntranceVectorDotThreshold;
+                            meetsVelocityCheck = meetsHoverRequirements;
+                        }
+                    }
+                    
+                    // If velocity too small or failed approach check, compare hover vector as fallback
+                    if (!meetsVelocityCheck && (m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition)))
+                    {
+                        // Restore the world space pos of the hover enter point relative to the hovered transform.
+                        var hoverWorldPos = m_LastHoveredTransform[interactor].TransformPoint(hoverLocalPosition);
+                        Vector3 hoverInteractionPointOffset = (hoverWorldPos - pokableAttachPosition).normalized;
+                        meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > m_SelectEntranceVectorDotThreshold;
+                    }
+                }
             }
 
             // Either depth lines up, or we've moved passed the goal post
             bool meetsRequirements = meetsHoverRequirements && (depthPercent < 0.01f
                                                                 || Vector3.Dot(interactionPointOffset.normalized, axisNormal) > 0f);
+            
+            // Store holding hover check for this interactor
+            m_HoldingHoverCheck[interactor] = meetsRequirements;
 
             // Remove offset from visual callback to better match the actual poke position.
             var offsetRemoval = depthPercent < 1f && !meetsRequirements ? combinedOffset : 0f;
@@ -215,17 +247,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </summary>
         /// <param name="interactor">The XR Interactor associated with the hover enter event interaction.</param>
         /// <param name="updatedPose">The pose of the interactor's attach transform, in world space.</param>
+        /// <param name="pokedTransform">The transform of the poked object. Mainly considered for UGUI work where poke logic is shared between multiple transforms.</param>
         public void OnHoverEntered(object interactor, Pose updatedPose, Transform pokedTransform)
         {
-            if (m_LastHoverTransform.TryGetValue(interactor, out var lastTransform) && pokedTransform != lastTransform)
-            {
-                m_LastHoverEnterPose.Remove(interactor);
-                m_LastHoverTransform[interactor] = pokedTransform;
-            }
-            else if (m_LastHoverEnterPose.TryGetValue(interactor, out _))
-                return;
-
-            m_LastHoverEnterPose.Add(interactor, updatedPose);
+            m_LastHoveredTransform[interactor] = pokedTransform;
+            
+            // Store hovered point in local space relative to the poked transform in case the transform moves.
+            m_LastHoverEnterLocalPosition[interactor] = pokedTransform.InverseTransformPoint(updatedPose.position);
         }
 
         /// <summary>
@@ -234,13 +262,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <param name="interactor">The XR Interactor associated with the hover exit event interaction.</param>
         public void OnHoverExited(object interactor)
         {
-            m_LastHoverEnterPose.Remove(interactor);
-            if (m_LastHoverEnterPose.Count < 1)
+            m_LastHoverEnterLocalPosition.Remove(interactor);
+            if (m_LastHoverEnterLocalPosition.Count == 0)
             {
-                if (m_LastHoverTransform.TryGetValue(interactor, out var lastTransform))
+                if (m_LastHoveredTransform.TryGetValue(interactor, out var lastTransform))
                 {
                     ResetPokeStateData(lastTransform);
-                    m_LastHoverTransform.Remove(interactor);
+                    m_LastHoveredTransform.Remove(interactor);
                 }
                 else
                 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -605,7 +605,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (XRInteractionManager.s_EvaluateValidSelectionsMarker.Auto())
                     m_RegisteredInteractionManager.InteractorSelectValidTargetsInternal(selectInteractor, m_ValidTargets, m_DeprecatedValidTargets);
 
-                if (selectInteractor.hasSelection)
+                // Alternatively check if the base interactor is interacting with UGUI
+                // TODO move this api call to IUIInteractor for XRI 3.0
+                if (selectInteractor.hasSelection || (interactor is XRBaseInteractor baseInteractor && baseInteractor.isInteractingWithUI))
                     performedInteraction = true;
             }
 

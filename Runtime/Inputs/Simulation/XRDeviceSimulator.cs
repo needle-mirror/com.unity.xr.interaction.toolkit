@@ -2,6 +2,7 @@ using System;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 
@@ -2077,17 +2078,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void AddDevices()
         {
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
-            m_HMDDevice = InputSystem.InputSystem.AddDevice<XRSimulatedHMD>();
-            if (m_HMDDevice == null)
-                Debug.LogError($"Failed to create {nameof(XRSimulatedHMD)}.");
 
-            m_LeftControllerDevice = InputSystem.InputSystem.AddDevice<XRSimulatedController>($"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.LeftHand}");
+            // Simulated HMD
+            var descHMD = new InputDeviceDescription
+            {
+                product = nameof(XRSimulatedHMD),
+                capabilities = new XRDeviceDescriptor
+                {
+                    characteristics = InputDeviceCharacteristics.HeadMounted | InputDeviceCharacteristics.TrackedDevice,
+                }.ToJson(),
+            };
+
+            m_HMDDevice = InputSystem.InputSystem.AddDevice(descHMD) as XRSimulatedHMD;
+            if (m_HMDDevice == null)
+                Debug.LogError($"Failed to create {nameof(XRSimulatedHMD)}.", this);
+
+            // Simulated Left-Hand Controller
+            var descLeftHand = new InputDeviceDescription
+            {
+                product = nameof(XRSimulatedController),
+                capabilities = new XRDeviceDescriptor
+                {
+                    deviceName = $"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.LeftHand}",
+                    characteristics = InputDeviceCharacteristics.HeldInHand | InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Left,
+                }.ToJson(),
+            };
+
+            m_LeftControllerDevice = InputSystem.InputSystem.AddDevice(descLeftHand) as XRSimulatedController;
             if (m_LeftControllerDevice != null)
                 InputSystem.InputSystem.SetDeviceUsage(m_LeftControllerDevice, InputSystem.CommonUsages.LeftHand);
             else
                 Debug.LogError($"Failed to create {nameof(XRSimulatedController)} for {InputSystem.CommonUsages.LeftHand}.", this);
 
-            m_RightControllerDevice = InputSystem.InputSystem.AddDevice<XRSimulatedController>($"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.RightHand}");
+            // Simulated Right-Hand Controller
+            var descRightHand = new InputDeviceDescription
+            {
+                product = nameof(XRSimulatedController),
+                capabilities = new XRDeviceDescriptor
+                {
+                    deviceName = $"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.RightHand}",
+                    characteristics = InputDeviceCharacteristics.HeldInHand | InputDeviceCharacteristics.TrackedDevice | InputDeviceCharacteristics.Controller | InputDeviceCharacteristics.Right,
+                }.ToJson(),
+            };
+
+            m_RightControllerDevice = InputSystem.InputSystem.AddDevice(descRightHand) as XRSimulatedController;
             if (m_RightControllerDevice != null)
                 InputSystem.InputSystem.SetDeviceUsage(m_RightControllerDevice, InputSystem.CommonUsages.RightHand);
             else

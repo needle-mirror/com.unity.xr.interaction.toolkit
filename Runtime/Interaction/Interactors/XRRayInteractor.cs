@@ -990,8 +990,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public virtual void UpdateUIModel(ref TrackedDeviceModel model)
         {
-            if (!isActiveAndEnabled || m_SamplePoints == null)
+            if (!isActiveAndEnabled || m_SamplePoints == null || this.IsBlockedByInteractionWithinGroup())
+            {
+                model.Reset(false);
                 return;
+            }
 
             model.position = effectiveRayOrigin.position;
             model.orientation = effectiveRayOrigin.rotation;

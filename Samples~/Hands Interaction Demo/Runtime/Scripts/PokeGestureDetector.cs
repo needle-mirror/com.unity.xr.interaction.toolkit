@@ -46,8 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 return;
 
             m_Subsystem = s_Subsystems[0];
-            m_Subsystem.handsUpdated += OnHandsUpdated;
-            m_Subsystem.trackingLost += OnHandTrackingLost;
+            m_Subsystem.updatedHands += OnUpdatedHands;
 #else
             Debug.LogError("Script requires XR Hands (com.unity.xr.hands) package. Install using Window > Package Manager or click Fix on the related issue in Edit > Project Settings > XR Plug-in Management > Project Validation.", this);
 #endif
@@ -62,14 +61,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             if (m_Subsystem == null)
                 return;
 
-            m_Subsystem.handsUpdated -= OnHandsUpdated;
-            m_Subsystem.trackingLost -= OnHandTrackingLost;
+            m_Subsystem.updatedHands -= OnUpdatedHands;
             m_Subsystem = null;
 #endif
         }
 
 #if XR_HANDS
-        void OnHandsUpdated(XRHandSubsystem.UpdateSuccessFlags updateSuccessFlags, XRHandSubsystem.UpdateType updateType)
+        void OnUpdatedHands(XRHandSubsystem subsystem, XRHandSubsystem.UpdateSuccessFlags updateSuccessFlags, XRHandSubsystem.UpdateType updateType)
         {
             var wasPoking = m_IsPoking;
             switch (m_Handedness)
@@ -78,7 +76,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                     if (!HasUpdateSuccessFlag(updateSuccessFlags, XRHandSubsystem.UpdateSuccessFlags.LeftHandJoints))
                         return;
 
-                    var leftHand = m_Subsystem.leftHand;
+                    var leftHand = subsystem.leftHand;
                     m_IsPoking = IsIndexExtended(leftHand) && IsMiddleGrabbing(leftHand) && IsRingGrabbing(leftHand) &&
                         IsLittleGrabbing(leftHand);
                     break;
@@ -86,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                     if (!HasUpdateSuccessFlag(updateSuccessFlags, XRHandSubsystem.UpdateSuccessFlags.RightHandJoints))
                         return;
 
-                    var rightHand = m_Subsystem.rightHand;
+                    var rightHand = subsystem.rightHand;
                     m_IsPoking = IsIndexExtended(rightHand) && IsMiddleGrabbing(rightHand) && IsRingGrabbing(rightHand) &&
                         IsLittleGrabbing(rightHand);
                     break;
@@ -95,12 +93,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             if (m_IsPoking && !wasPoking)
                 StartPokeGesture();
             else if (!m_IsPoking && wasPoking)
-                EndPokeGesture();
-        }
-
-        void OnHandTrackingLost(XRHand hand)
-        {
-            if (m_IsPoking && hand.handedness == m_Handedness)
                 EndPokeGesture();
         }
 

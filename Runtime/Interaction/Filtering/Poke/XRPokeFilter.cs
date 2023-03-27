@@ -239,7 +239,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
             var interactor = (IXRInteractor)args.interactorObject;
             var interactorAttachTransform = interactor.GetAttachTransform(m_Interactable);
-            m_PokeLogic.OnHoverEntered(interactor, interactorAttachTransform.GetWorldPose(), interactorAttachTransform);
+            var interactableAttachTransform = m_Interactable.GetAttachTransform(interactor);
+            m_PokeLogic.OnHoverEntered(interactor, interactorAttachTransform.GetWorldPose(), interactableAttachTransform);
         }
 
         void OnHoverExited(HoverExitEventArgs args)

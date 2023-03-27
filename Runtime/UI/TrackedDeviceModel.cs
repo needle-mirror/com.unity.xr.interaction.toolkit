@@ -158,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public Vector3 position
         {
-            get => m_Position;
+            get => positionGetter?.Invoke() ?? m_Position;
             set
             {
                 if (m_Position != value)
@@ -168,6 +168,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
         }
+
+        /// <summary>
+        /// Position getter allows for accurate up just in time position querying.
+        /// Necessary for poke interaction with UGUI if the frame of reference is moving rapidly.
+        /// </summary>
+        internal Func<Vector3> positionGetter { get; set; }
 
         Quaternion m_Orientation;
 
@@ -323,10 +329,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             m_Orientation = Quaternion.identity;
             m_Position = Vector3.zero;
+            positionGetter = null;
             changedThisFrame = false;
             m_SelectDown = false;
             selectDelta = ButtonDeltaState.NoChange;
-            m_RaycastPoints.Clear();
+            m_RaycastPoints?.Clear();
             currentRaycastEndpointIndex = 0;
             m_RaycastLayerMask = Physics.DefaultRaycastLayers;
             m_ScrollDelta = Vector2.zero;

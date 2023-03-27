@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
@@ -304,7 +305,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             mouseState.CopyFrom(eventData);
 
-            ProcessPointerButtonDrag(eventData);
+            ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
             mouseState.leftButton = buttonState;
@@ -315,7 +316,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             buttonState.CopyTo(eventData);
 
             ProcessPointerButton(buttonState.lastFrameDelta, eventData);
-            ProcessPointerButtonDrag(eventData);
+            ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
             mouseState.rightButton = buttonState;
@@ -326,7 +327,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             buttonState.CopyTo(eventData);
 
             ProcessPointerButton(buttonState.lastFrameDelta, eventData);
-            ProcessPointerButtonDrag(eventData);
+            ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
             mouseState.middleButton = buttonState;
@@ -511,10 +512,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessPointerButtonDrag(PointerEventData eventData, float pixelDragThresholdMultiplier = 1.0f)
+        void ProcessPointerButtonDrag(PointerEventData eventData, UIPointerType pointerType, float pixelDragThresholdMultiplier = 1.0f)
         {
             if (!eventData.IsPointerMoving() ||
-                Cursor.lockState == CursorLockMode.Locked ||
+                (pointerType == UIPointerType.MouseOrPen && Cursor.lockState == CursorLockMode.Locked) ||
                 eventData.pointerDrag == null)
             {
                 return;
@@ -577,7 +578,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             ProcessPointerButton(touchState.selectDelta, eventData);
             ProcessPointerMovement(eventData);
-            ProcessPointerButtonDrag(eventData);
+            ProcessPointerButtonDrag(eventData, UIPointerType.Touch);
 
             touchState.CopyFrom(eventData);
 
@@ -624,7 +625,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 ProcessPointerButton(deviceState.selectDelta, eventData);
                 ProcessPointerMovement(eventData);
                 ProcessScrollWheel(eventData);
-                ProcessPointerButtonDrag(eventData, m_TrackedDeviceDragThresholdMultiplier);
+                ProcessPointerButtonDrag(eventData, UIPointerType.Tracked, m_TrackedDeviceDragThresholdMultiplier);
 
                 deviceState.CopyFrom(eventData);
             }

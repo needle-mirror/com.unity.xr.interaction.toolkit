@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (m_Canvas != null)
                     return m_Canvas;
 
-                m_Canvas = GetComponent<Canvas>();
+                TryGetComponent(out m_Canvas);
                 return m_Canvas;
             }
         }
@@ -173,6 +173,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         [NonSerialized]
         static readonly Dictionary<IUIInteractor, TrackedDeviceGraphicRaycaster> s_InteractorRaycasters = new Dictionary<IUIInteractor, TrackedDeviceGraphicRaycaster>();
+
+        [NonSerialized]
+        static readonly Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>> s_PokeHoverRaycasters = new Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>>();
+
+        /// <summary>
+        /// Checks if poke interactor is interacting with any raycaster in the scene. 
+        /// </summary>
+        /// <param name="interactor">Poke ui interactor to check.</param>
+        /// <returns>True if any poke interactor is hovering or selecting a graphic in the scene.</returns>
+        internal static bool IsPokeInteractingWithUI(IUIInteractor interactor)
+        {
+            foreach (var raycaster in s_PokeHoverRaycasters.Keys)
+            {
+                if (s_PokeHoverRaycasters.TryGetValue(raycaster, out var pokeUIInteractorSet) && pokeUIInteractorSet.Contains(interactor))
+                    return true;
+            }
+            return false;
+        }
 
         /// <inheritdoc />
         public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeLogic?.pokeStateData;
@@ -218,7 +236,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #if PHYSICS2D_MODULE_PRESENT
             m_LocalPhysicsScene2D = gameObject.scene.GetPhysicsScene2D();
 #endif
+            s_PokeHoverRaycasters.Add(this, new HashSet<IUIInteractor>());
             SetupPoke();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            s_PokeHoverRaycasters.Remove(this);
         }
 
         void SetupPoke()
@@ -260,12 +285,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             var layerMask = eventData.layerMask;
             var interactor = eventData.interactor;
+
             if (interactor != null && interactor.TryGetUIModel(out var uiModel) && uiModel.interactionType == UIInteractionType.Poke)
             {
-                // if interactor is selecting any thing else, then it is claimed, so skip for this raycaster
-                if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null && raycaster != this && raycaster.canvas.sortingOrder >= canvas.sortingOrder)
+                // First we see if the interactor is selecting on anything else, then check if they are part of the same root canvas, otherwise skip processing.
+                // If they share the same root canvas, we do a sorting check to see if we cancel out of the poke or bubble the highest sorted raycaster to the top of the list.
+                // Notes for future readers: In the case of a dropdown, a Blocker will be created with order 29999 and Dropdown with 30000, prioritizing dropdown selection.
+                if (s_InteractorRaycasters.TryGetValue(interactor, out var graphicRaycaster) && graphicRaycaster != null && graphicRaycaster != this &&
+                    (graphicRaycaster.canvas.rootCanvas != canvas.rootCanvas || (graphicRaycaster.canvas.rootCanvas == canvas.rootCanvas && graphicRaycaster.canvas.sortingOrder >= canvas.sortingOrder)))
+                {
                     return;
+                }
 
+                // Check if poke is blocked for this frame. Unlike rays, updates for poke ui interaction are isolated from the poke interactor.
                 if (PerformSpherecast(uiModel.position, uiModel.pokeDepth, layerMask, currentEventCamera, resultAppendList) && resultAppendList.Count > 0)
                 {
                     eventData.rayHitIndex = 1;
@@ -283,11 +315,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         s_InteractorRaycasters.Remove(interactor);
                     }
+
+                    s_PokeHoverRaycasters[this].Add(interactor);
                 }
                 else
-                {                    
+                {
                     m_PokeLogic.OnHoverExited(interactor);
                     s_InteractorRaycasters.Remove(interactor);
+                    s_PokeHoverRaycasters[this].Remove(interactor);
                 }
             }
             else
