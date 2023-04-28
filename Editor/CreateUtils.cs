@@ -655,6 +655,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
 #if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_5_0_OR_NEWER
         [MenuItem("GameObject/XR/XR Origin (AR)", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         static void CreateXROriginForAR(MenuCommand menuCommand)
@@ -662,6 +663,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.AR, InputType.ActionBased));
         }
+#endif
 
         [MenuItem("GameObject/XR/AR Gesture Interactor", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item

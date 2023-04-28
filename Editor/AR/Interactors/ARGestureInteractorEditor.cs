@@ -41,13 +41,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         protected override void DrawProperties()
         {
             base.DrawProperties();
+#if AR_FOUNDATION_5_0_OR_NEWER
             EditorGUILayout.PropertyField(m_XROrigin, Contents.xrOrigin);
             using (new EditorGUI.IndentLevelScope())
             {
                 if (m_ARSessionOrigin.objectReferenceValue != null)
                     EditorGUILayout.HelpBox(Contents.arSessionOriginDeprecated.text, MessageType.Warning);
+
                 EditorGUILayout.PropertyField(m_ARSessionOrigin, Contents.arSessionOrigin);
             }
+#else
+            EditorGUILayout.PropertyField(m_ARSessionOrigin, Contents.arSessionOrigin);
+#endif
         }
     }
 }

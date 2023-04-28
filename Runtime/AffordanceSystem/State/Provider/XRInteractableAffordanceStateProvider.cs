@@ -161,7 +161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
         [SerializeField]
         [Tooltip("Condition to trigger click animation for activated interaction events.")]
-        ActivateClickAnimationMode m_ActivateClickAnimationMode = ActivateClickAnimationMode.Activated;
+        ActivateClickAnimationMode m_ActivateClickAnimationMode = ActivateClickAnimationMode.None;
 
         /// <summary>
         /// Condition to trigger click animation for activated interaction events.
@@ -428,6 +428,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         {
             if (m_IgnoreSelectEvents || m_SelectClickAnimationMode != SelectClickAnimationMode.SelectExited || m_ClickAnimationDuration < Mathf.Epsilon)
             {
+                // If Select animation is playing and we are exiting, we need to wait for the animation to finish before refreshing state
+                if(m_SelectedClickAnimation != null)
+                    return;
+                
                 RefreshState();
                 return;
             }
@@ -464,6 +468,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             m_IsActivated = false;
             if (m_IgnoreActivateEvents || (m_ActivateClickAnimationMode != ActivateClickAnimationMode.Deactivated) || m_ClickAnimationDuration < Mathf.Epsilon)
             {
+                // If activate animation is playing and we are exiting, we need to wait for the animation to finish before refreshing state
+                if (m_ActivatedClickAnimation != null)
+                    return;
+                
                 RefreshState();
                 return;
             }
@@ -489,9 +497,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         protected virtual void SelectedClickBehavior()
         {
-            if (m_SelectedClickAnimation != null)
-                StopCoroutine(m_SelectedClickAnimation);
-
+            StopAllActivateAnimations();
             m_SelectedClickAnimation = StartCoroutine(ClickAnimation(AffordanceStateShortcuts.selected, m_ClickAnimationDuration, () => m_SelectedClickAnimation = null));
         }
 
@@ -500,10 +506,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         protected virtual void ActivatedClickBehavior()
         {
-            if (m_ActivatedClickAnimation != null)
-                StopCoroutine(m_ActivatedClickAnimation);
-
+            StopAllActivateAnimations();
             m_ActivatedClickAnimation = StartCoroutine(ClickAnimation(AffordanceStateShortcuts.activated, m_ClickAnimationDuration, () => m_ActivatedClickAnimation = null));
+        }
+
+        void StopActivatedCoroutine()
+        {
+            if (m_ActivatedClickAnimation == null)
+                return;
+            StopCoroutine(m_ActivatedClickAnimation);
+            m_ActivatedClickAnimation = null;
+        }
+
+        void StopSelectedCoroutine()
+        {
+            if (m_SelectedClickAnimation == null)
+                return;
+            StopCoroutine(m_SelectedClickAnimation);
+            m_SelectedClickAnimation = null;
+        }
+        
+        void StopAllActivateAnimations()
+        {
+            StopActivatedCoroutine();
+            StopSelectedCoroutine();
         }
 
         /// <summary>
@@ -544,15 +570,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 return currentAffordanceStateData.Value;
             }
 
+            if (m_IsActivated && !m_IgnoreActivateEvents)
+            {
+                return AffordanceStateShortcuts.activatedState;
+            }
+            
             if (isSelected && !m_IgnoreSelectEvents)
             {
                 var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 1f;
                 return new AffordanceStateData(AffordanceStateShortcuts.selected, transitionAmount);
-            }
-
-            if (m_IsActivated && !m_IgnoreActivateEvents)
-            {
-                return AffordanceStateShortcuts.activatedState;
             }
 
             if (isHovered && !m_IgnoreHoverEvents)
@@ -650,6 +676,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         public void RefreshState()
         {
+            var newState = GenerateNewAffordanceState();
+
+            // If leaving the selected state, we have to terminate select animation coroutines.
+            if (newState.stateIndex != AffordanceStateShortcuts.selected)
+                StopSelectedCoroutine();
+
+            // If Leaving the activated state, we have to terminate activated animation coroutines.
+            if(newState.stateIndex == AffordanceStateShortcuts.activated)
+                StopActivatedCoroutine();
+
             UpdateAffordanceState(GenerateNewAffordanceState());
         }
 

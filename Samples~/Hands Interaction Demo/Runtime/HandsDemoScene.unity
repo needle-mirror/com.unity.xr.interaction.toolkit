@@ -852,7 +852,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PokeFollowTransform: {fileID: 1966265192}
-  m_SmoothingSpeed: 8
+  m_SmoothingSpeed: 16
   m_ReturnToInitialPosition: 1
   m_ApplyIfChildIsTarget: 1
   m_ClampToMaxDistance: 1
@@ -3157,7 +3157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PokeFollowTransform: {fileID: 922276737}
-  m_SmoothingSpeed: 8
+  m_SmoothingSpeed: 16
   m_ReturnToInitialPosition: 1
   m_ApplyIfChildIsTarget: 1
   m_ClampToMaxDistance: 1
@@ -5528,7 +5528,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PokeFollowTransform: {fileID: 478610353}
-  m_SmoothingSpeed: 8
+  m_SmoothingSpeed: 16
   m_ReturnToInitialPosition: 1
   m_ApplyIfChildIsTarget: 1
   m_ClampToMaxDistance: 1
@@ -10376,7 +10376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PokeFollowTransform: {fileID: 1795382573}
-  m_SmoothingSpeed: 8
+  m_SmoothingSpeed: 16
   m_ReturnToInitialPosition: 1
   m_ApplyIfChildIsTarget: 1
   m_ClampToMaxDistance: 1

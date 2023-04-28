@@ -8,6 +8,8 @@ The XR Interaction Toolkit package provides an affordance system which enables u
 
 The [XR Interactable Affordance State Provider](xr-interactable-affordance-state-provider.md) connects to an interactable component and reads the interaction state as it changes (Hover, Select, or Activate) to determine and provide the appropriate [Affordance State](xref:UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State.AffordanceStateShortcuts) to any affordance receivers subscribed to this particular provider. It is also possible to update an affordance state directly from a script without the need for checking the state of an interactable, such as through a network synchronization script. Writing a custom provider is also possible, extended the possibilities to use the affordance system for non-interactable objects as well.
 
+Note that if you are using click animations for Selected or Activated states, affordance transitions won't be propagated until after the animation is completed.
+
 ## Affordance receivers
 
 Affordance receivers are components that receive `Affordance State` change events and then perform specific effects using the referenced theme or configuration. Many affordance receivers handle animating tweens to achieve specific visual effects. There are various affordance receiver components for different primitive data types, such as `Color` or `Vector3` or `Float`. Custom affordance receivers can also be built to achieve a variety of effects depending on the properties you wish to enhance on or around a given object.
@@ -35,6 +37,17 @@ Pick an existing XR Interactable in your scene and create an empty child object 
 From here we will be able to add affordance receivers to add effects to the interactable object based on its state. You can add the next components to the same GameObject as before or create another empty child GameObject. If you created a new child object, click on it to bring it up in the Inspector. Next, click on **Add Component** and navigate to **Affordance System** &gt; **Rendering** &gt; **Color Material Property Affordance Receiver**. This will add an additional Material Property Block Helper component which should be automatically assigned in the **Material Property Block Helper** property of the Color Material Property Affordance Receiver component. Next, drag the GameObject from the last section into the **Affordance State Provider** property on the Color Material Property Affordance Receiver component and the appropriate mesh renderer into the **Renderer** property on the Material Property Block Helper component. Last, check the box labeled **Replace Idle State Value With Initial Value** to ensure the original color of the material is used when the state returns to idle. The result will look similar to the image below.
 
 ![affordance-receiver](images/affordance-receiver.png)
+
+### Audio Affordance Receiver
+
+It is possible to add audio effects when transitionning between affordance states using the Audio Affordance Receiver.
+Like other affordance receivers, you simply add a theme and connect the affordance state provider reference, but unlike other themes, audio has one shot clips that play when transitionning between states. Because target values are not smoothly blended like with other receivers, the Audio Affordance Receiver has extra considerations on which states are being entered and exited, to avoid playing clips that shouldn't be played.
+
+In practice, when moving from hover to select, select is considered a "modifier" to hover. This means that if releasing select, when holding an object for instance, the hover entered sound effect won't play again if the object previously select is still hovered on release. Similarly, when triggering the activated state from select, the select exited sound effect won't play, as it is considered a "modifier" to activated.
+
+Finally, as mentionned in the Affordance State Provider section, if you are using click animations for Selected or Activated states, repeated activation of activated trigger, faster than the click animation duration, won't trigger affordance audio clips until after the animation is completed. Feel free to disable activated click animations if this is a concern.
+
+![audio-affordance-receiver](audio-affordance-receiver.png)
 
 ### Adding a theme
 

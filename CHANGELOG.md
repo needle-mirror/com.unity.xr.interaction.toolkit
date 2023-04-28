@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.3.2] - 2023-04-28
+
+### Changed
+- Changed XRI project validation to only log errors to the console, not warnings.
+- Updated `XRPokeFollowAffordance` smoothing property default from 8 to 16 to make it feel more responsive.
+
+### Fixed
+- Added additional checks against AR Foundation 5.0 and newer so deprecation messages and the use of the newer XR Origin (AR) is hidden when using AR Foundation 4.2 and older.
+- Fixed GC allocations produced each frame by `XRPokeInteractor.UpdateUIModel`.
+- Fixed frame-timing for Locomotion Input Tests when running in batch mode.
+- `XRInteractableAffordanceStateProvider` Fixes:
+    - Activated state was lower priority than selected, which because select is not exited, this was causing issues with it not appearing.
+    - There were some racing coroutines between select and activate, and now trigger a new animation blocks previous animations
+    - Leaving the select state cancels select animations that might not have completed
+    - Leaving activated state cancels activate animations that might not have completed
+- Fixed repeat audio issue in the `AudioAffordanceReceiver` by adding extra conditions which treat select as a modifier to hover, and activated as a modifier to select. Doing this prevents triggering repeat audio clips that shouldn't fire, like releasing the activate trigger, or releasing the select trigger while still hovering.
+- Fixed `XRPokeLogic` issue where poking from behind objects would sometimes trigger select incorrectly.
+- Fixed `XRPokeLogic` issue where depth percent was incorrectly calculated using an exponential value which would result in poke buttons feeling disconnected from the poke interactor position.
+
 ## [2.3.1] - 2023-03-27
 
 ### Added

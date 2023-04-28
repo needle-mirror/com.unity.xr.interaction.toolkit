@@ -31,7 +31,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             {
                 if (playModeState == PlayModeStateChange.EnteredPlayMode)
                 {
-                    var playmodeIssues = XRInteractionProjectValidation.LogBuildValidationIssues();
+                    var playmodeIssues = XRInteractionProjectValidation.LogBuildValidationErrors();
                     if (playmodeIssues)
                     {
                         EditorApplication.ExitPlaymode();
@@ -304,7 +304,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (XRInteractionProjectValidation.LogBuildValidationIssues())
+            if (XRInteractionProjectValidation.LogBuildValidationErrors())
                 throw new BuildFailedException("Build Failed - XR Interaction Validation issue.");
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
@@ -173,7 +174,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
         PhysicsScene m_LocalPhysicsScene;
-
+        // Used to avoid GC Alloc each frame in UpdateUIModel
+        Func<Vector3> m_PositionGetter;
 
         /// <inheritdoc />
         protected override void Awake()
@@ -182,6 +184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             useAttachPointVelocity = true;
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
+            m_PositionGetter = GetPokePosition;
         }
 
         /// <inheritdoc />
@@ -469,7 +472,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             model.position = position;
             model.orientation = orientation;
-            model.positionGetter = GetPokePosition;
+            model.positionGetter = m_PositionGetter;
             model.select = TrackedDeviceGraphicRaycaster.HasPokeSelect(this);
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;

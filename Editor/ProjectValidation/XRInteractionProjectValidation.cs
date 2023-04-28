@@ -69,7 +69,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         /// Logs validation issues to console.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if there were any errors that should stop the build.</returns>
-        internal static bool LogBuildValidationIssues()
+        /// <remarks>Only errors are logged to the console. Warnings are not.</remarks>
+        internal static bool LogBuildValidationErrors()
         {
             var issues = new List<BuildValidationRule>();
             GetCurrentValidationIssues(issues);
@@ -82,8 +83,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             {
                 if (result.Error)
                     Debug.LogError(result.Message);
-                else
-                    Debug.LogWarning(result.Message);
 
                 anyErrors |= result.Error;
             }

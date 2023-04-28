@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             (PokeAxis.NegativeY, Vector3.down * 2f, false),
             (PokeAxis.NegativeZ, Vector3.back * 2f, false),
             // Outside angle threshold
-            (PokeAxis.Z, Quaternion.AngleAxis(45f, Vector3.up) * Vector3.back * 2f, false),
+            (PokeAxis.Z, Quaternion.AngleAxis(46f, Vector3.up) * Vector3.back * 2f, false),
         };
 
         static readonly (Vector3 interactorPosition, bool valid)[] s_PokeHovers =

@@ -106,29 +106,51 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
 
         void OnAffordanceStateUpdated(AffordanceStateData affordanceStateData)
         {
-            if (affordanceStateData.stateIndex != m_LastAffordanceStateIndex)
+            var newIndex = affordanceStateData.stateIndex;
+            if (newIndex != m_LastAffordanceStateIndex)
             {
-                var exitData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(m_LastAffordanceStateIndex);
-                if (exitData != default)
-                {
-                    PlayAudioClip(exitData.stateExited);
-                }
+                bool newStateIsActivate = newIndex == AffordanceStateShortcuts.activated;
+                bool newStateIsHover = newIndex == AffordanceStateShortcuts.hovered;
+                bool newStateIsSelect = newIndex == AffordanceStateShortcuts.selected;
 
-                var enterData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(affordanceStateData.stateIndex);
-                if (enterData != default)
+                bool lastStateIsSelect = m_LastAffordanceStateIndex == AffordanceStateShortcuts.selected;
+                bool lastStateIsActivate = m_LastAffordanceStateIndex == AffordanceStateShortcuts.activated;
+                
+                bool selectToActivate = newStateIsActivate && lastStateIsSelect;
+                bool activateToSelect = newStateIsSelect && lastStateIsActivate;
+                bool hoverToSelect = newStateIsHover && lastStateIsSelect;
+                bool selectToHover = newStateIsHover && lastStateIsSelect;
+
+                // Do not play select exit if going to activated state because it is a modifier state.
+                // Likewise, do not play hover exit if going to selected state because it is a modifier state.
+                if (!selectToActivate && !hoverToSelect)
                 {
-                    PlayAudioClip(enterData.stateEntered);
+                    var exitData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(m_LastAffordanceStateIndex);
+                    if (exitData != default)
+                    {
+                        PlayAudioClip(exitData.stateExited);
+                    }
                 }
+                
+                // Do not play select enter if coming from activated state because it is a modifier state.
+                // Likewise, do not play hover enter if coming from selected state because it is a modifier state.
+                if (!activateToSelect && !selectToHover)
+                {
+                    var enterData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(newIndex);
+                    if (enterData != default)
+                    {
+                        PlayAudioClip(enterData.stateEntered);
+                    }
+                }
+                
+                m_LastAffordanceStateIndex = newIndex;
             }
-
-            m_LastAffordanceStateIndex = affordanceStateData.stateIndex;
         }
 
         void PlayAudioClip(AudioClip clipToPlay)
         {
             if (clipToPlay == null)
                 return;
-
             m_AudioSource.PlayOneShot(clipToPlay);
         }
     }

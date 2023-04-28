@@ -305,7 +305,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var hitTransform = firstHit.gameObject.transform;
 
                     m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
-                    m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
+                    
+                    // Check if not already hovering interactor
+                    if (!s_PokeHoverRaycasters[this].Contains(interactor))
+                    {
+                        s_PokeHoverRaycasters[this].Add(interactor);
+                        m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
+                    }
                     
                     if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
@@ -315,8 +321,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         s_InteractorRaycasters.Remove(interactor);
                     }
-
-                    s_PokeHoverRaycasters[this].Add(interactor);
                 }
                 else
                 {

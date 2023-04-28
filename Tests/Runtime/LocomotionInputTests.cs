@@ -121,7 +121,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Set(gamepad.leftStick, input);
             var startTime = Time.time;
 
-            yield return new WaitForSeconds(1f);
+            for (var i = 0; i < 60; ++i) // wait for 60 frames.
+                yield return Application.isBatchMode ? null : new WaitForEndOfFrame();
 
             var actualPosition = rigTransform.position;
             var actualDistance = Vector3.Distance(Vector3.zero, actualPosition);
@@ -145,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Stop moving
             Set(gamepad.leftStick, Vector2.zero);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return Application.isBatchMode ? null : new WaitForEndOfFrame();
 
             // ReSharper disable Unity.InefficientPropertyAccess -- Property value accessed after yield
             Assert.That(Vector3.Distance(actualPosition, rigTransform.position), Is.EqualTo(0f));
@@ -182,7 +183,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Set(gamepad.rightStick, input);
             var startTime = Time.time;
 
-            yield return new WaitForSeconds(1f);
+            for (var i = 0; i < 60; ++i) // wait for 60 frames.
+                yield return Application.isBatchMode ? null : new WaitForEndOfFrame();
 
             var turnAmount = processedInput.magnitude * turnProvider.turnSpeed * (Time.time - startTime);
             var actualRotation = rigTransform.rotation;
@@ -191,7 +193,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Stop turning
             Set(gamepad.rightStick, Vector2.zero);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return Application.isBatchMode ? null : new WaitForEndOfFrame();
 
             // ReSharper disable Unity.InefficientPropertyAccess -- Property value accessed after yield
             Assert.That(actualRotation, Is.EqualTo(rigTransform.rotation).Using(QuaternionEqualityComparer.Instance));
