@@ -13,6 +13,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.UI.BodyUI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -88,6 +89,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_BlendShapeAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(BlendShapeAffordanceReceiver) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="ColorGradientLineRendererAffordanceReceiver"/>.
+        /// </summary>
+        public const string k_ColorGradientLineRendererAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(ColorGradientLineRendererAffordanceReceiver) + ".html";
+        
+        /// <summary>
         /// Scripting API URL for <see cref="ColorMaterialPropertyAffordanceReceiver"/>.
         /// </summary>
         public const string k_ColorMaterialPropertyAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(ColorMaterialPropertyAffordanceReceiver) + ".html";
@@ -136,6 +142,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRInteractableAffordanceStateProvider"/>.
         /// </summary>
         public const string k_XRInteractableAffordanceStateProvider = k_BaseApi + k_BaseNamespace + "AffordanceSystem.State." + nameof(XRInteractableAffordanceStateProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInteractorAffordanceStateProvider"/>.
+        /// </summary>
+        public const string k_XRInteractorAffordanceStateProvider = k_BaseApi + k_BaseNamespace + "AffordanceSystem.State." + nameof(XRInteractorAffordanceStateProvider) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="AudioAffordanceThemeDatum"/>.
@@ -208,6 +219,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_CharacterControllerDriver = k_BaseApi + k_BaseNamespace + nameof(CharacterControllerDriver) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="ClimbInteractable"/>.
+        /// </summary>
+        public const string k_ClimbInteractable = k_BaseApi + k_BaseNamespace + nameof(ClimbInteractable) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ClimbProvider"/>.
+        /// </summary>
+        public const string k_ClimbProvider = k_BaseApi + k_BaseNamespace + nameof(ClimbProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="ClimbSettingsDatum"/>.
+        /// </summary>
+        public const string k_ClimbSettingsDatum = k_BaseApi + k_BaseNamespace + nameof(ClimbSettingsDatum) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="DeviceBasedContinuousMoveProvider"/>.
         /// </summary>
         public const string k_DeviceBasedContinuousMoveProvider = k_BaseApi + k_BaseNamespace + nameof(DeviceBasedContinuousMoveProvider) + ".html";
@@ -251,6 +277,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRDeviceSimulator"/>.
         /// </summary>
         public const string k_XRDeviceSimulator = k_BaseApi + k_BaseNamespace + "Inputs.Simulation." + nameof(XRDeviceSimulator) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInputModalityManager"/>.
+        /// </summary>
+        public const string k_XRInputModalityManager = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(XRInputModalityManager) + ".html";
+        
+        /// <summary>
+        /// Scripting API URL for <see cref="XRTransformStabilizer"/>.
+        /// </summary>
+        public const string k_XRTransformStabilizer = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(XRTransformStabilizer) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="LocomotionSystem"/>.
@@ -310,6 +346,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_TwoHandedGrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(TwoHandedGrabMoveProvider) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="HandMenu"/>.
+        /// </summary>
+        public const string k_HandMenu = k_BaseApi + k_BaseNamespace + "UI.BodyUI." + nameof(HandMenu) + ".html";
+        
+        /// <summary>
+        /// Scripting API URL for <see cref="FollowPresetDatum"/>.
+        /// </summary>
+        public const string k_FollowPresetDatum = k_BaseApi + k_BaseNamespace + "UI.BodyUI." + nameof(FollowPresetDatum) + ".html";
+        
+        /// <summary>
         /// Scripting API URL for <see cref="LazyFollow"/>.
         /// </summary>
         public const string k_LazyFollow = k_BaseApi + k_BaseNamespace + "UI." + nameof(LazyFollow) + ".html";
@@ -353,6 +399,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRDirectInteractor"/>.
         /// </summary>
         public const string k_XRDirectInteractor = k_BaseApi + k_BaseNamespace + nameof(XRDirectInteractor) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRGazeAssistance"/>.
+        /// </summary>
+        public const string k_XRGazeAssistance = k_BaseApi + k_BaseNamespace + nameof(XRGazeAssistance) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRGazeInteractor"/>.
@@ -414,7 +465,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
 
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.3/api/";
+        /// <summary>
+        /// Scripting API URL for <see cref="XRScreenSpaceController"/>.
+        /// </summary>
+        public const string k_XRScreenSpaceController = k_BaseApi + k_BaseNamespace + nameof(XRScreenSpaceController) + ".html";
+
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

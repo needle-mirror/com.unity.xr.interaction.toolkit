@@ -116,6 +116,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public InputTrackingState inputTrackingState;
 
         /// <summary>
+        /// Whether the controller is actively tracked.
+        /// </summary>
+        public bool isTracked;
+
+        /// <summary>
         /// The position of the controller.
         /// </summary>
         public Vector3 position;
@@ -141,24 +146,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public InteractionState uiPressInteractionState;
 
         /// <summary>
+        /// The UI scroll value.
+        /// </summary>
+        public Vector2 uiScrollValue;
+
+        /// <summary>
         /// Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>
         /// <param name="time">The time value for this controller.</param>
         /// <param name="position">The position for this controller.</param>
         /// <param name="rotation">The rotation for this controller.</param>
         /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
-        protected XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState)
+        /// <param name="isTracked">Whether the controller is tracked this frame.</param>
+        protected XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, bool isTracked)
         {
             this.time = time;
             this.position = position;
             this.rotation = rotation;
             this.inputTrackingState = inputTrackingState;
+            this.isTracked = isTracked;
         }
-        
+
         /// <summary>
         /// Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>
-        public XRControllerState() : this (0d, Vector3.zero, Quaternion.identity, InputTrackingState.None)
+        public XRControllerState() : this(0d, Vector3.zero, Quaternion.identity, InputTrackingState.None, false)
         {
         }
 
@@ -172,9 +184,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             this.position = value.position;
             this.rotation = value.rotation;
             this.inputTrackingState = value.inputTrackingState;
+            this.isTracked = value.isTracked;
             this.selectInteractionState = value.selectInteractionState;
             this.activateInteractionState = value.activateInteractionState;
             this.uiPressInteractionState = value.uiPressInteractionState;
+            this.uiScrollValue = value.uiScrollValue;
         }
 
         /// <summary>
@@ -184,18 +198,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="position">The position for this controller.</param>
         /// <param name="rotation">The rotation for this controller.</param>
         /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        /// <param name="isTracked">Whether the controller is tracked this frame.</param>
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
         /// <param name="pressActive">Whether UI press is active or not.</param>
-        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, 
-            bool selectActive, bool activateActive, bool pressActive) 
-            : this (time, position, rotation, inputTrackingState) 
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, bool isTracked,
+            bool selectActive, bool activateActive, bool pressActive)
+            : this(time, position, rotation, inputTrackingState, isTracked)
         {
             this.selectInteractionState.SetFrameState(selectActive);
             this.activateInteractionState.SetFrameState(activateActive);
             this.uiPressInteractionState.SetFrameState(pressActive);
         }
-        
+
         /// <summary>
         /// Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>
@@ -203,16 +218,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="position">The position for this controller.</param>
         /// <param name="rotation">The rotation for this controller.</param>
         /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        /// <param name="isTracked">Whether the controller is tracked this frame.</param>
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
         /// <param name="pressActive">Whether UI press is active or not.</param>
         /// <param name="selectValue">The select value.</param>
         /// <param name="activateValue">The activate value.</param>
         /// <param name="pressValue">The UI press value.</param>
-        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, 
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState, bool isTracked,
             bool selectActive, bool activateActive, bool pressActive,
             float selectValue, float activateValue, float pressValue)
-            : this(time, position, rotation, inputTrackingState)
+            : this(time, position, rotation, inputTrackingState, isTracked)
         {
             this.selectInteractionState.SetFrameState(selectActive, selectValue);
             this.activateInteractionState.SetFrameState(activateActive, activateValue);
@@ -234,6 +250,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Converts state data to a string.
         /// </summary>
         /// <returns>A string representation.</returns>
-        public override string ToString() => $"time: {time}, position: {position}, rotation: {rotation}, selectActive: {selectInteractionState.active}, activateActive: {activateInteractionState.active}, pressActive: {uiPressInteractionState.active}";
+        public override string ToString() => $"time: {time}, position: {position}, rotation: {rotation}, selectActive: {selectInteractionState.active}, activateActive: {activateInteractionState.active}, pressActive: {uiPressInteractionState.active}, isTracked: {isTracked}, inputTrackingState: {inputTrackingState}";
     }
 }

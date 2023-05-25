@@ -52,7 +52,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Hide Controller On Select** | Controls whether this Interactor should hide the controller model on selection. |
 | **Allow Hovered Activate** | Controls whether to send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection. By default, the interactor will only send activate and deactivate events to interactables that it's selected. |
 | **Target Track Mode** | Specifies how many Interactables that should be tracked in the Targets For Selection property, useful for custom feedback. The options are in order of best performance. |
-| **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. |
+| **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. Will also select UI if Enable Interaction with UI GameObjects is also enabled. |
 | **Hover Time To Select** | Number of seconds an Interactor must hover over an Interactable to select it. |
 | **Auto Deselect** | Enable to have Interactor automatically deselect an Interactable after selecting it for a period of time. |
 | **Time To Auto Deselect** | Number of seconds an Interactor must select an Interactable before it is automatically deselected when **Auto Deselect** is true. |

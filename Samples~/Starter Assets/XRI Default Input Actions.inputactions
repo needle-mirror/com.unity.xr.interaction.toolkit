@@ -60,6 +60,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Eye Gaze Is Tracked",
+                    "type": "Button",
+                    "id": "ea26ba43-844b-4585-817a-2f124b571813",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Eye Gaze Tracking State",
                     "type": "Value",
                     "id": "73053154-2fbc-4d78-9cac-000282b64f79",
@@ -245,6 +254,50 @@
                     "action": "Is Tracked",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "Button Fallback",
+                    "id": "c262df21-2ffb-4295-93cc-8fdb5649da7e",
+                    "path": "ButtonFallback",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Eye Gaze Is Tracked",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "first",
+                    "id": "f77492f8-09ee-49d0-b821-7c31cb5c2a16",
+                    "path": "<EyeGaze>/pose/isTracked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Eye Gaze Is Tracked",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "second",
+                    "id": "960252ae-88e8-427a-ac9f-ecac6fb3c7d1",
+                    "path": "<XRHMD>/isTracked",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Eye Gaze Is Tracked",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "third",
+                    "id": "dfc94c22-a115-471f-9f17-8cb6bc7f6637",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Eye Gaze Is Tracked",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },
@@ -623,6 +676,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "UI Scroll",
+                    "type": "Value",
+                    "id": "a5372626-7022-4ba7-b152-6f26318fd8a8",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Rotate Anchor",
                     "type": "Value",
                     "id": "21b75b25-12ad-410f-b4f8-a7745b7aca27",
@@ -771,6 +833,17 @@
                     "processors": "ScaleVector2(x=0),StickDeadzone",
                     "groups": "Generic XR Controller",
                     "action": "Translate Anchor",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7b30ca4b-9f98-4a44-9af5-a89412d5cdc8",
+                    "path": "<XRController>{LeftHand}/Primary2DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "UI Scroll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1319,6 +1392,15 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "UI Scroll",
+                    "type": "Value",
+                    "id": "c283b939-751f-426e-8462-142a529993e3",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Rotate Anchor",
                     "type": "Value",
                     "id": "9b5d8312-f609-4895-b70f-81a722b2ae11",
@@ -1467,6 +1549,17 @@
                     "processors": "ScaleVector2(x=0),StickDeadzone",
                     "groups": "Generic XR Controller",
                     "action": "Translate Anchor",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "af6fd279-2f48-4f51-8e9d-29b0b9d926f8",
+                    "path": "<XRController>{RightHand}/Primary2DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "UI Scroll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

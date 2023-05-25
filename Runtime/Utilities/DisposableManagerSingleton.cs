@@ -4,7 +4,7 @@ using Unity.XR.CoreUtils.Collections;
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
-    /// Manager singleton for async tweenable variables to help ensure they are disposed at the end of the application's life.
+    /// Manager singleton for <see cref="IDisposable"/> objects to help ensure they are disposed at the end of the application's life.
     /// </summary>
     [AddComponentMenu("")] // Hide in menu
     [HelpURL(XRHelpURLConstants.k_DisposableManagerSingleton)]

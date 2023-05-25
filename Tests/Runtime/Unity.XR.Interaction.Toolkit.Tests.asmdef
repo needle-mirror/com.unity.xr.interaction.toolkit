@@ -1,5 +1,6 @@
 {
     "name": "Unity.XR.Interaction.Toolkit.Tests",
+    "rootNamespace": "UnityEngine.XR.Interaction.Toolkit.Tests",
     "references": [
         "Unity.XR.Interaction.Toolkit",
         "Unity.ugui",

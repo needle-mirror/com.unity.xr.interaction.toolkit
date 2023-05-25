@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -12,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         // ReSharper disable once InconsistentNaming -- Treat this like const
         static readonly Regex k_AnyString = new Regex("");
         static readonly List<IXRGroupMember> s_GroupMembers = new List<IXRGroupMember>();
+        static readonly HashSet<IXRGroupMember> s_OverrideGroupMembers = new HashSet<IXRGroupMember>();
 
         [TearDown]
         public void TearDown()
@@ -1461,6 +1464,801 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(nextNestedGroupMemberInteractor3.IsBlockedByInteractionWithinGroup(), Is.True);
         }
 
+        [Test]
+        public void StartingInteractionOverridesAreAddedToMap()
+        {
+            TestUtilities.CreateInteractionManager();
+
+            // Start inactive so we can set starting members before Awake
+            var groupObj = new GameObject("Interaction Group");
+            groupObj.SetActive(false);
+            var group = groupObj.AddComponent<XRInteractionGroup>();
+
+            var memberInteractor1 = TestUtilities.CreateMockInteractor();
+            var memberInteractor2 = TestUtilities.CreateMockInteractor();
+            var memberInteractor3 = TestUtilities.CreateMockInteractor();
+            group.startingGroupMembers = new List<Object>
+            {
+                memberInteractor1,
+                memberInteractor2,
+                memberInteractor3
+            };
+
+            var member1OverrideMembers = new List<Object> { memberInteractor2, memberInteractor3 };
+            var member2OverrideMembers = new List<Object> { memberInteractor3 };
+            var member3OverrideMembers = new List<Object>();
+
+            foreach (var overrideMember in member1OverrideMembers)
+            {
+                group.AddStartingInteractionOverride(memberInteractor1, overrideMember);
+            }
+
+            foreach (var overrideMember in member2OverrideMembers)
+            {
+                group.AddStartingInteractionOverride(memberInteractor2, overrideMember);
+            }
+
+            foreach (var overrideMember in member3OverrideMembers)
+            {
+                group.AddStartingInteractionOverride(memberInteractor3, overrideMember);
+            }
+
+            groupObj.SetActive(true);
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(member1OverrideMembers.Count));
+            foreach (var overrideGroupMember in member1OverrideMembers)
+            {
+                Assert.That(s_OverrideGroupMembers.Contains((IXRGroupMember)overrideGroupMember), Is.True);
+            }
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(member2OverrideMembers.Count));
+            foreach (var overrideGroupMember in member2OverrideMembers)
+            {
+                Assert.That(s_OverrideGroupMembers.Contains((IXRGroupMember)overrideGroupMember), Is.True);
+            }
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor3, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(member3OverrideMembers.Count));
+            foreach (var overrideGroupMember in member3OverrideMembers)
+            {
+                Assert.That(s_OverrideGroupMembers.Contains((IXRGroupMember)overrideGroupMember), Is.True);
+            }
+        }
+
+        [Test]
+        public void AddInteractionOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(0));
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(1));
+            Assert.That(s_OverrideGroupMembers.Contains(memberInteractor2), Is.True);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(2));
+            Assert.That(s_OverrideGroupMembers.Contains(memberInteractor3), Is.True);
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(0));
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(1));
+            Assert.That(s_OverrideGroupMembers.Contains(memberInteractor3), Is.True);
+
+            group.GetInteractionOverridesForGroupMember(memberInteractor3, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void RemoveInteractionOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(out var memberInteractor1,
+                out var memberInteractor2, out var memberInteractor3);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(1));
+            Assert.That(s_OverrideGroupMembers.Contains(memberInteractor2), Is.False);
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2), Is.False);
+
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3), Is.False);
+
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3), Is.False);
+        }
+
+        [Test]
+        public void ClearInteractionOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(out var memberInteractor1,
+                out var memberInteractor2, out var memberInteractor3);
+
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor1), Is.False);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor2), Is.False);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor3), Is.False);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor1), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor1);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor2), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor3, memberInteractor1);
+            group.AddInteractionOverrideForGroupMember(memberInteractor3, memberInteractor2);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor3), Is.True);
+            group.GetInteractionOverridesForGroupMember(memberInteractor3, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+        }
+
+        [Test]
+        public void CannotAddInteractionOverrideThatIsNotASelectInteractorOrOverrideGroup()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var memberInteractor1 = new InvalidInteractionOverride();
+            var memberInteractor2 = new InvalidInteractionOverride();
+            var memberInteractor3 = new InvalidInteractionOverride();
+            group.AddGroupMember(memberInteractor1);
+            group.AddGroupMember(memberInteractor2);
+            group.AddGroupMember(memberInteractor3);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor3, memberInteractor1);
+            group.GetInteractionOverridesForGroupMember(memberInteractor3, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.Zero);
+        }
+
+        [Test]
+        public void CannotAddGroupMemberAsOverrideForItself()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(out var memberInteractor1,
+                out var memberInteractor2, out var memberInteractor3);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor1);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor2);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor3, memberInteractor3);
+        }
+
+        [Test]
+        public void CannotCreateLoopOfInteractionOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(out var memberInteractor1,
+                out var memberInteractor2, out var memberInteractor3);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor1);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor3, memberInteractor1);
+        }
+
+        [Test]
+        public void CannotManageInteractionOverridesForUnregisteredMembers()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var memberInteractor1 = TestUtilities.CreateMockInteractor();
+            var memberInteractor2 = TestUtilities.CreateMockInteractor();
+            var memberInteractor3 = TestUtilities.CreateMockInteractor();
+
+            group.AddGroupMember(memberInteractor1);
+
+            // Add should fail because other group member is not registered
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.GetInteractionOverridesForGroupMember(memberInteractor1, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(0));
+
+            // Add and get overrides should fail because group member is not registered
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor1);
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            group.GetInteractionOverridesForGroupMember(memberInteractor2, s_OverrideGroupMembers);
+            Assert.That(s_OverrideGroupMembers.Count, Is.EqualTo(0));
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            Assert.That(group.RemoveInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3), Is.False);
+
+            LogAssert.Expect(LogType.Error, k_AnyString);
+            Assert.That(group.ClearInteractionOverridesForGroupMember(memberInteractor3), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator CannotOverrideInteractionWhenNoOverridesConfigured()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for another interactor
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            memberInteractor3.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(memberInteractor3.hasHover, Is.False);
+            Assert.That(memberInteractor3.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideHoverWithSelectFromConfiguredOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            memberInteractor1.keepSelectedTargetValid = false;
+            memberInteractor2.keepSelectedTargetValid = false;
+            memberInteractor3.keepSelectedTargetValid = false;
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3);
+
+            // Make the interactable not selectable by the first interactor, to make sure override can occur when only hover is happening.
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            interactable1.selectFilters.Add(new XRSelectFilterDelegate((interactor, interactable) => !ReferenceEquals(interactor, memberInteractor1)));
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for an override interactor. It should not yet override because it cannot select
+            // the interactable that is currently hovered.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor3.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor3.hasHover, Is.False);
+            Assert.That(memberInteractor3.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // 3 should override since it can select the hovered interactable now.
+            memberInteractor3.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasHover, Is.False);
+            Assert.That(memberInteractor3.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor3.IsSelecting(interactable2), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor3));
+
+            memberInteractor3.validTargets.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor3.hasHover, Is.False);
+            Assert.That(memberInteractor3.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Interactor 2 is now capable of hovering the hovered interactable, but it should not override yet because
+            // it isn't able to select the interactable.
+            interactable1.selectFilters.Add(new XRSelectFilterDelegate((interactor, interactable) => !ReferenceEquals(interactor, memberInteractor2)));
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Now 2 should override 1 since it can select the interactable.
+            interactable1.selectFilters.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasHover, Is.False);
+            Assert.That(memberInteractor2.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideSelectWithSelectFromConfiguredOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            memberInteractor1.allowHover = false;
+            memberInteractor2.allowHover = false;
+            memberInteractor3.allowHover = false;
+            memberInteractor1.keepSelectedTargetValid = false;
+            memberInteractor2.keepSelectedTargetValid = false;
+            memberInteractor3.keepSelectedTargetValid = false;
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor3);
+
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for an override interactor. It should not yet override because it cannot select
+            // the interactable that is currently selected.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor3.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor3.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // 3 is able to select the selected interactable now, so it should override.
+            memberInteractor3.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasSelection, Is.False);
+            Assert.That(memberInteractor3.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor3.IsSelecting(interactable2), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor3));
+
+            memberInteractor3.validTargets.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor3.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Interactor 2 is now capable of selecting the selected interactable, so it should override.
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasSelection, Is.False);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideHoverAndSelectWithSelectFromConfiguredOverrides()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            group.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for an override interactor. It should not yet override because it cannot select
+            // the interactable that is currently hovered/selected.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor2.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // 2 can now potentially select the hovered/selected interactable, so it should override
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasHover, Is.False);
+            Assert.That(memberInteractor1.hasSelection, Is.False);
+            Assert.That(memberInteractor2.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsHovering(interactable2), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable2), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+
+            // Now give interactor 2 a third interactable. 3 should be able to override 2 when it can potentially select
+            // any of the three interactables.
+            group.AddInteractionOverrideForGroupMember(memberInteractor2, memberInteractor3);
+            var interactable3 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor2.validTargets.Add(interactable3);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor2.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsHovering(interactable2), Is.True);
+            Assert.That(memberInteractor2.IsHovering(interactable3), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable2), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable3), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+
+            memberInteractor3.validTargets.Add(interactable3);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(memberInteractor3.IsHovering(interactable1), Is.False);
+            Assert.That(memberInteractor3.IsHovering(interactable2), Is.False);
+            Assert.That(memberInteractor3.IsHovering(interactable3), Is.True);
+            Assert.That(memberInteractor3.IsSelecting(interactable1), Is.False);
+            Assert.That(memberInteractor3.IsSelecting(interactable2), Is.False);
+            Assert.That(memberInteractor3.IsSelecting(interactable3), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor3));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideSubGroupHover()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithEmptyGroups(
+                out var subGroup1, out var subGroup2, out var subGroup3);
+
+            var subGroup1MemberInteractor = TestUtilities.CreateMockInteractor();
+            var subGroup2MemberInteractor = TestUtilities.CreateMockInteractor();
+            var subGroup3MemberInteractor = TestUtilities.CreateMockInteractor();
+            subGroup1MemberInteractor.keepSelectedTargetValid = false;
+            subGroup2MemberInteractor.keepSelectedTargetValid = false;
+            subGroup3MemberInteractor.keepSelectedTargetValid = false;
+            subGroup1.AddGroupMember(subGroup1MemberInteractor);
+            subGroup2.AddGroupMember(subGroup2MemberInteractor);
+            subGroup3.AddGroupMember(subGroup3MemberInteractor);
+
+            group.AddInteractionOverrideForGroupMember(subGroup1, subGroup2);
+            group.AddInteractionOverrideForGroupMember(subGroup1, subGroup3);
+
+            // Make the interactable not selectable by the first interactor, to make sure override can occur when only hover is happening.
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            interactable1.selectFilters.Add(new XRSelectFilterDelegate((interactor, interactable) => !ReferenceEquals(interactor, subGroup2MemberInteractor)));
+            subGroup1MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // Trigger a change in selectability for an override group. It should not yet override because it cannot select
+            // the interactable that is currently hovered.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            subGroup3MemberInteractor.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.hasHover, Is.False);
+            Assert.That(subGroup3MemberInteractor.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // 3 should override since it can select the hovered interactable now.
+            subGroup3MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.hasHover, Is.False);
+            Assert.That(subGroup3MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.IsSelecting(interactable2), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup3MemberInteractor));
+
+            subGroup3MemberInteractor.validTargets.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.hasHover, Is.False);
+            Assert.That(subGroup3MemberInteractor.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // Sub group 2 is now capable of hovering the hovered interactable, but it should not override yet because
+            // it isn't able to select the interactable.
+            interactable1.selectFilters.Add(new XRSelectFilterDelegate((interactor, interactable) => !ReferenceEquals(interactor, subGroup2MemberInteractor)));
+            subGroup2MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup2MemberInteractor.hasHover, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // Now 2 should override 1 since it can select the interactable.
+            interactable1.selectFilters.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.hasHover, Is.False);
+            Assert.That(subGroup2MemberInteractor.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup2MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup2MemberInteractor));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideSubGroupSelect()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateGroupWithEmptyGroups(
+                out var subGroup1, out var subGroup2, out var subGroup3);
+
+            var subGroup1MemberInteractor = TestUtilities.CreateMockInteractor();
+            var subGroup2MemberInteractor = TestUtilities.CreateMockInteractor();
+            var subGroup3MemberInteractor = TestUtilities.CreateMockInteractor();
+            subGroup1MemberInteractor.allowHover = false;
+            subGroup2MemberInteractor.allowHover = false;
+            subGroup3MemberInteractor.allowHover = false;
+            subGroup1MemberInteractor.keepSelectedTargetValid = false;
+            subGroup2MemberInteractor.keepSelectedTargetValid = false;
+            subGroup3MemberInteractor.keepSelectedTargetValid = false;
+            subGroup1.AddGroupMember(subGroup1MemberInteractor);
+            subGroup2.AddGroupMember(subGroup2MemberInteractor);
+            subGroup3.AddGroupMember(subGroup3MemberInteractor);
+
+            group.AddInteractionOverrideForGroupMember(subGroup1, subGroup2);
+            group.AddInteractionOverrideForGroupMember(subGroup1, subGroup3);
+
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            subGroup1MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // Trigger a change in selectability for an override group. It should not yet override because it cannot select
+            // the interactable that is currently selected.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            subGroup3MemberInteractor.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // 3 is able to select the selected interactable now, so it should override.
+            subGroup3MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.hasSelection, Is.False);
+            Assert.That(subGroup3MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.IsSelecting(interactable2), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup3MemberInteractor));
+
+            subGroup3MemberInteractor.validTargets.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(subGroup3MemberInteractor.hasSelection, Is.False);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup1MemberInteractor));
+
+            // Sub group 2 is now capable of selecting the selected interactable, so it should override.
+            subGroup2MemberInteractor.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(subGroup1MemberInteractor.hasSelection, Is.False);
+            Assert.That(subGroup2MemberInteractor.IsSelecting(interactable1), Is.True);
+            Assert.That(group.activeInteractor, Is.EqualTo(subGroup2MemberInteractor));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideHoverWithinSubGroup()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var subGroup = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            memberInteractor1.keepSelectedTargetValid = false;
+            memberInteractor2.keepSelectedTargetValid = false;
+            memberInteractor3.keepSelectedTargetValid = false;
+
+            group.AddGroupMember(subGroup);
+
+            subGroup.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+
+            // Make the interactable not selectable by the first interactor, to make sure override can occur when only hover is happening.
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            interactable1.selectFilters.Add(new XRSelectFilterDelegate((interactor, interactable) => !ReferenceEquals(interactor, memberInteractor1)));
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor1));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for an override interactor. It should not yet override because it cannot select
+            // the interactable that is currently hovered.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor2.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasHover, Is.False);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor1));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // 2 should override since it can select the hovered interactable now.
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasHover, Is.False);
+            Assert.That(memberInteractor2.IsHovering(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsHovering(interactable2), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable2), Is.True);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor2));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+        }
+
+        [UnityTest]
+        public IEnumerator OverrideSelectWithinSubGroup()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var subGroup = TestUtilities.CreateGroupWithMockInteractors(
+                out var memberInteractor1, out var memberInteractor2, out var memberInteractor3);
+
+            memberInteractor1.allowHover = false;
+            memberInteractor2.allowHover = false;
+            memberInteractor3.allowHover = false;
+            memberInteractor1.keepSelectedTargetValid = false;
+            memberInteractor2.keepSelectedTargetValid = false;
+            memberInteractor3.keepSelectedTargetValid = false;
+
+            group.AddGroupMember(subGroup);
+
+            subGroup.AddInteractionOverrideForGroupMember(memberInteractor1, memberInteractor2);
+
+            var interactable1 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor1.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor1));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // Trigger a change in selectability for an override interactor. It should not yet override because it cannot select
+            // the interactable that is currently selected.
+            var interactable2 = TestUtilities.CreateMultiSelectableSimpleInteractable();
+            memberInteractor2.validTargets.Add(interactable2);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.hasSelection, Is.False);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor1));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor1));
+
+            // 2 is able to select the selected interactable now, so it should override.
+            memberInteractor2.validTargets.Add(interactable1);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(memberInteractor1.hasSelection, Is.False);
+            Assert.That(memberInteractor2.IsSelecting(interactable1), Is.True);
+            Assert.That(memberInteractor2.IsSelecting(interactable2), Is.True);
+            Assert.That(subGroup.activeInteractor, Is.EqualTo(memberInteractor2));
+            Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
+        }
+
         /// <summary>
         /// An <see cref="IXRGroupMember"/> that is not also a <see cref="IXRInteractor"/> or <see cref="IXRInteractionGroup"/>.
         /// </summary>
@@ -1470,6 +2268,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             public IXRInteractionGroup containingGroup { get; }
             public void OnRegisteringAsGroupMember(IXRInteractionGroup group) { }
             public void OnRegisteringAsNonGroupMember() { }
+        }
+
+        /// <summary>
+        /// An <see cref="IXRGroupMember"/> that is not also a <see cref="IXRSelectInteractor"/> or <see cref="IXRInteractionOverrideGroup"/>.
+        /// </summary>
+        class InvalidInteractionOverride : IXRGroupMember, IXRInteractor
+        {
+            // ReSharper disable UnassignedGetOnlyAutoProperty -- Not needed for test, class used to cause error
+            public IXRInteractionGroup containingGroup { get; }
+            public InteractionLayerMask interactionLayers { get; }
+            public Transform transform { get; }
+            // ReSharper restore UnassignedGetOnlyAutoProperty
+
+            // Not needed for test, class used to cause error
+#pragma warning disable 67
+            public event Action<InteractorRegisteredEventArgs> registered;
+            public event Action<InteractorUnregisteredEventArgs> unregistered;
+#pragma warning restore 67
+
+            public void OnRegisteringAsGroupMember(IXRInteractionGroup group) { }
+            public void OnRegisteringAsNonGroupMember() { }
+            public Transform GetAttachTransform(IXRInteractable interactable) { return null; }
+            public void GetValidTargets(List<IXRInteractable> targets) { }
+            public void OnRegistered(InteractorRegisteredEventArgs args) { }
+            public void OnUnregistered(InteractorUnregisteredEventArgs args) { }
+            public void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase) { }
+            public void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase) { }
         }
     }
 }

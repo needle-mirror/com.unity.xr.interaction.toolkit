@@ -1,10 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+#if BURST_PRESENT
+using Unity.Burst;
+#endif
+using Unity.Collections;
+using Unity.Mathematics;
+using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
-using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
+
+#if AR_FOUNDATION_PRESENT
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.AR;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -15,7 +28,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
-    public partial class XRRayInteractor : XRBaseControllerInteractor, ILineRenderable, IUIInteractor
+#if AR_FOUNDATION_PRESENT
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractor, IXRRayProvider, IARInteractor
+#else
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractor, IXRRayProvider
+#endif
     {
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
@@ -176,7 +193,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Transform rayOriginTransform
         {
             get => m_RayOriginTransform;
-            set => m_RayOriginTransform = value;
+            set
+            {
+                m_RayOriginTransform = value;
+                m_HasRayOriginTransform = m_RayOriginTransform != null;
+            }
         }
 
         [SerializeField]
@@ -191,7 +212,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public Transform referenceFrame
         {
             get => m_ReferenceFrame;
-            set => m_ReferenceFrame = value;
+            set
+            {
+                m_ReferenceFrame = value;
+                m_HasReferenceFrame = m_ReferenceFrame != null;
+            }
         }
 
         [SerializeField]
@@ -556,6 +581,81 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_AnchorRotationMode = value;
         }
 
+        [SerializeField]
+        UIHoverEnterEvent m_UIHoverEntered = new UIHoverEnterEvent();
+
+        /// <inheritdoc />
+        public UIHoverEnterEvent uiHoverEntered
+        {
+            get => m_UIHoverEntered;
+            set => m_UIHoverEntered = value;
+        }
+
+        [SerializeField]
+        UIHoverExitEvent m_UIHoverExited = new UIHoverExitEvent();
+
+        /// <inheritdoc />
+        public UIHoverExitEvent uiHoverExited
+        {
+            get => m_UIHoverExited;
+            set => m_UIHoverExited = value;
+        }
+
+        [SerializeField]
+        bool m_EnableARRaycasting;
+
+        /// <summary>
+        /// Gets or sets whether this interactor is able to raycast against AR environment trackables.
+        /// </summary>
+        public bool enableARRaycasting
+        {
+            get => m_EnableARRaycasting;
+            set => m_EnableARRaycasting = value;
+        }
+
+        [SerializeField]
+        bool m_OccludeARHitsWith3DObjects;
+
+        /// <summary>
+        /// Gets or sets whether AR raycast hits will be occluded by 3D objects.
+        /// </summary>
+        public bool occludeARHitsWith3DObjects
+        {
+            get => m_OccludeARHitsWith3DObjects;
+            set => m_OccludeARHitsWith3DObjects = value;
+        }
+
+        [SerializeField]
+        bool m_OccludeARHitsWith2DObjects;
+
+        /// <summary>
+        /// Gets or sets whether AR raycast hits will be occluded by 2D objects such as UI.
+        /// </summary>
+        public bool occludeARHitsWith2DObjects
+        {
+            get => m_OccludeARHitsWith2DObjects;
+            set => m_OccludeARHitsWith2DObjects = value;
+        }
+
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+        //Once other trackables are supported, this will become a serialized field.
+        TrackableType m_TrackableType = TrackableType.PlaneWithinPolygon;
+
+        /// <summary>
+        /// The <see cref="ARTrackable"/> types that will taken into consideration with the performed <see cref="ARRaycast"/>. 
+        /// </summary>
+        public TrackableType trackableType
+        {
+            get => m_TrackableType;
+            set => m_TrackableType = value;
+        }
+
+        /// <summary>
+        /// Cached reference to an <see cref="ARRaycastManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
+        /// </summary>
+        static ARRaycastManager s_ARRaycastManagerCache;
+#endif
+
         /// <summary>
         /// The launch angle of the Projectile Curve.
         /// More specifically, this is the signed angle in degrees between the original attach forward
@@ -565,12 +665,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get
             {
-                var castForward = effectiveRayOrigin.forward;
-                var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
-                var projectedForward = Vector3.ProjectOnPlane(castForward, up);
-                return Mathf.Approximately(Vector3.Angle(castForward, projectedForward), 0f)
-                    ? 0f
-                    : Vector3.SignedAngle(castForward, projectedForward, Vector3.Cross(up, castForward));
+                GetLineOriginAndDirection(out _, out var lineDirection);
+                return GetProjectileAngle(lineDirection);
             }
         }
 
@@ -583,29 +679,94 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         protected IXRInteractable currentNearestValidTarget { get; private set; }
 
-        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
+        /// <inheritdoc />
+        public Vector3 rayEndPoint { get; private set; }
+
+        /// <inheritdoc />
+        public Transform rayEndTransform { get; private set; }
 
         /// <summary>
         /// The starting position and direction of any ray casts.
         /// Safe version of <see cref="rayOriginTransform"/>, falls back to this Transform if not set.
         /// </summary>
-        Transform effectiveRayOrigin => m_RayOriginTransform != null ? m_RayOriginTransform : transform;
+        Transform effectiveRayOrigin => m_HasRayOriginTransform ? m_RayOriginTransform : transform;
 
+        Vector3 referenceUp => m_HasReferenceFrame ? m_ReferenceFrame.up : Vector3.up;
+
+        Vector3 referencePosition => m_HasReferenceFrame ? m_ReferenceFrame.position : Vector3.zero;
+
+        bool m_HasRayOriginTransform;
+        bool m_HasReferenceFrame;
+
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+         /// <summary>
+        /// The closest index of the sample endpoint where a 3D, UI or AR hit occurred.
+        /// </summary>
+        int closestAnyHitIndex  
+        {
+            get
+            {
+                if (m_RaycastHitEndpointIndex > 0 && m_UIRaycastHitEndpointIndex > 0 && m_ARRaycastHitEndpointIndex > 0)
+                {
+                    return Math.Min(m_RaycastHitEndpointIndex, Math.Min(m_UIRaycastHitEndpointIndex, m_ARRaycastHitEndpointIndex));
+                }
+                else if (m_RaycastHitEndpointIndex > 0 && m_UIRaycastHitEndpointIndex > 0)
+                {
+                    return Mathf.Min(m_RaycastHitEndpointIndex, m_UIRaycastHitEndpointIndex);
+                }
+                else if (m_RaycastHitEndpointIndex > 0 && m_ARRaycastHitEndpointIndex > 0)
+                {
+                    return Mathf.Min(m_RaycastHitEndpointIndex, m_ARRaycastHitEndpointIndex);
+                }
+                else if (m_UIRaycastHitEndpointIndex > 0 && m_ARRaycastHitEndpointIndex > 0)
+                {
+                    return Mathf.Min(m_UIRaycastHitEndpointIndex, m_ARRaycastHitEndpointIndex);
+                }
+                else if (m_RaycastHitEndpointIndex > 0)
+                {
+                    return m_RaycastHitEndpointIndex;
+                }
+                else if (m_UIRaycastHitEndpointIndex > 0)
+                {
+                    return m_UIRaycastHitEndpointIndex;
+                }
+                else if (m_ARRaycastHitEndpointIndex > 0)
+                {
+                    return m_ARRaycastHitEndpointIndex;
+                }
+               
+                return 0;
+            }
+        }
+#else
         /// <summary>
         /// The closest index of the sample endpoint where a 3D or UI hit occurred.
         /// </summary>
         int closestAnyHitIndex => (m_RaycastHitEndpointIndex > 0 && m_UIRaycastHitEndpointIndex > 0) // Are both valid?
             ? Mathf.Min(m_RaycastHitEndpointIndex, m_UIRaycastHitEndpointIndex) // When both are valid, return the closer one
             : (m_RaycastHitEndpointIndex > 0 ? m_RaycastHitEndpointIndex : m_UIRaycastHitEndpointIndex); // Otherwise return the valid one
+#endif
+        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
         float m_LastTimeHoveredObjectChanged;
         bool m_PassedHoverTimeToSelect;
         float m_LastTimeAutoSelected;
         bool m_PassedTimeToAutoDeselect;
 
+        GameObject m_LastUIObject;
+        float m_LastTimeHoveredUIChanged;
+        bool m_HoverUISelectActive;
+        bool m_BlockUIAutoDeselect;
+
         readonly RaycastHit[] m_RaycastHits = new RaycastHit[k_MaxRaycastHits];
         int m_RaycastHitsCount;
         readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
+
+#if AR_FOUNDATION_PRESENT 
+        int m_ARRaycastHitsCount;
+        int m_ARRaycastHitEndpointIndex;
+        readonly List<ARRaycastHit> m_ARRaycastHits = new List<ARRaycastHit>();
+#endif
 
         /// <summary>
         /// A polygonal chain represented by a list of endpoints which form line segments
@@ -639,12 +800,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="endPointHeight"/>
         /// <seealso cref="controlPointDistance"/>
         /// <seealso cref="controlPointHeight"/>
-        readonly Vector3[] m_ControlPoints = new Vector3[3];
+        readonly float3[] m_ControlPoints = new float3[3];
 
         /// <summary>
         /// Control points to calculate the equivalent quadratic Bezier curve to the endpoint where a hit occurred.
         /// </summary>
-        readonly Vector3[] m_HitChordControlPoints = new Vector3[3];
+        readonly float3[] m_HitChordControlPoints = new float3[3];
 
         /// <summary>
         /// Reusable list to hold the current sample points.
@@ -654,19 +815,55 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Reusable array to hold the current control points for a quadratic Bezier curve.
         /// </summary>
-        static readonly Vector3[] s_ScratchControlPoints = new Vector3[3];
+        static readonly float3[] s_ScratchControlPoints = new float3[3];
 
         PhysicsScene m_LocalPhysicsScene;
 
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
+
+        // Cached raycast data
+        bool m_RaycastHitOccurred;
+        RaycastHit m_RaycastHit;
+        RaycastResult m_UIRaycastHit;
+        bool m_IsUIHitClosest;
+        IXRInteractable m_RaycastInteractable;
+#if AR_FOUNDATION_PRESENT 
+        ARRaycastHit m_ARRaycastHit;
+        bool m_IsARHitClosest;
+#endif
+
+        // Cached controller types
+        ActionBasedController m_ActionBasedController;
+        XRController m_DeviceBasedController;
+        XRScreenSpaceController m_ScreenSpaceController;
+        bool m_IsActionBasedController;
+        bool m_IsDeviceBasedController;
+        bool m_IsScreenSpaceController;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void OnValidate()
         {
+            m_HasRayOriginTransform = m_RayOriginTransform != null;
+            m_HasReferenceFrame = m_ReferenceFrame != null;
             m_SampleFrequency = SanitizeSampleFrequency(m_SampleFrequency);
             m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+        }
+
+        /// <inheritdoc />
+        private protected override void OnXRControllerChanged()
+        {
+            base.OnXRControllerChanged();
+
+            m_ActionBasedController = xrController as ActionBasedController;
+            m_IsActionBasedController = m_ActionBasedController != null;
+
+            m_DeviceBasedController = xrController as XRController;
+            m_IsDeviceBasedController = m_ActionBasedController != null;
+
+            m_ScreenSpaceController = xrController as XRScreenSpaceController;
+            m_IsScreenSpaceController = m_ActionBasedController != null;
         }
 
         /// <inheritdoc />
@@ -681,6 +878,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             FindReferenceFrame();
             CreateRayOrigin();
+
+#if AR_FOUNDATION_PRESENT
+            FindCreateARRaycastManager();
+#endif
         }
 
         /// <inheritdoc />
@@ -730,6 +931,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 Gizmos.DrawLine(uiRaycastResult.worldPosition, uiRaycastResult.worldPosition + uiRaycastResult.worldNormal.normalized * length);
             }
 
+#if AR_FOUNDATION_PRESENT 
+            if (TryGetCurrentARRaycastHit(out var arRaycastHit))
+            {
+                // Draw the normal of the surface at the hit point
+                Gizmos.color = new Color(58 / 255f, 122 / 255f, 248 / 255f, 237 / 255f);
+                const float length = 0.075f;
+                Gizmos.DrawLine(arRaycastHit.pose.position, arRaycastHit.pose.position + arRaycastHit.pose.up * length);
+            }
+#endif
             var hitIndex = closestAnyHitIndex;
 
             // Draw sample points where the ray cast line segments took place
@@ -794,7 +1004,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="referenceFrame"/>
         void FindReferenceFrame()
         {
-            if (m_ReferenceFrame != null)
+            m_HasReferenceFrame = m_ReferenceFrame != null;
+            if (m_HasReferenceFrame)
                 return;
 
             var xrOrigin = FindObjectOfType<XROrigin>();
@@ -804,6 +1015,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (origin != null)
                 {
                     m_ReferenceFrame = origin.transform;
+                    m_HasReferenceFrame = true;
                 }
                 else
                 {
@@ -818,21 +1030,58 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void CreateRayOrigin()
         {
-            if (m_RayOriginTransform == null)
+            m_HasRayOriginTransform = m_RayOriginTransform != null;
+            if (m_HasRayOriginTransform)
+                return;
+
+            m_RayOriginTransform = new GameObject($"[{gameObject.name}] Ray Origin").transform;
+            m_HasRayOriginTransform = true;
+            m_RayOriginTransform.SetParent(transform, false);
+
+            if (attachTransform == null)
+                CreateAttachTransform();
+
+            // Keep the position value seen in the Inspector tidier
+            if (attachTransform == null)
             {
-                m_RayOriginTransform = new GameObject($"[{gameObject.name}] Ray Origin").transform;
-                m_RayOriginTransform.SetParent(transform, false);
-                if (attachTransform != null)
-                {
-                    m_RayOriginTransform.position = attachTransform.position;
-                    m_RayOriginTransform.rotation = attachTransform.rotation;
-                }
-                else
-                {
-                    m_RayOriginTransform.localPosition = Vector3.zero;
-                    m_RayOriginTransform.localRotation = Quaternion.identity;
-                }
+                m_RayOriginTransform.localPosition = Vector3.zero;
+                m_RayOriginTransform.localRotation = Quaternion.identity;
             }
+            else if (attachTransform.parent == transform)
+            {
+                m_RayOriginTransform.localPosition = attachTransform.localPosition;
+                m_RayOriginTransform.localRotation = attachTransform.localRotation;
+            }
+            else
+            {
+                m_RayOriginTransform.SetPositionAndRotation(attachTransform.position, attachTransform.rotation);
+            }
+        }
+
+        /// <inheritdoc />
+        Transform IXRRayProvider.GetOrCreateRayOrigin()
+        {
+            CreateRayOrigin();
+            return m_RayOriginTransform;
+        }
+
+        /// <inheritdoc />
+        Transform IXRRayProvider.GetOrCreateAttachTransform()
+        {
+            CreateAttachTransform();
+            return attachTransform;
+        }
+
+        /// <inheritdoc />
+        void IXRRayProvider.SetRayOrigin(Transform newOrigin)
+        {
+            rayOriginTransform = newOrigin;
+        }
+
+        /// <inheritdoc />
+        void IXRRayProvider.SetAttachTransform(Transform newAttach)
+        {
+            attachTransform = newAttach;
         }
 
         /// <summary>
@@ -850,7 +1099,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        public bool GetLinePoints(ref Vector3[] linePoints, out int numPoints)
+        public bool GetLinePoints(ref NativeArray<Vector3> linePoints, out int numPoints, Ray? rayOriginOverride = null)
         {
             if (m_SamplePoints == null || m_SamplePoints.Count < 2)
             {
@@ -858,13 +1107,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return false;
             }
 
+            NativeArray<float3> linePointsAsFloat;
+
             if (!m_BlendVisualLinePoints)
             {
                 numPoints = m_SamplePoints.Count;
                 EnsureCapacity(ref linePoints, numPoints);
+                linePointsAsFloat = linePoints.Reinterpret<float3>();
 
                 for (var i = 0; i < numPoints; ++i)
-                    linePoints[i] = m_SamplePoints[i].position;
+                    linePointsAsFloat[i] = m_SamplePoints[i].position;
 
                 return true;
             }
@@ -873,37 +1125,39 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // of sample points may be different as the controller moves. Recompute the current
             // positions of sample points.
             CreateSamplePointsListsIfNecessary();
-            UpdateSamplePoints(m_SamplePoints.Count, s_ScratchSamplePoints);
+            UpdateSamplePoints(m_SamplePoints.Count, s_ScratchSamplePoints, rayOriginOverride);
 
             if (m_LineType == LineType.StraightLine)
             {
                 numPoints = 2;
                 EnsureCapacity(ref linePoints, numPoints);
+                linePointsAsFloat = linePoints.Reinterpret<float3>();
 
-                linePoints[0] = s_ScratchSamplePoints[0].position;
-                linePoints[1] = m_SamplePoints[m_SamplePoints.Count - 1].position;
+                linePointsAsFloat[0] = s_ScratchSamplePoints[0].position;
+                linePointsAsFloat[1] = m_SamplePoints[m_SamplePoints.Count - 1].position;
 
                 return true;
             }
 
             // Recompute the equivalent Bezier curve.
             var hitIndex = closestAnyHitIndex;
-            CreateBezierCurve(s_ScratchSamplePoints, hitIndex, s_ScratchControlPoints);
+            CreateBezierCurve(s_ScratchSamplePoints, hitIndex, s_ScratchControlPoints, rayOriginOverride);
 
             // Blend between the current curve and the sample curve,
             // using the beginning of the current curve and the end of the sample curve.
             // Together it forms a new cubic Bezier curve with control points P₀, P₁, P₂, P₃.
-            ElevateQuadraticToCubicBezier(s_ScratchControlPoints[0], s_ScratchControlPoints[1], s_ScratchControlPoints[2],
+            CurveUtility.ElevateQuadraticToCubicBezier(s_ScratchControlPoints[0], s_ScratchControlPoints[1], s_ScratchControlPoints[2],
                 out var p0, out var p1, out _, out _);
-            ElevateQuadraticToCubicBezier(m_HitChordControlPoints[0], m_HitChordControlPoints[1], m_HitChordControlPoints[2],
+            CurveUtility.ElevateQuadraticToCubicBezier(m_HitChordControlPoints[0], m_HitChordControlPoints[1], m_HitChordControlPoints[2],
                 out _, out _, out var p2, out var p3);
 
             if (hitIndex > 0 && hitIndex != m_SamplePoints.Count - 1 && m_LineType == LineType.ProjectileCurve)
             {
                 numPoints = m_SamplePoints.Count;
                 EnsureCapacity(ref linePoints, numPoints);
+                linePointsAsFloat = linePoints.Reinterpret<float3>();
 
-                linePoints[0] = p0;
+                linePointsAsFloat[0] = p0;
 
                 // Sample from the blended cubic Bezier curve
                 // until the line segment endpoint where the hit occurred.
@@ -912,21 +1166,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Parametric parameter t where 0 ≤ t ≤ 1
                     var percent = i * interval;
-                    linePoints[i] = SampleCubicBezierPoint(p0, p1, p2, p3, percent);
+                    CurveUtility.SampleCubicBezierPoint(p0, p1, p2, p3, percent, out var point);
+                    linePointsAsFloat[i] = point;
                 }
 
                 // Use the original sample curve beyond that point.
                 for (var i = hitIndex + 1; i < m_SamplePoints.Count; ++i)
                 {
-                    linePoints[i] = m_SamplePoints[i].position;
+                    linePointsAsFloat[i] = m_SamplePoints[i].position;
                 }
             }
             else
             {
                 numPoints = m_SampleFrequency;
                 EnsureCapacity(ref linePoints, numPoints);
+                linePointsAsFloat = linePoints.Reinterpret<float3>();
 
-                linePoints[0] = p0;
+                linePointsAsFloat[0] = p0;
 
                 // Sample from the blended cubic Bezier curve
                 var interval = 1f / (m_SampleFrequency - 1);
@@ -934,17 +1190,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Parametric parameter t where 0 ≤ t ≤ 1
                     var percent = i * interval;
-                    linePoints[i] = SampleCubicBezierPoint(p0, p1, p2, p3, percent);
+                    CurveUtility.SampleCubicBezierPoint(p0, p1, p2, p3, percent, out var point);
+                    linePointsAsFloat[i] = point;
                 }
             }
 
             return true;
         }
 
-        static void EnsureCapacity(ref Vector3[] linePoints, int numPoints)
+        /// <inheritdoc />
+        public bool GetLinePoints(ref Vector3[] linePoints, out int numPoints)
         {
-            if (linePoints == null || linePoints.Length < numPoints)
-                linePoints = new Vector3[numPoints];
+            if (linePoints == null)
+            {
+                linePoints = Array.Empty<Vector3>();
+            }
+
+            var tempNativeArray = new NativeArray<Vector3>(linePoints, Allocator.Temp);
+            var getLinePointsSuccessful = GetLinePoints(ref tempNativeArray, out numPoints);
+
+            // Resize line points array to match destination target
+            var tempArrayLength = tempNativeArray.Length;
+            if (linePoints.Length != tempArrayLength)
+            {
+                linePoints = new Vector3[tempArrayLength];
+            }
+
+            // Move point data back into line points
+            tempNativeArray.CopyTo(linePoints);
+            tempNativeArray.Dispose();
+
+            return getLinePointsSuccessful;
+        }
+
+        /// <inheritdoc />
+        public void GetLineOriginAndDirection(out Vector3 origin, out Vector3 direction) =>
+            GetLineOriginAndDirection(effectiveRayOrigin, out origin, out direction);
+
+        void GetLineOriginAndDirection(Ray? rayOriginOverride, out Vector3 origin, out Vector3 direction)
+        {
+            if (rayOriginOverride.HasValue)
+            {
+                var ray = rayOriginOverride.Value;
+                origin = ray.origin;
+                direction = ray.direction;
+            }
+            else
+            {
+                GetLineOriginAndDirection(out origin, out direction);
+            }
+        }
+
+        static void GetLineOriginAndDirection(Transform rayOrigin, out Vector3 origin, out Vector3 direction)
+        {
+            origin = rayOrigin.position;
+            direction = rayOrigin.forward;
+        }
+
+        static void EnsureCapacity(ref NativeArray<Vector3> linePoints, int numPoints)
+        {
+            if (linePoints.IsCreated && linePoints.Length < numPoints)
+            {
+                linePoints.Dispose();
+                linePoints = new NativeArray<Vector3>(numPoints, Allocator.Persistent);
+            }
+            else if (!linePoints.IsCreated)
+            {
+                linePoints = new NativeArray<Vector3>(numPoints, Allocator.Persistent);
+            }
         }
 
         /// <inheritdoc />
@@ -990,15 +1303,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public virtual void UpdateUIModel(ref TrackedDeviceModel model)
         {
-            if (!isActiveAndEnabled || m_SamplePoints == null || this.IsBlockedByInteractionWithinGroup())
+            if (!isActiveAndEnabled || m_SamplePoints == null ||
+                // If selecting interactables, don't update UI model.
+                interactablesSelected.Count > 0 
+                || this.IsBlockedByInteractionWithinGroup())
             {
                 model.Reset(false);
                 return;
             }
 
-            model.position = effectiveRayOrigin.position;
-            model.orientation = effectiveRayOrigin.rotation;
+            GetLineOriginAndDirection(out var lineOrigin, out var lineDirection);
+
+            model.position = lineOrigin;
+            model.orientation = Quaternion.LookRotation(lineDirection);
             model.select = isUISelectActive;
+            model.scrollDelta = uiScrollValue;
             model.raycastLayerMask = m_RaycastMask;
             model.interactionType = UIInteractionType.Ray;
 
@@ -1080,6 +1399,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return false;
         }
 
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+        /// <inheritdoc cref="TryGetCurrentARRaycastHit(out ARRaycastHit, out int)"/>
+        public bool TryGetCurrentARRaycastHit(out ARRaycastHit raycastHit)
+        {
+            return TryGetCurrentARRaycastHit(out raycastHit, out _);
+        }
+        
+        /// <summary>
+        /// Gets the first AR ray cast hit, if any ray cast hits are available.
+        /// </summary>
+        /// <param name="raycastHit">When this method returns, contains the ray cast hit if available; otherwise, the default value.</param>
+        /// <param name="raycastEndpointIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
+        /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
+        /// <returns>Returns <see langword="true"/> if a hit occurred, implying the ray cast hit information is valid.
+        /// Otherwise, returns <see langword="false"/>.</returns>
+        public bool TryGetCurrentARRaycastHit(out ARRaycastHit raycastHit, out int raycastEndpointIndex)
+        {
+            if (m_ARRaycastHitsCount > 0)
+            {
+                Assert.IsTrue(m_ARRaycastHits.Count >= m_ARRaycastHitsCount);
+                raycastHit = m_ARRaycastHits[0];
+                raycastEndpointIndex = m_ARRaycastHitEndpointIndex;
+                return true;
+            }
+
+            raycastHit = default;
+            raycastEndpointIndex = default;
+            return false;
+        }
+#endif
+
         /// <summary>
         /// Gets the first 3D and UI ray cast hits, if any ray cast hits are available.
         /// </summary>
@@ -1099,127 +1449,191 @@ namespace UnityEngine.XR.Interaction.Toolkit
             out int uiRaycastHitIndex,
             out bool isUIHitClosest)
         {
-            raycastHit = default;
-            uiRaycastHit = default;
-            isUIHitClosest = default;
+            raycastHit = m_RaycastHit;
+            raycastHitIndex = m_RaycastHitEndpointIndex;
+            uiRaycastHit = m_UIRaycastHit;
+            uiRaycastHitIndex = m_UIRaycastHitEndpointIndex;
+            isUIHitClosest = m_IsUIHitClosest;
 
-            var hitOccurred = false;
+            return m_RaycastHitOccurred;
+        }
+
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+        /// <summary>
+        /// Gets the first 3D, AR and UI ray cast hits, if any ray cast hits are available.
+        /// </summary>
+        /// <param name="raycastHit">When this method returns, contains the ray cast hit if available; otherwise, the default value.</param>
+        /// <param name="raycastHitIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
+        /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
+        /// <param name="uiRaycastHit">When this method returns, contains the UI ray cast result if available; otherwise, the default value.</param>
+        /// <param name="uiRaycastHitIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
+        /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
+        /// <param name="isUIHitClosest">When this method returns, contains whether the UI ray cast result was the closest hit.</param>
+        /// <param name="arRaycastHit">When this method returns, contains the AR ray cast hit if available; otherwise, the default value.</param>
+        /// <param name="isARHitClosest">When this method returns, contains whether the AR ray cast result was the closest hit.</param>
+        /// <returns>Returns <see langword="true"/> if either hit occurred, implying the ray cast hit information is valid.
+        /// Otherwise, returns <see langword="false"/>.</returns>
+        public bool TryGetCurrentRaycast(
+            out RaycastHit? raycastHit,
+            out int raycastHitIndex,
+            out RaycastResult? uiRaycastHit,
+            out int uiRaycastHitIndex,
+            out bool isUIHitClosest,
+            out ARRaycastHit? arRaycastHit,
+            out int arRaycastHitIndex,
+            out bool isARHitClosest)
+        {
+            raycastHit = m_RaycastHit;
+            raycastHitIndex = m_RaycastHitEndpointIndex;
+            uiRaycastHit = m_UIRaycastHit;
+            uiRaycastHitIndex = m_UIRaycastHitEndpointIndex;
+            isUIHitClosest = m_IsUIHitClosest;
+            arRaycastHit = m_ARRaycastHit;
+            arRaycastHitIndex = m_ARRaycastHitEndpointIndex;
+            isARHitClosest = m_IsARHitClosest;
+
+            return m_RaycastHitOccurred;
+        }
+#endif
+
+        /// <summary>
+        /// Gets the first 3D and UI ray cast hits and caches them for further lookup, if any ray cast hits are available.
+        /// </summary>
+        void CacheRaycastHit()
+        {
+            m_RaycastHit = default;
+            m_UIRaycastHit = default;
+
+#if AR_FOUNDATION_PRESENT 
+            m_ARRaycastHit = default;
+            m_IsARHitClosest = default;
+
+#endif            
+            m_IsUIHitClosest = default;
+
+            m_RaycastHitOccurred = false;
+            rayEndTransform = null;
+            m_RaycastInteractable = null;
 
             var hitIndex = int.MaxValue;
             var distance = float.MaxValue;
-            if (TryGetCurrent3DRaycastHit(out var raycastHitValue, out raycastHitIndex))
+            if (TryGetCurrent3DRaycastHit(out var raycastHitValue, out var raycastHitIndex))
             {
-                raycastHit = raycastHitValue;
+                m_RaycastHit = raycastHitValue;
                 hitIndex = raycastHitIndex;
                 distance = raycastHitValue.distance;
 
-                hitOccurred = true;
+                m_RaycastHitOccurred = true;
             }
 
-            if (TryGetCurrentUIRaycastResult(out var raycastResultValue, out uiRaycastHitIndex))
+            if (TryGetCurrentUIRaycastResult(out var raycastResultValue, out m_UIRaycastHitEndpointIndex))
             {
-                uiRaycastHit = raycastResultValue;
+                m_UIRaycastHit = raycastResultValue;
 
                 // Determine if the UI hit is closer than the 3D hit.
                 // The ray cast segments are sourced from a polygonal chain of endpoints.
                 // Within each segment, this Interactor could have hit either a 3D object or a UI object.
                 // The distance is just from the segment start position, not from the origin of the whole curve.
-                isUIHitClosest = uiRaycastHitIndex > 0 &&
-                    (uiRaycastHitIndex < hitIndex || (uiRaycastHitIndex == hitIndex && raycastResultValue.distance <= distance));
+                m_IsUIHitClosest = m_UIRaycastHitEndpointIndex > 0 && (m_UIRaycastHitEndpointIndex < hitIndex || (m_UIRaycastHitEndpointIndex == hitIndex && raycastResultValue.distance <= distance));
 
-                hitOccurred = true;
+                m_RaycastHitOccurred = true;
             }
 
-            return hitOccurred;
+#if AR_FOUNDATION_PRESENT
+            if (TryGetCurrentARRaycastHit(out var arRaycastHitValue, out var arRaycastHitIndex))
+            {
+                m_ARRaycastHit = arRaycastHitValue;
+
+                if (m_IsUIHitClosest)
+                {
+                    m_IsARHitClosest = arRaycastHitIndex > 0 && (arRaycastHitIndex < m_UIRaycastHitEndpointIndex || (arRaycastHitIndex == m_UIRaycastHitEndpointIndex && arRaycastHitValue.distance <= raycastResultValue.distance));
+                    if (m_IsARHitClosest)
+                    {
+                        m_IsUIHitClosest = false;
+                    }
+                }
+                else
+                {
+                    m_IsARHitClosest = arRaycastHitIndex > 0 && (arRaycastHitIndex < hitIndex || (arRaycastHitIndex == hitIndex && arRaycastHitValue.distance <= distance));
+                }
+
+                m_RaycastHitOccurred = true;
+            }
+#endif
+            if (m_RaycastHitOccurred)
+            {
+                if (m_IsUIHitClosest)
+                {
+                    rayEndPoint = m_UIRaycastHit.worldPosition;
+                }
+ #if AR_FOUNDATION_PRESENT
+                else if (m_IsARHitClosest)
+                {
+                    rayEndPoint = arRaycastHitValue.pose.position;
+                }
+#endif
+                else
+                {
+                    rayEndPoint = m_RaycastHit.point;
+
+                    rayEndTransform = interactionManager.TryGetInteractableForCollider(m_RaycastHit.collider, out m_RaycastInteractable)
+                        ? m_RaycastInteractable.GetAttachTransform(this)
+                        : m_RaycastHit.transform;
+                }
+            }
+            else
+            {
+                UpdateSamplePointsIfNecessary();
+                rayEndPoint = m_SamplePoints[m_SamplePoints.Count - 1].position;
+            }
+        }
+
+        /// <summary>
+        /// If UI is being hovered, updates the selection flag to account for hovering over elements that need to be deselected (buttons) or elements that need to maintain selection (sliders).
+        /// </summary>
+        void UpdateUIHover()
+        {
+            var timeDelta = Time.time - m_LastTimeHoveredUIChanged;
+            if (m_IsUIHitClosest && timeDelta > m_HoverTimeToSelect && (timeDelta < (m_HoverTimeToSelect + m_TimeToAutoDeselect) || m_BlockUIAutoDeselect))
+                m_HoverUISelectActive = true;
+            else
+                m_HoverUISelectActive = false;
         }
 
         /// <summary>
         /// Calculates the quadratic Bezier control points used for <see cref="LineType.BezierCurve"/>.
         /// </summary>
-        void UpdateBezierControlPoints()
+        void UpdateBezierControlPoints(in float3 lineOrigin, in float3 lineDirection, in float3 curveReferenceUp)
         {
-            var forward = effectiveRayOrigin.forward;
-            var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
-            m_ControlPoints[0] = effectiveRayOrigin.position;
-            m_ControlPoints[1] = m_ControlPoints[0] + forward * m_ControlPointDistance + up * m_ControlPointHeight;
-            m_ControlPoints[2] = m_ControlPoints[0] + forward * m_EndPointDistance + up * m_EndPointHeight;
+            m_ControlPoints[0] = lineOrigin;
+            m_ControlPoints[1] = m_ControlPoints[0] + lineDirection * m_ControlPointDistance + curveReferenceUp * m_ControlPointHeight;
+            m_ControlPoints[2] = m_ControlPoints[0] + lineDirection * m_EndPointDistance + curveReferenceUp * m_EndPointHeight;
         }
 
-        static Vector3 SampleQuadraticBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, float t)
+        float GetProjectileAngle(Vector3 lineDirection)
         {
-            var u = 1f - t;   // (1 - t)
-            var uu = u * u;   // (1 - t)²
-            var tt = t * t;   // t²
-
-            // (1 - t)²P₀ + 2(1 - t)tP₁ + t²P₂ where 0 ≤ t ≤ 1
-            // u²P₀ + 2utP₁ + t²P₂
-            return (uu * p0) +
-                (2f * u * t * p1) +
-                (tt * p2);
+            var up = referenceUp;
+            var projectedForward = Vector3.ProjectOnPlane(lineDirection, up);
+            return Mathf.Approximately(Vector3.Angle(lineDirection, projectedForward), 0f)
+                ? 0f
+                : Vector3.SignedAngle(lineDirection, projectedForward, Vector3.Cross(up, lineDirection));
         }
 
-        static Vector3 SampleCubicBezierPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        void CalculateProjectileParameters(in float3 lineOrigin, in float3 lineDirection, out float3 initialVelocity, out float3 constantAcceleration, out float flightTime)
         {
-            var u = 1f - t;   // (1 - t)
-            var uu = u * u;   // (1 - t)²
-            var uuu = uu * u; // (1 - t)³
-            var tt = t * t;   // t²
-            var ttt = tt * t; // t³
+            initialVelocity = lineDirection * m_Velocity;
+            var referenceUpAsFloat3 = (float3)referenceUp;
+            var referencePositionAsFloat3 = (float3)referencePosition;
+            constantAcceleration = referenceUpAsFloat3 * -m_Acceleration;
+            var angleRad = math.sin(GetProjectileAngle(lineDirection) * Mathf.Deg2Rad);
 
-            // (1 - t)³P₀ + 3(1 - t)²tP₁ + 3(1 - t)t²P₂ + t³P₃ where 0 ≤ t ≤ 1
-            // u³P₀ + 3u²tP₁ + 3ut²P₂ + t³P₃
-            return (uuu * p0) +
-                (3f * uu * t * p1) +
-                (3f * u * tt * p2) +
-                (ttt * p3);
-        }
+            var projectedReferenceOffset = math.project(referencePositionAsFloat3 - lineOrigin, referenceUpAsFloat3);
+            var height = math.length(projectedReferenceOffset) + m_AdditionalGroundHeight;
 
-        static void ElevateQuadraticToCubicBezier(Vector3 p0, Vector3 p1, Vector3 p2, out Vector3 c0, out Vector3 c1, out Vector3 c2, out Vector3 c3)
-        {
-            // A Bezier curve of one degree can be reproduced by one of higher degree.
-            // Convert quadratic Bezier curve with control points P₀, P₁, P₂
-            // into a cubic Bezier curve with control points C₀, C₁, C₂, C₃.
-            // The end points remain the same.
-            c0 = p0;
-            c1 = p0 + (2f / 3f) * (p1 - p0);
-            c2 = p2 + (2f / 3f) * (p1 - p2);
-            c3 = p2;
-        }
-
-        static Vector3 SampleProjectilePoint(Vector3 initialPosition, Vector3 initialVelocity, Vector3 constantAcceleration, float time)
-        {
-            // Position of object in constant acceleration is:
-            // x(t) = x₀ + v₀t + 0.5at²
-            // where x₀ is the position at time 0,
-            // v₀ is the velocity vector at time 0,
-            // a is the constant acceleration vector
-            return initialPosition + initialVelocity * time + constantAcceleration * (0.5f * time * time);
-        }
-
-        void CalculateProjectileParameters(out Vector3 initialPosition, out Vector3 initialVelocity, out Vector3 constantAcceleration, out float flightTime)
-        {
-            initialPosition = effectiveRayOrigin.position;
-            initialVelocity = effectiveRayOrigin.forward * m_Velocity;
-            var up = m_ReferenceFrame != null ? m_ReferenceFrame.up : Vector3.up;
-            var referencePosition = m_ReferenceFrame != null ? m_ReferenceFrame.position : Vector3.zero;
-            constantAcceleration = up * -m_Acceleration;
-
-            // Vertical velocity component Vy = v₀sinθ
-            // When initial height = 0,
-            // Time of flight = 2(initial velocity)(sine of launch angle) / (acceleration) = 2v₀sinθ/g
-            // When initial height > 0,
-            // Time of flight = [Vy + √(Vy² + 2gh)] / g
-            // The additional flight time property is added.
-            var vy = m_Velocity * Mathf.Sin(angle * Mathf.Deg2Rad);
-            var height = Vector3.Project(referencePosition - initialPosition, up).magnitude + m_AdditionalGroundHeight;
-            if (height < 0f)
-                flightTime = m_AdditionalFlightTime;
-            else if (Mathf.Approximately(height, 0f))
-                flightTime = 2f * vy / m_Acceleration + m_AdditionalFlightTime;
-            else
-                flightTime = (vy + Mathf.Sqrt(vy * vy + 2f * m_Acceleration * height)) / m_Acceleration + m_AdditionalFlightTime;
-
-            flightTime = Mathf.Max(flightTime, 0f);
+            CurveUtility.CalculateProjectileFlightTime(m_Velocity, m_Acceleration, angleRad, height, m_AdditionalFlightTime, out flightTime);
         }
 
         static bool TryRead2DAxis(InputAction action, out Vector2 output)
@@ -1278,17 +1692,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (Mathf.Approximately(directionAmount, 0f))
                 return;
 
-            var originPosition = rayOrigin.position;
-            var originForward = rayOrigin.forward;
+            GetLineOriginAndDirection(rayOrigin, out var lineOrigin, out var lineDirection);
 
-            var resultingPosition = anchor.position + originForward * (directionAmount * m_TranslateSpeed * Time.deltaTime);
+            var resultingPosition = anchor.position + lineDirection * (directionAmount * m_TranslateSpeed * Time.deltaTime);
 
             // Check the delta between the origin position and the calculated position.
             // Clamp so it doesn't go further back than the origin position.
-            var posInAttachSpace = resultingPosition - originPosition;
-            var dotResult = Vector3.Dot(posInAttachSpace, originForward);
+            var posInAttachSpace = resultingPosition - lineOrigin;
+            var dotResult = Vector3.Dot(posInAttachSpace, lineDirection);
 
-            anchor.position = dotResult > 0f ? resultingPosition : originPosition;
+            anchor.position = dotResult > 0f ? resultingPosition : lineOrigin;
         }
 
         /// <inheritdoc />
@@ -1303,7 +1716,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Perform ray casts and store the equivalent Bezier curve to the endpoint where a hit occurred (used for blending)
                     UpdateRaycastHits();
-                    UpdateUIHitIndex();
+                    CacheRaycastHit();
+                    UpdateUIHover();
                     CreateBezierCurve(m_SamplePoints, closestAnyHitIndex, m_HitChordControlPoints);
                 }
 
@@ -1349,11 +1763,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Update the pose of the attach point
                 if (m_AllowAnchorControl && hasSelection)
                 {
-                    var ctrl = xrController as XRController;
-                    if (ctrl != null && ctrl.inputDevice.isValid)
+                    if (m_IsDeviceBasedController && m_DeviceBasedController.inputDevice.isValid)
                     {
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectIn, out var inPressed, ctrl.axisToPressThreshold);
-                        ctrl.inputDevice.IsPressed(ctrl.moveObjectOut, out var outPressed, ctrl.axisToPressThreshold);
+                        m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.moveObjectIn, out var inPressed, m_DeviceBasedController.axisToPressThreshold);
+                        m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.moveObjectOut, out var outPressed, m_DeviceBasedController.axisToPressThreshold);
 
                         if (inPressed || outPressed)
                         {
@@ -1364,8 +1777,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         switch (m_AnchorRotationMode)
                         {
                             case AnchorRotationMode.RotateOverTime:
-                                ctrl.inputDevice.IsPressed(ctrl.rotateObjectLeft, out var leftPressed, ctrl.axisToPressThreshold);
-                                ctrl.inputDevice.IsPressed(ctrl.rotateObjectRight, out var rightPressed, ctrl.axisToPressThreshold);
+                                m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.rotateObjectLeft, out var leftPressed, m_DeviceBasedController.axisToPressThreshold);
+                                m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.rotateObjectRight, out var rightPressed, m_DeviceBasedController.axisToPressThreshold);
                                 if (leftPressed || rightPressed)
                                 {
                                     var directionAmount = leftPressed ? -1f : 1f;
@@ -1374,7 +1787,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                                 break;
 
                             case AnchorRotationMode.MatchDirection:
-                                if (ctrl.inputDevice.TryReadAxis2DValue(ctrl.directionalAnchorRotation, out var directionalValue))
+                                if (m_DeviceBasedController.inputDevice.TryReadAxis2DValue(m_DeviceBasedController.directionalAnchorRotation, out var directionalValue))
                                 {
                                     var referenceRotation = m_AnchorRotateReferenceFrame != null
                                         ? m_AnchorRotateReferenceFrame.rotation
@@ -1390,18 +1803,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         }
                     }
 
-                    var actionBasedController = xrController as ActionBasedController;
-                    if (actionBasedController != null)
+                    if (m_IsActionBasedController)
                     {
                         switch (m_AnchorRotationMode)
                         {
                             case AnchorRotationMode.RotateOverTime:
-                                if (TryRead2DAxis(actionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                                if (TryRead2DAxis(m_ActionBasedController.rotateAnchorAction.action, out var rotateAmt))
                                     RotateAnchor(attachTransform, rotateAmt.x);
                                 break;
 
                             case AnchorRotationMode.MatchDirection:
-                                if (TryRead2DAxis(actionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
+                                if (TryRead2DAxis(m_ActionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
                                 {
                                     var referenceRotation = m_AnchorRotateReferenceFrame != null
                                         ? m_AnchorRotateReferenceFrame.rotation
@@ -1412,13 +1824,44 @@ namespace UnityEngine.XR.Interaction.Toolkit
                                 break;
 
                             default:
-                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode}.");
+                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(ActionBasedController)}.");
                                 break;
                         }
 
-                        if (TryRead2DAxis(actionBasedController.translateAnchorAction.action, out var translateAmt))
+                        if (TryRead2DAxis(m_ActionBasedController.translateAnchorAction.action, out var translateAmt))
                         {
                             TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                        }
+                    }
+
+                    if (m_IsScreenSpaceController)
+                    {
+                        switch (m_AnchorRotationMode)
+                        {
+                            case AnchorRotationMode.MatchDirection:
+                                if (m_ScreenSpaceController.twistRotationDeltaAction.action !=  null && 
+                                    (m_ScreenSpaceController.twistRotationDeltaAction.action.phase == InputActionPhase.Started || m_ScreenSpaceController.twistRotationDeltaAction.action.phase == InputActionPhase.Performed))
+                                {
+                                    var deltaRotation = m_ScreenSpaceController.twistRotationDeltaAction.action.ReadValue<float>();
+                                    var rotationAmount = -deltaRotation;
+                                    RotateAnchor(attachTransform, rotationAmount);
+                                }
+                                else if (m_ScreenSpaceController.dragDeltaAction.action != null && 
+                                    (m_ScreenSpaceController.dragDeltaAction.action.phase == InputActionPhase.Started || m_ScreenSpaceController.dragDeltaAction.action.phase == InputActionPhase.Performed) &&
+                                    m_ScreenSpaceController.screenTouchCount.action.ReadValue<int>() > 1)
+                                {
+                                    var deltaRotation = m_ScreenSpaceController.dragDeltaAction.action.ReadValue<Vector2>();
+                                    var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(attachTransform.forward, Vector3.up));
+                                    var rotatedDelta = worldToVerticalOrientedDevice * attachTransform.rotation * deltaRotation;
+
+                                    var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * 50f;
+                                    RotateAnchor(attachTransform, rotationAmount);
+                                } 
+
+                                break;
+                            default:
+                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(XRScreenSpaceController)}.");
+                                break;
                         }
                     }
                 }
@@ -1505,15 +1948,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="count">The number of sample points to calculate.</param>
         /// <param name="samplePoints">The result list of sample points to populate.</param>
-        void UpdateSamplePoints(int count, List<SamplePoint> samplePoints)
+        /// <param name="rayOriginOverride">Optional ray origin override used when re-computing the line.</param>
+        void UpdateSamplePoints(int count, List<SamplePoint> samplePoints, Ray? rayOriginOverride = null)
         {
             Assert.IsTrue(count >= 2);
             Assert.IsNotNull(samplePoints);
 
+            GetLineOriginAndDirection(rayOriginOverride, out var lineOrigin, out var lineDirection);
+
             samplePoints.Clear();
             var samplePoint = new SamplePoint
             {
-                position = effectiveRayOrigin.position,
+                position = lineOrigin,
                 parameter = 0f,
             };
             samplePoints.Add(samplePoint);
@@ -1521,28 +1967,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
             switch (m_LineType)
             {
                 case LineType.StraightLine:
-                    samplePoint.position = samplePoints[0].position + effectiveRayOrigin.forward * m_MaxRaycastDistance;
+                    samplePoint.position = samplePoints[0].position + (float3)lineDirection * m_MaxRaycastDistance;
                     samplePoint.parameter = 1f;
                     samplePoints.Add(samplePoint);
                     break;
                 case LineType.ProjectileCurve:
                 {
-                    CalculateProjectileParameters(out var initialPosition, out var initialVelocity, out var constantAcceleration, out var flightTime);
+                    var initialPosition = (float3)lineOrigin;
+                    CalculateProjectileParameters(initialPosition, lineDirection, out var initialVelocity, out var constantAcceleration, out var flightTime);
 
                     var interval = flightTime / (count - 1);
                     for (var i = 1; i < count; ++i)
                     {
                         var time = i * interval;
-                        samplePoint.position = SampleProjectilePoint(initialPosition, initialVelocity, constantAcceleration, time);
+                        CurveUtility.SampleProjectilePoint(initialPosition, initialVelocity, constantAcceleration, time, out var position);
+                        samplePoint.position = position;
                         samplePoint.parameter = time;
                         samplePoints.Add(samplePoint);
                     }
-                }
                     break;
+                }
                 case LineType.BezierCurve:
                 {
                     // Update control points for Bezier curve
-                    UpdateBezierControlPoints();
+                    UpdateBezierControlPoints(lineOrigin, lineDirection, referenceUp);
                     var p0 = m_ControlPoints[0];
                     var p1 = m_ControlPoints[1];
                     var p2 = m_ControlPoints[2];
@@ -1552,12 +2000,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         // Parametric parameter t where 0 ≤ t ≤ 1
                         var percent = i * interval;
-                        samplePoint.position = SampleQuadraticBezierPoint(p0, p1, p2, percent);
+                        CurveUtility.SampleQuadraticBezierPoint(p0, p1, p2, percent, out var position);
+                        samplePoint.position = position;
                         samplePoint.parameter = percent;
                         samplePoints.Add(samplePoint);
                     }
-                }
                     break;
+                }
             }
         }
 
@@ -1569,17 +2018,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_RaycastHitsCount = 0;
             m_RaycastHitEndpointIndex = 0;
 
+            bool has3DHit = false;
+#if AR_FOUNDATION_PRESENT
+            bool hasARHit = false;
+
+            m_ARRaycastHitsCount = 0;
+            m_ARRaycastHitEndpointIndex = 0;
+#endif
             for (var i = 1; i < m_SamplePoints.Count; ++i)
             {
                 var fromPoint = m_SamplePoints[i - 1].position;
                 var toPoint = m_SamplePoints[i].position;
 
                 CheckCollidersBetweenPoints(fromPoint, toPoint);
-                if (m_RaycastHitsCount > 0)
+                if (m_RaycastHitsCount > 0 && !has3DHit) 
                 {
                     m_RaycastHitEndpointIndex = i;
+                    has3DHit = true;
+                }
+#if AR_FOUNDATION_PRESENT
+                if (m_ARRaycastHitsCount > 0)
+                {
+                    m_ARRaycastHitEndpointIndex = i;
+                    hasARHit = true;
+                }
+                if (has3DHit && (hasARHit || !enableARRaycasting))
+                {
                     break;
                 }
+#else 
+                if (has3DHit)
+                {
+                    break;
+                }
+#endif
             }
         }
 
@@ -1624,6 +2096,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Sorting is done after filtering above for performance.
                 SortingHelpers.Sort(m_RaycastHits, m_RaycastHitComparer, m_RaycastHitsCount);
             }
+
+#if AR_FOUNDATION_PRESENT
+            if (m_EnableARRaycasting)
+            {
+                m_ARRaycastHits.Clear();
+
+                if (s_ARRaycastManagerCache != null)
+                {
+                    var ray = new Ray(from, direction);
+                    s_ARRaycastManagerCache.Raycast(ray, m_ARRaycastHits, trackableType);
+                    m_ARRaycastHitsCount = m_ARRaycastHits.Count;
+                }
+            }
+#endif
         }
 
         static int FilterTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count, Func<XRInteractableSnapVolume, bool> removeRule)
@@ -1660,12 +2146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Array.Clear(array, count - 1, 1);
         }
 
-        void UpdateUIHitIndex()
-        {
-            TryGetCurrentUIRaycastResult(out _, out m_UIRaycastHitEndpointIndex);
-        }
-
-        void CreateBezierCurve(List<SamplePoint> samplePoints, int endSamplePointIndex, Vector3[] quadraticControlPoints)
+        void CreateBezierCurve(List<SamplePoint> samplePoints, int endSamplePointIndex, float3[] quadraticControlPoints, Ray? rayOriginOverride = null)
         {
             // Convert the ray cast curve ranging from the controller to the sample endpoint
             // where the hit occurred into a quadratic Bezier curve
@@ -1686,10 +2167,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     quadraticControlPoints[2] = p2;
                     break;
                 case LineType.ProjectileCurve:
-                    CalculateProjectileParameters(out _, out var initialVelocity, out var constantAcceleration, out _);
+                    GetLineOriginAndDirection(rayOriginOverride, out var lineOrigin, out var lineDirection);
+                    CalculateProjectileParameters(lineOrigin, lineDirection, out var initialVelocity, out var constantAcceleration, out _);
 
                     var midTime = 0.5f * endSamplePoint.parameter;
-                    var sampleMidTime = SampleProjectilePoint(p0, initialVelocity, constantAcceleration, midTime);
+                    CurveUtility.SampleProjectilePoint(p0, initialVelocity, constantAcceleration, midTime, out var sampleMidTime);
                     var p1 = midpoint + 2f * (sampleMidTime - midpoint);
 
                     quadraticControlPoints[0] = p0;
@@ -1697,7 +2179,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     quadraticControlPoints[2] = p2;
                     break;
                 case LineType.BezierCurve:
-                    Assert.IsTrue(m_ControlPoints[0] == p0);
                     quadraticControlPoints[0] = m_ControlPoints[0];
                     quadraticControlPoints[1] = m_ControlPoints[1];
                     quadraticControlPoints[2] = m_ControlPoints[2];
@@ -1716,6 +2197,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return base.isSelectActive;
             }
         }
+
+        /// <inheritdoc />
+        protected override bool isUISelectActive
+        { 
+            get
+            {
+                if (m_HoverToSelect && m_HoverUISelectActive)
+                    return allowSelect;
+
+                return base.isUISelectActive;
+            }
+        }
+        
 
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
@@ -1783,12 +2277,92 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 RestoreAttachTransform();
         }
 
+        /// <inheritdoc />
+        void IUIHoverInteractor.OnUIHoverEntered(UIHoverEventArgs args) => OnUIHoverEntered(args);
+
+        /// <inheritdoc />
+        void IUIHoverInteractor.OnUIHoverExited(UIHoverEventArgs args) => OnUIHoverExited(args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is being hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverExited(UIHoverEventArgs)"/>
+        protected virtual void OnUIHoverEntered(UIHoverEventArgs args)
+        {
+            // Our hovering logic is all based on time-hovered, so if the selected element has changed it all must be reset
+            var selectable = args.deviceModel.selectableObject;
+            if (m_LastUIObject != selectable)
+            {
+                m_LastUIObject = selectable;
+
+                if (selectable != null)
+                {
+                    m_LastTimeHoveredUIChanged = Time.time;
+                    m_BlockUIAutoDeselect = m_LastUIObject.GetComponent<Slider>() != null;
+                }
+                else
+                    m_BlockUIAutoDeselect = false;
+
+                m_HoverUISelectActive = false;
+            }
+
+            m_UIHoverEntered?.Invoke(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor ends hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is no longer hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverEntered(UIHoverEventArgs)"/>
+        protected virtual void OnUIHoverExited(UIHoverEventArgs args)
+        {
+            // We might be triggered an onHover of a child object, so don't reset in that case
+            var selectable = args.deviceModel.selectableObject;
+            if (m_LastUIObject != selectable)
+            {
+                m_LastUIObject = null;
+                m_LastTimeHoveredUIChanged = Time.time;
+                m_BlockUIAutoDeselect = false;
+                m_HoverUISelectActive = false;
+            }
+
+            m_UIHoverExited?.Invoke(args);
+        }
+
         void RestoreAttachTransform()
         {
             var pose = GetLocalAttachPoseOnSelect(firstInteractableSelected);
             attachTransform.localPosition = pose.position;
             attachTransform.localRotation = pose.rotation;
         }
+
+#if AR_FOUNDATION_PRESENT
+        void FindCreateARRaycastManager()
+        {
+            if (s_ARRaycastManagerCache == null)
+                s_ARRaycastManagerCache = FindObjectOfType<ARRaycastManager>();
+
+            if (s_ARRaycastManagerCache == null)
+            {
+                var origin = FindObjectOfType<XROrigin>();
+                if (origin != null)
+                {
+                    s_ARRaycastManagerCache = origin.gameObject.AddComponent<ARRaycastManager>();
+                }
+                else
+                {
+                    Debug.LogWarning($"{nameof(XROrigin)}.{nameof(XROrigin.Origin)} is not found. Add one by right-clicking on the Scene Hierarchy > XR > XR Origin.", this);
+                }
+            }
+        }
+#endif 
 
         static int SanitizeSampleFrequency(int value)
         {
@@ -1806,7 +2380,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// <summary>
             /// The world space position of the sample.
             /// </summary>
-            public Vector3 position { get; set; }
+            public float3 position { get; set; }
 
             /// <summary>
             /// For <see cref="LineType.ProjectileCurve"/>, this represents flight time at the sample.

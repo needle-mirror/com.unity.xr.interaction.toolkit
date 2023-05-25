@@ -1251,6 +1251,216 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(grabInteractable.ShouldSnapToColliderVolume(interactor), Is.False);
         }
 
+        [UnityTest]
+        public IEnumerator GrabbedObjectCannotCollideWithPlayer()
+        {
+            const float characterControllerRadius = 0.5f;
+            const float noOverlapDistance = 2f;
+            TestUtilities.CreateInteractionManager();
+            var characterControllerGO = new GameObject("Character Controller");
+            var characterController = characterControllerGO.AddComponent<CharacterController>();
+            characterController.radius = characterControllerRadius;
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.transform.SetParent(characterControllerGO.transform);
+
+            // Place object far enough from player so that it won't collide, and ensure object will jump directly to interactor on grab
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grabInteractableGO.name = "Grab Interactable";
+            var initialInteractablePosition = new Vector3(0f, 0f, characterControllerRadius + noOverlapDistance);
+            var grabInteractableTrans = grabInteractableGO.transform;
+            grabInteractableTrans.localPosition = initialInteractablePosition;
+            grabInteractableTrans.localRotation = Quaternion.identity;
+            var interactableCollider = grabInteractableGO.GetComponent<Collider>();
+            var rigidbody = grabInteractableGO.AddComponent<Rigidbody>();
+            rigidbody.useGravity = false;
+            var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
+            grabInteractable.useDynamicAttach = false;
+            grabInteractable.attachEaseInTime = 0f;
+            grabInteractable.smoothPosition = false;
+            var collisionCount = 0;
+            var collisionChecker = grabInteractableGO.AddComponent<CollisionChecker>();
+            collisionChecker.onCollisionEntered += collision =>
+            {
+                if (collision.collider == characterController)
+                    collisionCount++;
+            };
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(collisionCount, Is.EqualTo(0));
+
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+
+            // Wait for physics update after object is grabbed
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.True);
+            Assert.That(collisionCount, Is.EqualTo(0));
+
+            interactor.validTargets.Clear();
+            interactor.keepSelectedTargetValid = false;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+
+            // Wait for physics update after dropping object. Collision should then only be able to occur after the
+            // colliders have stopped overlapping.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(collisionCount, Is.EqualTo(0));
+
+            // Move player back so colliders stop overlapping
+            var moveCollisionFlags = characterController.Move(Vector3.back * noOverlapDistance);
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
+            Assert.That(moveCollisionFlags, Is.EqualTo(CollisionFlags.None));
+
+            // Wait for ignore collision state to reset, then try to move player forward enough to trigger collision
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(characterController.Move(grabInteractableTrans.position - characterControllerGO.transform.position), Is.Not.EqualTo(CollisionFlags.None));
+
+            // Move everything back to where it was, then explicitly ignore collision before grabbing again,
+            // to ensure collision is still ignored after
+            grabInteractableTrans.localPosition = initialInteractablePosition;
+            characterControllerGO.transform.localPosition = Vector3.zero;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Physics.IgnoreCollision(interactableCollider, characterController);
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+
+            // Wait for physics update after object is grabbed
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.True);
+            Assert.That(collisionCount, Is.EqualTo(0));
+
+            interactor.validTargets.Clear();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+
+            // Wait for physics update after dropping object
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Move player back and forward again. This time collision should not occur since the object was already set
+            // to ignore collision.
+            moveCollisionFlags = characterController.Move(Vector3.back * noOverlapDistance);
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
+            Assert.That(moveCollisionFlags, Is.EqualTo(CollisionFlags.None));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            moveCollisionFlags = characterController.Move(Vector3.forward * noOverlapDistance);
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.True);
+            Assert.That(moveCollisionFlags, Is.EqualTo(CollisionFlags.None));
+            Assert.That(collisionCount, Is.EqualTo(0));
+        }
+
+        [UnityTest]
+        public IEnumerator GrabbedObjectSelectedByAnotherInteractorCannotCollideWithPlayer()
+        {
+            const float characterControllerRadius = 0.5f;
+            TestUtilities.CreateInteractionManager();
+            var characterControllerGO = new GameObject("Character Controller");
+            var characterController = characterControllerGO.AddComponent<CharacterController>();
+            characterController.radius = characterControllerRadius;
+            var playerInteractor = TestUtilities.CreateMockInteractor();
+            playerInteractor.transform.SetParent(characterControllerGO.transform);
+
+            // Place external interactor far enough from player so that its grabbed interactable won't collide with the player
+            var initialInteractablePosition = new Vector3(0f, 0f, characterControllerRadius + 2f);
+            var externalInteractor = TestUtilities.CreateMockInteractor();
+            var externalInteractorTrans = externalInteractor.transform;
+            externalInteractorTrans.localPosition = initialInteractablePosition;
+            externalInteractorTrans.localRotation = Quaternion.identity;
+
+            // Ensure object will jump directly to interactor on grab
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grabInteractableGO.name = "Grab Interactable";
+            var interactableCollider = grabInteractableGO.GetComponent<Collider>();
+            var rigidbody = grabInteractableGO.AddComponent<Rigidbody>();
+            rigidbody.useGravity = false;
+            var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
+            grabInteractable.useDynamicAttach = false;
+            grabInteractable.attachEaseInTime = 0f;
+            grabInteractable.smoothPosition = false;
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+
+            externalInteractor.validTargets.Add(grabInteractable);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(externalInteractor.IsSelecting(grabInteractable), Is.True);
+            Assert.That(playerInteractor.IsSelecting(grabInteractable), Is.False);
+
+            // Wait for physics update after object is grabbed by external interactor, to ensure it is placed away from player
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
+
+            // Now have the player grab the object
+            playerInteractor.validTargets.Add(grabInteractable);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(externalInteractor.IsSelecting(grabInteractable), Is.True);
+            Assert.That(playerInteractor.IsSelecting(grabInteractable), Is.True);
+
+            // Move player to where the interactable is. The interactable should be intersecting the player but collision should not occur.
+            var playerToInteractableDelta = grabInteractable.transform.position - characterControllerGO.transform.position;
+            var moveCollisionFlags = characterController.Move(playerToInteractableDelta);
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.True);
+            Assert.That(moveCollisionFlags, Is.EqualTo(CollisionFlags.None));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Now move the player back to the origin and then deselect the interactable.
+            // Then attempting to move the player to where the interactable is should result in a collision.
+            characterController.Move(-playerToInteractableDelta);
+            playerInteractor.validTargets.Clear();
+            playerInteractor.keepSelectedTargetValid = false;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(externalInteractor.IsSelecting(grabInteractable), Is.True);
+            Assert.That(playerInteractor.IsSelecting(grabInteractable), Is.False);
+            Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
+
+            Assert.That(characterController.Move(playerToInteractableDelta), Is.Not.EqualTo(CollisionFlags.None));
+        }
+
         class PublicAccessGrabInteractable : XRGrabInteractable
         {
             public new bool ShouldMatchAttachPosition(IXRSelectInteractor interactor) => base.ShouldMatchAttachPosition(interactor);
@@ -1261,6 +1471,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             public new void InitializeDynamicAttachPose(IXRSelectInteractor interactor, Transform dynamicAttachTransform) =>
                 base.InitializeDynamicAttachPose(interactor, dynamicAttachTransform);
+        }
+
+        class CollisionChecker : MonoBehaviour
+        {
+            public event Action<Collision> onCollisionEntered;
+
+            void OnCollisionEnter(Collision collision)
+            {
+                onCollisionEntered?.Invoke(collision);
+            }
         }
     }
 }

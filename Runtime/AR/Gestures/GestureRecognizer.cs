@@ -54,6 +54,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public XROrigin xrOrigin { get; set; }
 
         /// <summary>
+        /// Gets or sets layer mask used for limiting ray cast targets.
+        /// </summary>
+        public LayerMask raycastMask { get; set;}  = -1;
+
+        /// <summary>
+        /// Gets or sets type of interaction with trigger colliders via ray cast.
+        /// </summary>
+        public QueryTriggerInteraction raycastTriggerInteraction { get; set;} = QueryTriggerInteraction.Ignore;
+
+        /// <summary>
         /// List of current active gestures.
         /// </summary>
         /// <remarks>

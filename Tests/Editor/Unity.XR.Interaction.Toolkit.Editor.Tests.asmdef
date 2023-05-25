@@ -1,5 +1,6 @@
 {
     "name": "Unity.XR.Interaction.Toolkit.Editor.Tests",
+    "rootNamespace": "UnityEditor.XR.Interaction.Toolkit.Editor.Tests",
     "references": [
         "Unity.XR.Interaction.Toolkit",
         "Unity.XR.Interaction.Toolkit.Editor",

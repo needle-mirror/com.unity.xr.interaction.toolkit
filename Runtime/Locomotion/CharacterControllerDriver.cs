@@ -3,8 +3,10 @@
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Controls a <see cref="CharacterController"/> height
-    /// upon locomotion events of a <see cref="LocomotionProvider"/>.
+    /// Controls a <see cref="CharacterController"/> height and center position based on the camera's (HMD) position
+    /// upon locomotion events of a <see cref="LocomotionProvider"/> (typically the continuous movement provider).
+    /// This allows the collider on the main XR Origin rig to resize to the player's height before trying to move
+    /// with thumbstick input.
     /// </summary>
     [AddComponentMenu("XR/Locomotion/Character Controller Driver", 11)]
     [HelpURL(XRHelpURLConstants.k_CharacterControllerDriver)]

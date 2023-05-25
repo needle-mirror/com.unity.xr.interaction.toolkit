@@ -81,6 +81,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
         }
 
+        [SerializeField]
+        LayerMask m_RaycastMask = -1;
+        /// <summary>
+        /// Gets or sets layer mask used for limiting ray cast targets.
+        /// </summary>
+        public LayerMask raycastMask
+        {
+            get => m_RaycastMask;
+            set
+            {
+                m_RaycastMask = value;
+                if (Application.isPlaying)
+                    PushRaycastLayerMask();
+            }
+        }
+
+        [SerializeField]
+        QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
+        /// <summary>
+        /// Gets or sets type of interaction with trigger colliders via ray cast.
+        /// </summary>
+        public QueryTriggerInteraction raycastTriggerInteraction
+        {
+            get => m_RaycastTriggerInteraction;
+            set
+            {
+                m_RaycastTriggerInteraction = value;
+                if (Application.isPlaying)
+                    PushRaycastTriggerInteraction();
+            }
+        }
+
         /// <summary>
         /// (Read Only) The Drag gesture recognizer.
         /// </summary>
@@ -146,6 +178,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             FindXROrigin();
             PushXROrigin();
+            PushRaycastLayerMask();
+            PushRaycastTriggerInteraction();
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility.
             FindARSessionOrigin();
@@ -166,6 +200,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #endif
             FindXROrigin();
             PushXROrigin();
+            PushRaycastLayerMask();
+            PushRaycastTriggerInteraction();
 
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility.
             FindARSessionOrigin();
@@ -245,6 +281,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             twoFingerDragGestureRecognizer.xrOrigin = m_XROrigin;
             tapGestureRecognizer.xrOrigin = m_XROrigin;
             twistGestureRecognizer.xrOrigin = m_XROrigin;
+        }
+
+        /// <summary>
+        /// Passes raycast layer mask properties to the Gesture Recognizers.
+        /// </summary>
+        /// <seealso cref="GestureRecognizer{T}.raycastMask"/>
+        protected virtual void PushRaycastLayerMask()
+        {
+            dragGestureRecognizer.raycastMask = m_RaycastMask;
+            pinchGestureRecognizer.raycastMask = m_RaycastMask;
+            twoFingerDragGestureRecognizer.raycastMask = m_RaycastMask;
+            tapGestureRecognizer.raycastMask = m_RaycastMask;
+            twistGestureRecognizer.raycastMask = m_RaycastMask;
+        }
+
+         /// <summary>
+        /// Passes raycast trigger interaction properties to the Gesture Recognizers.
+        /// </summary>
+        /// <seealso cref="GestureRecognizer{T}.raycastTriggerInteraction"/>
+        protected virtual void PushRaycastTriggerInteraction()
+        {
+            dragGestureRecognizer.raycastTriggerInteraction = m_RaycastTriggerInteraction;
+            pinchGestureRecognizer.raycastTriggerInteraction = m_RaycastTriggerInteraction;
+            twoFingerDragGestureRecognizer.raycastTriggerInteraction = m_RaycastTriggerInteraction;
+            tapGestureRecognizer.raycastTriggerInteraction = m_RaycastTriggerInteraction;
+            twistGestureRecognizer.raycastTriggerInteraction = m_RaycastTriggerInteraction;
         }
 
         /// <inheritdoc />

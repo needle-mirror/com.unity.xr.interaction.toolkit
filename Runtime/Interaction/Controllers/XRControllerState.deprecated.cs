@@ -53,6 +53,63 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning restore 618
 
         /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        protected XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState)
+            : this(time, position, rotation, inputTrackingState, true)
+        {
+        }
+
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        /// <param name="selectActive">Whether select is active or not.</param>
+        /// <param name="activateActive">Whether activate is active or not.</param>
+        /// <param name="pressActive">Whether UI press is active or not.</param>
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState,
+            bool selectActive, bool activateActive, bool pressActive)
+            : this(time, position, rotation, inputTrackingState, true)
+        {
+            this.selectInteractionState.SetFrameState(selectActive);
+            this.activateInteractionState.SetFrameState(activateActive);
+            this.uiPressInteractionState.SetFrameState(pressActive);
+        }
+
+        /// <summary>
+        /// Initializes and returns an instance of <see cref="XRControllerState"/>.
+        /// </summary>
+        /// <param name="time">The time value for this controller.</param>
+        /// <param name="position">The position for this controller.</param>
+        /// <param name="rotation">The rotation for this controller.</param>
+        /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
+        /// <param name="selectActive">Whether select is active or not.</param>
+        /// <param name="activateActive">Whether activate is active or not.</param>
+        /// <param name="pressActive">Whether UI press is active or not.</param>
+        /// <param name="selectValue">The select value.</param>
+        /// <param name="activateValue">The activate value.</param>
+        /// <param name="pressValue">The UI press value.</param>
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState,
+            bool selectActive, bool activateActive, bool pressActive,
+            float selectValue, float activateValue, float pressValue)
+            : this(time, position, rotation, inputTrackingState, true)
+        {
+            this.selectInteractionState.SetFrameState(selectActive, selectValue);
+            this.activateInteractionState.SetFrameState(activateActive, activateValue);
+            this.uiPressInteractionState.SetFrameState(pressActive, pressValue);
+        }
+
+        /// <summary>
         /// (Deprecated) Resets all the interaction states that are based on whether they occurred "this frame".
         /// </summary>
         /// <remarks>

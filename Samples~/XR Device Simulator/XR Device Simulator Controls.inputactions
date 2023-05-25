@@ -87,6 +87,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Hand-Controller Mode",
+                    "type": "Button",
+                    "id": "31a82fde-55bc-4b18-b15a-8adc7e75658e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Cycle Devices",
                     "type": "Button",
                     "id": "d728c6fb-4deb-4268-9110-d64c7861cd17",
@@ -550,6 +559,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Toggle Manipulate Body",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d7d20173-13ae-4c9f-b6a9-bf8a89517d6a",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand-Controller Mode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

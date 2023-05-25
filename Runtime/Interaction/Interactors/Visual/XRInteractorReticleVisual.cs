@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils;
+using Unity.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -141,6 +142,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
+        NativeArray<Vector3> m_InteractorLinePoints;
+        
         /// <summary>
         /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
@@ -149,7 +152,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XROrigin m_XROrigin;
         GameObject m_ReticleInstance;
         XRBaseInteractor m_Interactor;
-        Vector3[] m_InteractorLinePoints;
         Vector3 m_TargetEndPoint;
         Vector3 m_TargetEndNormal;
         PhysicsScene m_LocalPhysicsScene;
@@ -180,6 +182,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
+        protected void OnDisable()
+        {
+            reticleActive = false;
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void Update()
         {
             if (m_Interactor != null && UpdateReticleTarget())
@@ -193,6 +203,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnDestroy()
         {
+            if (m_InteractorLinePoints.IsCreated)
+            {
+                m_InteractorLinePoints.Dispose();
+            }
+
             if (m_Interactor != null)
             {
                 m_Interactor.selectEntered.RemoveListener(OnSelectEntered);

@@ -21,3 +21,7 @@ This XR Interactable Snap Volume will attempt to get the closest point on the **
 ## Configuring XR Ray Interactor
 
 See [Supporting XR Interactable Snap Volume](xr-ray-interactor.md#supporting-xr-interactable-snap-volume) in the XR Ray Interactor documentation for configuration steps to allow an XR Ray Interactor to snap to an XR Interactable Snap Volume.
+
+## Configuring with Teleportation Anchors
+
+Teleport Interactors and [Teleportation Anchors](teleportation-anchor.md) are configured to use selection events to perform teleportation. When configuring an XR Interactable Snap Volume with a Teleportation Anchor, **Disable Snap Collider When Selected** should be unchecked and set to `false`. This will keep the **Snap Collider** enabled and allow the teleport interactor ray to snap to the Teleportation Anchor until the teleportation is complete.

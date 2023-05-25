@@ -9,8 +9,7 @@ Preset:
   m_Name: XRI Default Continuous Move
   m_TargetType:
     m_NativeTypeID: 114
-    m_ManagedTypePPtr: {fileID: 11500000, guid: 0bf296fc962d7184ab14ad1841598d5f,
-      type: 3}
+    m_ManagedTypePPtr: {fileID: 11500000, guid: 0bf296fc962d7184ab14ad1841598d5f, type: 3}
     m_ManagedTypeFallback: 
   m_Properties:
   - target: {fileID: 0}
@@ -38,6 +37,10 @@ Preset:
     value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_EnableFly
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_UseGravity
     value: 1
     objectReference: {fileID: 0}
@@ -63,7 +66,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_LeftHandMoveAction.m_Action.m_ExpectedControlType
-    value: 
+    value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_LeftHandMoveAction.m_Action.m_Id
@@ -82,10 +85,13 @@ Preset:
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_LeftHandMoveAction.m_Action.m_Flags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_LeftHandMoveAction.m_Reference
     value: 
-    objectReference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f,
-      type: 3}
+    objectReference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   - target: {fileID: 0}
     propertyPath: m_RightHandMoveAction.m_UseReference
     value: 1
@@ -100,7 +106,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_RightHandMoveAction.m_Action.m_ExpectedControlType
-    value: 
+    value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_RightHandMoveAction.m_Action.m_Id
@@ -119,7 +125,11 @@ Preset:
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_RightHandMoveAction.m_Action.m_Flags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_RightHandMoveAction.m_Reference
     value: 
-    objectReference: {fileID: -8198699208435500284, guid: c348712bda248c246b8c49b3db54643f,
-      type: 3}
+    objectReference: {fileID: -8198699208435500284, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  m_ExcludedProperties: []

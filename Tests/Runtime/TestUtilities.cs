@@ -161,6 +161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject interactableGO = new GameObject("Grab Interactable");
             CreateGOSphereCollider(interactableGO, false);
             XRGrabInteractable interactable = interactableGO.AddComponent<XRGrabInteractable>();
+            interactable.throwOnDetach = false;
             var rigidBody = interactableGO.GetComponent<Rigidbody>();
             rigidBody.useGravity = false;
             rigidBody.isKinematic = true;
@@ -212,8 +213,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controllerRecorder = controller.gameObject.AddComponent<XRControllerRecorder>();
             controllerRecorder.xrController = controller;
             controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
-
             addRecordingFrames(controllerRecorder.recording);
+            controllerRecorder.recording.SetFrameDependentData();
             return controllerRecorder;
         }
 

@@ -17,6 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <summary>
         /// Animation mode options used for select state callbacks.
         /// </summary>
+        /// <seealso cref="selectClickAnimationMode"/>
         public enum SelectClickAnimationMode
         {
             /// <summary>
@@ -29,7 +30,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             /// </summary>
             SelectEntered,
 
-
             /// <summary>
             /// Use click animation on select exited event.
             /// </summary>
@@ -39,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <summary>
         /// Animation mode options used for activate state callbacks.
         /// </summary>
+        /// <seealso cref="activateClickAnimationMode"/>
         public enum ActivateClickAnimationMode
         {
             /// <summary>
@@ -50,7 +51,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             /// Use click animation on activate event.
             /// </summary>
             Activated,
-
 
             /// <summary>
             /// Use click animation on deactivate event.
@@ -99,7 +99,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
         /// <summary>
         /// When hover events are registered and this is true, the state will fallback to hover. When this is <see langword="false"/>, this
-        /// provider will check if the Interactable Source has priority for selection when hovered, and update its state accordingly
+        /// provider will check if the Interactable Source has priority for selection when hovered, and update its state accordingly.
         /// </summary>
         /// <remarks>When updating this value to <see langword="false"/> during runtime, previously hover events are ignored.</remarks>
         public bool ignoreHoverPriorityEvents
@@ -115,6 +115,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
                 m_IgnoreHoverPriorityEvents = value;
             }
+        }
+
+        [SerializeField]
+        [Tooltip("When focus events are registered and this is true, the state will fallback to idle or disabled.")]
+        bool m_IgnoreFocusEvents;
+
+        /// <summary>
+        /// When focus events are registered and this is true, the state will fallback to idle or disabled.
+        /// </summary>
+        public bool ignoreFocusEvents
+        {
+            get => m_IgnoreFocusEvents;
+            set => m_IgnoreFocusEvents = value;
         }
 
         [SerializeField]
@@ -153,6 +166,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <summary>
         /// Condition to trigger click animation for Selected interaction events.
         /// </summary>
+        /// <seealso cref="SelectClickAnimationMode"/>
         public SelectClickAnimationMode selectClickAnimationMode
         {
             get => m_SelectClickAnimationMode;
@@ -166,6 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <summary>
         /// Condition to trigger click animation for activated interaction events.
         /// </summary>
+        /// <seealso cref="ActivateClickAnimationMode"/>
         public ActivateClickAnimationMode activateClickAnimationMode
         {
             get => m_ActivateClickAnimationMode;
@@ -202,12 +217,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <summary>
         /// Is attached interactable in a hovered state.
         /// </summary>
-        protected virtual bool isHovered => m_HoverInteractable != null && m_HoverInteractable.isHovered;
+        protected virtual bool isHovered => m_HasHoverInteractable && m_HoverInteractable.isHovered;
 
         /// <summary>
         /// Is attached interactable in a selected state.
         /// </summary>
-        protected virtual bool isSelected => m_SelectInteractable != null && m_SelectInteractable.isSelected;
+        protected virtual bool isSelected => m_HasSelectInteractable && m_SelectInteractable.isSelected;
+
+        /// <summary>
+        /// Is attached interactable in a focused state.
+        /// </summary>
+        protected virtual bool isFocused => m_FocusInteractable != null && m_FocusInteractable.isFocused;
 
         /// <summary>
         /// Is attached interactable in an activated state.
@@ -222,6 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         IXRInteractable m_Interactable;
         IXRHoverInteractable m_HoverInteractable;
         IXRSelectInteractable m_SelectInteractable;
+        IXRFocusInteractable m_FocusInteractable;
         IXRActivateInteractable m_ActivateInteractable;
         IXRInteractionStrengthInteractable m_InteractionStrengthInteractable;
 
@@ -234,6 +255,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         bool m_IsActivated;
         bool m_IsRegistered;
         bool m_IsHoveredPriority;
+
+        bool m_HasHoverInteractable;
+        bool m_HasSelectInteractable;
         bool m_HasInteractionStrengthInteractable;
 
         int m_HoveringPriorityInteractorCount;
@@ -286,6 +310,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 if (m_Interactable is IXRSelectInteractable selectInteractable)
                     m_SelectInteractable = selectInteractable;
 
+                if (m_Interactable is IXRFocusInteractable focusInteractable)
+                    m_FocusInteractable = focusInteractable;
+
                 if (m_Interactable is IXRActivateInteractable activateInteractable)
                     m_ActivateInteractable = activateInteractable;
 
@@ -297,9 +324,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 m_Interactable = null;
                 m_HoverInteractable = null;
                 m_SelectInteractable = null;
+                m_FocusInteractable = null;
                 m_ActivateInteractable = null;
                 m_InteractionStrengthInteractable = null;
             }
+
+            m_HasHoverInteractable = m_HoverInteractable != null;
+            m_HasSelectInteractable = m_SelectInteractable != null;
+            m_HasInteractionStrengthInteractable = m_InteractionStrengthInteractable != null;
 
             BindToProviders();
             return isInteractableValid;
@@ -440,6 +472,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         }
 
         /// <summary>
+        /// Callback triggered by <see cref="IXRFocusInteractable"/> when the first interactor gains focus of this interactable.
+        /// Refreshes the affordance state
+        /// </summary>
+        /// <param name="args"><see cref="FocusEnterEventArgs"/> callback args.</param>
+        /// <seealso cref="IXRFocusInteractable.firstFocusEntered"/>
+        protected virtual void OnFirstFocusEntered(FocusEnterEventArgs args)
+        {
+            RefreshState();
+        }
+
+        /// <summary>
+        /// Callback triggered by <see cref="IXRFocusInteractable"/> when the last interactor loses focus of this interactable.
+        /// Refreshes the affordance state
+        /// </summary>
+        /// <param name="args"><see cref="FocusExitEventArgs"/> callback args.</param>
+        /// <seealso cref="IXRFocusInteractable.lastFocusExited"/>
+        protected virtual void OnLastFocusExited(FocusExitEventArgs args)
+        {
+            RefreshState();
+        }
+
+        /// <summary>
         /// Callback triggered by <see cref="IXRActivateInteractable"/> when the interactor triggers an activated event on the interactable.
         /// Refreshes the affordance state and triggers the <see cref="ActivatedClickBehavior"/> animation coroutine if the activated animation mode is set to Activated.
         /// </summary>
@@ -489,6 +543,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             // If currently executing animation, do not update interaction strength state.
             if(m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
                 return;
+
             RefreshState();
         }
 
@@ -570,25 +625,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 return currentAffordanceStateData.Value;
             }
 
-            if (m_IsActivated && !m_IgnoreActivateEvents)
+            if (isActivated && !m_IgnoreActivateEvents)
             {
                 return AffordanceStateShortcuts.activatedState;
             }
-            
-            if (isSelected && !m_IgnoreSelectEvents)
+
+            if (isFocused && !m_IgnoreFocusEvents)
+            {
+                return AffordanceStateShortcuts.focusedState;
+            }
+
+            if (!isActivated && isSelected && !m_IgnoreSelectEvents)
             {
                 var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 1f;
                 return new AffordanceStateData(AffordanceStateShortcuts.selected, transitionAmount);
             }
 
-            if (isHovered && !m_IgnoreHoverEvents)
+            if (!isActivated && !isSelected && isHovered && !m_IgnoreHoverEvents)
             {
                 var stateIndex = m_IsHoveredPriority ? AffordanceStateShortcuts.hoveredPriority : AffordanceStateShortcuts.hovered;
                 var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 0f;
                 return new AffordanceStateData(stateIndex, transitionAmount);
             }
 
-            return m_IsRegistered ? AffordanceStateShortcuts.idleState : AffordanceStateShortcuts.disabledState;
+            return isRegistered ? AffordanceStateShortcuts.idleState : AffordanceStateShortcuts.disabledState;
         }
 
         IEnumerator HoveredPriorityRoutine()
@@ -634,6 +694,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                     m_SelectInteractable.lastSelectExited.AddListener(OnLastSelectExited);
                 }
 
+                if (m_FocusInteractable != null)
+                {
+                    m_FocusInteractable.firstFocusEntered.AddListener(OnFirstFocusEntered);
+                    m_FocusInteractable.lastFocusExited.AddListener(OnLastFocusExited);
+                }
+
                 if (m_ActivateInteractable != null)
                 {
                     m_ActivateInteractable.activated.AddListener(OnActivatedEvent);
@@ -643,11 +709,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 if (m_InteractionStrengthInteractable != null)
                 {
                     AddBinding(m_InteractionStrengthInteractable.largestInteractionStrength.Subscribe(OnLargestInteractionStrengthChanged));
-                    m_HasInteractionStrengthInteractable = true;
-                }
-                else
-                {
-                    m_HasInteractionStrengthInteractable = false;
                 }
 
                 m_IsActivated = false;
@@ -711,6 +772,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 {
                     m_SelectInteractable.firstSelectEntered.RemoveListener(OnFirstSelectEntered);
                     m_SelectInteractable.lastSelectExited.RemoveListener(OnLastSelectExited);
+                }
+
+                if (m_FocusInteractable != null)
+                {
+                    m_FocusInteractable.firstFocusEntered.RemoveListener(OnFirstFocusEntered);
+                    m_FocusInteractable.lastFocusExited.RemoveListener(OnLastFocusExited);
                 }
 
                 if (m_ActivateInteractable != null)

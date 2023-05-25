@@ -31,10 +31,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRInteractionManager.interactionGroupUnregistered"/>
         event Action<InteractionGroupUnregisteredEventArgs> unregistered;
 
+        string groupName { get; }
+
         /// <summary>
         /// The Interactor in this Interaction Group or any of its member Groups that is currently performing interaction.
         /// </summary>
         IXRInteractor activeInteractor { get; }
+
+        /// <summary>
+        /// The Interactor in this Interaction Group or any of its member Groups that initiated the last focus event.
+        /// </summary>
+        IXRInteractor focusInteractor { get; }
+
+        /// <summary>
+        /// The Interactable that is currently being focused by an Interactor in this Interaction Group or any of its member Groups.
+        /// </summary>
+        IXRFocusInteractable focusInteractable { get; }
 
         /// <summary>
         /// The <see cref="XRInteractionManager"/> calls this method when this Interaction Group is registered with it.
@@ -183,5 +195,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <paramref name="interactorThatPerformedInteraction"/>.
         /// </remarks>
         void UpdateGroupMemberInteractions(IXRInteractor prePrioritizedInteractor, out IXRInteractor interactorThatPerformedInteraction);
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method
+        /// right before the Interaction group first gains focus of an Interactable
+        /// in a first pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is initiating the focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="IXRFocusInteractable.OnFocusEntered(FocusEnterEventArgs)"/>
+        void OnFocusEntering(FocusEnterEventArgs args);
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method
+        /// right before the Interaction group loses focus of an Interactable
+        /// in a first pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is losing focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="IXRFocusInteractable.OnFocusExited(FocusExitEventArgs)"/>
+        void OnFocusExiting(FocusExitEventArgs args);
     }
 }

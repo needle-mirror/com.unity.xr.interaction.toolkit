@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections;
-using JetBrains.Annotations;
 using Unity.XR.CoreUtils.Bindings.Variables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
@@ -11,12 +10,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
     /// <typeparam name="T">BindableVariable type.</typeparam>
     public abstract class TweenableVariableBase<T> : BindableVariable<T> where T : IEquatable<T>
     {
-        AnimationCurve m_AnimationCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-
         /// <summary>
         /// Threshold to compare tween amount above which the tween is short-circuited to the target value.
         /// </summary>
         protected const float k_NearlyOne = 0.99999f;
+
+        AnimationCurve m_AnimationCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         /// <summary>
         /// Animation curve used for sequence animations.
@@ -31,11 +30,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
             }
         }
 
+        T m_Target;
+
         /// <summary>
         /// Target value used when tweening variable value.
         /// </summary>
         /// <seealso cref="BindableVariableBase{T}.Value"/>
-        public T target { get; set; }
+        public T target
+        {
+            get => m_Target;
+            set
+            {
+                if (m_Target.Equals(value))
+                    return;
+                m_Target = value;
+                OnTargetChanged(m_Target);
+            }
+        }
 
         /// <summary>
         /// Initial value used for certain tween jobs that need to process from the initial state. 
@@ -110,6 +121,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
         /// <param name="value">The new value of the property.</param>
         /// <seealso cref="animationCurve"/>
         protected virtual void OnAnimationCurveChanged(AnimationCurve value)
+        {
+        }
+
+        /// <summary>
+        /// Callback when new tween target value is assigned.
+        /// </summary>
+        /// <param name="newTarget">New target value.</param>
+        /// <seealso cref="target"/>
+        protected virtual void OnTargetChanged(T newTarget)
         {
         }
 

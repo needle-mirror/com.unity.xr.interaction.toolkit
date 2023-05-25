@@ -14,7 +14,7 @@ To install samples included with this package, follow the instructions for [Inst
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
 
-This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
+This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
 
 This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
@@ -29,7 +29,7 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 |**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
 |**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
 |**`XRI Default Gaze Controller.preset`**|Preset for [XR Controller (Action-based)](xr-controller-action-based.md) associated with the [Gaze Interactor](xr-gaze-interactor.md).|
-|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
+|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
 |**`XRI Default Left Controller.preset`**|Preset for left hand [Controllers](architecture.md#controllers).|
 |**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](locomotion.md#grab-move-providers).|
 |**`XRI Default Right Controller.preset`**|Preset for right hand [Controllers](architecture.md#controllers).|
@@ -39,7 +39,7 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 
 ### Input Actions Asset
 
-The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
+The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
 
 ![sample-default-input-actions-asset](images/sample-default-input-actions-asset.png)
 
@@ -80,24 +80,235 @@ The following image shows the Preset Manager with the included presets set as de
 
 ![preset-manager](images/preset-manager.png)
 
+### Scripts
+
+The following scripts are included to support the prefabs and `DemoScene`.
+
+|**Script**|**Description**|
+|---|---|
+|**`ActionBasedControllerManager`**|Component used to mediate the controllers and their associated interactors and input actions under different interaction states.|
+|**`DynamicMoveProvider`**|A version of action-based continuous movement that automatically controls the frame of reference that determines the forward direction of movement based on user preference for each hand.|
+|**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
+|**`XRPokeFollowAffordance`**|Component used to animate a Transform to follow the poke position. Used by poke buttons in the `DemoScene`.|
+|**`PokeStation\IncrementUIText`**|Component used in the `DemoScene` to update a Text component to count up whenever the push button is selected.|
+
 ### Prefabs
 
 |**Prefab**|**Description**|
 |---|---|
-|**`Complete Teleport Area Set Up`**|Teleportation prefab which includes the `Teleportation Area` and `Teleportation Anchor` prefabs. Configured to the `Teleport Interactor` in the `Complete XR Origin Setup` prefab included in these starter assets.|
-|**`Complete XR Origin Set Up`**|XR Origin prefab configured for smooth locomotion, grab locomotion, teleportation locomotion, as well as smooth and snap turn. Each hand also contains a `Poke Interactor`, `Direct Interactor` and a `Ray Interactor`, as well as an [Interaction Group](xr-interaction-group.md) that first prioritizes the Poke Interactor then the Direct Interactor and lastly the Ray Interactor. Additionally, there is an [XRGazeInteractor](xr-gaze-interactor.md) that is configured with the `XRI Default Gaze Controller` and the `GazeInputManager`.|
-|**`Interactables Sample`**|Prefab containing preconfigured `XR Grab Interactables`.|
-|**`UI Sample`**|Prefab containing interactable UI elements.|
+|**`Climb Sample`**|Prefab containing preconfigured `XR Climb Interactables` used in the `DemoScene`.|
+|**`Interactables Sample`**|Prefab containing preconfigured `XR Grab Interactables` used in the `DemoScene`.|
+|**`Teleportation Environment`**|Teleportation prefab used in the `DemoScene` which includes the `Teleportation Area` and `Teleportation Anchor` prefabs. Configured to the `Teleport Interactor` in the `XR Interaction Setup` prefab included in these starter assets.|
+|**`UI Sample`**|Prefab containing interactable UI elements in a world space canvas.|
+|**`XR Interaction Setup`**|Prefab containing everything for enabling XR interactions with interactables in your scene. Contains `XR Origin (XR Rig)` as a nested prefab, [XR Interaction Manager](xr-interaction-manager.md) to facilitate interactions between interactors and interactables, [Input Action Manager](input-action-manager.md) to enable input actions used by the rig, and [Event System](ui-setup.md#event-system) to enable interaction with UI GameObjects.|
+|**`XR Origin (XR Rig)`**|Prefab representing the camera rig. It is configured for smooth locomotion, grab locomotion, climb locomotion, teleportation locomotion, as well as smooth and snap turn. Each hand also contains a `Poke Interactor`, `Direct Interactor` and a `Ray Interactor`, as well as an [Interaction Group](xr-interaction-group.md) that first prioritizes the Poke Interactor then the Direct Interactor and lastly the Ray Interactor. Additionally, there is an [XR Gaze Interactor](xr-gaze-interactor.md) that is configured with the `XRI Default Gaze Controller` and the `GazeInputManager`.|
 
-### Scripts
+### Hierarchy configuration
 
-The following scripts are included to support the prefabs.
+The `XR Interaction Setup` has the following hierarchy, which contains the `XR Origin (XR Rig)` as a nested prefab.
 
-|**Script**|**Description**|
-|---|---|
-|**`ActionBasedControllerManager`**|Script used to mediate the controllers and their associated interactors and input actions under different interaction states.|
-|**`DynamicMoveProvider`**|A version of action-based continuous movement that automatically controls the frame of reference that determines the forward direction of movement based on user preference for each hand.|
-|**`GazeInputManager`**|Script used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
+<table>
+<thead>
+  <tr>
+    <th colspan="2">GameObject</th>
+    <th>Components</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td colspan="2"><strong>XR Interaction Setup</strong></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td rowspan="4"></td>
+    <td><strong>Input Action Manager</strong></td>
+    <td>[Input Action Manager](input-action-manager.md)</td>
+    <td>Enables the input actions used by the interactors. Input actions in an Input Action Asset are not enabled by default, so this component will automatically enable them.</td>
+  </tr>
+  <tr>
+    <td><strong>XR Interaction Manager</strong></td>
+    <td>[XR Interaction Manager](xr-interaction-manager.md)</td>
+    <td>Enables XR interactions between the interactors and interactables in your scene.</td>
+  </tr>
+  <tr>
+    <td><strong>EventSystem</strong></td>
+    <td>
+      [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR UI Input Module](ui-setup.md#xr-ui-input-module)
+    </td>
+    <td>The XR Poke Interactor and XR Ray Interactor communicate with the XR UI Input Module to enable UI pointer events in world space canvases.</td>
+  </tr>
+  <tr>
+    <td><strong>XR Origin (XR Rig)</strong></td>
+    <td></td>
+    <td>Nested prefab, see below.</td>
+  </tr>
+</tbody>
+</table>
+
+The `XR Origin (XR Rig)` prefab has the following hierarchy.
+
+> [!NOTE]
+> The prefab uses Action-based variants of components when applicable. For more information, see [Action-based vs Device-based behaviors](general-setup.md#action-based-vs-device-based-behaviors).
+
+<table>
+<thead>
+  <tr>
+    <th colspan="5">GameObject</th>
+    <th>Components</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td colspan="5"><strong>XR Origin (XR Rig)</strong></td>
+    <td>
+      [XR Origin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/xr-origin.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Character Controller](https://docs.unity3d.com/Manual/class-CharacterController.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Character Controller Driver](character-controller-driver.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Input Modality Manager](xr-input-modality-manager.md)
+    </td>
+    <td>Represents the center of the tracking space for the user's tracked devices. Implements the generic concept of a camera rig. This is the GameObject moved when doing locomotion. The Character Controller allows the move locomotion providers to move the rig without moving through colliders. The XR Input Modality Manager component manages automatically swapping between sets of interactors used for hand tracking (Left Hand and Right Hand GameObjects) and for motion controllers (Left Controller and Right Controller GameObjects) by activating or deactivating those GameObjects.</td>
+  </tr>
+  <tr>
+    <td rowspan="19"></td>
+    <td colspan="4"><strong>Camera Offset</strong></td>
+    <td></td>
+    <td>Transform y-axis is automatically adjusted by the XR Origin component based on the tracking origin mode in order to place the tracked XR devices at the correct height from the floor. Floor will set this to 0. Device will set this to the fixed height set by Camera Y Offset.</td>
+  </tr>
+  <tr>
+    <td rowspan="12"></td>
+    <td colspan="3"><strong>Main Camera</strong></td>
+    <td>
+      [Camera](https://docs.unity3d.com/Manual/class-Camera.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Audio Listener](https://docs.unity3d.com/Manual/class-AudioListener.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
+    </td>
+    <td>Pose driven by the HMD.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Gaze Interactor</strong></td>
+    <td>
+      [XR Gaze Interactor](xr-gaze-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Controller](xr-controller-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Gaze Input Manager](#scripts)
+    </td>
+    <td>Interactor which represents the eye gaze (if available) or the HMD direction. Interactables can interact with it if configured to do so under its Gaze Configuration foldout. The Gaze Input Manager will deactivate this GameObject when eye tracking is unavailable if falling back to HMD head tracking is not desired. This GameObject is deactivated by default to disable gaze interaction.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Gaze Stabilized</strong></td>
+    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td>Stabilized eye gaze pose used as the Ray Origin Transform of the XR Gaze Interactor.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td colspan="2"><strong>Gaze Stabilized Attach</strong></td>
+    <td></td>
+    <td>Stabilized pose used as the Attach Transform of the XR Gaze Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Left</strong>/<strong>Right Controller</strong></td>
+    <td>
+      [Action Based Controller Manager](#scripts)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Controller](xr-controller-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Interaction Group](xr-interaction-group.md)
+    </td>
+    <td>Pose driven by the left or right controller. The XR Interaction Group handles mediation between the interactors so only one can select at a time and so visuals can be disabled. The Action Based Controller Manager is what is responsible for swapping between the Ray Interactor and Teleport Interactor when Teleport Mode Activate input action is performed. It also toggles input actions used by locomotion while the XR Ray Interactor is selecting to resolve overlapping input bindings with the anchor controls. The XR Controller is shared by each of the interactors and is how the interactors read input data.</td>
+  </tr>
+  <tr>
+    <td rowspan="5"></td>
+    <td colspan="2"><strong>Poke Interactor</strong></td>
+    <td>[XR Poke Interactor](xr-poke-interactor.md)</td>
+    <td>Interactor used for interacting with interactables by poking.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>Poke Point</strong></td>
+    <td></td>
+    <td>The Attach Transform of the XR Poke Interactor. Also serves as a visual representation of where a poke happens.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Direct Interactor</strong></td>
+    <td>
+      [XR Direct Interactor](xr-direct-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Sphere Collider](https://docs.unity3d.com/Manual/class-SphereCollider.html)
+    </td>
+    <td>Interactor used for interacting with interactables by grabbing at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Ray Interactor</strong></td>
+    <td>
+      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)
+    </td>
+    <td>Interactor used for interacting with interactables by grabbing at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Teleport Interactor</strong></td>
+    <td>
+      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Controller](xr-controller-action-based.md)
+    </td>
+    <td>Similar to the Ray Interactor but configured to use a Projectile Curve and only interact with interactables on the Teleport interaction layer mask. Has an XR Controller to override the Select Action and Select Action Value properties to use Teleport Select instead.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Left</strong>/<strong>Right Controller Stabilized</strong></td>
+    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td>Stabilized left or right controller pose used as the Ray Origin Transform of the XR Ray Interactor.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td colspan="2"><strong>Left</strong>/<strong>Right Controller Stabilized Attach</strong></td>
+    <td></td>
+    <td>Stabilized pose used as the Attach Transform of the XR Ray Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="4"><strong>Locomotion System</strong></td>
+    <td>[Locomotion System](locomotion-system.md)</td>
+    <td>Holds a reference to the XR Origin which the locomotion providers use to move or rotate the player. Controls access to the XR Origin to ensure only one locomotion provider can move it at a time when locked.</td>
+  </tr>
+  <tr>
+    <td rowspan="5"></td>
+    <td colspan="3"><strong>Turn</strong></td>
+    <td>
+      [Snap Turn Provider](snap-turn-provider-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Continuous Turn Provider](continuous-move-provider-action-based.md)
+    </td>
+    <td>Locomotion providers which handle turning (rotating) the player, either in fixed angle intervals or continuously over time, typically via thumbstick input. The Action Based Controller Manager enables or disables the input actions to control whether snap turn or smooth turn is used.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Move</strong></td>
+    <td>[Dynamic Move Provider](#scripts)</td>
+    <td>Locomotion provider which handles moving (translating) the player continuously over time, typically via thumbstick input.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Grab Move</strong></td>
+    <td>
+      [Grab Move Provider](grab-move-provider.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      Grab Move Provider<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md)
+    </td>
+    <td>Locomotion providers which handle moving and/or turning the player typically via squeezing the grip of a controller and moving them as if grabbing the whole world and pulling. This GameObject is deactivated by default to disable this locomotion style.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Teleportation</strong></td>
+    <td>[Teleportation Provider](teleportation-provider.md)</td>
+    <td>Locomotion provider which handles teleporting the player to a desired location. This component is what allows the Teleportation Anchor and Teleportation Area components to move the player when they are triggered, in this case by the Teleport Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Climb</strong></td>
+    <td>[Climb Provider](climb-provider.md)</td>
+    <td>Locomotion provider which handles moving the player counter to controller movement while they are grabbing a Climb Interactable.</td>
+  </tr>
+</tbody>
+</table>
 
 ## XR Device Simulator
 
@@ -188,7 +399,7 @@ In order for this sample to function properly, a few additional packages are req
   * [Starter Assets](#starter-assets) - [version] - imported from Package Manager under XR Interaction Toolkit in the Samples area 
   * [XR Plug-in Management (com.unity.xr.management)](https://docs.unity3d.com/Manual/com.unity.xr.management.html) - 4.3.1 or newer
   * [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) - 1.6.0 or newer
-  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.1.0-pre.3 or newer
+  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.1.0 or newer
     * HandVisualizer - imported from Package Manager under XR Hands in the Samples area
   * [Universal RP](https://docs.unity3d.com/Manual/com.unity.render-pipelines.universal.html) - Universal Render Pipeline v10.10.1+
 
@@ -216,9 +427,130 @@ On the left half of the scene you will find the UI interactions. The UI elements
 
 ### Hierarchy configuration
 
-A Hands And Controllers Manager component is on the XR Origin GameObject which manages automatically swapping between sets of interactors used for hand tracking (Left Hand and Right Hand GameObjects) and for motion controllers (Left Controller and Right Controller GameObjects) by activating or deactivating those GameObjects.
+A Poke Gesture Detector component and Meta System Gesture Detector component are on the hand tracking GameObjects which manages automatically toggling interactors to disable them and their visuals by activating or deactivating those child GameObjects when the hand is making certain gestures.
 
-A Poke Gesture Detector component and System Gesture Detector component are on the hand tracking GameObjects which manages automatically toggling interactors to disable them and their visuals by activating or deactivating those child GameObjects when the hand is making certain gestures.
+The Hand Visualizer GameObject uses the HandVisualizer sample component from the XR Hands package to visually represent the hands.
+
+See Starter Assets [Hierarchy configuration](#hierarchy-configuration) for the base prefab hierarchy.
+
+<table>
+<thead>
+  <tr>
+    <th colspan="5">GameObject</th>
+    <th>Components</th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td colspan="5"><strong>XR Origin Hands (XR Rig)</strong></td>
+    <td>See base prefab.</td>
+    <td>Variant of the XR Origin (XR Rig) prefab that adds support for tracked hands. The XR Input Modality Manager is overridden to add references to Left Hand and Right Hand.</td>
+  </tr>
+  <tr>
+    <td rowspan="16"></td>
+    <td colspan="4"><strong>Camera Offset</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td rowspan="14"></td>
+    <td colspan="3"><strong>Main Camera</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Gaze Interactor</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Gaze Stabilized</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Left</strong>/<strong>Right Controller</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Left</strong>/<strong>Right Controller Stabilized</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Left</strong>/<strong>Right Hand</strong></td>
+    <td>
+      [XR Interaction Group](xr-interaction-group.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      Poke Gesture Detector<hr style="margin-top: 7px; margin-bottom: 7px;">
+      Meta System Gesture Detector<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Audio Source](https://docs.unity3d.com/Manual/class-AudioSource.html)
+    </td>
+    <td>Represents the interaction groups for tracked hand-based interaction. The Poke Gesture Detector is used to mediate between poke and ray pinch interactions. The Meta System Gesture Detector is used to disable interactions while doing menu palm pinch gestures. The Audio Source is used as an example response to the menu palm pinch gesture.</td>
+  </tr>
+  <tr>
+    <td rowspan="7"></td>
+    <td colspan="2"><strong>Poke Interactor</strong></td>
+    <td>
+      [XR Poke Interactor](xr-poke-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
+    </td>
+    <td>Interactor used for interacting with interactables by poking. Pose driven by the index finger's tip.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Direct Interactor</strong></td>
+    <td>
+      [XR Direct Interactor](xr-direct-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Sphere Collider](https://docs.unity3d.com/Manual/class-SphereCollider.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Controller](xr-controller-action-based.md)
+    </td>
+    <td>Interactor used for interacting with interactables by pinching at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables. Has an XR Controller to override the Position action to use the pinch position of the hand.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Ray Interactor</strong></td>
+    <td>
+      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [XR Controller](xr-controller-action-based.md)
+    </td>
+    <td>Interactor used for interacting with interactables by pinching at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI. Has an XR Controller to override the Position and Rotation actions to use the Meta Hand Tracking Aim feature.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Poke Stabilized Attach</strong></strong></td>
+    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td>Stabilized left or right poke pose used as the Attach Transform of the XR Poke Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Direct Stabilized Attach</strong></strong></td>
+    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td>Stabilized left or right pinch pose used as the Attach Transform of the XR Direct Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Ray Stabilized</strong></strong></td>
+    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td>Stabilized left or right aim pose used as the Ray Origin Transform of the XR Ray Interactor.</td>
+  </tr>
+  <tr>
+    <td rowspan="1"></td>
+    <td><strong>Ray Stabilized Attach</strong></strong></td>
+    <td></td>
+    <td>Stabilized pose used as the Attach Transform of the XR Ray Interactor.</td>
+  </tr>
+  <tr>
+    <td colspan="3"><strong>Hand Visualizer</strong></td>
+    <td>[Hand Visualizer](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html#samples)</td>
+    <td>Visual representation of the tracked hands.</td>
+  </tr>
+  <tr>
+    <td colspan="4"><strong>Locomotion System</strong></td>
+    <td>See base prefab.</td>
+    <td>See base prefab.</td>
+  </tr>
+</tbody>
+</table>
 
 ### Troubleshooting
 
@@ -242,6 +574,7 @@ Note: if the XR Hands package has not been imported, you will also need to impor
 
 |Date|Reason|
 |---|---|
+|**April 26, 2023**|Added detailed description of the XR Origin (XR Rig) prefabs and its GameObjects.|
 |**January 24, 2023**|Updated documentation for Hands Interaction Demo to include installation steps and troubleshooting.|
 |**January 18, 2023**|Added documentation for Meta Gaze Adapter and Hands Interaction Demo samples. Matches package version 2.3.0.|
 |**December 14, 2022**|Added documentation for new prefabs, eye gaze, and simulator UI. Matches package version 2.3.0.|

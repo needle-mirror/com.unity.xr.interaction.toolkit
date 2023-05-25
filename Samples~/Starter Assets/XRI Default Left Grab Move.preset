@@ -9,8 +9,7 @@ Preset:
   m_Name: XRI Default Left Grab Move
   m_TargetType:
     m_NativeTypeID: 114
-    m_ManagedTypePPtr: {fileID: 11500000, guid: 8b94c4c83dec6a94fbaebf543478259e,
-      type: 3}
+    m_ManagedTypePPtr: {fileID: 11500000, guid: 8b94c4c83dec6a94fbaebf543478259e, type: 3}
     m_ManagedTypeFallback: 
   m_Properties:
   - target: {fileID: 0}
@@ -71,11 +70,11 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_GrabMoveAction.m_Action.m_Type
-    value: 0
+    value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_GrabMoveAction.m_Action.m_ExpectedControlType
-    value: 
+    value: Button
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_GrabMoveAction.m_Action.m_Id
@@ -100,6 +99,5 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_GrabMoveAction.m_Reference
     value: 
-    objectReference: {fileID: -3742484312079769484, guid: c348712bda248c246b8c49b3db54643f,
-      type: 3}
+    objectReference: {fileID: -3742484312079769484, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_ExcludedProperties: []

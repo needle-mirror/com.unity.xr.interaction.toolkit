@@ -33,13 +33,13 @@ To add an XR Origin prefab that is pre-configured to support the XR Device Simul
 
 ![xr-device-simulator-setup1](images/xr-device-simulator/xr-device-simulator-setup1.png)
 
-Upon importing the starter assets, drag the `Complete XR Origin Set Up` and `XR Device Simulator` prefabs to your scene.
+Upon importing the starter assets, drag the `XR Interaction Setup` and `XR Device Simulator` prefabs to your scene.
 
 ![xr-device-simulator-setup2](images/xr-device-simulator/xr-device-simulator-setup2.png)
 
 ## Testing with the XR Device Simulator
 
-After adding the `XR Device Simulator` and `Complete XR Origin Setup` to your scene as prefabs, press the **Play** button and you will be able to move around with the key bindings marked in the simulator. Press tab to cycle active control from Left Controller, Right Controller, and Head Mounted Display (HMD).
+After adding the `XR Device Simulator` and `XR Interaction Setup` to your scene as prefabs, press the **Play** button and you will be able to move around with the key bindings marked in the simulator. Press tab to cycle active control from Left Controller, Right Controller, and Head Mounted Display (HMD).
 
 ![testing-xr-device-simulator](images/xr-device-simulator/testing-xr-device-simulator.gif)
 
@@ -63,7 +63,7 @@ Depending on which mapped actions you want to modify in the XR Device Simulator,
 
 ![xr-device-simulator-keybindings1](images/xr-device-simulator/xr-device-simulator-keybindings1.png)
 
-To modify the key bindings, double click on either of the asset files and you will get an Input Action window. Refer to [Editing Input Action Assets](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/ActionAssets.html#editing-input-action-assets) in the Input System documentation for more information on how to set up key bindings in an Input Action asset.
+To modify the key bindings, double click on either of the asset files and you will get an Input Action window. Refer to [Editing Input Action Assets](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionAssets.html#editing-input-action-assets) in the Input System documentation for more information on how to set up key bindings in an Input Action asset.
 
 To set up the controller bindings like grip, primary / secondary buttons, joystick, etc, double click on the `XR Device Controller Controls`:
 

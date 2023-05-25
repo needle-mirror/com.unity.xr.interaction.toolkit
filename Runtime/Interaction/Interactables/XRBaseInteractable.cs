@@ -14,13 +14,13 @@ using UnityEditor.XR.Interaction.Toolkit.Utilities;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Abstract base class from which all interactable behaviours derive.
+    /// Abstract base class from which all interactable behaviors derive.
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
-    /// hover and selection.
+    /// hover, selection, and focus.
     /// </summary>
     [SelectionBase]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactables)]
-    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect
+    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable, IXRFocusInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect
     {
         const float k_InteractionStrengthHover = 0f;
         const float k_InteractionStrengthSelect = 1f;
@@ -220,6 +220,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        InteractableFocusMode m_FocusMode = InteractableFocusMode.Single;
+
+        /// <inheritdoc />
+        public InteractableFocusMode focusMode
+        {
+            get => m_FocusMode;
+            set => m_FocusMode = value;
+        }
+
+        [SerializeField]
         GameObject m_CustomReticle;
 
         /// <summary>
@@ -382,6 +392,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        FocusEnterEvent m_FirstFocusEntered = new FocusEnterEvent();
+
+        /// <inheritdoc />
+        public FocusEnterEvent firstFocusEntered
+        {
+            get => m_FirstFocusEntered;
+            set => m_FirstFocusEntered = value;
+        }
+
+        [SerializeField]
+        FocusExitEvent m_LastFocusExited = new FocusExitEvent();
+
+        /// <inheritdoc />
+        public FocusExitEvent lastFocusExited
+        {
+            get => m_LastFocusExited;
+            set => m_LastFocusExited = value;
+        }
+
+        [SerializeField]
+        FocusEnterEvent m_FocusEntered = new FocusEnterEvent();
+
+        /// <inheritdoc />
+        public FocusEnterEvent focusEntered
+        {
+            get => m_FocusEntered;
+            set => m_FocusEntered = value;
+        }
+
+        [SerializeField]
+        FocusExitEvent m_FocusExited = new FocusExitEvent();
+
+        /// <inheritdoc />
+        public FocusExitEvent focusExited
+        {
+            get => m_FocusExited;
+            set => m_FocusExited = value;
+        }
+
+        [SerializeField]
         ActivateEvent m_Activated = new ActivateEvent();
 
         /// <inheritdoc />
@@ -419,6 +469,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <inheritdoc />
         public bool isSelected => m_InteractorsSelecting.Count > 0;
+
+        readonly HashSetList<IXRInteractionGroup> m_InteractionGroupsFocusing = new HashSetList<IXRInteractionGroup>();
+
+        /// <inheritdoc />
+        public List<IXRInteractionGroup> interactionGroupsFocusing => (List<IXRInteractionGroup>)m_InteractionGroupsFocusing.AsList();
+
+        /// <inheritdoc />
+        public IXRInteractionGroup firstInteractionGroupFocusing { get; private set; }
+
+        /// <inheritdoc />
+        public bool isFocused => m_InteractionGroupsFocusing.Count > 0;
+
+        /// <inheritdoc />
+        public bool canFocus => m_FocusMode != InteractableFocusMode.None;
 
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
@@ -995,6 +1059,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         void IXRSelectInteractable.OnSelectExited(SelectExitEventArgs args) => OnSelectExited(args);
 
+        /// <inheritdoc />
+        void IXRFocusInteractable.OnFocusEntering(FocusEnterEventArgs args) => OnFocusEntering(args);
+
+        /// <inheritdoc />
+        void IXRFocusInteractable.OnFocusEntered(FocusEnterEventArgs args) => OnFocusEntered(args);
+
+        /// <inheritdoc />
+        void IXRFocusInteractable.OnFocusExiting(FocusExitEventArgs args) => OnFocusExiting(args);
+
+        /// <inheritdoc />
+        void IXRFocusInteractable.OnFocusExited(FocusExitEventArgs args) => OnFocusExited(args);
+
         /// <summary>
         /// The <see cref="XRInteractionManager"/> calls this method
         /// when this Interactable is registered with it.
@@ -1258,6 +1334,80 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_AttachPoseOnSelect.Clear();
                 m_LocalAttachPoseOnSelect.Clear();
             }
+        }
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method right
+        /// before the Interaction group first gains focus of an Interactable
+        /// in a first pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is initiating focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnFocusEntered(FocusEnterEventArgs)"/>
+        protected virtual void OnFocusEntering(FocusEnterEventArgs args)
+        {
+            var added = m_InteractionGroupsFocusing.Add(args.interactionGroup);
+            Debug.Assert(added, "An Interactable received a Focus Enter event for an Interaction group that was already focusing it.", this);
+
+            if (m_InteractionGroupsFocusing.Count == 1)
+                firstInteractionGroupFocusing = args.interactionGroup;
+        }
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method
+        /// when the Interaction group first gains focus of an Interactable
+        /// in a second pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is initiating the focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnFocusExited(FocusExitEventArgs)"/>
+        protected virtual void OnFocusEntered(FocusEnterEventArgs args)
+        {
+            if (m_InteractionGroupsFocusing.Count == 1)
+                m_FirstFocusEntered?.Invoke(args);
+
+            m_FocusEntered?.Invoke(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method
+        /// right before the Interaction group loses focus of an Interactable
+        /// in a first pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is losing focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnFocusExited(FocusExitEventArgs)"/>
+        protected virtual void OnFocusExiting(FocusExitEventArgs args)
+        {
+            var removed = m_InteractionGroupsFocusing.Remove(args.interactionGroup);
+            Debug.Assert(removed, "An Interactable received a Focus Exit event for an Interaction group that did not have focus of it.", this);
+        }
+
+        /// <summary>
+        /// The <see cref="XRInteractionManager"/> calls this method
+        /// when the Interaction group loses focus of an Interactable
+        /// in a second pass.
+        /// </summary>
+        /// <param name="args">Event data containing the Interaction group that is losing focus.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnFocusEntered(FocusEnterEventArgs)"/>
+        protected virtual void OnFocusExited(FocusExitEventArgs args)
+        {
+            if (m_InteractionGroupsFocusing.Count == 0)
+                m_LastFocusExited?.Invoke(args);
+
+            m_FocusExited?.Invoke(args);
+
+            if (m_InteractionGroupsFocusing.Count == 0)
+                firstInteractionGroupFocusing = null;
         }
 
         /// <summary>

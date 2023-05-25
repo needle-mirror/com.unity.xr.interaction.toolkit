@@ -1,7 +1,7 @@
 # Locomotion
 
 The XR Interaction Toolkit package provides a set of locomotion primitives that offer the means to move around in a scene during an XR experience. These components include:
-- An XR Origin that represents the user
+- An XR Origin that represents the center of the tracking space for the user's headset, controllers, hands, and other trackable devices or objects in the XR space
 - A Locomotion System that controls access to the XR Origin
 - A Teleportation Provider and Teleportation Interactables
 - A Snap Turn Provider that rotates the user by fixed angles
@@ -9,6 +9,7 @@ The XR Interaction Toolkit package provides a set of locomotion primitives that 
 - A Continuous Move Provider that smoothly moves the user over time
 - A Grab Move Provider that moves the user counter to controller movement
 - A Two Handed Grab Move Provider that can move, rotate, and scale the user counter to controller movement
+- A Climb Provider that moves the user while they are selecting a Climb Interactable
 
 This documentation outlines how to use and extend these components.
 
@@ -16,12 +17,12 @@ This documentation outlines how to use and extend these components.
 
 | **Term** | **Meaning** |
 |---|---|
-| **XR Origin** | The component that implements the generic concept of a camera rig. It also provides options of tracking origin modes to configure the reference frame for positions reported by the XR device. It has properties to specify an Origin, a Camera Floor Offset Object, and a Camera Object. |
+| **XR Origin** | The component that implements the generic concept of a camera rig. It also provides options of tracking origin modes to configure the reference frame for positions reported by the XR device. It has properties to specify an Origin GameObject, a Camera Floor Offset GameObject, and a Camera. |
 | **Origin** | By default, the Origin is the GameObject that the XR Origin component is attached to, and the term is generally used interchangeably with XR Origin. This is the GameObject that the application will manipulate via locomotion. |
-| **Camera Floor Offset Object** | The GameObject to move the Camera to the desired height off the floor depending on the tracking origin mode. |
-| **Camera Object** | The GameObject that contains a Camera component. This is usually the Main Camera that renders what the user sees. It is the head of XR rigs. |
+| **Camera Floor Offset GameObject** | The GameObject to move the Camera to the desired height off the floor depending on the tracking origin mode. |
+| **Camera** | The GameObject that contains a Camera component. This is usually the main camera that renders what the user sees. It is the head of XR rigs. |
 | **Floor mode** | A floor-relative tracking origin mode. Input devices will be tracked relative to a location on the user's floor. |
-| **Device mode** | A device-relative tracking origin mode. Input devices will be tracked relative to the first known location. The Camera is moved to the height set by the Camera Y Offset value by moving the Camera Floor Offset Object. |
+| **Device mode** | A device-relative tracking origin mode. Input devices will be tracked relative to the first known location. The Camera is moved to the height set by the Camera Y Offset value by moving the Camera Floor Offset GameObject. |
 | **Locomotion System** | The component that controls which Locomotion Provider can move the user. |
 | **Locomotion Provider** | The base class for various locomotion implementations, such as teleportation and turning. |
 | **Teleportation** | A type of locomotion that teleports the user from one position to another position. |
@@ -29,7 +30,8 @@ This documentation outlines how to use and extend these components.
 | **Continuous Turn** | A type of locomotion that smoothly rotates the user by an amount over time. |
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
 | **Grab Move** | A type of locomotion that moves the user counter to controller movement, as if the user is grabbing the world around them. |
-| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/Actions.html) and their controller bindings in the Input System. |
+| **Climb** | A type of locomotion that moves the user counter to Interactor movement while the user is selecting a Climb Interactable. |
+| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
 ## Set up a basic scene for snap turn and teleportation
@@ -40,7 +42,7 @@ Before you follow the steps below, to streamline setup of Action-based behaviors
 
 Follow the steps in General setup to [Create the XR Origin camera rig for tracked devices](general-setup.md#create-the-xr-origin-camera-rig-for-tracked-devices).
 
-The Origin has two child GameObjects, LeftHand Controller and RightHand Controller, each having an [XR Controller](xr-controller-action-based.md) component to represent the two motion controllers.
+The Origin has two child GameObjects, **Left Controller** and **Right Controller**, each having an [XR Controller](xr-controller-action-based.md) component to represent the two motion controllers.
 
 For Action-based controllers, the Actions that you assign should use either the **XR Controller (LeftHand)** or **XR Controller (RightHand)** binding paths. For Device-based controllers, the **Controller Node** is set to **Left Hand** and **Right Hand** automatically.
 
@@ -68,7 +70,7 @@ If you followed steps 1-3, you should have a basic scene with the ability to per
 
 ### 4. Configure line type
 
-The [XR Ray Interactor](xr-ray-interactor.md) was added by default to the LeftHand Controller and RightHand Controller GameObjects when creating the XR Origin from the menu. Under its **Raycast Configuration** includes three default options of **Line Type** that can be used to select interactables:
+The [XR Ray Interactor](xr-ray-interactor.md) was added by default to the **Left Controller** and **Right Controller** GameObjects when creating the XR Origin from the menu. Under its **Raycast Configuration** includes three default options of **Line Type** that can be used to select interactables:
 
 * **Straight Line**
 * **Projectile Curve**
@@ -165,10 +167,10 @@ The image below shows the XR Origin component.
 | **Property** | **Description** |
 |---|---|
 |**Origin Base Game Object**|Indicates which GameObject acts as the Transform from tracking space into world space. In the recommended hierarchy, this is the XR Origin GameObject.|
-|**Camera Floor Offset Object**|Sets which GameObject has a vertical offset applied if the device tracking origin doesn't contain the user's height.|
-|**Camera Game Object**|Indicates which GameObject holds the user's Camera. This is important because the user's Camera might not be at the origin of the tracking volume. In the suggested hierarchy, this is the Camera GameObject.|
+|**Camera Floor Offset GameObject**|Sets which GameObject has a vertical offset applied if the device tracking origin doesn't contain the user's height.|
+|**Camera**|Indicates which GameObject holds the user's Camera. This is important because the user's Camera might not be at the origin of the tracking volume. In the suggested hierarchy, this is the Main Camera GameObject.|
 |**Tracking Origin Mode**|Sets the desired tracking origin used by the application.|
-|**Camera Y Offset**| The number of world space units by which the GameObject specified by the **Camera Floor Offset Object** is moved up vertically if the device tracking origin doesn't contain the user's height.|
+|**Camera Y Offset**| The number of world space units by which the GameObject specified by the **Camera Floor Offset GameObject** is moved up vertically if the device tracking origin doesn't contain the user's height.|
 
 ### Locomotion System
 
@@ -187,7 +189,7 @@ As a best practice, the Locomotion System should be located on the XR Origin Gam
 
 ### Locomotion Providers
 
-Locomotion Providers implement different types of locomotion. The package supplies multiple Locomotion Providers: the [Teleportation Provider](#teleportation-provider), the [Snap Turn Provider](#snap-turn-provider), the [Continuous Turn Provider](#continuous-turn-provider), and the [Continuous Move Provider](#continuous-move-provider), all of which implement the `LocomotionProvider` abstract class. These are discussed in more detail in the sections below.
+Locomotion Providers implement different types of locomotion. The package supplies multiple Locomotion Providers: the [Teleportation Provider](#teleportation-provider), the [Snap Turn Provider](#snap-turn-provider), the [Continuous Turn Provider](#continuous-turn-provider), the [Continuous Move Provider](#continuous-move-provider), [Grab Move Providers](#grab-move-providers), and the [Climb Provider](#climb-provider), all of which implement the `LocomotionProvider` abstract class. These are discussed in more detail in the sections below.
 
 The `LocomotionProvider` class provides a simple interface to request and relinquish exclusive access to the configured [LocomotionSystem](locomotion-system.md). If no `LocomotionSystem` class is configured, the Locomotion Provider attempts to find a Locomotion System in the current scene(s).
 
@@ -442,6 +444,55 @@ The following image shows an example of the Two Handed Grab Move Provider.
 |**Minimum Scale**|The minimum user scale allowed.|
 |**Maximum Scale**|The maximum user scale allowed.|
 
+### Climb Locomotion
+
+The package provides an example implementation of climb locomotion, which allows the user to climb an Interactable. Climb locomotion translates the Origin counter to movement of whichever Interactor is selecting a Climb Interactable. If multiple Interactors are selecting a Climb Interactable, only the most recent selection will drive movement. This type of locomotion is similar to [grab movement](#grab-move-providers) but uses Interactables to restrict locomotion.
+
+Climb locomotion settings can be configured at the Provider level or overridden by the specific Climb Interactable being climbed. Settings can be configured to restrict movement along any of the local axes of the Interactable.
+
+#### Climb Provider
+
+The Climb Provider implements the `LocomotionProvider` abstract class. This is the component that handles the actual movement of the XR Origin. As a best practice, place this instance on the XR Origin GameObject.
+
+The following image shows an example of the Climb Provider.
+
+![climb-provider](images/climb-provider.png)
+
+|**Property**|**Description**|
+|---|---|
+|**System**|The Locomotion System that this locomotion provider will communicate with for exclusive access to an XR Origin. If one is not provided, the system will attempt to locate one during its `Awake` call.|
+|**Climb Settings**|Climb locomotion settings. Can be overridden by the Climb Interactable used for locomotion.|
+|&emsp;**Use Asset**|Enable to use a `ClimbSettings` object externally defined in a `ClimbSettingsDatum` asset that can be assigned using the accompanying field.|
+|&emsp;**Use Value**|Enable to use a `ClimbSettings` object which comes with default values editable in the component editor.|
+|&emsp;Allow Free X Movement|Controls whether to allow unconstrained movement along the Climb Interactable's x-axis.|
+|&emsp;Allow Free Y Movement|Controls whether to allow unconstrained movement along the Climb Interactable's y-axis.|
+|&emsp;Allow Free Z Movement|Controls whether to allow unconstrained movement along the Climb Interactable's z-axis.|
+
+#### Climb Interactable
+
+The Climb Interactable implements the `XRBaseInteractable` abstract class. This component allows you to make an object **climbable** by using the selection interaction to drive movement. You can optionally restrict movement so that the user is unable to move along certain local axes of the object.
+
+The following image shows an example of the Climb Interactable.
+
+![climb-interactable](images/climb-interactable.png)
+
+The properties on the Climb Interactable are similar to other Interactables. The table below only covers the elements under the climb configuration.
+
+|**Property**|**Description**|
+|---|---|
+|**Climb Provider**|The climb provider that performs locomotion while this interactable is selected. If no climb provider is configured, the system will attempt to find one during its `Awake` call.|
+|**Climb Transform**|Transform that defines the coordinate space for climb locomotion. Will use this GameObject's Transform by default.|
+|**Filter Interaction By Distance**|Controls whether to apply a distance check when validating hover and select interaction.|
+|**Max Interaction Distance**|The maximum distance that an interactor can be from this interactable to begin hover or select.|
+|**Climb Settings Override**|Optional override of locomotion settings specified in the climb provider. Only applies as an override if set to **Use Value** or if the asset reference is set.|
+|&emsp;**Use Asset**|Enable to use a `ClimbSettings` object externally defined in a `ClimbSettingsDatum` asset that can be assigned using the accompanying field.|
+|&emsp;**Use Value**|Enable to use a `ClimbSettings` object which comes with default values editable in the component editor.|
+|&emsp;Allow Free X Movement|Controls whether to allow unconstrained movement along the Climb Interactable's x-axis.|
+|&emsp;Allow Free Y Movement|Controls whether to allow unconstrained movement along the Climb Interactable's y-axis.|
+|&emsp;Allow Free Z Movement|Controls whether to allow unconstrained movement along the Climb Interactable's z-axis.|
+
+The Climb Interactable also has a unique default value for the **Select Mode** property defined in `XRBaseInteractable`. **Select Mode** is set to **Multiple**, so that two-handed climbing is enabled by default.
+
 ### Character Controller Driver
 
 You can use the Character Controller Driver to drive the height of a Character Controller on the Origin upon locomotion events emitted by, for example, a Continuous Move Provider. This can allow for the capsule collider of the Origin (that is, the user) to be automatically resized when the user crouches down or stands up and tries to move with a joystick. This can be useful, together with other Collider objects, to constrain the user from moving forward unless their head would be lower than an obstacle, for instance.
@@ -462,6 +513,7 @@ The following image shows an example of the Character Controller Driver.
 
 |Date|Reason|
 |---|---|
+|**May 19, 2023**| Documentation updated to match changes made in `com.unity.xr.core-utils` version 2.2.1.|
 |**February 14, 2022**| Documentation updated to match package version 2.0.0.|
 |**May 12, 2021**|Documentation updated for changes to tracking origin mode on the XR Origin. Matches package version 1.0.0-pre.4.|
 |**January 10, 2020**|Documentation fixes, adds revision history.|

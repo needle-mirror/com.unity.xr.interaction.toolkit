@@ -650,6 +650,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly Vector3[] m_ThrowSmoothingAngularVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
         bool m_ThrowSmoothingFirstUpdate;
         Pose m_LastThrowReferencePose;
+        IXRAimAssist m_ThrowAssist;
 
         Rigidbody m_Rigidbody;
 
@@ -658,6 +659,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_UsedGravity;
         float m_OldDrag;
         float m_OldAngularDrag;
+
+        // Used to keep track of colliders for which to ignore collision with character only while grabbed
+        bool m_IgnoringCharacterCollision;
+        bool m_StopIgnoringCollisionInLateUpdate;
+        CharacterController m_SelectingCharacterController;
+        readonly HashSet<IXRSelectInteractor> m_SelectingCharacterInteractors = new HashSet<IXRSelectInteractor>();
+        readonly List<Collider> m_RigidbodyColliders = new List<Collider>();
+        readonly HashSet<Collider> m_CollidersThatAllowedCharacterCollision = new HashSet<Collider>();
 
         Transform m_OriginalSceneParent;
 
@@ -682,6 +691,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_Rigidbody = GetComponent<Rigidbody>();
             if (m_Rigidbody == null)
                 Debug.LogError("XR Grab Interactable does not have a required Rigidbody.", this);
+
+            m_Rigidbody.GetComponentsInChildren(true, m_RigidbodyColliders);
+            for (var i = m_RigidbodyColliders.Count - 1; i >= 0; i--)
+            {
+                if (m_RigidbodyColliders[i].attachedRigidbody != m_Rigidbody)
+                    m_RigidbodyColliders.RemoveAt(i);
+            }
 
             if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
             {
@@ -768,6 +784,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
                     }
 
+                    if (m_IgnoringCharacterCollision && !m_StopIgnoringCollisionInLateUpdate &&
+                        m_SelectingCharacterInteractors.Count == 0 && m_SelectingCharacterController != null &&
+                        IsOutsideCharacterCollider(m_SelectingCharacterController))
+                    {
+                        // Wait until Late update so that physics can update before we restore the ability to collide with character
+                        m_StopIgnoringCollisionInLateUpdate = true;
+                    }
+
                     break;
 
                 // During Dynamic update and OnBeforeRender we want to update the target pose and apply any Transform-based updates (e.g., Instantaneous).
@@ -783,13 +807,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     break;
 
-                // Late update is only used to handle detach as late as possible.
+                // Late update is used to handle detach and restoring character collision as late as possible.
                 case XRInteractionUpdateOrder.UpdatePhase.Late:
                     if (m_DetachInLateUpdate)
                     {
                         if (!isSelected)
                             Detach();
                         m_DetachInLateUpdate = false;
+                    }
+
+                    if (m_StopIgnoringCollisionInLateUpdate)
+                    {
+                        if (m_IgnoringCharacterCollision && m_SelectingCharacterController != null)
+                        {
+                            StopIgnoringCharacterCollision(m_SelectingCharacterController);
+                            m_SelectingCharacterController = null;
+                        }
+
+                        m_StopIgnoringCollisionInLateUpdate = false;
                     }
 
                     break;
@@ -1388,6 +1423,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // would make it almost impossible to throw with both hands.
             ResetThrowSmoothing();
 
+            // Check if we should ignore collision with character every time number of grabs increases since
+            // the first select could have happened from a non-character interactor.
+            if (!m_IgnoringCharacterCollision)
+            {
+                m_SelectingCharacterController = args.interactorObject.transform.GetComponentInParent<CharacterController>();
+                if (m_SelectingCharacterController != null)
+                {
+                    m_SelectingCharacterInteractors.Add(args.interactorObject);
+                    StartIgnoringCharacterCollision(m_SelectingCharacterController);
+                }
+            }
+            else if (m_SelectingCharacterController != null && args.interactorObject.transform.IsChildOf(m_SelectingCharacterController.transform))
+            {
+                m_SelectingCharacterInteractors.Add(args.interactorObject);
+            }
+
             if (interactorsSelecting.Count == 1)
             {
                 Grab();
@@ -1410,7 +1461,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_CurrentAttachEaseTime = 0f;
 
             if (interactorsSelecting.Count == 0)
+            {
+                if (m_ThrowOnDetach)
+                    m_ThrowAssist = args.interactorObject.transform.GetComponentInParent<IXRAimAssist>();
+
                 Drop();
+            }
+
+            // Don't restore ability to collide with character until the object is not overlapping with the character.
+            // This prevents the character from being pushed out of the way of the dropped object while moving.
+            m_SelectingCharacterInteractors.Remove(args.interactorObject);
 
             UnsubscribeTeleportationProvider(args.interactorObject);
         }
@@ -1650,6 +1710,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     return;
                 }
 
+                if (m_ThrowAssist != null)
+                {
+                    m_DetachVelocity = m_ThrowAssist.GetAssistedVelocity(m_Rigidbody.position, m_DetachVelocity, m_Rigidbody.useGravity ? -Physics.gravity.y : 0f);
+                    m_ThrowAssist = null;
+                }
+
                 m_Rigidbody.velocity = m_DetachVelocity;
                 m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
@@ -1795,6 +1861,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_LastThrowReferencePose.position += translated;
             m_LastThrowReferencePose.rotation = rotated * m_LastThrowReferencePose.rotation;
+        }
+
+        void StartIgnoringCharacterCollision(Collider characterCollider)
+        {
+            m_IgnoringCharacterCollision = true;
+            m_CollidersThatAllowedCharacterCollision.Clear();
+            for (var index = 0; index < m_RigidbodyColliders.Count; ++index)
+            {
+                var rigidbodyCollider = m_RigidbodyColliders[index];
+                if (rigidbodyCollider == null || rigidbodyCollider.isTrigger || Physics.GetIgnoreCollision(rigidbodyCollider, characterCollider))
+                    continue;
+
+                m_CollidersThatAllowedCharacterCollision.Add(rigidbodyCollider);
+                Physics.IgnoreCollision(rigidbodyCollider, characterCollider, true);
+            }
+        }
+
+        bool IsOutsideCharacterCollider(Collider characterCollider)
+        {
+            var characterBounds = characterCollider.bounds;
+            foreach (var rigidbodyCollider in m_CollidersThatAllowedCharacterCollision)
+            {
+                if (rigidbodyCollider == null)
+                    continue;
+
+                if (rigidbodyCollider.bounds.Intersects(characterBounds))
+                    return false;
+            }
+
+            return true;
+        }
+
+        void StopIgnoringCharacterCollision(Collider characterCollider)
+        {
+            m_IgnoringCharacterCollision = false;
+            foreach (var rigidbodyCollider in m_CollidersThatAllowedCharacterCollision)
+            {
+                if (rigidbodyCollider != null)
+                    Physics.IgnoreCollision(rigidbodyCollider, characterCollider, false);
+            }
         }
 
         static Transform OnCreatePooledItem()

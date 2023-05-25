@@ -1,24 +1,9 @@
-﻿// There is a problem with upm-ci package test builds where the Unity.InputSystem.TestFramework assembly
-// is not included, which causes this test to fail to compile. To allow these tests to be run,
-// modify your project's Packages\manifest.json file to include com.unity.inputsystem in the testables list.
-// See [Project Manifest](https://docs.unity3d.com/Manual/upm-manifestPrj.html)
-// Example:
-//   "testables": [
-//     "com.unity.inputsystem",
-//     "com.unity.xr.interaction.toolkit"
-//   ]
-// Then open Edit > Project Settings... > Player and edit the Scripting Define Symbols to add this.
-// It is enabled in the XR Interaction Toolkit Examples project to allow these
-// tests to be manually run, but skipped during some types of automated builds where the symbol is not defined.
-#if ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
-
-using System.Collections;
+﻿using System.Collections;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
-using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -201,5 +186,3 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
     }
 }
-
-#endif

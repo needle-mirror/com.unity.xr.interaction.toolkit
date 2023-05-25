@@ -54,6 +54,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
                 new AudioAffordanceThemeData { stateName = nameof(AffordanceStateShortcuts.hoveredPriority) },
                 new AudioAffordanceThemeData { stateName = nameof(AffordanceStateShortcuts.selected) },
                 new AudioAffordanceThemeData { stateName = nameof(AffordanceStateShortcuts.activated) },
+                new AudioAffordanceThemeData { stateName = nameof(AffordanceStateShortcuts.focused) },
             };
         }
 
@@ -65,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
         /// or <see langword="null"/> if there is no theme data associated with the state.</returns>
         public AudioAffordanceThemeData GetAffordanceThemeDataForIndex(byte stateIndex)
         {
-            return stateIndex <= m_List.Count ? m_List[stateIndex] : null;
+            return stateIndex < m_List.Count ? m_List[stateIndex] : null;
         }
     }
 

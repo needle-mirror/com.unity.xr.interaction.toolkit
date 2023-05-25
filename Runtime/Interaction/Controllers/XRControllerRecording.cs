@@ -71,6 +71,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
+            SetFrameDependentData();
+        }
+
+        internal void SetFrameDependentData()
+        {
             if (m_Frames == null || m_Frames.Count <= 0)
                 return;
 

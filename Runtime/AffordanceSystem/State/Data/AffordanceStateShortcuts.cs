@@ -64,5 +64,15 @@
         /// Default activated state data.
         /// </summary>
         public static AffordanceStateData activatedState { get; } = new AffordanceStateData(activated, 1f);
+
+        /// <summary>
+        /// Focused state index.
+        /// </summary>
+        public const byte focused = 6;
+
+        /// <summary>
+        /// Default focused state data.
+        /// </summary>
+        public static AffordanceStateData focusedState { get; } = new AffordanceStateData(focused, 1f);
     }
 }

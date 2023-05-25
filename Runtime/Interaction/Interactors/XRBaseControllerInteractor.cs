@@ -541,10 +541,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// The controller instance that is queried for input.
         /// </summary>
+        /// <remarks>
+        /// Setting this property will trigger the <see cref="OnXRControllerChanged"/> method when set externally.
+        /// </remarks>
         public XRBaseController xrController
         {
             get => m_Controller;
-            set => m_Controller = value;
+            set
+            {
+                if (m_Controller != value)
+                {
+                    m_Controller = value;
+                    OnXRControllerChanged();
+                }
+            }
         }
 
         readonly LinkedPool<ActivateEventArgs> m_ActivateEventArgs = new LinkedPool<ActivateEventArgs>(() => new ActivateEventArgs(), collectionCheck: false);
@@ -565,8 +575,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             // Setup interaction controller (for sending down selection state and input)
-            m_Controller = FindControllerComponent();
-            if (m_Controller == null)
+            xrController = FindControllerComponent();
+            if (xrController == null)
                 Debug.LogWarning($"Could not find {nameof(XRBaseController)} component on {gameObject} or any of its parents.", this);
 
             // If we are toggling selection and have a starting object, start out holding it
@@ -600,6 +610,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             return null;
 #endif
+        }
+
+        /// <summary>
+        /// Override this method to handle internal changes when the <see cref="xrController"/> property value
+        /// changes.
+        /// </summary>
+        private protected virtual void OnXRControllerChanged()
+        {
         }
 
         /// <inheritdoc />
@@ -728,7 +746,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Read Only) Whether or not Unity considers the UI Press controller input pressed.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if active. Otherwise, returns <see langword="false"/>.</returns>
-        protected bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
+        protected virtual bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
+
+        /// <summary>
+        /// (Read Only) The current scroll value Unity would apply to the UI.
+        /// </summary>
+        /// <returns>Returns a Vector2 with scroll strength for each axis. </returns>
+        protected Vector2 uiScrollValue => m_Controller != null ? m_Controller.uiScrollValue : Vector2.zero;
 
         /// <inheritdoc />
         public virtual bool shouldActivate =>

@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     #region Hover
 
     /// <summary>
-    /// <see cref="UnityEvent"/> that Unity invokes when an Interactor first initiates hovering over an Interactable.
+    /// <see cref="UnityEvent"/> that Unity invokes when an Interactor initiates hovering over an Interactable.
     /// </summary>
     [Serializable]
     public sealed class HoverEnterEvent : UnityEvent<HoverEnterEventArgs>
@@ -56,7 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     /// <summary>
-    /// Event data associated with the event when an Interactor first initiates hovering over an Interactable.
+    /// Event data associated with the event when an Interactor initiates hovering over an Interactable.
     /// </summary>
     public class HoverEnterEventArgs : BaseInteractionEventArgs
     {
@@ -208,6 +208,83 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Whether the selection was ended due to being canceled, such as from
         /// either the Interactor or Interactable being unregistered due to being
+        /// disabled or destroyed.
+        /// </summary>
+        public bool isCanceled { get; set; }
+    }
+
+    #endregion
+
+    #region Focus
+
+    /// <summary>
+    /// <see cref="UnityEvent"/> that Unity invokes when an Interaction group initiates focusing an Interactable.
+    /// </summary>
+    [Serializable]
+    public sealed class FocusEnterEvent : UnityEvent<FocusEnterEventArgs>
+    {
+    }
+
+    /// <summary>
+    /// Event data associated with the event when an Interaction group gains focus of an Interactable.
+    /// </summary>
+    public class FocusEnterEventArgs : BaseInteractionEventArgs
+    {
+        /// <summary>
+        /// The interaction group associated with the interaction event.
+        /// </summary>
+        public IXRInteractionGroup interactionGroup { get; set; }
+
+        /// <summary>
+        /// The Interactable associated with the interaction event.
+        /// </summary>
+        public new IXRFocusInteractable interactableObject
+        {
+            get => (IXRFocusInteractable)base.interactableObject;
+            set => base.interactableObject = value;
+        }
+
+        /// <summary>
+        /// The Interaction Manager associated with the interaction event.
+        /// </summary>
+        public XRInteractionManager manager { get; set; }
+    }
+
+    /// <summary>
+    /// <see cref="UnityEvent"/> that Unity invokes when an Interaction group ends focusing an Interactable.
+    /// </summary>
+    [Serializable]
+    public sealed class FocusExitEvent : UnityEvent<FocusExitEventArgs>
+    {
+    }
+
+    /// <summary>
+    /// Event data associated with the event when an Interaction group ends focusing an Interactable.
+    /// </summary>
+    public class FocusExitEventArgs : BaseInteractionEventArgs
+    {
+        /// <summary>
+        /// The interaction group associated with the interaction event.
+        /// </summary>
+        public IXRInteractionGroup interactionGroup { get; set; }
+
+        /// <summary>
+        /// The Interactable associated with the interaction event.
+        /// </summary>
+        public new IXRFocusInteractable interactableObject
+        {
+            get => (IXRFocusInteractable)base.interactableObject;
+            set => base.interactableObject = value;
+        }
+
+        /// <summary>
+        /// The Interaction Manager associated with the interaction event.
+        /// </summary>
+        public XRInteractionManager manager { get; set; }
+
+        /// <summary>
+        /// Whether the focus was lost due to being canceled, such as from
+        /// either the Interaction group or Interactable being unregistered due to being
         /// disabled or destroyed.
         /// </summary>
         public bool isCanceled { get; set; }

@@ -83,9 +83,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
             controllerRecorder.isPlaying = true;
@@ -111,9 +113,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
             controllerRecorder.isPlaying = true;

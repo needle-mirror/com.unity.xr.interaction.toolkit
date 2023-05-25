@@ -353,6 +353,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return m_SnapToCollider.ClosestPoint(point);
         }
 
+        /// <summary>
+        /// Tries to get the closest point on the associated snapping collider based on the attach transform position
+        /// of the associated <see cref="interactable"/>. If <see cref="snapToCollider"/> is null, it will return the
+        /// attach transform position of the associated <see cref="interactable"/>. If <see cref="interactable"/> is
+        /// also null in that case, it will return the transform position of this GameObject.
+        /// </summary>
+        /// <param name="interactor">The <see cref="IXRInteractor"/> interacting with the <see cref="XRInteractableSnapVolume"/> used to get the attach transform.</param>
+        /// <returns>The closest point on the <see cref="snapToCollider"/> if possible. Defaults to the <see cref="interactable"/>
+        /// attach transform position of the associated <paramref name="interactor"/> if available, or the transform position of this GameObject.</returns>
+        public Vector3 GetClosestPointOfAttachTransform(IXRInteractor interactor)
+        {
+            var interactableValid = m_Interactable != null && (!(m_Interactable is Object unityObject) || unityObject != null);
+            var point = interactableValid ? m_Interactable.GetAttachTransform(interactor).position : transform.position;
+
+            if (m_SnapToCollider == null || !m_SnapToCollider.gameObject.activeInHierarchy || !m_SnapToCollider.enabled)
+                return point;
+
+            return m_SnapToCollider.ClosestPoint(point);
+        }
+
         void SetBoundInteractable(IXRInteractable source)
         {
             Debug.Assert(Application.isPlaying);

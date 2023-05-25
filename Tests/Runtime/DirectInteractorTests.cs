@@ -72,13 +72,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
             controllerRecorder.isPlaying = true;
-
+            controllerRecorder.visitEachFrame = true;
             yield return new WaitForFixedUpdate();
             yield return null;
 
@@ -94,9 +96,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = directInteractor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
             controllerRecorder.isPlaying = true;
@@ -129,6 +133,64 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator DirectInteractorCanGainAndLoseFocusOfInteractable()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            var group = TestUtilities.CreateInteractionGroup();
+            var directInteractor = TestUtilities.CreateDirectInteractor();
+            group.AddGroupMember(directInteractor);
+
+            var controller = directInteractor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+            });
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+            while (controllerRecorder.isPlaying)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // Selection has come and gone - resulting in a focus of the grab interactable
+            Assert.That(group.focusInteractable, Is.EqualTo( interactable ));
+            controllerRecorder.isPlaying = false;
+            GameObject.Destroy(controllerRecorder);
+            yield return null;
+
+            var offset = new Vector3(10.0f, 0.0f, 0.0f);
+            controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+            });
+
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+            while (controllerRecorder.isPlaying)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // Selection attempted again with no object present, resulting in loss of focus
+            Assert.That(group.focusInteractable, Is.EqualTo(null));
+        }
+
+        [UnityTest]
         public IEnumerator DirectInteractorCanPassToAnother()
         {
             TestUtilities.CreateInteractionManager();
@@ -139,13 +201,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller1 = directInteractor1.GetComponent<XRController>();
             var controllerRecorder1 = TestUtilities.CreateControllerRecorder(controller1, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
 
@@ -154,13 +216,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller2 = directInteractor2.GetComponent<XRController>();
             var controllerRecorder2 = TestUtilities.CreateControllerRecorder(controller2, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
 
@@ -190,9 +252,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var controller = interactor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
-                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All,
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     true, false, false));
             });
             controllerRecorder.isPlaying = true;
@@ -366,6 +428,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = TestUtilities.CreateDirectInteractor();
             var interactable = TestUtilities.CreateGrabInteractable();
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             var filter = new MockTargetFilter();
             Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));

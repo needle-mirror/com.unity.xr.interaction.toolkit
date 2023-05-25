@@ -221,6 +221,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public InteractionState uiPressInteractionState => m_UIPressInteractionState;
 
+        Vector2 m_UIScrollValue;
+        /// <summary>
+        /// (Read Only) The current UI scroll value.
+        /// </summary>
+        public Vector2 uiScrollValue => m_UIScrollValue;
+
         XRControllerState m_ControllerState;
         /// <summary>
         /// The current state of the controller.
@@ -403,6 +409,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_SelectInteractionState = controllerState.selectInteractionState;
                 m_ActivateInteractionState = controllerState.activateInteractionState;
                 m_UIPressInteractionState = controllerState.uiPressInteractionState;
+                m_UIScrollValue = controllerState.uiScrollValue;
             }
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||

@@ -100,7 +100,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected internal override void OnStart()
         {
 #pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit))
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
 #pragma warning restore 618
             {
                 var gameObject = hit.transform.gameObject;
@@ -135,6 +135,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 else if (touch.isPhaseEnded)
                 {
                     Complete();
+                    return true;
                 }
             }
             else

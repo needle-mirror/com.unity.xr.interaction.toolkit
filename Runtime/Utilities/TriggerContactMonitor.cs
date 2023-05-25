@@ -139,13 +139,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 }
             }
 
-            foreach (var col in s_ScratchColliders)
-            {
-                m_EnteredUnassociatedColliders.Remove(col);
-            }
-
+            s_ScratchColliders.ForEach(RemoveFromUnassociatedColliders);
             s_ScratchColliders.Clear();
         }
+
+        void RemoveFromUnassociatedColliders(Collider col) => m_EnteredUnassociatedColliders.Remove(col);
 
         /// <summary>
         /// Resolves the unassociated colliders to <paramref name="interactable"/> if they match.
@@ -164,8 +162,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (m_EnteredUnassociatedColliders.Count == 0 || interactionManager == null)
                 return;
 
-            foreach (var col in interactable.colliders)
+            for (int index = 0, count = interactable.colliders.Count; index < count; ++index)
             {
+                var col = interactable.colliders[index];
                 if (col == null)
                     continue;
 
@@ -194,30 +193,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             s_ExitedColliders.Clear();
 
-            foreach (var collider in m_EnteredColliders.Keys)
+            if (m_EnteredColliders.Count > 0)
             {
-                if (!stayedColliders.Contains(collider))
-                    // Add to temporary list to remove in a second pass to avoid modifying
-                    // the collection being iterated.
-                    s_ExitedColliders.Add(collider);
-                else
-                    // Remove collider that is already synced
-                    stayedColliders.Remove(collider);
+                foreach (var collider in m_EnteredColliders.Keys)
+                {
+                    if (!stayedColliders.Contains(collider))
+                        // Add to temporary list to remove in a second pass to avoid modifying
+                        // the collection being iterated.
+                        s_ExitedColliders.Add(collider);
+                    else
+                        // Remove collider that is already synced
+                        stayedColliders.Remove(collider);
+                }
             }
 
-            foreach (var collider in stayedColliders)
+            if (stayedColliders.Count > 0)
             {
-                // Add a stayed Collider to the entered colliders list if the
-                // Collider is not currently tracked
-                AddCollider(collider);
+                foreach (var collider in stayedColliders)
+                {
+                    // Add a stayed Collider to the entered colliders list if the
+                    // Collider is not currently tracked
+                    AddCollider(collider);
+                }
             }
 
-            foreach (var collider in s_ExitedColliders)
+            if (s_ExitedColliders.Count > 0)
             {
-                RemoveCollider(collider);
+                s_ExitedColliders.ForEach(RemoveCollider);
+                s_ExitedColliders.Clear();
             }
-
-            s_ExitedColliders.Clear();
         }
 
         /// <summary>

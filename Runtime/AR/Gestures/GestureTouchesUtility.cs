@@ -292,8 +292,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for ray casting.</param>
         /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for ray casting.</param>
         /// <param name="result">When this method returns, contains the <see cref="RaycastHit"/> result.</param>
+        /// <param name="layerMask">The layer mask used for limiting raycast targets.</param>
+        /// <param name="triggerInteraction">The type of interaction with trigger colliders via raycast.</param>
         /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
-        public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result)
+        public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result, LayerMask layerMask = default, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
         {
             // The ARSessionOrigin parameter will eventually be removed. This class is internal so no need for overloaded.
             var camera = sessionOrigin != null
@@ -306,7 +308,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             }
 
             var ray = camera.ScreenPointToRay(screenPos);
-            return camera.gameObject.scene.GetPhysicsScene().Raycast(ray.origin, ray.direction, out result);
+            return camera.gameObject.scene.GetPhysicsScene().Raycast(ray.origin, ray.direction, out result, Mathf.Infinity, layerMask, triggerInteraction);
         }
 
         /// <summary>

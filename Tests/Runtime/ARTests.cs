@@ -1,9 +1,8 @@
-// See comment in LocomotionInputTests.cs about ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
-#if AR_FOUNDATION_PRESENT && ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
+using NUnit.Framework;
 
+#if AR_FOUNDATION_PRESENT
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -14,9 +13,17 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Interaction.Toolkit.AR;
 using Unity.XR.CoreUtils;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
+#if !AR_FOUNDATION_PRESENT
+    [TestFixture]
+    [Ignore("Requires AR Foundation (com.unity.xr.arfoundation) package to be installed in this project.")]
+    class ARTests
+    {
+    }
+#else
     [TestFixture]
     class ARTests : InputTestFixture
     {
@@ -572,6 +579,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.transform.localScale.z, Is.EqualTo(originalScale.z));
         }
     }
-}
-
 #endif
+}

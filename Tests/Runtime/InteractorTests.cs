@@ -71,8 +71,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(manager.TryGetInteractableForCollider(boxCollider, out var boxColliderInteractable), Is.True);
             Assert.That(boxColliderInteractable, Is.EqualTo(interactable));
 
-            yield return null;
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             var directOverlaps = Physics.OverlapSphere(triggerCollider.transform.position, triggerCollider.radius, -1, QueryTriggerInteraction.Ignore);
             Assert.That(directOverlaps, Is.Empty);
@@ -176,7 +176,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             var interactable = TestUtilities.CreateGrabInteractable();
 
+            // Wait both for fixed update and a frame to ensure the Interactor has had a chance to update
+            // Direct interactor may update on update or on fixed update
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
@@ -213,7 +216,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             interactable.transform.position = Vector3.zero;
 
+            // Wait both for fixed update and a frame to ensure the Interactor has had a chance to update
+            // Direct interactor may update on update or on fixed update
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);

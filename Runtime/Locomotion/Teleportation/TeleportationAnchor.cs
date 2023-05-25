@@ -53,6 +53,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
+        public override Transform GetAttachTransform(IXRInteractor interactor)
+        {
+            return m_TeleportAnchorTransform;
+        }
+
+        /// <inheritdoc />
         protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
         {
             if (m_TeleportAnchorTransform == null)

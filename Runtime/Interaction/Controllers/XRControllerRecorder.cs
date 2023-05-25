@@ -47,6 +47,18 @@
             set => m_XRController = value;
         }
 
+        [SerializeField, Tooltip("If true, every frame of the recording must be visited even if a larger time period has passed.")]
+        bool m_VisitEachFrame;
+
+        /// <summary>
+        /// If <see langword="true"/>, every frame of the recording must be visited even if a larger time period has passed.
+        /// </summary>
+        public bool visitEachFrame
+        {
+            get => m_VisitEachFrame;
+            set => m_VisitEachFrame = value;
+        }
+
         /// <summary>
         /// Whether the <see cref="XRControllerRecorder"/> is currently recording interaction state.
         /// </summary>
@@ -164,7 +176,7 @@
 
             if (isRecording || isPlaying)
                 m_CurrentTime += Time.deltaTime;
-            if (isPlaying && m_CurrentTime > m_Recording.duration)
+            if (isPlaying && m_CurrentTime > m_Recording.duration && (!m_VisitEachFrame || m_LastFrameIdx >= (m_Recording.frames.Count - 1)))
                 isPlaying = false;
         }
 
@@ -196,10 +208,20 @@
             var frameIdx = m_LastFrameIdx;
             if (prevFrame.time < playbackTime)
             {
-                for (; frameIdx < m_Recording.frames.Count &&
-                    m_Recording.frames[frameIdx].time >= m_LastPlaybackTime &&
-                    m_Recording.frames[frameIdx].time <= playbackTime;
-                ++frameIdx) { }
+                while (frameIdx < m_Recording.frames.Count &&
+                       m_Recording.frames[frameIdx].time >= m_LastPlaybackTime &&
+                       m_Recording.frames[frameIdx].time <= playbackTime)
+                {
+                    ++frameIdx;
+                    if (m_VisitEachFrame)
+                    {
+                        if (frameIdx < m_Recording.frames.Count)
+                            playbackTime = m_Recording.frames[frameIdx].time;
+
+                        break;
+                    }
+
+                }
             }
 
             // Past last frame or on the same frame, don't do anything

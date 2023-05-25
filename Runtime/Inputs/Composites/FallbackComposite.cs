@@ -39,7 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         public int third;
 
         /// <summary>
-        /// See <see cref="FallbackComposite{TValue}" />
+        /// See <see cref="InputBindingComposite{TValue}" />
         /// </summary>
         /// <param name="context">Callback context for the binding composite. Unity
         /// uses this to access the values supplied by part bindings.</param>
@@ -104,7 +104,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         public int third;
 
         /// <summary>
-        /// See <see cref="FallbackComposite{TValue}" />
+        /// See <see cref="InputBindingComposite{TValue}" />
         /// </summary>
         /// <param name="context">Callback context for the binding composite. Unity
         /// uses this to access the values supplied by part bindings.</param>
@@ -169,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         public int third;
 
         /// <summary>
-        /// See <see cref="FallbackComposite{TValue}" />
+        /// See <see cref="InputBindingComposite{TValue}" />
         /// </summary>
         /// <param name="context">Callback context for the binding composite. Unity
         /// uses this to access the values supplied by part bindings.</param>
@@ -201,6 +201,82 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Composites
         static IntegerFallbackComposite()
         {
             InputSystem.InputSystem.RegisterBindingComposite<IntegerFallbackComposite>();
+        }
+    }
+
+    /// <summary>
+    /// A single Button value, such as the is tracked state, computed from an ordered list of bindings.
+    /// Unity reads from the first binding that has a valid control.
+    /// </summary>
+    /// <inheritdoc />
+#if UNITY_EDITOR
+    [InitializeOnLoad]
+#endif
+    [Preserve]
+    public class ButtonFallbackComposite : FallbackComposite<float>
+    {
+        /// <summary>
+        /// The first input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Button")]
+        public int first;
+
+        /// <summary>
+        /// The second input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Button")]
+        public int second;
+
+        /// <summary>
+        /// The third input control to evaluate.
+        /// </summary>
+        [InputControl(layout = "Button")]
+        public int third;
+
+        /// <summary>
+        /// See <see cref="InputBindingComposite{TValue}" />
+        /// </summary>
+        /// <param name="context">Callback context for the binding composite. Unity
+        /// uses this to access the values supplied by part bindings.</param>
+        /// <returns><see cref="float" /> read from the context.</returns>
+        public override float ReadValue(ref InputBindingCompositeContext context)
+        {
+            var value = context.ReadValue<float>(first, out var sourceControl);
+            if (sourceControl != null)
+                return value;
+
+            value = context.ReadValue<float>(second, out sourceControl);
+            if (sourceControl != null)
+                return value;
+
+            value = context.ReadValue<float>(third);
+            return value;
+        }
+
+        /// <summary>
+        /// See <see cref="InputBindingComposite{TValue}" />
+        /// </summary>
+        /// <param name="context">Callback context for the binding composite. Unity
+        /// uses this to access the values supplied by part bindings.</param>
+        /// <returns><see cref="float" /> magnitude read from the context.</returns>
+        public override float EvaluateMagnitude(ref InputBindingCompositeContext context)
+        {
+            return ReadValue(ref context);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad), Preserve]
+#pragma warning disable IDE0051 // Remove unused private members
+        // ReSharper disable once UnusedMember.Local
+        static void Initialize()
+#pragma warning restore IDE0051
+        {
+            // Will execute the static constructor as a side effect.
+        }
+
+        [Preserve]
+        static ButtonFallbackComposite()
+        {
+            InputSystem.InputSystem.RegisterBindingComposite<ButtonFallbackComposite>();
         }
     }
 

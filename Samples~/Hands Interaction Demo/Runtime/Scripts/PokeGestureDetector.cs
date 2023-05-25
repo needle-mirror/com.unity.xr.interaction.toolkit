@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine.Events;
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 #endif
 
@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     {
         [SerializeField]
         [Tooltip("Which hand to check for the poke gesture.")]
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
         Handedness m_Handedness;
 #else
         int m_Handedness;
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [Tooltip("Called when the hand has ended a poke gesture.")]
         UnityEvent m_PokeGestureEnded;
 
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
         XRHandSubsystem m_Subsystem;
         bool m_IsPoking;
 
@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// </summary>
         protected void OnEnable()
         {
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
             SubsystemManager.GetSubsystems(s_Subsystems);
             if (s_Subsystems.Count == 0)
                 return;
@@ -57,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// </summary>
         protected void OnDisable()
         {
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
             if (m_Subsystem == null)
                 return;
 
@@ -66,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 #endif
         }
 
-#if XR_HANDS
+#if XR_HANDS_1_1_OR_NEWER
         void OnUpdatedHands(XRHandSubsystem subsystem, XRHandSubsystem.UpdateSuccessFlags updateSuccessFlags, XRHandSubsystem.UpdateType updateType)
         {
             var wasPoking = m_IsPoking;

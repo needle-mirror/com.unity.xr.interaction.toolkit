@@ -76,6 +76,22 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
         protected SerializedProperty m_AnchorRotationMode;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiHoverEntered"/>.</summary>
+        protected SerializedProperty m_UIHoverEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiHoverExited"/>.</summary>
+        protected SerializedProperty m_UIHoverExited;
+
+        //AR Properties
+        const string k_AROptionsExpandedKey = "XRI." + nameof(XRRayInteractorEditor) + ".AROptionsExpanded";
+        bool m_AROptionsExpanded;
+
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableARRaycasting"/>.</summary>
+        protected SerializedProperty m_EnableARRaycasting;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.occludeARHitsWith3DObjects"/>.</summary>
+        protected SerializedProperty m_OccludeARHitsWith3DObjects;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.occludeARHitsWith2DObjects"/>.</summary>
+        protected SerializedProperty m_OccludeARHitsWith2DObjects;
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
@@ -143,6 +159,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent anchorRotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
             public static readonly GUIContent anchorRotationMode = EditorGUIUtility.TrTextContent("Rotation Mode", "How the anchor rotation is controlled.");
+
+            /// <summary><see cref="GUIContent"/> for the header label of UI events.</summary>
+            public static readonly GUIContent uiEventsHeader = EditorGUIUtility.TrTextContent("UI", "Called when this Interactor begins hovering over UI (Entered), or ends hovering (Exited).");
+      
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableARRaycasting"/>.</summary>
+            public static readonly GUIContent enableARRaycasting = EditorGUIUtility.TrTextContent("Enable AR Raycasting", "Allow raycasts against the AR environment trackables.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith3DObjects"/>.</summary>
+            public static readonly GUIContent occludeARHitsWith3DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 3D Objects", "If checked, AR Raycasts will be occluded by 3D objects.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith2DObjects"/>.</summary>
+            public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If checked, AR Raycasts will be occluded by 2D objects.");
         }
 
         /// <inheritdoc />
@@ -186,6 +212,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AnchorRotateReferenceFrame = serializedObject.FindProperty("m_AnchorRotateReferenceFrame");
             m_AnchorRotationMode = serializedObject.FindProperty("m_AnchorRotationMode");
 
+            m_UIHoverEntered = serializedObject.FindProperty("m_UIHoverEntered");
+            m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");      
+            m_EnableARRaycasting = serializedObject.FindProperty("m_EnableARRaycasting");
+            m_OccludeARHitsWith3DObjects = serializedObject.FindProperty("m_OccludeARHitsWith3DObjects");
+            m_OccludeARHitsWith2DObjects = serializedObject.FindProperty("m_OccludeARHitsWith2DObjects");
+
+            m_AROptionsExpanded = SessionState.GetBool(k_AROptionsExpandedKey, false);
+
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
             if (!SessionState.GetBool(initializedKey, false))
@@ -214,6 +248,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.Space();
 
             DrawSelectionConfiguration();
+
+#if AR_FOUNDATION_PRESENT            
+            EditorGUILayout.Space();
+            
+            DrawARConfiguration();
+#endif
+
         }
 
         /// <inheritdoc />
@@ -364,6 +405,33 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
             EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+        }
+ 
+        /// <inheritdoc />
+        protected override void DrawInteractorEventsNested()
+        {
+            base.DrawInteractorEventsNested();
+
+            EditorGUILayout.LabelField(Contents.uiEventsHeader, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_UIHoverEntered);
+            EditorGUILayout.PropertyField(m_UIHoverExited);
+        }
+
+        /// <summary>
+        /// Draw the AR Configuration properties.
+        /// </summary>
+        protected virtual void DrawARConfiguration()
+        {
+            m_AROptionsExpanded = EditorGUILayout.Foldout(m_AROptionsExpanded, EditorGUIUtility.TrTempContent("AR Configuration"), true);
+            if (m_AROptionsExpanded)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_EnableARRaycasting, Contents.enableARRaycasting);
+                    EditorGUILayout.PropertyField(m_OccludeARHitsWith3DObjects, Contents.occludeARHitsWith3DObjects);
+                    EditorGUILayout.PropertyField(m_OccludeARHitsWith2DObjects, Contents.occludeARHitsWith2DObjects);
+                }
+            }
         }
     }
 }

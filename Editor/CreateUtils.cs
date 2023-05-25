@@ -436,7 +436,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             CreateInteractionManager();
 
-            var originGo = CreateAndPlaceGameObject("XR Origin", parent, typeof(XROrigin));
+            var originGo = CreateAndPlaceGameObject("XR Origin (XR Rig)", parent, typeof(XROrigin));
             var offsetGo = CreateAndPlaceGameObject("Camera Offset", originGo.transform);
             var offsetTransform = offsetGo.transform;
 
@@ -484,12 +484,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             var cameraOffsetTransform = origin.CameraFloorOffsetObject.transform;
 
-            var leftHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "LeftHand Controller");
+            var leftHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "Left Controller");
             var leftHandController = leftHandRayInteractorGo.GetComponent<XRController>();
             if (leftHandController != null)
                 leftHandController.controllerNode = XRNode.LeftHand;
 
-            var rightHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "RightHand Controller");
+            var rightHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "Right Controller");
             var rightHandController = rightHandRayInteractorGo.GetComponent<XRController>();
             if (rightHandController != null)
                 rightHandController.controllerNode = XRNode.RightHand;

@@ -1,3 +1,4 @@
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -26,6 +27,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Order when instances of type <see cref="XRBaseController"/> are updated.
         /// </summary>
         public const int k_Controllers = -29990; // After XRControllerRecorder
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRTransformStabilizer"/> are updated.
+        /// </summary>
+        public const int k_TransformStabilizer = -29985; // After Controllers apply pose to Transforms
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRGazeAssistance"/> are updated.
+        /// </summary>
+        public const int k_GazeAssistance = -29980; // After input pose stabilization
 
         /// <summary>
         /// Order when instances of type <see cref="LocomotionProvider"/> are updated.
@@ -75,6 +86,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Order when instances of type <see cref="XRInteractorLineVisual"/> are updated.
         /// </summary>
         public const int k_LineVisual = 100;
+
+        /// <summary>
+        /// Order when <see cref="XRGazeAssistance.OnBeforeRender"/> is called.
+        /// </summary>
+        public const int k_BeforeRenderGazeAssistance = 95;
 
         /// <summary>
         /// Order when <see cref="XRInteractionManager.OnBeforeRender"/> is called.

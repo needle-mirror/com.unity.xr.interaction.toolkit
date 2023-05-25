@@ -31,6 +31,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_DistanceCalculationMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectMode"/>.</summary>
         protected SerializedProperty m_SelectMode;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.focusMode"/>.</summary>
+        protected SerializedProperty m_FocusMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingHoverFilters"/>.</summary>
         protected SerializedProperty m_StartingHoverFilters;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
@@ -71,6 +73,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_SelectEntered;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.selectExited"/>.</summary>
         protected SerializedProperty m_SelectExited;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.firstFocusEntered"/>.</summary>
+        protected SerializedProperty m_FirstFocusEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.lastFocusExited"/>.</summary>
+        protected SerializedProperty m_LastFocusExited;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.focusEntered"/>.</summary>
+        protected SerializedProperty m_FocusEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.focusExited"/>.</summary>
+        protected SerializedProperty m_FocusExited;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.activated"/>.</summary>
         protected SerializedProperty m_Activated;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.deactivated"/>.</summary>
@@ -126,6 +136,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected bool selectMultipleAllowed { get; private set; }
 
         /// <summary>
+        /// Whether <see cref="InteractableFocusMode.Multiple"/> is allowed by the script of the object being inspected.
+        /// </summary>
+        protected bool focusMultipleAllowed { get; private set; }
+
+        /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
         protected static class BaseContents
@@ -139,7 +154,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.interactionLayers"/>.</summary>
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactors whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.selectMode"/>.</summary>
-            public static readonly GUIContent selectMode = EditorGUIUtility.TrTextContent("Select Mode", "The selection policy, either Single selection with swapping allowed, Single Locked selection without swapping, or Multiple selection.");
+            public static readonly GUIContent selectMode = EditorGUIUtility.TrTextContent("Select Mode", "The selection policy, either Single selection with swapping allowed, or Multiple selection.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.focusMode"/>.</summary>
+            public static readonly GUIContent focusMode = EditorGUIUtility.TrTextContent("Focus Mode", "The focus policy, either Single focus with swapping allowed, Multiple focus, or None to disallow focus");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.distanceCalculationMode"/>.</summary>
             public static readonly GUIContent distanceCalculationMode = EditorGUIUtility.TrTextContent("Distance Calculation Mode", "Specifies how distance is calculated to Interactors, from fastest to most accurate. If using Mesh Colliders, Collider Volume only works if the mesh is convex.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.customReticle"/>.</summary>
@@ -168,8 +185,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent hoverEventsHeader = EditorGUIUtility.TrTextContent("Hover", "Called when an Interactor begins hovering over this Interactable (Entered), or ends hovering (Exited).");
             /// <summary><see cref="GUIContent"/> for the header label of First/Last Hover events.</summary>
             public static readonly GUIContent firstLastSelectEventsHeader = EditorGUIUtility.TrTextContent("First/Last Select", "Similar to Select except called only when the first Interactor begins selecting this Interactable as the sole selecting Interactor, or when the last remaining selecting Interactor ends selecting.");
+            /// <summary><see cref="GUIContent"/> for the header label of First/Last Focus events.</summary>
+            public static readonly GUIContent firstLastFocusEventsHeader = EditorGUIUtility.TrTextContent("First/Last Focus", "Similar to focus except called only when the first Interactor gains focus on this Interactable as the sole focusing Interactor, or when the last remaining selecting Interactor loses focus.");
             /// <summary><see cref="GUIContent"/> for the header label of Select events.</summary>
             public static readonly GUIContent selectEventsHeader = EditorGUIUtility.TrTextContent("Select", "Called when an Interactor begins selecting this Interactable (Entered), or ends selecting (Exited).");
+            /// <summary><see cref="GUIContent"/> for the header label of Select events.</summary>
+            public static readonly GUIContent focusEventsHeader = EditorGUIUtility.TrTextContent("Focus", "Called when an Interactor gains focus on this Interactable (Entered), or loses focus (Exited).");
             /// <summary><see cref="GUIContent"/> for the header label of Activate events.</summary>
             public static readonly GUIContent activateEventsHeader = EditorGUIUtility.TrTextContent("Activate", "Called when the Interactor that is selecting this Interactable sends a command to activate (Activated), or deactivate (Deactivated). Not to be confused with the active state of a GameObject.");
 
@@ -180,13 +201,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary>The help box message when deprecated Interactable Events are being used.</summary>
             public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactable Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");
 
-            /// <summary>The help box message when the distance calculation is being overriden.</summary>
+            /// <summary>The help box message when the distance calculation is being overridden.</summary>
             public static readonly GUIContent distanceCalculationOverride = EditorGUIUtility.TrTextContent("The distance calculation is being overridden and driven by another method.");
 
             /// <summary>The gaze configuration foldout.</summary>
             public static readonly GUIContent gazeConfiguration = EditorGUIUtility.TrTextContent("Gaze Configuration", "Settings for gaze interactions.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeInteraction"/>.</summary>
-            public static readonly GUIContent allowGazeInteraction = EditorGUIUtility.TrTextContent("Allow Gaze Interaction", "Allows gaze Interactors to interact with this Interactable. If false, this Interactor will recieve no interactable events from gaze Interactors. ");
+            public static readonly GUIContent allowGazeInteraction = EditorGUIUtility.TrTextContent("Allow Gaze Interaction", "Allows gaze Interactors to interact with this Interactable. If false, this Interactor will receive no interactable events from gaze Interactors.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeSelect"/>.</summary>
             public static readonly GUIContent allowGazeSelect = EditorGUIUtility.TrTextContent("Allow Gaze Select", "Allows gaze Interactors to select this Interactable.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.overrideGazeTimeToSelect"/>.</summary>
@@ -228,6 +249,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
             m_DistanceCalculationMode = serializedObject.FindProperty("m_DistanceCalculationMode");
             m_SelectMode = serializedObject.FindProperty("m_SelectMode");
+            m_FocusMode = serializedObject.FindProperty("m_FocusMode");
             m_CustomReticle = serializedObject.FindProperty("m_CustomReticle");
 
             m_AllowGazeInteraction = serializedObject.FindProperty("m_AllowGazeInteraction");
@@ -246,6 +268,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_LastSelectExited = serializedObject.FindProperty("m_LastSelectExited");
             m_SelectEntered = serializedObject.FindProperty("m_SelectEntered");
             m_SelectExited = serializedObject.FindProperty("m_SelectExited");
+            m_FirstFocusEntered = serializedObject.FindProperty("m_FirstFocusEntered");
+            m_LastFocusExited = serializedObject.FindProperty("m_LastFocusExited");
+            m_FocusEntered = serializedObject.FindProperty("m_FocusEntered");
+            m_FocusExited = serializedObject.FindProperty("m_FocusExited");
             m_Activated = serializedObject.FindProperty("m_Activated");
             m_Deactivated = serializedObject.FindProperty("m_Deactivated");
 
@@ -269,8 +295,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OnActivateCalls = m_OnActivate.FindPropertyRelative("m_PersistentCalls.m_Calls");
             m_OnDeactivateCalls = m_OnDeactivate.FindPropertyRelative("m_PersistentCalls.m_Calls");
 
-            var attribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
-            selectMultipleAllowed = attribute?.allowMultiple ?? true;
+            var selectAttribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
+            selectMultipleAllowed = selectAttribute?.allowMultiple ?? true;
+
+            var focusAttribute = (CanFocusMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanFocusMultipleAttribute)); 
+            focusMultipleAllowed = focusAttribute?.allowMultiple ?? true;
 
             m_GazeConfigurationExpanded = SessionState.GetBool(k_GazeConfigurationExpandedKey, false);
             m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
@@ -367,6 +396,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawDistanceCalculationMode();
             EditorGUILayout.PropertyField(m_CustomReticle, BaseContents.customReticle);
             DrawSelectionConfiguration();
+            DrawFocusConfiguration();
             DrawGazeConfiguration();
         }
 
@@ -431,6 +461,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Draw the property fields related to focus configuration.
+        /// </summary>
+        protected virtual void DrawFocusConfiguration()
+        {
+            if (m_FocusMode.intValue == (int)InteractableFocusMode.Multiple && !focusMultipleAllowed)
+                EditorGUILayout.HelpBox(BaseContents.multipleNotSupported.text, MessageType.Error);
+
+            XRInteractionEditorGUI.EnumPropertyField<InteractableFocusMode>(m_FocusMode, BaseContents.focusMode, IsFocusModeOptionEnabled);
+        }
+
+        /// <summary>
         /// Draw the Interactable Filter foldout.
         /// </summary>
         protected virtual void DrawFilters()
@@ -478,6 +519,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         bool IsSelectModeOptionEnabled(Enum arg) => (InteractableSelectMode)arg != InteractableSelectMode.Multiple || selectMultipleAllowed;
+        bool IsFocusModeOptionEnabled(Enum arg) => (InteractableFocusMode)arg != InteractableFocusMode.Multiple || focusMultipleAllowed;
 
         /// <summary>
         /// Draw the property fields related to interaction management.
@@ -581,6 +623,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUILayout.PropertyField(m_OnSelectExited, BaseContents.onSelectExited);
             if (m_OnSelectCanceledCalls.arraySize > 0 || m_OnSelectCanceledCalls.hasMultipleDifferentValues)
                 EditorGUILayout.PropertyField(m_OnSelectCanceled, BaseContents.onSelectCanceled);
+
+            EditorGUILayout.LabelField(BaseContents.firstLastFocusEventsHeader, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_FirstFocusEntered);
+            EditorGUILayout.PropertyField(m_LastFocusExited);
+
+            EditorGUILayout.LabelField(BaseContents.focusEventsHeader, EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_FocusEntered);
+            EditorGUILayout.PropertyField(m_FocusExited);
 
             EditorGUILayout.LabelField(BaseContents.activateEventsHeader, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_Activated);

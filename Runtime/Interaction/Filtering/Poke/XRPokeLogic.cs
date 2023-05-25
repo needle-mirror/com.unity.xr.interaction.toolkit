@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
+using Unity.XR.CoreUtils.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -30,18 +31,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         readonly Dictionary<object, Vector3> m_LastHoverEnterLocalPosition = new Dictionary<object, Vector3>();
         readonly Dictionary<object, Transform> m_LastHoveredTransform = new Dictionary<object, Transform>();
         readonly Dictionary<object, bool> m_HoldingHoverCheck = new Dictionary<object, bool>();
+        readonly Dictionary<Transform, HashSetList<object>> m_HoveredInteractorsOnThisTransform = new Dictionary<Transform, HashSetList<object>>();
+        readonly Dictionary<object, float> m_LastInteractorPressDepth = new Dictionary<object, float>();
 
         /// <summary>
         /// Threshold value where the poke interaction is considered to be selecting the interactable.
-        /// We normally checked 1% as the activation point, but setting it to 2.5% makes things feel a bit more responsive.
+        /// We normally checked 1% as the activation point, but setting it to 2.5 % makes things feel a bit more responsive.
         /// </summary>
         const float k_DepthPercentActivationThreshold = 0.025f;//0.05f;
         
         /// <summary>
         /// We require a minimum velocity for poke hover conditions to be met, and avoid the noise of tracking jitter.
-        /// 0.002 is roughly 4cm/s.
         /// </summary>
-        const float k_SquareVelocityHoverThreshold = 0.0002f;
+        const float k_SquareVelocityHoverThreshold = 0.0001f;
 
         /// <summary>
         /// Initializes <see cref="XRPokeLogic"/> with properties calculated from the collider of the associated interactable.
@@ -128,12 +130,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 
                 if (!m_HoldingHoverCheck[interactor])
                 {
-                    bool meetsVelocityCheck = false;
                     if (isOverObject)
                     {
-                        if (interactor is XRBaseInteractor baseInteractor && baseInteractor.useAttachPointVelocity)
+                        // Ensure the object's hover started from the right side of the object
+                        if(m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition))
                         {
-                            var interactorVelocity = baseInteractor.attachPointVelocity;
+                            // Restore the world space pos of the hover enter point relative to the hovered transform.
+                            var hoverWorldPos = m_LastHoveredTransform[interactor].TransformPoint(hoverLocalPosition);
+                            Vector3 hoverInteractionPointOffset = (hoverWorldPos - pokableAttachPosition).normalized;
+                            meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > 0;
+                        }
+                        
+                        // If we've met the first hover check of starting from the right side, we then check to ensure our velocity delta approach meets our threshold.
+                        if (meetsHoverRequirements && interactor is XRBaseInteractor baseInteractor && baseInteractor.useAttachPointVelocity)
+                        {
+                            var interactorVelocity = baseInteractor.GetAttachPointVelocity();
 
                             bool isVelocitySufficient = Vector3.SqrMagnitude(interactorVelocity) > k_SquareVelocityHoverThreshold;
 
@@ -141,19 +152,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                             if (isVelocitySufficient)
                             {
                                 // Start with hover check based on velocity
-                                float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity .normalized, axisNormal);
+                                float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity.normalized, axisNormal);
                                 meetsHoverRequirements = velocityAxisDotProduct > m_SelectEntranceVectorDotThreshold;
-                                meetsVelocityCheck = meetsHoverRequirements;
                             }
-                        }
-                        
-                        // If velocity too small or failed approach check, compare hover vector as fallback
-                        if (!meetsVelocityCheck && (m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition)))
-                        {
-                            // Restore the world space pos of the hover enter point relative to the hovered transform.
-                            var hoverWorldPos = m_LastHoveredTransform[interactor].TransformPoint(hoverLocalPosition);
-                            Vector3 hoverInteractionPointOffset = (hoverWorldPos - pokableAttachPosition).normalized;
-                            meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > m_SelectEntranceVectorDotThreshold;
+                            else
+                            {
+                                meetsHoverRequirements = false;
+                            }
                         }
                     }
                     else
@@ -168,7 +173,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             
             // Store holding hover check for this interactor
             m_HoldingHoverCheck[interactor] = meetsHoverRequirements;
+            
+            m_LastInteractorPressDepth[interactor] = clampedDepthPercent;
 
+            // If multiple interactors are poking this transform, we only want to allow the one that is deepest to select.
+            if (!meetsRequirements && m_HoveredInteractorsOnThisTransform.TryGetValue(pokedTransform, out var hoveringInteractors))
+            {
+                var hoveringInteractorsCount = hoveringInteractors.Count;
+                if (hoveringInteractorsCount > 1)
+                {
+                    var hoveringInteractorsList = hoveringInteractors.AsList();
+                    for (int i = 0; i < hoveringInteractorsCount; i++)
+                    {
+                        var hoveringInteractor = hoveringInteractorsList[i];
+                        if (hoveringInteractor == interactor)
+                            continue;
+                        
+                        // If something else deeper, we don't allow this interactor to broadcast it's press depth.
+                        var otherInteractorPressDepth = m_LastInteractorPressDepth[hoveringInteractor];
+                        if (otherInteractorPressDepth < clampedDepthPercent)
+                            return false;
+                    }
+                }
+            }
+            
             // Remove offset from visual callback to better match the actual poke position.
             var offsetRemoval = depthPercent < 1f && !meetsRequirements ? combinedOffset : 0f;
 
@@ -274,6 +302,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             
             // Store hovered point in local space relative to the poked transform in case the transform moves.
             m_LastHoverEnterLocalPosition[interactor] = pokedTransform.InverseTransformPoint(updatedPose.position);
+            
+            m_LastInteractorPressDepth[interactor] = 1f;
+
+            if (!m_HoveredInteractorsOnThisTransform.TryGetValue(pokedTransform, out var hoveringInteractors))
+            {
+                hoveringInteractors = new HashSetList<object>();
+                m_HoveredInteractorsOnThisTransform[pokedTransform] = hoveringInteractors;
+            }
+
+            hoveringInteractors.Add(interactor);
         }
 
         /// <summary>
@@ -284,9 +322,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         {
             m_LastHoverEnterLocalPosition.Remove(interactor);
             m_HoldingHoverCheck[interactor] = false;
+            m_LastInteractorPressDepth[interactor] = 1f;
 
             if (m_LastHoveredTransform.TryGetValue(interactor, out var lastTransform))
             {
+                if (m_HoveredInteractorsOnThisTransform.TryGetValue(lastTransform, out var hoveringInteractors))
+                    hoveringInteractors.Remove(interactor);
+                
                 ResetPokeStateData(lastTransform);
                 m_LastHoveredTransform.Remove(interactor);
             }

@@ -1,5 +1,6 @@
 {
     "name": "Unity.XR.Interaction.Toolkit.Editor",
+    "rootNamespace": "UnityEditor.XR.Interaction.Toolkit",
     "references": [
         "Unity.XR.Interaction.Toolkit",
         "Unity.ugui",

@@ -12,3 +12,4 @@
 | **Gesture** | Sequences of movements that translate into an action that manipulates an interactable. |
 | **Annotation** | A piece of content placed above (or next to) an AR object to give users information and context. |
 | **Haptic** | Sensory or visual stimuli that is sent to the user to give feedback for interaction. |
+| **XR Origin** | Formerly XR Rig, this serves as the center of tracking space in an XR scene. |

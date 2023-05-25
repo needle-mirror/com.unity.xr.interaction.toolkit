@@ -4,7 +4,7 @@ Interprets feature values on a tracked input controller device using actions fro
 
 This behavior requires that the Input System is enabled in the **Active Input Handling** setting in **Edit > Project Settings > Player** for input values to be read. Each input action must also be enabled to read the current value of the action. Externally referenced input actions in an Input Action Asset are not enabled by default.
 
-The **Select Action**, **Activate Action**, and **UI Press Action** properties have corresponding **Select Action Value**, **Activate Action Value**, and **UI Press Action Value** properties. The [Action types](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/Actions.html#action-types) of these actions are such that the former are usually [`Button`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Button) type Actions, and the latter are optional [`Value`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Value) type Actions. Each frame, the component will read whether the **Select Action** is performed to capture whether the select interaction state is active, and also capture the `float` value from the **Select Action Value**. If the **Select Action Value** is not set, the `float` value will be read from the **Select Action** instead. This process is repeated for the Activate and UI Press actions.
+The **Select Action**, **Activate Action**, and **UI Press Action** properties have corresponding **Select Action Value**, **Activate Action Value**, and **UI Press Action Value** properties. The [Action types](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Actions.html#action-types) of these actions are such that the former are usually [`Button`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Button) type Actions, and the latter are optional [`Value`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Value) type Actions. Each frame, the component will read whether the **Select Action** is performed to capture whether the select interaction state is active, and also capture the `float` value from the **Select Action Value**. If the **Select Action Value** is not set, the `float` value will be read from the **Select Action** instead. This process is repeated for the Activate and UI Press actions.
 
 > [!NOTE]
 > Having two Input Actions allows you as a developer to set the binding path for the **Select Action** to, for example, `<XRController>{LeftHand}/gripPressed` and set the binding for the **Select Value Action** to `<XRController>{LeftHand}/grip`. The threshold for the control being pressed is determined by the platform for `gripPressed` used for Select Action, and the axis amount can be read from `grip`. If you want to control the threshold yourself, you could consolidate both actions into a single Value type **Select Action** with an expected **Axis** control type and a binding path of `grip`, and add a **Press** Interaction where the **Press Point** can then be adjusted.
@@ -26,9 +26,12 @@ See the [Starter Assets](samples.md#starter-assets) sample for steps to import a
 | **Rotation Action** | |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System action to use for Rotation Tracking for this GameObject. Must be a `QuaternionControl` Control. |
+| **Is Tracked Action** | |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
+| &emsp;Reference | The Input System action to read the Is Tracked state when updating this GameObject position and rotation; falls back to the tracked device's is tracked state that drives the position or rotation action when not set. Must be an action with a button-like interaction or `ButtonControl` Control. |
 | **Tracking State Action** | |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
-| &emsp;Reference | The Input System action to get the Tracking State when updating this GameObject position and rotation; falls back to the tracked device's tracking state that drives the position or rotation action when not set. Must be an `IntegerControl` Control. |
+| &emsp;Reference | The Input System action to read the Tracking State when updating this GameObject position and rotation; falls back to the tracked device's tracking state that drives the position or rotation action when not set. Must be an `IntegerControl` Control. |
 | **Enable Input Actions** | Whether input for XR Interaction events is enabled for the controller. When enabled, Unity reads the current input of the controller device each frame.<br />You can disable this in order to drive the controller state manually instead of from reading current inputs, such as when playing back recorded inputs. |
 | **Select Action** | |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
@@ -48,6 +51,9 @@ See the [Starter Assets](samples.md#starter-assets) sample for steps to import a
 | **UI Press Action Value** | Optional, uses **UI Press Action** when not set. |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System action to read the `float` value of UI Press Action, if different. Must be an `AxisControl` or `Vector2Control` Control. |
+| **UI Scroll Action Value** | Optional, used by XR Ray Interactor |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
+| &emsp;Reference | The Input System action to read values for Canvas UI scrolling. Must be an `AxisControl` or `Vector2Control` Control. |
 | **Haptic Device Action** | |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System action to use for identifying the device to send haptic impulses to. Can be any control type that will have an active control driving the action. |

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Profiling;
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -16,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Abstract base class from which all interactor behaviours derive.
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
-    /// hover and selection.
+    /// hover and selection
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
@@ -270,7 +271,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Determines if interactor is interacting with UGUI canvas.
         /// </summary>
         internal bool isInteractingWithUI { get; set; }
-        
+
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
         List<Object> m_StartingHoverFilters = new List<Object>();
@@ -371,18 +372,72 @@ namespace UnityEngine.XR.Interaction.Toolkit
         internal bool useAttachPointVelocity { get; set; }
 
         /// <summary>
-        /// Last computed default attach point velocity, based on multi-frame sampling of the pose.
+        /// Last computed default attach point velocity, based on multi-frame sampling of the pose in world space.
         /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
         /// </summary>
         /// <seealso cref="attachPointAngularVelocity"/>
-        internal Vector3 attachPointVelocity { get; private set; }
+        internal Vector3 GetAttachPointVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return origin.TransformDirection(m_AttachPointVelocity);
+            }
+            return m_AttachPointVelocity;
+        }
+
+        Vector3 m_AttachPointVelocity;
 
         /// <summary>
-        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose.
+        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose in world space.
         /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
         /// </summary>
         /// <seealso cref="attachPointVelocity"/>
-        internal Vector3 attachPointAngularVelocity { get; private set; }
+        internal Vector3 GetAttachPointAngularVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return origin.TransformDirection(m_AttachPointAngularVelocity);
+            }
+            return m_AttachPointAngularVelocity;
+        }
+        
+        Vector3 m_AttachPointAngularVelocity;
+
+        Transform m_XROrigin = null;
+        bool m_HasXROrigin;
+        bool m_FailedToFindXROrigin;
+        
+        /// <summary>
+        /// Attempts to locate and return the XR Origin reference frame for the interactor.
+        /// </summary>
+        /// <seealso cref="XROrigin"/>
+        internal bool TryGetXROrigin(out Transform origin)
+        {
+            if (m_HasXROrigin)
+            {
+                origin = m_XROrigin;
+                return true;
+            }
+
+            if (!m_FailedToFindXROrigin)
+            {
+                var xrOrigin = GetComponentInParent<XROrigin>();
+                if (xrOrigin != null)
+                {
+                    var originGo = xrOrigin.Origin;
+                    if (originGo != null)
+                    {
+                        m_XROrigin = originGo.transform;
+                        m_HasXROrigin = true;
+                        origin = m_XROrigin;
+                        return true;
+                    }
+                }
+                m_FailedToFindXROrigin = true;
+            }
+            origin = null;
+            return false;
+        }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -401,13 +456,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Awake()
         {
             // Create empty attach transform if none specified
-            if (m_AttachTransform == null)
-            {
-                m_AttachTransform = new GameObject($"[{gameObject.name}] Attach").transform;
-                m_AttachTransform.SetParent(transform, false);
-                m_AttachTransform.localPosition = Vector3.zero;
-                m_AttachTransform.localRotation = Quaternion.identity;
-            }
+            CreateAttachTransform();
 
             // Setup the starting filters
             if (m_StartingTargetFilter != null)
@@ -634,6 +683,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_AttachPoseOnSelect.Remove(interactable);
                 m_LocalAttachPoseOnSelect.Remove(interactable);
+            }
+        }
+
+        /// <summary>
+        /// Create a new child GameObject to use as the attach transform if one is not set.
+        /// </summary>
+        /// <seealso cref="attachTransform"/>
+        protected void CreateAttachTransform()
+        {
+            if (m_AttachTransform == null)
+            {
+                m_AttachTransform = new GameObject($"[{gameObject.name}] Attach").transform;
+                m_AttachTransform.SetParent(transform, false);
+                m_AttachTransform.localPosition = Vector3.zero;
+                m_AttachTransform.localRotation = Quaternion.identity;
             }
         }
 
@@ -1101,12 +1165,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             // $TODO: Update to take/use IXRInteractable instead of 'null'
             var currentAttachTransform = GetAttachTransform(null);
+            bool hasXROrigin = TryGetXROrigin(out var xrOrigin);
             
             if (m_FrameOn < k_VelocityUpdateInterval)
             {
-                m_VelocityPositionsCache[m_FrameOn] = currentAttachTransform.position;
+                m_VelocityPositionsCache[m_FrameOn] = hasXROrigin ? xrOrigin.InverseTransformPoint(currentAttachTransform.position) : currentAttachTransform.position;
                 m_VelocityPositionsSum += m_VelocityPositionsCache[m_FrameOn];
-                m_VelocityNormalsCache[m_FrameOn] = currentAttachTransform.up;
+                m_VelocityNormalsCache[m_FrameOn] = hasXROrigin ? xrOrigin.InverseTransformVector(currentAttachTransform.up) : currentAttachTransform.up;
                 m_VelocityNormalsSum += m_VelocityNormalsCache[m_FrameOn];
             }
             else
@@ -1115,17 +1180,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 var deltaTime = Time.unscaledTime - m_DeltaTimeStart;
 
-                var newPosition = currentAttachTransform.position;
-                var newNormal = currentAttachTransform.up;
+                var newPosition = hasXROrigin ? xrOrigin.InverseTransformPoint(currentAttachTransform.position) : currentAttachTransform.position;
+                var newNormal = hasXROrigin ? xrOrigin.InverseTransformVector(currentAttachTransform.up) : currentAttachTransform.up;
 
                 var newPositionsSum = m_VelocityPositionsSum - m_VelocityPositionsCache[frameIndex] + newPosition;
                 var newNormalsSum = m_VelocityNormalsSum - m_VelocityNormalsCache[frameIndex] + newNormal;
+                m_AttachPointVelocity = (newPositionsSum - m_VelocityPositionsSum) / deltaTime / k_VelocityUpdateInterval;
 
-                attachPointVelocity = (newPositionsSum - m_VelocityPositionsSum) / deltaTime / k_VelocityUpdateInterval;
-
-                var rotation = Quaternion.FromToRotation(m_VelocityNormalsSum / k_VelocityUpdateInterval, newNormalsSum / k_VelocityUpdateInterval);
+                var fromDirection = m_VelocityNormalsSum / k_VelocityUpdateInterval;
+                var toDirection = newNormalsSum / k_VelocityUpdateInterval;
+                
+                var rotation = Quaternion.FromToRotation(fromDirection, toDirection);
                 var rotationRate = rotation.eulerAngles * Mathf.Deg2Rad;
-                attachPointAngularVelocity = rotationRate / deltaTime;
+                m_AttachPointAngularVelocity = rotationRate / deltaTime;
 
                 m_VelocityPositionsCache[frameIndex] = newPosition;
                 m_VelocityNormalsCache[frameIndex] = newNormal;

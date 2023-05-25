@@ -12,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     /// </summary>
     [AddComponentMenu("XR/XR Poke Filter", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeFilter)]
-    public class XRPokeFilter : MonoBehaviour, IXRSelectFilter, IXRInteractionStrengthFilter, IPokeStateDataProvider
+    public class XRPokeFilter : MonoBehaviour, IXRPokeFilter, IPokeStateDataProvider
     {
         [SerializeField]
         [Tooltip("The interactable associated with this poke filter.")]

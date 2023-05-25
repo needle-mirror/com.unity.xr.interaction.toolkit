@@ -5,6 +5,92 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+
+## [2.4.0-pre.1] - 2023-05-25
+
+### Added
+- Added hands support to XR Device Simulator. You must have the [XR Hands package](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) installed in your project to use this new functionality.
+- Added Is Tracked action to XR Controller (Action-based), and updated presets and prefabs in Starter Assets sample to make use of the new Is Tracked input actions in the `XRI Default Input Actions`.
+- Added properties in the [`ARGestureInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.AR.ARGestureInteractor) class to control raycast behavior for gestures.
+- Added the `IXRPokeFilter` interface to allow other classes to act as customized poke filters for the `XRPokeInteractor` instead of only supporting the `XRPokeFilter` component.
+- Added XR Interactor Affordance State Provider component which can drive affordance receivers using interactor interactions events.
+- Added Color Gradient Line Renderer Affordance Receiver to pair with an XR Interactor Affordance State Provider on a Ray interactor to improve visual coloring. Has a property to automatically disable coloring of XR Interactor Line Visual.
+- Added [Hand Menu](../manual/hand-menu.md) component, as well as a sample prefab of a working hand menu in the Hands Interaction Demo sample.
+  - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`. 
+  - Added gaze activation settings and a reveal/ hide hand menu animation.
+- Added [XR Input Modality Manager](../manual/xr-input-modality-manager.md) component which manages swapping between hand and controller hierarchies in the XR Origin. Updated prefabs in the package samples to make use of this component.
+- Added ability for XR Interactor Line Visual to curve accurately and track interactable attach points during selection.
+- Added Auto Adjust Line Length property to XR Interactor Line Visual to retract the line end after a delay when the ray interactor doesn't hit any valid targets.
+- Added the [XR Gaze Assistance](../manual/xr-gaze-assistance.md) component to enable split interaction. Eye for aiming and controllers for selection.
+- Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
+- Added `Focus State` to interactables. An interactable that is selected is also focused; it remains focused until another interactable is focused instead. Useful for highlighting an object to later perform operations on.
+- Added Visit Each Frame property to XR Controller Recorder to control whether each frame of the input recording must be played back regardless of the time period passed.
+- Added [XR Transform Stabilizer](../manual/xr-transform-stabilizer.md) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
+- Added Climb Provider, which provides locomotion counter to interactor movement while the user is selecting a Climb Interactable.
+  - Added menu item **Assets > Create > XR > Locomotion > Climb Settings**, which creates a Climb Settings Datum asset.
+  - Added a Climb Provider instance to `XR Origin Preconfigured` in the Starter Assets sample.
+  - Added `Climb Sample` prefab to the Starter Assets sample, and added an instance of this prefab to `DemoScene`. This prefab includes preconfigured Climb Interactables.
+- Added support for XRRayInteractors to scroll UI panels using the thumbstick.
+  - IUInteractors now support UIHoverEnter and UIHoverExit events.
+  - UIInputModule gains the trackedScrollDeltaMultiplier property to control scrolling speeds via thumbstick.
+  - TrackedDeviceModel gains properties for current UI Selectable and if the selected UI is scrollable.
+  - ActionBasedController gains a property for UI scrolling input, set to the thumbstick in the starter assets.
+- Added configuration of interaction overrides to XR Interaction Group, allowing certain Group members to take control of interaction when attempting to select, regardless of priority.
+- Added Direct Interactor as an interaction override for Poke Interactor in each XR Interaction Group in `XR Origin (XR Rig)` in Starter Assets sample.
+- Added new Shader Graphs and Materials in `Hand Interaction Demo` for a transparent hand that supports highlighting fingers
+- Added the [`TouchscreenGestureInputController`](xref:UnityEngine.XR.Interaction.Toolkit.AR.Inputs.TouchscreenGestureInputController) which allows users to surface touchscreen gesture data via the Input System.
+- Added the [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) which enables usage of screenspace input, from touchscreen or mouse, with interactors.
+- Added the `enableARRaycasting` property to [`XRRayInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRRayInteractor) which enables raycasting against the AR environment if AR Foundation is installed.
+
+### Changed
+- Changed [`XRControllerState`](xref:UnityEngine.XR.Interaction.Toolkit.XRControllerState) by adding an `isTracked` field. Deprecated old constructors, users should update their code to call the ones with the added parameter.
+- Changed XRI project validation to only log errors to the console, not warnings.
+- Changed XR Interactor Line Visual so it bends to the selected interactable by default. Set **Line Bend Ratio** to **1** to revert to the old behavior where the line would remain straight.
+- Changed XR Interactor Line Visual default value of Line Width from 0.02 to 0.005.
+- Improved performance of the line visual and ray interactor by optimizing most of the line computation math for the Burst compiler. The [Burst package](https://docs.unity3d.com/Manual/com.unity.burst.html) must be installed in your project to take advantage of the optimizations.
+- Changed `XRInteractorLineVisual` by adding the `OnDestroy` and `LateUpdate` methods. Users who had already implemented either method in derived classes will need to call the base method.
+- Changed `XRInteractorReticleVisual` by adding the `OnDisable` method so it disables the reticle when the component is disabled. Users who had already implemented that method in derived classes will need to call the base method.
+- Changed `TeleportationAnchor.GetAttachTransform` method to return the `teleportAnchorTransform` value.
+- Renamed Starter Assets sample prefabs:
+  - Renamed `Complete XR Origin Set Up` prefab to `XR Interaction Setup`.
+  - Renamed `XR Origin` prefab to `XR Origin (XR Rig)`.
+  - Renamed `Complete Teleport Area Set Up` prefab to `Teleportation Environment`.
+- Renamed Hands Interaction Demo sample prefabs:
+  - Renamed `Complete XR Origin Hands Set Up` prefab to `XR Interaction Hands Setup`.
+  - Renamed `XR Origin Hands` prefab to `XR Origin Hands (XR Rig)`.
+- Changed `XR Origin (XR Rig)` to reorganize locomotion components to new GameObjects.
+- Changed `XR Origin (XR Rig)` to disable grab move locomotion by default. Activate the **Grab Move** GameObject to re-enable that functionality.
+- Changed `XR Origin Hands (XR Rig)` to be a prefab variant of the `XR Origin (XR Rig)` prefab.
+- Changed Starter Assets sample prefabs by adding XR Gaze Fallback to the XR Origin GameObject.
+- Changed `XRRayInteractor`, `XRInteractorLineVisual`, and `XRInteractorReticleVisual` to support mediation through split interaction.
+- Changed XR Ray Interactor to no longer interact with UGUI Canvases while selecting an interactable.
+- Changed XR Ray Interactor so the Hover To Select property will now activate with UI elements.
+- Changed `com.unity.inputsystem` dependency from 1.4.4 to 1.5.0.
+- Changed `com.unity.xr.core-utils` dependency from 2.2.0 to 2.2.1.
+- Changed lowest supported Unity Editor version of XR Interaction Toolkit to 2021.3 now that 2020.3 has reached End of Life.
+- Changed `XRPokeLogic` to resolve an issue where starting a poke from behind the object can trigger select.
+- Updated the Hands Interaction Demo with new interaction reactive visuals:
+  - Changed the required version of `com.unity.xr.hands` for the Hands Interaction Demo sample from 1.1.0 to 1.2.0.
+  - Changed the `XR Origin Hands (XR Rig)` prefab to use prefabs for each hand visual with affordances to highlight the fingers during interaction.
+  - Changed the hands model to use new components in `com.unity.xr.hands` to subscribe and expose hand tracking events: `XRHandsSkeletonDriver`, `XRHandTrackingEvents`, and `XRHandMeshController`.
+- Added Sphere Collider optimized accuracy improvement for Direct Interactor that improves inter-frame reliability and latency.
+
+### Removed
+- Removed `HandsAndControllersManager` script from the Hands Interaction Demo sample and moved it into the package as [`XRInputModalityManager`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager).
+
+### Fixed
+- Fixed XR Grab Interactables interfering with player movement by using `Physics.IgnoreCollision` to prevent collision between the Character Controller and the grabbed object's colliders.
+- Fixed the Input Devices tab in the [XR Interaction Debugger window](../manual/debugger-window.md) so it doesn't rebuild the tree every Editor frame. This allows the input devices to be collapsed. Added additional columns.
+- Fixed the teleport ray interactor getting stuck on after a teleport completes when the GameObject with the Action Based Controller Manager component was deactivated.
+- Fixed XR Interactor Line Visual not working with Teleportation Anchor when an XR Interactable Snap Volume is used by no longer skipping the snapping behavior when the ray interactor has a selection. Use the Disable Snap Collider When Selected property of XR Interactable Snap Volume to control that behavior.
+- Fixed bugs in Lazy Follow where threshold mechanics weren't being respected, and reworked class to leverage [`SmartFollowVector3TweenableVariable`](xref:UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenableVariables.SmartFollowVector3TweenableVariable) and [`SmartFollowQuaternionTweenableVariable`](xref:UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenableVariables.SmartFollowQuaternionTweenableVariable).
+- Fixed bug with PokeFollowAffordance sample script that did not work when using two hands on the same canvas.
+- Fixed so poke objects will push to the larger depth when both hands are poking at the same time.
+- Fixed an issue in the `ActionBasedControllerManager` that would cause a null-reference exception if the Direct or Ray interactors were not assigned. ([XRIT-72](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-72))
+- Fixed an issue with the state-change of the `XRInteractableAffordanceStateProvider` that would trigger Select and Hover effects when currently Activated and `ignoreActivateEvents` was set to true or Hover effects when actively Selected and `ignoreSelectEvents` was set to true.
+- Fixed an Array Out of Bounds error when using Affordance Themes when accessing the last element in the list of states.
+- Fixed an issue with `XRPokeLogic` where starting a poke from behind the object can trigger select.
+
 ## [2.3.2] - 2023-04-28
 
 ### Changed
@@ -57,7 +143,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed `UIInputModule` issue where tracked devices cannot drag on UI elements when `Cursor.lockState` is set to `Locked`.
 
 ## [2.3.0] - 2023-02-17
-
 ### Added
 - Added a Raycast Snap Volume Interaction property to control whether the XR Ray Interactor will collide with or ignore trigger snap colliders from an XR Interactable Snap Volume (used by gaze assistance). This allows a user to set Raycast Trigger Interaction to Ignore but still collide with trigger colliders that are associated with a snap volume.
 - Added options to XR Poke Follow Affordance in the Starter Assets sample to apply the follow animation if the poke target is a child and to clamp the follow target to a maximum distance from the poke target.

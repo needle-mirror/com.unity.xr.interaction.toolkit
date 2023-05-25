@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -16,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// </summary>
     [AddComponentMenu("Event/Tracked Device Graphic Raycaster", 11)]
     [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
-    public class TrackedDeviceGraphicRaycaster : BaseRaycaster, IPokeStateDataProvider
+    public class TrackedDeviceGraphicRaycaster : BaseRaycaster, IPokeStateDataProvider, IMultiPokeStateDataProvider
     {
         const int k_MaxRaycastHits = 10;
 
@@ -195,6 +196,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <inheritdoc />
         public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeLogic?.pokeStateData;
 
+        Dictionary<Transform, BindableVariable<PokeStateData>> pokeStateDataDictionary { get; } = new Dictionary<Transform, BindableVariable<PokeStateData>>();
+
+        BindingsGroup m_BindingsGroup = new BindingsGroup();
+        
+        public IReadOnlyBindableVariable<PokeStateData> GetPokeStateDataForTarget(Transform target)
+        {
+            if (!pokeStateDataDictionary.ContainsKey(target))
+                pokeStateDataDictionary[target] = new BindableVariable<PokeStateData>();
+            return pokeStateDataDictionary[target];
+        }
+
         /// <summary>
         /// This method is used to determine if the <see cref="IUIInteractor"/> has a currently active selection using poke.
         /// </summary>
@@ -240,14 +252,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             SetupPoke();
         }
 
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnDestroy.html">MonoBehaviour.OnDestroy</a>.
+        /// </summary>
         protected override void OnDestroy()
         {
             base.OnDestroy();
             s_PokeHoverRaycasters.Remove(this);
+            pokeStateDataDictionary.Clear();
+            m_BindingsGroup.Clear();
         }
 
         void SetupPoke()
         {
+            m_BindingsGroup.Clear();
             if (m_PokeLogic == null)
                 m_PokeLogic = new XRPokeLogic();
 
@@ -261,6 +279,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             m_PokeLogic.Initialize(transform, pokeData, null);
             m_PokeLogic.SetPokeDepth(0.1f);
+            m_BindingsGroup.AddBinding(m_PokeLogic.pokeStateData.SubscribeAndUpdate(data =>
+            {
+                if (data.target != null)
+                {
+                    if (!pokeStateDataDictionary.ContainsKey(data.target))
+                        pokeStateDataDictionary[data.target] = new BindableVariable<PokeStateData>();
+                    pokeStateDataDictionary[data.target].Value = data;
+                }
+                else
+                {
+                    // If we get a null target, we should reset targetted listeners.
+                    foreach (var value in pokeStateDataDictionary.Values)
+                    {
+                        value.Value = data;
+                    }
+                }
+            }));
         }
 
         void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)

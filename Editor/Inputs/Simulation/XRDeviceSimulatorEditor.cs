@@ -11,6 +11,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
     {
         const string k_GlobalActionsExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".GlobalActionsExpanded";
         const string k_ControllerActionsExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".GlobalActionsExpanded";
+        const string k_HandActionsExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".HandActionsExpanded";
         const string k_SimulatorSettingsExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".SimulatorSettingsExpanded";
         const string k_SensitivityExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".SensitivityExpanded";
         const string k_AnalogConfigurationExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".AnalogConfigurationExpanded";
@@ -28,6 +29,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_ToggleManipulateRightAction;
         SerializedProperty m_ToggleManipulateBodyAction;
         SerializedProperty m_ManipulateHeadAction;
+        SerializedProperty m_HandControllerModeAction;
         SerializedProperty m_CycleDevicesAction;
         SerializedProperty m_StopManipulationAction;
         SerializedProperty m_MouseDeltaAction;
@@ -60,6 +62,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_Secondary2DAxisTouchAction;
         SerializedProperty m_PrimaryTouchAction;
         SerializedProperty m_SecondaryTouchAction;
+        
+        // Hand Actions
+        bool m_HandActionsExpanded;
+        SerializedProperty m_HandActionAsset;
+        SerializedProperty m_RestingHandExpressionCapture;
+        SerializedProperty m_SimulatedHandExpressions;
 
         // Simulator Settings
         bool m_SimulatorSettingsExpanded;
@@ -68,6 +76,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_MouseTranslateSpace;
         SerializedProperty m_DesiredCursorLockMode;
         SerializedProperty m_RemoveOtherHMDDevices;
+        SerializedProperty m_HandTrackingCapability;
         SerializedProperty m_DeviceSimulatorUI;
         
         // Sensitivity
@@ -97,6 +106,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_LeftControllerTrackingState;
         SerializedProperty m_RightControllerIsTracked;
         SerializedProperty m_RightControllerTrackingState;
+        SerializedProperty m_LeftHandIsTracked;
+        SerializedProperty m_RightHandIsTracked;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -125,6 +136,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_ToggleManipulateLeftAction = serializedObject.FindProperty("m_ToggleManipulateLeftAction");
             m_ToggleManipulateRightAction = serializedObject.FindProperty("m_ToggleManipulateRightAction");
             m_ToggleManipulateBodyAction = serializedObject.FindProperty("m_ToggleManipulateBodyAction");
+            m_HandControllerModeAction = serializedObject.FindProperty("m_HandControllerModeAction");
             m_CycleDevicesAction = serializedObject.FindProperty("m_CycleDevicesAction");
             m_StopManipulationAction = serializedObject.FindProperty("m_StopManipulationAction");
             m_MouseDeltaAction = serializedObject.FindProperty("m_MouseDeltaAction");
@@ -156,11 +168,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_PrimaryTouchAction = serializedObject.FindProperty("m_PrimaryTouchAction");
             m_SecondaryTouchAction = serializedObject.FindProperty("m_SecondaryTouchAction");
             
+            m_HandActionAsset = serializedObject.FindProperty("m_HandActionAsset");
+            m_RestingHandExpressionCapture = serializedObject.FindProperty("m_RestingHandExpressionCapture");
+            m_SimulatedHandExpressions = serializedObject.FindProperty("m_SimulatedHandExpressions");
+            
             m_CameraTransform = serializedObject.FindProperty("m_CameraTransform");
             m_KeyboardTranslateSpace = serializedObject.FindProperty("m_KeyboardTranslateSpace");
             m_MouseTranslateSpace = serializedObject.FindProperty("m_MouseTranslateSpace");
             m_DesiredCursorLockMode = serializedObject.FindProperty("m_DesiredCursorLockMode");
             m_RemoveOtherHMDDevices = serializedObject.FindProperty("m_RemoveOtherHMDDevices");
+            m_HandTrackingCapability = serializedObject.FindProperty("m_HandTrackingCapability");
             m_DeviceSimulatorUI = serializedObject.FindProperty("m_DeviceSimulatorUI");
             
             m_KeyboardXTranslateSpeed = serializedObject.FindProperty("m_KeyboardXTranslateSpeed");
@@ -184,9 +201,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_LeftControllerTrackingState = serializedObject.FindProperty("m_LeftControllerTrackingState");
             m_RightControllerIsTracked = serializedObject.FindProperty("m_RightControllerIsTracked");
             m_RightControllerTrackingState = serializedObject.FindProperty("m_RightControllerTrackingState");
+            m_LeftHandIsTracked = serializedObject.FindProperty("m_LeftHandIsTracked");
+            m_RightHandIsTracked = serializedObject.FindProperty("m_RightHandIsTracked");
 
             m_GlobalActionsExpanded = SessionState.GetBool(k_GlobalActionsExpandedKey, false);
             m_ControllerActionsExpanded = SessionState.GetBool(k_ControllerActionsExpandedKey, false);
+            m_HandActionsExpanded = SessionState.GetBool(k_HandActionsExpandedKey, false);
             m_SimulatorSettingsExpanded = SessionState.GetBool(k_SimulatorSettingsExpandedKey, false);
             m_SensitivityExpanded = SessionState.GetBool(k_SensitivityExpandedKey, false);
             m_AnalogConfigurationExpanded = SessionState.GetBool(k_AnalogConfigurationExpandedKey, false);
@@ -199,6 +219,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             DrawGlobalActions();
             EditorGUILayout.Space();
             DrawControllerActions();
+            EditorGUILayout.Space();
+            DrawHandActions();
             EditorGUILayout.Space();
             DrawGeneralSimulatorSettings();
             EditorGUILayout.Space();
@@ -241,6 +263,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                     EditorGUILayout.PropertyField(m_ManipulateLeftAction);
                     EditorGUILayout.PropertyField(m_ManipulateRightAction);
                     EditorGUILayout.PropertyField(m_ManipulateHeadAction);
+                    EditorGUILayout.PropertyField(m_HandControllerModeAction);
                     EditorGUILayout.PropertyField(m_CycleDevicesAction);
                     EditorGUILayout.PropertyField(m_StopManipulationAction);
                     EditorGUILayout.PropertyField(m_MouseDeltaAction);
@@ -298,6 +321,33 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 }
             }
         }
+        
+        /// <summary>
+        /// Draw the property fields related to hand actions.
+        /// </summary>
+        protected virtual void DrawHandActions()
+        {
+            EditorGUILayout.LabelField("Hand Actions", EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUILayout.PropertyField(m_HandActionAsset);
+                using (var check = new EditorGUI.ChangeCheckScope())
+                {
+                    m_HandActionsExpanded = EditorGUILayout.Foldout(m_HandActionsExpanded, "Hand Actions", true);
+                    if (check.changed)
+                        SessionState.SetBool(k_HandActionsExpandedKey, m_HandActionsExpanded);
+                }
+
+                if (!m_HandActionsExpanded)
+                    return;
+
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_RestingHandExpressionCapture);
+                    EditorGUILayout.PropertyField(m_SimulatedHandExpressions);
+                }
+            }
+        }
 
 
         /// <summary>
@@ -322,6 +372,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_MouseTranslateSpace);
                 EditorGUILayout.PropertyField(m_DesiredCursorLockMode);
                 EditorGUILayout.PropertyField(m_RemoveOtherHMDDevices);
+                EditorGUILayout.PropertyField(m_HandTrackingCapability);
                 EditorGUILayout.PropertyField(m_DeviceSimulatorUI);
             }
         }
@@ -403,6 +454,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_LeftControllerTrackingState);
                 EditorGUILayout.PropertyField(m_RightControllerIsTracked);
                 EditorGUILayout.PropertyField(m_RightControllerTrackingState);
+                EditorGUILayout.PropertyField(m_LeftHandIsTracked);
+                EditorGUILayout.PropertyField(m_RightHandIsTracked);
             }
         }
     }

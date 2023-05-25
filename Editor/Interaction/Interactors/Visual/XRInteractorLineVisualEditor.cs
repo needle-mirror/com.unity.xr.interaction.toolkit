@@ -14,6 +14,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_LineWidth;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.widthCurve"/>.</summary>
         protected SerializedProperty m_WidthCurve;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.setLineColorGradient"/>.</summary>
+        protected SerializedProperty m_SetLineColorGradient;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.validColorGradient"/>.</summary>
         protected SerializedProperty m_ValidColorGradient;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.invalidColorGradient"/>.</summary>
@@ -42,6 +44,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_TreatSelectionAsValidState;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.snapEndpointIfAvailable"/>.</summary>
         protected SerializedProperty m_SnapEndpointIfAvailable;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineBendRatio"/>.</summary>
+        protected SerializedProperty m_LineBendRatio;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.overrideInteractorLineOrigin"/>.</summary>
+        protected SerializedProperty m_OverrideInteractorLineOrigin;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineOriginTransform"/>.</summary>
+        protected SerializedProperty m_LineOriginTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineOriginOffset"/>.</summary>
+        protected SerializedProperty m_LineOriginOffset;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.autoAdjustLineLength"/>.</summary>
+        protected SerializedProperty m_AutoAdjustLineLength;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.minLineLength"/>.</summary>
+        protected SerializedProperty m_MinLineLength;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.useDistanceToHitAsMaxLineLength"/>.</summary>
+        protected SerializedProperty m_UseDistanceToHitAsMaxLineLength;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineRetractionDelay"/>.</summary>
+        protected SerializedProperty m_LineRetractionDelay;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineLengthChangeSpeed"/>.</summary>
+        protected SerializedProperty m_LineLengthChangeSpeed;
 
         readonly List<Collider> m_ReticleColliders = new List<Collider>();
         readonly List<Collider> m_BlockedReticleColliders = new List<Collider>();
@@ -59,6 +79,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent lineWidth = EditorGUIUtility.TrTextContent("Line Width", "Controls the width of the line.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.widthCurve"/>.</summary>
             public static readonly GUIContent widthCurve = EditorGUIUtility.TrTextContent("Width Curve", "Controls the relative width of the line from start to end.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.setLineColorGradient"/>.</summary>
+            public static readonly GUIContent setLineColorGradient = EditorGUIUtility.TrTextContent("Set Line Color Gradient", "Whether to control the color of the Line Renderer. Disable to manually control it externally from this component.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.validColorGradient"/>.</summary>
             public static readonly GUIContent validColorGradient = EditorGUIUtility.TrTextContent("Valid Color Gradient", "Controls the color of the line as a gradient from start to end to indicate a valid state.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.invalidColorGradient"/>.</summary>
@@ -87,6 +109,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent treatSelectionAsValidState = EditorGUIUtility.TrTextContent("Treat Selection As Valid State", "Forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the interactor has any valid targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.snapEndpointIfAvailable"/>.</summary>
             public static readonly GUIContent snapEndpointIfAvailable = EditorGUIUtility.TrTextContent("Snap Endpoint If Available", "Controls whether the visualized line will snap endpoint if the ray hits a XRInteractableSnapVolume.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineBendRatio"/>.</summary>
+            public static readonly GUIContent lineBendRatio = EditorGUIUtility.TrTextContent("Line Bend Ratio", "When line is bent because target end point is out of line with the ray or snap volume is in use, this ratio determines what the bend point is. A value of 1 means the line will not bend.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.overrideInteractorLineOrigin"/>.</summary>
+            public static readonly GUIContent overrideInteractorLineOrigin = EditorGUIUtility.TrTextContent("Override Line Origin", "Controls whether to use a different Transform as the starting position and direction of the line.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineOriginTransform"/>.</summary>
+            public static readonly GUIContent lineOriginTransform = EditorGUIUtility.TrTextContent("Line Origin Transform", "The starting position and direction of the line when overriding.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineOriginOffset"/>.</summary>
+            public static readonly GUIContent lineOriginOffset = EditorGUIUtility.TrTextContent("Line Origin Offset", "Offset from line origin along the line direction before line rendering begins. Only works if the line provider is using straight lines.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.autoAdjustLineLength"/>.</summary>
+            public static readonly GUIContent autoAdjustLineLength = EditorGUIUtility.TrTextContent("Auto Adjust Line Length", "Determines whether the length of the line will retract over time when no valid hits or selection occur.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.minLineLength"/>.</summary>
+            public static readonly GUIContent minLineLength = EditorGUIUtility.TrTextContent("Minimum Line Length", "Controls the minimum length of the line when overriding. When no valid hits occur, the ray visual shrinks down to this size.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.useDistanceToHitAsMaxLineLength"/>.</summary>
+            public static readonly GUIContent useDistanceToHitAsMaxLineLength = EditorGUIUtility.TrTextContent("Use Distance To Hit As Max Line Length", "Determines whether the max line length will be the the distance to the hit point or the fixed line length.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineRetractionDelay"/>.</summary>
+            public static readonly GUIContent lineRetractionDelay = EditorGUIUtility.TrTextContent("Line Retraction Delay", "Time in seconds elapsed after last valid hit or selection for line to begin retracting to the minimum override length.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineLengthChangeSpeed"/>.</summary>
+            public static readonly GUIContent lineLengthChangeSpeed = EditorGUIUtility.TrTextContent("Line Length Change Speed", "Scalar used to control the speed of changes in length of the line when overriding it's length.");
 
             /// <summary>The help box message when the Reticle has a Collider that will disrupt the XR Ray Interactor ray cast.</summary>
             public static readonly GUIContent reticleColliderWarning = EditorGUIUtility.TrTextContent("Reticle has a Collider which may disrupt the XR Ray Interactor ray cast. Remove or disable the Collider component on the Reticle or adjust the Raycast Mask/Collider Layer.");
@@ -99,6 +139,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             m_LineWidth = serializedObject.FindProperty("m_LineWidth");
             m_WidthCurve = serializedObject.FindProperty("m_WidthCurve");
+            m_SetLineColorGradient = serializedObject.FindProperty("m_SetLineColorGradient");
             m_ValidColorGradient = serializedObject.FindProperty("m_ValidColorGradient");
             m_InvalidColorGradient = serializedObject.FindProperty("m_InvalidColorGradient");
             m_BlockedColorGradient = serializedObject.FindProperty("m_BlockedColorGradient");
@@ -113,6 +154,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_StopLineAtSelection = serializedObject.FindProperty("m_StopLineAtSelection");
             m_TreatSelectionAsValidState = serializedObject.FindProperty("m_TreatSelectionAsValidState");
             m_SnapEndpointIfAvailable = serializedObject.FindProperty("m_SnapEndpointIfAvailable");
+            m_LineBendRatio = serializedObject.FindProperty("m_LineBendRatio");
+            m_OverrideInteractorLineOrigin = serializedObject.FindProperty("m_OverrideInteractorLineOrigin");
+            m_LineOriginTransform = serializedObject.FindProperty("m_LineOriginTransform");
+            m_LineOriginOffset = serializedObject.FindProperty("m_LineOriginOffset");
+            m_AutoAdjustLineLength = serializedObject.FindProperty("m_AutoAdjustLineLength");
+            m_MinLineLength = serializedObject.FindProperty("m_MinLineLength");
+            m_UseDistanceToHitAsMaxLineLength = serializedObject.FindProperty("m_UseDistanceToHitAsMaxLineLength");
+            m_LineRetractionDelay = serializedObject.FindProperty("m_LineRetractionDelay");
+            m_LineLengthChangeSpeed = serializedObject.FindProperty("m_LineLengthChangeSpeed");
 
             m_ReticleCheckInitialized = false;
         }
@@ -148,8 +198,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawProperties()
         {
             DrawWidthConfiguration();
+            DrawLineOriginConfiguration();
+            EditorGUILayout.Space();
             DrawColorConfiguration();
+            EditorGUILayout.Space();
             DrawLengthConfiguration();
+            EditorGUILayout.Space();
             DrawSmoothMovement();
             DrawSnappingSettings();
             DrawReticle();
@@ -165,10 +219,28 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Draw property fields related to line origin.
+        /// </summary>
+        protected virtual void DrawLineOriginConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_OverrideInteractorLineOrigin, Contents.overrideInteractorLineOrigin);
+            if (m_OverrideInteractorLineOrigin.boolValue)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_LineOriginTransform, Contents.lineOriginTransform);
+                }
+            }
+
+            EditorGUILayout.PropertyField(m_LineOriginOffset, Contents.lineOriginOffset);
+        }
+
+        /// <summary>
         /// Draw property fields related to color gradients.
         /// </summary>
         protected virtual void DrawColorConfiguration()
         {
+            EditorGUILayout.PropertyField(m_SetLineColorGradient, Contents.setLineColorGradient);
             EditorGUILayout.PropertyField(m_ValidColorGradient, Contents.validColorGradient);
             EditorGUILayout.PropertyField(m_InvalidColorGradient, Contents.invalidColorGradient);
             EditorGUILayout.PropertyField(m_BlockedColorGradient, Contents.blockedColorGradient);
@@ -186,6 +258,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_LineLength, Contents.lineLength);
+                    
+                    EditorGUILayout.PropertyField(m_AutoAdjustLineLength, Contents.autoAdjustLineLength);
+                    if (m_AutoAdjustLineLength.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_MinLineLength, Contents.minLineLength);
+                            EditorGUILayout.PropertyField(m_UseDistanceToHitAsMaxLineLength, Contents.useDistanceToHitAsMaxLineLength);
+                            EditorGUILayout.PropertyField(m_LineRetractionDelay, Contents.lineRetractionDelay);
+                            EditorGUILayout.PropertyField(m_LineLengthChangeSpeed, Contents.lineLengthChangeSpeed);
+                        }
+                    }
                 }
             }
 
@@ -216,6 +300,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawSnappingSettings()
         {
             EditorGUILayout.PropertyField(m_SnapEndpointIfAvailable, Contents.snapEndpointIfAvailable);
+            EditorGUILayout.PropertyField(m_LineBendRatio, Contents.lineBendRatio);
         }
 
         /// <summary>
@@ -223,6 +308,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawReticle()
         {
+            EditorGUILayout.Space();
+            
             // Get the list of Colliders on  each reticle if this is the first time here in order to reduce the cost of evaluating the collider check warnings.
             if (!serializedObject.isEditingMultipleObjects && !m_ReticleCheckInitialized)
             {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.IMGUI.Controls;
@@ -24,21 +25,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
         bool m_ShowTargetFilters;
 
         [SerializeField]
-        Vector2 m_InputDevicesTreeScrollPosition;
-        [SerializeField]
         TreeViewState m_InputDevicesTreeState;
         [SerializeField]
         MultiColumnHeaderState m_InputDevicesTreeHeaderState;
 
         [SerializeField]
-        Vector2 m_InteractablesTreeScrollPosition;
-        [SerializeField]
         TreeViewState m_InteractablesTreeState;
         [SerializeField]
         MultiColumnHeaderState m_InteractablesTreeHeaderState;
 
-        [SerializeField]
-        Vector2 m_InteractorsTreeScrollPosition;
         [SerializeField]
         TreeViewState m_InteractorsTreeState;
         [SerializeField]
@@ -74,7 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 s_GeneratedUniqueIds.Clear();
                 s_Instance = GetWindow<XRInteractionDebuggerWindow>();
                 s_Instance.Show();
-                s_Instance.titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");
+                s_Instance.titleContent = Contents.titleContent;
             }
             else
             {
@@ -83,12 +78,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
         }
 
-        void SetupInputDevicesTree()
+        void UpdateInputDevicesTree()
         {
-            if (m_InputDevicesTreeState == null)
-                m_InputDevicesTreeState = new TreeViewState();
-            m_InputDevicesTree = XRInputDevicesTreeView.Create(ref m_InputDevicesTreeState, ref m_InputDevicesTreeHeaderState);
-            m_InputDevicesTree.ExpandAll();
+            if (m_InputDevicesTree == null)
+            {
+                m_InputDevicesTree = XRInputDevicesTreeView.Create(ref m_InputDevicesTreeState, ref m_InputDevicesTreeHeaderState);
+                m_InputDevicesTree.ExpandAll();
+            }
         }
 
         void UpdateInteractorsTree()
@@ -149,34 +145,23 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
         }
 
-        void ReleaseEvaluatorsScoreTree()
-        {
-            if (m_EvaluatorsScoreTree != null)
-                m_EvaluatorsScoreTree.Release();
-        }
-
         public void OnDisable()
         {
-            ReleaseEvaluatorsScoreTree();
+            m_InputDevicesTree?.Release();
+            m_EvaluatorsScoreTree?.Release();
         }
 
         public void OnInspectorUpdate()
         {
-            // TODO Only do this when devices update
-            SetupInputDevicesTree();
-
+            UpdateInputDevicesTree();
             UpdateInteractorsTree();
             UpdateInteractablesTree();
 
             UpdateFiltersTree();
             UpdateEvaluatorsScoreTree();
 
-            if (m_InputDevicesTree != null)
-            {
-                m_InputDevicesTree.Reload();
-                m_InputDevicesTree.Repaint();
-            }
-
+            m_InputDevicesTree?.Repaint();
+            m_InteractorsTree?.Repaint();
             m_InteractablesTree?.Repaint();
 
             m_FiltersTree?.Repaint();
@@ -209,48 +194,40 @@ namespace UnityEditor.XR.Interaction.Toolkit
         void DrawInputDevicesGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Devices", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.Label(Contents.inputDevices, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            m_InputDevicesTreeScrollPosition = EditorGUILayout.BeginScrollView(m_InputDevicesTreeScrollPosition);
             var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
             m_InputDevicesTree.OnGUI(rect);
-            EditorGUILayout.EndScrollView();
         }
 
         void DrawInteractorsGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Interactors", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.Label(Contents.interactors, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            // TODO I'm not sure tree view needs a scroll view or whether it does that automatically
-            m_InteractorsTreeScrollPosition = EditorGUILayout.BeginScrollView(m_InteractorsTreeScrollPosition);
             var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
             m_InteractorsTree.OnGUI(rect);
-            EditorGUILayout.EndScrollView();
         }
 
         void DrawInteractablesGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Interactables", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.Label(Contents.interactables, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
-            // TODO I'm not sure tree view needs a scroll view or whether it does that automatically
-            m_InteractablesTreeScrollPosition = EditorGUILayout.BeginScrollView(m_InteractablesTreeScrollPosition);
             var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
             m_InteractablesTree.OnGUI(rect);
-            EditorGUILayout.EndScrollView();
         }
 
         void DrawFiltersGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Filters", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.Label(Contents.targetFilters, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -264,7 +241,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         void DrawEvaluatorsScoreGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Score", GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.Label(Contents.score, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
@@ -277,13 +254,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
             m_ShowInputDevices
-                = GUILayout.Toggle(m_ShowInputDevices, Contents.showInputDevices, EditorStyles.toolbarButton);
+                = GUILayout.Toggle(m_ShowInputDevices, Contents.inputDevices, EditorStyles.toolbarButton);
             m_ShowInteractors
-                = GUILayout.Toggle(m_ShowInteractors, Contents.showInteractorsContent, EditorStyles.toolbarButton);
+                = GUILayout.Toggle(m_ShowInteractors, Contents.interactors, EditorStyles.toolbarButton);
             m_ShowInteractables
-                = GUILayout.Toggle(m_ShowInteractables, Contents.showInteractablesContent, EditorStyles.toolbarButton);
+                = GUILayout.Toggle(m_ShowInteractables, Contents.interactables, EditorStyles.toolbarButton);
             m_ShowTargetFilters
-                = GUILayout.Toggle(m_ShowTargetFilters, Contents.showTargetFiltersContent, EditorStyles.toolbarButton);
+                = GUILayout.Toggle(m_ShowTargetFilters, Contents.targetFilters, EditorStyles.toolbarButton);
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.EndHorizontal();
@@ -372,10 +349,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         static class Contents
         {
-            public static GUIContent showInputDevices = EditorGUIUtility.TrTextContent("Input Devices");
-            public static GUIContent showInteractablesContent = EditorGUIUtility.TrTextContent("Interactables");
-            public static GUIContent showInteractorsContent = EditorGUIUtility.TrTextContent("Interactors");
-            public static GUIContent showTargetFiltersContent = EditorGUIUtility.TrTextContent("Target Filters");
+            public static GUIContent titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");
+            public static GUIContent inputDevices = EditorGUIUtility.TrTextContent("Input Devices");
+            public static GUIContent interactables = EditorGUIUtility.TrTextContent("Interactables");
+            public static GUIContent interactors = EditorGUIUtility.TrTextContent("Interactors");
+            public static GUIContent targetFilters = EditorGUIUtility.TrTextContent("Target Filters");
+            public static GUIContent score = EditorGUIUtility.TrTextContent("Score");
         }
     }
 }

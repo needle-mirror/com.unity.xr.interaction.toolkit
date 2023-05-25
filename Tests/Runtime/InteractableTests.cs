@@ -34,6 +34,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             InteractableSelectMode.Multiple,
         };
 
+        static readonly InteractableFocusMode[] s_FocusModes =
+        {
+            InteractableFocusMode.Single,
+            InteractableFocusMode.Multiple,
+        };
+
         static readonly XRBaseInteractable.DistanceCalculationMode[] s_DistanceCalculationMode =
         {
             XRBaseInteractable.DistanceCalculationMode.TransformPosition,
@@ -118,6 +124,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     break;
                 default:
                     Assert.Fail($"Unhandled {nameof(InteractableSelectMode)}={selectMode}");
+                    break;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableFocusModeSelect([ValueSource(nameof(s_FocusModes))] InteractableFocusMode focusMode)
+        {
+            TestUtilities.CreateInteractionManager();
+            var group1 = TestUtilities.CreateInteractionGroup();
+            var group2 = TestUtilities.CreateInteractionGroup();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            group1.AddGroupMember(interactor1);
+            group2.AddGroupMember(interactor2);
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.focusMode = focusMode;
+
+            interactor1.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group1 }));
+
+            interactor2.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactable.isFocused, Is.True);
+            switch (focusMode)
+            {
+                case InteractableFocusMode.Single:
+                    Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group2 }));
+                    break;
+                case InteractableFocusMode.Multiple:
+                    Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group1, group2 }));
+                    break;
+                default:
+                    Assert.Fail($"Unhandled {nameof(InteractableFocusMode)}={focusMode}");
                     break;
             }
         }

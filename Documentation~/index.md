@@ -24,13 +24,13 @@ Finally, its possible to simulate all of your interactions with the [XR Device S
 
 This version of the XR Interaction Toolkit is compatible with the following versions of the Unity Editor:
 
-* 2020.3 and later
+* 2021.3 and later
 
 ### Dependencies
 
 The XR Interaction Toolkit package has several dependencies which are automatically added to your project when installing:
 
-* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/manual/index.html)
+* [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/index.html)
 * [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
 * [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/index.html)
 * [XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers)](https://docs.unity3d.com/Packages/com.unity.xr.legacyinputhelpers@2.1/manual/index.html)
@@ -52,6 +52,8 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 * Mouse inputs don't interact with world space UIs when an XR Plug-in Provider in **Edit &gt; Project Settings &gt; XR Plug-in Management** is enabled and running. For more information, please follow the issue tracker. ([1400186](https://issuetracker.unity3d.com/product/unity/issues/guid/1400186/))
 
 * The Poke Point visual in the Poke Interactor prefab in the Starter Assets sample does not hide with the controller model when the Hide Controller On Select property is enabled on the direct/ray interactor.
+
+* The provided Unity Hand shaders and materials in the Hand Interaction Demo sample render only in the left eye when using **Built-in render pipeline and Single-pass instanced render mode** because they are made using Shader Graph. It is recommended to either switch to multi-pass rendering, switch to Universal Render Pipeline, or create a custom shader for hand interaction that does not use Shader Graph.
 
 ### Helpful links
 

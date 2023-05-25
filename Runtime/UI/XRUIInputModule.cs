@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -21,6 +22,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="model">The returned model that reflects the UI state of this Interactor.</param>
         /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Otherwise, returns <see langword="false"/>.</returns>
         bool TryGetUIModel(out TrackedDeviceModel model);
+    }
+
+    /// <summary>
+    /// Matches the UI Model to the state of the Interactor with support for hover events.
+    /// </summary>
+    public interface IUIHoverInteractor : IUIInteractor
+    {
+        /// <summary>
+        /// The event that is called when the Interactor begins hovering over a UI element.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="UIHoverEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        UIHoverEnterEvent uiHoverEntered { get; }
+
+        /// <summary>
+        /// The event that is called when this Interactor ends hovering over a UI element.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="UIHoverEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        UIHoverExitEvent uiHoverExited { get; }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is being hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverExited(UIHoverEventArgs)"/>
+        void OnUIHoverEntered(UIHoverEventArgs args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor ends hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is no longer hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverEntered(UIHoverEventArgs)"/>
+        void OnUIHoverExited(UIHoverEventArgs args);
     }
 
     /// <summary>
@@ -391,6 +436,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
+        // Reusable event args
+        readonly LinkedPool<UIHoverEventArgs> m_UIHoverEventArgs = new LinkedPool<UIHoverEventArgs>(() => new UIHoverEventArgs(), collectionCheck: false);
+
         /// <summary>
         /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnEnable.html">MonoBehavior.OnEnable</a>.
         /// </summary>
@@ -509,6 +557,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 {
                     var registeredInteractor = m_RegisteredInteractors[i];
 
+                    var oldTarget = registeredInteractor.model.implementationData.pointerTarget;
+
                     // If device is removed, we send a default state to unclick any UI
                     if (registeredInteractor.interactor == null)
                     {
@@ -522,6 +572,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         registeredInteractor.interactor.UpdateUIModel(ref registeredInteractor.model);
                         ProcessTrackedDevice(ref registeredInteractor.model);
                         m_RegisteredInteractors[i] = registeredInteractor;
+                    }
+                    // If hover target changed, send event
+                    var newTarget = registeredInteractor.model.implementationData.pointerTarget;
+                    if (oldTarget != newTarget)
+                    {
+                        using (m_UIHoverEventArgs.Get(out var args))
+                        {
+                            args.interactorObject = registeredInteractor.interactor;
+                            args.deviceModel = registeredInteractor.model;
+                            if (args.interactorObject != null && args.interactorObject is IUIHoverInteractor hoverInteractor)
+                            {
+                                if (oldTarget != null)
+                                {
+                                    args.uiObject = oldTarget;
+                                    hoverInteractor.OnUIHoverExited(args);
+                                }
+
+                                if (newTarget != null)
+                                {
+                                    args.uiObject = newTarget;
+                                    hoverInteractor.OnUIHoverEntered(args);
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -306,6 +306,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// Tracks the current selectable UI element being hovered
+        /// </summary>
+        public GameObject selectableObject { get; set; }
+
+        /// <summary>
+        /// Tracks whether the current hovered UI elements support scrolling.
+        /// </summary>
+        public bool isScrollable { get; set; }
+
+        /// <summary>
         /// Initializes and returns an instance of <see cref="TrackedDeviceModel"/>.
         /// </summary>
         /// <param name="pointerId">The pointer id.</param>

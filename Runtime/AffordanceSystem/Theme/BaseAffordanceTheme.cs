@@ -70,6 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme
                 new AffordanceThemeData<T> { stateName = nameof(AffordanceStateShortcuts.hoveredPriority) },
                 new AffordanceThemeData<T> { stateName = nameof(AffordanceStateShortcuts.selected) },
                 new AffordanceThemeData<T> { stateName = nameof(AffordanceStateShortcuts.activated) },
+                new AffordanceThemeData<T> { stateName = nameof(AffordanceStateShortcuts.focused) },
             };
         }
 
@@ -81,7 +82,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme
         /// or <see langword="null"/> if there is no theme data associated with the state.</returns>
         public AffordanceThemeData<T> GetAffordanceThemeDataForIndex(byte stateIndex)
         {
-            return stateIndex <= m_List.Count ? m_List[stateIndex] : null;
+            return stateIndex < m_List.Count ? m_List[stateIndex] : null;
         }
 
         /// <summary>

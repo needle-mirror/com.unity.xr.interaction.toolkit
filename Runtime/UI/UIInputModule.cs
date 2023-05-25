@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -76,6 +77,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             get => m_TrackedDeviceDragThresholdMultiplier;
             set => m_TrackedDeviceDragThresholdMultiplier = value;
         }
+
+        [SerializeField, Tooltip("Scales the scrollDelta in event data, for tracked devices, to scroll at an expected speed.")]
+        float m_TrackedScrollDeltaMultiplier = 5f;
+        /// <summary>
+        /// Scales the scrollDelta in event data, for tracked devices, to scroll at an expected speed.
+        /// </summary>
+        public float trackedScrollDeltaMultiplier
+        {
+            get => m_TrackedScrollDeltaMultiplier;
+            set => m_TrackedScrollDeltaMultiplier = value;
+        }
+
 
         Camera m_UICamera;
 
@@ -593,6 +606,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var eventData = GetOrCreateCachedTrackedDeviceEvent(deviceState.pointerId);
             eventData.Reset();
             deviceState.CopyTo(eventData);
+            eventData.scrollDelta *= m_TrackedScrollDeltaMultiplier;
 
             eventData.button = PointerEventData.InputButton.Left;
 
@@ -627,7 +641,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 ProcessScrollWheel(eventData);
                 ProcessPointerButtonDrag(eventData, UIPointerType.Tracked, m_TrackedDeviceDragThresholdMultiplier);
 
+                var oldTarget = deviceState.implementationData.pointerTarget;
                 deviceState.CopyFrom(eventData);
+
+                var newTarget = deviceState.implementationData.pointerTarget;
+                if (oldTarget != newTarget)
+                {
+                    if (newTarget != null)
+                    {
+                        var selectable = newTarget.GetComponentInParent<ISelectHandler>();
+                        var scrollable = newTarget.GetComponentInParent<IScrollHandler>();
+                        deviceState.selectableObject = (selectable as Component)?.gameObject;
+                        deviceState.isScrollable = scrollable != null;
+                    }
+                    else
+                    {
+                        deviceState.selectableObject = null;
+                        deviceState.isScrollable = false;
+                    }
+                }
             }
 
             deviceState.OnFrameFinished();

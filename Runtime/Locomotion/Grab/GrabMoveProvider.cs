@@ -59,7 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to perform grab movement while held. Must be a Button Control.")]
-        InputActionProperty m_GrabMoveAction;
+        InputActionProperty m_GrabMoveAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
         /// <summary>
         /// The Input System Action that Unity uses to perform grab movement while held. Must be a <see cref="ButtonControl"/> Control.
         /// </summary>

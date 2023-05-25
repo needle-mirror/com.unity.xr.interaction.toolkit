@@ -24,13 +24,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Interaction Group", 11)]
     [HelpURL(XRHelpURLConstants.k_XRInteractionGroup)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionGroups)]
-    public class XRInteractionGroup : MonoBehaviour, IXRInteractionGroup, IXRGroupMember
+    public class XRInteractionGroup : MonoBehaviour, IXRInteractionOverrideGroup, IXRGroupMember
     {
+        /// <summary>
+        /// These correspond to the default names of the Interaction Groups in the sample XR Rig.
+        /// </summary>
+        public static class GroupNames
+        {
+            /// <summary> Left controller and hand interactors </summary>
+            public static readonly string k_Left = "Left";
+            /// <summary> Right controller and hand interactors </summary>
+            public static readonly string k_Right = "Right";
+            /// <summary> Head/eye interactors </summary>
+            public static readonly string k_Center = "Center";
+        }
+
+        [Serializable]
+        internal class GroupMemberAndOverridesPair
+        {
+            [RequireInterface(typeof(IXRGroupMember))]
+            public Object groupMember;
+
+            [RequireInterface(typeof(IXRGroupMember))]
+            public List<Object> overrideGroupMembers = new List<Object>();
+        }
+
         /// <inheritdoc />
         public event Action<InteractionGroupRegisteredEventArgs> registered;
 
         /// <inheritdoc />
         public event Action<InteractionGroupUnregisteredEventArgs> unregistered;
+
+        [SerializeField]
+        [Tooltip("The name of the interaction group, which can be used to retrieve it from the Interaction Manager.")]
+        String m_GroupName;
+
+        /// <inheritdoc />
+        public string groupName => m_GroupName;
 
         [SerializeField]
         [Tooltip("The XR Interaction Manager that this Interaction Group will communicate with (will find one if not set manually).")]
@@ -77,15 +107,40 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public List<Object> startingGroupMembers
         {
             get => m_StartingGroupMembers;
-            set => m_StartingGroupMembers = value;
+            set
+            {
+                m_StartingGroupMembers = value;
+                RemoveMissingMembersFromStartingOverridesMap();
+            }
         }
+
+        [SerializeField]
+        [Tooltip("Configuration for each Group Member of which other Members are able to override its interaction " +
+            "when they attempt to select, despite the difference in priority order.")]
+        List<GroupMemberAndOverridesPair> m_StartingInteractionOverridesMap = new List<GroupMemberAndOverridesPair>();
 
         /// <inheritdoc />
         public IXRInteractor activeInteractor { get; private set; }
+        
+        /// <inheritdoc />
+        public IXRInteractor focusInteractor { get; private set; }
+        
+        /// <inheritdoc />
+        public IXRFocusInteractable focusInteractable { get; private set; }
+
+        // Used by custom editor to check if we can edit the starting configuration
+        internal bool isRegisteredWithInteractionManager => m_RegisteredInteractionManager != null;
+        internal bool hasRegisteredStartingMembers { get; private set; }
 
         readonly RegistrationList<IXRGroupMember> m_GroupMembers = new RegistrationList<IXRGroupMember>();
         readonly List<IXRGroupMember> m_TempGroupMembers = new List<IXRGroupMember>();
         bool m_IsProcessingGroupMembers;
+
+        /// <summary>
+        /// Mapping of each group member to a set of other members that can override its interaction via selection.
+        /// </summary>
+        readonly Dictionary<IXRGroupMember, HashSet<IXRGroupMember>> m_InteractionOverridesMap =
+            new Dictionary<IXRGroupMember, HashSet<IXRGroupMember>>();
 
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
         readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
@@ -140,6 +195,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         AddGroupMember(groupMember);
                 }
             }
+
+            if (string.IsNullOrWhiteSpace(m_GroupName))
+                m_GroupName = gameObject.name;
+
+            RemoveMissingMembersFromStartingOverridesMap();
+            foreach (var groupMemberAndOverridesPair in m_StartingInteractionOverridesMap)
+            {
+                var groupMemberObj = groupMemberAndOverridesPair.groupMember;
+                if (groupMemberObj == null || !(groupMemberObj is IXRGroupMember groupMember))
+                    continue;
+
+                foreach (var overrideGroupMemberObj in groupMemberAndOverridesPair.overrideGroupMembers)
+                {
+                    if (overrideGroupMemberObj != null && overrideGroupMemberObj is IXRGroupMember overrideGroupMember)
+                        AddInteractionOverrideForGroupMember(groupMember, overrideGroupMember);
+                }
+            }
+
+            hasRegisteredStartingMembers = true;
+        }
+
+        internal void RemoveMissingMembersFromStartingOverridesMap()
+        {
+            for (var i = m_StartingInteractionOverridesMap.Count - 1; i >= 0; i--)
+            {
+                var groupMemberAndOverrides = m_StartingInteractionOverridesMap[i];
+                if (!m_StartingGroupMembers.Contains(groupMemberAndOverrides.groupMember))
+                {
+                    m_StartingInteractionOverridesMap.RemoveAt(i);
+                }
+                else
+                {
+                    var overrides = groupMemberAndOverrides.overrideGroupMembers;
+                    for (var j = overrides.Count - 1; j >= 0; j--)
+                    {
+                        if (!m_StartingGroupMembers.Contains(overrides[j]))
+                            overrides.RemoveAt(j);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -164,7 +259,118 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnDestroy()
         {
+            hasRegisteredStartingMembers = false;
+            m_InteractionOverridesMap.Clear();
             ClearGroupMembers();
+        }
+
+        /// <summary>
+        /// Adds <paramref name="overrideGroupMember"/> to the list of Group members that are to be added as
+        /// interaction overrides for <paramref name="sourceGroupMember"/> on Awake. Both objects must already be
+        /// included in the <see cref="startingGroupMembers"/> list. The override object should implement either the
+        /// <see cref="IXRSelectInteractor"/> interface or the <see cref="IXRInteractionOverrideGroup"/> interface.
+        /// </summary>
+        /// <param name="sourceGroupMember">The Group member whose interaction can be potentially overridden by
+        /// <paramref name="overrideGroupMember"/>.</param>
+        /// <param name="overrideGroupMember">The Group member to add as a possible interaction override.</param>
+        /// <remarks>
+        /// Use <see cref="AddInteractionOverrideForGroupMember"/> to add to the interaction overrides used after Awake.
+        /// </remarks>
+        /// <seealso cref="RemoveStartingInteractionOverride"/>
+        /// <seealso cref="AddInteractionOverrideForGroupMember"/>
+        public void AddStartingInteractionOverride(Object sourceGroupMember, Object overrideGroupMember)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return;
+            }
+
+            if (overrideGroupMember == null)
+            {
+                Debug.LogError($"{nameof(overrideGroupMember)} cannot be null.");
+                return;
+            }
+
+            if (!m_StartingGroupMembers.Contains(sourceGroupMember))
+            {
+                Debug.LogError($"Cannot add starting override group member for source member {sourceGroupMember} " +
+                    $"because {sourceGroupMember} is not included in the starting group members.", this);
+
+                return;
+            }
+
+            if (!m_StartingGroupMembers.Contains(overrideGroupMember))
+            {
+                Debug.LogError($"Cannot add override group member {overrideGroupMember} for source member " +
+                    $"because {overrideGroupMember} is not included in the starting group members.", this);
+
+                return;
+            }
+
+            if (TryGetStartingGroupMemberAndOverridesPair(sourceGroupMember, out var groupMemberAndOverrides))
+            {
+                groupMemberAndOverrides.overrideGroupMembers.Add(overrideGroupMember);
+            }
+            else
+            {
+                m_StartingInteractionOverridesMap.Add(new GroupMemberAndOverridesPair
+                {
+                    groupMember = sourceGroupMember,
+                    overrideGroupMembers = new List<Object> { overrideGroupMember }
+                });
+            }
+        }
+
+        /// <summary>
+        /// Removes <paramref name="overrideGroupMember"/> from the list of Group members that are to be added as
+        /// interaction overrides for <paramref name="sourceGroupMember"/> on Awake.
+        /// </summary>
+        /// <param name="sourceGroupMember">The Group member whose interaction can no longer be overridden by
+        /// <paramref name="overrideGroupMember"/>.</param>
+        /// <param name="overrideGroupMember">The Group member to remove as a possible interaction override.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if <paramref name="overrideGroupMember"/> was removed from the list of
+        /// potential overrides for <paramref name="sourceGroupMember"/>. Otherwise, returns <see langword="false"/>
+        /// if <paramref name="overrideGroupMember"/> was not part of the list.
+        /// </returns>
+        /// <remarks>
+        /// Use <see cref="RemoveInteractionOverrideForGroupMember"/> to remove from the interaction overrides used after Awake.
+        /// </remarks>
+        /// <seealso cref="AddStartingInteractionOverride"/>
+        /// <seealso cref="RemoveInteractionOverrideForGroupMember"/>
+        public bool RemoveStartingInteractionOverride(Object sourceGroupMember, Object overrideGroupMember)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return false;
+            }
+
+            return TryGetStartingGroupMemberAndOverridesPair(sourceGroupMember, out var groupMemberAndOverrides) &&
+                groupMemberAndOverrides.overrideGroupMembers.Remove(overrideGroupMember);
+        }
+
+        bool TryGetStartingGroupMemberAndOverridesPair(Object sourceGroupMember,
+            out GroupMemberAndOverridesPair groupMemberAndOverrides)
+        {
+            if (sourceGroupMember == null)
+            {
+                groupMemberAndOverrides = null;
+                return false;
+            }
+
+            foreach (var pair in m_StartingInteractionOverridesMap)
+            {
+                if (pair.groupMember != sourceGroupMember)
+                    continue;
+
+                groupMemberAndOverrides = pair;
+                return true;
+            }
+
+            groupMemberAndOverrides = null;
+            return false;
         }
 
         /// <inheritdoc />
@@ -284,8 +490,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_GroupMembers.Unregister(groupMember))
             {
+                // Reset active interactor if it was part of the member that was removed
+                if (activeInteractor != null && GroupMemberIsOrContainsInteractor(groupMember, activeInteractor))
+                    activeInteractor = null;
+
+                m_InteractionOverridesMap.Remove(groupMember);
                 RegisterAsNonGroupMember(groupMember);
                 return true;
+            }
+
+            return false;
+        }
+
+        bool GroupMemberIsOrContainsInteractor(IXRGroupMember groupMember, IXRInteractor interactor)
+        {
+            if (ReferenceEquals(groupMember, interactor))
+                return true;
+
+            if (!(groupMember is IXRInteractionGroup memberGroup))
+                return false;
+
+            memberGroup.GetGroupMembers(m_TempGroupMembers);
+            foreach (var subGroupMember in m_TempGroupMembers)
+            {
+                if (GroupMemberIsOrContainsInteractor(subGroupMember, interactor))
+                    return true;
             }
 
             return false;
@@ -331,6 +560,150 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             return false;
+        }
+
+        /// <inheritdoc />
+        public void AddInteractionOverrideForGroupMember(IXRGroupMember sourceGroupMember, IXRGroupMember overrideGroupMember)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return;
+            }
+
+            if (overrideGroupMember == null)
+            {
+                Debug.LogError($"{nameof(overrideGroupMember)} cannot be null.");
+                return;
+            }
+
+            if (!(overrideGroupMember is IXRSelectInteractor || overrideGroupMember is IXRInteractionOverrideGroup))
+            {
+                Debug.LogError($"Override group member {overrideGroupMember} must implement either " +
+                    $"{nameof(IXRSelectInteractor)} or {nameof(IXRInteractionOverrideGroup)}.", this);
+
+                return;
+            }
+
+            if (!ContainsGroupMember(sourceGroupMember))
+            {
+                Debug.LogError($"Cannot add override group member for source member {sourceGroupMember} because {sourceGroupMember} " +
+                    "is not registered with the Group. Call AddGroupMember first.", this);
+
+                return;
+            }
+
+            if (!ContainsGroupMember(overrideGroupMember))
+            {
+                Debug.LogError($"Cannot add override group member {overrideGroupMember} for source member because {overrideGroupMember} " +
+                    "is not registered with the Group. Call AddGroupMember first.", this);
+
+                return;
+            }
+
+            if (GroupMemberIsPartOfOverrideChain(overrideGroupMember, sourceGroupMember))
+            {
+                Debug.LogError($"Cannot add {overrideGroupMember} as an override group member for {sourceGroupMember} " +
+                    "because this would create a loop of group member overrides.", this);
+
+                return;
+            }
+
+            if (m_InteractionOverridesMap.TryGetValue(sourceGroupMember, out var overrides))
+                overrides.Add(overrideGroupMember);
+            else
+                m_InteractionOverridesMap[sourceGroupMember] = new HashSet<IXRGroupMember> { overrideGroupMember };
+        }
+
+        /// <inheritdoc />
+        public bool GroupMemberIsPartOfOverrideChain(IXRGroupMember sourceGroupMember, IXRGroupMember potentialOverrideGroupMember)
+        {
+            if (ReferenceEquals(potentialOverrideGroupMember, sourceGroupMember))
+                return true;
+
+            if (!m_InteractionOverridesMap.TryGetValue(sourceGroupMember, out var overrides))
+                return false;
+
+            foreach (var nextOverride in overrides)
+            {
+                if (GroupMemberIsPartOfOverrideChain(nextOverride, potentialOverrideGroupMember))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool RemoveInteractionOverrideForGroupMember(IXRGroupMember sourceGroupMember, IXRGroupMember overrideGroupMember)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return false;
+            }
+
+            if (!ContainsGroupMember(sourceGroupMember))
+            {
+                Debug.LogError($"Cannot remove override group member for source member {sourceGroupMember} because {sourceGroupMember} " +
+                    "is not registered with the Group.", this);
+
+                return false;
+            }
+
+            return m_InteractionOverridesMap.TryGetValue(sourceGroupMember, out var overrides) && overrides.Remove(overrideGroupMember);
+        }
+
+        /// <inheritdoc />
+        public bool ClearInteractionOverridesForGroupMember(IXRGroupMember sourceGroupMember)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return false;
+            }
+
+            if (!ContainsGroupMember(sourceGroupMember))
+            {
+                Debug.LogError($"Cannot clear override group members for source member {sourceGroupMember} because {sourceGroupMember} " +
+                    "is not registered with the Group.", this);
+
+                return false;
+            }
+
+            if (!m_InteractionOverridesMap.TryGetValue(sourceGroupMember, out var overrides))
+                return false;
+
+            overrides.Clear();
+            return true;
+
+        }
+
+        /// <inheritdoc />
+        public void GetInteractionOverridesForGroupMember(IXRGroupMember sourceGroupMember, HashSet<IXRGroupMember> results)
+        {
+            if (sourceGroupMember == null)
+            {
+                Debug.LogError($"{nameof(sourceGroupMember)} cannot be null.");
+                return;
+            }
+
+            if (results == null)
+            {
+                Debug.LogError($"{nameof(results)} cannot be null.");
+                return;
+            }
+
+            if (!ContainsGroupMember(sourceGroupMember))
+            {
+                Debug.LogError($"Cannot get override group members for source member {sourceGroupMember} because {sourceGroupMember} " +
+                    "is not registered with the Group.", this);
+
+                return;
+            }
+
+            results.Clear();
+            if (m_InteractionOverridesMap.TryGetValue(sourceGroupMember, out var overrides))
+                results.UnionWith(overrides);
         }
 
         void FindCreateInteractionManager()
@@ -521,6 +894,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         void IXRInteractionGroup.UpdateGroupMemberInteractions(IXRInteractor prePrioritizedInteractor, out IXRInteractor interactorThatPerformedInteraction)
         {
+            if (((IXRInteractionOverrideGroup)this).ShouldOverrideActiveInteraction(out var overridingInteractor))
+                prePrioritizedInteractor = overridingInteractor;
+
             interactorThatPerformedInteraction = null;
             m_IsProcessingGroupMembers = true;
             foreach (var groupMember in m_GroupMembers.registeredSnapshot)
@@ -560,6 +936,168 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_IsProcessingGroupMembers = false;
             activeInteractor = interactorThatPerformedInteraction;
+        }
+
+        /// <inheritdoc />
+        bool IXRInteractionOverrideGroup.ShouldOverrideActiveInteraction(out IXRSelectInteractor overridingInteractor)
+        {
+            overridingInteractor = null;
+            if (activeInteractor == null ||
+                !TryGetOverridesForContainedInteractor(activeInteractor, out var activeMemberOverrides))
+            {
+                return false;
+            }
+
+            // Iterate through group members rather than the overrides set so we can ensure that priority is respected
+            var shouldOverride = false;
+            m_IsProcessingGroupMembers = true;
+            foreach (var groupMember in m_GroupMembers.registeredSnapshot)
+            {
+                if (!m_GroupMembers.IsStillRegistered(groupMember) || !activeMemberOverrides.Contains(groupMember))
+                    continue;
+
+                if (ShouldGroupMemberOverrideInteraction(activeInteractor, groupMember, out overridingInteractor))
+                {
+                    shouldOverride = true;
+                    break;
+                }
+            }
+
+            m_IsProcessingGroupMembers = false;
+            return shouldOverride;
+        }
+
+        /// <summary>
+        /// Tries to find the set of overrides for <paramref name="interactor"/> or overrides for the member Group that
+        /// contains <paramref name="interactor"/> if <paramref name="interactor"/> is nested.
+        /// </summary>
+        /// <param name="interactor">The contained interactor to check against.</param>
+        /// <param name="overrideGroupMembers">The set of override Group members for <paramref name="interactor"/> or
+        /// overrides for the member Group that contains <paramref name="interactor"/>.</param>
+        /// <returns>
+        /// Returns <see langword="true"/> if <paramref name="interactor"/> has overrides or a member Group
+        /// containing <paramref name="interactor"/> has overrides, <see langword="false"/> otherwise.
+        /// </returns>
+        bool TryGetOverridesForContainedInteractor(IXRInteractor interactor, out HashSet<IXRGroupMember> overrideGroupMembers)
+        {
+            overrideGroupMembers = null;
+            if (!(interactor is IXRGroupMember interactorAsGroupMember))
+            {
+                Debug.LogError($"Interactor {interactor} must be a {nameof(IXRGroupMember)}.", this);
+                return false;
+            }
+
+            // If the interactor is nested, bubble up to find the top-level member Group that contains the interactor.
+            var nextContainingGroup = interactorAsGroupMember.containingGroup;
+            var groupMemberForInteractor = interactorAsGroupMember;
+            while (nextContainingGroup != null && !ReferenceEquals(nextContainingGroup, this))
+            {
+                if (nextContainingGroup is IXRGroupMember groupMemberGroup)
+                {
+                    nextContainingGroup = groupMemberGroup.containingGroup;
+                    groupMemberForInteractor = groupMemberGroup;
+                }
+                else
+                {
+                    nextContainingGroup = null;
+                }
+            }
+
+            if (nextContainingGroup == null)
+            {
+                Debug.LogError($"Interactor {interactor} must be contained by this group or one of its sub-groups.", this);
+                return false;
+            }
+
+            return m_InteractionOverridesMap.TryGetValue(groupMemberForInteractor, out overrideGroupMembers);
+        }
+
+        /// <inheritdoc />
+        bool IXRInteractionOverrideGroup.ShouldAnyMemberOverrideInteraction(IXRInteractor interactingInteractor,
+            out IXRSelectInteractor overridingInteractor)
+        {
+            overridingInteractor = null;
+            var shouldOverride = false;
+            m_IsProcessingGroupMembers = true;
+            foreach (var groupMember in m_GroupMembers.registeredSnapshot)
+            {
+                if (!m_GroupMembers.IsStillRegistered(groupMember))
+                    continue;
+
+                if (ShouldGroupMemberOverrideInteraction(interactingInteractor, groupMember, out overridingInteractor))
+                {
+                    shouldOverride = true;
+                    break;
+                }
+            }
+
+            m_IsProcessingGroupMembers = false;
+            return shouldOverride;
+        }
+
+        bool ShouldGroupMemberOverrideInteraction(IXRInteractor interactingInteractor,
+            IXRGroupMember overrideGroupMember, out IXRSelectInteractor overridingInteractor)
+        {
+            overridingInteractor = null;
+            switch (overrideGroupMember)
+            {
+                case IXRSelectInteractor interactor:
+                    if (!m_RegisteredInteractionManager.IsRegistered(interactor))
+                        return false;
+
+                    if (ShouldInteractorOverrideInteraction(interactingInteractor, interactor))
+                    {
+                        overridingInteractor = interactor;
+                        return true;
+                    }
+
+                    break;
+                case IXRInteractionOverrideGroup group:
+                    if (!m_RegisteredInteractionManager.IsRegistered(group))
+                        return false;
+
+                    if (group.ShouldAnyMemberOverrideInteraction(interactingInteractor, out overridingInteractor))
+                        return true;
+
+                    break;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the given <paramref name="overridingInteractor"/> should override the active interaction of
+        /// <paramref name="interactingInteractor"/> - that is, whether <paramref name="overridingInteractor"/> can
+        /// select any interactable that <paramref name="interactingInteractor"/> is interacting with.
+        /// </summary>
+        /// <param name="interactingInteractor">The interactor that is currently interacting with at least one interactable.</param>
+        /// <param name="overridingInteractor">The interactor that is capable of overriding the interaction of <paramref name="interactingInteractor"/>.</param>
+        /// <returns>True if <paramref name="overridingInteractor"/> should override the active interaction of
+        /// <paramref name="interactingInteractor"/>, false otherwise.</returns>
+        bool ShouldInteractorOverrideInteraction(IXRInteractor interactingInteractor, IXRSelectInteractor overridingInteractor)
+        {
+            var interactingSelectInteractor = interactingInteractor as IXRSelectInteractor;
+            var interactingHoverInteractor = interactingInteractor as IXRHoverInteractor;
+            m_RegisteredInteractionManager.GetValidTargets(overridingInteractor, m_ValidTargets);
+            foreach (var target in m_ValidTargets)
+            {
+                if (!(target is IXRSelectInteractable selectInteractable) ||
+                    !m_RegisteredInteractionManager.CanSelect(overridingInteractor, selectInteractable))
+                {
+                    continue;
+                }
+
+                if (interactingSelectInteractor != null && interactingSelectInteractor.IsSelecting(selectInteractable))
+                    return true;
+
+                if (interactingHoverInteractor != null && target is IXRHoverInteractable hoverInteractable &&
+                    interactingHoverInteractor.IsHovering(hoverInteractable))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         void UpdateInteractorInteractions(IXRInteractor interactor, bool preventInteraction, out bool performedInteraction)
@@ -646,6 +1184,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 var interactable = s_InteractablesHovered[i];
                 m_RegisteredInteractionManager.HoverExitInternal(hoverInteractor, interactable);
+            }
+        }
+
+        /// <inheritdoc />
+        public void OnFocusEntering(FocusEnterEventArgs args)
+        {
+            focusInteractable = args.interactableObject;
+            focusInteractor = args.interactorObject;
+        }
+
+        /// <inheritdoc />
+        public void OnFocusExiting(FocusExitEventArgs args)
+        {
+            if (focusInteractable == args.interactableObject)
+            {
+                focusInteractable = null;
+                focusInteractor = null;
             }
         }
 

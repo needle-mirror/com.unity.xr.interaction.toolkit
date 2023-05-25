@@ -182,6 +182,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (controllerState == null)
                 return;
 
+            controllerState.isTracked = inputDevice.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked;
             controllerState.inputTrackingState = InputTrackingState.None;
 #if ENABLE_VR || ENABLE_AR
             if (m_PoseProvider != null)

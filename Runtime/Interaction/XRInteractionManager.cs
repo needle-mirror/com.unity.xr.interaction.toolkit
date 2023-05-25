@@ -96,6 +96,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
+
+        /// <summary>
+        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
+        /// </summary>
+        public event Action<FocusEnterEventArgs> focusGained;
+
+        /// <summary>
+        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
+        /// </summary>
+        public event Action<FocusExitEventArgs> focusLost;
+
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
         List<Object> m_StartingHoverFilters = new List<Object>();
@@ -164,6 +175,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ProcessSelectFilters"/>
         public IXRFilterList<IXRSelectFilter> selectFilters => m_SelectFilters;
 
+        public IXRFocusInteractable lastFocused { get; protected set; }
+
         /// <summary>
         /// (Read Only) List of enabled Interaction Manager instances.
         /// </summary>
@@ -208,6 +221,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRSelectInteractable> m_CurrentSelected = new List<IXRSelectInteractable>();
 
         /// <summary>
+        /// Reusable list of Interactables for retrieving the current focused Interactables of an Interaction group.
+        /// </summary>
+        readonly List<IXRFocusInteractable> m_CurrentFocused = new List<IXRFocusInteractable>();
+
+        /// <summary>
         /// Map of Interactables that have the highest priority for selection in a frame.
         /// </summary>
         readonly Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>> m_HighestPriorityTargetMap = new Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>>();
@@ -243,6 +261,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
 
         // Reusable event args
+        readonly LinkedPool<FocusEnterEventArgs> m_FocusEnterEventArgs = new LinkedPool<FocusEnterEventArgs>(() => new FocusEnterEventArgs(), collectionCheck: false);
+        readonly LinkedPool<FocusExitEventArgs> m_FocusExitEventArgs = new LinkedPool<FocusExitEventArgs>(() => new FocusExitEventArgs(), collectionCheck: false);
         readonly LinkedPool<SelectEnterEventArgs> m_SelectEnterEventArgs = new LinkedPool<SelectEnterEventArgs>(() => new SelectEnterEventArgs(), collectionCheck: false);
         readonly LinkedPool<SelectExitEventArgs> m_SelectExitEventArgs = new LinkedPool<SelectExitEventArgs>(() => new SelectExitEventArgs(), collectionCheck: false);
         readonly LinkedPool<HoverEnterEventArgs> m_HoverEnterEventArgs = new LinkedPool<HoverEnterEventArgs>(() => new HoverEnterEventArgs(), collectionCheck: false);
@@ -261,10 +281,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         static readonly ProfilerMarker s_UpdateGroupMemberInteractionsMarker = new ProfilerMarker("XRI.UpdateGroupMemberInteractions");
         internal static readonly ProfilerMarker s_GetValidTargetsMarker = new ProfilerMarker("XRI.GetValidTargets");
         static readonly ProfilerMarker s_FilterRegisteredValidTargetsMarker = new ProfilerMarker("XRI.FilterRegisteredValidTargets");
+        internal static readonly ProfilerMarker s_EvaluateInvalidFocusMarker = new ProfilerMarker("XRI.EvaluateInvalidFocus");
         internal static readonly ProfilerMarker s_EvaluateInvalidSelectionsMarker = new ProfilerMarker("XRI.EvaluateInvalidSelections");
         internal static readonly ProfilerMarker s_EvaluateInvalidHoversMarker = new ProfilerMarker("XRI.EvaluateInvalidHovers");
         internal static readonly ProfilerMarker s_EvaluateValidSelectionsMarker = new ProfilerMarker("XRI.EvaluateValidSelections");
         internal static readonly ProfilerMarker s_EvaluateValidHoversMarker = new ProfilerMarker("XRI.EvaluateValidHovers");
+        static readonly ProfilerMarker s_FocusEnterMarker = new ProfilerMarker("XRI.FocusEnter");
+        static readonly ProfilerMarker s_FocusExitMarker = new ProfilerMarker("XRI.FocusExit");
         static readonly ProfilerMarker s_SelectEnterMarker = new ProfilerMarker("XRI.SelectEnter");
         static readonly ProfilerMarker s_SelectExitMarker = new ProfilerMarker("XRI.SelectExit");
         static readonly ProfilerMarker s_HoverEnterMarker = new ProfilerMarker("XRI.HoverEnter");
@@ -318,6 +341,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 using (s_UpdateGroupMemberInteractionsMarker.Auto())
                     interactionGroup.UpdateGroupMemberInteractions();
+
+                using (s_EvaluateInvalidFocusMarker.Auto())
+                    ClearInteractionGroupFocusInternal(interactionGroup);
             }
 
             foreach (var interactor in m_Interactors.registeredSnapshot)
@@ -579,6 +605,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Whether the given Interactor can gain focus of the given Interactable.
+        /// You can extend this method to add global focus validations by code.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor can gain focus of the given Interactable.</returns>
+        /// <seealso cref="IsFocusPossible"/>
+        public virtual bool CanFocus(IXRInteractor interactor, IXRFocusInteractable interactable)
+        {
+            return IsFocusPossible(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Whether the given Interactor would be able gain focus of the given Interactable if the Interactor were in a state where it could focus.
+        /// </summary>
+        /// <param name="interactor">The Interactor to check.</param>
+        /// <param name="interactable">The Interactable to check.</param>
+        /// <returns>Returns whether the given Interactor would be able to gain focus of the given Interactable if the Interactor were in a state where it could focus.</returns>
+        /// <seealso cref="CanSelect"/>
+        public bool IsFocusPossible(IXRInteractor interactor, IXRFocusInteractable interactable)
+        {
+            return interactable.canFocus && HasInteractionLayerOverlap(interactor, interactable);
+        }
+
+        /// <summary>
         /// Registers a new Interaction Group to be processed.
         /// </summary>
         /// <param name="interactionGroup">The Interaction Group to be registered.</param>
@@ -697,6 +748,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Gets all currently registered Interaction groups
+        /// </summary>
+        /// <param name="interactionGroups">The list that will filled with all of the registered interaction groups</param>
+        public void GetInteractionGroups(List<IXRInteractionGroup> interactionGroups)
+        {
+            m_InteractionGroups.GetRegisteredItems(interactionGroups);
+        }
+
+        /// <summary>
+        /// Gets the registered Interaction Group with the given name.
+        /// </summary>
+        /// <param name="name">The name of the interaction group to retrieve</param>
+        /// <returns>The interaction group with matching name, or null if none were found</returns>
+        public IXRInteractionGroup GetInteractionGroup(string name)
+        {
+            foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
+            {
+                if (interactionGroup.groupName == name)
+                    return interactionGroup;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Registers a new Interactor to be processed.
         /// </summary>
         /// <param name="interactor">The Interactor to be registered.</param>
@@ -753,6 +829,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (!IsRegistered(interactor))
                 return;
+
+            var interactorTransform = interactor.transform;
+
+            // We suppress canceling focus for inactive interactors vs. destroyed interactors as that is used as a method of mediation
+            if (interactorTransform == null || interactorTransform.gameObject.activeSelf)
+                CancelInteractorFocusInternal(interactor);
 
             if (interactor is IXRSelectInteractor selectInteractor)
                 CancelInteractorSelectionInternal(selectInteractor);
@@ -858,6 +940,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (!IsRegistered(interactable))
                 return;
+
+            if (interactable is IXRFocusInteractable focusable)
+                CancelInteractableFocusInternal(focusable);
 
             if (interactable is IXRSelectInteractable selectable)
                 CancelInteractableSelectionInternal(selectable);
@@ -1113,14 +1198,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         public bool IsHighestPriorityTarget(IXRSelectInteractable target, List<IXRTargetPriorityInteractor> interactors = null)
         {
-            if (!m_HighestPriorityTargetMap.TryGetValue(target, out var targetPriortyInteractors))
+            if (!m_HighestPriorityTargetMap.TryGetValue(target, out var targetPriorityInteractors))
                 return false;
 
             if (interactors == null)
                 return true;
 
             interactors.Clear();
-            interactors.AddRange(targetPriortyInteractors);
+            interactors.AddRange(targetPriorityInteractors);
             return true;
         }
 
@@ -1130,7 +1215,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// that are registered with this Interaction Manager.
         /// </summary>
         /// <param name="interactor">The Interactor to get valid targets for.</param>
-        /// <param name="targets">The results list to populate with Interactables that are valid for selection or hover.</param>
+        /// <param name="targets">The results list to populate with Interactables that are valid for selection, hover, or focus.</param>
         /// <remarks>
         /// Unity expects the <paramref name="interactor"/>'s implementation of <see cref="IXRInteractor.GetValidTargets"/> to clear <paramref name="targets"/> before adding to it.
         /// </remarks>
@@ -1183,6 +1268,68 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             return numRemoved;
+        }
+
+        /// <summary>
+        /// Automatically called each frame during Update to clear the focus of the InteractionGroup if necessary due to current conditions.
+        /// </summary>
+        /// <param name="interactionGroup">The InteractionGroup to potentially exit its focus state.</param>
+        protected virtual void ClearInteractionGroupFocus(IXRInteractionGroup interactionGroup)
+        {
+            // We want to unfocus whenever we select 'nothing'
+            // If nothing is focused, then we are not in that scenario.
+            // Otherwise, we check for selection activation with lack of selected object.
+            var focusInteractor = interactionGroup.focusInteractor;
+            var focusInteractable = interactionGroup.focusInteractable;
+            if (focusInteractor == null || focusInteractable == null)
+                return;
+
+            var cleared = false;
+
+            var selectInteractor = focusInteractor as IXRSelectInteractor;
+            var selectInteractable = focusInteractable as IXRSelectInteractable;
+            
+            if (selectInteractor != null)
+                cleared = (selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable));
+
+            if (cleared || !CanFocus(focusInteractor, focusInteractable))
+            {
+                FocusExitInternal(interactionGroup, interactionGroup.focusInteractable);
+            }
+        }
+
+        internal void ClearInteractionGroupFocusInternal(IXRInteractionGroup interactionGroup)
+        {
+            ClearInteractionGroupFocus(interactionGroup);
+        }
+
+        void CancelInteractorFocusInternal(IXRInteractor interactor)
+        {
+            var asGroupMember = interactor as IXRGroupMember;
+            var group = asGroupMember?.containingGroup;
+
+            if (group != null && group.focusInteractable != null)
+            {
+                FocusCancelInternal(group, group.focusInteractable);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an Interactable is unregistered to cancel the focus of the Interactable if necessary.
+        /// </summary>
+        /// <param name="interactable">The Interactable to potentially exit its focus state due to cancellation.</param>
+        public virtual void CancelInteractableFocus(IXRFocusInteractable interactable)
+        {
+            for (var i = interactable.interactionGroupsFocusing.Count - 1; i >= 0; --i)
+            {
+                FocusCancelInternal(interactable.interactionGroupsFocusing[i], interactable);
+            }
+        }
+
+        void CancelInteractableFocusInternal(IXRFocusInteractable interactable)
+        {
+
+            CancelInteractableFocus(interactable);
         }
 
         /// <summary>
@@ -1362,6 +1509,85 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Initiates focus of an Interactable by an Interactor. This method may first result in other interaction events
+        /// such as causing the Interactable to first lose focus.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is gaining focus. Must be a member of an Interaction group.</param>
+        /// <param name="interactable">The Interactable being focused.</param>
+        /// <remarks>
+        /// This attempt may be ignored depending on the focus policy of the Interactor and/or the Interactable. This attempt will also be ignored if the Interactor is not a member of an Interaction group.
+        /// </remarks>
+        public virtual void FocusEnter(IXRInteractor interactor, IXRFocusInteractable interactable)
+        {
+            var asGroupMember = interactor as IXRGroupMember;
+            var group = asGroupMember?.containingGroup;
+
+            if (group == null || !CanFocus(interactor, interactable))
+                return;
+
+            if (interactable.isFocused && !ResolveExistingFocus(group, interactable))
+                return;
+
+            using (m_FocusEnterEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.interactionGroup = group;
+                FocusEnterInternal(group, interactable, args);
+            }
+        }
+
+        /// <summary>
+        /// Initiates losing focus of an Interactable by an Interactor.
+        /// </summary>
+        /// <param name="group">The Interaction group that is losing focus.</param>
+        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        public virtual void FocusExit(IXRInteractionGroup group, IXRFocusInteractable interactable)
+        {
+            var interactor = group.focusInteractor;
+
+            using (m_FocusExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = interactor;
+                args.interactableObject = interactable;
+                args.interactionGroup = group;
+                args.isCanceled = false;
+                FocusExitInternal(group, interactable, args);
+            }
+        }
+
+        internal void FocusExitInternal(IXRInteractionGroup group, IXRFocusInteractable interactable)
+        {
+            FocusExit(group, interactable);
+        }
+
+        /// <summary>
+        /// Initiates losing focus of an Interactable by an Interaction group due to cancellation,
+        /// such as from either being unregistered due to being disabled or destroyed.
+        /// </summary>
+        /// <param name="group">The Interaction group that is losing focus of the interactable.</param>
+        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        public virtual void FocusCancel(IXRInteractionGroup group, IXRFocusInteractable interactable)
+        {
+            using (m_FocusExitEventArgs.Get(out var args))
+            {
+                args.manager = this;
+                args.interactorObject = group.focusInteractor;
+                args.interactableObject = interactable;
+                args.interactionGroup = group;
+                args.isCanceled = true;
+                FocusExitInternal(group, interactable, args);
+            }
+        }
+
+        void FocusCancelInternal(IXRInteractionGroup group, IXRFocusInteractable interactable)
+        {
+            FocusCancel(group, interactable);
+        }
+
+        /// <summary>
         /// Initiates selection of an Interactable by an Interactor. This method may first result in other interaction events
         /// such as causing the Interactable to first exit being selected.
         /// </summary>
@@ -1381,6 +1607,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 SelectEnterInternal(interactor, interactable, args);
+            }
+
+            if (interactable is IXRFocusInteractable focusInteractable)
+            {
+                FocusEnter(interactor, focusInteractable);                    
             }
         }
 
@@ -1528,6 +1759,79 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #pragma warning restore 618
             else
                 HoverCancel(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Initiates focus of an Interactable by an InteractionGroup, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="group">The InteractionGroup that is gaining focus.</param>
+        /// <param name="interactable">The Interactable being focused.</param>
+        /// <param name="args">Event data containing the InteractionGroup and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interaction group and interactable are notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
+        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
+        protected virtual void FocusEnter(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusEnterEventArgs args)
+        {
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.interactionGroup == group, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
+
+            using (s_FocusEnterMarker.Auto())
+            {
+                group.OnFocusEntering(args);
+                interactable.OnFocusEntering(args);
+                interactable.OnFocusEntered(args);
+            }
+
+            lastFocused = interactable;
+            focusGained?.Invoke(args);
+        }
+
+        void FocusEnterInternal(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusEnterEventArgs args)
+        {
+            FocusEnter(group, interactable, args);
+        }
+
+        /// <summary>
+        /// Initiates losing focus of an Interactable by an Interaction Group, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="group">The Interaction Group that is no longer selecting.</param>
+        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
+        /// <remarks>
+        /// The interactable is notified immediately without waiting for a previous call to finish
+        /// in the case when this method is called again in a nested way. This means that if this method is
+        /// called during the handling of the first event, the second will start and finish before the first
+        /// event finishes calling all methods in the sequence to notify of the first event.
+        /// </remarks>
+        protected virtual void FocusExit(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusExitEventArgs args)
+        {
+            Debug.Assert(args.interactorObject == group.focusInteractor, this);
+            Debug.Assert(args.interactableObject == interactable, this);
+            Debug.Assert(args.manager == this || args.manager == null, this);
+            args.manager = this;
+
+            using (s_FocusExitMarker.Auto())
+            {
+                group.OnFocusExiting(args);
+                interactable.OnFocusExiting(args);
+                interactable.OnFocusExited(args);
+            }
+
+            if (interactable == lastFocused)
+                lastFocused = null;
+
+            focusLost?.Invoke(args);
+        }
+
+        void FocusExitInternal(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusExitEventArgs args)
+        {
+            FocusExit(group, interactable, args);
         }
 
         /// <summary>
@@ -1780,6 +2084,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Automatically called when gaining focus of an Interactable by an InteractionGroup is initiated
+        /// and the Interactable is already focused.
+        /// </summary>
+        /// <param name="interactor">The InteractionGroup that is gaining focus.</param>
+        /// <param name="interactable">The Interactable being focused.</param>
+        /// <returns>Returns <see langword="true"/> if the existing focus was successfully resolved and focus should continue.
+        /// Otherwise, returns <see langword="false"/> if the focus should be ignored.</returns>
+        /// <seealso cref="FocusEnter(IXRInteractor, IXRFocusInteractable)"/>
+        protected virtual bool ResolveExistingFocus(IXRInteractionGroup interactionGroup, IXRFocusInteractable interactable)
+        {
+            Debug.Assert(interactable.isFocused, this);
+
+            if (interactionGroup.focusInteractable == interactable)
+                return false;
+
+            switch (interactable.focusMode)
+            {
+                case InteractableFocusMode.Single:
+                    ExitInteractableFocus(interactable);
+                    break;
+                case InteractableFocusMode.Multiple:
+                    break;
+                default:
+                    Debug.Assert(false, $"Unhandled {nameof(InteractableFocusMode)}={interactable.focusMode}", this);
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Automatically called when selection of an Interactable by an Interactor is initiated
         /// and the Interactable is already selected.
         /// </summary>
@@ -1864,6 +2199,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
             {
                 SelectExitInternal(interactable.interactorsSelecting[i], interactable);
+            }
+        }
+
+        void ExitInteractableFocus(IXRFocusInteractable interactable)
+        {
+            for (var i = interactable.interactionGroupsFocusing.Count - 1; i >= 0; --i)
+            {
+                FocusExitInternal(interactable.interactionGroupsFocusing[i], interactable);
             }
         }
 

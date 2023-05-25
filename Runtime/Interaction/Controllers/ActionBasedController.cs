@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public partial class ActionBasedController : XRBaseController
     {
         [SerializeField]
-        InputActionProperty m_PositionAction;
+        InputActionProperty m_PositionAction = new InputActionProperty(new InputAction(expectedControlType: "Vector3"));
         /// <summary>
         /// The Input System action to use for Position Tracking for this GameObject. Must be a <see cref="Vector3Control"/> Control.
         /// </summary>
@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_RotationAction;
+        InputActionProperty m_RotationAction = new InputActionProperty(new InputAction(expectedControlType: "Quaternion"));
         /// <summary>
         /// The Input System action to use for Rotation Tracking for this GameObject. Must be a <see cref="QuaternionControl"/> Control.
         /// </summary>
@@ -47,9 +47,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_TrackingStateAction;
+        InputActionProperty m_IsTrackedAction = new InputActionProperty(new InputAction(type: InputActionType.Button) { wantsInitialStateCheck = true });
         /// <summary>
-        /// The Input System action to get the Tracking State when updating this GameObject position and rotation;
+        /// The Input System action to read the Is Tracked state when updating this GameObject position and rotation;
+        /// falls back to the tracked device's is tracked state that drives the position or rotation action when not set.
+        /// Must be an action with a button-like interaction where phase equals performed when is tracked.
+        /// Typically a <see cref="ButtonControl"/> Control.
+        /// </summary>
+        public InputActionProperty isTrackedAction
+        {
+            get => m_IsTrackedAction;
+            set => SetInputActionProperty(ref m_IsTrackedAction, value);
+        }
+        
+        [SerializeField]
+        InputActionProperty m_TrackingStateAction = new InputActionProperty(new InputAction(expectedControlType: "Integer"));
+        /// <summary>
+        /// The Input System action to read the Tracking State when updating this GameObject position and rotation;
         /// falls back to the tracked device's tracking state that drives the position or rotation action when not set.
         /// Must be an <see cref="IntegerControl"/> Control.
         /// </summary>
@@ -61,7 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_SelectAction;
+        InputActionProperty m_SelectAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for selecting an Interactable.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -75,7 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_SelectActionValue;
+        InputActionProperty m_SelectActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for selecting an Interactable.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -91,7 +105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_ActivateAction;
+        InputActionProperty m_ActivateAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for activating a selected Interactable.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -105,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_ActivateActionValue;
+        InputActionProperty m_ActivateActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for activating a selected Interactable.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -121,7 +135,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_UIPressAction;
+        InputActionProperty m_UIPressAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for Canvas UI interaction.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -135,7 +149,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_UIPressActionValue;
+        InputActionProperty m_UIPressActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for Canvas UI interaction.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -151,7 +165,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_HapticDeviceAction;
+        InputActionProperty m_UIScrollAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        /// <summary>
+        /// The Input System action to read values for Canvas UI scrolling.
+        /// Must be a <see cref="Vector2Control"/> Control.
+        /// </summary>
+        /// <seealso cref="uiPressAction"/>
+        public InputActionProperty uiScrollAction
+        {
+            get => m_UIScrollAction;
+            set => SetInputActionProperty(ref m_UIScrollAction, value);
+        }
+
+        [SerializeField]
+        InputActionProperty m_HapticDeviceAction = new InputActionProperty(new InputAction(type: InputActionType.PassThrough));
         /// <summary>
         /// The Input System action to use for identifying the device to send haptic impulses to.
         /// Can be any control type that will have an active control driving the action.
@@ -163,7 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_RotateAnchorAction;
+        InputActionProperty m_RotateAnchorAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for rotating the interactor's attach point over time.
         /// Must be a <see cref="Vector2Control"/> Control. Uses the x-axis as the rotation input.
@@ -175,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_DirectionalAnchorRotationAction;
+        InputActionProperty m_DirectionalAnchorRotationAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for computing a direction angle to rotate the interactor's attach point to match it.
         /// Must be a <see cref="Vector2Control"/> Control. The direction angle should be computed as the arctangent function of x/y.
@@ -187,7 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_TranslateAnchorAction;
+        InputActionProperty m_TranslateAnchorAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for translating the interactor's attach point closer or further away from the interactor.
         /// Must be a <see cref="Vector2Control"/> Control. Uses the y-axis as the translation input.
@@ -224,11 +251,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var posAction = m_PositionAction.action;
             var rotAction = m_RotationAction.action;
-            var hasPositionAction = posAction != null;
-            var hasRotationAction = rotAction != null;
+            var isTrackedInputAction = m_IsTrackedAction.action;
+            var trackingStateInputAction = m_TrackingStateAction.action;
 
             // Warn the user if using referenced actions and they are disabled
-            if (!m_HasCheckedDisabledTrackingInputReferenceActions && (hasPositionAction || hasRotationAction))
+            if (!m_HasCheckedDisabledTrackingInputReferenceActions && (posAction != null || rotAction != null))
             {
                 if (IsDisabledReferenceAction(m_PositionAction) || IsDisabledReferenceAction(m_RotationAction))
                 {
@@ -242,54 +269,91 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_HasCheckedDisabledTrackingInputReferenceActions = true;
             }
 
-            // Update inputTrackingState
+            // Update isTracked and inputTrackingState
+            controllerState.isTracked = false;
             controllerState.inputTrackingState = InputTrackingState.None;
-            var inputTrackingStateAction = m_TrackingStateAction.action;
 
             // Actions without bindings are considered empty and will fallback
-            if (inputTrackingStateAction != null && inputTrackingStateAction.bindings.Count > 0)
+            if (isTrackedInputAction != null && isTrackedInputAction.bindings.Count > 0)
             {
-                controllerState.inputTrackingState = (InputTrackingState)inputTrackingStateAction.ReadValue<int>();
+                controllerState.isTracked = IsPressed(isTrackedInputAction);
             }
             else
             {
-                // Fallback to the device trackingState if m_TrackingStateAction is not valid
-                var positionTrackedDevice = hasPositionAction ? posAction.activeControl?.device as TrackedDevice : null;
-                var rotationTrackedDevice = hasRotationAction ? rotAction.activeControl?.device as TrackedDevice : null;
-                var positionTrackingState = InputTrackingState.None;
-
-                if (positionTrackedDevice != null)
-                    positionTrackingState = (InputTrackingState)positionTrackedDevice.trackingState.ReadValue();
-
-                // If the tracking devices are different only the InputTrackingState.Position and InputTrackingState.Position flags will be considered
-                if (positionTrackedDevice != rotationTrackedDevice)
+                // Fallback: Tracking State > {Position or Rotation when same device, combine otherwise}
+                if (trackingStateInputAction?.activeControl?.device is TrackedDevice trackingStateTrackedDevice)
                 {
-                    var rotationTrackingState = InputTrackingState.None;
-                    if (rotationTrackedDevice != null)
-                        rotationTrackingState = (InputTrackingState)rotationTrackedDevice.trackingState.ReadValue();
-
-                    positionTrackingState &= InputTrackingState.Position;
-                    rotationTrackingState &= InputTrackingState.Rotation;
-                    controllerState.inputTrackingState = positionTrackingState | rotationTrackingState;
+                    controllerState.isTracked = trackingStateTrackedDevice.isTracked.isPressed;
                 }
                 else
                 {
-                    controllerState.inputTrackingState = positionTrackingState;
+                    var positionTrackedDevice = posAction?.activeControl?.device as TrackedDevice;
+                    var rotationTrackedDevice = rotAction?.activeControl?.device as TrackedDevice;
+
+                    var positionIsTracked = positionTrackedDevice?.isTracked.isPressed ?? false;
+
+                    // If the tracking devices are different, their Is Tracked values will be ANDed together
+                    if (positionTrackedDevice != rotationTrackedDevice)
+                    {
+                        var rotationIsTracked = rotationTrackedDevice?.isTracked.isPressed ?? false;
+                        controllerState.isTracked = positionIsTracked && rotationIsTracked;
+                    }
+                    else
+                    {
+                        controllerState.isTracked = positionIsTracked;
+                    }
                 }
             }
 
-            // Update position
-            if (hasPositionAction && (controllerState.inputTrackingState & InputTrackingState.Position) != 0)
+            // Actions without bindings are considered empty and will fallback
+            if (trackingStateInputAction != null && trackingStateInputAction.bindings.Count > 0)
             {
-                var pos = posAction.ReadValue<Vector3>();
-                controllerState.position = pos;
+                controllerState.inputTrackingState = (InputTrackingState)trackingStateInputAction.ReadValue<int>();
+            }
+            else
+            {
+                // Fallback: Is Tracked > {Position or Rotation when same device, combine otherwise}
+                if (isTrackedInputAction?.activeControl?.device is TrackedDevice isTrackedDevice)
+                {
+                    controllerState.inputTrackingState = (InputTrackingState)isTrackedDevice.trackingState.ReadValue();
+                }
+                else
+                {
+                    var positionTrackedDevice = posAction?.activeControl?.device as TrackedDevice;
+                    var rotationTrackedDevice = rotAction?.activeControl?.device as TrackedDevice;
+
+                    var positionTrackingState = positionTrackedDevice != null
+                        ? (InputTrackingState)positionTrackedDevice.trackingState.ReadValue()
+                        : InputTrackingState.None;
+
+                    // If the tracking devices are different only the InputTrackingState.Position and InputTrackingState.Rotation flags will be considered
+                    if (positionTrackedDevice != rotationTrackedDevice)
+                    {
+                        var rotationTrackingState = rotationTrackedDevice != null
+                            ? (InputTrackingState)rotationTrackedDevice.trackingState.ReadValue()
+                            : InputTrackingState.None;
+
+                        controllerState.inputTrackingState =
+                            (positionTrackingState & InputTrackingState.Position) |
+                            (rotationTrackingState & InputTrackingState.Rotation);
+                    }
+                    else
+                    {
+                        controllerState.inputTrackingState = positionTrackingState;
+                    }
+                }
             }
 
-            // Update rotation
-            if (hasRotationAction && (controllerState.inputTrackingState & InputTrackingState.Rotation) != 0)
+            // Update position when valid
+            if (posAction != null && (controllerState.inputTrackingState & InputTrackingState.Position) != 0)
             {
-                var rot = rotAction.ReadValue<Quaternion>();
-                controllerState.rotation = rot;
+                controllerState.position = posAction.ReadValue<Vector3>();
+            }
+
+            // Update rotation when valid
+            if (rotAction != null && (controllerState.inputTrackingState & InputTrackingState.Rotation) != 0)
+            {
+                controllerState.rotation = rotAction.ReadValue<Quaternion>();
             }
         }
 
@@ -332,6 +396,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (uiPressValueAction == null || uiPressValueAction.bindings.Count <= 0)
                 uiPressValueAction = m_UIPressAction.action;
             controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressAction.action), ReadValue(uiPressValueAction));
+
+            var uiScrollAction = m_UIScrollAction.action;
+            if (uiScrollAction != null)
+                controllerState.uiScrollValue = uiScrollAction.ReadValue<Vector2>();
         }
 
         /// <summary>
@@ -406,6 +474,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_PositionAction.EnableDirectAction();
             m_RotationAction.EnableDirectAction();
+            m_IsTrackedAction.EnableDirectAction();
             m_TrackingStateAction.EnableDirectAction();
             m_SelectAction.EnableDirectAction();
             m_SelectActionValue.EnableDirectAction();
@@ -413,6 +482,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ActivateActionValue.EnableDirectAction();
             m_UIPressAction.EnableDirectAction();
             m_UIPressActionValue.EnableDirectAction();
+            m_UIScrollAction.EnableDirectAction();
             m_HapticDeviceAction.EnableDirectAction();
             m_RotateAnchorAction.EnableDirectAction();
             m_DirectionalAnchorRotationAction.EnableDirectAction();
@@ -423,6 +493,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_PositionAction.DisableDirectAction();
             m_RotationAction.DisableDirectAction();
+            m_IsTrackedAction.DisableDirectAction();
             m_TrackingStateAction.DisableDirectAction();
             m_SelectAction.DisableDirectAction();
             m_SelectActionValue.DisableDirectAction();
@@ -430,6 +501,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_ActivateActionValue.DisableDirectAction();
             m_UIPressAction.DisableDirectAction();
             m_UIPressActionValue.DisableDirectAction();
+            m_UIScrollAction.DisableDirectAction();
             m_HapticDeviceAction.DisableDirectAction();
             m_RotateAnchorAction.DisableDirectAction();
             m_DirectionalAnchorRotationAction.DisableDirectAction();

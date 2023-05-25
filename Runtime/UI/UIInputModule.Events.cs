@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
@@ -103,4 +104,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public event Action<GameObject, BaseEventData> cancel;
     }
+
+    #region Hover
+    /// <summary>
+    /// <see cref="UnityEvent"/> that Unity invokes when an Interactor initiates hovering over a new UI element.
+    /// </summary>
+    [Serializable]
+    public sealed class UIHoverEnterEvent : UnityEvent<UIHoverEventArgs>
+    {
+    }
+
+    /// <summary>
+    /// <see cref="UnityEvent"/> that Unity invokes when an Interactor ends hovering over a UI element.
+    /// </summary>
+    [Serializable]
+    public sealed class UIHoverExitEvent : UnityEvent<UIHoverEventArgs>
+    {
+    }
+
+    /// <summary>
+    /// Arguments passed to the <see cref="UnityEvent"/> that Unity invokes when an Interactor is hovering over a UI element.
+    /// </summary>
+    public class UIHoverEventArgs
+    {
+        /// <summary>
+        /// The <see cref="IUIInteractor"/> that is hovering.
+        /// </summary>
+        public IUIInteractor interactorObject { get; set; }
+
+        /// <summary>
+        /// The <see cref="TrackedDeviceModel"/> corresponding to the controller or hand
+        /// interacting with the UI element that is being hovered over.
+        /// </summary>
+        public TrackedDeviceModel deviceModel { get; set; }
+
+        /// <summary>
+        /// The UI element that is being hovered over.
+        /// </summary>
+        public GameObject uiObject { get; set; }
+    }
+    #endregion
 }

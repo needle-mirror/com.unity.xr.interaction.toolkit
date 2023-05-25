@@ -2,27 +2,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using Unity.XR.CoreUtils;
-
-// There is a problem with upm-ci package test builds where the Unity.InputSystem.TestFramework assembly
-// is not included, which causes some of these tests to fail to compile. To allow these tests to be run,
-// modify your project's Packages\manifest.json file to include com.unity.inputsystem in the testables list.
-// See [Project Manifest](https://docs.unity3d.com/Manual/upm-manifestPrj.html)
-// Example:
-//   "testables": [
-//     "com.unity.inputsystem",
-//     "com.unity.xr.interaction.toolkit"
-//   ]
-// Then open Edit > Project Settings... > Player and edit the Scripting Define Symbols to add this.
-// It is enabled in the XR Interaction Toolkit Examples project to allow these
-// tests to be manually run, but skipped during some types of automated builds where the symbol is not defined.
-#if ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
-#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -32,8 +17,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             XRControllerRecording currentRecording = recorder.recording;
             currentRecording.InitRecording();
-            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, position, rotation, InputTrackingState.All, selectActive, activateActive, pressActive));
-            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(1000f, position, rotation, InputTrackingState.All, selectActive, activateActive, pressActive));
+            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, position, rotation, InputTrackingState.All, true, selectActive, activateActive, pressActive));
+            currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(1000f, position, rotation, InputTrackingState.All, true, selectActive, activateActive, pressActive));
             recorder.recording = currentRecording;
             recorder.ResetPlayback();
             recorder.isPlaying = true;
@@ -41,11 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     }
 
     [TestFixture]
-#if ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
     class UIPointerTests : InputTestFixture
-#else
-    class UIPointerTests
-#endif
     {
         internal enum EventType
         {
@@ -1062,7 +1043,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Object.Destroy(testObjects.eventSystem.gameObject);
         }
 
-#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_TESTFRAMEWORK_TESTS
         [UnityTest]
         public IEnumerator UIJoystickNavigation()
         {
@@ -1098,7 +1078,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             map.Enable();
 
-            // We can pass null into the cancelButton field of this function since it is not explicitely defined in the Joystick class.
+            // We can pass null into the cancelButton field of this function since it is not explicitly defined in the Joystick class.
             yield return InputDeviceUINavigationChecks(testObjects, joystick, joystick.stick, joystick.trigger, null);
         }
 
@@ -1116,7 +1096,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             var joystick = InputSystem.InputSystem.AddDevice<Joystick>();
             joystick.MakeCurrent();
-            // We can pass null into the cancelButton field of this function since it is not explicitely defined in the Joystick class.
+            // We can pass null into the cancelButton field of this function since it is not explicitly defined in the Joystick class.
             yield return InputDeviceUINavigationChecks(testObjects, joystick, joystick.stick, joystick.trigger, null);
         }
 
@@ -1367,7 +1347,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(testObjects.eventSystem.currentSelectedGameObject, Is.SameAs(leftUIReceiver.gameObject));
 
-            #if UNITY_2021_1_OR_NEWER
+#if UNITY_2021_1_OR_NEWER
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(3));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Select));
             Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.Enter));
@@ -1382,7 +1362,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events[5].type, Is.EqualTo(EventType.Enter));
             Assert.That(globalUIReceiver.events[6].type, Is.EqualTo(EventType.PointerMove));
             Assert.That(globalUIReceiver.events[7].type, Is.EqualTo(EventType.UpdateSelected));
-            #else
+#else
             Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
             Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Select));
             Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.Enter));
@@ -1393,7 +1373,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.Enter));
             Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.Enter));
             Assert.That(globalUIReceiver.events[4].type, Is.EqualTo(EventType.UpdateSelected));
-            #endif
+#endif
 
             ResetReceivers(testObjects);
 
@@ -1547,15 +1527,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.DestroyAllSceneObjects();
             base.TearDown();
         }
-#else
-        [TearDown]
-        public void TearDown()
-        {
-            TestUtilities.DestroyAllSceneObjects();
-        }
-#endif
-
     }
 }
-
-

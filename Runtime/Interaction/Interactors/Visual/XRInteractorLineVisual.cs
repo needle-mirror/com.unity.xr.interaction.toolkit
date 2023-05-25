@@ -1,5 +1,14 @@
 using System;
+using Unity.Collections;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils.Bindings;
+using Unity.XR.CoreUtils.Bindings.Variables;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
+#if BURST_PRESENT
+using Unity.Burst;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -18,6 +27,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="numPoints">When this method returns, contains the number of sample points if successful.</param>
         /// <returns>Returns <see langword="true"/> if the sample points form a valid line, such as by having at least two points.
         /// Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// Getting line points with <see cref="Vector3"/> array is much less performant than using a native array.
+        /// Use <see cref="IAdvancedLineRenderable.GetLinePoints(ref NativeArray{Vector3},out int,Ray?)"/> instead if available.
+        /// </remarks>
         bool GetLinePoints(ref Vector3[] linePoints, out int numPoints);
 
         /// <summary>
@@ -34,6 +47,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     /// <summary>
+    /// An advanced interface for providing line data for rendering with additional functionality.
+    /// </summary>
+    /// <seealso cref="XRInteractorLineVisual"/>
+    /// <seealso cref="XRRayInteractor"/>
+    public interface IAdvancedLineRenderable : ILineRenderable
+    {
+        /// <summary>
+        /// Gets the polygonal chain represented by a list of endpoints which form line segments to approximate the curve.
+        /// Positions are in world space coordinates.
+        /// </summary>
+        /// <param name="linePoints">When this method returns, contains the sample points if successful.</param>
+        /// <param name="numPoints">When this method returns, contains the number of sample points if successful.</param>
+        /// <param name="rayOriginOverride">Optional ray origin override used when re-computing the line.</param>
+        /// <returns>Returns <see langword="true"/> if the sample points form a valid line, such as by having at least two points.
+        /// Otherwise, returns <see langword="false"/>.</returns>
+        bool GetLinePoints(ref NativeArray<Vector3> linePoints, out int numPoints, Ray? rayOriginOverride = null);
+
+        /// <summary>
+        /// Gets the line origin and direction.
+        /// Origin and Direction are in world space coordinates.
+        /// </summary>
+        /// <param name="origin">Point in space where the line originates from.</param>
+        /// <param name="direction">Direction vector used to draw line.</param>
+        void GetLineOriginAndDirection(out Vector3 origin, out Vector3 direction);
+    }
+
+    /// <summary>
     /// Interactor helper object aligns a <see cref="LineRenderer"/> with the Interactor.
     /// </summary>
     [AddComponentMenu("XR/Visual/XR Interactor Line Visual", 11)]
@@ -41,13 +81,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [RequireComponent(typeof(LineRenderer))]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_LineVisual)]
     [HelpURL(XRHelpURLConstants.k_XRInteractorLineVisual)]
+#if BURST_PRESENT
+    [BurstCompile]
+#endif
     public class XRInteractorLineVisual : MonoBehaviour, IXRCustomReticleProvider
     {
         const float k_MinLineWidth = 0.0001f;
         const float k_MaxLineWidth = 0.05f;
+        const float k_MinLineBendRatio = 0.01f;
+        const float k_MaxLineBendRatio = 1f;
 
         [SerializeField, Range(k_MinLineWidth, k_MaxLineWidth)]
-        float m_LineWidth = 0.02f;
+        float m_LineWidth = 0.005f;
         /// <summary>
         /// Controls the width of the line.
         /// </summary>
@@ -58,6 +103,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_LineWidth = value;
                 m_PerformSetup = true;
+
+                // Force update user scale since it calls an update to the line width
+                m_UserScaleVar.BroadcastValue();
             }
         }
 
@@ -81,10 +129,82 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Controls the length of the line when overriding.
         /// </summary>
         /// <seealso cref="overrideInteractorLineLength"/>
+        /// <seealso cref="minLineLength"/>
         public float lineLength
         {
             get => m_LineLength;
             set => m_LineLength = value;
+        }
+
+        [SerializeField]
+        bool m_AutoAdjustLineLength;
+
+        /// <summary>
+        /// Determines whether the length of the line will retract over time when no valid hits or selection occur.
+        /// </summary>
+        /// <seealso cref="minLineLength"/>
+        /// <seealso cref="lineRetractionDelay"/>
+        public bool autoAdjustLineLength
+        {
+            get => m_AutoAdjustLineLength;
+            set => m_AutoAdjustLineLength = value;
+        }
+
+        [SerializeField]
+        float m_MinLineLength = 0.5f;
+
+        /// <summary>
+        /// Controls the minimum length of the line when overriding.
+        /// When no valid hits occur, the ray visual shrinks down to this size.
+        /// </summary>
+        /// <seealso cref="overrideInteractorLineLength"/>
+        /// <seealso cref="autoAdjustLineLength"/>
+        /// <seealso cref="lineLength"/>
+        public float minLineLength
+        {
+            get => m_MinLineLength;
+            set => m_MinLineLength = value;
+        }
+
+        [SerializeField]
+        bool m_UseDistanceToHitAsMaxLineLength = true;
+
+        /// <summary>
+        /// Determines whether the max line length will be the the distance to the hit point or the fixed line length.
+        /// </summary>
+        /// <seealso cref="lineLength"/>
+        public bool useDistanceToHitAsMaxLineLength
+        {
+            get => m_UseDistanceToHitAsMaxLineLength;
+            set => m_UseDistanceToHitAsMaxLineLength = value;
+        }
+
+        [SerializeField]
+        float m_LineRetractionDelay = 0.5f;
+
+        /// <summary>
+        /// Time in seconds elapsed after last valid hit or selection for line to begin retracting to the minimum override length.
+        /// </summary>
+        /// <seealso cref="lineRetractionDelay"/>
+        /// <seealso cref="minLineLength"/>
+        public float lineRetractionDelay
+        {
+            get => m_LineRetractionDelay;
+            set => m_LineRetractionDelay = value;
+        }
+
+        [SerializeField]
+        float m_LineLengthChangeSpeed = 12f;
+
+        /// <summary>
+        /// Scalar used to control the speed of changes in length of the line when overriding it's length.
+        /// </summary>
+        /// <seealso cref="minLineLength"/>
+        /// <seealso cref="lineRetractionDelay"/>
+        public float lineLengthChangeSpeed
+        {
+            get => m_LineLengthChangeSpeed;
+            set => m_LineLengthChangeSpeed = value;
         }
 
         [SerializeField]
@@ -100,6 +220,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_WidthCurve = value;
                 m_PerformSetup = true;
             }
+        }
+
+        [SerializeField]
+        bool m_SetLineColorGradient = true;
+        /// <summary>
+        /// Determines whether or not this component will control the color of the Line Renderer.
+        /// Disable to manually control the color externally from this component.
+        /// </summary>
+        /// <remarks>
+        /// Useful to disable when using the affordance system for line color control instead of through this behavior.
+        /// </remarks>
+        public bool setLineColorGradient
+        {
+            get => m_SetLineColorGradient;
+            set => m_SetLineColorGradient = value;
         }
 
         [SerializeField]
@@ -188,6 +323,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         float m_SnapThresholdDistance = 10f;
+
         /// <summary>
         /// Controls the threshold distance between line points at two consecutive frames to snap rendered segments to target segments when Smooth Movement is enabled.
         /// </summary>
@@ -196,7 +332,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public float snapThresholdDistance
         {
             get => m_SnapThresholdDistance;
-            set => m_SnapThresholdDistance = value;
+            set
+            {
+                m_SnapThresholdDistance = value;
+                m_SquareSnapThresholdDistance = m_SnapThresholdDistance * m_SnapThresholdDistance;
+            }
         }
 
         [SerializeField]
@@ -264,7 +404,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_StopLineAtSelection;
             set => m_StopLineAtSelection = value;
         }
-        
+
         [SerializeField]
         bool m_SnapEndpointIfAvailable = true;
         /// <summary>
@@ -278,7 +418,64 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_SnapEndpointIfAvailable;
             set => m_SnapEndpointIfAvailable = value;
         }
-        
+
+        [SerializeField]
+        [Range(k_MinLineBendRatio, k_MaxLineBendRatio)]
+        float m_LineBendRatio = 0.5f;
+
+        /// <summary>
+        /// This ratio determines where the bend point is on a bent line. Line bending occurs due to hitting a snap volume or because the target end point is out of line with the ray. A value of 1 means the line will not bend.
+        /// </summary>
+        public float lineBendRatio
+        {
+            get => m_LineBendRatio;
+            set => m_LineBendRatio = Mathf.Clamp(value, k_MinLineBendRatio, k_MaxLineBendRatio);
+        }
+
+        [SerializeField]
+        bool m_OverrideInteractorLineOrigin = true;
+
+        /// <summary>
+        /// A boolean value that controls whether to use a different <see cref="Transform"/> as the starting position and direction of the line.
+        /// Set to <see langword="true"/> to use the line origin specified by <see cref="lineOriginTransform"/>.
+        /// Set to <see langword="false"/> to use the the line origin specified by the interactor.
+        /// </summary>
+        /// <seealso cref="lineOriginTransform"/>
+        /// <seealso cref="IAdvancedLineRenderable.GetLinePoints(ref NativeArray{Vector3},out int,Ray?)"/>
+        public bool overrideInteractorLineOrigin
+        {
+            get => m_OverrideInteractorLineOrigin;
+            set => m_OverrideInteractorLineOrigin = value;
+        }
+
+        [SerializeField]
+        Transform m_LineOriginTransform;
+
+        /// <summary>
+        /// The starting position and direction of the line when overriding.
+        /// </summary>
+        /// <seealso cref="overrideInteractorLineOrigin"/>
+        public Transform lineOriginTransform
+        {
+            get => m_LineOriginTransform;
+            set => m_LineOriginTransform = value;
+        }
+
+        [SerializeField]
+        float m_LineOriginOffset;
+
+        /// <summary>
+        /// Offset from line origin along the line direction before line rendering begins. Only works if the line provider is using straight lines.
+        /// This value applies even when not overriding the line origin with a different <see cref="Transform"/>.
+        /// </summary>
+        public float lineOriginOffset
+        {
+            get => m_LineOriginOffset;
+            set => m_LineOriginOffset = value;
+        }
+
+        float m_SquareSnapThresholdDistance;
+
         Vector3 m_ReticlePos;
         Vector3 m_ReticleNormal;
         int m_EndPositionInLine;
@@ -289,53 +486,67 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         LineRenderer m_LineRenderer;
 
-        // interface to get target point
+        // Interface to get target point
         ILineRenderable m_LineRenderable;
+        IAdvancedLineRenderable m_AdvancedLineRenderable;
+        bool m_HasAdvancedLineRenderable;
+
         IXRSelectInteractor m_LineRenderableAsSelectInteractor;
+        IXRHoverInteractor m_LineRenderableAsHoverInteractor;
         XRBaseInteractor m_LineRenderableAsBaseInteractor;
         XRRayInteractor m_LineRenderableAsRayInteractor;
 
-        // reusable lists of target points
-        Vector3[] m_TargetPoints;
-        int m_NoTargetPoints = -1;
+        // Reusable list of target points
+        NativeArray<Vector3> m_TargetPoints;
+        int m_NumTargetPoints = -1;
 
-        // reusable lists of rendered points
-        Vector3[] m_RenderPoints;
-        int m_NoRenderPoints = -1;
+        // Reusable lists of target points for the old interface
+        Vector3[] m_TargetPointsFallback = Array.Empty<Vector3>();
 
-        // reusable lists of rendered points to smooth movement
-        Vector3[] m_PreviousRenderPoints;
-        int m_NoPreviousRenderPoints = -1;
+        // Reusable list of rendered points
+        NativeArray<Vector3> m_RenderPoints;
+        int m_NumRenderPoints = -1;
+
+        // Reusable list of rendered points to smooth movement
+        NativeArray<Vector3> m_PreviousRenderPoints;
+        int m_NumPreviousRenderPoints = -1;
 
         readonly Vector3[] m_ClearArray = { Vector3.zero, Vector3.zero };
 
         GameObject m_CustomReticle;
         bool m_CustomReticleAttached;
-        
-        // Snapping 
-        bool m_Snapping;
-        XRInteractableSnapVolume m_XRInteractableSnapVolume;
-        int m_NumberOfSegmentsForBendableLine = 20;
 
-        // List of raycast points from m_LineRenderable
-        Vector3[] m_LineRenderablePoints = Array.Empty<Vector3>();
+        // Snapping
+        XRInteractableSnapVolume m_XRInteractableSnapVolume;
+        const int k_NumberOfSegmentsForBendableLine = 20;
+
+        bool m_PreviousShouldBendLine;
+        Vector3 m_PreviousLineDirection;
 
         // Most recent hit information
         Vector3 m_CurrentHitPoint;
         bool m_HasHitInfo;
         bool m_ValidHit;
-        
-        // The position at which we want to render the end point (used for bending ray visuals)
-        Vector3 m_CurrentRenderEndpoint;
-        // Previously hit collider 
-        Collider m_PreviousCollider;
+        float m_LastValidHitTime;
+        float m_LastValidLineLength;
 
+        // Previously hit collider
+        Collider m_PreviousCollider;
         XROrigin m_XROrigin;
+
+        bool m_HasRayInteractor;
+        bool m_HasBaseInteractor;
+        bool m_HasHoverInteractor;
+        bool m_HasSelectInteractor;
 
         /// <summary>
         /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
         /// </summary>
         static XROrigin s_XROriginCache;
+
+        readonly BindableVariable<float> m_UserScaleVar = new BindableVariable<float>();
+        readonly FloatTweenableVariable m_LineLengthOverrideTweenableVariable = new FloatTweenableVariable();
+        readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -360,11 +571,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void Awake()
         {
             m_LineRenderable = GetComponent<ILineRenderable>();
+            m_AdvancedLineRenderable = m_LineRenderable as IAdvancedLineRenderable;
+            m_HasAdvancedLineRenderable = m_AdvancedLineRenderable != null;
+
             if (m_LineRenderable != null)
             {
-                m_LineRenderableAsBaseInteractor = m_LineRenderable as XRBaseInteractor;
-                m_LineRenderableAsSelectInteractor = m_LineRenderable as IXRSelectInteractor;
-                m_LineRenderableAsRayInteractor = m_LineRenderable as XRRayInteractor;
+                if (m_LineRenderable is XRBaseInteractor baseInteractor)
+                {
+                    m_LineRenderableAsBaseInteractor = baseInteractor;
+                    m_HasBaseInteractor = true;
+                }
+
+                if (m_LineRenderable is IXRSelectInteractor selectInteractor)
+                {
+                    m_LineRenderableAsSelectInteractor = selectInteractor;
+                    m_HasSelectInteractor = true;
+                }
+
+                if (m_LineRenderable is IXRHoverInteractor hoverInteractor)
+                {
+                    m_LineRenderableAsHoverInteractor = hoverInteractor;
+                    m_HasHoverInteractor = true;
+                }
+
+                if (m_LineRenderable is XRRayInteractor rayInteractor)
+                {
+                    m_LineRenderableAsRayInteractor = rayInteractor;
+                    m_HasRayInteractor = true;
+                }
             }
 
             FindXROrigin();
@@ -379,12 +613,30 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnEnable()
         {
+            if (m_LineRenderer == null)
+            {
+                XRLoggingUtils.LogError($"Missing Line Renderer component on {this}. Disabling line visual.", this);
+                enabled = false;
+                return;
+            }
+
+            if (m_LineRenderable == null)
+            {
+                XRLoggingUtils.LogError($"Missing {nameof(ILineRenderable)} / Ray Interactor component on {this}. Disabling line visual.", this);
+                enabled = false;
+
+                m_LineRenderer.enabled = false;
+                return;
+            }
+
             m_SnapCurve = true;
             if (m_ReticleToUse != null)
             {
                 m_ReticleToUse.SetActive(false);
                 m_ReticleToUse = null;
             }
+
+            m_BindingsGroup.AddBinding(m_UserScaleVar.Subscribe(userScale => m_LineRenderer.widthMultiplier = userScale * Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth)));
 
             Application.onBeforeRender += OnBeforeRenderLineVisual;
         }
@@ -394,6 +646,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnDisable()
         {
+            m_BindingsGroup.Clear();
+
             if (m_LineRenderer != null)
                 m_LineRenderer.enabled = false;
 
@@ -406,12 +660,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Application.onBeforeRender -= OnBeforeRenderLineVisual;
         }
 
-        void ClearLineRenderer()
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void OnDestroy()
         {
-            if (TryFindLineRenderer())
+            if (m_TargetPoints.IsCreated)
+                m_TargetPoints.Dispose();
+            if (m_RenderPoints.IsCreated)
+                m_RenderPoints.Dispose();
+            if (m_PreviousRenderPoints.IsCreated)
+                m_PreviousRenderPoints.Dispose();
+
+            m_LineLengthOverrideTweenableVariable.Dispose();
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void LateUpdate()
+        {
+            if (m_PerformSetup)
             {
-                m_LineRenderer.SetPositions(m_ClearArray);
-                m_LineRenderer.positionCount = 0;
+                UpdateSettings();
+                m_PerformSetup = false;
+            }
+
+            if (m_LineRenderer.useWorldSpace && m_XROrigin != null)
+            {
+                // Update line width with user scale
+                var xrOrigin = m_XROrigin.Origin;
+                var userScale = xrOrigin != null ? xrOrigin.transform.localScale.x : 1f;
+                m_UserScaleVar.Value = userScale;
             }
         }
 
@@ -421,101 +701,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             UpdateLineVisual();
         }
 
-        /// <summary>
-        /// Tries to get the hit info from the current <see cref="ILineRenderable"/> and checks for any <see cref="XRInteractableSnapVolume"/> collisions.  
-        /// </summary>
-        /// <returns>Returns whether or not we have a valid hit in this current frame.</returns>
-        bool UpdateCurrentHitInfo()
-        {
-            m_LineRenderable.GetLinePoints(ref m_LineRenderablePoints, out _);
-
-            Collider hitCollider = null;
-            m_Snapping = false;
-            
-            if (m_LineRenderablePoints.Length < 1)
-                return false;
-
-            if (m_LineRenderable.TryGetHitInfo(out m_CurrentHitPoint, out m_ReticleNormal, out m_EndPositionInLine, out m_ValidHit))
-            {
-                m_HasHitInfo = true;
-                m_CurrentRenderEndpoint = m_CurrentHitPoint;
-                if (m_ValidHit && m_SnapEndpointIfAvailable && m_LineRenderableAsRayInteractor != null && !m_LineRenderableAsRayInteractor.hasSelection)
-                {
-                    // When hovering a new collider, check if it has a specified snapping volume, if it does then get the closest point on it
-                    if (m_LineRenderableAsRayInteractor.TryGetCurrent3DRaycastHit(out var raycastHit, out _))
-                        hitCollider = raycastHit.collider;
-
-                    if (hitCollider != m_PreviousCollider && hitCollider != null)
-                        m_LineRenderableAsBaseInteractor.interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
-
-                    if (m_XRInteractableSnapVolume != null)
-                    {
-                        m_CurrentRenderEndpoint = m_XRInteractableSnapVolume.GetClosestPoint(m_CurrentRenderEndpoint);
-                        m_EndPositionInLine = m_NumberOfSegmentsForBendableLine - 1; // Override hit index because we're going to use a custom line where the hit point is the end
-                        m_Snapping = true;
-                    }
-                }
-            }
-            else
-            {
-                m_CurrentRenderEndpoint = (m_LineRenderablePoints.Length > 0) ? m_LineRenderablePoints[m_LineRenderablePoints.Length - 1] : Vector3.zero;
-            }
-
-            if (hitCollider == null)
-                m_XRInteractableSnapVolume = null;
-
-            m_PreviousCollider = hitCollider;
-            return m_ValidHit;
-        }
-
-        /// <summary>
-        /// Calculates the target render points based on the targeted snapped endpoint and the actual position of the raycast line.  
-        /// </summary>
-        void CalculateSnapRenderPoints()
-        {
-            var startPosition = m_LineRenderablePoints.Length > 0 ? m_LineRenderablePoints[0] : Vector3.zero;
-            var forward = Vector3.Normalize(m_CurrentHitPoint - startPosition);
-            var straightLineEndPoint = startPosition + forward * Vector3.Distance(m_CurrentRenderEndpoint, startPosition);
-
-            var normalizedPointValue = 0f;
-            var increment = 1f / (m_NoTargetPoints - 1);
-            
-            for (var i = 0; i < m_NoTargetPoints; i++)
-            {
-                var manipToEndPoint = Vector3.LerpUnclamped(startPosition, m_CurrentRenderEndpoint, normalizedPointValue);
-                var manipToAnchor = Vector3.LerpUnclamped(startPosition, straightLineEndPoint, normalizedPointValue);
-                m_TargetPoints[i] = Vector3.LerpUnclamped(manipToAnchor, manipToEndPoint, normalizedPointValue);
-                normalizedPointValue += increment;
-            }
-        }
-        
         internal void UpdateLineVisual()
         {
-            UpdateCurrentHitInfo();
-
-            if (m_PerformSetup)
-            {
-                UpdateSettings();
-                m_PerformSetup = false;
-            }
-
-            if (m_LineRenderer == null)
-                return;
-
-            if (m_LineRenderer.useWorldSpace && m_XROrigin != null)
-            {
-                // Update line width with user scale
-                var xrOrigin = m_XROrigin.Origin;
-                var userScale = xrOrigin != null ? xrOrigin.transform.localScale.x : 1f;
-                m_LineRenderer.widthMultiplier = userScale * Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
-            }
-            
-            if (m_LineRenderable == null)
-            {
-                m_LineRenderer.enabled = false;
-                return;
-            }
-
             if (m_LineRenderableAsBaseInteractor != null &&
                 m_LineRenderableAsBaseInteractor.disableVisualsWhenBlockedInGroup &&
                 m_LineRenderableAsBaseInteractor.IsBlockedByInteractionWithinGroup())
@@ -524,214 +711,112 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             }
 
-            m_NoRenderPoints = 0;
+            m_NumRenderPoints = 0;
 
             // Get all the line sample points from the ILineRenderable interface
-            if (!m_LineRenderable.GetLinePoints(ref m_TargetPoints, out m_NoTargetPoints))
+            if (!GetLinePoints(ref m_TargetPoints, out m_NumTargetPoints) || m_NumTargetPoints == 0)
             {
                 m_LineRenderer.enabled = false;
-                ClearLineRenderer();
                 return;
             }
 
-            // If we're snapping, override the target points from the m_LineRenderable and use custom point data
-            if (m_Snapping)
+            var hasSelection = m_HasSelectInteractor && m_LineRenderableAsSelectInteractor.hasSelection;
+
+            // Using a straight line type because it's likely the straight line won't gracefully follow an object not in it's path.
+            var hasStraightRayCast = m_HasRayInteractor && m_LineRenderableAsRayInteractor.lineType == XRRayInteractor.LineType.StraightLine;
+
+            // Query the line provider for origin data and apply overrides if needed.
+            GetLineOriginAndDirection(ref m_TargetPoints, m_NumTargetPoints, hasStraightRayCast, out var lineOrigin, out var lineDirection);
+
+            // Query the raycaster to determine line hit information and determine if hit was valid. Also check for snap volumes.
+            m_ValidHit = ExtractHitInformation(ref m_TargetPoints, m_NumTargetPoints, out var targetEndPoint, out var hitSnapVolume);
+
+            var curveRayTowardAttachPoint = (hasSelection && hasStraightRayCast);
+            var shouldBendLine = (hitSnapVolume || curveRayTowardAttachPoint) && m_LineBendRatio < 1f;
+
+            if (shouldBendLine)
             {
-                m_NoTargetPoints = m_NumberOfSegmentsForBendableLine;
-                if (m_TargetPoints == null || m_TargetPoints.Length < m_NumberOfSegmentsForBendableLine)
-                    m_TargetPoints = new Vector3[m_NumberOfSegmentsForBendableLine];
-                CalculateSnapRenderPoints();
-            }
-            
-            // Sanity check.
-            if (m_TargetPoints == null ||
-                m_TargetPoints.Length == 0 ||
-                m_NoTargetPoints == 0 ||
-                m_NoTargetPoints > m_TargetPoints.Length)
-            {
-                m_LineRenderer.enabled = false;
-                ClearLineRenderer();
-                return;
+                m_NumTargetPoints = k_NumberOfSegmentsForBendableLine;
+                m_EndPositionInLine = m_NumTargetPoints - 1;
+
+                if (curveRayTowardAttachPoint)
+                {
+                    // This function assumes there is an active selection. Calling it without selection will lead to errors.
+                    FindClosestInteractableAttachPoint(lineOrigin, out targetEndPoint);
+                }
             }
 
             // Make sure we have the correct sized arrays for everything.
-            if (m_RenderPoints == null || m_RenderPoints.Length < m_NoTargetPoints)
+            EnsureSize(ref m_TargetPoints, m_NumTargetPoints);
+            if (!EnsureSize(ref m_RenderPoints, m_NumTargetPoints))
             {
-                m_RenderPoints = new Vector3[m_NoTargetPoints];
-                m_PreviousRenderPoints = new Vector3[m_NoTargetPoints];
-                m_NoRenderPoints = 0;
-                m_NoPreviousRenderPoints = 0;
+                m_NumRenderPoints = 0;
             }
+            if (!EnsureSize(ref m_PreviousRenderPoints, m_NumTargetPoints))
+            {
+                m_NumPreviousRenderPoints = 0;
+            }
+
+            if (shouldBendLine)
+            {
+                // Since curves regenerate the whole line from key points, we only need to lerp the origin and forward to achieve ideal smoothing results.
+                if (m_SmoothMovement)
+                {
+                    if (m_PreviousShouldBendLine && m_NumPreviousRenderPoints > 0)
+                    {
+                        var lineDelta = m_FollowTightness * Time.deltaTime;
+                        lineDirection = Vector3.Lerp(m_PreviousLineDirection, lineDirection, lineDelta);
+                        lineOrigin = Vector3.Lerp( m_PreviousRenderPoints[0], lineOrigin, lineDelta);
+                    }
+                    m_PreviousLineDirection = lineDirection;
+                }
+
+                CalculateLineCurveRenderPoints(m_NumTargetPoints, m_LineBendRatio, lineOrigin, lineDirection, targetEndPoint, ref m_TargetPoints);
+            }
+            m_PreviousShouldBendLine = shouldBendLine;
 
             // Unchanged
             // If there is a big movement (snap turn, teleportation), snap the curve
-            if (m_NoPreviousRenderPoints != m_NoTargetPoints)
+            if (m_NumPreviousRenderPoints != m_NumTargetPoints)
             {
                 m_SnapCurve = true;
             }
-            else
+            // Compare the two endpoints of the curve, as that will have the largest delta.
+            else if (m_SmoothMovement &&
+                     m_NumPreviousRenderPoints > 0 &&
+                     m_NumPreviousRenderPoints <= m_PreviousRenderPoints.Length &&
+                     m_NumTargetPoints > 0 &&
+                     m_NumTargetPoints <= m_TargetPoints.Length)
             {
-                // Compare the two endpoints of the curve, as that will have the largest delta.
-                if (m_PreviousRenderPoints != null &&
-                    m_NoPreviousRenderPoints > 0 &&
-                    m_NoPreviousRenderPoints <= m_PreviousRenderPoints.Length &&
-                    m_TargetPoints != null &&
-                    m_NoTargetPoints > 0 &&
-                    m_NoTargetPoints <= m_TargetPoints.Length)
-                {
-                    var prevPointIndex = m_NoPreviousRenderPoints - 1;
-                    var currPointIndex = m_NoTargetPoints - 1;
-                    if (Vector3.Distance(m_PreviousRenderPoints[prevPointIndex], m_TargetPoints[currPointIndex]) > m_SnapThresholdDistance)
-                    {
-                        m_SnapCurve = true;
-                    }
-                }
+                var prevPointIndex = m_NumPreviousRenderPoints - 1;
+                var currPointIndex = m_NumTargetPoints - 1;
+                m_SnapCurve = Vector3.SqrMagnitude(m_PreviousRenderPoints[prevPointIndex] - m_TargetPoints[currPointIndex]) > m_SquareSnapThresholdDistance;
             }
 
-            // If the line hits, insert reticle position into the list for smoothing.
-            // Remove the last point in the list to keep the number of points consistent.
-            if (m_HasHitInfo)
+            AdjustLineAndReticle(hasSelection, shouldBendLine, lineOrigin, targetEndPoint);
+
+            // We don't smooth points for the bent line as we smooth it when computing the curve
+            var shouldSmoothPoints = !shouldBendLine && m_SmoothMovement && (m_NumPreviousRenderPoints == m_NumTargetPoints) && !m_SnapCurve;
+
+            if ((!shouldBendLine && m_OverrideInteractorLineLength) || shouldSmoothPoints)
             {
-                m_ReticlePos = m_CurrentRenderEndpoint;
-            
-                // End the line at the current hit point.
-                if ((m_ValidHit || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NoTargetPoints)
-                {
-                    // The hit position might not lie within the line segment, for example if a sphere cast is used, so use a point projected onto the
-                    // segment so that the endpoint is continuous with the rest of the curve.
-                    var lastSegmentStartPoint = m_TargetPoints[m_EndPositionInLine - 1];
-                    var lastSegmentEndPoint = m_TargetPoints[m_EndPositionInLine];
-                    var lastSegment = lastSegmentEndPoint - lastSegmentStartPoint;
-                    var projectedHitSegment = Vector3.Project(m_ReticlePos - lastSegmentStartPoint, lastSegment);
+                var float3TargetPoints = m_TargetPoints.Reinterpret<float3>();
+                var float3PrevRenderPoints = m_PreviousRenderPoints.Reinterpret<float3>();
+                var float3RenderPoints = m_RenderPoints.Reinterpret<float3>();
 
-                    // Don't bend the line backwards
-                    if (Vector3.Dot(projectedHitSegment, lastSegment) < 0)
-                        projectedHitSegment = Vector3.zero;
+                var newLineLength = m_OverrideInteractorLineLength && m_AutoAdjustLineLength
+                    ? UpdateTargetLineLength(lineOrigin, targetEndPoint, m_MinLineLength, m_LineLength, m_LineRetractionDelay, m_LineLengthChangeSpeed, m_ValidHit || hasSelection, m_UseDistanceToHitAsMaxLineLength)
+                    : m_LineLength;
 
-                    m_ReticlePos = lastSegmentStartPoint + projectedHitSegment;
-                    m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
-                    m_NoTargetPoints = m_EndPositionInLine + 1;
-                }
-            }
-
-            // Stop line if there is a selection 
-            var hasSelection = m_LineRenderableAsSelectInteractor != null && m_LineRenderableAsSelectInteractor.hasSelection;
-            if (m_StopLineAtSelection && hasSelection)
-            {
-                // Use the selected interactable closest to the start of the line.
-                var interactablesSelected = m_LineRenderableAsSelectInteractor.interactablesSelected;
-                var firstPoint = m_TargetPoints[0];
-                var closestEndPoint = m_LineRenderableAsSelectInteractor.GetAttachTransform(interactablesSelected[0]).position;
-                var closestSqDistance = Vector3.SqrMagnitude(closestEndPoint - firstPoint);
-                for (var i = 1; i < interactablesSelected.Count; i++)
-                {
-                    var endPoint = m_LineRenderableAsSelectInteractor.GetAttachTransform(interactablesSelected[i]).position;
-                    var sqDistance = Vector3.SqrMagnitude(endPoint - firstPoint);
-                    if (sqDistance < closestSqDistance)
-                    {
-                        closestEndPoint = endPoint;
-                        closestSqDistance = sqDistance;
-                    }
-                }
-
-                // Only stop at selection if it is closer than the current end point.
-                var currentEndSqDistance = Vector3.SqrMagnitude(m_TargetPoints[m_EndPositionInLine] - firstPoint);
-                if (closestSqDistance < currentEndSqDistance || m_EndPositionInLine == 0)
-                {
-                    // Find out where the selection point belongs in the line points. Use the closest target point.
-                    var endPositionForSelection = 1;
-                    var sqDistanceFromEndPoint = Vector3.SqrMagnitude(m_TargetPoints[endPositionForSelection] - closestEndPoint);
-                    for (var i = 2; i < m_NoTargetPoints; i++)
-                    {
-                        var sqDistance = Vector3.SqrMagnitude(m_TargetPoints[i] - closestEndPoint);
-                        if (sqDistance < sqDistanceFromEndPoint)
-                        {
-                            endPositionForSelection = i;
-                            sqDistanceFromEndPoint = sqDistance;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    m_EndPositionInLine = endPositionForSelection;
-                    m_NoTargetPoints = m_EndPositionInLine + 1;
-                    m_ReticlePos = closestEndPoint;
-                    m_ReticleNormal = Vector3.Normalize(m_TargetPoints[m_EndPositionInLine - 1] - m_ReticlePos);
-                    m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
-                }
-            }
-
-            if (m_SmoothMovement && (m_NoPreviousRenderPoints == m_NoTargetPoints) && !m_SnapCurve)
-            {
-                // Smooth movement by having render points follow target points
-                var length = 0f;
-                var maxRenderPoints = m_RenderPoints.Length;
-                for (var i = 0; i < m_NoTargetPoints && m_NoRenderPoints < maxRenderPoints; ++i)
-                {
-                    var smoothPoint = Vector3.Lerp(m_PreviousRenderPoints[i], m_TargetPoints[i], m_FollowTightness * Time.deltaTime);
-
-                    if (m_OverrideInteractorLineLength)
-                    {
-                        if (m_NoRenderPoints > 0 && m_RenderPoints.Length > 0)
-                        {
-                            var segLength = Vector3.Distance(m_RenderPoints[m_NoRenderPoints - 1], smoothPoint);
-                            length += segLength;
-                            if (length > m_LineLength)
-                            {
-                                var delta = length - m_LineLength;
-                                // Re-project final point to match the desired length
-                                smoothPoint = Vector3.Lerp(m_RenderPoints[m_NoRenderPoints - 1], smoothPoint, delta / segLength);
-                                m_RenderPoints[m_NoRenderPoints] = smoothPoint;
-                                m_NoRenderPoints++;
-                                break;
-                            }
-                        }
-
-                        m_RenderPoints[m_NoRenderPoints] = smoothPoint;
-                        m_NoRenderPoints++;
-                    }
-                    else
-                    {
-                        m_RenderPoints[m_NoRenderPoints] = smoothPoint;
-                        m_NoRenderPoints++;
-                    }
-                }
+                m_NumRenderPoints = ComputeNewRenderPoints(m_NumRenderPoints, m_NumTargetPoints, newLineLength,
+                    shouldSmoothPoints, m_OverrideInteractorLineLength, m_FollowTightness * Time.deltaTime,
+                    ref float3TargetPoints, ref float3PrevRenderPoints, ref float3RenderPoints);
             }
             else
             {
-                if (m_OverrideInteractorLineLength)
-                {
-                    var length = 0f;
-                    var maxRenderPoints = m_RenderPoints.Length;
-                    for (var i = 0; i < m_NoTargetPoints && m_NoRenderPoints < maxRenderPoints; ++i)
-                    {
-                        var newPoint = m_TargetPoints[i];
-                        if (m_NoRenderPoints > 0 && m_RenderPoints.Length > 0)
-                        {
-                            var segLength = Vector3.Distance(m_RenderPoints[m_NoRenderPoints - 1], newPoint);
-                            length += segLength;
-                            if (length > m_LineLength)
-                            {
-                                var delta = length - m_LineLength;
-                                // Re-project final point to match the desired length
-                                var resolvedPoint = Vector3.Lerp(m_RenderPoints[m_NoRenderPoints - 1], newPoint, 1-(delta / segLength));
-                                m_RenderPoints[m_NoRenderPoints] = resolvedPoint;
-                                m_NoRenderPoints++;
-                                break;
-                            }
-                        }
-
-                        m_RenderPoints[m_NoRenderPoints] = newPoint;
-                        m_NoRenderPoints++;
-                    }
-                }
-                else
-                {
-                    Array.Copy(m_TargetPoints, m_RenderPoints, m_NoTargetPoints);
-                    m_NoRenderPoints = m_NoTargetPoints;
-                }
+                // Copy from m_TargetPoints into m_RenderPoints
+                NativeArray<Vector3>.Copy(m_TargetPoints, 0, m_RenderPoints, 0, m_NumTargetPoints);
+                m_NumRenderPoints = m_NumTargetPoints;
             }
 
             // When a straight line has only two points and color gradients have more than two keys,
@@ -742,7 +827,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // We use regular valid state visuals if not hovering because the blocked state does not apply
                 // (e.g. we could have a valid target that is UI and therefore not hoverable or selectable as an interactable).
                 var useBlockedVisuals = false;
-                if (!hasSelection && m_LineRenderableAsBaseInteractor != null && m_LineRenderableAsBaseInteractor.hasHover)
+                if (!hasSelection && m_HasBaseInteractor && m_LineRenderableAsBaseInteractor.hasHover)
                 {
                     var interactionManager = m_LineRenderableAsBaseInteractor.interactionManager;
                     var canSelectSomething = false;
@@ -758,71 +843,394 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     useBlockedVisuals = !canSelectSomething;
                 }
 
-                m_LineRenderer.colorGradient = useBlockedVisuals ? m_BlockedColorGradient : m_ValidColorGradient;
-                // Set reticle position and show reticle
-                var previouslyUsedReticle = m_ReticleToUse;
-                var validStateReticle = useBlockedVisuals ? m_BlockedReticle : m_Reticle;
-                m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : validStateReticle;
-                if (previouslyUsedReticle != null && previouslyUsedReticle != m_ReticleToUse)
-                    previouslyUsedReticle.SetActive(false);
-
-                if (m_ReticleToUse != null)
-                {
-                    m_ReticleToUse.transform.position = m_ReticlePos;
-                    var hoverInteractor = m_LineRenderable as IXRHoverInteractor;
-                    if (hoverInteractor?.GetOldestInteractableHovered() is IXRReticleDirectionProvider reticleDirectionProvider)
-                    {
-                        reticleDirectionProvider.GetReticleDirection(hoverInteractor, m_ReticleNormal, out var reticleUp, out var reticleForward);
-                        if (reticleForward.HasValue)
-                            m_ReticleToUse.transform.rotation = Quaternion.LookRotation(reticleForward.Value, reticleUp);
-                        else
-                            m_ReticleToUse.transform.up = reticleUp;
-                    }
-                    else
-                    {
-                        m_ReticleToUse.transform.up = m_ReticleNormal;
-                    }
-
-                    m_ReticleToUse.SetActive(true);
-                }
+                SetColorGradient(useBlockedVisuals ? m_BlockedColorGradient : m_ValidColorGradient);
+                AssignReticle(useBlockedVisuals);
             }
             else
             {
-                m_LineRenderer.colorGradient = m_InvalidColorGradient;
-                if (m_ReticleToUse != null)
-                {
-                    m_ReticleToUse.SetActive(false);
-                    m_ReticleToUse = null;
-                }
+                ClearReticle();
+                SetColorGradient(m_InvalidColorGradient);
             }
 
-            if (m_NoRenderPoints >= 2)
+            if (m_NumRenderPoints >= 2)
             {
                 m_LineRenderer.enabled = true;
-                m_LineRenderer.positionCount = m_NoRenderPoints;
+                m_LineRenderer.positionCount = m_NumRenderPoints;
                 m_LineRenderer.SetPositions(m_RenderPoints);
             }
             else
             {
                 m_LineRenderer.enabled = false;
-                ClearLineRenderer();
                 return;
             }
 
             // Update previous points
-            Array.Copy(m_RenderPoints, m_PreviousRenderPoints, m_NoRenderPoints);
-            m_NoPreviousRenderPoints = m_NoRenderPoints;
+            // Copy from m_RenderPoints into m_PreviousRenderPoints
+            NativeArray<Vector3>.Copy(m_RenderPoints, 0, m_PreviousRenderPoints, 0, m_NumRenderPoints);
+            m_NumPreviousRenderPoints = m_NumRenderPoints;
             m_SnapCurve = false;
+        }
+
+        bool GetLinePoints(ref NativeArray<Vector3> linePoints, out int numPoints)
+        {
+            if (m_HasAdvancedLineRenderable)
+            {
+                Ray? rayOriginOverride = null;
+                if (m_OverrideInteractorLineOrigin && m_LineOriginTransform != null)
+                {
+                    var lineOrigin = m_LineOriginTransform.position;
+                    var lineDirection = m_LineOriginTransform.forward;
+                    rayOriginOverride = new Ray(lineOrigin, lineDirection);
+                }
+
+                return m_AdvancedLineRenderable.GetLinePoints(ref linePoints, out numPoints, rayOriginOverride);
+            }
+
+            var hasLinePoint = m_LineRenderable.GetLinePoints(ref m_TargetPointsFallback, out numPoints);
+            EnsureSize(ref linePoints, numPoints);
+            NativeArray<Vector3>.Copy(m_TargetPointsFallback, linePoints, numPoints);
+            return hasLinePoint;
+        }
+
+        void AdjustLineAndReticle(bool hasSelection, bool bendLine, in Vector3 lineOrigin, in Vector3 targetEndPoint)
+        {
+            // If the line hits, insert reticle position into the list for smoothing.
+            // Remove the last point in the list to keep the number of points consistent.
+            if (m_HasHitInfo)
+            {
+                m_ReticlePos = targetEndPoint;
+
+                // End the line at the current hit point.
+                if ((m_ValidHit || m_StopLineAtFirstRaycastHit) && m_EndPositionInLine > 0 && m_EndPositionInLine < m_NumTargetPoints)
+                {
+                    // The hit position might not lie within the line segment, for example if a sphere cast is used, so use a point projected onto the
+                    // segment so that the endpoint is continuous with the rest of the curve.
+                    var lastSegmentStartPoint = m_TargetPoints[m_EndPositionInLine - 1];
+                    var lastSegmentEndPoint = m_TargetPoints[m_EndPositionInLine];
+                    var lastSegment = lastSegmentEndPoint - lastSegmentStartPoint;
+                    var projectedHitSegment = Vector3.Project(m_ReticlePos - lastSegmentStartPoint, lastSegment);
+
+                    // Don't bend the line backwards
+                    if (Vector3.Dot(projectedHitSegment, lastSegment) < 0)
+                        projectedHitSegment = Vector3.zero;
+
+                    m_ReticlePos = lastSegmentStartPoint + projectedHitSegment;
+                    m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
+                    m_NumTargetPoints = m_EndPositionInLine + 1;
+                }
+            }
+
+            // Stop line if there is a selection
+            if (m_StopLineAtSelection && hasSelection && !bendLine)
+            {
+                // Use the selected interactable closest to the start of the line.
+                var sqrMagnitude = Vector3.SqrMagnitude(targetEndPoint - lineOrigin);
+
+                // Only stop at selection if it is closer than the current end point.
+                var currentEndSqDistance = Vector3.SqrMagnitude(m_TargetPoints[m_EndPositionInLine] - lineOrigin);
+                if (sqrMagnitude < currentEndSqDistance || m_EndPositionInLine == 0)
+                {
+                    // Find out where the selection point belongs in the line points. Use the closest target point.
+                    var endPositionForSelection = 1;
+                    var sqDistanceFromEndPoint = Vector3.SqrMagnitude(m_TargetPoints[endPositionForSelection] - targetEndPoint);
+                    for (var i = 2; i < m_NumTargetPoints; i++)
+                    {
+                        var sqDistance = Vector3.SqrMagnitude(m_TargetPoints[i] - targetEndPoint);
+                        if (sqDistance < sqDistanceFromEndPoint)
+                        {
+                            endPositionForSelection = i;
+                            sqDistanceFromEndPoint = sqDistance;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    m_EndPositionInLine = endPositionForSelection;
+                    m_NumTargetPoints = m_EndPositionInLine + 1;
+                    m_ReticlePos = targetEndPoint;
+                    if (!m_HasHitInfo)
+                        m_ReticleNormal = Vector3.Normalize(m_TargetPoints[m_EndPositionInLine - 1] - m_ReticlePos);
+                    m_TargetPoints[m_EndPositionInLine] = m_ReticlePos;
+                }
+            }
+        }
+
+        void FindClosestInteractableAttachPoint(in Vector3 lineOrigin, out Vector3 closestPoint)
+        {
+            // Use the selected interactable closest to the start of the line.
+            var interactablesSelected = m_LineRenderableAsSelectInteractor.interactablesSelected;
+            closestPoint = interactablesSelected[0].GetAttachTransform(m_LineRenderableAsSelectInteractor).position;
+
+            if (interactablesSelected.Count > 1)
+            {
+                var closestSqDistance = Vector3.SqrMagnitude(closestPoint - lineOrigin);
+                for (var i = 1; i < interactablesSelected.Count; ++i)
+                {
+                    var endPoint = interactablesSelected[i].GetAttachTransform(m_LineRenderableAsSelectInteractor).position;
+                    var sqDistance = Vector3.SqrMagnitude(endPoint - lineOrigin);
+                    if (sqDistance < closestSqDistance)
+                    {
+                        closestPoint = endPoint;
+                        closestSqDistance = sqDistance;
+                    }
+                }
+            }
+        }
+
+        static bool EnsureSize(ref NativeArray<Vector3> array, int targetSize)
+        {
+            if (array.IsCreated && array.Length >= targetSize)
+                return true;
+
+            if (array.IsCreated)
+                array.Dispose();
+
+            array = new NativeArray<Vector3>(targetSize, Allocator.Persistent);
+            return false;
+        }
+
+        void GetLineOriginAndDirection(ref NativeArray<Vector3> targetPoints, int numTargetPoints, bool isLineStraight, out Vector3 lineOrigin, out Vector3 lineDirection)
+        {
+            if (m_OverrideInteractorLineOrigin && m_LineOriginTransform != null)
+            {
+                lineOrigin = m_LineOriginTransform.position;
+                lineDirection = m_LineOriginTransform.forward;
+            }
+            else
+            {
+                if (m_HasAdvancedLineRenderable)
+                {
+                    // Get accurate line origin and direction.
+                    m_AdvancedLineRenderable.GetLineOriginAndDirection(out lineOrigin, out lineDirection);
+                }
+                else
+                {
+                    lineOrigin = targetPoints[0];
+                    var lineEnd = targetPoints[numTargetPoints - 1];
+                    lineDirection = (lineEnd - lineOrigin).normalized;
+                }
+            }
+
+            // If we have a straight line and offset is greater than 0, but smaller than our override length, we apply the offset.
+            if (isLineStraight &&
+                m_LineOriginOffset > 0f && (!m_OverrideInteractorLineLength || m_LineOriginOffset < m_LineLength))
+            {
+                lineOrigin += lineDirection * m_LineOriginOffset;
+            }
+            
+            // Write the modified line origin back into the array
+            targetPoints[0] = lineOrigin;
+        }
+
+        bool ExtractHitInformation(ref NativeArray<Vector3> targetPoints, int numTargetPoints, out Vector3 targetEndPoint, out bool hitSnapVolume)
+        {
+            Collider hitCollider = null;
+            hitSnapVolume = false;
+            // NativeArray<T> does not implement the indexer operator as a readonly get (C# 8 feature),
+            // so this method param is ref instead of in to avoid a defensive copy being created.
+            targetEndPoint = targetPoints[numTargetPoints - 1];
+
+            m_HasHitInfo = m_LineRenderable.TryGetHitInfo(out m_CurrentHitPoint, out m_ReticleNormal, out m_EndPositionInLine, out var validHit);
+            if (m_HasHitInfo)
+            {
+                targetEndPoint = m_CurrentHitPoint;
+
+                if (validHit && m_SnapEndpointIfAvailable && m_HasRayInteractor)
+                {
+                    // When hovering a new collider, check if it has a specified snapping volume, if it does then get the closest point on it
+                    if (m_LineRenderableAsRayInteractor.TryGetCurrent3DRaycastHit(out var raycastHit, out _))
+                        hitCollider = raycastHit.collider;
+
+                    if (hitCollider != m_PreviousCollider && hitCollider != null)
+                        m_LineRenderableAsBaseInteractor.interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
+
+                    if (m_XRInteractableSnapVolume != null)
+                    {
+                        // If we have a selection, get the closest point to the attach transform position on the snap to collider 
+                        targetEndPoint = m_LineRenderableAsRayInteractor.hasSelection
+                            ? m_XRInteractableSnapVolume.GetClosestPointOfAttachTransform(m_LineRenderableAsRayInteractor)
+                            : m_XRInteractableSnapVolume.GetClosestPoint(targetEndPoint);
+                        
+                        m_EndPositionInLine = k_NumberOfSegmentsForBendableLine - 1; // Override hit index because we're going to use a custom line where the hit point is the end
+                        hitSnapVolume = true;
+                    }
+                }
+            }
+
+            if (hitCollider == null)
+                m_XRInteractableSnapVolume = null;
+
+            m_PreviousCollider = hitCollider;
+
+            return validHit;
+        }
+
+        /// <summary>
+        /// Calculates the target render points based on the targeted snapped endpoint and the actual position of the raycast line.
+        /// </summary>
+#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void CalculateLineCurveRenderPoints(int numTargetPoints, float curveRatio, in Vector3 lineOrigin, in Vector3 lineDirection, in Vector3 endPoint, ref NativeArray<Vector3> targetPoints)
+        {
+            var float3TargetPoints = targetPoints.Reinterpret<float3>();
+            CurveUtility.GenerateCubicBezierCurve(numTargetPoints, curveRatio, lineOrigin, lineDirection, endPoint, ref float3TargetPoints);
+        }
+
+#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+        [BurstCompile]
+#endif
+        static int ComputeNewRenderPoints(int numRenderPoints, int numTargetPoints, float targetLineLength, bool shouldSmoothPoints, bool shouldOverwritePoints, float pointSmoothIncrement,
+            ref NativeArray<float3> targetPoints, ref NativeArray<float3> previousRenderPoints, ref NativeArray<float3> renderPoints)
+        {
+            var length = 0f;
+            var maxRenderPoints = renderPoints.Length;
+            var finalNumRenderPoints = numRenderPoints;
+            for (var i = 0; i < numTargetPoints && finalNumRenderPoints < maxRenderPoints; ++i)
+            {
+                var targetPoint = targetPoints[i];
+                var newPoint = !shouldSmoothPoints ? targetPoint : math.lerp(previousRenderPoints[i], targetPoint, pointSmoothIncrement);
+
+                if (shouldOverwritePoints && finalNumRenderPoints > 0 && maxRenderPoints > 0)
+                {
+                    var lastRenderPoint = renderPoints[finalNumRenderPoints - 1];
+                    if (EvaluateLineEndPoint(targetLineLength, shouldSmoothPoints, targetPoint, lastRenderPoint, ref newPoint, ref length))
+                    {
+                        renderPoints[finalNumRenderPoints] = newPoint;
+                        finalNumRenderPoints++;
+                        break;
+                    }
+                }
+
+                renderPoints[finalNumRenderPoints] = newPoint;
+                finalNumRenderPoints++;
+            }
+
+            return finalNumRenderPoints;
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static bool EvaluateLineEndPoint(float targetLineLength, bool shouldSmoothPoint, in float3 unsmoothedTargetPoint, in float3 lastRenderPoint, ref float3 newRenderPoint, ref float lineLength)
+        {
+            var segmentVector = newRenderPoint - lastRenderPoint;
+            var segmentLength = math.length(segmentVector);
+
+            if (shouldSmoothPoint)
+            {
+                var lengthToUnsmoothedSegment = math.distance(lastRenderPoint, unsmoothedTargetPoint);
+
+                // If we hit something, we need to shorten the ray immediately and not wait for the smoothed end point to catch up.
+                if (lengthToUnsmoothedSegment < segmentLength)
+                {
+                    newRenderPoint = lastRenderPoint + math.normalize(segmentVector) * lengthToUnsmoothedSegment;
+                    segmentLength = lengthToUnsmoothedSegment;
+                }
+            }
+
+            lineLength += segmentLength;
+            if (lineLength <= targetLineLength)
+                return false;
+
+            var delta = lineLength - targetLineLength;
+
+            // Re-project final point to match the desired length
+            var tVal = 1 - (delta / segmentLength);
+            newRenderPoint = math.lerp(lastRenderPoint, newRenderPoint, tVal);
+            return true;
+        }
+
+        float UpdateTargetLineLength(in Vector3 lineOrigin, in Vector3 hitPoint, float minimumLineLength, float maximumLineLength, float lineRetractionDelaySeconds, float lineRetractionScalar, bool hasHit, bool deriveMaxLineLength)
+        {
+            var currentTime = Time.unscaledTime;
+
+            if (hasHit)
+            {
+                m_LastValidHitTime = Time.unscaledTime;
+                m_LastValidLineLength = deriveMaxLineLength ? Mathf.Min(Vector3.Distance(lineOrigin, hitPoint), maximumLineLength) : maximumLineLength;
+            }
+
+            var timeSinceLastValidHit = currentTime - m_LastValidHitTime;
+
+            if (timeSinceLastValidHit > lineRetractionDelaySeconds)
+            {
+                m_LineLengthOverrideTweenableVariable.target = minimumLineLength;
+
+                var timeScalar = (timeSinceLastValidHit - lineRetractionDelaySeconds) * lineRetractionScalar;
+
+                // Accelerate line shrinking over time
+                m_LineLengthOverrideTweenableVariable.HandleTween(Time.unscaledDeltaTime * timeScalar);
+            }
+            else
+            {
+                m_LineLengthOverrideTweenableVariable.target = Mathf.Max(m_LastValidLineLength, minimumLineLength);
+                m_LineLengthOverrideTweenableVariable.HandleTween(Time.unscaledDeltaTime * lineRetractionScalar);
+            }
+
+            return m_LineLengthOverrideTweenableVariable.Value;
+        }
+
+        void AssignReticle(bool useBlockedVisuals)
+        {
+            // Set reticle position and show reticle
+            var previouslyUsedReticle = m_ReticleToUse;
+            var validStateReticle = useBlockedVisuals ? m_BlockedReticle : m_Reticle;
+            m_ReticleToUse = m_CustomReticleAttached ? m_CustomReticle : validStateReticle;
+            if (previouslyUsedReticle != null && previouslyUsedReticle != m_ReticleToUse)
+                previouslyUsedReticle.SetActive(false);
+
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.transform.position = m_ReticlePos;
+                if (m_HasHoverInteractor && m_LineRenderableAsHoverInteractor.GetOldestInteractableHovered() is IXRReticleDirectionProvider reticleDirectionProvider)
+                {
+                    reticleDirectionProvider.GetReticleDirection(m_LineRenderableAsHoverInteractor, m_ReticleNormal, out var reticleUp, out var reticleForward);
+                    if (reticleForward.HasValue)
+                        m_ReticleToUse.transform.rotation = Quaternion.LookRotation(reticleForward.Value, reticleUp);
+                    else
+                        m_ReticleToUse.transform.up = reticleUp;
+                }
+                else
+                {
+                    m_ReticleToUse.transform.forward = -m_ReticleNormal;
+                }
+
+                m_ReticleToUse.SetActive(true);
+            }
+        }
+
+        void ClearReticle()
+        {
+            if (m_ReticleToUse != null)
+            {
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
+        }
+
+        void SetColorGradient(Gradient colorGradient)
+        {
+            if (!m_SetLineColorGradient)
+                return;
+            m_LineRenderer.colorGradient = colorGradient;
         }
 
         void UpdateSettings()
         {
+            m_SquareSnapThresholdDistance = m_SnapThresholdDistance * m_SnapThresholdDistance;
+
             if (TryFindLineRenderer())
             {
                 m_LineRenderer.widthMultiplier =  Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
                 m_LineRenderer.widthCurve = m_WidthCurve;
                 m_SnapCurve = true;
             }
+
+            m_LineLengthOverrideTweenableVariable.target = lineLength;
+            m_LineLengthOverrideTweenableVariable.HandleTween(1f);
         }
 
         bool TryFindLineRenderer()
@@ -835,6 +1243,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return false;
             }
             return true;
+        }
+
+        void ClearLineRenderer()
+        {
+            if (TryFindLineRenderer())
+            {
+                m_LineRenderer.SetPositions(m_ClearArray);
+                m_LineRenderer.positionCount = 0;
+            }
         }
 
         void FindXROrigin()

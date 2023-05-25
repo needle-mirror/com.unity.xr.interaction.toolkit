@@ -305,7 +305,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Prepare controller state which will be used to cause a Select during the Interaction Manager update loop
             var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All,false, false, false);
+            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true, false, false, false);
             controller.currentControllerState = controllerState;
 
             var interactors = new List<IXRInteractor>();

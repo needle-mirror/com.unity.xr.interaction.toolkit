@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
-using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRPokeFilter"/>
     [AddComponentMenu("XR/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
-    public class XRPokeInteractor : XRBaseInteractor, IUIInteractor
+    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor
     {
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
@@ -156,6 +156,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_DebugVisualizationsEnabled;
             set => m_DebugVisualizationsEnabled = value;
+        }
+
+        [SerializeField]
+        UIHoverEnterEvent m_UIHoverEntered = new UIHoverEnterEvent();
+
+        /// <inheritdoc />
+        public UIHoverEnterEvent uiHoverEntered
+        {
+            get => m_UIHoverEntered;
+            set => m_UIHoverEntered = value;
+        }
+
+        [SerializeField]
+        UIHoverExitEvent m_UIHoverExited = new UIHoverExitEvent();
+
+        /// <inheritdoc />
+        public UIHoverExitEvent uiHoverExited
+        {
+            get => m_UIHoverExited;
+            set => m_UIHoverExited = value;
         }
 
         GameObject m_HoverDebugSphere;
@@ -319,22 +339,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Hover Check
             Vector3 pokeInteractionPoint = GetAttachTransform(null).position;
-            Vector3 interFramePokeStart = m_LastPokeInteractionPoint;
+            Vector3 overlapStart = m_LastPokeInteractionPoint;
             Vector3 interFrameEnd = pokeInteractionPoint;
 
-            Vector3 interFrameDirectionVector = pokeInteractionPoint - m_LastPokeInteractionPoint;
-            float interFrameSqrMagnitude = math.distancesq(pokeInteractionPoint, m_LastPokeInteractionPoint);
-
+            BurstPhysicsUtils.GetSphereOverlapParameters(overlapStart, interFrameEnd, out var normalizedOverlapVector, out var overlapSqrMagnitude, out var overlapDistance);
+            
             // If no movement is recorded.
             // Check if spherecast size is sufficient for proper cast, or if first frame since last frame poke position will be invalid.
-            if (interFrameSqrMagnitude <= 0.001f || m_FirstFrame)
+            if (m_FirstFrame || overlapSqrMagnitude < 0.001f)
             {
-                int numberOfOverlaps = m_LocalPhysicsScene.OverlapSphere(interFrameEnd, m_PokeHoverRadius, m_OverlapSphereHits,
-                    interactionLayers, QueryTriggerInteraction.UseGlobal);
+                var numberOfOverlaps = m_LocalPhysicsScene.OverlapSphere(interFrameEnd, m_PokeHoverRadius, m_OverlapSphereHits,
+                    m_PhysicsLayerMask, m_PhysicsTriggerInteraction);
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    if(FindPokeTarget(m_OverlapSphereHits[i], out var newPokeCollision))
+                    if (FindPokeTarget(m_OverlapSphereHits[i], out var newPokeCollision))
                     {
                         m_PokeTargets.Add(newPokeCollision);
                     }
@@ -342,22 +361,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             else
             {
-                int numberOfOverlaps = m_LocalPhysicsScene.SphereCast(
-                    interFramePokeStart,
+                var numberOfOverlaps = m_LocalPhysicsScene.SphereCast(
+                    overlapStart,
                     m_PokeHoverRadius,
-                    interFrameDirectionVector.normalized,
+                    normalizedOverlapVector,
                     m_SphereCastHits,
-                    math.sqrt(interFrameSqrMagnitude),
-                    interactionLayers);
+                    overlapDistance,
+                    m_PhysicsLayerMask,
+                    m_PhysicsTriggerInteraction);
 
-                if (numberOfOverlaps > 0)
+                for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    for (var i = 0; i < numberOfOverlaps; ++i)
+                    if (FindPokeTarget(m_SphereCastHits[i].collider, out var newPokeCollision))
                     {
-                        if(FindPokeTarget(m_SphereCastHits[i].collider, out var newPokeCollision))
-                        {
-                            m_PokeTargets.Add(newPokeCollision);
-                        }
+                        m_PokeTargets.Add(newPokeCollision);
                     }
                 }
             }
@@ -431,8 +448,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_HoverDebugRenderer.material.color = m_PokeTargets.Count > 0 ? new Color(0f, 0.8f, 0f, 0.1f) : new Color(0.8f, 0f, 0f, 0.1f);
         }
 
-        T GetOrAddComponent<T>() where T : Component => GetOrAddComponent<T>(gameObject);
-
         static T GetOrAddComponent<T>(GameObject go) where T : Component
         {
             return go.TryGetComponent<T>(out var component) ? component : go.AddComponent<T>();
@@ -442,10 +457,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             public readonly Collider collider;
             public readonly IXRInteractable interactable;
-            public readonly XRPokeFilter filter;
+            public readonly IXRPokeFilter filter;
             public readonly bool hasPokeFilter;
 
-            public PokeCollision(Collider collider, IXRInteractable interactable, XRPokeFilter filter)
+            public PokeCollision(Collider collider, IXRInteractable interactable, IXRPokeFilter filter)
             {
                 this.collider = collider;
                 this.interactable = interactable;
@@ -493,6 +508,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
+        }
+
+        /// <inheritdoc />
+        void IUIHoverInteractor.OnUIHoverEntered(UIHoverEventArgs args) => OnUIHoverEntered(args);
+
+        /// <inheritdoc />
+        void IUIHoverInteractor.OnUIHoverExited(UIHoverEventArgs args) => OnUIHoverExited(args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is being hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverExited(UIHoverEventArgs)"/>
+        protected virtual void OnUIHoverEntered(UIHoverEventArgs args)
+        {
+            m_UIHoverEntered?.Invoke(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method when the Interactor ends hovering over a UI element.
+        /// </summary>
+        /// <param name="args">Event data containing the UI element that is no longer hovered over.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="OnUIHoverEntered(UIHoverEventArgs)"/>
+        protected virtual void OnUIHoverExited(UIHoverEventArgs args)
+        {
+            m_UIHoverExited?.Invoke(args);
         }
     }
 }
