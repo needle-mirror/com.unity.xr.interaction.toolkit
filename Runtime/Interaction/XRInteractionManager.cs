@@ -339,11 +339,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (!m_InteractionGroups.IsStillRegistered(interactionGroup) || m_GroupsInGroup.Contains(interactionGroup))
                     continue;
 
-                using (s_UpdateGroupMemberInteractionsMarker.Auto())
-                    interactionGroup.UpdateGroupMemberInteractions();
-
                 using (s_EvaluateInvalidFocusMarker.Auto())
                     ClearInteractionGroupFocusInternal(interactionGroup);
+
+                using (s_UpdateGroupMemberInteractionsMarker.Auto())
+                    interactionGroup.UpdateGroupMemberInteractions();
             }
 
             foreach (var interactor in m_Interactors.registeredSnapshot)

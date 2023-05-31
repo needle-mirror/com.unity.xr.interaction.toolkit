@@ -5,15 +5,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples
     public class ToggleGameObject : MonoBehaviour
     {
         [SerializeField]
-        bool m_RestoreActiveStateOnEnable = false;
-
-        public bool restoreActiveStateOnEnable
-        {
-            get => m_RestoreActiveStateOnEnable;
-            set => m_RestoreActiveStateOnEnable = value;
-        }
-
-        [SerializeField]
         GameObject m_ActivationGameObject;
 
         public GameObject activationGameObject
@@ -22,32 +13,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples
             set => m_ActivationGameObject = value;
         }
 
+        [SerializeField]
         bool m_CurrentlyActive = false;
-
-        void OnEnable()
+        
+        public bool currentlyActive
         {
-            if (m_RestoreActiveStateOnEnable && m_CurrentlyActive)
+            get => m_CurrentlyActive;
+            set
             {
-                activationGameObject.SetActive(true);
-            }
-        }
-
-        void OnDisable()
-        {
-            activationGameObject.SetActive(false);
-
-            if (!m_RestoreActiveStateOnEnable)
-            {
-                m_CurrentlyActive = false;
-            }
+                m_CurrentlyActive = value;
+                activationGameObject.SetActive(m_CurrentlyActive);
+            } 
         }
 
         public void ToggleActiveState()
         {
             m_CurrentlyActive = !m_CurrentlyActive;
             activationGameObject.SetActive(m_CurrentlyActive);
-            if (m_CurrentlyActive)
-                Debug.Log("Turning menu ON");            
         }
     }
 }

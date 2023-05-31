@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [2.4.0-pre.2] - 2023-05-31
+
+### Changed
+- Changed the `XR Interactable Affordance State Provider` order to put focus state after all other interaction states for consistency.
+- Changed the required version of `com.unity.xr.hands` for the Hands Interaction Demo sample from 1.2.0 to 1.2.1.
+
+### Fixed
+- Fixed a null reference issue when accessing device and screen-space controllers caused by optimization changes made in the XR Ray Interactor.
+- Fixed unwanted behavior for the Hand Interactions Demo > Hand Menu sample prefabs, specifically in the `ToggleGameObject` sample script.
+- Fixed an issue with XR Interaction Manager where focused interactables would not be cleared in the correct order when selecting a new interactable.
+
 ## [2.4.0-pre.1] - 2023-05-25
 
 ### Added

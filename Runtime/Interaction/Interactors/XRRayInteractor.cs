@@ -860,10 +860,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_IsActionBasedController = m_ActionBasedController != null;
 
             m_DeviceBasedController = xrController as XRController;
-            m_IsDeviceBasedController = m_ActionBasedController != null;
+            m_IsDeviceBasedController = m_DeviceBasedController != null;
 
             m_ScreenSpaceController = xrController as XRScreenSpaceController;
-            m_IsScreenSpaceController = m_ActionBasedController != null;
+            m_IsScreenSpaceController = m_ScreenSpaceController != null;
         }
 
         /// <inheritdoc />

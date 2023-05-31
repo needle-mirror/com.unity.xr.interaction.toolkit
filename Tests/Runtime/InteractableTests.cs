@@ -426,5 +426,71 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.GetInteractionStrength(interactor), Is.EqualTo(filter2Strength));
             Assert.That(interactor.GetInteractionStrength(interactable), Is.EqualTo(filter2Strength));
         }
+
+        [UnityTest]
+        public IEnumerator InteractableLosesFocusOnSelectOfOtherInteractable()
+        {
+            TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var directInteractor = TestUtilities.CreateDirectInteractor();
+            group.AddGroupMember(directInteractor);
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            var interactable2 = TestUtilities.CreateGrabInteractable();
+            interactable2.transform.position = new Vector3(10f, 0, 0);
+
+            var controller = directInteractor.GetComponent<XRController>();
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+            });
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+            while (controllerRecorder.isPlaying)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // Selection has come and gone - resulting in a focus of the grab interactable
+            Assert.That(group.focusInteractable, Is.EqualTo( interactable ));
+            Assert.That(interactable.isFocused, Is.EqualTo(true));
+            Assert.That(interactable2.isFocused, Is.EqualTo(false));
+            
+            controllerRecorder.isPlaying = false;
+            GameObject.Destroy(controllerRecorder);
+            yield return null;
+
+            var offset = new Vector3(10.0f, 0.0f, 0.0f);
+            controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.2f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.3f, offset, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+            });
+
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+            while (controllerRecorder.isPlaying)
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // Selection attempted again with 2nd object in focus.
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable2));
+            Assert.That(interactable.isFocused, Is.EqualTo(false));
+            Assert.That(interactable2.isFocused, Is.EqualTo(true));
+        }
     }
 }

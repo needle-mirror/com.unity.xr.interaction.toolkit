@@ -630,11 +630,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 return AffordanceStateShortcuts.activatedState;
             }
 
-            if (isFocused && !m_IgnoreFocusEvents)
-            {
-                return AffordanceStateShortcuts.focusedState;
-            }
-
             if (!isActivated && isSelected && !m_IgnoreSelectEvents)
             {
                 var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 1f;
@@ -646,6 +641,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 var stateIndex = m_IsHoveredPriority ? AffordanceStateShortcuts.hoveredPriority : AffordanceStateShortcuts.hovered;
                 var transitionAmount = m_HasInteractionStrengthInteractable ? m_InteractionStrengthInteractable.largestInteractionStrength.Value : 0f;
                 return new AffordanceStateData(stateIndex, transitionAmount);
+            }
+
+            if (!isActivated && !isSelected && !isHovered && isFocused && !m_IgnoreFocusEvents)
+            {
+                return AffordanceStateShortcuts.focusedState;
             }
 
             return isRegistered ? AffordanceStateShortcuts.idleState : AffordanceStateShortcuts.disabledState;
