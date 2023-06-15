@@ -16,7 +16,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         static void SelectInteractionLayerSettings()
         {
-            Selection.activeObject = InteractionLayerSettings.instance;
+            Selection.activeObject = InteractionLayerSettings.Instance;
         }
 
         /// <inheritdoc />
@@ -27,7 +27,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             s_DisplayOptions.Clear();
             s_ValueOptions.Clear();
-            InteractionLayerSettings.instance.GetLayerNamesAndValues(s_DisplayOptions, s_ValueOptions);
+            InteractionLayerSettings.Instance.GetLayerNamesAndValues(s_DisplayOptions, s_ValueOptions);
             XRInteractionEditorGUI.PropertyMaskField(position, label, maskProperty, s_DisplayOptions, s_ValueOptions, SelectInteractionLayerSettings);
 
             EditorGUI.EndProperty();

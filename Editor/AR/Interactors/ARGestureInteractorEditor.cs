@@ -53,8 +53,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
             base.DrawProperties();
 #if AR_FOUNDATION_5_0_OR_NEWER
             EditorGUILayout.PropertyField(m_XROrigin, Contents.xrOrigin);
-            EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
-            EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
             using (new EditorGUI.IndentLevelScope())
             {
                 if (m_ARSessionOrigin.objectReferenceValue != null)
@@ -65,6 +63,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
 #else
             EditorGUILayout.PropertyField(m_ARSessionOrigin, Contents.arSessionOrigin);
 #endif
+
+            EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
+            EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
         }
     }
 }

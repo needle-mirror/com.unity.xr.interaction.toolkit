@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -114,12 +115,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The teleportation provider that this teleportation interactable will communicate teleport requests to." +
-            " If no teleportation provider is configured, will attempt to find a teleportation provider during Awake.")]
+            " If no teleportation provider is configured, will attempt to find a teleportation provider.")]
         TeleportationProvider m_TeleportationProvider;
 
         /// <summary>
         /// The teleportation provider that this teleportation interactable communicates teleport requests to.
-        /// If no teleportation provider is configured, will attempt to find a teleportation provider during Awake.
+        /// If no teleportation provider is configured, will attempt to find a teleportation provider.
         /// </summary>
         public TeleportationProvider teleportationProvider
         {
@@ -250,9 +251,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.Awake();
             if (m_TeleportationProvider == null)
-            {
-                m_TeleportationProvider = FindObjectOfType<TeleportationProvider>();
-            }
+                ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider);
         }
 
         /// <inheritdoc />
@@ -275,7 +274,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void SendTeleportRequest(IXRInteractor interactor)
         {
-            if (interactor == null || m_TeleportationProvider == null)
+            if (interactor == null)
+                return;
+
+            if (m_TeleportationProvider == null && !ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider))
                 return;
 
             RaycastHit raycastHit = default;

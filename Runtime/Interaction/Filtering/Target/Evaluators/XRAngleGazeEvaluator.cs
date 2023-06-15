@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -10,18 +11,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     [Serializable]
     public class XRAngleGazeEvaluator : XRTargetEvaluator
     {
-        static XROrigin s_XROriginInstance;
-
         static Camera GetXROriginCamera()
         {
-            if (s_XROriginInstance == null)
-            {
-                s_XROriginInstance = Object.FindObjectOfType<XROrigin>();
-                if (s_XROriginInstance == null)
-                    return null;
-            }
-
-            return s_XROriginInstance.Camera;
+            return ComponentLocatorUtility<XROrigin>.TryFindComponent(out var xrOrigin) ? xrOrigin.Camera : null;
         }
 
         [Tooltip("The Transform whose forward direction is used to evaluate the target Interactable angle. If none is specified, during OnEnable this property is initialized with the XROrigin Camera.")]

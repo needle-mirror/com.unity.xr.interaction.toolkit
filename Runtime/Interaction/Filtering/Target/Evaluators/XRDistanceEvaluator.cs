@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -39,20 +40,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             if (Mathf.Approximately(m_MaxDistance, 0f))
                 return 0f;
 
-            var baseInteractor = interactor as XRBaseInteractor;
-            float distanceSqr;
-            if (target is XRBaseInteractable baseInteractable && baseInteractor != null)
+            using (new XRInteractableUtility.AllowTriggerCollidersScope(true))
             {
+                var baseInteractor = interactor as XRBaseInteractor;
+                float distanceSqr;
+                if (target is XRBaseInteractable baseInteractable && baseInteractor != null)
+                {
 #pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                distanceSqr = baseInteractable.GetDistanceSqrToInteractor(baseInteractor);
+                    distanceSqr = baseInteractable.GetDistanceSqrToInteractor(baseInteractor);
 #pragma warning restore 618
-            }
-            else
-            {
-                distanceSqr = target.GetDistanceSqrToInteractor(interactor);
-            }
+                }
+                else
+                {
+                    distanceSqr = target.GetDistanceSqrToInteractor(interactor);
+                }
 
-            return 1f - Mathf.Clamp01(distanceSqr / m_MaxDistance * m_MaxDistance);
+                return 1f - Mathf.Clamp01(distanceSqr / m_MaxDistance * m_MaxDistance);
+            }
         }
     }
 }

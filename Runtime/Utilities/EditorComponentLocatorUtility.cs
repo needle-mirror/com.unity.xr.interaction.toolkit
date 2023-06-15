@@ -3,12 +3,14 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Editor utility methods for locating Component instances.
     /// </summary>
+    /// <seealso cref="ComponentLocatorUtility{T}"/>
     static class EditorComponentLocatorUtility
     {
         /// <summary>

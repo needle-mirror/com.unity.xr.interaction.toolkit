@@ -24,9 +24,10 @@
 
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -72,7 +73,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         const float k_HoverDistanceThreshold = 1f;
 
         static XROrigin s_XROrigin;
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         static ARSessionOrigin s_ARSessionOrigin;
+#pragma warning restore CS0618
         static ARRaycastManager s_ARRaycastManager;
         static ARPlaneManager s_ARPlaneManager;
 
@@ -94,9 +97,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (s_XROrigin == null)
                 {
-                    s_XROrigin = Object.FindObjectOfType<XROrigin>();
                     cachedManager = default;
-                    if (s_XROrigin == null)
+                    if (!ComponentLocatorUtility<XROrigin>.TryFindComponent(out s_XROrigin))
                     {
                         Debug.LogWarning($"Could not find {nameof(XROrigin)} in scene.");
                         manager = default;
@@ -121,8 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (s_XROrigin == null)
             {
-                s_XROrigin = Object.FindObjectOfType<XROrigin>();
-                if (s_XROrigin == null)
+                if (!ComponentLocatorUtility<XROrigin>.TryFindComponent(out s_XROrigin))
                 {
                     Debug.LogWarning($"Could not find {nameof(XROrigin)} in scene.");
                     sessionOrigin = s_XROrigin;
@@ -136,6 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         #region Deprecated ARSessionOrigin overloads
 
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARRaycastManager raycastManager) =>
             TryGetTrackableManager(sessionOrigin, ref s_ARRaycastManager, out raycastManager);
 
@@ -152,9 +154,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (s_ARSessionOrigin == null)
                 {
-                    s_ARSessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
                     cachedManager = default;
-                    if (s_ARSessionOrigin == null)
+                    if (!ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out s_ARSessionOrigin))
                     {
                         Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
                         manager = default;
@@ -179,8 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (s_ARSessionOrigin == null)
             {
-                s_ARSessionOrigin = Object.FindObjectOfType<ARSessionOrigin>();
-                if (s_ARSessionOrigin == null)
+                if (!ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out s_ARSessionOrigin))
                 {
                     Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
                     sessionOrigin = s_ARSessionOrigin;
@@ -191,6 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             sessionOrigin = s_ARSessionOrigin;
             return true;
         }
+#pragma warning restore CS0618
 
         #endregion
 

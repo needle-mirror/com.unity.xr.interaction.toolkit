@@ -1,4 +1,5 @@
 ﻿using UnityEngine.EventSystems;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -75,22 +76,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         void FindOrCreateXRUIInputModule()
         {
             var eventSystem = EventSystem.current;
-            
             if (eventSystem == null)
-                eventSystem = Object.FindObjectOfType<EventSystem>();
-            
-            if (eventSystem == null)
-                eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
-            else
             {
-                // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
-                var standaloneInputModule = eventSystem.GetComponent<StandaloneInputModule>();
-                if (standaloneInputModule != null)
-                    Object.Destroy(standaloneInputModule);
+                if (ComponentLocatorUtility<EventSystem>.TryFindComponent(out eventSystem))
+                {
+                    // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
+                    if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
+                        Object.Destroy(standaloneInputModule);
+                }
+                else
+                {
+                    eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
+                }
             }
 
-            m_InputModule = eventSystem.GetComponent<XRUIInputModule>();
-            if (m_InputModule == null)
+            if (!eventSystem.TryGetComponent(out m_InputModule))
                 m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
         }
 

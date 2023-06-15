@@ -29,8 +29,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     public abstract partial class ARBaseGestureInteractable
     {
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         [SerializeField]
         ARSessionOrigin m_ARSessionOrigin;
+#pragma warning restore CS0618
 
         /// <summary>
         /// The <a href="https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@4.1/api/UnityEngine.XR.ARFoundation.ARSessionOrigin.html">ARSessionOrigin</a>

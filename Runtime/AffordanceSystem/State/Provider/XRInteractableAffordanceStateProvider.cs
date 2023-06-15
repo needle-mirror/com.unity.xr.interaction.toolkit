@@ -119,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
         [SerializeField]
         [Tooltip("When focus events are registered and this is true, the state will fallback to idle or disabled.")]
-        bool m_IgnoreFocusEvents;
+        bool m_IgnoreFocusEvents = true;
 
         /// <summary>
         /// When focus events are registered and this is true, the state will fallback to idle or disabled.
@@ -552,7 +552,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         protected virtual void SelectedClickBehavior()
         {
-            StopAllActivateAnimations();
+            StopAllClickAnimations();
             m_SelectedClickAnimation = StartCoroutine(ClickAnimation(AffordanceStateShortcuts.selected, m_ClickAnimationDuration, () => m_SelectedClickAnimation = null));
         }
 
@@ -561,7 +561,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         protected virtual void ActivatedClickBehavior()
         {
-            StopAllActivateAnimations();
+            StopAllClickAnimations();
             m_ActivatedClickAnimation = StartCoroutine(ClickAnimation(AffordanceStateShortcuts.activated, m_ClickAnimationDuration, () => m_ActivatedClickAnimation = null));
         }
 
@@ -581,7 +581,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             m_SelectedClickAnimation = null;
         }
         
-        void StopAllActivateAnimations()
+        void StopAllClickAnimations()
         {
             StopActivatedCoroutine();
             StopSelectedCoroutine();
@@ -743,11 +743,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             if (newState.stateIndex != AffordanceStateShortcuts.selected)
                 StopSelectedCoroutine();
 
-            // If Leaving the activated state, we have to terminate activated animation coroutines.
-            if(newState.stateIndex == AffordanceStateShortcuts.activated)
+            // If leaving the activated state, we have to terminate activated animation coroutines.
+            if (newState.stateIndex != AffordanceStateShortcuts.activated)
                 StopActivatedCoroutine();
 
-            UpdateAffordanceState(GenerateNewAffordanceState());
+            UpdateAffordanceState(newState);
         }
 
         /// <inheritdoc/>

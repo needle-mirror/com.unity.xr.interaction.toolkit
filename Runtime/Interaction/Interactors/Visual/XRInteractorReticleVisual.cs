@@ -1,6 +1,7 @@
 using System;
 using Unity.XR.CoreUtils;
 using Unity.Collections;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -143,11 +144,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         NativeArray<Vector3> m_InteractorLinePoints;
-        
-        /// <summary>
-        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static XROrigin s_XROriginCache;
 
         XROrigin m_XROrigin;
         GameObject m_ReticleInstance;
@@ -169,11 +165,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
 
-            m_Interactor = GetComponent<XRBaseInteractor>();
-            if (m_Interactor != null)
+            if (TryGetComponent(out m_Interactor))
             {
                 m_Interactor.selectEntered.AddListener(OnSelectEntered);
             }
+
             FindXROrigin();
             SetupReticlePrefab();
             reticleActive = false;
@@ -216,13 +212,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         
         void FindXROrigin()
         {
-            if (m_XROrigin != null)
-                return;
-
-            if (s_XROriginCache == null)
-                s_XROriginCache = FindObjectOfType<XROrigin>();
-
-            m_XROrigin = s_XROriginCache;
+            if (m_XROrigin == null)
+                ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
         }
 
         void SetupReticlePrefab()

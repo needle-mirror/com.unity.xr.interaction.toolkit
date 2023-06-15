@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if UNITY_EDITOR

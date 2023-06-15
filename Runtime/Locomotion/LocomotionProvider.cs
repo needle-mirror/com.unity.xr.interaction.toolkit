@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -79,7 +80,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Awake()
         {
             if (m_System == null)
-                m_System = FindObjectOfType<LocomotionSystem>();
+            {
+                m_System = GetComponentInParent<LocomotionSystem>();
+                if (m_System == null)
+                    ComponentLocatorUtility<LocomotionSystem>.TryFindComponent(out m_System);
+            }
         }
 
         /// <summary>

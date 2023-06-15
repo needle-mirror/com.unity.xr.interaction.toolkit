@@ -30,6 +30,18 @@ The [XR Device Simulator](xr-device-simulator-overview.md) has received another 
 
 A new [Climb Locomotion Provider](climb-provider.md) and [Climb Interactables](climb-interactable.md) allow users to grab and pull themselves along a set of climbable objects. This works in any direction to create ladders, climbing walls or even monkey bars. A Climb Provider instance has been added to `XR Origin Preconfigured` in the [Starter Assets](samples.md#starter-assets) sample along with a `Climb Sample` prefab that can be tested out in the `DemoScene`. This prefab includes preconfigured Climb Interactables.
 
+### Interaction focus state
+
+A new `Focus State` has been added to interactables. An interactable that is selected is also focused, where it will remain focused until another interactable is selected or the the interactor attempts to select a non-interactable object, essentially clicking away from the object. This can be useful for highlighting an object to perform operations on, such as adjusting size or color in a separate UI panel.
+
 ## Changes and Fixes
+
+### XR Interaction Toolkit settings
+
+The XR Interaction Toolkit project settings have been moved underneath the XR Plug-in Management category. Along with this, any project validation rules will now also show up under **XR Plug-in Management** &gt; **Project Validation** area in project settings.
+
+### Legacy XR Interaction Toolkit interaction layers
+
+If you are migrating from any 1.x version of the XR Interaction Toolkit, the interaction layer popup box will no longer appear automatically and instead you will have to manually start the tool by going to **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and clicking on the **Run Interaction Layer Mask Updater** button to migrate your layer mask settings.
 
 For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).

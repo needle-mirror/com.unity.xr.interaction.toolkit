@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 #if BURST_PRESENT
@@ -538,11 +539,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_HasBaseInteractor;
         bool m_HasHoverInteractor;
         bool m_HasSelectInteractor;
-
-        /// <summary>
-        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static XROrigin s_XROriginCache;
 
         readonly BindableVariable<float> m_UserScaleVar = new BindableVariable<float>();
         readonly FloatTweenableVariable m_LineLengthOverrideTweenableVariable = new FloatTweenableVariable();
@@ -1256,13 +1252,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void FindXROrigin()
         {
-            if (m_XROrigin != null)
-                return;
-
-            if (s_XROriginCache == null)
-                s_XROriginCache = FindObjectOfType<XROrigin>();
-
-            m_XROrigin = s_XROriginCache;
+            if (m_XROrigin == null)
+                ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
         }
 
         void SetupReticle()

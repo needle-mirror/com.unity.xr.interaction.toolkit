@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
+﻿using System.Collections.Generic;
+
+namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 {
     /// <summary>
     /// Affordance state shortcuts to facilitate the use of affordance state indices in an enum-like way.
@@ -74,5 +76,33 @@
         /// Default focused state data.
         /// </summary>
         public static AffordanceStateData focusedState { get; } = new AffordanceStateData(focused, 1f);
+
+        // Dev note: When adding a new affordance state, update the following with the new state:
+        // - k_StateNames below
+        // - AudioAffordanceTheme constructor
+        // - BaseAffordanceTheme<T> constructor
+        // - AffordanceSystemTests.AffordanceStateTransitionWorks
+        // - Assets in AffordanceThemes directories in XRI samples
+
+        static readonly Dictionary<byte, string> k_StateNames = new Dictionary<byte, string>
+        {
+            { disabled, nameof(disabled) },
+            { idle, nameof(idle) },
+            { hovered, nameof(hovered) },
+            { hoveredPriority, nameof(hoveredPriority) },
+            { selected, nameof(selected) },
+            { activated, nameof(activated) },
+            { focused, nameof(focused) },
+        };
+
+        /// <summary>
+        /// The number of default affordance states.
+        /// </summary>
+        internal static byte stateCount { get; } = (byte)k_StateNames.Count;
+
+        internal static string GetNameForIndex(byte index)
+        {
+            return k_StateNames.TryGetValue(index, out var name) ? name : null;
+        }
     }
 }

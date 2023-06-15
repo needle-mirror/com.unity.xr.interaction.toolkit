@@ -39,14 +39,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #else
 
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor.XR.Interaction.Toolkit.Utilities;
-#endif
+using Unity.XR.CoreUtils;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using UnityEngine.XR.ARFoundation;
-using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -141,29 +139,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
         /// <summary>
-        /// Cached reference to an <see cref="XROrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static XROrigin s_XROriginCache;
-
-        /// <summary>
-        /// Cached reference to an <see cref="ARSessionOrigin"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static ARSessionOrigin s_ARSessionOriginCache;
-
-        /// <summary>
         /// Temporary, reusable list of registered Interactables.
         /// </summary>
         static readonly List<IXRInteractable> s_Interactables = new List<IXRInteractable>();
-
-        /// <inheritdoc />
-        protected override void Reset()
-        {
-            base.Reset();
-#if UNITY_EDITOR
-            m_XROrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<XROrigin>(gameObject);
-            m_ARSessionOrigin = EditorComponentLocatorUtility.FindSceneComponentOfType<ARSessionOrigin>(gameObject);
-#endif
-        }
 
         /// <inheritdoc />
         protected override void Awake()
@@ -230,24 +208,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         void FindXROrigin()
         {
-            if (m_XROrigin != null)
-                return;
-
-            if (s_XROriginCache == null)
-                s_XROriginCache = FindObjectOfType<XROrigin>();
-
-            m_XROrigin = s_XROriginCache;
+            if (m_XROrigin == null)
+                ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
         }
 
         void FindARSessionOrigin()
         {
-            if (m_ARSessionOrigin != null)
-                return;
-
-            if (s_ARSessionOriginCache == null)
-                s_ARSessionOriginCache = FindObjectOfType<ARSessionOrigin>();
-
-            m_ARSessionOrigin = s_ARSessionOriginCache;
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
+            if (m_ARSessionOrigin == null)
+                ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out m_ARSessionOrigin);
+#pragma warning restore CS0618
         }
 
         /// <inheritdoc />

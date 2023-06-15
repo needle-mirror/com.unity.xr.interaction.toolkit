@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         [Preserve]
         static XRDeviceSimulatorLoader()
         {
-            if (!XRDeviceSimulatorSettings.instance.automaticallyInstantiateSimulatorPrefab)
+            if (!XRDeviceSimulatorSettings.Instance.automaticallyInstantiateSimulatorPrefab)
                 return;
 
 #if UNITY_INCLUDE_TESTS
@@ -43,12 +43,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (XRDeviceSimulator.instance == null)
             {
-                var simulatorPrefab = XRDeviceSimulatorSettings.instance.simulatorPrefab;
+                var simulatorPrefab = XRDeviceSimulatorSettings.Instance.simulatorPrefab;
                 if (simulatorPrefab == null)
                 {
                     Debug.LogWarning("XR Device Simulator prefab was missing, cannot automatically instantiate." +
                         " Open Window > Package Manager, select XR Interaction Toolkit, and Reimport the XR Device Simulator sample," +
-                        " and then toggle the setting in Edit > Project Settings > XR Interaction Toolkit to try to resolve this issue.");
+                        " and then toggle the setting in Edit > Project Settings > XR Plug-in Management > XR Interaction Toolkit to try to resolve this issue.");
                     return;
                 }
 

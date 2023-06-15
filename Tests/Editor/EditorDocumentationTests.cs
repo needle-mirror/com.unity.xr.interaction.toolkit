@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 {
@@ -27,6 +28,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Assert.That(m_PackageInfo, Is.Not.Null);
             Assert.That(m_PackageInfo.version, Is.Not.Null);
             Assert.That(m_PackageInfo.version, Is.Not.Empty);
+        }
+
+        [Test]
+        public void HelpURLVersionMatchesPackageVersion()
+        {
+            var majorMinorVersionString = GetMajorMinor(m_PackageInfo.version);
+            Assert.AreEqual(majorMinorVersionString, XRHelpURLConstants.currentDocsVersion);
         }
 
         [Test]

@@ -22,23 +22,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         static List<XRBaseInteractable> s_InteractableList;
         static List<XRBaseInteractor> s_InteractorList;
-
-        static InteractionLayerUpdater()
-        {
-            if (!Application.isBatchMode)
-                EditorApplication.update += OnUpdate;
-        }
-        
-        static void OnUpdate()
-        {
-            if (EditorApplication.isCompiling)
-                return;
-
-            EditorApplication.update -= OnUpdate;
-
-            if (!XRInteractionEditorSettings.instance.interactionLayerUpdaterShown)
-                RunIfUserWantsTo();
-        }
         
         /// <summary>
         /// Displays a dialog message asking if you want to update the Interaction Layers in the project.
@@ -50,18 +33,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             const string messageText = "This project may contain an obsolete method to validate interactions between XR Interactors and Interactables. " +
                                        "\n\nThis Update is only required for older projects updating the XR Interaction Toolkit package, if this package was newly installed please cancel this operation. " +
                                        "\n\nIf you choose \'Go Ahead\', Unity will update all Interactors and Interactables in Prefabs and scenes to use the new Interaction Layer instead of the Unity physics Layer. " +
-                                       "\n\nYou can always manually run the XR InteractionLayerMask Updater from the XR Interaction Toolkit Settings (menu: Edit > Project Settings > XR Interaction Toolkit). ";
+                                       "\n\nYou can always manually run the XR InteractionLayerMask Updater from the XR Interaction Toolkit Settings (menu: Edit > Project Settings > XR Plug-in Management > XR Interaction Toolkit). ";
             const string okText = "I Made a Backup, Go Ahead!";
             const string cancelText = "No Thanks";
             return EditorUtility.DisplayDialog(titleText, messageText, okText, cancelText);
         }
 
         /// <summary>
-        /// Checks if the Unity Interaction Layer Mask property is overriden in the supplied object.
+        /// Checks if the Unity Interaction Layer Mask property is overridden in the supplied object.
         /// </summary>
-        /// <param name="target">The object to check if the Unity Interaction Layer is overriden.</param>
-        /// <returns>Returns whether the property is overriden.</returns>
-        static bool IsInteractionLayerMaskPropertyOverriden(Object target)
+        /// <param name="target">The object to check if the Unity Interaction Layer is overridden.</param>
+        /// <returns>Returns whether the property is overridden.</returns>
+        static bool IsInteractionLayerMaskPropertyOverridden(Object target)
         {
             const string layerBitsPropertyPath = "m_InteractionLayerMask.m_Bits";
             
@@ -94,12 +77,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 return false;
             
             // it isn't a regular object in the scene and not a missing prefab instance
-            // and not a component in the source prefab or neither an overriden component (so it's a variant or nested prefab)
-            // and the unity layer mask it isn't an overriden property?
+            // and not a component in the source prefab or neither an overridden component (so it's a variant or nested prefab)
+            // and the unity layer mask it isn't an overridden property?
             var nearestPrefabRoot = PrefabUtility.GetNearestPrefabInstanceRoot(target);
             if (nearestPrefabRoot != null && !PrefabUtility.IsPrefabAssetMissing(target) 
                                           && (PrefabUtility.IsPartOfVariantPrefab(nearestPrefabRoot) || !PrefabUtility.IsAddedComponentOverride(target)) 
-                                          && !IsInteractionLayerMaskPropertyOverriden(target))
+                                          && !IsInteractionLayerMaskPropertyOverridden(target))
                 return false;
 
             var serializedObject = new SerializedObject(target);
@@ -294,7 +277,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             const string layerNamesPropertyPath = "m_LayerNames";
             
-            var interactionLayerSettingsSo = new SerializedObject(InteractionLayerSettings.instance);
+            var interactionLayerSettingsSo = new SerializedObject(InteractionLayerSettings.Instance);
             var layerNamesProperty = interactionLayerSettingsSo.FindProperty(layerNamesPropertyPath);
             
             // built-in Interaction Layer names are not editable, so they are ignored 
@@ -335,7 +318,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
             
             // register updater was shown
-            var editorXriToolkitSettings = XRInteractionEditorSettings.instance;
+            var editorXriToolkitSettings = XRInteractionEditorSettings.Instance;
             if (!editorXriToolkitSettings.interactionLayerUpdaterShown)
             {
                 editorXriToolkitSettings.interactionLayerUpdaterShown = true;

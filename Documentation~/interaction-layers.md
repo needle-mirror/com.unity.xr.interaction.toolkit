@@ -12,7 +12,7 @@ The XR Direct Interactor similarly uses both interaction layers and physics laye
 
 ## Interaction Layers Settings
 
-Add and remove interaction layers using **Edit &gt; Project Settings &gt; XR Interaction Toolkit** and editing the fields under Interaction Layers.
+Add and remove interaction layers using **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and editing the fields under Interaction Layers.
 
 ![interaction-layer-settings](images/interaction-layer-settings.png)
 
@@ -20,6 +20,6 @@ The settings are stored in an asset in the `Assets/XRI/Settings/Resources` folde
 
 ## Interaction Layer Mask Updater
 
-If you're upgrading your project from a version prior to XR Interaction Toolkit 2.0.0 then it's recommended to update the interaction layer masks in your Interactables and Interactors. This can be done through the following dialog box that is shown after the package installation or by clicking **Run Interaction Layer Mask Updater** in **Edit &gt; Project Settings &gt; XR Interaction Toolkit**. Select **I Made a Backup, Go Ahead!** to scan your project for layers that were used and convert to interaction layers.
+If you're upgrading your project from a version prior to XR Interaction Toolkit 2.0.0 then it's recommended to update the interaction layer masks in your Interactables and Interactors. This can be done through the following dialog box that is shown after the package installation or by clicking **Run Interaction Layer Mask Updater** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit**. Select **I Made a Backup, Go Ahead!** to scan your project for layers that were used and convert to interaction layers.
 
 ![interaction-layer-mask-updater](images/interaction-layer-mask-updater.png)

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Editor;
-using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -40,9 +39,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this settings provider.
         /// </summary>
-        protected static class Contents
+        internal static class Contents
         {
-            public static readonly GUIContent projectValidation = EditorGUIUtility.TrTextContentWithIcon("XR Interaction Toolkit project validation issues", ProjectValidationContents.validationWarningIcon.image);
             public static readonly GUIContent layerMaskUpdater = EditorGUIUtility.TrTextContent("Run Interaction Layer Mask Updater", "Open the dialog box to update the Interaction Layer Mask for projects upgrading from older versions of the XR Interaction Toolkit.");
 
             public static readonly GUIContent deviceSimulatorSettingsTitle = new GUIContent("XR Device Simulator Settings");
@@ -58,7 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// The path to display this settings provider in the Project Settings window.
         /// </summary>
-        const string k_Path = "Project/XR Interaction Toolkit";
+        internal const string k_SettingsPath = "Project/XR Plug-in Management/XR Interaction Toolkit";
         
         Editor m_InteractionLayerSettingsEditor;
         Editor m_XRInteractionEditorSettingsEditor;
@@ -75,11 +73,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static SettingsProvider CreateInteractionLayerProvider()
 #pragma warning restore IDE0051
         {
-            var keywordsList = GetSearchKeywordsFromPath(AssetDatabase.GetAssetPath(InteractionLayerSettings.instance)).ToList();
+            var keywordsList = GetSearchKeywordsFromPath(AssetDatabase.GetAssetPath(InteractionLayerSettings.Instance)).ToList();
             return new XRInteractionToolkitSettingsProvider { keywords = keywordsList };
         }
 
-        XRInteractionToolkitSettingsProvider(string path = k_Path, SettingsScope scopes = SettingsScope.Project,
+        XRInteractionToolkitSettingsProvider(string path = k_SettingsPath, SettingsScope scopes = SettingsScope.Project,
             IEnumerable<string> keywords = null)
             : base(path, scopes, keywords)
         {
@@ -100,26 +98,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             GUI.enabled = oldGuiEnabled;
-        }
-        
-        /// <summary>
-        /// Draw the the project validation warning if there are any validation issues.
-        /// </summary>
-        static void DrawXRInteractionValidation()
-        {
-            XRInteractionProjectValidation.GetCurrentValidationIssues(s_ValidationRules);
-            if (s_ValidationRules.Count == 0)
-                return;
-
-            var anyErrors = s_ValidationRules.Any(rule => rule.Error);
-            var issueContent = anyErrors ? ProjectValidationContents.validationErrorIcon: ProjectValidationContents.validationWarningIcon;
-            Contents.projectValidation.image = issueContent.image;
-            Contents.projectValidation.tooltip = issueContent.tooltip;
-            
-            if (GUILayout.Button(Contents.projectValidation, EditorStyles.label, GUILayout.Height(EditorGUIUtility.singleLineHeight))) 
-            {
-                XRInteractionProjectValidationRulesSetup.ShowWindow();
-            }
         }
 
         /// <summary>
@@ -160,9 +138,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             base.OnActivate(searchContext, rootElement);
             
-            m_InteractionLayerSettingsEditor = Editor.CreateEditor(InteractionLayerSettings.instance);
-            m_XRInteractionEditorSettingsEditor = Editor.CreateEditor(XRInteractionEditorSettings.instance);
-            m_XRDeviceSimulatorSettingsEditor = Editor.CreateEditor(XRDeviceSimulatorSettings.instance);
+            m_InteractionLayerSettingsEditor = Editor.CreateEditor(InteractionLayerSettings.Instance);
+            m_XRInteractionEditorSettingsEditor = Editor.CreateEditor(XRInteractionEditorSettings.Instance);
+            m_XRDeviceSimulatorSettingsEditor = Editor.CreateEditor(XRDeviceSimulatorSettings.Instance);
         }
 
         /// <inheritdoc />
@@ -187,7 +165,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             using (new SettingsMarginScope())
             {
-                DrawXRInteractionValidation();
                 DrawXRDeviceSimulatorSettingsEditor();
                 EditorGUILayout.Space();
                 DrawXRInteractionEditorSettingsEditor();

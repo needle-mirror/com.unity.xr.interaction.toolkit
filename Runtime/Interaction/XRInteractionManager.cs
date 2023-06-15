@@ -1,6 +1,14 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR && !UNITY_2021_3_OR_NEWER
+using System.Text;
+#endif
 using Unity.Profiling;
+#if UNITY_EDITOR && UNITY_2021_3_OR_NEWER
+using UnityEditor.Search;
+#elif UNITY_EDITOR && !UNITY_2021_3_OR_NEWER
+using UnityEditor.Experimental.SceneManagement;
+#endif
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
@@ -221,11 +229,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRSelectInteractable> m_CurrentSelected = new List<IXRSelectInteractable>();
 
         /// <summary>
-        /// Reusable list of Interactables for retrieving the current focused Interactables of an Interaction group.
-        /// </summary>
-        readonly List<IXRFocusInteractable> m_CurrentFocused = new List<IXRFocusInteractable>();
-
-        /// <summary>
         /// Map of Interactables that have the highest priority for selection in a frame.
         /// </summary>
         readonly Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>> m_HighestPriorityTargetMap = new Dictionary<IXRSelectInteractable, List<IXRTargetPriorityInteractor>>();
@@ -308,6 +311,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnEnable()
         {
+            if (activeInteractionManagers.Count > 0)
+            {
+                var message = "There are multiple active and enabled XR Interaction Manager components in the loaded scenes." +
+                    " This is supported, but may not be intended since interactors and interactables are not able to interact with those registered to a different manager." +
+                    " You can use the <b>Window</b> > <b>Analysis</b> > <b>XR Interaction Debugger</b> window to verify the interactors and interactables registered with each.";
+#if UNITY_EDITOR
+                if (ComponentLocatorUtility<XRInteractionManager>.componentCache != null)
+                {
+                    message += " The default manager that interactors and interactables automatically register with when None is: " +
+                        GetHierarchyPath(ComponentLocatorUtility<XRInteractionManager>.componentCache.gameObject);
+                }
+#endif
+
+                Debug.LogWarning(message, this);
+            }
+
             activeInteractionManagers.Add(this);
             Application.onBeforeRender += OnBeforeRender;
         }
@@ -759,13 +778,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets the registered Interaction Group with the given name.
         /// </summary>
-        /// <param name="name">The name of the interaction group to retrieve</param>
-        /// <returns>The interaction group with matching name, or null if none were found</returns>
-        public IXRInteractionGroup GetInteractionGroup(string name)
+        /// <param name="groupName">The name of the interaction group to retrieve.</param>
+        /// <returns>Returns the interaction group with matching name, or null if none were found.</returns>
+        /// <seealso cref="IXRInteractionGroup.groupName"/>
+        public IXRInteractionGroup GetInteractionGroup(string groupName)
         {
             foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
             {
-                if (interactionGroup.groupName == name)
+                if (interactionGroup.groupName == groupName)
                     return interactionGroup;
             }
 
@@ -1271,9 +1291,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Automatically called each frame during Update to clear the focus of the InteractionGroup if necessary due to current conditions.
+        /// Automatically called each frame during Update to clear the focus of the interaction group if necessary due to current conditions.
         /// </summary>
-        /// <param name="interactionGroup">The InteractionGroup to potentially exit its focus state.</param>
+        /// <param name="interactionGroup">The interaction group to potentially exit its focus state.</param>
         protected virtual void ClearInteractionGroupFocus(IXRInteractionGroup interactionGroup)
         {
             // We want to unfocus whenever we select 'nothing'
@@ -1762,11 +1782,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Initiates focus of an Interactable by an InteractionGroup, passing the given <paramref name="args"/>.
+        /// Initiates focus of an Interactable by an interaction group, passing the given <paramref name="args"/>.
         /// </summary>
-        /// <param name="group">The InteractionGroup that is gaining focus.</param>
+        /// <param name="group">The interaction group that is gaining focus.</param>
         /// <param name="interactable">The Interactable being focused.</param>
-        /// <param name="args">Event data containing the InteractionGroup and Interactable involved in the event.</param>
+        /// <param name="args">Event data containing the interaction group and Interactable involved in the event.</param>
         /// <remarks>
         /// The interaction group and interactable are notified immediately without waiting for a previous call to finish
         /// in the case when this method is called again in a nested way. This means that if this method is
@@ -2084,10 +2104,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Automatically called when gaining focus of an Interactable by an InteractionGroup is initiated
+        /// Automatically called when gaining focus of an Interactable by an interaction group is initiated
         /// and the Interactable is already focused.
         /// </summary>
-        /// <param name="interactor">The InteractionGroup that is gaining focus.</param>
+        /// <param name="interactionGroup">The interaction group that is gaining focus.</param>
         /// <param name="interactable">The Interactable being focused.</param>
         /// <returns>Returns <see langword="true"/> if the existing focus was successfully resolved and focus should continue.
         /// Otherwise, returns <see langword="false"/> if the focus should be ignored.</returns>
@@ -2247,5 +2267,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
         }
+
+#if UNITY_EDITOR
+        static string GetHierarchyPath(GameObject gameObject, bool includeScene = true)
+        {
+#if UNITY_2021_3_OR_NEWER
+            return SearchUtils.GetHierarchyPath(gameObject, includeScene);
+#else
+            var sb = new StringBuilder(200);
+            if (includeScene)
+            {
+                var sceneName = gameObject.scene.name;
+                if (sceneName == string.Empty)
+                {
+                    var prefabStage = PrefabStageUtility.GetPrefabStage(gameObject);
+                    if (prefabStage != null)
+                        sceneName = "Prefab Stage";
+                    else
+                        sceneName = "Unsaved Scene";
+                }
+
+                sb.Append("<b>" + sceneName + "</b>");
+            }
+
+            sb.Append(GetTransformPath(gameObject.transform));
+
+            var path = sb.ToString();
+            return path;
+
+            static string GetTransformPath(Transform tform)
+            {
+                if (tform.parent == null)
+                    return "/" + tform.name;
+                return GetTransformPath(tform.parent) + "/" + tform.name;
+            }
+#endif
+        }
+#endif
     }
 }

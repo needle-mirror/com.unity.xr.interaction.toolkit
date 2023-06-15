@@ -295,12 +295,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="layerMask">The layer mask used for limiting raycast targets.</param>
         /// <param name="triggerInteraction">The type of interaction with trigger colliders via raycast.</param>
         /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result, LayerMask layerMask = default, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
+#pragma warning restore CS0618
         {
             // The ARSessionOrigin parameter will eventually be removed. This class is internal so no need for overloaded.
             var camera = sessionOrigin != null
                 ? sessionOrigin.Camera
+#pragma warning disable CS0618 // ARSessionOrigin will eventually be removed, but until then use the oldest access method
                 : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
+#pragma warning restore CS0618
             if (camera == null)
             {
                 result = default;

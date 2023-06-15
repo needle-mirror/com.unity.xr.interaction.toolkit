@@ -555,7 +555,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 return currentScale;
             }
 
-            var scaleRatio = Vector3.SqrMagnitude(newHandleBar) / Vector3.SqrMagnitude(startHandleBar);
+            var scaleRatio = Vector3.Magnitude(newHandleBar) / Vector3.Magnitude(startHandleBar);
             if (scaleRatio > 1)
             {
                 var amountOver1 = (scaleRatio - 1f);

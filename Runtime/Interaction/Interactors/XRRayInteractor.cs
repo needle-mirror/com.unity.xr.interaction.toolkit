@@ -11,12 +11,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
 
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using UnityEngine.XR.Interaction.Toolkit.AR;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -29,9 +29,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 #if AR_FOUNDATION_PRESENT
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractor, IXRRayProvider, IARInteractor
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IARInteractor
 #else
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractor, IXRRayProvider
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider
 #endif
     {
         /// <summary>
@@ -649,11 +649,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_TrackableType;
             set => m_TrackableType = value;
         }
-
-        /// <summary>
-        /// Cached reference to an <see cref="ARRaycastManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static ARRaycastManager s_ARRaycastManagerCache;
 #endif
 
         /// <summary>
@@ -699,7 +694,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_HasReferenceFrame;
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
-         /// <summary>
+        /// <summary>
         /// The closest index of the sample endpoint where a 3D, UI or AR hit occurred.
         /// </summary>
         int closestAnyHitIndex  
@@ -763,9 +758,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
 
 #if AR_FOUNDATION_PRESENT 
-        int m_ARRaycastHitsCount;
         int m_ARRaycastHitEndpointIndex;
         readonly List<ARRaycastHit> m_ARRaycastHits = new List<ARRaycastHit>();
+        int m_ARRaycastHitsCount;
+        ARRaycastManager m_ARRaycastManager;
 #endif
 
         /// <summary>
@@ -1008,8 +1004,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_HasReferenceFrame)
                 return;
 
-            var xrOrigin = FindObjectOfType<XROrigin>();
-            if (xrOrigin != null)
+            if (ComponentLocatorUtility<XROrigin>.TryFindComponent(out var xrOrigin))
             {
                 var origin = xrOrigin.Origin;
                 if (origin != null)
@@ -2098,16 +2093,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
 #if AR_FOUNDATION_PRESENT
-            if (m_EnableARRaycasting)
+            m_ARRaycastHits.Clear();
+            m_ARRaycastHitsCount = 0;
+            if (m_EnableARRaycasting && m_ARRaycastManager != null)
             {
-                m_ARRaycastHits.Clear();
-
-                if (s_ARRaycastManagerCache != null)
-                {
-                    var ray = new Ray(from, direction);
-                    s_ARRaycastManagerCache.Raycast(ray, m_ARRaycastHits, trackableType);
-                    m_ARRaycastHitsCount = m_ARRaycastHits.Count;
-                }
+                var ray = new Ray(from, direction);
+                m_ARRaycastManager.Raycast(ray, m_ARRaycastHits, trackableType);
+                m_ARRaycastHitsCount = m_ARRaycastHits.Count;
             }
 #endif
         }
@@ -2346,20 +2338,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #if AR_FOUNDATION_PRESENT
         void FindCreateARRaycastManager()
         {
-            if (s_ARRaycastManagerCache == null)
-                s_ARRaycastManagerCache = FindObjectOfType<ARRaycastManager>();
+            if (m_ARRaycastManager != null || ComponentLocatorUtility<ARRaycastManager>.TryFindComponent(out m_ARRaycastManager))
+                return;
 
-            if (s_ARRaycastManagerCache == null)
+            if (ComponentLocatorUtility<XROrigin>.TryFindComponent(out var xrOrigin))
             {
-                var origin = FindObjectOfType<XROrigin>();
-                if (origin != null)
-                {
-                    s_ARRaycastManagerCache = origin.gameObject.AddComponent<ARRaycastManager>();
-                }
-                else
-                {
-                    Debug.LogWarning($"{nameof(XROrigin)}.{nameof(XROrigin.Origin)} is not found. Add one by right-clicking on the Scene Hierarchy > XR > XR Origin.", this);
-                }
+                // Add to the GameObject with the XR Origin component itself, not its potentially different Origin GameObject reference.
+                m_ARRaycastManager = xrOrigin.gameObject.AddComponent<ARRaycastManager>();
+            }
+            else
+            {
+                Debug.LogWarning($"{nameof(XROrigin)} not found, cannot add the {nameof(ARRaycastManager)} automatically. Cannot ray cast against AR environment trackables.", this);
             }
         }
 #endif 

@@ -42,14 +42,14 @@ From here we will be able to add affordance receivers to add effects to the inte
 
 ### Audio Affordance Receiver
 
-It is possible to add audio effects when transitionning between affordance states using the Audio Affordance Receiver.
-Like other affordance receivers, you simply add a theme and connect the affordance state provider reference, but unlike other themes, audio has one shot clips that play when transitionning between states. Because target values are not smoothly blended like with other receivers, the Audio Affordance Receiver has extra considerations on which states are being entered and exited, to avoid playing clips that shouldn't be played.
+It is possible to add audio effects when transitioning between affordance states using the Audio Affordance Receiver.
+Like other affordance receivers, you simply add a theme and connect the affordance state provider reference, but unlike other themes, audio has one shot clips that play when transitioning between states. Because target values are not smoothly blended like with other receivers, the Audio Affordance Receiver has extra considerations on which states are being entered and exited, to avoid playing clips that shouldn't be played.
 
 In practice, when moving from hover to select, select is considered a "modifier" to hover. This means that if releasing select, when holding an object for instance, the hover entered sound effect won't play again if the object previously select is still hovered on release. Similarly, when triggering the activated state from select, the select exited sound effect won't play, as it is considered a "modifier" to activated.
 
-Finally, as mentionned in the Affordance State Provider section, if you are using click animations for Selected or Activated states, repeated activation of activated trigger, faster than the click animation duration, won't trigger affordance audio clips until after the animation is completed. Feel free to disable activated click animations if this is a concern.
+Finally, as mentioned in the Affordance State Provider section, if you are using click animations for Selected or Activated states, repeated activation of activated trigger, faster than the click animation duration, won't trigger affordance audio clips until after the animation is completed. Feel free to disable activated click animations if this is a concern.
 
-![audio-affordance-receiver](audio-affordance-receiver.png)
+![audio-affordance-receiver](images/audio-affordance-receiver.png)
 
 ### Adding a theme
 

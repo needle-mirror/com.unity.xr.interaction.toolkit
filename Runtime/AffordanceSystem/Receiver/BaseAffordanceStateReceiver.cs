@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
@@ -165,6 +166,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         /// <seealso cref="affordanceTheme"/>
         protected virtual void OnAffordanceThemeChanged(BaseAffordanceTheme<T> newValue)
         {
+            LogIfMissingAffordanceStates(newValue);
+        }
+
+        void LogIfMissingAffordanceStates(BaseAffordanceTheme<T> theme)
+        {
+            if (theme.GetAffordanceThemeDataForIndex((byte)(AffordanceStateShortcuts.stateCount - 1)) == null)
+            {
+                var sb = new StringBuilder();
+                var actualCount = 0;
+                for (byte index = 0; index < AffordanceStateShortcuts.stateCount; ++index)
+                {
+                    var themeData = theme.GetAffordanceThemeDataForIndex(index);
+                    sb.Append($"Expected: {index} \"{AffordanceStateShortcuts.GetNameForIndex(index)}\",\tActual: ");
+                    sb.AppendLine(themeData != null ? $"{index} \"{themeData.stateName}\"" : "<b>(None)</b>");
+
+                    if (themeData != null)
+                        ++actualCount;
+                }
+
+                Debug.LogWarning("Affordance Theme on affordance receiver is missing a potential affordance state. Expected states:" +
+                    $"\nExpected Count: {AffordanceStateShortcuts.stateCount}, Actual Count: {actualCount}" +
+                    $"\n{sb}", this);
+            }
         }
 
         /// <inheritdoc/>

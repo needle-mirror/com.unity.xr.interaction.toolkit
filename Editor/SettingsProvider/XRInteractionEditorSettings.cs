@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils.Editor;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
-using UnityEditor.XR.Interaction.Toolkit.Utilities.Internal;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     class XRInteractionEditorSettings : EditorScriptableSettings<XRInteractionEditorSettings>
     {
         [SerializeField]
-        bool m_InteractionLayerUpdaterShown;
+        bool m_InteractionLayerUpdaterShown = true;
 
         /// <summary>
         /// Gets whether the updater dialog option was shown for users.

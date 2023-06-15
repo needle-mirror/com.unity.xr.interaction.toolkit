@@ -73,9 +73,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands
                 FixItAutomatic = true,
                 Error = true,
             },
+            new BuildValidationRule
+            {
+                IsRuleEnabled = () => s_ShaderGraphPackageAddRequest == null || s_ShaderGraphPackageAddRequest.IsCompleted,
+                Message = $"[{k_SampleDisplayName}] Shader Graph (com.unity.shadergraph) package must be installed for materials used in this sample.",
+                Category = k_Category,
+                CheckPredicate = () => PackageVersionUtility.IsPackageInstalled("com.unity.shadergraph"),
+                FixIt = () =>
+                {
+                    s_ShaderGraphPackageAddRequest = Client.Add("com.unity.shadergraph");
+                    if (s_ShaderGraphPackageAddRequest.Error != null)
+                    {
+                        Debug.LogError($"Package installation error: {s_ShaderGraphPackageAddRequest.Error}: {s_ShaderGraphPackageAddRequest.Error.message}");
+                    }
+                },
+                FixItAutomatic = true,
+                Error = false,
+            },
         };
 
         static AddRequest s_HandsPackageAddRequest;
+        static AddRequest s_ShaderGraphPackageAddRequest;
 
         [InitializeOnLoadMethod]
         static void RegisterProjectValidationRules()

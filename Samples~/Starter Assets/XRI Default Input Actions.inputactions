@@ -680,7 +680,7 @@
                     "type": "Value",
                     "id": "a5372626-7022-4ba7-b152-6f26318fd8a8",
                     "expectedControlType": "Vector2",
-                    "processors": "",
+                    "processors": "InvertVector2(invertY=false)",
                     "interactions": "",
                     "initialStateCheck": true
                 },
@@ -1396,7 +1396,7 @@
                     "type": "Value",
                     "id": "c283b939-751f-426e-8462-142a529993e3",
                     "expectedControlType": "Vector2",
-                    "processors": "",
+                    "processors": "InvertVector2(invertY=false)",
                     "interactions": "",
                     "initialStateCheck": true
                 },

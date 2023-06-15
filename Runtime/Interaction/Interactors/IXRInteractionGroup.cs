@@ -31,6 +31,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRInteractionManager.interactionGroupUnregistered"/>
         event Action<InteractionGroupUnregisteredEventArgs> unregistered;
 
+        /// <summary>
+        /// The name of the interaction group, which can be used to retrieve it from the Interaction Manager.
+        /// </summary>
         string groupName { get; }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using Unity.XR.CoreUtils;
+﻿using System.Text;
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio;
@@ -72,6 +73,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
         {
             if (m_AudioSource == null)
                 m_AudioSource = GetComponent<AudioSource>();
+
+            if (m_AffordanceThemeDatum != null)
+                LogIfMissingAffordanceStates(m_AffordanceThemeDatum.Value);
         }
 
         /// <summary>
@@ -104,6 +108,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
             m_BindingsGroup.Clear();
         }
 
+        void LogIfMissingAffordanceStates(AudioAffordanceTheme theme)
+        {
+            if (theme.GetAffordanceThemeDataForIndex((byte)(AffordanceStateShortcuts.stateCount - 1)) == null)
+            {
+                var sb = new StringBuilder();
+                var actualCount = 0;
+                for (byte index = 0; index < AffordanceStateShortcuts.stateCount; ++index)
+                {
+                    var themeData = theme.GetAffordanceThemeDataForIndex(index);
+                    sb.Append($"Expected: {index} \"{AffordanceStateShortcuts.GetNameForIndex(index)}\",\tActual: ");
+                    sb.AppendLine(themeData != null ? $"{index} \"{themeData.stateName}\"" : "<b>(None)</b>");
+
+                    if (themeData != null)
+                        ++actualCount;
+                }
+
+                Debug.LogWarning("Affordance Theme on affordance receiver is missing a potential affordance state. Expected states:" +
+                    $"\nExpected Count: {AffordanceStateShortcuts.stateCount}, Actual Count: {actualCount}" +
+                    $"\n{sb}", this);
+            }
+        }
+
         void OnAffordanceStateUpdated(AffordanceStateData affordanceStateData)
         {
             var newIndex = affordanceStateData.stateIndex;
@@ -126,7 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 if (!selectToActivate && !hoverToSelect)
                 {
                     var exitData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(m_LastAffordanceStateIndex);
-                    if (exitData != default)
+                    if (exitData != null)
                     {
                         PlayAudioClip(exitData.stateExited);
                     }
@@ -137,9 +163,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 if (!activateToSelect && !selectToHover)
                 {
                     var enterData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(newIndex);
-                    if (enterData != default)
+                    if (enterData != null)
                     {
                         PlayAudioClip(enterData.stateEntered);
+                    }
+                    else
+                    {
+                        var stateName = AffordanceStateShortcuts.GetNameForIndex(newIndex);
+                        XRLoggingUtils.LogError($"Missing theme data for affordance state index {newIndex} \"{stateName}\" with {this}.", this);
                     }
                 }
                 

@@ -4,10 +4,6 @@ using System.Diagnostics;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
-#if UNITY_EDITOR
-using UnityEditor.XR.Interaction.Toolkit.Utilities;
-#endif
-
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
@@ -57,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The name of the interaction group, which can be used to retrieve it from the Interaction Manager.")]
-        String m_GroupName;
+        string m_GroupName;
 
         /// <inheritdoc />
         public string groupName => m_GroupName;
@@ -145,11 +141,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
         readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
 
-        /// <summary>
-        /// Cached reference to an <see cref="XRInteractionManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static XRInteractionManager s_InteractionManagerCache;
-
         static readonly List<IXRSelectInteractable> s_InteractablesSelected = new List<IXRSelectInteractable>();
         static readonly List<IXRHoverInteractable> s_InteractablesHovered = new List<IXRHoverInteractable>();
 
@@ -160,7 +151,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Reset()
         {
 #if UNITY_EDITOR
-            m_InteractionManager = EditorComponentLocatorUtility.FindSceneComponentOfType<XRInteractionManager>(gameObject);
+            // Don't need to do anything; method kept for backwards compatibility.
 #endif
         }
 
@@ -711,16 +702,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_InteractionManager != null)
                 return;
 
-            if (s_InteractionManagerCache == null)
-                s_InteractionManagerCache = FindObjectOfType<XRInteractionManager>();
-
-            if (s_InteractionManagerCache == null)
-            {
-                var interactionManagerGO = new GameObject("XR Interaction Manager", typeof(XRInteractionManager));
-                s_InteractionManagerCache = interactionManagerGO.GetComponent<XRInteractionManager>();
-            }
-
-            m_InteractionManager = s_InteractionManagerCache;
+            m_InteractionManager = ComponentLocatorUtility<XRInteractionManager>.FindOrCreateComponent();
         }
 
         void RegisterWithInteractionManager()

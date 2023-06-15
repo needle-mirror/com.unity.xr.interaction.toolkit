@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.4.0-pre.2",
+  "version": "2.4.0",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -49,15 +49,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Changed the `XR Interactable Affordance State Provider` order to put focus state after all other interaction states for consistency.\n- Changed the required version of `com.unity.xr.hands` for the Hands Interaction Demo sample from 1.2.0 to 1.2.1.\n\n### Fixed\n- Fixed a null reference issue when accessing device and screen-space controllers caused by optimization changes made in the XR Ray Interactor.\n- Fixed unwanted behavior for the Hand Interactions Demo > Hand Menu sample prefabs, specifically in the `ToggleGameObject` sample script.\n- Fixed an issue with XR Interaction Manager where focused interactables would not be cleared in the correct order when selecting a new interactable."
+    "changelog": "### Changed\n- Project Settings for the XR Interaction Toolkit have been moved under the category **XR Plug-in Management** to consolidate XR configuration.\n- Project validation rules for the XR Interaction Toolkit and samples have been updated to use global XR project validation and will now appear in the **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** window.\n- Changed `Reset` method of behaviors to no longer assign a reference to an XR Interaction Manager or XR Origin.\n- Changed XR Interactable Affordance State Provider component's default value to Ignore Focus Events.\n- Changed affordance receivers to log a warning when the affordance theme data is missing potential affordance states. A new affordance state `focused` at array index 6 was added to the affordance theme assets in the samples. Users will need to reimport the Starter Assets and Hands Interaction Demo samples or add the `focused` state to their affordance theme assets.\n\n### Fixed\n- Fixed an issue with the XR Distance evaluator not calculating the proper distance from trigger colliders. ([XRIT-71](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-71))\n- Fixed an issue where interactors and interactables could use a different default XR Interaction Manager reference, such as after instantiating a prefab that contains an XR Interaction Manager into a scene with interactables that previously created a default manager instance. ([XRIT-65](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-65))\n- Fixed teleportation not working when the prefab containing the Teleportation Provider component is instantiated after the teleportation interactables are loaded by attempting to find that component upon each teleport request if needed instead of only upon `Awake`.\n- Fixed climb not working when the prefab containing the Climb Provider component is instantiated after the climb interactables are loaded by attempting to find that component upon each climb attempt if needed instead of only upon `Awake`.\n- Fixed `XR General Grab Transformer` scaling doing exponential scaling because it was using squared distance for ration calculation.\n- Fixed AR Gesture Interactor Inspector window not showing Raycast Mask and Raycast Trigger Interaction properties when the version of AR Foundation is older than version 5.0.\n- Fixed compiler warnings related to `ARSessionOrigin` when AR Foundation 5.0 or newer is installed."
   },
   "upmCi": {
-    "footprint": "4ae50aed427b157fba255447aab1fd99a2ce7f1a"
+    "footprint": "1ec454c851e1694a836732962dadcb19a1ad4f58"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "e91152442a93e8e69ed43d8fb344446480ff75ac"
+    "revision": "1900cc445a8dfc3f84a27a40a77bd8e68ed83d22"
   }
 }

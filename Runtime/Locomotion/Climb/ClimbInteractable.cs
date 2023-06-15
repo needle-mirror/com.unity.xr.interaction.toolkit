@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using UnityEngine.XR.Interaction.Toolkit.Utilities;
+
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interactable that can be climbed while selected.
@@ -15,12 +17,12 @@
 
         [SerializeField]
         [Tooltip("The climb provider that performs locomotion while this interactable is selected. " +
-                 "If no climb provider is configured, will attempt to find one during Awake.")]
+                 "If no climb provider is configured, will attempt to find one.")]
         ClimbProvider m_ClimbProvider;
 
         /// <summary>
         /// The climb provider that performs locomotion while this interactable is selected.
-        /// If no climb provider is configured, will attempt to find one during Awake.
+        /// If no climb provider is configured, will attempt to find one.
         /// </summary>
         public ClimbProvider climbProvider
         {
@@ -116,7 +118,7 @@
         {
             base.Awake();
             if (m_ClimbProvider == null)
-                m_ClimbProvider = FindObjectOfType<ClimbProvider>();
+                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider);
         }
 
         /// <inheritdoc />
@@ -137,14 +139,16 @@
         protected override void OnSelectEntered(SelectEnterEventArgs args)
         {
             base.OnSelectEntered(args);
-            m_ClimbProvider.StartClimbGrab(this, args.interactorObject);
+            if (m_ClimbProvider != null || ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider))
+                m_ClimbProvider.StartClimbGrab(this, args.interactorObject);
         }
 
         /// <inheritdoc />
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
             base.OnSelectExited(args);
-            m_ClimbProvider.FinishClimbGrab(args.interactorObject);
+            if (m_ClimbProvider != null)
+                m_ClimbProvider.FinishClimbGrab(args.interactorObject);
         }
     }
 }

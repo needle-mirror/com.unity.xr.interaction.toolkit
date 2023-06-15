@@ -23,6 +23,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
+        const string k_CurrentDocsVersion = "2.4";
+        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
+        const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
+
+        /// <summary>
+        /// Current documentation version for XR Interaction Toolkit API and Manual pages.
+        /// </summary>
+        internal static string currentDocsVersion => k_CurrentDocsVersion;
+
         /// <summary>
         /// Scripting API URL for <see cref="ActionBasedContinuousMoveProvider"/>.
         /// </summary>
@@ -469,8 +478,5 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRScreenSpaceController"/>.
         /// </summary>
         public const string k_XRScreenSpaceController = k_BaseApi + k_BaseNamespace + nameof(XRScreenSpaceController) + ".html";
-
-        const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/api/";
-        const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
     }
 }

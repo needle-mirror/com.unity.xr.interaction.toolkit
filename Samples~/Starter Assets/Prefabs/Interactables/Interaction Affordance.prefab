@@ -27,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1868228307608861978}
   m_Father: {fileID: 0}
@@ -48,6 +49,7 @@ MonoBehaviour:
   m_InteractableSource: {fileID: 0}
   m_IgnoreHoverEvents: 0
   m_IgnoreHoverPriorityEvents: 1
+  m_IgnoreFocusEvents: 0
   m_IgnoreSelectEvents: 0
   m_IgnoreActivateEvents: 0
   m_SelectClickAnimationMode: 1
@@ -108,6 +110,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5258331117553129771}
   m_RootOrder: 0
@@ -187,6 +190,9 @@ MonoBehaviour:
         animationStateStartValue: {r: 0, g: 0, b: 0, a: 0}
         animationStateEndValue: {r: 0, g: 0, b: 0, a: 0}
       - stateName: activated
+        animationStateStartValue: {r: 0, g: 0, b: 0, a: 0}
+        animationStateEndValue: {r: 0, g: 0, b: 0, a: 0}
+      - stateName: focused
         animationStateStartValue: {r: 0, g: 0, b: 0, a: 0}
         animationStateEndValue: {r: 0, g: 0, b: 0, a: 0}
       m_ColorBlendMode: 0

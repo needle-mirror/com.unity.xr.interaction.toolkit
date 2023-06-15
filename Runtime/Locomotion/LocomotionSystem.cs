@@ -1,5 +1,6 @@
 using UnityEngine.Serialization;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -75,7 +76,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected void Awake()
         {
             if (m_XROrigin == null)
-                m_XROrigin = FindObjectOfType<XROrigin>();
+            {
+                m_XROrigin = GetComponentInParent<XROrigin>();
+                if (m_XROrigin == null)
+                    ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
+            }
         }
 
         /// <summary>

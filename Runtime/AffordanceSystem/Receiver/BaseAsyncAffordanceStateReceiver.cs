@@ -47,7 +47,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
             if (themeData == null)
             {
                 // If we cannot process the desired state index, return
-                XRLoggingUtils.LogError($"Missing theme data for designed index {stateData.stateIndex} with {this}.", this);
+                var stateName = AffordanceStateShortcuts.GetNameForIndex(stateData.stateIndex);
+                XRLoggingUtils.LogError($"Missing theme data for affordance state index {stateData.stateIndex} \"{stateName}\" with {this}.", this);
                 return default;
             }
 

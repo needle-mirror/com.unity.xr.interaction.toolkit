@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.4.0] - 2023-06-15
+
+### Changed
+- Project Settings for the XR Interaction Toolkit have been moved under the category **XR Plug-in Management** to consolidate XR configuration.
+- Project validation rules for the XR Interaction Toolkit and samples have been updated to use global XR project validation and will now appear in the **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** window.
+- Changed `Reset` method of behaviors to no longer assign a reference to an XR Interaction Manager or XR Origin.
+- Changed XR Interactable Affordance State Provider component's default value to Ignore Focus Events.
+- Changed affordance receivers to log a warning when the affordance theme data is missing potential affordance states. A new affordance state `focused` at array index 6 was added to the affordance theme assets in the samples. Users will need to reimport the Starter Assets and Hands Interaction Demo samples or add the `focused` state to their affordance theme assets.
+
+### Fixed
+- Fixed an issue with the XR Distance evaluator not calculating the proper distance from trigger colliders. ([XRIT-71](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-71))
+- Fixed an issue where interactors and interactables could use a different default XR Interaction Manager reference, such as after instantiating a prefab that contains an XR Interaction Manager into a scene with interactables that previously created a default manager instance. ([XRIT-65](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-65))
+- Fixed teleportation not working when the prefab containing the Teleportation Provider component is instantiated after the teleportation interactables are loaded by attempting to find that component upon each teleport request if needed instead of only upon `Awake`.
+- Fixed climb not working when the prefab containing the Climb Provider component is instantiated after the climb interactables are loaded by attempting to find that component upon each climb attempt if needed instead of only upon `Awake`.
+- Fixed `XR General Grab Transformer` scaling doing exponential scaling because it was using squared distance for ration calculation.
+- Fixed AR Gesture Interactor Inspector window not showing Raycast Mask and Raycast Trigger Interaction properties when the version of AR Foundation is older than version 5.0.
+- Fixed compiler warnings related to `ARSessionOrigin` when AR Foundation 5.0 or newer is installed.
 
 ## [2.4.0-pre.2] - 2023-05-31
 
@@ -528,7 +545,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ```
 - Changed `XRInteractionManager` methods `ClearInteractorSelection` and `ClearInteractorHover` from `public` to `protected`. These are invoked each frame automatically and were not intended to be called by external scripts.
 - Changed behaviors that used the `attachTransform` property of `XRBaseInteractor` and `XRGrabInteractable` to instead use `IXRInteractor.GetAttachTransform(IXRInteractable)` and `IXRInteractable.GetAttachTransform(IXRInteractor)` when possible. Users can override the `GetAttachTransform` methods to customize which `Transform` should be used for a given Interactor or Interactable.
-- Changed Interactor and Interactable interaction Layer checks to use the new `InteractionLayerMask` instead of the Unity physics `LayerMask`. Layers for the Interaction Layer Mask can be edited separately from Unity physics Layers. A migration tool was added to upgrade the field in all Prefabs and scenes. You will be prompted automatically after upgrading the package, and it can also be done at any time by opening **Edit &gt; Project Settings &gt; XR Interaction Toolkit** and clicking **Run Interaction Layer Mask Updater**.
+- Changed Interactor and Interactable interaction Layer checks to use the new `InteractionLayerMask` instead of the Unity physics `LayerMask`. Layers for the Interaction Layer Mask can be edited separately from Unity physics Layers. A migration tool was added to upgrade the field in all Prefabs and scenes. You will be prompted automatically after upgrading the package, and it can also be done at any time by opening **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and clicking **Run Interaction Layer Mask Updater**.
 - Changed Toggle and Sticky in Select Action Trigger so the toggled on state is now based on whether a selection actually occurred rather than whether there was simply a valid target. This means that a user that presses the select button while pointing at a valid target but one that can not be selected will no longer be in a toggled on state to select other interactables that can be selected.
 - Changed Socket Interactor so the hover mesh can appear for all valid Interactable components, not just Grab Interactable components.
 - Changed `XRRayInteractor.TranslateAnchor` so the Ray Origin Transform is passed instead of the Original Attach Transform, and renamed the parameter from `originalAnchor` to `rayOrigin`.

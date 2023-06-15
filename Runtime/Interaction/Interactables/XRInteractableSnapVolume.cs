@@ -1,9 +1,6 @@
 using System.Diagnostics;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
-
-#if UNITY_EDITOR
-using UnityEditor.XR.Interaction.Toolkit.Utilities;
-#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -156,18 +153,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         XRInteractionManager m_RegisteredInteractionManager;
 
         /// <summary>
-        /// Cached reference to an <see cref="XRInteractionManager"/> found with <see cref="Object.FindObjectOfType{Type}()"/>.
-        /// </summary>
-        static XRInteractionManager s_InteractionManagerCache;
-
-        /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         [Conditional("UNITY_EDITOR")]
         protected virtual void Reset()
         {
 #if UNITY_EDITOR
-            m_InteractionManager = EditorComponentLocatorUtility.FindSceneComponentOfType<XRInteractionManager>(gameObject);
             m_InteractableObject = GetComponentInParent<IXRInteractable>() as Object;
             m_SnapCollider = FindSnapCollider(gameObject);
             if (m_InteractableObject != null)
@@ -223,16 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (m_InteractionManager != null)
                 return;
 
-            if (s_InteractionManagerCache == null)
-                s_InteractionManagerCache = FindObjectOfType<XRInteractionManager>();
-
-            if (s_InteractionManagerCache == null)
-            {
-                var interactionManagerGO = new GameObject("XR Interaction Manager", typeof(XRInteractionManager));
-                s_InteractionManagerCache = interactionManagerGO.GetComponent<XRInteractionManager>();
-            }
-
-            m_InteractionManager = s_InteractionManagerCache;
+            m_InteractionManager = ComponentLocatorUtility<XRInteractionManager>.FindOrCreateComponent();
         }
 
         void RegisterWithInteractionManager()

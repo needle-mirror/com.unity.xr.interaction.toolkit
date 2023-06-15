@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
@@ -5,6 +7,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// </summary>
     public static class XRInteractableUtility
     {
+        /// <summary>
+        /// Struct to temporarily set <see cref="allowTriggerColliders"/> within a <see langword="using"/> block
+        /// and restore the original value when disposed.
+        /// </summary>
+        internal struct AllowTriggerCollidersScope : IDisposable
+        {
+            bool m_Disposed;
+            readonly bool m_OldValue;
+
+            /// <summary>
+            /// Initializes and returns and instance of <see cref="AllowTriggerCollidersScope"/>.
+            /// </summary>
+            /// <param name="newAllowTriggerColliders">The value to set <see cref="allowTriggerColliders"/> to.</param>
+            public AllowTriggerCollidersScope(bool newAllowTriggerColliders)
+            {
+                m_Disposed = false;
+                m_OldValue = allowTriggerColliders;
+                allowTriggerColliders = newAllowTriggerColliders;
+            }
+
+            /// <summary>
+            /// Dispose the scope instance and restore the original value of <see cref="allowTriggerColliders"/>.
+            /// </summary>
+            public void Dispose()
+            {
+                if (m_Disposed)
+                    return;
+
+                m_Disposed = true;
+                allowTriggerColliders = m_OldValue;
+            }
+        }
+
+        /// <summary>
+        /// Allows for <see cref="TryGetClosestCollider"/> and <see cref="TryGetClosestPointOnCollider"/> to utilize trigger colliders.
+        /// Should be set before the function call and reset after.
+        /// </summary>
+        static bool allowTriggerColliders { get; set; }
+
         /// <summary>
         /// Calculates the closest Interactable's Collider to the given location (based on the Collider Transform position).
         /// The Collider volume and surface are not considered for calculation, use <see cref="TryGetClosestPointOnCollider"/> in this case.
@@ -26,7 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var hasCollider = false;
             foreach (var col in interactable.colliders)
             {
-                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || col.isTrigger)
+                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || (col.isTrigger && !allowTriggerColliders))
                     continue;
 
                 var colPosition = col.transform.position;
@@ -79,7 +120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var hasCollider = false;
             foreach (var col in interactable.colliders)
             {
-                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || col.isTrigger)
+                if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || (col.isTrigger && !allowTriggerColliders))
                     continue;
 
                 var colClosestPoint = col.ClosestPoint(position);

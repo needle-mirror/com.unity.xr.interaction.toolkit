@@ -20,7 +20,7 @@ Interactable that can be climbed while selected.
 | **Override Time To Auto Deselect** | Enables this Interactable to override the auto deselect time on an [XRGazeInteractor](xr-gaze-interactor.md). |
 | **Time To Auto Deselect** | Number of seconds this Interactable will be selected by an [XRGazeInteractor](xr-gaze-interactor.md) before being automatically deselected if **Auto Deselect** is enabled on the gaze Interactor. |
 | **Allow Gaze Assistance** | If enabled, an [XR Gaze Interactor](xr-gaze-interactor.md) will place an [XR Interactable Snap Volume](xr-interactable-snap-volume.md) at this interactable to allow a properly configured [XR Ray Interactor](xr-ray-interactor.md) to snap to this interactable. See the [XR Interactable Snap Volume](xr-interactable-snap-volume.md) or [XR Ray Interactor](xr-ray-interactor.md) pages for further information about correctly configuring an `XRRayInteractor` to support an `XRInteractableSnapVolume`. |
-| **Climb Provider** | The climb provider that performs locomotion while this interactable is selected. If no climb provider is configured, the system will attempt to find one during its `Awake` call. |
+| **Climb Provider** | The climb provider that performs locomotion while this interactable is selected. If no climb provider is configured, the system will attempt to find one. |
 | **Climb Transform** | Transform that defines the coordinate space for climb locomotion. Will use this GameObject's Transform by default. |
 | **Filter Interaction By Distance** | Controls whether to apply a distance check when validating hover and select interaction. |
 | **Max Interaction Distance** | The maximum distance that an interactor can be from this interactable to begin hover or select. |

@@ -528,7 +528,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_InteractionManager, BaseContents.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayers, BaseContents.interactionLayers);
-            if (XRInteractionEditorSettings.instance.showOldInteractionLayerMaskInInspector)
+            if (XRInteractionEditorSettings.Instance.showOldInteractionLayerMaskInInspector)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
