@@ -75,7 +75,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 m_AudioSource = GetComponent<AudioSource>();
 
             if (m_AffordanceThemeDatum != null)
+            {
+                m_AffordanceThemeDatum.Value.ValidateTheme();
                 LogIfMissingAffordanceStates(m_AffordanceThemeDatum.Value);
+            }
         }
 
         /// <summary>

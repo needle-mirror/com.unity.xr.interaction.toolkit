@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         [SerializeField]
         [Tooltip("The action to use for the screen tap position. (Vector 2 Control).")]
-        InputActionProperty m_TapStartPositionAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_TapStartPositionAction = new InputActionProperty(new InputAction("Tap Start Position", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for reading screen Tap Position for this GameObject. Must be a <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -35,7 +35,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the current screen drag position. (Vector 2 Control).")]
-        InputActionProperty m_DragCurrentPositionAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_DragCurrentPositionAction = new InputActionProperty(new InputAction("Drag Current Position", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for reading the screen Drag Position for this GameObject. Must be a <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the delta of the screen drag. (Vector 2 Control).")]
-        InputActionProperty m_DragDeltaAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_DragDeltaAction = new InputActionProperty(new InputAction("Drag Delta", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action used to read the delta Drag values for this GameObject. Must be a <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the screen pinch gesture start position. (Vector 2 Control).")]
-        InputActionProperty m_PinchStartPosition = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_PinchStartPosition = new InputActionProperty(new InputAction("Pinch Start Position", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for reading the Pinch Start Position for this GameObject. Must be a <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -74,7 +74,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the delta of the screen pinch gesture. (Axis Control).")]
-        InputActionProperty m_PinchGapDeltaAction = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
+        InputActionProperty m_PinchGapDeltaAction = new InputActionProperty(new InputAction("Pinch Gap Delta", expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action used to read the delta Pinch values for this GameObject. Must be a <see cref="AxisControl"/> Control.
         /// </summary>
@@ -87,7 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the screen twist gesture start position. (Vector 2 Control).")]
-        InputActionProperty m_TwistStartPosition = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_TwistStartPosition = new InputActionProperty(new InputAction("Twist Start Position", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for reading the Twist Start Position for this GameObject. Must be a <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -100,7 +100,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The action to use for the delta of the screen twist gesture. (Axis Control).")]
-        InputActionProperty m_TwistRotationDeltaAction = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
+        InputActionProperty m_TwistRotationDeltaAction = new InputActionProperty(new InputAction("Twist Delta Rotation", expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action used to read the delta Twist values for this GameObject. Must be a <see cref="AxisControl"/> Control.
         /// </summary>
@@ -113,7 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The number of concurrent touches on the screen. (Integer Control).")]
-        InputActionProperty m_ScreenTouchCount = new InputActionProperty(new InputAction(expectedControlType: "Integer"));
+        InputActionProperty m_ScreenTouchCount = new InputActionProperty(new InputAction("Screen Touch Count", expectedControlType: "Integer"));
         /// <summary>
         /// The number of concurrent touches on the screen.
         /// </summary>

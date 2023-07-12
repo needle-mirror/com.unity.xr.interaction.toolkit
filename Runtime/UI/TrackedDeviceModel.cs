@@ -68,6 +68,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             public Vector2 pressedPosition { get; set; }
 
             /// <summary>
+            /// The position in world space that this button was last pressed.
+            /// This is used to recalculate the relative screen space <see cref="PointerEventData.pressPosition"/> during head movement.
+            /// </summary>
+            /// <seealso cref="pressedPosition"/>
+            /// <seealso cref="TrackedDeviceEventData.pressedWorldPosition"/>
+            public Vector3 pressedWorldPosition { get; set; }
+
+            /// <summary>
             /// The Raycast data from the time it was pressed.
             /// </summary>
             /// <seealso cref="PointerEventData.pointerPressRaycast"/>
@@ -100,6 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 pressedTime = 0f;
                 position = Vector2.zero;
                 pressedPosition = Vector2.zero;
+                pressedWorldPosition = Vector3.zero;
                 pressedRaycast = new RaycastResult();
                 pressedGameObject = null;
                 pressedGameObjectRaw = null;
@@ -381,6 +390,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             eventData.clickTime = m_ImplementationData.pressedTime;
             eventData.position = m_ImplementationData.position;
             eventData.pressPosition = m_ImplementationData.pressedPosition;
+            eventData.pressWorldPosition = m_ImplementationData.pressedWorldPosition;
             eventData.pointerPressRaycast = m_ImplementationData.pressedRaycast;
             eventData.pointerPress = m_ImplementationData.pressedGameObject;
             eventData.rawPointerPress = m_ImplementationData.pressedGameObjectRaw;
@@ -401,6 +411,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_ImplementationData.pressedTime = eventData.clickTime;
             m_ImplementationData.position = eventData.position;
             m_ImplementationData.pressedPosition = eventData.pressPosition;
+            m_ImplementationData.pressedWorldPosition = eventData.pressWorldPosition;
             m_ImplementationData.pressedRaycast = eventData.pointerPressRaycast;
             m_ImplementationData.pressedGameObject = eventData.pointerPress;
             m_ImplementationData.pressedGameObjectRaw = eventData.rawPointerPress;

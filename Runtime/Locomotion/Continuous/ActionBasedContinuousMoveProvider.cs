@@ -15,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read Move data from the left hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_LeftHandMoveAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_LeftHandMoveAction = new InputActionProperty(new InputAction("Left Hand Move", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System Action that Unity uses to read Move data from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to read Move data from the right hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_RightHandMoveAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_RightHandMoveAction = new InputActionProperty(new InputAction("Right Hand Move", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System Action that Unity uses to read Move data from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>

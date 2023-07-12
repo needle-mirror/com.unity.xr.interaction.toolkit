@@ -55,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         public void StartClimbGrab(ClimbInteractable climbInteractable, IXRSelectInteractor interactor)
         {
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void StepClimbMovement(ClimbInteractable currentClimbInteractable, IXRSelectInteractor currentInteractor)
         {
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             if (xrOrigin != null)
             {
                 // Move rig such that climb interactor position stays constant

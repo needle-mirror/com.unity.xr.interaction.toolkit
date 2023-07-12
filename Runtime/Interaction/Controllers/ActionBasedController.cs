@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     public partial class ActionBasedController : XRBaseController
     {
         [SerializeField]
-        InputActionProperty m_PositionAction = new InputActionProperty(new InputAction(expectedControlType: "Vector3"));
+        InputActionProperty m_PositionAction = new InputActionProperty(new InputAction("Position", expectedControlType: "Vector3"));
         /// <summary>
         /// The Input System action to use for Position Tracking for this GameObject. Must be a <see cref="Vector3Control"/> Control.
         /// </summary>
@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_RotationAction = new InputActionProperty(new InputAction(expectedControlType: "Quaternion"));
+        InputActionProperty m_RotationAction = new InputActionProperty(new InputAction("Rotation", expectedControlType: "Quaternion"));
         /// <summary>
         /// The Input System action to use for Rotation Tracking for this GameObject. Must be a <see cref="QuaternionControl"/> Control.
         /// </summary>
@@ -47,7 +47,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_IsTrackedAction = new InputActionProperty(new InputAction(type: InputActionType.Button) { wantsInitialStateCheck = true });
+        InputActionProperty m_IsTrackedAction = new InputActionProperty(new InputAction("Is Tracked", type: InputActionType.Button) { wantsInitialStateCheck = true });
         /// <summary>
         /// The Input System action to read the Is Tracked state when updating this GameObject position and rotation;
         /// falls back to the tracked device's is tracked state that drives the position or rotation action when not set.
@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_TrackingStateAction = new InputActionProperty(new InputAction(expectedControlType: "Integer"));
+        InputActionProperty m_TrackingStateAction = new InputActionProperty(new InputAction("Tracking State", expectedControlType: "Integer"));
         /// <summary>
         /// The Input System action to read the Tracking State when updating this GameObject position and rotation;
         /// falls back to the tracked device's tracking state that drives the position or rotation action when not set.
@@ -75,7 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_SelectAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
+        InputActionProperty m_SelectAction = new InputActionProperty(new InputAction("Select", type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for selecting an Interactable.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -89,7 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_SelectActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
+        InputActionProperty m_SelectActionValue = new InputActionProperty(new InputAction("Select Value", expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for selecting an Interactable.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -105,7 +105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_ActivateAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
+        InputActionProperty m_ActivateAction = new InputActionProperty(new InputAction("Activate", type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for activating a selected Interactable.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -119,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_ActivateActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
+        InputActionProperty m_ActivateActionValue = new InputActionProperty(new InputAction("Activate Value", expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for activating a selected Interactable.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -135,7 +135,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_UIPressAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
+        InputActionProperty m_UIPressAction = new InputActionProperty(new InputAction("UI Press", type: InputActionType.Button));
         /// <summary>
         /// The Input System action to use for Canvas UI interaction.
         /// Must be an action with a button-like interaction where phase equals performed when pressed.
@@ -149,7 +149,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         
         [SerializeField]
-        InputActionProperty m_UIPressActionValue = new InputActionProperty(new InputAction(expectedControlType: "Axis"));
+        InputActionProperty m_UIPressActionValue = new InputActionProperty(new InputAction("UI Press Value", expectedControlType: "Axis"));
         /// <summary>
         /// The Input System action to read values for Canvas UI interaction.
         /// Must be an <see cref="AxisControl"/> Control or <see cref="Vector2Control"/> Control.
@@ -165,7 +165,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_UIScrollAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_UIScrollAction = new InputActionProperty(new InputAction("UI Scroll", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to read values for Canvas UI scrolling.
         /// Must be a <see cref="Vector2Control"/> Control.
@@ -178,7 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_HapticDeviceAction = new InputActionProperty(new InputAction(type: InputActionType.PassThrough));
+        InputActionProperty m_HapticDeviceAction = new InputActionProperty(new InputAction("Haptic Device", type: InputActionType.PassThrough));
         /// <summary>
         /// The Input System action to use for identifying the device to send haptic impulses to.
         /// Can be any control type that will have an active control driving the action.
@@ -190,7 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_RotateAnchorAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_RotateAnchorAction = new InputActionProperty(new InputAction("Rotate Anchor", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for rotating the interactor's attach point over time.
         /// Must be a <see cref="Vector2Control"/> Control. Uses the x-axis as the rotation input.
@@ -202,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_DirectionalAnchorRotationAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_DirectionalAnchorRotationAction = new InputActionProperty(new InputAction("Directional Anchor Rotation", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for computing a direction angle to rotate the interactor's attach point to match it.
         /// Must be a <see cref="Vector2Control"/> Control. The direction angle should be computed as the arctangent function of x/y.
@@ -214,7 +214,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        InputActionProperty m_TranslateAnchorAction = new InputActionProperty(new InputAction(expectedControlType: "Vector2"));
+        InputActionProperty m_TranslateAnchorAction = new InputActionProperty(new InputAction("Translate Anchor", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System action to use for translating the interactor's attach point closer or further away from the interactor.
         /// Must be a <see cref="Vector2Control"/> Control. Uses the y-axis as the translation input.

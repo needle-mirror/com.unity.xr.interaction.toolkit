@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             OrthogonalUpVector(forward, referenceUp, out float3 float3OrthogonalUp);
             orthogonalUp = float3OrthogonalUp;
         }
-        
+
         /// <summary>
         /// Calculates the orthogonal up vector for a given forward vector and a reference up vector.
         /// </summary>
@@ -66,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             OrthogonalLookRotation(forward, referenceUp, out quaternion lookRot);
             lookRotation = lookRot;
         }
-        
+
         /// <summary>
         /// Calculates a look rotation quaternion given a forward vector and a reference up vector.
         /// </summary>
@@ -81,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             OrthogonalUpVector(forward, referenceUp, out float3 orthogonalUp);
             lookRotation = quaternion.LookRotation(forward, orthogonalUp);
         }
-        
+
         /// <summary>
         /// Projects a vector onto a plane defined by a normal orthogonal to the plane.
         /// </summary>
@@ -101,7 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 projectedVector = vector;
                 return;
             }
-            
+
             var dot = math.dot(vector, planeNormal);
             projectedVector = new float3(vector.x - planeNormal.x * dot / sqrMag,
                 vector.y - planeNormal.y * dot / sqrMag,
@@ -125,7 +125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             ProjectOnPlane(vector, planeNormal, out float3 float3ProjectedVector);
             projectedVector = float3ProjectedVector;
         }
-        
+
         /// <summary>
         /// Computes the look rotation with the forward vector projected on a plane defined by a normal orthogonal to the plane.
         /// </summary>

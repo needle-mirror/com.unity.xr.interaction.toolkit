@@ -187,7 +187,7 @@
         {
             attemptingMove = false;
             var wasMoving = m_IsMoving;
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             m_IsMoving = m_LeftGrabMoveProvider.IsGrabbing() && m_RightGrabMoveProvider.IsGrabbing() && xrOrigin != null;
             if (!m_IsMoving)
             {
@@ -232,7 +232,11 @@
 
         void OnBeginLocomotion(LocomotionSystem otherSystem)
         {
-            var originTransform = system.xrOrigin.transform;
+            var xrOrigin = system.xrOrigin?.Origin;
+            if (xrOrigin == null)
+                return;
+
+            var originTransform = xrOrigin.transform;
             var leftHandLocalPosition = m_LeftGrabMoveProvider.controllerTransform.localPosition;
             var rightHandLocalPosition = m_RightGrabMoveProvider.controllerTransform.localPosition;
 

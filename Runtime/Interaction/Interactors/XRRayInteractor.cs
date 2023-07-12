@@ -1307,10 +1307,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
             }
 
-            GetLineOriginAndDirection(out var lineOrigin, out var lineDirection);
+            var originTransform = effectiveRayOrigin;
 
-            model.position = lineOrigin;
-            model.orientation = Quaternion.LookRotation(lineDirection);
+            model.position = originTransform.position;
+            model.orientation = originTransform.rotation;
             model.select = isUISelectActive;
             model.scrollDelta = uiScrollValue;
             model.raycastLayerMask = m_RaycastMask;
@@ -1784,10 +1784,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             case AnchorRotationMode.MatchDirection:
                                 if (m_DeviceBasedController.inputDevice.TryReadAxis2DValue(m_DeviceBasedController.directionalAnchorRotation, out var directionalValue))
                                 {
-                                    var referenceRotation = m_AnchorRotateReferenceFrame != null
-                                        ? m_AnchorRotateReferenceFrame.rotation
-                                        : GetAttachPoseOnSelect(interactablesSelected[0]).rotation;
-
+                                    var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
                                     RotateAnchor(attachTransform, directionalValue, referenceRotation);
                                 }
                                 break;
@@ -1810,14 +1807,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             case AnchorRotationMode.MatchDirection:
                                 if (TryRead2DAxis(m_ActionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
                                 {
-                                    var referenceRotation = m_AnchorRotateReferenceFrame != null
-                                        ? m_AnchorRotateReferenceFrame.rotation
-                                        : GetAttachPoseOnSelect(interactablesSelected[0]).rotation;
-
+                                    var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
                                     RotateAnchor(attachTransform, directionAmt, referenceRotation);
                                 }
                                 break;
-
                             default:
                                 Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(ActionBasedController)}.");
                                 break;

@@ -624,6 +624,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (eventData.pointerCurrentRaycast.isValid)
                 {
                     screenPosition = screenPointCamera.WorldToScreenPoint(eventData.pointerCurrentRaycast.worldPosition);
+                    if ((deviceState.selectDelta & ButtonDeltaState.Pressed) != 0)
+                    {
+                        eventData.pressWorldPosition = eventData.pointerCurrentRaycast.worldPosition;
+                    }
                 }
                 else
                 {
@@ -639,6 +643,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 ProcessPointerButton(deviceState.selectDelta, eventData);
                 ProcessPointerMovement(eventData);
                 ProcessScrollWheel(eventData);
+                
+                // In a VR headset context, the camera can move while the pointer/controller stays put, but this
+                // breaks the standard 2D screen space model. This will ensure that the initial press position used
+                // for drag detection is updated as head-movement updates each frame. 
+                if (eventData.pressPosition != Vector2.zero)
+                {
+                    eventData.pressPosition = screenPointCamera.WorldToScreenPoint(eventData.pressWorldPosition);
+                }
+
                 ProcessPointerButtonDrag(eventData, UIPointerType.Tracked, m_TrackedDeviceDragThresholdMultiplier);
 
                 var oldTarget = deviceState.implementationData.pointerTarget;

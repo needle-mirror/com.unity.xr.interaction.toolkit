@@ -59,7 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         [Tooltip("The Input System Action that will be used to perform grab movement while held. Must be a Button Control.")]
-        InputActionProperty m_GrabMoveAction = new InputActionProperty(new InputAction(type: InputActionType.Button));
+        InputActionProperty m_GrabMoveAction = new InputActionProperty(new InputAction("Grab Move", type: InputActionType.Button));
         /// <summary>
         /// The Input System Action that Unity uses to perform grab movement while held. Must be a <see cref="ButtonControl"/> Control.
         /// </summary>
@@ -113,7 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override Vector3 ComputeDesiredMove(out bool attemptingMove)
         {
             attemptingMove = false;
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             var wasMoving = m_IsMoving;
             m_IsMoving = canMove && IsGrabbing() && xrOrigin != null;
             if (!m_IsMoving)

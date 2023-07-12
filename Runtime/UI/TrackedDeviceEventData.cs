@@ -48,5 +48,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return null;
             }
         }
+
+        /// <summary>
+        /// The position in world space that this button was last pressed.
+        /// This is used to recalculate the relative screen space <see cref="PointerEventData.pressPosition"/> during head movement.
+        /// </summary>
+        /// <seealso cref="TrackedDeviceModel.pressedWorldPosition"/>
+        internal Vector3 pressWorldPosition { get; set; }
     }
 }

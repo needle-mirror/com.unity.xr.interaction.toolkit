@@ -5,6 +5,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.4.1] - 2023-07-12
+
+### Added
+- Added affordance theme validation logic so that affordance theme assets used in an affordance receiver are automatically upgraded with any missing theme states (such as the focused state).
+
+### Changed
+- Converted math in XR General Grab Transformer to use the Burst compiler and the Mathematics package for performance improvements.
+- Changed XR General Grab Transformer by changing the default value of Threshold Move Ratio For Scale from `0.1` to `0.05`.
+- Changed the climb example ladder to allow forward/z-axis movement at the top for more natural feeling controls.
+- Changed the Starter Assets UI sample to include a dropdown example.
+
+### Fixed
+- Fixed compiler error in `ComponentLocatorUtility.cs` related to `FindFirstObjectByType` in some patch versions of the Unity Editor. It will now fallback to `FindObjectOfType` in Editor versions where the other method is not available.
+- Fixed an issue in the `XRRayInteractor` where the teleport cursor does not stay aligned with the controller direction when moving around.
+- Fixed an issue with the `UIInputModule` that would cause unintended drag events to fire for head/camera movement. ([XRIT-64](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-64))
+- Fixed an issue with the Starter Assets sample that caused dropdowns to render over line renderer visuals.
+- Fixed the Tunneling Vignette sample to render on top of dropdowns and the line renderer visuals.
+- Fixed an issue in the `LazyFollow` where the object would not snap to the target position when the `snapOnEnabled` is true.
+- Fixed various internal transform usages for XR Origin to use its `Origin` property for the transform since the Origin GameObject and the GameObject the component is on may differ.
+- Fixed potential for undesired prefab override noise with serialized input action properties when the **GameObject** &gt; **XR** creation menu is used by ensuring the action name is set even if the Inspector window has never drawn the component.
+
 ## [2.4.0] - 2023-06-15
 
 ### Changed

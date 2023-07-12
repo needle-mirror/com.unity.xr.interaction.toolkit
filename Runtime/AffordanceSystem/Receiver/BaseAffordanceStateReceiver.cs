@@ -141,7 +141,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
                 {
                     if (defaultAffordanceTheme == null)
                         return;
-
+                    
+                    // Ensure the default theme is valid before cloning it
+                    defaultAffordanceTheme.ValidateTheme();
+                    
                     var copiedTheme = GenerateNewAffordanceThemeInstance();
                     copiedTheme.CopyFrom(defaultAffordanceTheme);
                     affordanceTheme = copiedTheme;

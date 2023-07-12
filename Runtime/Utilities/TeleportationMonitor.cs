@@ -142,7 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
         static bool TryGetOriginTransform(LocomotionProvider locomotionProvider, out Transform originTransform)
         {
-            // Correct version of locomotionProvider?.system?.xrOrigin?.transform
+            // Correct version of locomotionProvider?.system?.xrOrigin?.Origin?.transform
             if (locomotionProvider != null)
             {
                 var system = locomotionProvider.system;
@@ -155,14 +155,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
         static bool TryGetOriginTransform(LocomotionSystem system, out Transform originTransform)
         {
-            // Correct version of system?.xrOrigin?.transform
+            // Correct version of system?.xrOrigin?.Origin?.transform
             if (system != null)
             {
                 var xrOrigin = system.xrOrigin;
                 if (xrOrigin != null)
                 {
-                    originTransform = xrOrigin.transform;
-                    return true;
+                    var origin = xrOrigin.Origin;
+                    if (origin != null)
+                    {
+                        originTransform = origin.transform;
+                        return true;
+                    }
                 }
             }
 

@@ -464,14 +464,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return testObjects;
         }
 
-        static TestObjects SetupUIScene(bool setFirstSelected = false)
+        static TestObjects SetupUIScene(bool setFirstSelected = false, bool isWorldSpace = false)
         {
             var testObjects = SetupRig(setFirstSelected);
 
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.worldCamera = testObjects.camera;
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.renderMode = isWorldSpace ? RenderMode.WorldSpace : RenderMode.ScreenSpaceCamera;
 
             // Set up a GameObject hierarchy that we send events to. In a real setup,
             // this would be a hierarchy involving UI components.
@@ -512,6 +512,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Right child occupies right half of parent.
             rightChildTransform.anchoredPosition = new Vector2(quarterSize, 0);
             rightChildTransform.sizeDelta = new Vector2(320, 480);
+
+            // If canvas is in world-space, move it back 200 units to stay in view of the world-space camera
+            if (isWorldSpace)
+                canvas.transform.Translate(0.0f, 0.0f, 200.0f);
 
             return testObjects;
         }
@@ -926,7 +930,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator TrackedDevicesCanDriveUIGraphics()
         {
-            TestObjects testObjects = SetupUIScene();
+            var testObjects = SetupUIScene();
 
             yield return CheckEvents(testObjects);
 
@@ -943,6 +947,97 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // This suppresses a warning that would be logged by TrackedDeviceGraphicRaycaster if the Camera is destroyed first
             Object.Destroy(testObjects.eventSystem.gameObject);
+        }
+
+        [UnityTest]
+        public IEnumerator HeadMovementDoesNotAffectTrackedDeviceDragEvents()
+        {
+            var testObjects = SetupUIScene(isWorldSpace: true);
+            var leftUIReceiver = testObjects.leftUIReceiver;
+            var rightUIReceiver = testObjects.rightUIReceiver;
+            var globalUIReceiver = testObjects.globalUIReceiver;
+
+            var recorder = testObjects.controllerRecorder;
+            var headCamera = testObjects.camera;
+            var eventSystem = testObjects.eventSystem;
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(testObjects.interactor, out var model), Is.True);
+            var primaryPointerId = model.pointerId;
+            Assert.That(primaryPointerId, Is.Not.LessThan(0));
+            Assert.That(eventSystem.IsPointerOverGameObject(-1), Is.False);
+
+            // Reset to Defaults
+            yield return ResetTestObjects(testObjects);
+
+            // Move over left child.
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, false);
+            yield return null;            
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(2));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.PointerMove));
+
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(6));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[4].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[5].type, Is.EqualTo(EventType.PointerMove));
+
+            Assert.That(eventSystem.IsPointerOverGameObject(primaryPointerId), Is.True);
+            Assert.That(eventSystem.IsPointerOverGameObject(-1), Is.True);
+
+            // Stay still and activate button press.
+            recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(5));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(leftUIReceiver.events[1].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(leftUIReceiver.events[2].type, Is.EqualTo(EventType.Down));
+            Assert.That(leftUIReceiver.events[3].type, Is.EqualTo(EventType.Select));
+            Assert.That(leftUIReceiver.events[4].type, Is.EqualTo(EventType.PotentialDrag));
+            Assert.That(eventSystem.currentSelectedGameObject, Is.EqualTo(leftUIReceiver.gameObject));
+            Assert.That(((PointerEventData)leftUIReceiver.events[2].data).pointerId, Is.EqualTo(primaryPointerId));
+            Assert.That(eventSystem.IsPointerOverGameObject(primaryPointerId), Is.True);
+            Assert.That(eventSystem.IsPointerOverGameObject(-1), Is.True);
+
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(9));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[4].type, Is.EqualTo(EventType.Enter));
+            Assert.That(globalUIReceiver.events[5].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[6].type, Is.EqualTo(EventType.Down));
+            Assert.That(globalUIReceiver.events[7].type, Is.EqualTo(EventType.PotentialDrag));
+            Assert.That(globalUIReceiver.events[8].type, Is.EqualTo(EventType.UpdateSelected));
+            
+            ResetReceivers(testObjects);
+
+            // Rotate head instead of controller. Controller must move very slightly to trigger processing by UIInputModule, but not enough to count as a drag.
+            headCamera.transform.Rotate(0.0f, 10.0f, 0.0f);
+            recorder.SetNextPose(new Vector3(0.0f, 0.0f, 0.01f), Quaternion.Euler(0.0f, -30.1f, 0.0f), false, false, true);
+            yield return null;
+
+            Assert.That(leftUIReceiver.events, Has.Count.EqualTo(1));
+            Assert.That(leftUIReceiver.events[0].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(eventSystem.currentSelectedGameObject, Is.EqualTo(leftUIReceiver.gameObject));
+            Assert.That(eventSystem.IsPointerOverGameObject(primaryPointerId), Is.True);
+
+            Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
+
+            Assert.That(globalUIReceiver.events, Has.Count.EqualTo(4));
+            Assert.That(globalUIReceiver.events[0].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[1].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[2].type, Is.EqualTo(EventType.PointerMove));
+            Assert.That(globalUIReceiver.events[3].type, Is.EqualTo(EventType.UpdateSelected));
+
+            ResetReceivers(testObjects);
         }
 
         [UnityTest]

@@ -107,7 +107,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             m_IsMovingXROrigin = false;
 
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -162,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (before restricting movement along each axis and applying gravity).</param>
         protected virtual void MoveRig(Vector3 translationInWorldSpace)
         {
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -209,7 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (CanBeginLocomotion() && BeginLocomotion())
                 {
                     m_IsMovingXROrigin = true;
-                    xrOrigin.Origin.transform.position += motion;
+                    xrOrigin.transform.position += motion;
                     EndLocomotion();
                 }
             }
@@ -217,7 +217,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void FindCharacterController()
         {
-            var xrOrigin = system.xrOrigin;
+            var xrOrigin = system.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -225,7 +225,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // that will be used to move instead of modifying the Transform directly.
             if (m_CharacterController == null && !m_AttemptedGetCharacterController)
             {
-                m_CharacterController = xrOrigin.Origin.GetComponent<CharacterController>();
+                // Try on the Origin GameObject first, and then fallback to the XR Origin GameObject (if different)
+                if (!xrOrigin.TryGetComponent(out m_CharacterController) && xrOrigin != system.xrOrigin.gameObject)
+                    system.xrOrigin.TryGetComponent(out m_CharacterController);
+
                 m_AttemptedGetCharacterController = true;
             }
         }

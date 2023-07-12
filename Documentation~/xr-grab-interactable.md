@@ -17,6 +17,10 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Select Mode** | Indicates the selection policy of an Interactable. This controls how many Interactors can select this Interactable.<br />The value is only read by the Interaction Manager when a selection attempt is made, so changing this value from **Multiple** to **Single** will not cause selections to be exited. |
 | &emsp;Single | Set **Select Mode** to **Single** to prevent additional simultaneous selections from more than one Interactor at a time. |
 | &emsp;Multiple | Set **Select Mode** to **Multiple** to allow simultaneous selections on the Interactable from multiple Interactors. |
+| **Focus Mode** | Specifies the [focus](architecture.md#states) policy of this interactable. |
+| &emsp;None | Set **Focus Mode** to **None** to disable the foucs state for an interactable. |
+| &emsp;Single | Set **Focus Mode** to **Single** to allow interactors of a single [interaction group](architecture.md#interaction-groups) to focus this interactable. |
+| &emsp;Multiple | Set **Focus Mode** to **Multiple** to allow interactors of multiple [interaction groups](architecture.md#interaction-groups) to focus this interactable. |
 | **Allow Gaze Interaction** | Enable for basic interaction events from an [XRGazeInteractor](xr-gaze-interactor.md) and other gaze features. |
 | **Allow Gaze Select** | Enable selection from an [XRGazeInteractor](xr-gaze-interactor.md). |
 | **Override Gaze Time To Select** | Enables this Interactable to override the hover to select time on an [XRGazeInteractor](xr-gaze-interactor.md). |
@@ -48,6 +52,7 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Throw Angular Velocity Scale** | Scale factor Unity applies to this object's angular velocity inherited from the Interactor when released. |
 | **Force Gravity On Detach** | Forces this object to have gravity when released (will still use pre-grab value if this is `false` / unchecked). |
 | **Attach Transform** | The attachment point Unity uses on this Interactable (will use this object's position if none set). |
+| **Secondary Attach Transform** | A second attachment point to use on this Interactable for two-handed interaction. (Unity uses the second interactor's attach transform if you don't set this property). |
 | **Use Dynamic Attach** | Enable to make the effective attachment point based on the pose of the Interactor when the selection is made. |
 | **Match Position** | Match the position of the Interactor's attachment point when initializing the grab. This will override the position of Attach Transform. |
 | **Match Rotation** | Match the rotation of the Interactor's attachment point when initializing the grab. This will override the rotation of Attach Transform. |
@@ -60,7 +65,8 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Starting Single Grab Transformers** | The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for single-interactor selection. After startup, this property is not used. Useful when there is more than one Grab Transformer that should be processed and you need to specify the order. |
 | **Multiple Grab Transformers** | (Play mode only) The grab transformers used when there are multiple interactors selecting this object. |
 | **Single Grab Transformers** | (Play mode only) The grab transformers used when there is a single interactor selecting this object. |
-| **Interactable Events** | See the [Interactable Events](interactable-events.md) page. |
+| **Interactable Filter** | Assign [IXRHoverFilter(xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRHoverFilter), [IXRSelectFilter(xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRSelectFilter), and [IXRInteractionStrengthFilter(xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) objects to an Interactable.|
+| **Interactable Events** | Assign event handlers to events dispatched by an Interactable. Refer to the [Interactable Events](interactable-events.md) page for more information. |
 
 ## Grab transformers
 

@@ -1,5 +1,10 @@
 ﻿using System;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if BURST_PRESENT
+using Unity.Burst;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 {
@@ -11,6 +16,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
     /// <seealso cref="XRGrabInteractable"/>
     [AddComponentMenu("XR/Transformers/XR General Grab Transformer", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGeneralGrabTransformer)]
+#if BURST_PRESENT
+    [BurstCompile]
+#endif
     public class XRGeneralGrabTransformer : XRBaseGrabTransformer
     {
         /// <summary>
@@ -148,7 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                  "\nIf this value is 0f, scaling happens the moment both grab interactors move closer or further away from each other." +
                  "\nOtherwise, this percentage is used as a threshold before any scaling happens.")]
         [Range(0f, 1f)]
-        float m_ThresholdMoveRatioForScale = 0.1f;
+        float m_ThresholdMoveRatioForScale = 0.05f;
 
         /// <summary>
         /// Percentage as a measure of 0 to 1 of scaled relative hand displacement required to trigger scale operation.
@@ -368,12 +376,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             m_LastGrabCount = newGrabCount;
         }
 
-        Pose ComputeAdjustedInteractorPose(XRGrabInteractable grabInteractable, out Vector3 newHandleBar)
+        void ComputeAdjustedInteractorPose(XRGrabInteractable grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out Quaternion adjustedInteractorRotation)
         {
             if (grabInteractable.interactorsSelecting.Count == 1 || m_TwoHandedRotationMode == TwoHandedRotationMode.FirstHandOnly)
             {
                 newHandleBar = m_StartHandleBar;
-                return grabInteractable.interactorsSelecting[0].GetAttachTransform(grabInteractable).GetWorldPose();
+                var attachTransform = grabInteractable.interactorsSelecting[0].GetAttachTransform(grabInteractable);
+                adjustedInteractorPosition = attachTransform.position;
+                adjustedInteractorRotation = attachTransform.rotation;
+                return;
             }
 
             if (grabInteractable.interactorsSelecting.Count > 1)
@@ -431,11 +442,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                     newRotation = interactor0Transform.rotation;
                 }
 
-                return new Pose(interactor0Transform.position, newRotation);
+                adjustedInteractorPosition = interactor0Transform.position;
+                adjustedInteractorRotation = newRotation;
+                return;
             }
 
             newHandleBar = m_StartHandleBar;
-            return Pose.identity;
+            adjustedInteractorPosition = Vector3.zero;
+            adjustedInteractorRotation = Quaternion.identity;
         }
 
         void TranslateSetup(Pose interactorCentroidPose, Vector3 grabCentroid, Pose objectPose, Vector3 objectScale)
@@ -446,31 +460,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             m_ObjectLocalGrabPoint = Quaternion.Inverse(objectPose.rotation) * (grabCentroid - objectPose.position);
             m_ObjectLocalGrabPoint = m_ObjectLocalGrabPoint.Divide(objectScale);
         }
+        
 
-        Vector3 ComputeNewObjectPosition(Pose newInteractionPose, Quaternion objectRotation, Vector3 objectScale, bool trackRotation)
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void ComputeNewObjectPosition(in float3 interactorPosition, in quaternion interactorRotation, in quaternion objectRotation, in float3 objectScale, bool trackRotation, in float3 offsetPosition, in float3 objectLocalGrabPoint, in float3 interactorLocalGrabPoint, out Vector3 newPosition)
         {
             // Scale up offset pose with new object scale
-            Vector3 scaledOffsetPose = Vector3.Scale(m_OffsetPose.position, objectScale);
+            float3 scaledOffsetPose = Scale(offsetPosition, objectScale);
 
             // Adjust computed offset with current source rotation
-            Vector3 rotationAdjustedTargetOffset = trackRotation ? newInteractionPose.rotation * scaledOffsetPose : scaledOffsetPose;
-            Vector3 newTargetPosition = newInteractionPose.position + rotationAdjustedTargetOffset;
+            float3 rotationAdjustedOffset = math.mul(interactorRotation, scaledOffsetPose);
+            float3 rotationAdjustedTargetOffset = trackRotation ? rotationAdjustedOffset : scaledOffsetPose;
+            float3 newTargetPosition = interactorPosition + rotationAdjustedTargetOffset;
 
-            Vector3 scaledGrabToObject = Vector3.Scale(m_ObjectLocalGrabPoint, objectScale);
-            Vector3 adjustedPointerToGrab = m_InteractorLocalGrabPoint;
-            adjustedPointerToGrab = newInteractionPose.rotation * adjustedPointerToGrab;
+            float3 scaledGrabToObject = Scale(objectLocalGrabPoint, objectScale);
+            float3 adjustedInteractorToGrab = interactorLocalGrabPoint;
 
-            return adjustedPointerToGrab - objectRotation * scaledGrabToObject + newTargetPosition;
+            adjustedInteractorToGrab = math.mul(interactorRotation, adjustedInteractorToGrab);
+            var rotatedScaledGrabToObject = math.mul(objectRotation, scaledGrabToObject);
+            
+            newPosition = adjustedInteractorToGrab - rotatedScaledGrabToObject + newTargetPosition;
         }
+        
+        static float3 Scale(float3 a, float3 b) => new float3(a.x * b.x, a.y * b.y, a.z * b.z);
 
-        Quaternion ComputeNewObjectRotation(Pose newInteractionPose, bool trackRotation)
+        Quaternion ComputeNewObjectRotation(in Quaternion interactorRotation, bool trackRotation)
         {
             if (!trackRotation)
                 return m_OriginalObjectPose.rotation;
-            return newInteractionPose.rotation * m_OffsetPose.rotation;
+            return interactorRotation * m_OffsetPose.rotation;
         }
 
-        static Vector3 AdjustPositionForPermittedAxes(Vector3 targetPosition, Pose originalObjectPose, ManipulationAxes permittedAxes, ConstrainedAxisDisplacementMode axisDisplacementMode)
+        static Vector3 AdjustPositionForPermittedAxes(in Vector3 targetPosition, in Pose originalObjectPose, ManipulationAxes permittedAxes, ConstrainedAxisDisplacementMode axisDisplacementMode)
         {
             bool hasX = (permittedAxes & ManipulationAxes.X) != 0;
             bool hasY = (permittedAxes & ManipulationAxes.Y) != 0;
@@ -481,37 +504,61 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             if (!hasX && !hasY && !hasZ)
                 return originalObjectPose.position;
+        
+            AdjustPositionForPermittedAxesBurst(targetPosition, originalObjectPose, axisDisplacementMode, hasX, hasY, hasZ, out Vector3 adjustedTargetPosition);
+            return adjustedTargetPosition;
+        }
 
-            Vector3 xComponent = Vector3.zero;
-            Vector3 yComponent = Vector3.zero;
-            Vector3 zComponent = Vector3.zero;
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void AdjustPositionForPermittedAxesBurst(in Vector3 targetPosition, in Pose originalObjectPose, ConstrainedAxisDisplacementMode axisDisplacementMode, bool hasX, bool hasY, bool hasZ, out Vector3 adjustedTargetPosition)
+        {
+            float3 xComponent = float3.zero;
+            float3 yComponent = float3.zero;
+            float3 zComponent = float3.zero;
 
-            Vector3 translationVector = targetPosition - originalObjectPose.position;
-            Vector3 sumTranslationVector = Vector3.zero;
+            float3 right = new float3(1f, 0f, 0f);
+            float3 up = new float3(0f, 1f, 0f);
+            float3 forward = new float3(0f, 0f, 1f);
+            
+            float3 translationVector = targetPosition - originalObjectPose.position;
+            float3 sumTranslationVector = float3.zero;
+            float3 originalObjectPosition = originalObjectPose.position; 
+            quaternion objectRotation = originalObjectPose.rotation;
 
             if (axisDisplacementMode == ConstrainedAxisDisplacementMode.WorldAxisRelative)
             {
                 if (hasX)
-                    xComponent = Vector3.Project(translationVector, Vector3.right);
+                    xComponent = math.project(translationVector, right);
 
                 if (hasY)
-                    yComponent = Vector3.Project(translationVector, Vector3.up);
+                    yComponent = math.project(translationVector, up);
 
                 if (hasZ)
-                    zComponent = Vector3.Project(translationVector, Vector3.forward);
+                    zComponent = math.project(translationVector, forward);
 
                 sumTranslationVector = (xComponent + yComponent + zComponent);
             }
             else if (axisDisplacementMode == ConstrainedAxisDisplacementMode.ObjectRelative)
             {
                 if (hasX)
-                    xComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.right);
-
+                {
+                    float3 rotatedRight = math.mul(objectRotation, right);
+                    xComponent = math.project(translationVector, rotatedRight);
+                }
+                
                 if (hasY)
-                    yComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.up);
-
+                {
+                    float3 rotatedUp = math.mul(objectRotation, up);
+                    yComponent = math.project(translationVector, rotatedUp);
+                }
+                
                 if (hasZ)
-                    zComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.forward);
+                {
+                    float3 rotatedForward = math.mul(objectRotation, forward);
+                    zComponent = math.project(translationVector, rotatedForward);
+                }
 
                 sumTranslationVector = (xComponent + yComponent + zComponent);
             }
@@ -519,92 +566,102 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             {
                 if (hasX && hasZ)
                 {
-                    sumTranslationVector = Vector3.ProjectOnPlane(translationVector, Vector3.up);
+                    BurstMathUtility.ProjectOnPlane(translationVector, up, out sumTranslationVector);
                 }
                 else
                 {
-                    Vector3 upComponent = Vector3.zero;
+                    float3 upComponent = Vector3.zero;
 
                     if (hasX)
                     {
-                        xComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.right);
+                        float3 rotatedRight = math.mul(objectRotation, right);
+                        xComponent = math.project(translationVector, rotatedRight);
                     }
 
                     if (hasY)
                     {
-                        yComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.up);
-                        upComponent = Vector3.Project(translationVector, Vector3.up);
+                        float3 rotatedUp = math.mul(objectRotation, up);
+                        yComponent = math.project(translationVector, rotatedUp);
+                        upComponent = math.project(translationVector, up);
                     }
 
                     if (hasZ)
                     {
-                        zComponent = Vector3.Project(translationVector, originalObjectPose.rotation * Vector3.forward);
+                        float3 rotatedForward = math.mul(objectRotation, forward);
+                        zComponent = math.project(translationVector, rotatedForward);
                     }
 
-                    sumTranslationVector = Vector3.ProjectOnPlane(xComponent + yComponent + zComponent, Vector3.up) + upComponent;
+                    BurstMathUtility.ProjectOnPlane(xComponent + yComponent + zComponent, up, out var projectedSum);
+                    sumTranslationVector = projectedSum + upComponent;
                 }
             }
 
-            return originalObjectPose.position + sumTranslationVector;
+            adjustedTargetPosition = originalObjectPosition + sumTranslationVector;
         }
-
-        Vector3 ComputeNewScale(XRGrabInteractable grabInteractable, Vector3 startScale, Vector3 currentScale, Vector3 startHandleBar, Vector3 newHandleBar)
+        
+        Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar)
         {
             if (!m_AllowTwoHandedScaling || grabInteractable.interactorsSelecting.Count < 2)
-            {
                 return currentScale;
-            }
 
-            var scaleRatio = Vector3.Magnitude(newHandleBar) / Vector3.Magnitude(startHandleBar);
+            ComputeNewScaleBurst(startScale, currentScale, startHandleBar, newHandleBar, m_ClampScaling, m_ScaleMultiplier, m_ThresholdMoveRatioForScale, m_MinimumScale, m_MaximumScale, out Vector3 newScale);
+            return newScale;
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void ComputeNewScaleBurst(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale,  out Vector3 newScale)
+        {
+            newScale = currentScale;
+
+            var scaleRatio = math.length(newHandleBar) / math.length(startHandleBar);
             if (scaleRatio > 1)
             {
                 var amountOver1 = (scaleRatio - 1f);
-                var multipliedAmountOver1 = amountOver1 * m_ScaleMultiplier;
+                var multipliedAmountOver1 = amountOver1 * scaleMultiplier;
 
-                var multipliedAmountOver1WithoutThreshold = multipliedAmountOver1 - m_ThresholdMoveRatioForScale;
+                var multipliedAmountOver1WithoutThreshold = multipliedAmountOver1 - thresholdMoveRatioForScale;
                 if (multipliedAmountOver1WithoutThreshold < 0f)
-                {
-                    return currentScale;
-                }
+                    return;
 
                 var targetScaleRatio = 1f + multipliedAmountOver1WithoutThreshold;
                 var targetScale = targetScaleRatio * startScale;
 
-                bool isOverMaximum = targetScale.x > m_MaximumScale.x || targetScale.y > m_MaximumScale.y || targetScale.z > m_MaximumScale.z;
-                return isOverMaximum && m_ClampScaling ? m_MaximumScale : targetScale;
+                bool isOverMaximum = targetScale.x > maxScale.x || targetScale.y > maxScale.y || targetScale.z > maxScale.z;
+                newScale = isOverMaximum && clampScale ? maxScale : targetScale;
             }
-
-            if (scaleRatio < 1f)
+            else if (scaleRatio < 1f)
             {
                 var invertedScaleRatio = 1f / scaleRatio;
                 var amountOver1 = invertedScaleRatio - 1f;
-                var multipliedAmountOver1 = amountOver1 * m_ScaleMultiplier;
+                var multipliedAmountOver1 = amountOver1 * scaleMultiplier;
 
-                var multipliedAmountOver1WithoutThreshold = multipliedAmountOver1 - m_ThresholdMoveRatioForScale;
+                var multipliedAmountOver1WithoutThreshold = multipliedAmountOver1 - thresholdMoveRatioForScale;
                 if (multipliedAmountOver1WithoutThreshold < 0f)
-                {
-                    return currentScale;
-                }
+                    return;
 
                 var invertedTargetScaleRatio = 1f + multipliedAmountOver1WithoutThreshold;
                 var targetScale = 1f / invertedTargetScaleRatio * startScale;
 
-                bool isUnderMinimum = targetScale.x < m_MinimumScale.x || targetScale.y < m_MinimumScale.y || startScale.z < m_MinimumScale.z;
-                return isUnderMinimum && m_ClampScaling ? m_MinimumScale : targetScale;
+                bool isUnderMinimum = targetScale.x < minScale.x || targetScale.y < minScale.y || startScale.z < minScale.z;
+                newScale = isUnderMinimum && clampScale ? minScale : targetScale;
             }
-
-            return currentScale;
         }
 
         void UpdateTarget(XRGrabInteractable grabInteractable, ref Pose targetPose, ref Vector3 localScale)
         {
-            var interactorAttachPose = ComputeAdjustedInteractorPose(grabInteractable, out Vector3 newHandleBar);
+            ComputeAdjustedInteractorPose(grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out  Quaternion adjustedInteractorRotation);
 
             localScale = ComputeNewScale(grabInteractable, m_ScaleAtGrabStart, localScale, m_StartHandleBar, newHandleBar);
 
-            targetPose.rotation = ComputeNewObjectRotation(interactorAttachPose, grabInteractable.trackRotation);
+            targetPose.rotation = ComputeNewObjectRotation(adjustedInteractorRotation, grabInteractable.trackRotation);
 
-            var targetObjectPosition = ComputeNewObjectPosition(interactorAttachPose, targetPose.rotation, localScale, grabInteractable.trackRotation);
+            ComputeNewObjectPosition(adjustedInteractorPosition,  adjustedInteractorRotation, 
+                targetPose.rotation, localScale, grabInteractable.trackRotation, 
+                m_OffsetPose.position, m_ObjectLocalGrabPoint, m_InteractorLocalGrabPoint,
+                out Vector3 targetObjectPosition);
+            
             targetPose.position = AdjustPositionForPermittedAxes(targetObjectPosition, m_OriginalObjectPose, m_PermittedDisplacementAxesOnGrab, m_ConstrainedAxisDisplacementModeOnGrab);
         }
     }

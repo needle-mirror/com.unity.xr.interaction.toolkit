@@ -1,3 +1,25 @@
+// Object.FindFirstObjectByType<T> API added in:
+
+// 2022.3.0f1 or newer
+#if UNITY_2022_3_OR_NEWER
+#define HAS_FIND_FIRST_OBJECT_BY_TYPE
+#endif
+
+// 2022.2.5f1 or newer
+#if UNITY_2022_2 && !(UNITY_2022_2_0 || UNITY_2022_2_1 || UNITY_2022_2_2 || UNITY_2022_2_3 || UNITY_2022_2_4)
+#define HAS_FIND_FIRST_OBJECT_BY_TYPE
+#endif
+
+// 2021.3.18f1 or newer
+#if UNITY_2021_3 && !(UNITY_2021_3_0 || UNITY_2021_3_1 || UNITY_2021_3_2 || UNITY_2021_3_3 || UNITY_2021_3_4 || UNITY_2021_3_5 || UNITY_2021_3_6 || UNITY_2021_3_7 || UNITY_2021_3_8 || UNITY_2021_3_9 || UNITY_2021_3_10 || UNITY_2021_3_11 || UNITY_2021_3_12 || UNITY_2021_3_13 || UNITY_2021_3_14 || UNITY_2021_3_15 || UNITY_2021_3_16 || UNITY_2021_3_17)
+#define HAS_FIND_FIRST_OBJECT_BY_TYPE
+#endif
+
+// 2020.3.45f1 or newer (48 is the final 2020.3 patch version)
+#if UNITY_2020_3 && (UNITY_2020_3_45 || UNITY_2020_3_46 || UNITY_2020_3_47 || UNITY_2020_3_48)
+#define HAS_FIND_FIRST_OBJECT_BY_TYPE
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
@@ -28,7 +50,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             if (s_ComponentCache == null)
             {
-                s_ComponentCache = Object.FindFirstObjectByType<T>();
+                s_ComponentCache = Find();
 
                 if (s_ComponentCache == null)
                     s_ComponentCache = new GameObject(typeof(T).Name, typeof(T)).GetComponent<T>();
@@ -68,9 +90,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 return true;
             }
 
-            s_ComponentCache = Object.FindFirstObjectByType<T>();
+            s_ComponentCache = Find();
             component = s_ComponentCache;
             return component != null;
+        }
+
+        static T Find()
+        {
+#if HAS_FIND_FIRST_OBJECT_BY_TYPE
+            // Preferred API
+            return Object.FindFirstObjectByType<T>();
+#else
+            // Fallback API
+            return Object.FindObjectOfType<T>();
+#endif
         }
     }
 }

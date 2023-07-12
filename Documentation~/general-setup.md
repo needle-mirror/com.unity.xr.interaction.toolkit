@@ -1,3 +1,6 @@
+---
+uid: xri-general-setup
+---
 # General setup
 
 This section will walk you through the steps to create an XR Origin camera rig for a head-mounted device and create the basic building blocks of XR interactivity.
@@ -78,6 +81,7 @@ If you later create additional Input Action Assets, add them to the **Action Ass
 > [!NOTE]
 > For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view may need to have focus depending on the current project settings. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. See [Background and focus change behavior](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Devices.html#background-and-focus-change-behavior) to learn how to adjust settings to not require focus in the Game view.
 
+<a id="create-grab-interactable"></a>
 ## Create an Interactable for the player to grab
 
 Interactable components define how the user can interact with objects in a scene. To create a basic 3D cube that can be grabbed, use **GameObject &gt; XR &gt; Grab Interactable**.

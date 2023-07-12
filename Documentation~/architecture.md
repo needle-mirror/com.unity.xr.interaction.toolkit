@@ -1,7 +1,11 @@
+---
+uid: xri-architecture
+---
 # Architecture
 
 This section describes the relationship between the core components of the interaction system and the states that make up the lifecycle of an interaction.
 
+<a id="states"></a>
 ## States
 
 The Interaction system has three common states: Hover, Select, and Activate. These states can mean different things to different objects. Hover and Select are loosely related to the traditional GUI concepts of mouse-over and mouse-down. Activate is specific to XR and is a contextual command.
@@ -32,6 +36,7 @@ Upon being enabled (during the behavior's `OnEnable`), both Interactors and Inte
 
 For more detail about the exact mechanism the Interaction Manager uses to trigger the state changes, see [Update loop](#update-loop).
 
+<a id="interaction-groups"></a>
 ### Interaction Groups
 Interaction Groups are mediators for Interactors. A Group contains multiple member Interactors, sorted by priority, and only allows one Interactor in the Group to interact (hover or select) at a time. Groups first prioritize continuous selection - so if a member Interactor was interacting the previous frame and can start or continue selection in the current frame, then that Interactor will be chosen for interaction even if a higher priority Interactor tries to interact.
 

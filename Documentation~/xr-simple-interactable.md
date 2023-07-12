@@ -1,3 +1,6 @@
+---
+uid: xri-simple-interactable
+---
 # XR Simple Interactable
 
 This is the simplest version of an Interactable object. It simply provides a concrete implementation of the `XRBaseInteractable`. It is intended to be used as a way to respond to interaction events with no underlying interaction behavior.

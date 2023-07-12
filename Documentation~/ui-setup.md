@@ -1,3 +1,6 @@
+---
+uid: xri-ui-setup
+---
 # UI interaction setup
 
 To interact with Unity's built-in UI elements, you need to perform extra steps, particularly if you're dealing with 3D-tracked devices. The XR Interaction Toolkit package provides a number of new components that you can use to convert an XR controller to work seamlessly with the UI, as well as helper menu options that handle basic configuration settings.

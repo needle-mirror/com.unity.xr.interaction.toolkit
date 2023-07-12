@@ -371,6 +371,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (m_SnapOnEnable)
             {
+                if (m_PositionFollowMode != PositionFollowMode.None)
+                {
+                    if (TryGetThresholdTargetPosition(out var newPositionTarget))
+                        m_Vector3TweenableVariable.target = newPositionTarget;
+                }
+
+                if (m_RotationFollowMode != RotationFollowMode.None)
+                {
+                    if (TryGetThresholdTargetRotation(out var newRotationTarget))
+                        m_QuaternionTweenableVariable.target = newRotationTarget;
+                }
+
                 m_Vector3TweenableVariable.HandleTween(1f);
                 m_QuaternionTweenableVariable.HandleTween(1f);
             }
@@ -413,7 +425,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     m_Vector3TweenableVariable.HandleTween(deltaTime * movementSpeed);
             }
 
-            if (rotationFollowMode != RotationFollowMode.None)
+            if (m_RotationFollowMode != RotationFollowMode.None)
             {
                 if (TryGetThresholdTargetRotation(out var newTargetRotation))
                     m_QuaternionTweenableVariable.target = newTargetRotation;
