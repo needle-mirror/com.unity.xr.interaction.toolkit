@@ -5,7 +5,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
     /// <summary>
     /// Grab transformer which supports moving and rotating unconstrained with a single Interactor.
     /// Maintains the offset from the attachment point used for that Interactor.
-    /// This is the default grab transformer used for single selections.
     /// </summary>
     /// <seealso cref="XRGrabInteractable"/>
     [AddComponentMenu("XR/Transformers/XR Single Grab Free Transformer", 11)]

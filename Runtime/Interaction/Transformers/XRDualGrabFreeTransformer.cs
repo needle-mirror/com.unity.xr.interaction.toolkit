@@ -7,7 +7,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
     /// Grab transformer which supports moving and rotating unconstrained with multiple Interactors.
     /// Maintains the offset from the attachment points used for each Interactor and points in the
     /// direction made by each grab.
-    /// This is the default grab transformer used for multiple selections.
     /// </summary>
     /// <remarks>
     /// When there is a single Interactor, this has identical behavior to <see cref="XRSingleGrabFreeTransformer"/>.

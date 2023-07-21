@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.4.3] - 2023-07-21
+
+### Fixed
+- Fixed Starter Asset validation check that would trigger a race condition when accessing the XRI settings files, causing false console errors.
+
+## [2.4.2] - 2023-07-20
+
+### Changed
+- Changed package version for internal release.
+
 ## [2.4.1] - 2023-07-12
 
 ### Added

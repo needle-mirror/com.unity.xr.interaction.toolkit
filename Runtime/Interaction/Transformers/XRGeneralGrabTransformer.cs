@@ -12,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
     /// Grab transformer which supports moving and rotating unconstrained with one or two interactors.
     /// Also allows clamped or unclamped scaling when using two interactors.
     /// Allows axis constraints on translation.
+    /// This is the default grab transformer.
     /// </summary>
     /// <seealso cref="XRGrabInteractable"/>
     [AddComponentMenu("XR/Transformers/XR General Grab Transformer", 11)]

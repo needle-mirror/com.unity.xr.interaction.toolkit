@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.4.1",
+  "version": "2.4.3",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -49,15 +49,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added affordance theme validation logic so that affordance theme assets used in an affordance receiver are automatically upgraded with any missing theme states (such as the focused state).\n\n### Changed\n- Converted math in XR General Grab Transformer to use the Burst compiler and the Mathematics package for performance improvements.\n- Changed XR General Grab Transformer by changing the default value of Threshold Move Ratio For Scale from `0.1` to `0.05`.\n- Changed the climb example ladder to allow forward/z-axis movement at the top for more natural feeling controls.\n- Changed the Starter Assets UI sample to include a dropdown example.\n\n### Fixed\n- Fixed compiler error in `ComponentLocatorUtility.cs` related to `FindFirstObjectByType` in some patch versions of the Unity Editor. It will now fallback to `FindObjectOfType` in Editor versions where the other method is not available.\n- Fixed an issue in the `XRRayInteractor` where the teleport cursor does not stay aligned with the controller direction when moving around.\n- Fixed an issue with the `UIInputModule` that would cause unintended drag events to fire for head/camera movement. ([XRIT-64](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-64))\n- Fixed an issue with the Starter Assets sample that caused dropdowns to render over line renderer visuals.\n- Fixed the Tunneling Vignette sample to render on top of dropdowns and the line renderer visuals.\n- Fixed an issue in the `LazyFollow` where the object would not snap to the target position when the `snapOnEnabled` is true.\n- Fixed various internal transform usages for XR Origin to use its `Origin` property for the transform since the Origin GameObject and the GameObject the component is on may differ.\n- Fixed potential for undesired prefab override noise with serialized input action properties when the **GameObject** &gt; **XR** creation menu is used by ensuring the action name is set even if the Inspector window has never drawn the component."
+    "changelog": "### Fixed\n- Fixed Starter Asset validation check that would trigger a race condition when accessing the XRI settings files, causing false console errors."
   },
   "upmCi": {
-    "footprint": "fbada7f51dfa5b70242d48772f87b6ac5b547d18"
+    "footprint": "61711e2e5d68750c4822fbf294ff2546872a1401"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "11fc5a35e263ed9bf87b533cee5cad9ff838b8e9"
+    "revision": "cb4acfeb3f935960aa749e1247cba8d8d57c8fe2"
   }
 }

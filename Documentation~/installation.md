@@ -18,7 +18,7 @@ To install this package (minimum version: 2.0.4), follow the [installation instr
 This package was not listed in the Editor manifest in earlier versions of Unity 2021. Due to this, installation is a manual process. To install this package:
 1. Open the project that you plan to use.
 1. Click the following link to bring up the **Add package by name** window in Package Manager: 
-[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@2.4.1) 
+[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@2.4.3)
 
    ![installation-add-package-by-name](images/installation-add-package-by-name.png)
 
@@ -51,7 +51,7 @@ This package has a dependency on [Input System](https://docs.unity3d.com/Package
 
 ## Interaction Layer Mask Updater
 
-You will see a prompt asking you to upgrade your interaction layers in your project assets. If you're installing the XR Interaction Toolkit for the first time in your project, click **No Thanks** to skip. If you are upgrading from an older package version prior to 2.0.0, then it's recommended to update the interaction layer masks by clicking **I Made a Backup, Go Ahead!**. For more information, see [Interaction Layer Mask Updater](interaction-layers.md#interaction-layer-mask-updater).
+You may see a prompt asking you to upgrade your interaction layers in your project assets. If you're installing the XR Interaction Toolkit for the first time in your project, click **No Thanks** to skip. If you are upgrading from an older package version prior to 2.0.0, then it's recommended to update the interaction layer masks by clicking **I Made a Backup, Go Ahead!**. For more information, see [Interaction Layer Mask Updater](interaction-layers.md#interaction-layer-mask-updater).
 
 ![interaction-layer-mask-updater](images/interaction-layer-mask-updater.png)
 
