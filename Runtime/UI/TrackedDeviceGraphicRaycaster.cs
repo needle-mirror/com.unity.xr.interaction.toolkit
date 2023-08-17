@@ -185,11 +185,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <returns>True if any poke interactor is hovering or selecting a graphic in the scene.</returns>
         internal static bool IsPokeInteractingWithUI(IUIInteractor interactor)
         {
-            foreach (var raycaster in s_PokeHoverRaycasters.Keys)
+            foreach (var pokeUIInteractorSet in s_PokeHoverRaycasters.Values)
             {
-                if (s_PokeHoverRaycasters.TryGetValue(raycaster, out var pokeUIInteractorSet) && pokeUIInteractorSet.Contains(interactor))
+                if (pokeUIInteractorSet.Contains(interactor))
                     return true;
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to get the <see cref="PokeStateData"/> for the provided <see cref="IUIInteractor"/>.
+        /// </summary>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check.</param>
+        /// <param name="data">The <see cref="PokeStateData"/> associated with the <see cref="IUIInteractor"/> if it is found.</param>
+        /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> is found and its associated <see cref="PokeStateData"/> is retrieved successfully, otherwise returns <see langword="false"/>.</returns>
+        internal static bool TryGetPokeStateDataForInteractor(IUIInteractor interactor, out PokeStateData data)
+        {
+            foreach (var kvp in s_PokeHoverRaycasters)
+            {
+                var pokeUIInteractorSet = kvp.Value;
+                if (pokeUIInteractorSet.Contains(interactor))
+                {
+                    var raycaster = kvp.Key;
+                    data = raycaster.pokeStateData.Value;
+                    return true;
+                }
+            }
+
+            data = default;
             return false;
         }
 
@@ -200,6 +224,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         BindingsGroup m_BindingsGroup = new BindingsGroup();
         
+        /// <summary>
+        /// Gets the <see cref="PokeStateData"/> as a <see cref="IReadOnlyBindableVariable{TValue}"/> for the target transform.
+        /// </summary>
+        /// <param name="target">The target to get the <see cref="PokeStateData"/> for.</param>
+        /// <returns>Returns a <see cref="IReadOnlyBindableVariable{TValue}"/> for the <see cref="PokeStateData"/> for the target.</returns>
         public IReadOnlyBindableVariable<PokeStateData> GetPokeStateDataForTarget(Transform target)
         {
             if (!pokeStateDataDictionary.ContainsKey(target))

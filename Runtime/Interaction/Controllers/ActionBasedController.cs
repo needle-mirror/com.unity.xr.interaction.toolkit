@@ -225,6 +225,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => SetInputActionProperty(ref m_TranslateAnchorAction, value);
         }
 
+        [SerializeField]
+        InputActionProperty m_ScaleToggleAction = new InputActionProperty(new InputAction("Scale Toggle", type: InputActionType.Button));
+        /// <summary>
+        /// The Input System action to use to enable or disable reading from the Scale Delta Action.
+        /// Must be a <see cref="ButtonControl"/> Control. The pressed state of the button will toggle the scale state.
+        /// </summary>
+        /// <seealso cref="scaleDeltaAction"/>
+        public InputActionProperty scaleToggleAction
+        {
+            get => m_ScaleToggleAction;
+            set => SetInputActionProperty(ref m_ScaleToggleAction, value);
+        }
+
+        [SerializeField]
+        InputActionProperty m_ScaleDeltaAction = new InputActionProperty(new InputAction("Scale Delta", expectedControlType: "Vector2"));
+        /// <summary>
+        /// The Input System action to use for providing a scale delta value to transformers.
+        /// Must be a <see cref="Vector2Control"/> Control. Uses the y-axis as the scale input.
+        /// </summary>
+        /// <seealso cref="IXRScaleValueProvider"/>
+        public InputActionProperty scaleDeltaAction
+        {
+            get => m_ScaleDeltaAction;
+            set => SetInputActionProperty(ref m_ScaleDeltaAction, value);
+        }
+
         bool m_HasCheckedDisabledTrackingInputReferenceActions;
         bool m_HasCheckedDisabledInputReferenceActions;
 
@@ -487,6 +513,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_RotateAnchorAction.EnableDirectAction();
             m_DirectionalAnchorRotationAction.EnableDirectAction();
             m_TranslateAnchorAction.EnableDirectAction();
+            m_ScaleToggleAction.EnableDirectAction();
+            m_ScaleDeltaAction.EnableDirectAction();
         }
 
         void DisableAllDirectActions()
@@ -506,6 +534,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_RotateAnchorAction.DisableDirectAction();
             m_DirectionalAnchorRotationAction.DisableDirectAction();
             m_TranslateAnchorAction.DisableDirectAction();
+            m_ScaleToggleAction.DisableDirectAction();
+            m_ScaleDeltaAction.DisableDirectAction();
         }
 
         void SetInputActionProperty(ref InputActionProperty property, InputActionProperty value)

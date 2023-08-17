@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
+using Unity.XR.CoreUtils.Bindings.Variables;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -13,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRPokeFilter"/>
     [AddComponentMenu("XR/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
-    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor
+    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider
     {
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
@@ -127,7 +128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         [Tooltip("When enabled, this allows the poke interactor to hover and select UI elements.")]
         bool m_EnableUIInteraction = true;
-        
+
         /// <summary>
         /// Gets or sets whether this Interactor is able to affect UI.
         /// </summary>
@@ -178,6 +179,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_UIHoverExited = value;
         }
 
+        BindableVariable<PokeStateData> m_PokeStateData = new BindableVariable<PokeStateData>();
+
+        /// <inheritdoc />
+        public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeStateData;
+
         GameObject m_HoverDebugSphere;
         MeshRenderer m_HoverDebugRenderer;
 
@@ -186,14 +192,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_PokeCanSelect;
         bool m_FirstFrame = true;
         IXRSelectInteractable m_CurrentPokeTarget;
+        IXRPokeFilter m_CurrentPokeFilter;
 
         readonly RaycastHit[] m_SphereCastHits = new RaycastHit[25];
         readonly Collider[] m_OverlapSphereHits = new Collider[25];
         readonly List<PokeCollision> m_PokeTargets = new List<PokeCollision>();
         readonly List<IXRSelectFilter> m_InteractableSelectFilters = new List<IXRSelectFilter>();
-                        
+
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
         PhysicsScene m_LocalPhysicsScene;
+
         // Used to avoid GC Alloc each frame in UpdateUIModel
         Func<Vector3> m_PositionGetter;
 
@@ -242,7 +250,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
-                m_PokeCanSelect = EvaluatePokeInteraction(out m_CurrentPokeTarget);
+                m_PokeCanSelect = EvaluatePokeInteraction(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
+                ProcessPokeStateData();
             }
         }
 
@@ -255,6 +264,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 UpdateDebugVisuals();
             }
+        }
+
+        void ProcessPokeStateData()
+        {
+            PokeStateData newPokeStateData = default;
+            if (isInteractingWithUI)
+            {
+                TrackedDeviceGraphicRaycaster.TryGetPokeStateDataForInteractor(this, out newPokeStateData);
+            }
+            else if (m_CurrentPokeFilter != null && m_CurrentPokeFilter is IPokeStateDataProvider pokeStateDataProvider)
+            {
+                newPokeStateData = pokeStateDataProvider.pokeStateData.Value;
+            }
+            m_PokeStateData.Value = newPokeStateData;
         }
 
         /// <inheritdoc />
@@ -290,14 +313,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Evaluates whether or not an attempted poke interaction is valid.
         /// </summary>
-        /// <param name="newHoveredInteractable"> The newly hovered interactable. </param>
+        /// <param name="newHoveredInteractable">The newly hovered interactable.</param>
+        /// <param name="newPokeFilter">The new poke filter.</param>
         /// <returns>
         /// Returns <see langword="true"/> if poke interaction can be completed.
         /// Otherwise, returns <see langword="false"/>.
         /// </returns>
-        bool EvaluatePokeInteraction(out IXRSelectInteractable newHoveredInteractable)
+        bool EvaluatePokeInteraction(out IXRSelectInteractable newHoveredInteractable, out IXRPokeFilter newPokeFilter)
         {
-            newHoveredInteractable = null;
+            newHoveredInteractable = default;
+            newPokeFilter = default;
+
             int sphereOverlapCount = EvaluateSphereOverlap();
             bool hasOverlap = sphereOverlapCount > 0;
             bool canCompletePokeInteraction = false;
@@ -307,6 +333,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var smallestSqrDistance = float.MaxValue;
                 int pokeTargetsCount = m_PokeTargets.Count;
                 IXRSelectInteractable closestInteractable = null;
+                IXRPokeFilter closestPokeFilter = null;
 
                 for (var i = 0; i < pokeTargetsCount; ++i)
                 {
@@ -318,7 +345,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         if (sqrDistance < smallestSqrDistance)
                         {
                             smallestSqrDistance = sqrDistance;
-                            closestInteractable  = selectable;
+                            closestInteractable = selectable;
+                            closestPokeFilter = m_PokeTargets[i].filter;
                         }
                     }
                 }
@@ -327,6 +355,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     canCompletePokeInteraction = true;
                     newHoveredInteractable = closestInteractable;
+                    newPokeFilter = closestPokeFilter;
                 }
             }
 
@@ -343,7 +372,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Vector3 interFrameEnd = pokeInteractionPoint;
 
             BurstPhysicsUtils.GetSphereOverlapParameters(overlapStart, interFrameEnd, out var normalizedOverlapVector, out var overlapSqrMagnitude, out var overlapDistance);
-            
+
             // If no movement is recorded.
             // Check if spherecast size is sufficient for proper cast, or if first frame since last frame poke position will be invalid.
             if (m_FirstFrame || overlapSqrMagnitude < 0.001f)
@@ -411,6 +440,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -444,7 +474,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (!m_DebugVisualizationsEnabled)
                 return;
-
             m_HoverDebugRenderer.material.color = m_PokeTargets.Count > 0 ? new Color(0f, 0.8f, 0f, 0.1f) : new Color(0.8f, 0f, 0f, 0.1f);
         }
 

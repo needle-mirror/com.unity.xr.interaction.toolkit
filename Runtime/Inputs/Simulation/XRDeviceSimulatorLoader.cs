@@ -23,7 +23,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         [Preserve]
         static XRDeviceSimulatorLoader()
         {
-            if (!XRDeviceSimulatorSettings.Instance.automaticallyInstantiateSimulatorPrefab)
+            if (!XRDeviceSimulatorSettings.Instance.automaticallyInstantiateSimulatorPrefab ||
+                (XRDeviceSimulatorSettings.Instance.automaticallyInstantiateInEditorOnly && !Application.isEditor))
                 return;
 
 #if UNITY_INCLUDE_TESTS

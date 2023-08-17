@@ -182,7 +182,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         {   
             switch (gesture)
             {
-                 case TapGesture tapGesture:
+                case TapGesture tapGesture:
                     m_ControllerState.tapStartPosition = tapGesture.startPosition;
                     break;
                 case DragGesture dragGesture:
@@ -227,13 +227,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                 case PinchGesture pinchGesture:
                     m_ControllerState.pinchStartPosition1 =  Vector2.zero;
                     m_ControllerState.pinchStartPosition2 =  Vector2.zero;
-                    m_ControllerState.pinchGap = 0;
-                    m_ControllerState.pinchGapDelta = 0;
+                    m_ControllerState.pinchGap = 0f;
+                    m_ControllerState.pinchGapDelta = 0f;
                     break;
                 case TwistGesture twistGesture:
                     m_ControllerState.twistStartPosition1 =  Vector2.zero;
                     m_ControllerState.twistStartPosition2 =  Vector2.zero;
-                    m_ControllerState.twistDeltaRotation = 0;
+                    m_ControllerState.twistDeltaRotation = 0f;
                     break;
                 case TwoFingerDragGesture twoFingerDragGesture:
                     m_ControllerState.twoFingerDragStartPosition1 = Vector2.zero;
@@ -249,7 +249,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// <summary>
         /// Converts state data to a string.
         /// </summary>
-        /// <returns>A string representation.</returns>
+        /// <returns>Returns a string representation.</returns>
         public override string ToString()
         {
             var stringBuilder = new StringBuilder();

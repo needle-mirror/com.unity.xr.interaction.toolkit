@@ -58,10 +58,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <inheritdoc />
         protected override float CalculateNormalizedScore(IXRInteractor interactor, IXRInteractable target)
         {
+            // We return .5 as the lowest value - zeroing out the score will flatten out the value, messing with other evaluators
             if (!m_InteractableSelectionTimeMap.TryGetValue(target, out var time) || m_MaxTime <= 0f)
-                return 0f;
+                return 0.5f;
 
-            return 1f - Mathf.Clamp01((Time.time - time) / m_MaxTime);
+            return (1f - Mathf.Clamp01((Time.time - time) / m_MaxTime)) * 0.5f + 0.5f;
         }
     }
 }

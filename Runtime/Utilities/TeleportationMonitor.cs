@@ -45,7 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             new LinkedPool<Dictionary<LocomotionSystem, Pose>>(() => new Dictionary<LocomotionSystem, Pose>());
 
         /// <summary>
-        /// Cached reference to <see cref="TeleportationProvider"/> instances found with <see cref="Object.FindObjectsOfType{Type}()"/>.
+        /// Cached reference to <see cref="TeleportationProvider"/> instances found.
         /// </summary>
         static TeleportationProvider[] s_TeleportationProvidersCache;
 
@@ -177,7 +177,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         static bool FindTeleportationProviders()
         {
             if (s_TeleportationProvidersCache == null)
+#if UNITY_2023_1_OR_NEWER
+                s_TeleportationProvidersCache = Object.FindObjectsByType<TeleportationProvider>(FindObjectsSortMode.None);
+#else
                 s_TeleportationProvidersCache = Object.FindObjectsOfType<TeleportationProvider>();
+#endif
 
             return s_TeleportationProvidersCache.Length > 0;
         }

@@ -199,7 +199,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ControllerLocomotionVignetteProviders = m_TunnelingVignetteController.locomotionVignetteProviders;
 
             // Cache all the LocomotionProviders that exist in the scene.
+#if UNITY_2023_1_OR_NEWER
+            s_CachedLocomotionProviders = FindObjectsByType<LocomotionProvider>(FindObjectsSortMode.None);
+#else
             s_CachedLocomotionProviders = FindObjectsOfType<LocomotionProvider>();
+#endif
             InitializeLocomotionProviderDropDownDisplay();
 
             // Update the Locomotion Provider names in the preview drop down menu.

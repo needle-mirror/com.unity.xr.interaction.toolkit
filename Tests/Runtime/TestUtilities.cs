@@ -179,6 +179,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactable;
         }
 
+        internal static XRSimpleInteractable CreateTriggerInteractable()
+        {
+            GameObject interactableGO = new GameObject("Trigger Interactable");
+            var collider = CreateGOSphereCollider(interactableGO, false);
+            XRSimpleInteractable interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+            Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            collider.isTrigger = true;      // We set the trigger here, rather than using the function argument so that the collider gets added to the interactable's list of colliders
+            return interactable;
+        }
+
         internal static XRInteractableSnapVolume CreateSnapVolume()
         {
             GameObject snapVolumeGO = new GameObject("Snap Volume");
@@ -420,6 +432,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             OnLink,
             OnGrab,
             OnGrabCountChanged,
+            OnDrop,
             ProcessFixed,
             ProcessDynamic,
             ProcessLate,
@@ -507,6 +520,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public void OnUnlink(XRGrabInteractable grabInteractable)
         {
             methodTraces.Add(MethodTrace.OnUnlink);
+        }
+    }
+
+    class MockDropTransformer : MockGrabTransformer, IXRDropTransformer
+    {
+        /// <inheritdoc />
+        public bool canProcessOnDrop { get; set; } = true;
+
+        /// <inheritdoc />
+        public void OnDrop(XRGrabInteractable grabInteractable, DropEventArgs args)
+        {
+            Assert.That(args, Is.Not.Null);
+            Assert.That(args.selectExitEventArgs, Is.Not.Null);
+            Assert.That(args.selectExitEventArgs.interactableObject, Is.SameAs(grabInteractable));
+            Assert.That(args.selectExitEventArgs.manager, Is.SameAs(grabInteractable.interactionManager));
+
+            methodTraces.Add(MethodTrace.OnDrop);
         }
     }
 

@@ -1,5 +1,6 @@
 * [XR Interaction Toolkit](index.md)
   * What's new
+    * [2.5.0](whats-new-2.5.0.md)
     * [2.4.0](whats-new-2.4.0.md)
     * [2.3.0](whats-new-2.3.0.md)
     * [2.2.0](whats-new-2.2.0.md)
@@ -12,7 +13,7 @@
   * [Locomotion](locomotion.md)
   * [Interaction layers](interaction-layers.md)
   * [Target filters](target-filters.md)
-  * [AR interaction](ar-interaction.md)
+  * [AR interaction](ar-interaction-overview.md)
   * [Affordance system](affordance-system.md)
   * [XR Device Simulator overview](xr-device-simulator-overview.md)
   * [Debugger window](debugger-window.md)

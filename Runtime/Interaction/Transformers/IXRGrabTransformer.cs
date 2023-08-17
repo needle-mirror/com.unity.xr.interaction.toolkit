@@ -12,6 +12,7 @@
     /// </remarks>
     /// <seealso cref="XRBaseGrabTransformer"/>
     /// <seealso cref="XRGrabInteractable"/>
+    /// <seealso cref="IXRDropTransformer"/>
     public interface IXRGrabTransformer
     {
         /// <summary>
@@ -50,7 +51,7 @@
         /// </summary>
         /// <param name="grabInteractable">The XR Grab Interactable being grabbed.</param>
         /// <param name="targetPose">The current target pose for the current frame.</param>
-        /// <param name="localScale">The current scale of the Interactable's transform relative to the GameObjects parent.</param>
+        /// <param name="localScale">The current target scale of the Interactable's transform relative to the GameObject's parent.</param>
         /// <remarks>
         /// There will always be at least one Interactor selecting the Interactable when this method is called.
         /// In other words, this will be called when the selection count changes from <c>0</c> to <c>1</c>
@@ -73,7 +74,7 @@
         /// <param name="grabInteractable">The XR Grab Interactable to calculate the target pose and scale for.</param>
         /// <param name="updatePhase">The update phase this is called during.</param>
         /// <param name="targetPose">The target pose for the current frame.</param>
-        /// <param name="localScale">The scale of the Interactable's transform relative to the GameObjects parent.</param>
+        /// <param name="localScale">The target scale of the Interactable's transform relative to the GameObject's parent.</param>
         /// <remarks>
         /// When there is more than one linked grab transformer that can process, the updated value of each <see langword="ref"/> parameter
         /// is passed to each in series according to its order in the list. You can utilize this by, for example,

@@ -15,6 +15,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_HitDetectionType;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.sphereCastRadius"/>.</summary>
         protected SerializedProperty m_SphereCastRadius;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
+        protected SerializedProperty m_ConeCastAngle;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastMask"/>.</summary>
         protected SerializedProperty m_RaycastMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -75,15 +77,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_AnchorRotateReferenceFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
         protected SerializedProperty m_AnchorRotationMode;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.scaleMode"/>.</summary>
+        protected SerializedProperty m_ScaleMode;
+
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiHoverEntered"/>.</summary>
         protected SerializedProperty m_UIHoverEntered;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiHoverExited"/>.</summary>
         protected SerializedProperty m_UIHoverExited;
-
-        //AR Properties
-        const string k_AROptionsExpandedKey = "XRI." + nameof(XRRayInteractorEditor) + ".AROptionsExpanded";
-        bool m_AROptionsExpanded;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableARRaycasting"/>.</summary>
         protected SerializedProperty m_EnableARRaycasting;
@@ -101,6 +102,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent maxRaycastDistance = EditorGUIUtility.TrTextContent("Max Raycast Distance", "Max distance of ray cast. Increase this value will let you reach further.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.sphereCastRadius"/>.</summary>
             public static readonly GUIContent sphereCastRadius = EditorGUIUtility.TrTextContent("Sphere Cast Radius", "Radius of this Interactor's ray, used for sphere casting.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
+            public static readonly GUIContent coneCastAngle = EditorGUIUtility.TrTextContent("Cone Cast Angle", "Angle in degrees of the interactor's selection cone, used for cone casting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -159,6 +162,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent anchorRotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
             public static readonly GUIContent anchorRotationMode = EditorGUIUtility.TrTextContent("Rotation Mode", "How the anchor rotation is controlled.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleMode"/>.</summary>
+            public static readonly GUIContent scaleMode = EditorGUIUtility.TrTextContent("Scale Mode", "Determines how the Scale Value should be used by the interactable objects requesting it.");
 
             /// <summary><see cref="GUIContent"/> for the header label of UI events.</summary>
             public static readonly GUIContent uiEventsHeader = EditorGUIUtility.TrTextContent("UI", "Called when this Interactor begins hovering over UI (Entered), or ends hovering (Exited).");
@@ -169,6 +174,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent occludeARHitsWith3DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 3D Objects", "If checked, AR Raycasts will be occluded by 3D objects.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith2DObjects"/>.</summary>
             public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If checked, AR Raycasts will be occluded by 2D objects.");
+
+            /// <summary>The help box message when the hit detection type is cone cast but the line type is not straight line.</summary>
+            public static readonly GUIContent coneCastRequiresStraightLineWarning = EditorGUIUtility.TrTextContent("Cone Cast requires Straight Line.");
         }
 
         /// <inheritdoc />
@@ -179,6 +187,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_MaxRaycastDistance = serializedObject.FindProperty("m_MaxRaycastDistance");
             m_HitDetectionType = serializedObject.FindProperty("m_HitDetectionType");
             m_SphereCastRadius = serializedObject.FindProperty("m_SphereCastRadius");
+            m_ConeCastAngle = serializedObject.FindProperty("m_ConeCastAngle");
             m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
             m_RaycastSnapVolumeInteraction = serializedObject.FindProperty("m_RaycastSnapVolumeInteraction");
@@ -211,6 +220,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_TranslateSpeed = serializedObject.FindProperty("m_TranslateSpeed");
             m_AnchorRotateReferenceFrame = serializedObject.FindProperty("m_AnchorRotateReferenceFrame");
             m_AnchorRotationMode = serializedObject.FindProperty("m_AnchorRotationMode");
+            m_ScaleMode = serializedObject.FindProperty("m_ScaleMode");
 
             m_UIHoverEntered = serializedObject.FindProperty("m_UIHoverEntered");
             m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");      
@@ -218,15 +228,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_OccludeARHitsWith3DObjects = serializedObject.FindProperty("m_OccludeARHitsWith3DObjects");
             m_OccludeARHitsWith2DObjects = serializedObject.FindProperty("m_OccludeARHitsWith2DObjects");
 
-            m_AROptionsExpanded = SessionState.GetBool(k_AROptionsExpandedKey, false);
-
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
             if (!SessionState.GetBool(initializedKey, false))
             {
                 SessionState.SetBool(initializedKey, true);
-                m_LineType.isExpanded = true;
-                m_SelectActionTrigger.isExpanded = true;
+                m_EnableARRaycasting.isExpanded = true;
             }
         }
 
@@ -286,6 +293,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                             EditorGUILayout.PropertyField(m_RotateSpeed, Contents.rotateSpeed);
                         }
                     }
+                    EditorGUILayout.PropertyField(m_ScaleMode, Contents.scaleMode);
                 }
             }
 
@@ -317,6 +325,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawRaycastConfigurationNested()
         {
             EditorGUILayout.PropertyField(m_LineType, Contents.lineType);
+
+            if (!m_LineType.hasMultipleDifferentValues &&
+                !m_HitDetectionType.hasMultipleDifferentValues &&
+                m_LineType.intValue != (int)XRRayInteractor.LineType.StraightLine &&
+                m_HitDetectionType.intValue == (int)XRRayInteractor.HitDetectionType.ConeCast)
+            {
+                EditorGUILayout.HelpBox(Contents.coneCastRequiresStraightLineWarning.text, MessageType.Warning);
+            }
 
             using (new EditorGUI.IndentLevelScope())
             {
@@ -350,11 +366,25 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
             EditorGUILayout.PropertyField(m_RaycastSnapVolumeInteraction, Contents.raycastSnapVolumeInteraction);
             EditorGUILayout.PropertyField(m_HitDetectionType, Contents.hitDetectionType);
-            if (m_HitDetectionType.intValue == (int)XRRayInteractor.HitDetectionType.SphereCast)
+            switch (m_HitDetectionType.intValue)
             {
-                using (new EditorGUI.IndentLevelScope())
+                case (int)XRRayInteractor.HitDetectionType.SphereCast:
                 {
-                    EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
+                    }
+
+                    break;
+                }
+                case (int)XRRayInteractor.HitDetectionType.ConeCast:
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
+                    }
+
+                    break;
                 }
             }
             EditorGUILayout.PropertyField(m_HitClosestOnly, Contents.hitClosestOnly);
@@ -422,8 +452,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawARConfiguration()
         {
-            m_AROptionsExpanded = EditorGUILayout.Foldout(m_AROptionsExpanded, EditorGUIUtility.TrTempContent("AR Configuration"), true);
-            if (m_AROptionsExpanded)
+            m_EnableARRaycasting.isExpanded = EditorGUILayout.Foldout(m_EnableARRaycasting.isExpanded, EditorGUIUtility.TrTempContent("AR Configuration"), true);
+            if (m_EnableARRaycasting.isExpanded)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {

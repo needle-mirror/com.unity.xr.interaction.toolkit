@@ -1,11 +1,38 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
+    /// <summary>
+    /// Enum used to determine how the socket should scale the interactable.
+    /// </summary>
+    /// <seealso cref="XRSocketInteractor.socketScaleMode"/>
+    public enum SocketScaleMode
+    {
+        /// <summary>
+        /// The interactable will not be scaled when attached to the socket.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// The interactable will be scaled to a fixed size when attached to the socket.
+        /// The actual size is defined by the <see cref="XRSocketInteractor.fixedScale"/> value.
+        /// </summary>
+        Fixed,
+
+        /// <summary>
+        /// The interactable will be scaled to fit the size of the socket when attached.
+        /// The scaling is dynamic, computed using the interactable's bounds, with a target size defined by <see cref="XRSocketInteractor.targetBoundsSize"/>.
+        /// </summary>
+        StretchedToFitSize,
+    }
+
+
     /// <summary>
     /// Interactor used for holding interactables via a socket. This component is not designed to be attached to a controller
     /// (thus does not derive from <see cref="XRBaseControllerInteractor"/>) and instead will always attempt to select an interactable that it is
@@ -63,7 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool socketActive
         {
             get => m_SocketActive;
-            set => m_SocketActive = value;
+            set
+            {
+                m_SocketActive = value;
+                m_SocketGrabTransformer.canProcess = value && isActiveAndEnabled;
+            }
         }
 
         [SerializeField]
@@ -82,6 +113,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Sets the amount of time the socket will refuse hovers after an object is removed.
         /// </summary>
+        /// <remarks>
+        /// Does nothing if <see cref="hoverSocketSnapping"/> is enabled to prevent snap flickering.
+        /// </remarks>
         public float recycleDelayTime
         {
             get => m_RecycleDelayTime;
@@ -89,6 +123,87 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         float m_LastRemoveTime = -1f;
+
+        [SerializeField]
+        bool m_HoverSocketSnapping;
+
+        /// <summary>
+        /// Determines if the interactable should snap to the socket's attach transform when hovering.
+        /// Note this will cause z-fighting with the hover mesh visuals, so it is recommended to disable <see cref="showInteractableHoverMeshes"/> if this is active.
+        /// If enabled, hover recycle delay functionality is disabled to prevent snap flickering.
+        /// </summary>
+        public bool hoverSocketSnapping
+        {
+            get => m_HoverSocketSnapping;
+            set => m_HoverSocketSnapping = value;
+        }
+
+        [SerializeField]
+        float m_SocketSnappingRadius = 0.1f;
+
+        /// <summary>
+        /// When socket snapping is enabled, this is the radius within which the interactable will snap to the socket's attach transform while hovering.
+        /// </summary>
+        public float socketSnappingRadius
+        {
+            get => m_SocketSnappingRadius;
+            set
+            {
+                m_SocketSnappingRadius = value;
+                m_SocketGrabTransformer.socketSnappingRadius = value;
+            }
+        }
+
+        [SerializeField]
+        SocketScaleMode m_SocketScaleMode = SocketScaleMode.None;
+
+        /// <summary>
+        /// Scale mode used to calculate the scale factor applied to the interactable when hovering.
+        /// </summary>
+        /// <seealso cref="SocketScaleMode"/>
+        public SocketScaleMode socketScaleMode
+        {
+            get => m_SocketScaleMode;
+            set
+            {
+                m_SocketScaleMode = value;
+                m_SocketGrabTransformer.scaleMode = value;
+            }
+        }
+
+        [SerializeField]
+        Vector3 m_FixedScale = Vector3.one;
+
+        /// <summary>
+        /// Scale factor applied to the interactable when scale mode is set to <see cref="SocketScaleMode.Fixed"/>.
+        /// </summary>
+        /// <seealso cref="socketScaleMode"/>
+        public Vector3 fixedScale
+        {
+            get => m_FixedScale;
+            set
+            {
+                m_FixedScale = value;
+                m_SocketGrabTransformer.fixedScale = value;
+            }
+        }
+
+        [SerializeField]
+        Vector3 m_TargetBoundsSize = Vector3.one;
+
+        /// <summary>
+        /// Bounds size used to calculate the scale factor applied to the interactable when scale mode is set to <see cref="SocketScaleMode.StretchedToFitSize"/>.
+        /// </summary>
+        /// <seealso cref="socketScaleMode"/>
+        public Vector3 targetBoundsSize
+        {
+            get => m_TargetBoundsSize;
+            set
+            {
+                m_TargetBoundsSize = value;
+                m_SocketGrabTransformer.targetBoundsSize = value;
+            }
+        }
 
         /// <summary>
         /// The set of Interactables that this Interactor could possibly interact with this frame.
@@ -116,12 +231,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Reusable value of <see cref="WaitForFixedUpdate"/> to reduce allocations.
         /// </summary>
         static readonly WaitForFixedUpdate s_WaitForFixedUpdate = new WaitForFixedUpdate();
-        
+
         /// <summary>
         /// Reference to Coroutine that updates the trigger contact monitor with the current
-        /// stayed colliders. 
+        /// stayed colliders.
         /// </summary>
         IEnumerator m_UpdateCollidersAfterTriggerStay;
+
+        readonly XRSocketGrabTransformer m_SocketGrabTransformer = new XRSocketGrabTransformer();
+
+        readonly HashSetList<XRGrabInteractable> m_InteractablesWithSocketTransformer = new HashSetList<XRGrabInteractable>();
+
+        /// <summary>
+        /// Maximum number of interactables this interactor can socket.
+        /// Used for hover socket snapping evaluation.
+        /// </summary>
+        protected virtual int socketSnappingLimit => 1;
+
+        /// <summary>
+        /// Determines if when snapping to a socket, any existing sockets should be ejected.
+        /// </summary>
+        protected virtual bool ejectExistingSocketsWhenSnapping => true;
+        
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnValidate()
+        {
+            SyncTransformerParams();
+        }
 
         /// <inheritdoc />
         protected override void Awake()
@@ -130,6 +268,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TriggerContactMonitor.interactionManager = interactionManager;
             m_UpdateCollidersAfterTriggerStay = UpdateCollidersAfterOnTriggerStay();
 
+            SyncTransformerParams();
             CreateDefaultHoverMaterials();
         }
 
@@ -139,6 +278,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnEnable();
             m_TriggerContactMonitor.contactAdded += OnContactAdded;
             m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
+            m_SocketGrabTransformer.canProcess = m_SocketActive;
+            SyncTransformerParams();
             ResetCollidersAndValidTargets();
             StartCoroutine(m_UpdateCollidersAfterTriggerStay);
         }
@@ -147,6 +288,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void OnDisable()
         {
             base.OnDisable();
+            m_SocketGrabTransformer.canProcess = false;
             m_TriggerContactMonitor.contactAdded -= OnContactAdded;
             m_TriggerContactMonitor.contactRemoved -= OnContactRemoved;
             ResetCollidersAndValidTargets();
@@ -208,7 +350,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // the OnTriggerStay method populates this list.
                 // Then the UpdateCollidersAfterOnTriggerStay coroutine will use this list to remove Colliders
                 // that no longer stay in this frame after previously entered and add any stayed Colliders
-                // that are not currently tracked by the TriggerContactMonitor. 
+                // that are not currently tracked by the TriggerContactMonitor.
                 m_StayedColliders.Clear();
             }
             else if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
@@ -262,6 +404,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         static void SetMaterialFade(Material material, Color color)
         {
             material.SetOverrideTag("RenderType", "Transparent");
+
+            // In a Scripted Render Pipeline (URP/HDRP), we need to set the surface mode to 1 for transparent.
+            var isSRP = GraphicsSettings.currentRenderPipeline != null;
+            if (isSRP)
+                material.SetFloat(ShaderPropertyLookup.surface, 1f);
+
             material.SetFloat(ShaderPropertyLookup.mode, 2f);
             material.SetInt(ShaderPropertyLookup.srcBlend, (int)BlendMode.SrcAlpha);
             material.SetInt(ShaderPropertyLookup.dstBlend, (int)BlendMode.OneMinusSrcAlpha);
@@ -272,7 +420,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
             // ReSharper restore StringLiteralTypo
             material.renderQueue = (int)RenderQueue.Transparent;
-            material.SetColor(GraphicsSettings.currentRenderPipeline ? ShaderPropertyLookup.baseColor : ShaderPropertyLookup.color, color);
+            material.SetColor(isSRP ? ShaderPropertyLookup.baseColor : ShaderPropertyLookup.color, color);
         }
 
         /// <inheritdoc />
@@ -280,8 +428,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnHoverEntering(args);
 
+            // Avoid the performance cost of GetComponents if we don't need to show the hover meshes.
+            if (!m_ShowInteractableHoverMeshes)
+                return;
+
+            var interactable = args.interactableObject;
             s_MeshFilters.Clear();
-            args.interactableObject.transform.GetComponentsInChildren(true, s_MeshFilters);
+            interactable.transform.GetComponentsInChildren(true, s_MeshFilters);
             if (s_MeshFilters.Count == 0)
                 return;
 
@@ -291,14 +444,53 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 var meshFilter = s_MeshFilters[i];
                 interactableTuples[i] = (meshFilter, meshFilter.GetComponent<Renderer>());
             }
-            m_MeshFilterCache.Add(args.interactableObject, interactableTuples);
+            m_MeshFilterCache.Add(interactable, interactableTuples);
+        }
+
+        /// <inheritdoc />
+        protected override void OnHoverEntered(HoverEnterEventArgs args)
+        {
+            base.OnHoverEntered(args);
+
+            if (!CanHoverSnap(args.interactableObject))
+                return;
+
+            if (args.interactableObject is XRGrabInteractable grabInteractable)
+                StartSocketSnapping(grabInteractable);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="IXRInteractable"/> object can hover snap.
+        /// </summary>
+        /// <param name="interactable">The <see cref="IXRInteractable"/> object to check for hover snap capability.</param>
+        /// <returns>Returns <see langword="true"/> if hover socket snapping is enabled and the interactable has no selection or is selecting; otherwise, <see langword="false"/>.</returns>
+        /// <remarks>
+        /// This method checks whether hover socket snapping is allowed and whether the specified interactable has no current selection or is in the process of selecting.
+        /// </remarks>
+        protected virtual bool CanHoverSnap(IXRInteractable interactable)
+        {
+            return m_HoverSocketSnapping && (!hasSelection || IsSelecting(interactable));
         }
 
         /// <inheritdoc />
         protected override void OnHoverExiting(HoverExitEventArgs args)
         {
             base.OnHoverExiting(args);
-            m_MeshFilterCache.Remove(args.interactableObject);
+
+            var interactable = args.interactableObject;
+            m_MeshFilterCache.Remove(interactable);
+
+            if (interactable is XRGrabInteractable grabInteractable)
+                EndSocketSnapping(grabInteractable);
+        }
+
+        /// <inheritdoc />
+        protected override void OnSelectEntered(SelectEnterEventArgs args)
+        {
+            base.OnSelectEntered(args);
+
+            if (args.interactableObject is XRGrabInteractable grabInteractable)
+                StartSocketSnapping(grabInteractable);
         }
 
         /// <inheritdoc />
@@ -306,6 +498,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnSelectExiting(args);
             m_LastRemoveTime = Time.time;
+        }
+
+        /// <inheritdoc />
+        protected override void OnSelectExited(SelectExitEventArgs args)
+        {
+            base.OnSelectExited(args);
+
+            if (m_HoverSocketSnapping)
+                return;
+
+            if (args.interactableObject is XRGrabInteractable grabInteractable)
+                EndSocketSnapping(grabInteractable);
         }
 
         Matrix4x4 GetHoverMeshMatrix(IXRInteractable interactable, MeshFilter meshFilter, float hoverScale)
@@ -391,7 +595,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="GetHoveredInteractableMaterial"/>
         protected virtual void DrawHoveredInteractables()
         {
-            if (m_InteractableHoverScale <= 0f)
+            if (!m_ShowInteractableHoverMeshes || m_InteractableHoverScale <= 0f)
                 return;
 
             var mainCamera = Camera.main;
@@ -453,7 +657,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
-            
+
             if (!isActiveAndEnabled)
                 return;
 
@@ -479,7 +683,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return base.CanHover(interactable) && isHoverRecycleAllowed;
         }
 
-        bool isHoverRecycleAllowed => m_LastRemoveTime < 0f || m_RecycleDelayTime <= 0f || (Time.time > m_LastRemoveTime + m_RecycleDelayTime);
+        bool isHoverRecycleAllowed => m_HoverSocketSnapping || (m_LastRemoveTime < 0f || m_RecycleDelayTime <= 0f || (Time.time > m_LastRemoveTime + m_RecycleDelayTime));
 
         /// <inheritdoc />
         public override bool CanSelect(IXRSelectInteractable interactable)
@@ -553,9 +757,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             unsortedValidTargets.Remove(interactable);
         }
-        
+
         /// <summary>
-        /// Clears current valid targets and stayed colliders. 
+        /// Clears current valid targets and stayed colliders.
         /// </summary>
         void ResetCollidersAndValidTargets()
         {
@@ -564,8 +768,66 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
         }
 
+        /// <summary>
+        /// Initiates socket snapping for a specified <see cref="XRGrabInteractable"/> object.
+        /// </summary>
+        /// <param name="grabInteractable">The <see cref="XRGrabInteractable"/> object to initiate socket snapping for.</param>
+        /// <returns>Returns <see langword="true"/> if the operation is successful; false if the socket snapping has already started for the interactable or if the number of interactables with socket transformer exceeds the socket limit.</returns>
+        /// <remarks>
+        /// If the socket snapping has already started for the interactable, or if the number of interactables with socket transformer exceeds the socket limit, the method does nothing.
+        /// Otherwise, it adds the specified grab interactable to the socket grab transformer and adds it to the global and local interactables with socket transformer lists.
+        /// </remarks>
+        /// <seealso cref="EndSocketSnapping"/>
+        protected virtual bool StartSocketSnapping(XRGrabInteractable grabInteractable)
+        {
+            // If we've already started socket snapping this interactable, do nothing
+            var interactablesSocketedCount = m_InteractablesWithSocketTransformer.Count;
+            if (interactablesSocketedCount >= socketSnappingLimit ||
+                m_InteractablesWithSocketTransformer.Contains(grabInteractable))
+                return false;
+
+            if (interactablesSocketedCount > 0 && ejectExistingSocketsWhenSnapping)
+            {
+                // Be sure to eject any existing grab interactable from the snap grab socket
+                foreach (var interactable in m_InteractablesWithSocketTransformer.AsList())
+                {
+                    interactable.RemoveSingleGrabTransformer(m_SocketGrabTransformer);
+                }
+                m_InteractablesWithSocketTransformer.Clear();
+            }
+
+            grabInteractable.AddSingleGrabTransformer(m_SocketGrabTransformer);
+            m_InteractablesWithSocketTransformer.Add(grabInteractable);
+            return true;
+        }
+
+        /// <summary>
+        /// Ends socket snapping for a specified <see cref="XRGrabInteractable"/> object.
+        /// </summary>
+        /// <param name="grabInteractable">The <see cref="XRGrabInteractable"/> object to end socket snapping for.</param>
+        /// <returns>Returns <see langword="true"/> if the specified grab interactable was found and removed; otherwise, <see langword="false"/>.</returns>
+        /// <remarks>
+        /// Removes the specified grab interactable from the local interactables with socket transformer list and removes it from the socket grab transformer.
+        /// </remarks>
+        /// <seealso cref="StartSocketSnapping"/>
+        protected virtual bool EndSocketSnapping(XRGrabInteractable grabInteractable)
+        {
+            grabInteractable.RemoveSingleGrabTransformer(m_SocketGrabTransformer);
+            return m_InteractablesWithSocketTransformer.Remove(grabInteractable);
+        }
+
+        void SyncTransformerParams()
+        {
+            m_SocketGrabTransformer.socketInteractor = this;
+            m_SocketGrabTransformer.socketSnappingRadius = socketSnappingRadius;
+            m_SocketGrabTransformer.scaleMode = socketScaleMode;
+            m_SocketGrabTransformer.fixedScale = fixedScale;
+            m_SocketGrabTransformer.targetBoundsSize = targetBoundsSize;
+        }
+
         struct ShaderPropertyLookup
         {
+            public static readonly int surface = Shader.PropertyToID("_Surface");
             public static readonly int mode = Shader.PropertyToID("_Mode");
             public static readonly int srcBlend = Shader.PropertyToID("_SrcBlend");
             public static readonly int dstBlend = Shader.PropertyToID("_DstBlend");

@@ -9,10 +9,10 @@ using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
+using Slider = UnityEngine.UI.Slider;
 
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.ARFoundation;
@@ -29,15 +29,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 #if AR_FOUNDATION_PRESENT
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IARInteractor
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider, IARInteractor
 #else
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider
+    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider
 #endif
     {
+        const int k_MaxRaycastHits = 10;
+        // How many ray hits to register when sphere casting.
+        const int k_MaxSpherecastHits = 10;
+
+        const int k_MinSampleFrequency = 2;
+        const int k_MaxSampleFrequency = 100;
+
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
         /// </summary>
         static readonly List<IXRInteractable> s_Results = new List<IXRInteractable>();
+
+        /// <summary>
+        /// Reusable list of raycast hits, used to avoid allocations during sphere casting.
+        /// </summary>
+        static readonly RaycastHit[] s_SpherecastScratch = new RaycastHit[k_MaxSpherecastHits];
+
+        /// <summary>
+        /// Reusable list of optimal raycast hits, for lookup during sphere casting.
+        /// </summary>
+        static readonly HashSet<Collider> s_OptimalHits = new HashSet<Collider>();
 
         /// <summary>
         /// Compares ray cast hits by distance, to sort in ascending order.
@@ -57,11 +74,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return aDistance.CompareTo(bDistance);
             }
         }
-
-        const int k_MaxRaycastHits = 10;
-
-        const int k_MinSampleFrequency = 2;
-        const int k_MaxSampleFrequency = 100;
 
         /// <summary>
         /// Sets which trajectory path Unity uses for the cast when detecting collisions.
@@ -117,6 +129,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Uses <see cref="Physics"/> Sphere Cast to detect collisions.
             /// </summary>
             SphereCast,
+
+            /// <summary>
+            /// Uses cone casting to detect collisions.
+            /// </summary>
+            ConeCast,
         }
 
         /// <summary>
@@ -352,7 +369,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Range(0.01f, 0.25f)]
         float m_SphereCastRadius = 0.1f;
         /// <summary>
-        /// Gets or sets radius used for sphere casting. Will use regular ray casting if set to 0 or less.
+        /// Gets or sets radius used for sphere casting.
         /// </summary>
         /// <seealso cref="HitDetectionType.SphereCast"/>
         /// <seealso cref="hitDetectionType"/>
@@ -360,6 +377,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_SphereCastRadius;
             set => m_SphereCastRadius = value;
+        }
+
+        [SerializeField]
+        [Range(0f, 180f)]
+        float m_ConeCastAngle = 6f;
+
+        /// <summary>
+        /// Gets or sets the angle in degrees of the cone used for cone casting. Will use regular ray casting if set to 0.
+        /// </summary>
+        public float coneCastAngle
+        {
+            get => m_ConeCastAngle;
+            set => m_ConeCastAngle = value;
         }
 
         [SerializeField]
@@ -680,6 +710,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public Transform rayEndTransform { get; private set; }
 
+        [SerializeField]
+        ScaleMode m_ScaleMode = ScaleMode.None;
+
+        /// <inheritdoc />
+        public ScaleMode scaleMode
+        {
+            get => m_ScaleMode;
+            set => m_ScaleMode = value;
+        }
+
+        /// <inheritdoc />
+        public float scaleValue { get; protected set; }
+        
         /// <summary>
         /// The starting position and direction of any ray casts.
         /// Safe version of <see cref="rayOriginTransform"/>, falls back to this Transform if not set.
@@ -692,6 +735,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool m_HasRayOriginTransform;
         bool m_HasReferenceFrame;
+
+        bool m_ScaleInputActive;
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
         /// <summary>
@@ -860,6 +905,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             m_ScreenSpaceController = xrController as XRScreenSpaceController;
             m_IsScreenSpaceController = m_ScreenSpaceController != null;
+            
+            if (m_IsScreenSpaceController && m_AllowAnchorControl && m_AnchorRotationMode == AnchorRotationMode.RotateOverTime)
+            {
+                Debug.LogWarning("Rotate Over Time is not a valid value for Rotation Mode when using XR Screen Space Controller." +
+                    " This XR Ray Interactor will not be able to rotate the anchor using screen touches.", this);
+            }
         }
 
         /// <inheritdoc />
@@ -906,6 +957,49 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnDrawGizmosSelected()
         {
+            if (m_LineType == LineType.StraightLine)
+            {
+                var transformData = m_RayOriginTransform != null ? m_RayOriginTransform : transform;
+                var gizmoStart = transformData.position;
+                var gizmoEnd = gizmoStart + (transformData.forward * m_MaxRaycastDistance);
+                Gizmos.color = new Color(58 / 255f, 122 / 255f, 248 / 255f, 237 / 255f);
+
+                switch (m_HitDetectionType)
+                {
+                    case HitDetectionType.Raycast:
+                        // Draw the raycast line
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd);
+                        break;
+
+                    case HitDetectionType.SphereCast:
+                    {
+                        var gizmoUp = transformData.up * m_SphereCastRadius;
+                        var gizmoSide = transformData.right * m_SphereCastRadius;
+                        Gizmos.DrawWireSphere(gizmoStart, m_SphereCastRadius);
+                        Gizmos.DrawLine(gizmoStart + gizmoSide, gizmoEnd + gizmoSide);
+                        Gizmos.DrawLine(gizmoStart - gizmoSide, gizmoEnd - gizmoSide);
+                        Gizmos.DrawLine(gizmoStart + gizmoUp, gizmoEnd + gizmoUp);
+                        Gizmos.DrawLine(gizmoStart - gizmoUp, gizmoEnd - gizmoUp);
+                        Gizmos.DrawWireSphere(gizmoEnd, m_SphereCastRadius);
+                        break;
+                    }
+
+                    case HitDetectionType.ConeCast:
+                    {
+                        var coneRadius = Mathf.Tan(m_ConeCastAngle * Mathf.Deg2Rad * 0.5f) * m_MaxRaycastDistance;
+                        var gizmoUp = transformData.up * coneRadius;
+                        var gizmoSide = transformData.right * coneRadius;
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd);
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoSide);
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoSide);
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoUp);
+                        Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoUp);
+                        Gizmos.DrawWireSphere(gizmoEnd, coneRadius);
+                        break;
+                    }
+                }
+            }
+
             if (!Application.isPlaying || m_SamplePoints == null || m_SamplePoints.Count < 2)
             {
                 return;
@@ -1400,7 +1494,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             return TryGetCurrentARRaycastHit(out raycastHit, out _);
         }
-        
+
         /// <summary>
         /// Gets the first AR ray cast hit, if any ray cast hits are available.
         /// </summary>
@@ -1409,9 +1503,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
         /// <returns>Returns <see langword="true"/> if a hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// If <see cref="occludeARHitsWith2DObjects"/> or <see cref="occludeARHitsWith3DObjects"/> are set to <see langword="true"/> and a 
+        /// 2D UI or 3D object are closer, the result will be <see langword="false"/> with the default values for both the <paramref name="raycastHit"/>
+        /// and <paramref name="raycastEndpointIndex"/>.
+        /// </remarks>
         public bool TryGetCurrentARRaycastHit(out ARRaycastHit raycastHit, out int raycastEndpointIndex)
         {
-            if (m_ARRaycastHitsCount > 0)
+            TryGetCurrent3DRaycastHit(out var currentRaycastHit);
+            var isSelectedSameAsHit = interactablesSelected.Count > 0 && currentRaycastHit.transform != null ? interactablesSelected[0].transform.gameObject == currentRaycastHit.transform.gameObject : false;
+            var occludedBy3DObject = m_OccludeARHitsWith3DObjects && m_RaycastHitEndpointIndex > 0 && !isSelectedSameAsHit && (m_RaycastHitEndpointIndex < m_ARRaycastHitEndpointIndex || (m_ARRaycastHitEndpointIndex == m_RaycastHitEndpointIndex && m_ARRaycastHits[0].distance > m_RaycastHit.distance));
+            var occludedBy2DObject = m_OccludeARHitsWith2DObjects && m_UIRaycastHitEndpointIndex > 0 && m_UIRaycastHit.isValid && (m_UIRaycastHitEndpointIndex < m_ARRaycastHitEndpointIndex || (m_ARRaycastHitEndpointIndex == m_UIRaycastHitEndpointIndex && m_ARRaycastHits[0].distance > m_UIRaycastHit.distance));
+
+            if (m_ARRaycastHitsCount > 0 && m_ARRaycastHitEndpointIndex > 0 && !occludedBy3DObject && !occludedBy2DObject)
             {
                 Assert.IsTrue(m_ARRaycastHits.Count >= m_ARRaycastHitsCount);
                 raycastHit = m_ARRaycastHits[0];
@@ -1465,6 +1569,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
         /// <param name="isUIHitClosest">When this method returns, contains whether the UI ray cast result was the closest hit.</param>
         /// <param name="arRaycastHit">When this method returns, contains the AR ray cast hit if available; otherwise, the default value.</param>
+        /// <param name="arRaycastHitIndex">When this method returns, contains the index of the sample endpoint if a hit occurred.
+        /// Otherwise, a value of <c>0</c> if no hit occurred.</param>
         /// <param name="isARHitClosest">When this method returns, contains whether the AR ray cast result was the closest hit.</param>
         /// <returns>Returns <see langword="true"/> if either hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
@@ -1560,6 +1666,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_IsUIHitClosest)
                 {
                     rayEndPoint = m_UIRaycastHit.worldPosition;
+                    rayEndTransform = m_UIRaycastHit.gameObject.transform;
                 }
  #if AR_FOUNDATION_PRESENT
                 else if (m_IsARHitClosest)
@@ -1570,7 +1677,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 else
                 {
                     rayEndPoint = m_RaycastHit.point;
-
                     rayEndTransform = interactionManager.TryGetInteractableForCollider(m_RaycastHit.collider, out m_RaycastInteractable)
                         ? m_RaycastInteractable.GetAttachTransform(this)
                         : m_RaycastHit.transform;
@@ -1640,6 +1746,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             output = default;
             return false;
+        }
+        
+        static bool TryReadButton(InputAction action)
+        {
+            return action != null && action.WasPerformedThisFrame();
         }
 
         /// <summary>
@@ -1755,6 +1866,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
+                scaleValue = 0f;
+
                 // Update the pose of the attach point
                 if (m_AllowAnchorControl && hasSelection)
                 {
@@ -1797,28 +1910,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     if (m_IsActionBasedController)
                     {
-                        switch (m_AnchorRotationMode)
+                        // Check if the scaling toggle was performed this frame.
+                        if (TryReadButton(m_ActionBasedController.scaleToggleAction.action))
                         {
-                            case AnchorRotationMode.RotateOverTime:
-                                if (TryRead2DAxis(m_ActionBasedController.rotateAnchorAction.action, out var rotateAmt))
-                                    RotateAnchor(attachTransform, rotateAmt.x);
-                                break;
-
-                            case AnchorRotationMode.MatchDirection:
-                                if (TryRead2DAxis(m_ActionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
-                                {
-                                    var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
-                                    RotateAnchor(attachTransform, directionAmt, referenceRotation);
-                                }
-                                break;
-                            default:
-                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(ActionBasedController)}.");
-                                break;
+                            m_ScaleInputActive = !m_ScaleInputActive;
                         }
 
-                        if (TryRead2DAxis(m_ActionBasedController.translateAnchorAction.action, out var translateAmt))
+                        // If not scaling, we can translate and rotate
+                        if (!m_ScaleInputActive)
                         {
-                            TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                            switch (m_AnchorRotationMode)
+                            {
+                                case AnchorRotationMode.RotateOverTime:
+                                    if (TryRead2DAxis(m_ActionBasedController.rotateAnchorAction.action, out var rotateAmt))
+                                        RotateAnchor(attachTransform, rotateAmt.x);
+                                    break;
+
+                                case AnchorRotationMode.MatchDirection:
+                                    if (TryRead2DAxis(m_ActionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
+                                    {
+                                        var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
+                                        RotateAnchor(attachTransform, directionAmt, referenceRotation);
+                                    }
+                                    break;
+
+                                default:
+                                    Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(ActionBasedController)}.");
+                                    break;
+                            }
+
+                            if (TryRead2DAxis(m_ActionBasedController.translateAnchorAction.action, out var translateAmt))
+                            {
+                                TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+                            }
+                        }
+                        else if (scaleMode == ScaleMode.Input && TryRead2DAxis(m_ActionBasedController.scaleDeltaAction.action, out var scaleAmt))
+                        {
+                            scaleValue = scaleAmt.y;
                         }
                     }
 
@@ -1826,17 +1954,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         switch (m_AnchorRotationMode)
                         {
+                            case AnchorRotationMode.RotateOverTime:
+                                // Not a valid value for a screen space controller, don't do anything.
+                                // Warning logged in OnXRControllerChanged.
+                                break;
+
                             case AnchorRotationMode.MatchDirection:
-                                if (m_ScreenSpaceController.twistRotationDeltaAction.action !=  null && 
-                                    (m_ScreenSpaceController.twistRotationDeltaAction.action.phase == InputActionPhase.Started || m_ScreenSpaceController.twistRotationDeltaAction.action.phase == InputActionPhase.Performed))
+                                if (m_ScreenSpaceController.twistDeltaRotationAction.action != null &&
+                                    m_ScreenSpaceController.twistDeltaRotationAction.action.phase.IsInProgress())
                                 {
-                                    var deltaRotation = m_ScreenSpaceController.twistRotationDeltaAction.action.ReadValue<float>();
+                                    var deltaRotation = m_ScreenSpaceController.twistDeltaRotationAction.action.ReadValue<float>();
                                     var rotationAmount = -deltaRotation;
                                     RotateAnchor(attachTransform, rotationAmount);
                                 }
-                                else if (m_ScreenSpaceController.dragDeltaAction.action != null && 
-                                    (m_ScreenSpaceController.dragDeltaAction.action.phase == InputActionPhase.Started || m_ScreenSpaceController.dragDeltaAction.action.phase == InputActionPhase.Performed) &&
-                                    m_ScreenSpaceController.screenTouchCount.action.ReadValue<int>() > 1)
+                                else if (m_ScreenSpaceController.dragDeltaAction.action != null &&
+                                         m_ScreenSpaceController.dragDeltaAction.action.phase.IsInProgress() &&
+                                         m_ScreenSpaceController.screenTouchCountAction.action?.ReadValue<int>() > 1)
                                 {
                                     var deltaRotation = m_ScreenSpaceController.dragDeltaAction.action.ReadValue<Vector2>();
                                     var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(attachTransform.forward, Vector3.up));
@@ -1844,12 +1977,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                                     var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * 50f;
                                     RotateAnchor(attachTransform, rotationAmount);
-                                } 
+                                }
 
                                 break;
+
                             default:
                                 Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(XRScreenSpaceController)}.");
                                 break;
+                        }
+
+                        if (scaleMode == ScaleMode.Distance)
+                        {
+                            scaleValue = m_ScreenSpaceController.scaleDelta;
                         }
                     }
                 }
@@ -2015,10 +2154,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #endif
             for (var i = 1; i < m_SamplePoints.Count; ++i)
             {
+                var origin = m_SamplePoints[0].position;
                 var fromPoint = m_SamplePoints[i - 1].position;
                 var toPoint = m_SamplePoints[i].position;
 
-                CheckCollidersBetweenPoints(fromPoint, toPoint);
+                CheckCollidersBetweenPoints(fromPoint, toPoint, origin);
                 if (m_RaycastHitsCount > 0 && !has3DHit) 
                 {
                     m_RaycastHitEndpointIndex = i;
@@ -2043,9 +2183,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void CheckCollidersBetweenPoints(Vector3 from, Vector3 to)
+        void CheckCollidersBetweenPoints(Vector3 from, Vector3 to, Vector3 origin)
         {
             Array.Clear(m_RaycastHits, 0, k_MaxRaycastHits);
+            m_RaycastHitsCount = 0;
 
             var direction = (to - from).normalized;
             var maxDistance = Vector3.Distance(to, from);
@@ -2053,15 +2194,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 ? QueryTriggerInteraction.Collide
                 : m_RaycastTriggerInteraction;
 
-            if (m_HitDetectionType == HitDetectionType.SphereCast && m_SphereCastRadius > 0f)
+            switch (m_HitDetectionType)
             {
-                m_RaycastHitsCount = m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, direction,
-                    m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
-            }
-            else
-            {
-                m_RaycastHitsCount = m_LocalPhysicsScene.Raycast(from, direction,
-                    m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                case HitDetectionType.Raycast:
+                    m_RaycastHitsCount = m_LocalPhysicsScene.Raycast(from, direction,
+                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                    break;
+
+                case HitDetectionType.SphereCast:
+                    m_RaycastHitsCount = m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, direction,
+                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                    break;
+
+                case HitDetectionType.ConeCast:
+                    if (m_LineType == LineType.StraightLine)
+                    {
+                        m_RaycastHitsCount = FilteredConecast(from, m_ConeCastAngle, direction, origin,
+                            m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                    }
+                    break;
             }
 
             if (m_RaycastHitsCount > 0)
@@ -2095,6 +2246,91 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_ARRaycastHitsCount = m_ARRaycastHits.Count;
             }
 #endif
+        }
+
+        int FilteredConecast(in Vector3 from, float coneCastAngleDegrees, in Vector3 direction, in Vector3 origin,
+            RaycastHit[] results, float maxDistance = Mathf.Infinity, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal)
+        {
+            s_OptimalHits.Clear();
+
+            // Set up all the sphere casts
+            var obstructionDistance = math.min(maxDistance, 1000f);
+
+            // Raycast looking for obstructions and any optimal targets
+            var hitCounter = 0;
+            var optimalHits = m_LocalPhysicsScene.Raycast(origin, direction, s_SpherecastScratch, obstructionDistance, layerMask, queryTriggerInteraction);
+            if (optimalHits > 0)
+            {
+                for (var i = 0; i < optimalHits; ++i) 
+                {
+                    var hitInfo = s_SpherecastScratch[i];
+                    if (hitInfo.distance > obstructionDistance)
+                        continue;
+
+                    // If an obstruction is found, then reject anything behind it
+                    if (!interactionManager.TryGetInteractableForCollider(hitInfo.collider, out _))
+                    {
+                        obstructionDistance = math.min(hitInfo.distance, obstructionDistance);
+
+                        // Since we are rejecting anything past the obstruction, we push its distance back to allow for objects in the periphery to be selected first
+                        hitInfo.distance += 1.5f;
+                    }
+
+                    results[hitCounter] = hitInfo;
+                    s_OptimalHits.Add(hitInfo.collider);
+                    hitCounter++;
+                }
+            }
+
+            // Now do a series of sphere casts that increase in size.
+            // We don't process obstructions here
+            // We don't do ultra-fine cone rejection instead add horizontal distance to the spherecast depth
+            var angleRadius = math.tan(math.radians(coneCastAngleDegrees) * 0.5f);
+            var currentOffset = (origin - from).magnitude;
+            while (currentOffset < obstructionDistance)
+            {
+                BurstPhysicsUtils.GetConecastParameters(angleRadius, currentOffset, obstructionDistance, direction, out var originOffset, out var endRadius, out var castMax);
+
+                // Spherecast
+                var initialResults = m_LocalPhysicsScene.SphereCast(origin + originOffset, endRadius, direction, s_SpherecastScratch, castMax, layerMask, queryTriggerInteraction);
+
+                // Go through each result
+                for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
+                {
+                    var hit = s_SpherecastScratch[i];
+
+                    // Range check
+                    if (hit.distance > obstructionDistance)
+                        continue;
+
+                    // If it's an optimal hit, then skip it
+                    if (s_OptimalHits.Contains(hit.collider))
+                        continue;
+
+                    // It must have an interactable
+                    if (!interactionManager.TryGetInteractableForCollider(hit.collider, out _))
+                        continue;
+
+                    if (Mathf.Approximately(hit.distance, 0f) && hit.point == Vector3.zero)
+                    {
+                        // Sphere cast can return hits where point is (0, 0, 0) in error.
+                        continue;
+                    }
+
+                    // Adjust distance by distance from ray center for default sorting
+                    BurstPhysicsUtils.GetConecastOffset(origin, hit.point, direction, out var hitToRayDist);
+                    
+                    // We penalize these off-center hits by a meter + whatever horizontal offset they have
+                    hit.distance += currentOffset + 1f + (hitToRayDist);
+                    results[hitCounter] = hit;
+                    hitCounter++;
+                }
+                currentOffset += castMax;
+            }
+
+            s_OptimalHits.Clear();
+            Array.Clear(s_SpherecastScratch, 0, k_MaxSpherecastHits);
+            return hitCounter;
         }
 
         static int FilterTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count, Func<XRInteractableSnapVolume, bool> removeRule)
@@ -2199,7 +2435,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
-            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
+            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable)) && (!m_IsScreenSpaceController || m_ScreenSpaceController.currentControllerState.isTracked);
         }
 
         /// <inheritdoc />
@@ -2344,7 +2580,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 Debug.LogWarning($"{nameof(XROrigin)} not found, cannot add the {nameof(ARRaycastManager)} automatically. Cannot ray cast against AR environment trackables.", this);
             }
         }
-#endif 
+#endif
 
         static int SanitizeSampleFrequency(int value)
         {

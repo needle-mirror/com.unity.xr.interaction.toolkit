@@ -2,7 +2,7 @@
 
 Interprets feature values on a tracked input controller device using actions from the Input System into XR Interaction states, such as Select. Additionally, it applies the current Pose value of a tracked device to the transform of the GameObject.
 
-This behavior requires that the Input System is enabled in the **Active Input Handling** setting in **Edit > Project Settings > Player** for input values to be read. Each input action must also be enabled to read the current value of the action. Externally referenced input actions in an Input Action Asset are not enabled by default.
+This behavior requires that the Input System is enabled in the **Active Input Handling** setting in **Edit > Project Settings > Player** for input values to be read. Each input action must also be enabled before you can read the current value of that action. Input actions referenced from an Input Action Asset are not enabled by default. To enable the input actions for this component, use the `InputActionManager` component and add the related Input Action Asset.
 
 The **Select Action**, **Activate Action**, and **UI Press Action** properties have corresponding **Select Action Value**, **Activate Action Value**, and **UI Press Action Value** properties. The [Action types](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Actions.html#action-types) of these actions are such that the former are usually [`Button`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Button) type Actions, and the latter are optional [`Value`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/api/UnityEngine.InputSystem.InputActionType.html#UnityEngine_InputSystem_InputActionType_Value) type Actions. Each frame, the component will read whether the **Select Action** is performed to capture whether the select interaction state is active, and also capture the `float` value from the **Select Action Value**. If the **Select Action Value** is not set, the `float` value will be read from the **Select Action** instead. This process is repeated for the Activate and UI Press actions.
 
@@ -66,6 +66,12 @@ See the [Starter Assets](samples.md#starter-assets) sample for steps to import a
 | **Translate Anchor Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled. |
 | &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
 | &emsp;Reference | The Input System action to use for translating the interactor's attach point closer or further away from the interactor. Must be a `Vector2Control` Control. Uses the y-axis as the translation input. |
+| **Scale Toggle Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled. |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
+| &emsp;Reference |  The Input System action to use to enable or disable reading from the Scale Delta Action. Must be a `ButtonControl` Control. The pressed state of the button will toggle the scale state. |
+| **Scale Delta Action** | Optional, used by XR Ray Interactor when Anchor Control is enabled. |
+| &emsp;Use Reference | Enable to reference an action externally defined using the accompanying field. |
+| &emsp;Reference | The Input System action to use for providing a scale delta value to transformers. Must be a `Vector2Control` Control. Uses the y-axis as the scale input. |
 | **Model Prefab** | The prefab of a controller model to show for this controller that this behavior automatically instantiates.<br />This behavior automatically instantiates an instance of the prefab as a child of `modelParent` (see below) upon startup unless `model` (see further below) is already set, in which case this value is ignored. |
 | **Model Parent** | The transform that this behavior uses as the parent for the model prefab when it is instantiated.<br />Automatically instantiated and set in `Awake` if not already set. Setting this will not automatically destroy the previous object. |
 | **Model** | The instance of the controller model in the scene. You can set this to an existing object instead of using `modelPrefab` (see above).<br />If set, it should reference a child GameObject of this behavior so it will update with the controller pose. |

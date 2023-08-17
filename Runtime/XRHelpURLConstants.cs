@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "2.4";
+        const string k_CurrentDocsVersion = "2.5";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
 
@@ -288,10 +288,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRDeviceSimulator = k_BaseApi + k_BaseNamespace + "Inputs.Simulation." + nameof(XRDeviceSimulator) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRHandSkeletonPokeDisplacer"/>.
+        /// </summary>
+        public const string k_XRHandSkeletonPokeDisplacer = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(XRHandSkeletonPokeDisplacer) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRInputModalityManager"/>.
         /// </summary>
         public const string k_XRInputModalityManager = k_BaseApi + k_BaseNamespace + "Inputs." + nameof(XRInputModalityManager) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRTransformStabilizer"/>.
         /// </summary>
@@ -316,6 +321,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="TeleportationProvider"/>.
         /// </summary>
         public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + nameof(TeleportationProvider) + ".html";
+
+#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+        /// <summary>
+        /// Scripting API URL for <see cref="ARTransformer"/>.
+        /// </summary>
+        public const string k_ARTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(ARTransformer) + ".html";
+#endif
 
         /// <summary>
         /// Scripting API URL for <see cref="XRDualGrabFreeTransformer"/>.
@@ -343,6 +355,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRSingleGrabOffsetPreserveTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabOffsetPreserveTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(k_XRSingleGrabOffsetPreserveTransformer) + ".html";
+        
+        /// <summary>
+        /// Scripting API URL for <see cref="XRSocketGrabTransformer"/>.
+        /// </summary>
+        public const string k_XRSocketGrabTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRSocketGrabTransformer) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="TunnelingVignetteController"/>
@@ -363,7 +380,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="FollowPresetDatum"/>.
         /// </summary>
         public const string k_FollowPresetDatum = k_BaseApi + k_BaseNamespace + "UI.BodyUI." + nameof(FollowPresetDatum) + ".html";
-        
+
+        /// <summary>
+        /// Scripting API URL for <see cref="CanvasOptimizer"/>.
+        /// </summary>
+        public const string k_CanvasOptimizer = k_BaseApi + k_BaseNamespace + "UI." + nameof(CanvasOptimizer) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="CanvasTracker"/>.
+        /// </summary>
+        public const string k_CanvasTracker = k_BaseApi + k_BaseNamespace + "UI." + nameof(CanvasTracker) + ".html";
+
         /// <summary>
         /// Scripting API URL for <see cref="LazyFollow"/>.
         /// </summary>
@@ -460,6 +487,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRRayInteractor = k_BaseApi + k_BaseNamespace + nameof(XRRayInteractor) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRScreenSpaceController"/>.
+        /// </summary>
+        public const string k_XRScreenSpaceController = k_BaseApi + k_BaseNamespace + nameof(XRScreenSpaceController) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRSimpleInteractable"/>.
         /// </summary>
         public const string k_XRSimpleInteractable = k_BaseApi + k_BaseNamespace + nameof(XRSimpleInteractable) + ".html";
@@ -473,10 +505,5 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRTintInteractableVisual"/>.
         /// </summary>
         public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + ".html";
-
-        /// <summary>
-        /// Scripting API URL for <see cref="XRScreenSpaceController"/>.
-        /// </summary>
-        public const string k_XRScreenSpaceController = k_BaseApi + k_BaseNamespace + nameof(XRScreenSpaceController) + ".html";
     }
 }

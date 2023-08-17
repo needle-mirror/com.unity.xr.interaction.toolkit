@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -140,6 +140,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         [Header("Scaling Constraints")]
         [SerializeField]
+        [Tooltip("Allow one handed scaling using the scale value provider if available.")]
+        bool m_AllowOneHandedScaling = true;
+        
+        /// <summary>
+        /// Allow one handed scaling using the scale value provider if available.
+        /// </summary>
+        public bool allowOneHandedScaling
+        {
+            get => m_AllowOneHandedScaling;
+            set => m_AllowOneHandedScaling = value;
+        }
+        
+        [SerializeField]
         [Tooltip("Allow scaling when using multi-grab interaction.")]
         bool m_AllowTwoHandedScaling;
 
@@ -151,16 +164,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             get => m_AllowTwoHandedScaling;
             set => m_AllowTwoHandedScaling = value;
         }
+        
+        [SerializeField]
+        [Tooltip("Scaling speed over time for one handed scaling based on the scale value provider.")]
+        [Range(0f, 32f)]
+        float m_OneHandedScaleSpeed = 0.5f;
+        
+        /// <summary>
+        /// Scaling speed over time for one handed scaling based on the <see cref="IXRScaleValueProvider"/>
+        /// </summary>
+        public float oneHandedScaleSpeed
+        {
+            get => m_OneHandedScaleSpeed;
+            set => m_OneHandedScaleSpeed = Mathf.Max(value, 0f);
+        }
 
         [SerializeField]
-        [Tooltip("Percentage as a measure of 0 to 1 of scaled relative hand displacement required to trigger scale operation." +
+        [Tooltip("(Two Handed Scaling) Percentage as a measure of 0 to 1 of scaled relative hand displacement required to trigger scale operation." +
                  "\nIf this value is 0f, scaling happens the moment both grab interactors move closer or further away from each other." +
                  "\nOtherwise, this percentage is used as a threshold before any scaling happens.")]
         [Range(0f, 1f)]
         float m_ThresholdMoveRatioForScale = 0.05f;
 
         /// <summary>
-        /// Percentage as a measure of 0 to 1 of scaled relative hand displacement required to trigger scale operation.
+        /// (Two Handed Scaling) Percentage as a measure of 0 to 1 of scaled relative hand displacement required to trigger scale operation.
         /// If this value is 0f, scaling happens the moment both grab interactors move closer or further away from each other.
         /// Otherwise, this percentage is used as a threshold before any scaling happens.
         /// </summary>
@@ -254,18 +281,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         Vector3 m_LastTwoHandedUp;
 
         Vector3 m_InitialScale;
+        Vector3 m_InitialScaleProportions;
         Vector3 m_MinimumScale;
         Vector3 m_MaximumScale;
 
         ConstrainedAxisDisplacementMode m_ConstrainedAxisDisplacementModeOnGrab;
         ManipulationAxes m_PermittedDisplacementAxesOnGrab;
-
+        
+        IXRScaleValueProvider m_ScaleValueProvider;
+        bool m_HasScaleValueProvider;
+        
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void Awake()
         {
             m_InitialScale = transform.localScale;
+            var maxComponent = Mathf.Max(Mathf.Abs(m_InitialScale.x), Mathf.Abs(m_InitialScale.y), Mathf.Abs(m_InitialScale.z));
+            m_InitialScaleProportions = m_InitialScale.SafeDivide(new Vector3(maxComponent, maxComponent, maxComponent));
         }
 
         /// <inheritdoc />
@@ -290,6 +323,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             var interactor = grabInteractable.interactorsSelecting[0];
             var grabInteractableTransform = grabInteractable.transform;
             var grabAttachTransform = grabInteractable.GetAttachTransform(interactor);
+
+            m_ScaleValueProvider = interactor as IXRScaleValueProvider;
+            m_HasScaleValueProvider = m_ScaleValueProvider != null;
 
             m_OriginalObjectPose = grabInteractableTransform.GetWorldPose();
             m_OriginalInteractorPose = interactor.GetAttachTransform(grabInteractable).GetWorldPose();
@@ -346,7 +382,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             base.OnGrabCountChanged(grabInteractable, targetPose, localScale);
 
             var newGrabCount = grabInteractable.interactorsSelecting.Count;
-
             if (newGrabCount == 1)
             {
                 // If the initial grab interactor changes, or we reduce the grab count, we need to recompute initial grab parameters. 
@@ -364,17 +399,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 var interactor0Transform = interactor0.GetAttachTransform(grabInteractable);
                 var grabAttachTransform1 = grabInteractable.GetAttachTransform(interactor1);
 
-                m_StartHandleBar = interactor0Transform.InverseTransformPoint(grabAttachTransform1.position);
                 m_ScaleAtGrabStart = localScale;
-                
-                // Precompute scale range to support modifying the values in the Inspector window without needing to multiply every frame
-                m_MinimumScale = m_InitialScale * m_MinimumScaleRatio;
-                m_MaximumScale = m_InitialScale * m_MaximumScaleRatio;
+
+                m_StartHandleBar = interactor0Transform.InverseTransformPoint(grabAttachTransform1.position);
                 
                 m_FirstFrameSinceTwoHandedGrab = true;
             }
 
             m_LastGrabCount = newGrabCount;
+
+            // Precompute scale range to support modifying the values in the Inspector window at runtime without needing to multiply every frame.
+            m_MinimumScale = m_InitialScale * m_MinimumScaleRatio;
+            m_MaximumScale = m_InitialScale * m_MaximumScaleRatio;
         }
 
         void ComputeAdjustedInteractorPose(XRGrabInteractable grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out Quaternion adjustedInteractorRotation)
@@ -600,19 +636,67 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             adjustedTargetPosition = originalObjectPosition + sumTranslationVector;
         }
         
-        Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar)
+        Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool trackScale)
         {
-            if (!m_AllowTwoHandedScaling || grabInteractable.interactorsSelecting.Count < 2)
-                return currentScale;
+            var interactorsCount = grabInteractable.interactorsSelecting.Count;
+            if (trackScale && interactorsCount == 1 && m_AllowOneHandedScaling && m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == ScaleMode.Input)
+            {
+                var scaleDelta = m_ScaleValueProvider.scaleValue;
+                if (Mathf.Approximately(scaleDelta, 0f))
+                    return currentScale;
+                
+                ComputeNewOneHandedScale(currentScale, m_InitialScaleProportions, m_ClampScaling, m_MinimumScale, m_MaximumScale, scaleDelta, Time.deltaTime, m_OneHandedScaleSpeed, out var newOneHandedScale);
+                return newOneHandedScale;
+            }
 
-            ComputeNewScaleBurst(startScale, currentScale, startHandleBar, newHandleBar, m_ClampScaling, m_ScaleMultiplier, m_ThresholdMoveRatioForScale, m_MinimumScale, m_MaximumScale, out Vector3 newScale);
-            return newScale;
+            if (trackScale && interactorsCount > 1 && m_AllowTwoHandedScaling)
+            {
+                ComputeNewTwoHandedScale(startScale, currentScale, startHandleBar, newHandleBar, m_ClampScaling, m_ScaleMultiplier, m_ThresholdMoveRatioForScale, m_MinimumScale, m_MaximumScale, out var newTwoHandedScale);
+                return newTwoHandedScale;
+            }
+
+            return currentScale;
         }
 
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewScaleBurst(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale,  out Vector3 newScale)
+        static void ComputeNewOneHandedScale(in Vector3 currentScale, in Vector3 initialScaleProportions, bool clampScale, in Vector3 minScale, in Vector3 maxScale, float scaleDelta, float deltaTime, float scaleSpeed, out Vector3 newScale)
+        {
+            newScale = currentScale;
+
+            var scaleAmount = scaleDelta * deltaTime * scaleSpeed;
+            var scaleAmount3 = new float3(scaleAmount, scaleAmount, scaleAmount);
+            BurstMathUtility.Scale(scaleAmount3, (float3)initialScaleProportions, out var proportionedScaleAmount);
+            float3 targetScale = (float3)currentScale + proportionedScaleAmount;
+            if (!clampScale)
+            {
+                newScale = math.max(targetScale, float3.zero);
+                return;
+            }
+
+            if (scaleAmount > 0f)
+            {
+                var isOverMaximum =
+                    math.abs(targetScale.x) > math.abs(maxScale.x) ||
+                    math.abs(targetScale.y) > math.abs(maxScale.y) ||
+                    math.abs(targetScale.z) > math.abs(maxScale.z);
+                newScale = isOverMaximum ? maxScale : (Vector3)targetScale;
+            }
+            else if (scaleAmount < 0f)
+            {
+                var isUnderMinimum =
+                    math.abs(targetScale.x) < math.abs(minScale.x) ||
+                    math.abs(targetScale.y) < math.abs(minScale.y) ||
+                    math.abs(targetScale.z) < math.abs(minScale.z);
+                newScale = isUnderMinimum ? minScale : (Vector3)targetScale;
+            }
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void ComputeNewTwoHandedScale(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale,  out Vector3 newScale)
         {
             newScale = currentScale;
 
@@ -629,7 +713,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 var targetScaleRatio = 1f + multipliedAmountOver1WithoutThreshold;
                 var targetScale = targetScaleRatio * startScale;
 
-                bool isOverMaximum = targetScale.x > maxScale.x || targetScale.y > maxScale.y || targetScale.z > maxScale.z;
+                var isOverMaximum =
+                    math.abs(targetScale.x) > math.abs(maxScale.x) ||
+                    math.abs(targetScale.y) > math.abs(maxScale.y) ||
+                    math.abs(targetScale.z) > math.abs(maxScale.z);
                 newScale = isOverMaximum && clampScale ? maxScale : targetScale;
             }
             else if (scaleRatio < 1f)
@@ -645,7 +732,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 var invertedTargetScaleRatio = 1f + multipliedAmountOver1WithoutThreshold;
                 var targetScale = 1f / invertedTargetScaleRatio * startScale;
 
-                bool isUnderMinimum = targetScale.x < minScale.x || targetScale.y < minScale.y || startScale.z < minScale.z;
+                var isUnderMinimum =
+                    math.abs(targetScale.x) < math.abs(minScale.x) ||
+                    math.abs(targetScale.y) < math.abs(minScale.y) ||
+                    math.abs(targetScale.z) < math.abs(minScale.z);
                 newScale = isUnderMinimum && clampScale ? minScale : targetScale;
             }
         }
@@ -654,7 +744,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         {
             ComputeAdjustedInteractorPose(grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out  Quaternion adjustedInteractorRotation);
 
-            localScale = ComputeNewScale(grabInteractable, m_ScaleAtGrabStart, localScale, m_StartHandleBar, newHandleBar);
+            localScale = ComputeNewScale(grabInteractable, m_ScaleAtGrabStart, localScale, m_StartHandleBar, newHandleBar, grabInteractable.trackScale);
 
             targetPose.rotation = ComputeNewObjectRotation(adjustedInteractorRotation, grabInteractable.trackRotation);
 

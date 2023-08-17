@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             // Calculates the percentage of the target Interactable angle compared to the max angle
             // The target angle is multiplied by 2 to transform it into a field of view angle
             var targetAnglePercentage = targetAngleFromCamera * 2f / m_MaxAngle;
-            return 1f - Mathf.Clamp01(targetAnglePercentage);
+            return 1f - targetAnglePercentage;
         }
     }
 }

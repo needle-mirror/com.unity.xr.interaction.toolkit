@@ -110,6 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// An interactor should only override if it is capable of selecting any interactable that <paramref name="interactingInteractor"/>
         /// is interacting with. If multiple Group members are capable of overriding, only the highest priority one should override.
         /// </summary>
+        /// <param name="interactingInteractor">The interactor that is interacting with an interactable.</param>
         /// <param name="overridingInteractor">The interactor that should override interaction.</param>
         /// <returns>
         /// Returns <see langword="true"/> if any member of the Group should override the interactions of

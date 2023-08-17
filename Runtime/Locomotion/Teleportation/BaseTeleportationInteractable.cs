@@ -353,21 +353,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.ProcessInteractable(updatePhase);
 
-            if (updatePhase != XRInteractionUpdateOrder.UpdatePhase.Dynamic || !isSelected || !m_MatchDirectionalInput)
+            if (updatePhase != XRInteractionUpdateOrder.UpdatePhase.Dynamic || !m_MatchDirectionalInput)
                 return;
 
-            // Update the reticle direction for each interactor that is selecting this interactable.
-            foreach (var interactorSelecting in interactorsSelecting)
+            // Update the reticle direction for each interactor that is hovering or selecting this interactable.
+            for (int index = 0, count = interactorsHovering.Count; index < count; ++index)
             {
-                var attachTransform = interactorSelecting.GetAttachTransform(this);
+                var interactorHovering = interactorsHovering[index];
+                CalculateTeleportForward(interactorHovering);
+            }
+
+            for (int index = 0, count = interactorsSelecting.Count; index < count; ++index)
+            {
+                var interactorSelecting = interactorsSelecting[index];
+                // Skip if also hovered by the interactor since it would have already been computed above.
+                if (IsHovered(interactorSelecting))
+                    continue;
+
+                CalculateTeleportForward(interactorSelecting);
+            }
+
+            void CalculateTeleportForward(IXRInteractor interactor)
+            {
+                var attachTransform = interactor.GetAttachTransform(this);
                 switch (matchOrientation)
                 {
                     case MatchOrientation.WorldSpaceUp:
-                        m_TeleportForwardPerInteractor[interactorSelecting] = Vector3.ProjectOnPlane(attachTransform.forward, Vector3.up).normalized;
+                        m_TeleportForwardPerInteractor[interactor] = Vector3.ProjectOnPlane(attachTransform.forward, Vector3.up).normalized;
                         break;
 
                     case MatchOrientation.TargetUp:
-                        m_TeleportForwardPerInteractor[interactorSelecting] = Vector3.ProjectOnPlane(attachTransform.forward, transform.up).normalized;
+                        m_TeleportForwardPerInteractor[interactor] = Vector3.ProjectOnPlane(attachTransform.forward, transform.up).normalized;
                         break;
                 }
             }

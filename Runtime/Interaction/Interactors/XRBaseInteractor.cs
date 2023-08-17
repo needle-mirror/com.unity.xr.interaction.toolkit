@@ -395,7 +395,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         
         Vector3 m_AttachPointAngularVelocity;
 
-        Transform m_XROrigin;
+        Transform m_XROriginTransform;
         bool m_HasXROrigin;
         bool m_FailedToFindXROrigin;
         
@@ -407,7 +407,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_HasXROrigin)
             {
-                origin = m_XROrigin;
+                origin = m_XROriginTransform;
                 return true;
             }
 
@@ -419,9 +419,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var originGo = xrOrigin.Origin;
                     if (originGo != null)
                     {
-                        m_XROrigin = originGo.transform;
+                        m_XROriginTransform = originGo.transform;
                         m_HasXROrigin = true;
-                        origin = m_XROrigin;
+                        origin = m_XROriginTransform;
                         return true;
                     }
                 }

@@ -17,7 +17,12 @@ A socket is defined as the target for a specific interactable, such as a keyhole
 | **Show Interactable Hover Meshes** | Whether this socket should show a mesh at socket's attach point for Interactables that it is hovering over. |
 | **Hover Mesh Material** | Material used for rendering interactable meshes on hover (a default material will be created if none is supplied). |
 | **Can't Hover Mesh Material** | Material used for rendering interactable meshes on hover when there is already a selected object in the socket (a default material will be created if none is supplied). |
-| **Hover Scale** | Scale at which to render hovered Interactable. |
+| **Hover Scale** | Scale at which to render the hover mesh displayed at the socket's attach point. |
+| **Hover Socket Snapping** | Determines if the interactable should snap to the socket's attach transform when hovering. Note this will cause z-fighting with the hover mesh visuals, not recommended to use both options at the same time. If enabled, hover recycle delay functionality is disabled. |
+| **Socket Snapping Radius** | When socket snapping is enabled, this is the radius within which the interactable will snap to the socket's attach transform while hovering. |
+| **Socket Scale Mode** | Scale mode used to calculate the scale factor applied to the interactable when hovering. |
+| **Fixed Scale** | Scale factor applied to the interactable when scale mode is set to Fixed. |
+| **Target Bounds Size** | Bounds size used to calculate the scale factor applied to the interactable when scale mode is set to Stretched To Fit Size. |
 | **Socket Active** | Whether socket interaction is enabled. |
-| **Recycle Delay Time** | Sets the amount of time the socket will refuse hovers after an object is removed. |
+| **Recycle Delay Time** | Sets the amount of time the socket will refuse hovers after an object is removed. This property does nothing if Hover Socket Snapping is enabled. |
 | **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |

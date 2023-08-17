@@ -6,7 +6,7 @@ using UnityEngine.Scripting;
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
     /// <summary>
-    /// This class automatically registers the control layout used by the <see cref="TouchscreenGestusreInputController"/>.
+    /// This class automatically registers the control layout used by the <see cref="TouchscreenGestureInputController"/>.
     /// </summary>
     /// <seealso cref="TouchscreenGestureInputController"/>
 #if UNITY_EDITOR

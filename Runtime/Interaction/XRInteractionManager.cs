@@ -183,6 +183,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ProcessSelectFilters"/>
         public IXRFilterList<IXRSelectFilter> selectFilters => m_SelectFilters;
 
+        /// <summary>
+        /// (Read Only) The last <see cref="IXRFocusInteractable"/> that was focused by
+        /// any <see cref="IXRInteractor"/>.
+        /// </summary>
         public IXRFocusInteractable lastFocused { get; protected set; }
 
         /// <summary>

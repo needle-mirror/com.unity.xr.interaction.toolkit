@@ -30,6 +30,15 @@ The **XR UI Input Module** is the component that XRI requires to properly interf
 
 ![ui-event-system-setup](images/ui-event-system-setup.png)
 
+## Canvas optimizer
+
+The [Canvas Optimizer](canvas-optimizer.md) is an optional component that will reduce the performance cost of scenes with heavily nested UI elements. It will also disable processing input events on UI canvases that cannot be seen or are too far away.
+
+Add this component to a scene, such as on the EventSystem GameObject, to allow the Canvas Optimizer to automatically find all Canvas components in all loaded scenes to optimize processing.
+
+[!Note]
+> If you instantiate a UI element with a Canvas at runtime, you will need to manually register it with the Canvas Optimizer by calling `CanvasOptimizer.RegisterCanvas(Canvas)`.
+
 ## Canvas
 All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below) called the **Tracked Device Graphic Raycaster**. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
 

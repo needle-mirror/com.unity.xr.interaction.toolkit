@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
+#if BURST_PRESENT
+using Unity.Burst;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -50,10 +54,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [RequireComponent(typeof(Rigidbody))]
     [AddComponentMenu("XR/XR Grab Interactable", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGrabInteractable)]
+#if BURST_PRESENT
+    [BurstCompile]
+#endif
     public partial class XRGrabInteractable : XRBaseInteractable
     {
-        const float k_DefaultTighteningAmount = 0.5f;
-        const float k_DefaultSmoothingAmount = 5f;
+        const float k_DefaultTighteningAmount = 0.1f;
+        const float k_DefaultSmoothingAmount = 8f;
         const float k_VelocityDamping = 1f;
         const float k_VelocityScale = 1f;
         const float k_AngularVelocityDamping = 1f;
@@ -101,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         Transform m_SecondaryAttachTransform;
-        
+
         /// <summary>
         /// The secondary attachment point to use on this Interactable for multi-hand interaction (will use the second interactor's attach transform if none set).
         /// Used for multi-grab interactions.
@@ -322,6 +329,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Whether this object should follow the position of the Interactor when selected.
         /// </summary>
         /// <seealso cref="trackRotation"/>
+        /// <seealso cref="trackScale"/>
         public bool trackPosition
         {
             get => m_TrackPosition;
@@ -383,6 +391,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Whether this object should follow the rotation of the Interactor when selected.
         /// </summary>
         /// <seealso cref="trackPosition"/>
+        /// <seealso cref="trackScale"/>
         public bool trackRotation
         {
             get => m_TrackRotation;
@@ -435,6 +444,68 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_TightenRotation;
             set => m_TightenRotation = value;
+        }
+
+        [SerializeField]
+        bool m_TrackScale = true;
+
+        /// <summary>
+        /// Whether or not the interactor will affect the scale of the object when selected.
+        /// </summary>
+        /// <seealso cref="trackPosition"/>
+        /// <seealso cref="trackRotation"/>
+        public bool trackScale
+        {
+            get => m_TrackScale;
+            set => m_TrackScale = value;
+        }
+
+        [SerializeField]
+        bool m_SmoothScale;
+
+        /// <summary>
+        /// Whether Unity applies smoothing while following the scale of the Interactor when selected.
+        /// </summary>
+        /// <seealso cref="smoothScaleAmount"/>
+        /// <seealso cref="tightenScale"/>
+        public bool smoothScale
+        {
+            get => m_SmoothScale;
+            set => m_SmoothScale = value;
+        }
+
+        [SerializeField, Range(0f, 20f)]
+        float m_SmoothScaleAmount = k_DefaultSmoothingAmount;
+
+        /// <summary>
+        /// Scale factor for how much smoothing is applied while following the scale of the Interactor when selected.
+        /// The larger the value, the closer this object will remain to the scale of the Interactor.
+        /// </summary>
+        /// <seealso cref="smoothScale"/>
+        /// <seealso cref="tightenScale"/>
+        public float smoothScaleAmount
+        {
+            get => m_SmoothScaleAmount;
+            set => m_SmoothScaleAmount = value;
+        }
+
+        [SerializeField, Range(0f, 1f)]
+        float m_TightenScale = k_DefaultTighteningAmount;
+
+        /// <summary>
+        /// Reduces the maximum follow scale difference when using smoothing.
+        /// </summary>
+        /// <remarks>
+        /// Scale factor for how much smoothing is applied while following the scale of the determined by the transformer when selected. The larger the value, the closer this object will remain to the target scale determined by the interactable's transformer.
+        /// The value ranges from 0 meaning no bias in the smoothed follow distance,
+        /// to 1 meaning effectively no smoothing at all.
+        /// </remarks>
+        /// <seealso cref="smoothScale"/>
+        /// <seealso cref="smoothScaleAmount"/>
+        public float tightenScale
+        {
+            get => m_TightenScale;
+            set => m_TightenScale = value;
         }
 
         [SerializeField]
@@ -633,9 +704,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         (int, int) m_GrabCountBeforeAndAfterChange;
         bool m_IsProcessingGrabTransformers;
 
+        /// <summary>
+        /// The number of registered grab transformers that implement <see cref="IXRDropTransformer"/>.
+        /// </summary>
+        int m_DropTransformersCount;
+        static readonly LinkedPool<DropEventArgs> s_DropEventArgs = new LinkedPool<DropEventArgs>(() => new DropEventArgs(), collectionCheck: false);
+
         // World pose we are moving towards each frame (eventually will be at Interactor's attach point assuming default single grab algorithm)
         Pose m_TargetPose;
         Vector3 m_TargetLocalScale;
+
+        bool m_IsTargetPoseDirty;
+        bool m_IsTargetLocalScaleDirty;
+
+        bool isTransformDirty
+        {
+            get => m_IsTargetPoseDirty || m_IsTargetLocalScaleDirty;
+            set
+            {
+                m_IsTargetPoseDirty = value;
+                m_IsTargetLocalScaleDirty = value;
+            }
+        }
 
         float m_CurrentAttachEaseTime;
         MovementType m_CurrentMovementType;
@@ -688,8 +778,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_TeleportationMonitor.teleported += OnTeleported;
 
             m_CurrentMovementType = m_MovementType;
-            m_Rigidbody = GetComponent<Rigidbody>();
-            if (m_Rigidbody == null)
+            if (!TryGetComponent(out m_Rigidbody))
                 Debug.LogError("XR Grab Interactable does not have a required Rigidbody.", this);
 
             m_Rigidbody.GetComponentsInChildren(true, m_RigidbodyColliders);
@@ -698,6 +787,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_RigidbodyColliders[i].attachedRigidbody != m_Rigidbody)
                     m_RigidbodyColliders.RemoveAt(i);
             }
+
+            InitializeTargetPoseAndScale(transform);
 
             if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
             {
@@ -776,12 +867,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 // During Fixed update we want to apply any Rigidbody-based updates (e.g., Kinematic or VelocityTracking).
                 case XRInteractionUpdateOrder.UpdatePhase.Fixed:
-                    if (isSelected)
+                    if (isSelected || isTransformDirty)
                     {
-                        if (m_CurrentMovementType == MovementType.Kinematic)
-                            PerformKinematicUpdate(updatePhase);
-                        else if (m_CurrentMovementType == MovementType.VelocityTracking)
-                            PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
+                        if (m_CurrentMovementType == MovementType.Kinematic ||
+                            m_CurrentMovementType == MovementType.VelocityTracking)
+                        {
+                            // If we only updated the target scale externally, just update that.
+                            if (m_IsTargetLocalScaleDirty && !m_IsTargetPoseDirty && !isSelected)
+                                ApplyTargetScale();
+                            else if (m_CurrentMovementType == MovementType.Kinematic)
+                                PerformKinematicUpdate(updatePhase);
+                            else if (m_CurrentMovementType == MovementType.VelocityTracking)
+                                PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
+                        }
                     }
 
                     if (m_IgnoringCharacterCollision && !m_StopIgnoringCollisionInLateUpdate &&
@@ -791,20 +889,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         // Wait until Late update so that physics can update before we restore the ability to collide with character
                         m_StopIgnoringCollisionInLateUpdate = true;
                     }
-
                     break;
 
                 // During Dynamic update and OnBeforeRender we want to update the target pose and apply any Transform-based updates (e.g., Instantaneous).
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
-                    if (isSelected)
+                    if (isTransformDirty)
+                    {
+                        // If we only updated the target scale externally, just update that.
+                        if (m_IsTargetLocalScaleDirty && !m_IsTargetPoseDirty)
+                            ApplyTargetScale();
+                        else
+                            PerformInstantaneousUpdate(updatePhase);
+                    }
+
+                    if (isSelected || (m_GrabCountChanged && m_DropTransformersCount > 0))
                     {
                         UpdateTarget(updatePhase, Time.deltaTime);
 
                         if (m_CurrentMovementType == MovementType.Instantaneous)
                             PerformInstantaneousUpdate(updatePhase);
                     }
-
                     break;
 
                 // Late update is used to handle detach and restoring character collision as late as possible.
@@ -826,7 +931,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                         m_StopIgnoringCollisionInLateUpdate = false;
                     }
-
                     break;
             }
         }
@@ -835,11 +939,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public override Transform GetAttachTransform(IXRInteractor interactor)
         {
             bool isFirst = interactorsSelecting.Count <= 1 || ReferenceEquals(interactor, interactorsSelecting[0]);
-            
+
             // If first selector, do normal behavior.
             // If second, we ignore dynamic attach setting if there is no secondary attach transform.
             var shouldUseDynamicAttach = m_UseDynamicAttach || (!isFirst && m_SecondaryAttachTransform == null);
-            
+
             if (shouldUseDynamicAttach && interactor is IXRSelectInteractor selectInteractor &&
                 m_DynamicAttachTransforms.TryGetValue(selectInteractor, out var dynamicAttachTransform))
             {
@@ -970,6 +1074,71 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="MoveSingleGrabTransformerTo"/>
         public void MoveMultipleGrabTransformerTo(IXRGrabTransformer transformer, int newIndex) => MoveGrabTransformerTo(transformer, newIndex, m_MultipleGrabTransformers);
 
+        /// <summary>
+        /// Retrieves the current world space target pose.
+        /// </summary>
+        /// <returns>Returns the current world space target pose in the form of a <see cref="Pose"/> struct.</returns>
+        /// <seealso cref="SetTargetPose"/>
+        /// <seealso cref="GetTargetLocalScale"/>
+        public Pose GetTargetPose()
+        {
+            return m_TargetPose;
+        }
+
+        /// <summary>
+        /// Sets a new world space target pose.
+        /// </summary>
+        /// <param name="pose">The new world space target pose, represented as a <see cref="Pose"/> struct.</param>
+        /// <remarks>
+        /// This bypasses easing and smoothing.
+        /// </remarks>
+        /// <seealso cref="GetTargetPose"/>
+        /// <seealso cref="SetTargetLocalScale"/>
+        public void SetTargetPose(Pose pose)
+        {
+            m_TargetPose = pose;
+
+            // If there are no interactors selecting this object, we need to set the target pose dirty
+            // so that the pose is applied in the next phase it is applied.
+            m_IsTargetPoseDirty = interactorsSelecting.Count == 0;
+        }
+
+        /// <summary>
+        /// Retrieves the current target local scale.
+        /// </summary>
+        /// <returns>Returns the current target local scale in the form of a <see cref="Vector3"/> struct.</returns>
+        /// <seealso cref="SetTargetLocalScale"/>
+        /// <seealso cref="GetTargetPose"/>
+        public Vector3 GetTargetLocalScale()
+        {
+            return m_TargetLocalScale;
+        }
+
+        /// <summary>
+        /// Sets a new target local scale.
+        /// </summary>
+        /// <param name="localScale">The new target local scale, represented as a <see cref="Vector3"/> struct.</param>
+        /// <remarks>
+        /// This bypasses easing and smoothing.
+        /// </remarks>
+        /// <seealso cref="GetTargetLocalScale"/>
+        /// <seealso cref="SetTargetPose"/>
+        public void SetTargetLocalScale(Vector3 localScale)
+        {
+            m_TargetLocalScale = localScale;
+
+            // If there are no interactors selecting this object, we need to set the target local scale dirty
+            // so that the pose is applied in the next phase it is applied.
+            m_IsTargetLocalScaleDirty = interactorsSelecting.Count == 0;
+        }
+
+        void InitializeTargetPoseAndScale(Transform thisTransform)
+        {
+            m_TargetPose.position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
+            m_TargetPose.rotation = thisTransform.rotation;
+            m_TargetLocalScale = thisTransform.localScale;
+        }
+
         void AddGrabTransformer(IXRGrabTransformer transformer, BaseRegistrationList<IXRGrabTransformer> grabTransformers)
         {
             if (transformer == null)
@@ -1058,6 +1227,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_IsProcessingGrabTransformers = false;
         }
 
+        void InvokeGrabTransformersOnDrop(DropEventArgs args)
+        {
+            m_IsProcessingGrabTransformers = true;
+
+            if (m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+            {
+                foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                {
+                    if (transformer is IXRDropTransformer dropTransformer && m_SingleGrabTransformers.IsStillRegistered(transformer))
+                        dropTransformer.OnDrop(this, args);
+                }
+            }
+
+            if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0)
+            {
+                foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                {
+                    if (transformer is IXRDropTransformer dropTransformer && m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                        dropTransformer.OnDrop(this, args);
+                }
+            }
+
+            m_IsProcessingGrabTransformers = false;
+        }
+
         void InvokeGrabTransformersProcess(XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale)
         {
             m_IsProcessingGrabTransformers = true;
@@ -1065,24 +1259,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
             using (s_ProcessGrabTransformersMarker.Auto())
             {
+                // Cache some frequently evaluated properties to local variables.
+                // The registration lists are not flushed during this method, so these are invariant.
+                var grabbed = isSelected;
+                var hasSingleGrabTransformer = m_SingleGrabTransformers.registeredSnapshot.Count > 0;
+                var hasMultipleGrabTransformer = m_MultipleGrabTransformers.registeredSnapshot.Count > 0;
+
                 // Let the transformers setup if the grab count changed.
                 if (m_GrabCountChanged)
                 {
-                    if (m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+                    if (grabbed)
                     {
-                        foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                        if (hasSingleGrabTransformer)
                         {
-                            if (m_SingleGrabTransformers.IsStillRegistered(transformer))
-                                transformer.OnGrabCountChanged(this, targetPose, localScale);
+                            foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                            {
+                                if (m_SingleGrabTransformers.IsStillRegistered(transformer))
+                                    transformer.OnGrabCountChanged(this, targetPose, localScale);
+                            }
                         }
-                    }
 
-                    if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0)
-                    {
-                        foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                        if (hasMultipleGrabTransformer)
                         {
-                            if (m_MultipleGrabTransformers.IsStillRegistered(transformer))
-                                transformer.OnGrabCountChanged(this, targetPose, localScale);
+                            foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                            {
+                                if (m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                                    transformer.OnGrabCountChanged(this, targetPose, localScale);
+                            }
                         }
                     }
 
@@ -1091,45 +1294,86 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
                 else if (m_GrabTransformersAddedWhenGrabbed?.Count > 0)
                 {
-                    // Calling OnGrabCountChanged on just the grab transformers added when this was already grabbed
-                    // avoids calling it needlessly on all linked grab transformers.
-                    foreach (var transformer in m_GrabTransformersAddedWhenGrabbed)
+                    if (grabbed)
                     {
-                        transformer.OnGrabCountChanged(this, targetPose, localScale);
+                        // Calling OnGrabCountChanged on just the grab transformers added when this was already grabbed
+                        // avoids calling it needlessly on all linked grab transformers.
+                        foreach (var transformer in m_GrabTransformersAddedWhenGrabbed)
+                        {
+                            transformer.OnGrabCountChanged(this, targetPose, localScale);
+                        }
                     }
 
                     m_GrabTransformersAddedWhenGrabbed.Clear();
                 }
 
-                // Give the Multiple Grab Transformers first chance to process,
-                // and if one actually does, skip the Single Grab Transformers.
-                // Also let the Multiple Grab Transformers process if there aren't any Single Grab Transformers.
-                // An empty Single Grab Transformers list is treated the same as a populated list where none can process.
-                var processed = false;
-                if (m_MultipleGrabTransformers.registeredSnapshot.Count > 0 && (interactorsSelecting.Count > 1 || !CanProcessAnySingleGrabTransformer()))
+                if (grabbed)
                 {
-                    foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                    // Give the Multiple Grab Transformers first chance to process,
+                    // and if one actually does, skip the Single Grab Transformers.
+                    // Also let the Multiple Grab Transformers process if there aren't any Single Grab Transformers.
+                    // An empty Single Grab Transformers list is treated the same as a populated list where none can process.
+                    var processed = false;
+                    if (hasMultipleGrabTransformer && (interactorsSelecting.Count > 1 || !CanProcessAnySingleGrabTransformer()))
                     {
-                        if (!m_MultipleGrabTransformers.IsStillRegistered(transformer))
-                            continue;
-
-                        if (transformer.canProcess)
+                        foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
                         {
-                            transformer.Process(this, updatePhase, ref targetPose, ref localScale);
-                            processed = true;
+                            if (!m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                                continue;
+
+                            if (transformer.canProcess)
+                            {
+                                transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                                processed = true;
+                            }
+                        }
+                    }
+
+                    if (!processed && hasSingleGrabTransformer)
+                    {
+                        foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                        {
+                            if (!m_SingleGrabTransformers.IsStillRegistered(transformer))
+                                continue;
+
+                            if (transformer.canProcess)
+                                transformer.Process(this, updatePhase, ref targetPose, ref localScale);
                         }
                     }
                 }
-
-                if (!processed && m_SingleGrabTransformers.registeredSnapshot.Count > 0)
+                else
                 {
-                    foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                    // When not selected, we process both Multiple and Single transformers that implement IXRDropTransformer
+                    // and do not try to recreate the logic of prioritizing Multiple over Single. The rules for prioritizing
+                    // would not be intuitive, so we just process all transformers.
+                    if (hasMultipleGrabTransformer)
                     {
-                        if (!m_SingleGrabTransformers.IsStillRegistered(transformer))
-                            continue;
+                        foreach (var transformer in m_MultipleGrabTransformers.registeredSnapshot)
+                        {
+                            if (!(transformer is IXRDropTransformer dropTransformer) ||
+                                !m_MultipleGrabTransformers.IsStillRegistered(transformer))
+                            {
+                                continue;
+                            }
 
-                        if (transformer.canProcess)
-                            transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                            if (dropTransformer.canProcessOnDrop && transformer.canProcess)
+                                transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                        }
+                    }
+
+                    if (hasSingleGrabTransformer)
+                    {
+                        foreach (var transformer in m_SingleGrabTransformers.registeredSnapshot)
+                        {
+                            if (!(transformer is IXRDropTransformer dropTransformer) ||
+                                !m_SingleGrabTransformers.IsStillRegistered(transformer))
+                            {
+                                continue;
+                            }
+
+                            if (dropTransformer.canProcessOnDrop && transformer.canProcess)
+                                transformer.Process(this, updatePhase, ref targetPose, ref localScale);
+                        }
                     }
                 }
             }
@@ -1161,6 +1405,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void OnAddedGrabTransformer(IXRGrabTransformer transformer)
         {
+            if (transformer is IXRDropTransformer)
+                ++m_DropTransformersCount;
+
             transformer.OnLink(this);
 
             if (interactorsSelecting.Count == 0)
@@ -1180,6 +1427,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void OnRemovedGrabTransformer(IXRGrabTransformer transformer)
         {
+            if (transformer is IXRDropTransformer)
+                --m_DropTransformersCount;
+
             transformer.OnUnlink(this);
             m_GrabTransformersAddedWhenGrabbed?.Remove(transformer);
         }
@@ -1229,7 +1479,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             return GetOrAddComponent<XRGeneralGrabTransformer>();
         }
-        
+
         T GetOrAddComponent<T>() where T : Component
         {
             return TryGetComponent<T>(out var component) ? component : gameObject.AddComponent<T>();
@@ -1245,10 +1495,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             var rawTargetPose = m_TargetPose;
-            InvokeGrabTransformersProcess(updatePhase, ref rawTargetPose, ref m_TargetLocalScale);
+            var rawTargetScale = m_TargetLocalScale;
+
+            InvokeGrabTransformersProcess(updatePhase, ref rawTargetPose, ref rawTargetScale);
 
             // Skip during OnBeforeRender since it doesn't require that high accuracy.
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            // Skip when not selected since the the detach velocity has already been applied and we no longer need to compute it.
+            // This means that the final Process for drop grab transformers does not contribute to throw velocity.
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic && isSelected)
             {
                 // Track the target pose before easing.
                 // This avoids an unintentionally high detach velocity if grabbing with an XRRayInteractor
@@ -1259,39 +1513,74 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             // Apply easing and smoothing (if configured)
-            StepSmoothing(rawTargetPose, deltaTime);
+            StepSmoothing(rawTargetPose, rawTargetScale, deltaTime);
         }
 
-        void StepSmoothing(Pose rawTargetPose, float deltaTime)
+        void StepSmoothing(in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime)
         {
             if (m_AttachEaseInTime > 0f && m_CurrentAttachEaseTime <= m_AttachEaseInTime)
             {
-                var easePercent = m_CurrentAttachEaseTime / m_AttachEaseInTime;
-                m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, easePercent);
-                m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, easePercent);
-                m_CurrentAttachEaseTime += deltaTime;
+                EaseAttachBurst(ref m_TargetPose, ref m_TargetLocalScale, rawTargetPose, rawTargetLocalScale, deltaTime,
+                    m_AttachEaseInTime, ref m_CurrentAttachEaseTime);
             }
             else
             {
-                if (m_SmoothPosition)
-                {
-                    m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, m_SmoothPositionAmount * deltaTime);
-                    m_TargetPose.position = Vector3.Lerp(m_TargetPose.position, rawTargetPose.position, m_TightenPosition);
-                }
-                else
-                {
-                    m_TargetPose.position = rawTargetPose.position;
-                }
+                StepSmoothingBurst(ref m_TargetPose, ref m_TargetLocalScale, rawTargetPose, rawTargetLocalScale, deltaTime,
+                    m_SmoothPosition, m_SmoothPositionAmount, m_TightenPosition,
+                    m_SmoothRotation, m_SmoothRotationAmount, m_TightenRotation,
+                    m_SmoothScale, m_SmoothScaleAmount, m_TightenScale);
+            }
+        }
 
-                if (m_SmoothRotation)
-                {
-                    m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, m_SmoothRotationAmount * deltaTime);
-                    m_TargetPose.rotation = Quaternion.Slerp(m_TargetPose.rotation, rawTargetPose.rotation, m_TightenRotation);
-                }
-                else
-                {
-                    m_TargetPose.rotation = rawTargetPose.rotation;
-                }
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void EaseAttachBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
+            float attachEaseInTime, ref float currentAttachEaseTime)
+        {
+            var easePercent = currentAttachEaseTime / attachEaseInTime;
+            targetPose.position = math.lerp(targetPose.position, rawTargetPose.position, easePercent);
+            targetPose.rotation = math.slerp(targetPose.rotation, rawTargetPose.rotation, easePercent);
+            targetLocalScale =  math.lerp(targetLocalScale, rawTargetLocalScale, easePercent);
+            currentAttachEaseTime += deltaTime;
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void StepSmoothingBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
+            bool smoothPos, float smoothPosAmount, float tightenPos,
+            bool smoothRot, float smoothRotAmount, float tightenRot,
+            bool smoothScale, float smoothScaleAmount, float tightenScale)
+        {
+            if (smoothPos)
+            {
+                targetPose.position = math.lerp(targetPose.position, rawTargetPose.position, smoothPosAmount * deltaTime);
+                targetPose.position = math.lerp(targetPose.position, rawTargetPose.position, tightenPos);
+            }
+            else
+            {
+                targetPose.position = rawTargetPose.position;
+            }
+
+            if (smoothRot)
+            {
+                targetPose.rotation = math.slerp(targetPose.rotation, rawTargetPose.rotation, smoothRotAmount * deltaTime);
+                targetPose.rotation = math.slerp(targetPose.rotation, rawTargetPose.rotation, tightenRot);
+            }
+            else
+            {
+                targetPose.rotation = rawTargetPose.rotation;
+            }
+
+            if (smoothScale)
+            {
+                targetLocalScale = math.lerp(targetLocalScale, rawTargetLocalScale, smoothScaleAmount * deltaTime);
+                targetLocalScale = math.lerp(targetLocalScale, rawTargetLocalScale, tightenScale);
+            }
+            else
+            {
+                targetLocalScale = rawTargetLocalScale;
             }
         }
 
@@ -1307,7 +1596,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 else if (m_TrackRotation)
                     transform.rotation = m_TargetPose.rotation;
 
-                transform.localScale = m_TargetLocalScale;
+                ApplyTargetScale();
+
+                isTransformDirty = false;
             }
         }
 
@@ -1324,11 +1615,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
 
                 if (m_TrackRotation)
-                {
                     m_Rigidbody.MoveRotation(m_TargetPose.rotation);
-                }
 
-                transform.localScale = m_TargetLocalScale;
+                ApplyTargetScale();
+
+                isTransformDirty = false;
             }
         }
 
@@ -1369,8 +1660,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     }
                 }
 
-                transform.localScale = m_TargetLocalScale;
+                ApplyTargetScale();
+
+                isTransformDirty = false;
             }
+        }
+
+        void ApplyTargetScale()
+        {
+            if (m_TrackScale)
+                transform.localScale = m_TargetLocalScale;
+
+            m_IsTargetLocalScaleDirty = false;
         }
 
         void UpdateCurrentMovementType()
@@ -1466,6 +1767,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_ThrowAssist = args.interactorObject.transform.GetComponentInParent<IXRAimAssist>();
 
                 Drop();
+
+                if (m_DropTransformersCount > 0)
+                {
+                    using (s_DropEventArgs.Get(out var dropArgs))
+                    {
+                        dropArgs.selectExitEventArgs = args;
+                        InvokeGrabTransformersOnDrop(dropArgs);
+                    }
+                }
             }
 
             // Don't restore ability to collide with character until the object is not overlapping with the character.
@@ -1656,10 +1966,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_DetachVelocity = Vector3.zero;
             m_DetachAngularVelocity = Vector3.zero;
 
-            // Initialize target pose
-            m_TargetPose.position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
-            m_TargetPose.rotation = thisTransform.rotation;
-            m_TargetLocalScale = thisTransform.localScale;
+            // Initialize target pose and scale
+            InitializeTargetPoseAndScale(thisTransform);
         }
 
         /// <summary>

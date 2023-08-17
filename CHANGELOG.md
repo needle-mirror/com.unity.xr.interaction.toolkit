@@ -5,6 +5,42 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.5.0] - 2023-08-17
+
+### Added
+- Added the canvas optimizer to reduce runtime load of UI-heavy scenes. See [UI Setup - Canvas optimizer](../manual/ui-setup.md#canvas-optimizer) in the manual for more details.
+- Added the [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.ARTransformer) which allows users to move an `XRGrabInteractable` while constrained to AR Foundation planes. It also has functionality for scaling with touch pinch gestures when the XR Screen Space Controller is used.
+- Added Track Scale and related smoothing options to XR Grab Interactable to allow developers to disable writing to the object's scale when grabbing.
+- Added snap transformations to `XRSocketInteractor` on hover.
+- Added scaling transformation to `XRSocketInteractor`.
+- Added several scripts to the Starter Assets sample for object spawning in AR: `ObjectSpawner`, `ARInteractorSpawnTrigger`, `ARContactSpawnTrigger`, and `DestroySelf`.
+- Added an AR demo scene to the AR Starter Assets that displays a set-up for mobile AR which includes a sliding menu of placeable and interactable objects.
+- Added `GetCurrentGameObject` method to `UIInputModule` to get the UI GameObject currently being hovered by a tracked device or pointer device such as a mouse or touchscreen.
+- Added Cone Cast hit detection type to the [XR Ray Interactor](../manual/xr-ray-interactor.md) to allow users to select small objects at a distance easily.
+- Added ray endpoint stabilization to the [XR Transform Stabilizer](../manual/xr-transform-stabilizer.md).
+- Added [XR Hand Skeleton Poke Displacer](../manual/xr-hand-skeleton-poke-displacer.md) component to allow for displacing the hand skeleton when poking an interactable in order to prevent the hand from phasing through objects while poking them.
+- Added one handed scaling support to XR General Grab Transformer to allow grab interactables to be scaled, controlled by enabling Allow One Handed Scaling (which is enabled by default). For motion controller scaling with the XR Ray Interactor, Scale Mode (which is None by default) should be set to Input. For pinch scaling with the XR Ray Interactor, Scale Mode should be set to Distance.
+- Added new Scale Toggle and Scale Delta input actions to the XR Controller (Action-based) which the XR Ray Interactor reads. The `XRRayInteractor` implements the new [`IXRScaleValueProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRScaleValueProvider) by reading the scale delta values from the `ActionBasedController` or `XRScreenSpaceController` so that the `XRGeneralGrbTransformer` can scale using the controller and `ARTransformer` can be used to scale objects with touch pinch gestures.
+
+### Changed
+- The Tunneling Vignette sample was moved into the Starter Assets sample.
+- Changed the Starter Assets sample to be reorganized so all `DemoScene` assets are located in a separate `DemoSceneAssets` folder that can be easily removed.
+- Changed the automatic creation of the XR Device Simulator prefab to be excluded from standalone builds by default. A new **Instantiate In Editor Only** setting to control this behavior was added to the XR Interaction Toolkit project settings. ([XRIT-82](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-82))
+- Changed the Ray Interactor prefab in the Starter Assets sample to use cone casting instead of ray casting for the hit detection type.
+- Changed the XR Controller (Action-based) components in the Starter Assets sample to have empty action references instead of empty input actions for consistency and to avoid potential errors during the `ApplyProcessors` method of the current latest version of Input System.
+- Converted math in XR General Grab Transformer to use the Burst compiler and the Mathematics package for performance improvements.
+- Project Validation will automatically open if there are validation errors or missing dependencies to correct when importing [Hands Interaction Demo](../manual/samples.md#hands-interaction-demo) sample package.
+- Converted math in XR Grab Interactable related to smoothing operations to use the Burst compiler and the Mathematics package for performance improvements.
+- Changed `XRGrabInteractable` default property values:
+  - Changed default value of `smoothPositionAmount` and `smoothRotationAmount` from `5` to `8`.
+  - Changed default value of `tightenPosition` and `tightenRotation` from `0.5` to `0.1`.
+- Changed `com.unity.xr.core-utils` dependency from 2.2.1 to 2.2.3.
+
+### Fixed
+- Fixed an issue where a teleport aim reticle would not rotate to point forward when the interactor ray origin rotated if the interactor was just hovering and not yet selecting.
+- Fixed compiler warnings for use of `FindObjectOfType` and `FindObjectsOfType` by conditionally using the newer methods `FindAnyObjectByType` and `FindObjectsByType` for Unity 2023.1 and newer.
+- Fixed the AR Configuration Inspector foldout in XR Ray Interactor to keep expanded state when clicking between GameObjects.
+
 ## [2.4.3] - 2023-07-21
 
 ### Fixed

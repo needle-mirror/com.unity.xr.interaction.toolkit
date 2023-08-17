@@ -32,7 +32,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         public void CreateXROriginForVR_CreatesSuccessfully()
         {
             CreateUtils.CreateXROriginForVR(null);
-            var origin = Object.FindObjectOfType<XROrigin>();
+            var origin = FindByType<XROrigin>();
             Assert.IsTrue(origin != null);
             Assert.IsTrue(origin.Camera != null);
 
@@ -44,16 +44,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         public void UndoRedoCreateXROrigin_WorksWithNoErrors()
         {
             CreateUtils.CreateXROriginDeviceBased(null);
-            var origin = Object.FindObjectOfType<XROrigin>();
+            var origin = FindByType<XROrigin>();
             var cameraBgColor = origin.Camera.backgroundColor;
             var originPosition = origin.transform.position;
 
             Undo.PerformUndo();
-            origin = Object.FindObjectOfType<XROrigin>();
+            origin = FindByType<XROrigin>();
             Assert.IsTrue(origin == null);
             
             Undo.PerformRedo();
-            origin = Object.FindObjectOfType<XROrigin>();
+            origin = FindByType<XROrigin>();
             Assert.IsTrue(origin != null);
             Assert.That(origin.Camera.backgroundColor, Is.EqualTo(cameraBgColor).Using(ColorEqualityComparer.Instance));
             Assert.That(origin.transform.position, Is.EqualTo(originPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
@@ -61,7 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Undo.PerformUndo();
             Undo.PerformRedo();
 
-            origin = Object.FindObjectOfType<XROrigin>();
+            origin = FindByType<XROrigin>();
             Assert.IsTrue(origin != null);
             Assert.That(origin.Camera.backgroundColor, Is.EqualTo(cameraBgColor).Using(ColorEqualityComparer.Instance));
             Assert.That(origin.transform.position, Is.EqualTo(originPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
@@ -71,7 +71,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         public void CreateRayInteractorActionBased_CreatesSuccessfully()
         {
             CreateUtils.CreateRayInteractorActionBased(null);
-            var rayInteractor = Object.FindObjectOfType<XRRayInteractor>();
+            var rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor != null);
         }
 
@@ -86,17 +86,17 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             CreateUtils.CreateRayInteractorDeviceBased(new MenuCommand(parentTransform.gameObject));
             
             Undo.PerformUndo();
-            var rayInteractor = Object.FindObjectOfType<XRRayInteractor>();
+            var rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor == null);
             
             Undo.PerformRedo();
-            rayInteractor = Object.FindObjectOfType<XRRayInteractor>();
+            rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor != null);
             var rayTransform = rayInteractor.transform;
             Assert.That(rayTransform.parent, Is.EqualTo(parentTransform));
             Assert.That(rayTransform.localPosition, Is.EqualTo(Vector3.zero).Using(Vector3ComparerWithEqualsOperator.Instance));
             
-            var interactionManager = Object.FindObjectOfType<XRInteractionManager>();
+            var interactionManager = FindByType<XRInteractionManager>();
             Assert.IsTrue(interactionManager != null);
         }
 
@@ -104,8 +104,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         public void CreateXRUICanvas_CreatesSuccessfully()
         {
             CreateUtils.CreateXRUICanvas(null);
-            var canvas = Object.FindObjectOfType<Canvas>();
-            var inputModule = Object.FindObjectOfType<XRUIInputModule>();
+            var canvas = FindByType<Canvas>();
+            var inputModule = FindByType<XRUIInputModule>();
             Assert.IsTrue(canvas != null);
             Assert.IsTrue(inputModule != null);
         }
@@ -179,6 +179,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 
             Assert.IsTrue(eventSystemGO != null);
             Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
+        }
+
+        static T FindByType<T>() where T : Object
+        {
+#if UNITY_2023_1_OR_NEWER
+            return Object.FindAnyObjectByType<T>();
+#else
+            return Object.FindObjectOfType<T>();
+#endif
         }
     }
 }

@@ -191,6 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // ReSharper disable once IteratorNeverReturns -- stopped when behavior is destroyed.
         }
 
+        /// <inheritdoc />
         public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             base.PreprocessInteractor(updatePhase);

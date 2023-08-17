@@ -74,6 +74,11 @@
             "define": "XR_HANDS_1_1_OR_NEWER"
         },
         {
+            "name": "com.unity.xr.hands",
+            "expression": "1.3.0",
+            "define": "XR_HANDS_1_3_OR_NEWER"
+        },
+        {
             "name": "com.unity.xr.management",
             "expression": "4.0.1",
             "define": "XR_MANAGEMENT_4_0_OR_NEWER"

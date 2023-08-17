@@ -1,4 +1,6 @@
 using Unity.Mathematics;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if BURST_PRESENT
 using Unity.Burst;
 #endif
@@ -22,6 +24,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         [Tooltip("The Transform component whose position and rotation will be matched and stabilized.")]
         Transform m_Target;
 
+        [SerializeField]
+        [RequireInterface(typeof(IXRRayProvider))]
+        [Tooltip("Optional - When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.")]
+        Object m_AimTargetObject;
+
         /// <summary>
         /// The <see cref="Transform"/> component whose position and rotation will be matched and stabilized.
         /// </summary>
@@ -30,6 +37,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             get => m_Target;
             set => m_Target = value;
         }
+
+        /// <summary>
+        /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable. 
+        /// When stabilizing rotation, it uses whatever value is most optimal - either the last rotation (minimizing rotation), 
+        /// or the rotation that keeps the endpoint in place.
+        /// </summary>
+        public IXRRayProvider aimTarget
+        {
+            get => m_AimTarget;
+            set
+            {
+                m_AimTarget = value;
+                m_AimTargetObject = value as Object;
+            }
+        }
+
+        IXRRayProvider m_AimTarget;
 
         [SerializeField]
         [Tooltip("If enabled, will read the target and apply stabilization in local space. Otherwise, in world space.")]
@@ -79,6 +103,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         protected void Awake()
         {
             m_ThisTransform = transform;
+            if (m_AimTarget == null)
+                m_AimTarget = m_AimTargetObject as IXRRayProvider;
         }
 
         /// <summary>
@@ -86,6 +112,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         protected void OnEnable()
         {
+            if (m_AimTarget == null)
+                m_AimTarget = m_AimTargetObject as IXRRayProvider;
+
             if (m_UseLocalSpace)
             {
                 m_ThisTransform.localPosition = m_Target.localPosition;
@@ -102,21 +131,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         protected void Update()
         {
-            var currentPosition = m_UseLocalSpace ? m_ThisTransform.localPosition : m_ThisTransform.position;
-            var currentRotation = m_UseLocalSpace ? m_ThisTransform.localRotation : m_ThisTransform.rotation;
-            var targetPosition = m_UseLocalSpace ? m_Target.localPosition : m_Target.position;
-            var targetRotation = m_UseLocalSpace ? m_Target.localRotation : m_Target.rotation;
+            var currentPosition = m_ThisTransform.position;
+            var currentRotation = m_ThisTransform.rotation;
+            var targetPosition = m_Target.position;
+            var targetRotation = m_Target.rotation;
 
-            StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, Time.deltaTime, m_PositionStabilization, m_AngleStabilization, 
-                out var resultPosition, out var resultRotation);
-            
-            if (m_UseLocalSpace)
+            // Processing in local space means we want to scale the position stabilization to keep it normalized
+            var localScale = m_UseLocalSpace ? m_ThisTransform.lossyScale.x : 1f;
+            localScale = Mathf.Abs(localScale) < 0.01f ? 0.01f : localScale;
+            var invScale = 1f / localScale;
+
+            if (m_AimTarget == null)
             {
-                m_ThisTransform.localPosition = resultPosition;
-                m_ThisTransform.localRotation = resultRotation;
+                StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, Time.deltaTime, m_PositionStabilization * localScale, m_AngleStabilization,
+                out var resultPosition, out var resultRotation);
+                m_ThisTransform.SetPositionAndRotation(resultPosition, resultRotation);
             }
             else
             {
+                // Calculate the stabilized position
+                StabilizePosition(currentPosition, targetPosition, Time.deltaTime, m_PositionStabilization * localScale, out var resultPosition);
+
+                // Use that to come up with the rotation that would put the endpoint of the ray at it's last position
+                // Stabilize rotation to whatever value is closer - keeping the endpoint stable or the ray itself stable
+                CalculateRotationParams(currentPosition, resultPosition, m_ThisTransform.forward, m_ThisTransform.up, m_AimTarget.rayEndPoint, invScale, m_AngleStabilization, 
+                                        out var antiRotation, out var scaleFactor, out var targetAngleScale);
+
+                StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, Time.deltaTime, m_AngleStabilization, targetAngleScale, scaleFactor, out var resultRotation);
                 m_ThisTransform.SetPositionAndRotation(resultPosition, resultRotation);
             }
         }
@@ -124,19 +165,56 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizeTransform(in Vector3 startPos, in Quaternion startRot, in Vector3 targetPos, in Quaternion targetRot, float deltaTime, float positionStabilization, float angleStabilization, out Vector3 resultPos, out Quaternion resultRot)
+        static void StabilizeTransform(in float3 startPos, in quaternion startRot, in float3 targetPos, in quaternion targetRot, float deltaTime, float positionStabilization, float angleStabilization, out float3 resultPos, out quaternion resultRot)
         {
             // Calculate the stabilized position
             var positionOffset = targetPos - startPos;
-            var positionDistance = positionOffset.magnitude;
+            var positionDistance = math.length(positionOffset);
             var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
 
             // Calculate the stabilized rotation
-            var rotationOffset = Quaternion.Angle(targetRot, startRot);
+            BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
             var rotationLerp = CalculateStabilizedLerp(rotationOffset / angleStabilization, deltaTime);
 
-            resultPos = Vector3.Lerp(startPos, targetPos, positionLerp);
-            resultRot = Quaternion.Slerp(startRot, targetRot, rotationLerp);
+            resultPos = math.lerp(startPos, targetPos, positionLerp);
+            resultRot = math.slerp(startRot, targetRot, rotationLerp);
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void StabilizePosition(in float3 startPos,in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
+        {
+            // Calculate the stabilized position
+            var positionOffset = targetPos - startPos;
+            var positionDistance = math.length(positionOffset);
+            var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
+            
+            resultPos = math.lerp(startPos, targetPos, positionLerp);
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void StabilizeOptimalRotation(in quaternion startRot, in quaternion targetRot, in quaternion alternateStartRot, float deltaTime, float angleStabilization, float alternateStabilization, float scaleFactor, out quaternion resultRot)
+        {
+            // Calculate the stabilized rotation
+            BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
+            var rotationLerp = rotationOffset / angleStabilization;
+
+            BurstMathUtility.Angle(targetRot, alternateStartRot, out var alternateRotationOffset);
+            var alternateRotationLerp = alternateRotationOffset / alternateStabilization;
+
+            if (alternateRotationLerp < rotationLerp)
+            {
+                alternateRotationLerp = CalculateStabilizedLerp(alternateRotationLerp, deltaTime * scaleFactor);
+                resultRot = math.slerp(alternateStartRot, targetRot, alternateRotationLerp);
+            }
+            else
+            {
+                rotationLerp = CalculateStabilizedLerp(rotationLerp, deltaTime * scaleFactor);
+                resultRot = math.slerp(startRot, targetRot, rotationLerp);
+            }
         }
 
         /// <summary>
@@ -183,6 +261,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             var thirdSlice = math.clamp(localTimeSlice - 2f, 0f, 1f);
 
             return originalLerp * firstSlice + doubleFrameLerp * secondSlice + tripleFrameLerp * thirdSlice;
+        }
+
+        /// <summary>
+        /// Helper function that calculates the rotation values needed for <see cref="StabilizeOptimalRotation"/>.
+        /// </summary>
+        /// <param name="currentPosition">The pre-stabilized position of the ray.</param>
+        /// <param name="resultPosition">The stabilized position of the ray.</param>
+        /// <param name="forward">The pre-stabilized ray forward.</param>
+        /// <param name="up">The pre-stabilized ray up.</param>
+        /// <param name="rayEnd">The calculated ray endpoint of the last frame.</param>
+        /// <param name="invScale">The scalar that preserves local scaling.</param>
+        /// <param name="angleStabilization">Maximum range (in degrees) that angle stabilization is applied.</param>
+        /// <param name="antiRotation">The rotation that will make the stabilized ray point to the previous endpoint.</param>
+        /// <param name="scaleFactor">Scalar to apply additional stabilization over the default calculation.</param>
+        /// <param name="targetAngleScale">Maximum range (in degrees) that angle stabilization is applied, for returning the stabilized ray to the previous endpoint.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void CalculateRotationParams(in float3 currentPosition, in float3 resultPosition, in float3 forward, in float3 up, in float3 rayEnd, float invScale, float angleStabilization,
+                                                out quaternion antiRotation, out float scaleFactor, out float targetAngleScale)
+        {
+            var rayLength = math.length(rayEnd - currentPosition);
+            var linearRayEnd = currentPosition + forward * rayLength;
+
+            antiRotation = quaternion.LookRotationSafe(linearRayEnd - resultPosition, up);
+            scaleFactor = 1f + math.log(math.max(rayLength * invScale, 1f));
+            targetAngleScale = angleStabilization * math.clamp(scaleFactor, 1f, 3f);
         }
     }
 }

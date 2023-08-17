@@ -87,6 +87,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_SmoothRotationAmount;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.tightenRotation"/>.</summary>
         protected SerializedProperty m_TightenRotation;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.trackScale"/>.</summary>
+        protected SerializedProperty m_TrackScale;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothScale"/>.</summary>
+        protected SerializedProperty m_SmoothScale;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.smoothScaleAmount"/>.</summary>
+        protected SerializedProperty m_SmoothScaleAmount;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.tightenScale"/>.</summary>
+        protected SerializedProperty m_TightenScale;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
         protected SerializedProperty m_ThrowOnDetach;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
@@ -173,6 +181,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent smoothRotationAmount = EditorGUIUtility.TrTextContent("Smooth Rotation Amount", "Scale factor for how much smoothing is applied while following the rotation of the Interactor when selected. The larger the value, the closer this object will remain to the rotation of the Interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.tightenRotation"/>.</summary>
             public static readonly GUIContent tightenRotation = EditorGUIUtility.TrTextContent("Tighten Rotation", "Reduces the maximum follow rotation difference when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow rotation, to 1 meaning effectively no smoothing at all.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.trackScale"/>.</summary>
+            public static readonly GUIContent trackScale = EditorGUIUtility.TrTextContent("Track Scale", "Whether this object should follow the scale of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothScale"/>.</summary>
+            public static readonly GUIContent smoothScale = EditorGUIUtility.TrTextContent("Smooth Scale", "Apply smoothing while following the scale of the Interactor when selected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.smoothScaleAmount"/>.</summary>
+            public static readonly GUIContent smoothScaleAmount = EditorGUIUtility.TrTextContent("Smooth Scale Amount", "Scale factor for how much smoothing is applied while following the scale of the interactable when selected. The larger the value, the closer this object will remain to the target scale determined by the interactable's transformer.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.tightenScale"/>.</summary>
+            public static readonly GUIContent tightenScale = EditorGUIUtility.TrTextContent("Tighten Scale", "Reduces the maximum follow scale difference when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow scale, to 1 meaning effectively no smoothing at all.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwOnDetach"/>.</summary>
             public static readonly GUIContent throwOnDetach = EditorGUIUtility.TrTextContent("Throw On Detach", "Whether this object inherits the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingDuration"/>.</summary>
@@ -240,6 +256,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_SmoothRotation = serializedObject.FindProperty("m_SmoothRotation");
             m_SmoothRotationAmount = serializedObject.FindProperty("m_SmoothRotationAmount");
             m_TightenRotation = serializedObject.FindProperty("m_TightenRotation");
+            m_TrackScale = serializedObject.FindProperty("m_TrackScale");
+            m_SmoothScale = serializedObject.FindProperty("m_SmoothScale");
+            m_SmoothScaleAmount = serializedObject.FindProperty("m_SmoothScaleAmount");
+            m_TightenScale = serializedObject.FindProperty("m_TightenScale");
             m_ThrowOnDetach = serializedObject.FindProperty("m_ThrowOnDetach");
             m_ThrowSmoothingDuration = serializedObject.FindProperty("m_ThrowSmoothingDuration");
             m_ThrowSmoothingCurve = serializedObject.FindProperty("m_ThrowSmoothingCurve");
@@ -352,6 +372,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     {
                         EditorGUILayout.PropertyField(m_AngularVelocityDamping, Contents.angularVelocityDamping);
                         EditorGUILayout.PropertyField(m_AngularVelocityScale, Contents.angularVelocityScale);
+                    }
+                }
+            }
+            
+            EditorGUILayout.PropertyField(m_TrackScale, Contents.trackScale);
+            
+            if (m_TrackScale.boolValue)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_SmoothScale, Contents.smoothScale);
+                    if (m_SmoothScale.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_SmoothScaleAmount, Contents.smoothScaleAmount);
+                            EditorGUILayout.PropertyField(m_TightenScale, Contents.tightenScale);
+                        }
                     }
                 }
             }

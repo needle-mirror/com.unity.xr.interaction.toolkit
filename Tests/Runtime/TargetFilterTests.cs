@@ -545,7 +545,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateMockInteractor();
             var interactable1 = TestUtilities.CreateSimpleInteractable();
-            var interactable2 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateTriggerInteractable();
             var interactable3 = TestUtilities.CreateSimpleInteractable();
             var filter = TestUtilities.CreateTargetFilter();
             var distanceEvaluator = filter.AddEvaluator<XRDistanceEvaluator>();

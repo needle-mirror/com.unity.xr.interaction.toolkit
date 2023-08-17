@@ -199,6 +199,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// This will check the existing lists of pointer events and hand back the most current
+        /// GameObject entered by the current pointer.
+        /// </summary>
+        /// <param name="pointerId">ID of the XR device pointer, mouse pointer or touch registered with the UIInputModule.
+        /// Meaning this should correspond to either <see cref="PointerEventData"/>.<c>pointerId</c> or <see cref="TrackedDeviceEventData"/>.<c>pointerId</c>.
+        /// </param>
+        /// <returns>The GameObject that triggered the <see cref="PointerEventData.pointerEnter"/> event.</returns>
+        /// <remarks>
+        /// Any negative value used for <paramref name="pointerId"/> will be treated as <c>any</c>. The first event in the
+        /// from a tracked device will be used first, then to standard pointer devices such as mice and touchscreens.
+        /// </remarks>
+        /// <seealso cref="IsPointerOverGameObject" />
+        public GameObject GetCurrentGameObject(int pointerId)
+        {
+            // For negative pointer IDs, find any cached pointer events that have a registered pointerEnter object
+            if (pointerId < 0)
+            {
+                foreach (var trackedEvent in m_TrackedDeviceEventByPointerId.Values)
+                {
+                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
+                        return trackedEvent.pointerEnter;
+                }
+
+                foreach (var trackedEvent in m_PointerEventByPointerId.Values)
+                {
+                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
+                        return trackedEvent.pointerEnter;
+                }
+            }
+            else
+            {
+                if (m_TrackedDeviceEventByPointerId.TryGetValue(pointerId, out var trackedDeviceEvent))
+                    return trackedDeviceEvent?.pointerEnter;
+                
+                if (m_PointerEventByPointerId.TryGetValue(pointerId, out var pointerEvent))
+                    return pointerEvent?.pointerEnter;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Is the pointer with the given ID over an EventSystem object?
         /// </summary>
         /// <param name="pointerId">ID of the XR device pointer, mouse pointer or touch registered with the UIInputModule.
@@ -212,6 +253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// currently over a GameObject.
         /// Note: The IDs used to check for interaction are not the same as standard InputDevice device IDs.
         /// </remarks>
+        /// <seealso cref="GetCurrentGameObject" />
         /// <example>
         /// <code>
         /// using UnityEngine;
@@ -254,27 +296,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </example>
         public override bool IsPointerOverGameObject(int pointerId)
         {
-            // For negative pointer IDs, find any cached pointer events that have a registered pointerEnter object
-            if (pointerId < 0)
-            {
-                foreach (var trackedEvent in m_TrackedDeviceEventByPointerId.Values)
-                {
-                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
-                        return true;
-                }
-
-                foreach (var trackedEvent in m_PointerEventByPointerId.Values)
-                {
-                    if (trackedEvent != null && trackedEvent.pointerEnter != null)
-                        return true;
-                }
-                return false;
-            }
-            else
-            {
-                return (m_TrackedDeviceEventByPointerId.TryGetValue(pointerId, out var trackedDeviceEvent) && trackedDeviceEvent.pointerEnter != null) ||
-                    (m_PointerEventByPointerId.TryGetValue(pointerId, out var pointerEvent) && pointerEvent.pointerEnter != null);
-            }
+            return GetCurrentGameObject(pointerId) != null;
         }
 
         RaycastResult PerformRaycast(PointerEventData eventData)

@@ -27,6 +27,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             typeof(XRGeneralGrabTransformer),
         };
 
+        static readonly Type[] s_MockTransformerTypes =
+        {
+            typeof(MockGrabTransformer),
+            typeof(MockDropTransformer),
+        };
+
+        static readonly bool[] s_BooleanValues = { false, true };
+
         [TearDown]
         public void TearDown()
         {
@@ -650,7 +658,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator GrabTransformerMethodsInvoked()
+        public IEnumerator GrabTransformerMethodsInvoked([ValueSource(nameof(s_MockTransformerTypes))] Type mockTransformerType)
         {
             // This method will test a sequence of adds, selections, and removes to make sure the grab transformer methods
             // are called as expected after each change of state. This also tests some of the fallback rules.
@@ -673,8 +681,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
             Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
 
-            var singleGrabTransformer = new MockGrabTransformer();
-            var multipleGrabTransformer = new MockGrabTransformer();
+            MockGrabTransformer singleGrabTransformer;
+            MockGrabTransformer multipleGrabTransformer;
+            if (mockTransformerType == typeof(MockGrabTransformer))
+            {
+                singleGrabTransformer = new MockGrabTransformer();
+                multipleGrabTransformer = new MockGrabTransformer();
+            }
+            else if (mockTransformerType == typeof(MockDropTransformer))
+            {
+                singleGrabTransformer = new MockDropTransformer();
+                multipleGrabTransformer = new MockDropTransformer();
+            }
+            else
+            {
+                Assert.Fail($"Unhandled mock transformer type {mockTransformerType.Name}.");
+                throw new NotImplementedException();
+            }
 
             Assert.That(singleGrabTransformer.canProcess, Is.True);
             Assert.That(multipleGrabTransformer.canProcess, Is.True);
@@ -791,6 +814,97 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             {
                 singleGrabTransformer.methodTraces.Clear();
                 multipleGrabTransformer.methodTraces.Clear();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DropTransformerMethodsInvoked([ValueSource(nameof(s_BooleanValues))] bool canProcessOnDrop)
+        {
+            // 1. Add -> OnLink
+            // 2. Select -> OnGrab, OnGrabCountChanged
+            // 3. No change -> Process called
+            // 4. Deselect -> OnDrop (always), Process (if enabled)
+            // 5. No change -> Process not called (since it only gets called a single time on drop)
+            // 6. Remove -> OnUnlink
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            var dropTransformer = new MockDropTransformer
+            {
+                canProcessOnDrop = canProcessOnDrop,
+            };
+
+            Assert.That(dropTransformer.canProcess, Is.True);
+
+            // 1. Add -> OnLink
+            grabInteractable.AddMultipleGrabTransformer(dropTransformer);
+
+            Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnLink }));
+            ClearMethodTraces();
+
+            // 2. Select -> OnGrab, OnGrabCountChanged
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.validTargets.Add(grabInteractable);
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[]
+            {
+                MockGrabTransformer.MethodTrace.OnGrab,
+                MockGrabTransformer.MethodTrace.OnGrabCountChanged,
+                MockGrabTransformer.MethodTrace.ProcessDynamic,
+            }));
+            ClearMethodTraces();
+
+            // 3. No change -> Process called
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.ProcessDynamic }));
+            ClearMethodTraces();
+
+            // 4. Deselect -> OnDrop (always), Process (if enabled)
+            interactor.validTargets.Clear();
+            interactor.keepSelectedTargetValid = false;
+
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+            if (canProcessOnDrop)
+            {
+                Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[]
+                {
+                    MockGrabTransformer.MethodTrace.OnDrop,
+                    MockGrabTransformer.MethodTrace.ProcessDynamic,
+                }));
+            }
+            else
+            {
+                Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnDrop }));
+            }
+
+            ClearMethodTraces();
+
+            // 5. No change -> Process not called (since it only gets called a single time on drop)
+            yield return null;
+
+            Assert.That(dropTransformer.methodTraces, Is.Empty);
+
+            // 6. Remove -> OnUnlink
+            grabInteractable.RemoveMultipleGrabTransformer(dropTransformer);
+
+            Assert.That(dropTransformer.methodTraces, Is.EqualTo(new[] { MockGrabTransformer.MethodTrace.OnUnlink }));
+            ClearMethodTraces();
+
+            void ClearMethodTraces()
+            {
+                dropTransformer.methodTraces.Clear();
             }
         }
 

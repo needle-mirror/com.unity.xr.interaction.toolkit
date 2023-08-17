@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -15,7 +15,7 @@
     "com.unity.inputsystem": "1.5.0",
     "com.unity.mathematics": "1.2.6",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.core-utils": "2.2.1",
+    "com.unity.xr.core-utils": "2.2.3",
     "com.unity.xr.legacyinputhelpers": "2.1.10",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
@@ -28,36 +28,36 @@
       "path": "Samples~/Starter Assets"
     },
     {
+      "displayName": "Hands Interaction Demo",
+      "description": "Sample scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>",
+      "path": "Samples~/Hands Interaction Demo"
+    },
+    {
+      "displayName": "AR Starter Assets",
+      "description": "Assets to streamline setup when building for Mobile AR or Mixed Reality with the XR Interaction Toolkit. This includes prefabs and demo scenes to get you started. Note: This depends on the Starter Assets sample package.",
+      "path": "Samples~/AR Starter Assets"
+    },
+    {
       "displayName": "XR Device Simulator",
       "description": "Assets related to the simulation of XR HMD and controllers.",
       "path": "Samples~/XR Device Simulator"
     },
     {
-      "displayName": "Tunneling Vignette",
-      "description": "Assets to let users set up and configure tunneling vignette effects as a comfort mode option.",
-      "path": "Samples~/Tunneling Vignette"
-    },
-    {
       "displayName": "Meta Gaze Adapter",
-      "description": "This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor.",
+      "description": "This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:content/82022\">Oculus Integration Assets</a>",
       "path": "Samples~/Meta Gaze Adapter"
-    },
-    {
-      "displayName": "Hands Interaction Demo",
-      "description": "Sample scene and other assets for hand-tracking integration with the XR Interaction Toolkit.",
-      "path": "Samples~/Hands Interaction Demo"
     }
   ],
   "_upm": {
-    "changelog": "### Fixed\n- Fixed Starter Asset validation check that would trigger a race condition when accessing the XRI settings files, causing false console errors."
+    "changelog": "### Added\n- Added the canvas optimizer to reduce runtime load of UI-heavy scenes. See [UI Setup - Canvas optimizer](../manual/ui-setup.md#canvas-optimizer) in the manual for more details.\n- Added the [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.ARTransformer) which allows users to move an `XRGrabInteractable` while constrained to AR Foundation planes. It also has functionality for scaling with touch pinch gestures when the XR Screen Space Controller is used.\n- Added Track Scale and related smoothing options to XR Grab Interactable to allow developers to disable writing to the object's scale when grabbing.\n- Added snap transformations to `XRSocketInteractor` on hover.\n- Added scaling transformation to `XRSocketInteractor`.\n- Added several scripts to the Starter Assets sample for object spawning in AR: `ObjectSpawner`, `ARInteractorSpawnTrigger`, `ARContactSpawnTrigger`, and `DestroySelf`.\n- Added an AR demo scene to the AR Starter Assets that displays a set-up for mobile AR which includes a sliding menu of placeable and interactable objects.\n- Added `GetCurrentGameObject` method to `UIInputModule` to get the UI GameObject currently being hovered by a tracked device or pointer device such as a mouse or touchscreen.\n- Added Cone Cast hit detection type to the [XR Ray Interactor](../manual/xr-ray-interactor.md) to allow users to select small objects at a distance easily.\n- Added ray endpoint stabilization to the [XR Transform Stabilizer](../manual/xr-transform-stabilizer.md).\n- Added [XR Hand Skeleton Poke Displacer](../manual/xr-hand-skeleton-poke-displacer.md) component to allow for displacing the hand skeleton when poking an interactable in order to prevent the hand from phasing through objects while poking them.\n- Added one handed scaling support to XR General Grab Transformer to allow grab interactables to be scaled, controlled by enabling Allow One Handed Scaling (which is enabled by default). For motion controller scaling with the XR Ray Interactor, Scale Mode (which is None by default) should be set to Input. For pinch scaling with the XR Ray Interactor, Scale Mode should be set to Distance.\n- Added new Scale Toggle and Scale Delta input actions to the XR Controller (Action-based) which the XR Ray Interactor reads. The `XRRayInteractor` implements the new [`IXRScaleValueProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRScaleValueProvider) by reading the scale delta values from the `ActionBasedController` or `XRScreenSpaceController` so that the `XRGeneralGrbTransformer` can scale using the controller and `ARTransformer` can be used to scale objects with touch pinch gestures.\n\n### Changed\n- The Tunneling Vignette sample was moved into the Starter Assets sample.\n- Changed the Starter Assets sample to be reorganized so all `DemoScene` assets are located in a separate `DemoSceneAssets` folder that can be easily removed.\n- Changed the automatic creation of the XR Device Simulator prefab to be excluded from standalone builds by default. A new **Instantiate In Editor Only** setting to control this behavior was added to the XR Interaction Toolkit project settings. ([XRIT-82](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-82))\n- Changed the Ray Interactor prefab in the Starter Assets sample to use cone casting instead of ray casting for the hit detection type.\n- Changed the XR Controller (Action-based) components in the Starter Assets sample to have empty action references instead of empty input actions for consistency and to avoid potential errors during the `ApplyProcessors` method of the current latest version of Input System.\n- Converted math in XR General Grab Transformer to use the Burst compiler and the Mathematics package for performance improvements.\n- Project Validation will automatically open if there are validation errors or missing dependencies to correct when importing [Hands Interaction Demo](../manual/samples.md#hands-interaction-demo) sample package.\n- Converted math in XR Grab Interactable related to smoothing operations to use the Burst compiler and the Mathematics package for performance improvements.\n- Changed `XRGrabInteractable` default property values:\n  - Changed default value of `smoothPositionAmount` and `smoothRotationAmount` from `5` to `8`.\n  - Changed default value of `tightenPosition` and `tightenRotation` from `0.5` to `0.1`.\n- Changed `com.unity.xr.core-utils` dependency from 2.2.1 to 2.2.3.\n\n### Fixed\n- Fixed an issue where a teleport aim reticle would not rotate to point forward when the interactor ray origin rotated if the interactor was just hovering and not yet selecting.\n- Fixed compiler warnings for use of `FindObjectOfType` and `FindObjectsOfType` by conditionally using the newer methods `FindAnyObjectByType` and `FindObjectsByType` for Unity 2023.1 and newer.\n- Fixed the AR Configuration Inspector foldout in XR Ray Interactor to keep expanded state when clicking between GameObjects."
   },
   "upmCi": {
-    "footprint": "61711e2e5d68750c4822fbf294ff2546872a1401"
+    "footprint": "1deb2d934dcd26096d2307681ed15a0672aa4bca"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.4/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.5/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "cb4acfeb3f935960aa749e1247cba8d8d57c8fe2"
+    "revision": "1dd869b8f9543cefb1ba30a98a8ed1347c2a0565"
   }
 }

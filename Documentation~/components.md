@@ -5,6 +5,7 @@
 - [XR Controller (Action-based)](xr-controller-action-based.md)
 - [XR Controller (Device-based)](xr-controller-device-based.md)
 - [XR Controller Recorder](xr-controller-recorder.md)
+- [XR Screen Space Controller](xr-screen-space-controller.md)
 
 ## Interactables
 
@@ -68,6 +69,7 @@
 
 ## UI
 
+- [Canvas Optimizer](canvas-optimizer.md)
 - [Hand Menu](hand-menu.md)
 - [Lazy Follow](lazy-follow.md)
 
@@ -75,6 +77,7 @@
 
 - [Input Action Manager](input-action-manager.md)
 - [XR Device Simulator](xr-device-simulator.md)
+- [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
 - [XR Input Modality Manager](xr-input-modality-manager.md)
 - [XR Interactable Snap Volume](xr-interactable-snap-volume.md)
 - [XR Interaction Group](xr-interaction-group.md)

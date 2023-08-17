@@ -27,6 +27,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// The amount the poke interaction is currently selecting the interactable between 0 and 1.
         /// </summary>
         public float interactionStrength { get; set; }
+        
+        /// <summary>
+        /// The interaction axis used for poking.
+        /// </summary>
+        public Vector3 axisNormal { get; set; }
 
         /// <summary>
         /// This is the current target hit by the <see cref="XRPokeInteractor"/> that this state data is relevant for.
@@ -40,6 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 pokeInteractionPoint.Equals(other.pokeInteractionPoint) &&
                 axisAlignedPokeInteractionPoint.Equals(other.axisAlignedPokeInteractionPoint) &&
                 interactionStrength.Equals(other.interactionStrength) &&
+                axisNormal.Equals(other.axisNormal) &&
                 (target == other.target);
         }
 
@@ -57,6 +63,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             hash = hash * 31 + pokeInteractionPoint.GetHashCode();
             hash = hash * 31 + axisAlignedPokeInteractionPoint.GetHashCode();
             hash = hash * 31 + interactionStrength.GetHashCode();
+            hash = hash * 31 + axisNormal.GetHashCode();
             hash = hash * 31 + target.GetHashCode();
             return hash;
         }

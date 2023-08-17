@@ -190,7 +190,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// </summary>
         protected virtual bool isRegistered => m_IsRegistered;
 
-        // Check if interactor is blocked by interaction group
+        /// <summary>
+        /// Check if interactor is blocked by interaction within its group.
+        /// </summary>
         protected virtual bool isBlockedByGroup => m_IsIXRInteractor && !m_Interactor.IsBlockedByInteractionWithinGroup();
 
         [Header("Click Animation Config")]

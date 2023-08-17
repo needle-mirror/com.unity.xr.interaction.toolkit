@@ -24,6 +24,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
+        bool m_AutomaticallyInstantiateInEditorOnly = true;
+
+        /// <summary>
+        /// Enable to only automatically instantiate the <see cref="simulatorPrefab"/> if the application is running inside the Unity Editor,
+        /// preventing it from automatically appearing in standalone builds. Disable to allow the simulator to be created in standalone builds.
+        /// </summary>
+        /// <remarks>
+        /// Setting this value to <see langword="true"/> will limit the <see cref="XRDeviceSimulatorLoader"/> to
+        /// only automatically instantiate the <see cref="simulatorPrefab"/> if the application is running inside the Unity Editor.
+        /// This property is only used if <see cref="automaticallyInstantiateSimulatorPrefab"/> is enabled.
+        /// </remarks>
+        internal bool automaticallyInstantiateInEditorOnly
+        {
+            get => m_AutomaticallyInstantiateInEditorOnly;
+            set => m_AutomaticallyInstantiateInEditorOnly = value;
+        }
+
+        [SerializeField]
         GameObject m_SimulatorPrefab;
 
         /// <summary>

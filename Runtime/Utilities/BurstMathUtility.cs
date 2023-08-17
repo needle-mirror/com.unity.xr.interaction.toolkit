@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #else
 using System.Runtime.CompilerServices;
@@ -157,6 +157,122 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             LookRotationWithForwardProjectedOnPlane(forward, planeNormal, out quaternion lookRot);
             lookRotation = lookRot;
+        }
+
+        /// <summary>
+        /// Returns the angle in degrees between two rotations <paramref name="a"/> and <paramref name="b"/>.
+        /// Equivalent to <see cref="Quaternion.Angle"/>.
+        /// </summary>
+        /// <param name="a">The first rotation in the quaternion set.</param>
+        /// <param name="b">The second rotation in the quaternion set.</param>
+        /// <param name="angle">The angle in degrees between a and b.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void Angle(in quaternion a, in quaternion b, out float angle)
+        {
+            // See Quaternion.cs in Unity source code
+            // 0.999999f = 1f - Quaternion.kEpsilon
+            // 57.29578f = Mathf.Rad2Deg
+            var dot = math.min(math.abs(math.dot(a, b)), 1f);
+            angle = (dot > 0.999999f) ? 0f : (math.acos(dot) * 2f * 57.29578f);
+        }
+
+        /// <summary>
+        /// Compares two float3s for equality with a specified level of tolerance.
+        /// </summary>
+        /// <param name="a">The first float3 to compare.</param>
+        /// <param name="b">The second float3 to compare.</param>
+        /// <param name="tolerance">The level of tolerance for the equality check. Defaults to 0.0001f.</param>
+        /// <returns>Returns <see langword="true"/> if the difference between the corresponding components of the float3s is less than the specified tolerance; otherwise, <see langword="false"/>.</returns>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static bool FastVectorEquals(in float3 a, in float3 b, float tolerance = 0.0001f)
+        {
+            return math.abs(a.x - b.x) < tolerance && math.abs(a.y - b.y) < tolerance && math.abs(a.z - b.z) < tolerance;
+        }
+
+
+        /// <summary>
+        /// Compares two Vector3s for equality with a specified level of tolerance.
+        /// </summary>
+        /// <param name="a">The first Vector3 to compare.</param>
+        /// <param name="b">The second Vector3 to compare.</param>
+        /// <param name="tolerance">The level of tolerance for the equality check. Defaults to 0.0001f.</param>
+        /// <returns>Returns <see langword="true"/> if the difference between the corresponding components of the Vector3s is less than the specified tolerance; otherwise, <see langword="false"/>.</returns>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static bool FastVectorEquals(in Vector3 a, in Vector3 b, float tolerance = 0.0001f)
+        {
+            return math.abs(a.x - b.x) < tolerance && math.abs(a.y - b.y) < tolerance && math.abs(a.z - b.z) < tolerance;
+        }
+
+        /// <summary>
+        /// Performs a safe division of two Vector3s. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component. 
+        /// </summary>
+        /// <param name="a">The dividend Vector3.</param>
+        /// <param name="b">The divisor Vector3.</param>
+        /// <param name="result">The resulting Vector3 after division. If the difference between the corresponding components of the dividend and divisor is less than the tolerance, the respective component in the result vector remains zero.</param>
+        /// <param name="tolerance">The tolerance for the component-wise division operation. Defaults to 0.000001f.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void FastSafeDivide(in Vector3 a, in Vector3 b, out Vector3 result, float tolerance = 0.000001f)
+        {
+            FastSafeDivide(a, b, out float3 float3Result, tolerance);
+            result = float3Result;
+        }
+
+        /// <summary>
+        /// Performs a safe division of two float3 vectors. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component. 
+        /// </summary>
+        /// <param name="a">The dividend float3 vector.</param>
+        /// <param name="b">The divisor float3 vector.</param>
+        /// <param name="result">The resulting float3 vector after division. If the difference between the corresponding components of the dividend and divisor is less than the tolerance, the respective component in the result vector remains zero.</param>
+        /// <param name="tolerance">The tolerance for the component-wise division operation. Defaults to 0.000001f.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void FastSafeDivide(in float3 a, in float3 b, out float3 result, float tolerance = 0.000001f)
+        {
+            result = new float3();
+            if (math.abs(a.x - b.x) > tolerance)
+                result.x = a.x / b.x;
+            if (math.abs(a.y - b.y) > tolerance)
+                result.y = a.y / b.y;
+            if (math.abs(a.z - b.z) > tolerance)
+                result.z = a.z / b.z;
+        }
+
+
+        /// <summary>
+        /// Multiplies the corresponding elements of two float3 vectors in a fast, non-matrix multiplication.
+        /// </summary>
+        /// <param name="a">The first float3 vector.</param>
+        /// <param name="b">The second float3 vector.</param>
+        /// <param name="result">The resulting float3 vector after element-wise multiplication.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void Scale(in float3 a, in float3 b, out float3 result)
+        {
+            result = new float3(a.x * b.x, a.y * b.y, a.z * b.z);
+        }
+        
+        /// <summary>
+        /// Multiplies the corresponding elements of two Vector3 in a fast, non-matrix multiplication.
+        /// </summary>
+        /// <param name="a">The first Vector3.</param>
+        /// <param name="b">The second Vector3.</param>
+        /// <param name="result">The resulting Vector3 after element-wise multiplication.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void Scale(in Vector3 a, in Vector3 b, out Vector3 result)
+        {
+            result = new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
         }
     }
 }

@@ -5,10 +5,10 @@ To install samples included with this package, follow the instructions for [Inst
 | **Sample** | **Description** |
 |---|---|
 | **[Starter Assets](#starter-assets)** | Assets to streamline setup of behaviors, including a default set of input actions, presets for use with XR Interaction Toolkit behaviors that use the Input System, and prefabs for getting started. |
-| **[XR Device Simulator](#xr-device-simulator)** | Assets related to the simulation of XR HMD and controllers. |
-| **[Tunneling Vignette](#tunneling-vignette)** | Assets to let users set up and configure tunneling vignette effects as a comfort mode option. |
-| **[Meta Gaze Adapter](#meta-gaze-adapter)** | This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor. |
 | **[Hands Interaction Demo](#hands-interaction-demo)** | Sample scene and other assets for hand-tracking integration with the XR Interaction Toolkit. |
+| **[AR Starter Assets](#ar-starter-assets)** | Assets to streamline setup of scenarios specific to mobile-based AR. |
+| **[XR Device Simulator](#xr-device-simulator)** | Assets related to the simulation of XR HMD and controllers. |
+| **[Meta Gaze Adapter](#meta-gaze-adapter)** | This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor. |
 
 ## Starter Assets
 
@@ -18,24 +18,43 @@ This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/c
 
 This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
+> [!IMPORTANT]
+> There is a known issue when upgrading from an older version of the Starter Assets to a newer version. Script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` folder from your `Samples` directory before importing the new Starter Assets sample package.
+
 |**Asset**|**Description**|
 |---|---|
-|**`AffordanceThemes\`**|Asset folder containing Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the scene.|
-|**`Audio\`**|Asset folder containing audio clips for the `DemoScene`.|
-|**`Models\`**|Asset folder containing models for the `DemoScene`.|
+|**`DemoSceneAssets\`**|Asset folder containing assets only used for the `DemoScene`.
+|**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
+|**`Models\`**|General-use models, such as left and right controllers.|
+|**`Prefabs\`**|XRI prefabs for use in any project.<br />See [Prefabs](#prefabs) below.|
+|**`Presets\`**|Preset configurations for many of the most common XRI components.<br />See [Presets](#presets) below.|
+|**`Scripts\`**|General-use scripts that can accelerate development when using XRI.<br />See [Scripts](#scripts) below.|
+|**`Tunneling Vignette\`**|Folder containing a prefab and shaders required to use the provided tunneling vignette comfort mode option.<br />See [Tunneling vignette](#tunneling-vignette) below.|
+|**`DemoScene`**|Scene that illustrates a basic setup using the package.<br />See [Demo Scene](#demo-scene) below.|
+|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionBindings.html#control-schemes) for use in XR experiences.<br />See [Input Actions Asset](#input-actions-asset) below.|
+
+### Demo Scene
+
+![demo-scene](images/demo-scene.png)
+
+The Demo Scene in the Starter Assets sample package contains a number of simplified demonstrations for how to configure and use the XR Interaction Toolkit in your own projects. We encourage you to explore these to understand how XRI was designed to be used. For a more comprehensive example, you can download a larger example from the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) repository on GitHub.
+
+
+|**Demo Scene Assets**|**Description**|
+|---|---|
+|**`AffordanceThemes\`**|Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the demo scene.|
+|**`Audio\`**|Simple sound effects used in the demo scene.|
+|**`Models\`**|Simple shapes used as part of the example prefabs.|
 |**`Prefabs\`**|Asset folder containing prefabs to streamline adding an XR Origin camera rig and interactable prefabs showcased in the `DemoScene`.|
-|**`Scripts\`**|Asset folder containing sample scripts, some of which are used by the XR Origin camera rig prefab.|
-|**`DemoScene`**|Scene that illustrates a basic setup using the package.|
-|**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
-|**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
-|**`XRI Default Gaze Controller.preset`**|Preset for [XR Controller (Action-based)](xr-controller-action-based.md) associated with the [Gaze Interactor](xr-gaze-interactor.md).|
-|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionBindings.html#control-schemes) for use in XR experiences.|
-|**`XRI Default Left Controller.preset`**|Preset for left hand [Controllers](architecture.md#controllers).|
-|**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](locomotion.md#grab-move-providers).|
-|**`XRI Default Right Controller.preset`**|Preset for right hand [Controllers](architecture.md#controllers).|
-|**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](locomotion.md#grab-move-providers).|
-|**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
-|**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](ui-setup.md#xr-ui-input-module).|
+|**`Prefabs\Climb\`**|Folder containing additional prefabs used to construct the `Climb Sample` used in the `DemoScene`.|
+|**`Prefabs\Climb Sample`**|Prefab containing preconfigured `XR Climb Interactables` used in the `DemoScene`.|
+|**`Prefabs\Interactables\`**|Folder containing additional preconfigured prefabs used in the `DemoScene`.|
+|**`Prefabs\Interactables Sample`**|Prefab containing preconfigured `XR Grab Interactables` used in the `DemoScene`.|
+|**`Prefabs\Teleport\`**|Folder containing additional prefabs used as part of teleport configuration.|
+|**`Prefabs\Teleportation Environment.prefab`**|Teleportation prefab used in the `DemoScene` which includes the `Teleportation Area` and `Teleportation Anchor` prefabs. Configured to the `Teleport Interactor` in the `XR Interaction Setup` prefab included in these starter assets.|
+|**`Prefabs\UI\`**|Folder containing additional prefabs used as part of the `UI Sample` prefab.|
+|**`Prefabs\UI Sample`**|Prefab containing interactable UI elements in a world space canvas.|
+|**`Scripts\`**|Asset folder containing scripts used for demo scene functionality.|
 
 ### Input Actions Asset
 
@@ -66,7 +85,23 @@ There are also several Input Control Schemes to group different input controls. 
 
 For a complete example of configuring input actions for each controller, and using control schemes, see the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) project.
 
-### Configuring Preset Manager defaults
+### Presets
+|**Preset**|**Description**|
+|---|---|
+|**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
+|**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
+|**`XRI Default Gaze Controller.preset`**|Preset for [XR Controller (Action-based)](xr-controller-action-based.md) associated with the [Gaze Interactor](xr-gaze-interactor.md).|
+|**`XRI Default Left ActionBasedControllerManager.preset`**|Preset for left hand [ActionBasedControllerManager](#scripts).|
+|**`XRI Default Left Controller.preset`**|Preset for left hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](locomotion.md#grab-move-providers).|
+|**`XRI Default Right ActionBasedControllerManager.preset`**|Preset for right hand [ActionBasedControllerManager](#scripts).|
+|**`XRI Default Right Controller.preset`**|Preset for right hand [Controllers](architecture.md#controllers).|
+|**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](locomotion.md#grab-move-providers).|
+|**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
+|**`XRI Default XR Screen Space Controller.preset`**|Preset for [XR Screen Space Controller](xr-screen-space-controller.md).|
+|**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](ui-setup.md#xr-ui-input-module).|
+
+#### Configuring Preset Manager defaults
 
 After importing the sample into your Project, if you want to use the Assets, it is recommended to use the [Preset Manager](https://docs.unity3d.com/Manual/class-PresetManager.html) to change the default Presets to those included in this sample. This will allow the objects you create from the **GameObject &gt; XR** menu to automatically populate the action properties of the behavior, as configured in each preset.
 
@@ -87,21 +122,33 @@ The following scripts are included to support the prefabs and `DemoScene`.
 |**Script**|**Description**|
 |---|---|
 |**`ActionBasedControllerManager`**|Component used to mediate the controllers and their associated interactors and input actions under different interaction states.|
+|**`DestroySelf`**|Destroys the GameObject it is attached to after a specified amount of time.|
 |**`DynamicMoveProvider`**|A version of action-based continuous movement that automatically controls the frame of reference that determines the forward direction of movement based on user preference for each hand.|
 |**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
+|**`ObjectSpawner`**|Component with an API for spawning objects from a given set of prefabs. This component has additional options to constrain when spawning happens and behavior of object when spawned.|
 |**`XRPokeFollowAffordance`**|Component used to animate a Transform to follow the poke position. Used by poke buttons in the `DemoScene`.|
-|**`PokeStation\IncrementUIText`**|Component used in the `DemoScene` to update a Text component to count up whenever the push button is selected.|
 
 ### Prefabs
 
 |**Prefab**|**Description**|
 |---|---|
-|**`Climb Sample`**|Prefab containing preconfigured `XR Climb Interactables` used in the `DemoScene`.|
-|**`Interactables Sample`**|Prefab containing preconfigured `XR Grab Interactables` used in the `DemoScene`.|
-|**`Teleportation Environment`**|Teleportation prefab used in the `DemoScene` which includes the `Teleportation Area` and `Teleportation Anchor` prefabs. Configured to the `Teleport Interactor` in the `XR Interaction Setup` prefab included in these starter assets.|
-|**`UI Sample`**|Prefab containing interactable UI elements in a world space canvas.|
-|**`XR Interaction Setup`**|Prefab containing everything for enabling XR interactions with interactables in your scene. Contains `XR Origin (XR Rig)` as a nested prefab, [XR Interaction Manager](xr-interaction-manager.md) to facilitate interactions between interactors and interactables, [Input Action Manager](input-action-manager.md) to enable input actions used by the rig, and [Event System](ui-setup.md#event-system) to enable interaction with UI GameObjects.|
+|**`Controllers\`**|Folder containing preconfigured left and right controllers ready for interaction.|
+|**`Interactors\`**|Folder containing individual interactors to use to construct an XR Interaction rig.|
+|**`Teleport\`**|Folder containing prefabs for common teleportation reticles for use in your own projects.|
+|**`XR Interaction Setup`**|Prefab containing everything for enabling XR interactions with interactables in your scene. Contains `XR Origin (XR Rig)` as a nested prefab, [XR Interaction Manager](xr-interaction-manager.md) to facilitate interactions between interactors and interactables, [Input Action Manager](input-action-manager.md) to enable input actions used by the rig, [Event System](ui-setup.md#event-system) to enable interaction with UI GameObjects, and [Canvas Optimizer](canvas-optimizer.md) to reduce performance overhead of nested canvases.|
 |**`XR Origin (XR Rig)`**|Prefab representing the camera rig. It is configured for smooth locomotion, grab locomotion, climb locomotion, teleportation locomotion, as well as smooth and snap turn. Each hand also contains a `Poke Interactor`, `Direct Interactor` and a `Ray Interactor`, as well as an [Interaction Group](xr-interaction-group.md) that first prioritizes the Poke Interactor then the Direct Interactor and lastly the Ray Interactor. Additionally, there is an [XR Gaze Interactor](xr-gaze-interactor.md) that is configured with the `XRI Default Gaze Controller` and the `GazeInputManager`.|
+
+### Tunneling vignette
+
+Assets to let users set up and configure tunneling vignette effects as a comfort mode option.
+
+|**Asset**|**Description**|
+|---|---|
+|**`TunnelingVignette.mat`**|Material used to display the tunnelling vignette with configurable properties, including aperture size, feathering effect, and vignette color.|
+|**`TunnelingVignette.prefab`**|Prefab that contains a complete setup with necessary components for configuring and controlling the tunneling vignette. This Prefab is intended to be a child GameObject of the Main Camera.|
+|**`TunnelingVignette.shader`**|Default shader used by the material and Prefab to compute the vignette effect. Works with the built-in rendering pipeline and Scriptable Render Pipeline (SRP).|
+|**`TunnelingVignetteHemisphere.fbx`**|Hemisphere model with the mesh for showing the tunneling vignette on its inner surface.|
+|**`TunnelingVignetteSG.shadergraph`**|[Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) asset primarily used as reference material to demonstrate the computation of the default shader. Notes in the asset explain the math involved and the steps needed to generate a SRP shader that achieves the same function as the default shader. This is not used by the material or Prefab, however this can be used as an alternative starting point to create a modified shader.|
 
 ### Hierarchy configuration
 
@@ -136,7 +183,8 @@ The `XR Interaction Setup` has the following hierarchy, which contains the `XR O
     <td><strong>EventSystem</strong></td>
     <td>
       [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR UI Input Module](ui-setup.md#xr-ui-input-module)
+      [XR UI Input Module](ui-setup.md#xr-ui-input-module)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      [Canvas Optimizer](canvas-optimizer.md)
     </td>
     <td>The XR Poke Interactor and XR Ray Interactor communicate with the XR UI Input Module to enable UI pointer events in world space canvases.</td>
   </tr>
@@ -310,71 +358,10 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
 </tbody>
 </table>
 
-## XR Device Simulator
+### Known issues
 
-This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\XR Device Simulator` folder. You can move these Assets to a different location.
-
-The XR Interaction Toolkit package provides an example implementation of an XR Device Simulator to allow for manipulating an HMD and a pair of controllers using mouse and keyboard input. This sample contains example bindings for use with that simulator, and a Prefab which you can add to your scene to quickly start using the simulator.
-
-|**Asset**|**Description**|
-|---|---|
-|**`Scripts\`**|Asset folder containing scripts for the runtime UI for the simulator.|
-|**`UI\`**|Asset folder containing prefabs and textures for the runtime UI for the simulator.|
-|**`XR Device Controller Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator focused on controls for the simulated controllers.|
-|**`XR Device Simulator Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator focused on controls for the simulator itself.|
-|**`XR Device Simulator.prefab`**|Prefab with the XR Device Simulator component with references to actions configured.|
-
-## Tunneling Vignette
-
-This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Tunneling Vignette` folder. You can move these Assets to a different location.
-
-|**Asset**|**Description**|
-|---|---|
-|**`TunnelingVignette.mat`**|Material used to display the tunnelling vignette with configurable properties, including aperture size, feathering effect, and vignette color.|
-|**`TunnelingVignette.prefab`**|Prefab that contains a complete setup with necessary components for configuring and controlling the tunneling vignette. This Prefab is intended to be a child GameObject of the Main Camera.|
-|**`TunnelingVignette.shader`**|Default shader used by the material and Prefab to compute the vignette effect. Works with the built-in rendering pipeline and Scriptable Render Pipeline (SRP).|
-|**`TunnelingVignetteHemisphere.fbx`**|Hemisphere model with the mesh for showing the tunneling vignette on its inner surface.|
-|**`TunnelingVignetteSG.shadergraph`**|Shader Graph asset primarily used as reference material to demonstrate the computation of the default shader. Notes in the asset explain the math involved and the steps needed to generate a SRP shader that achieves the same function as the default shader. This is not used by the material or Prefab, however this can be used as an alternative starting point to create a modified shader.|
-
-## Meta Gaze Adapter
-
-This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Meta Gaze Adapter` folder. It provides a script to assist with eye tracking with the Meta Quest Pro and the [XR Gaze Interactor](xr-gaze-interactor.md).
-Currently the `XRGazeInteractor` uses the [OpenXR bindings](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/index.html?subfolder=/manual/features/eyegazeinteraction.html) for eye gaze position, tracking, and rotation. This binding is not currently supported for Quest Pro. When the OpenXR bindings are supported, this sample and adapter will be unnecessary.
-
-|**Asset**| **Description**|
-|---|---|
-|**`OculusEyeGazeInputAdapter`**|Script which creates an Eye Gaze input device and updates the device's state based on data from the Oculus `OVRPlugin` API. This script can be placed in a scene with an [XR Gaze Interactor](xr-gaze-interactor.md) to enable the gaze interactor to work with the Meta Quest Pro eye tracking.|
-|**`GazeAdapterSampleProjectValidation`**|Unity Editor script which adds Project Validation rules for the sample. Not necessary for the actual adapter.|
-
-### Requirements
-
-The [Oculus XR Plugin](https://docs.unity3d.com/Manual/com.unity.xr.oculus.html) package version `3.2.2` or newer is required for Meta Quest Pro support, and thus this sample requires at least the Unity Editor 2021.3.4f1 or newer.
-
-Additionally, this sample requires the `OVRPlugin` found in the `VR` folder of the [Oculus Integration asset](https://developer.oculus.com/downloads/package/unity-integration/), 
-`v47.0` or newer, and the [OpenXR Plugin](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/) package version `1.6.0` or newer. The OpenXR `EyeGazeDevice` is used to update the pose of the `Gaze Interactor`.
-
-### Setup
-
-1. Download `v47.0` or newer of the [Oculus Integration asset](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022)
-2. Import the Oculus Integration asset by using **Window** &gt; **Package Manager** &gt; **Packages: My Assets** &gt; **Oculus Integration** &gt; **Import** or by using **Assets** &gt; **Import Package** &gt; **Custom Package** to import the downloaded `.unitypackage` file. At a minimum, select the following assets to import:
-    - `Oculus\OculusProjectConfig.asset`
-    - `Oculus\VR\`
-3. Click **Yes** to accept the Update Oculus Utilities Plugin prompt to update OVRPlugin
-4. Click **Use OpenXR** to accept the OpenXR Backend prompt. If you canceled, enable it later using **Oculus** &gt; **Tools** &gt; **OVR Utilities Plugin** &gt; **Set OVRPlugin to OpenXR**.
-5. Import Meta Gaze Adapter sample from **Window** &gt; **Package Manager** &gt; **XR Interaction Toolkit**
-6. Install or update [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) to version `1.6.0` or newer and install or update [Oculus XR Plugin (com.unity.xr.oculus)](https://docs.unity3d.com/Manual/com.unity.xr.oculus.html) to version `3.2.2` or newer by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using **Window** &gt; **Package Manager**
-7. Add **`USE_INPUT_SYSTEM_POSE_CONTROL`** to Scripting Defines Symbols (**Edit** &gt; **Project Settings** &gt; **Player** &gt; **Other Settings** &gt; **Scripting Compilation** &gt; **Scripting Defines Symbols**) and click **Apply**. Do this for both the PC and Android tabs in the Player settings. This resolves the error "ArgumentException: Expected control 'pose' to be of type 'PoseControl' but is of type 'PoseControl' instead!"
-8. Enable **Oculus** plug-in provider in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management**. Do this for both the PC and Android tabs in the XR Plug-in Management settings.
-9. Add the Oculus Eye Gaze Input Adapter component to a GameObject in the scene
-10. (Android platform only) Enable **Eye Tracking Support** in the Inspector window of the `Assets\Oculus\OculusProjectConfig` asset under section **Quest Features** &gt; **General** by setting it to **Supported** or **Required**
-
-> [!TIP]
-> To enable eye tracking support while using Oculus Link, open the Oculus desktop application and go to **Settings** &gt; **Beta**. Click to enable **Developer Runtime Features** and **Eye tracking over Oculus Link**. Then click **Restart Oculus**, then unplug and plug in the USB cable. Finally, restart the Unity Editor.
-
-#### Optional
-
-- Enable **Quest Pro** under Target Devices in the Oculus settings Android tab in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Oculus**
-- Generate custom Android manifest file (**Oculus** &gt; **Tools** &gt; **Create store-compatible AndroidManifest.xml** to update `Assets\Plugins\Android\AndroidManifest.xml`, which also automatically updates **Edit** &gt; **Project Settings** &gt; **Player** &gt; **Android tab** &gt; **Publishing Settings** to enable **Custom Main Manifest**
+- When upgrading from an older version of the Starter Assets to a newer version, the Unity Editor may crash or script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the old `Starter Assets` folder from your `Samples` directory before importing the Starter Assets sample from a new package version.
+- When using [OpenXR Plugin](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) `1.8.0` or `1.8.1` there is a bug that effects the `XRInputModalityManager` which causes issues with the controllers and input actions. This issue is fixed in OpenXR Plugin `1.8.2`
 
 ## Hands Interaction Demo
 
@@ -384,22 +371,27 @@ This sample is installed into the default location for package samples, in the `
 
 |**Asset**|**Description**|
 |---|---|
+|**`AffordanceThemes\`**|Asset folder containing Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the hand visuals. An example is coloring finger tips upon interaction.|
+|**`DatumPresets\`**|Asset folder containing Follow Preset Datums used by hand menus.|
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
-|**`Runtime\AffordanceThemes\`**|Asset folder containing Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the scene.|
-|**`Runtime\Materials\`**|Asset folder containing materials for the `HandsDemoScene`.|
-|**`Runtime\Models\`**|Asset folder containing models for the `HandsDemoScene`.|
-|**`Runtime\Prefabs\`**|Asset folder containing prefabs showcased in the `HandsDemoScene`.|
-|**`Runtime\Scripts\`**|Asset folder containing sample scripts.|
-|**`Runtime\Sprites\`**|Asset folder containing sprite textures for the `HandsDemoScene`.|
-|**`Runtime\HandsDemoScene`**|Scene that illustrates a basic rig setup that supports hand tracking and controllers along with example interactable objects and UI.|
+|**`HandsDemoSceneAssets\`**|Asset folder containing assets only used for the `HandsDemoScene`.
+|**`Materials\`**|Asset folder containing materials for hand visuals.|
+|**`Prefabs\`**|Asset folder containing prefabs of hand visuals and a hand variant of the XR Origin (XR Rig).|
+|**`Scripts\`**|Asset folder containing scripts to detect gestures.|
+|**`Shaders\`**|Asset folder containing shaders for hand visuals.|
+|**`Textures\`**|Asset folder containing textures for hand visuals.|
+|**`HandsDemoScene`**|Scene that illustrates a basic rig setup that supports hand tracking and controllers along with example interactable objects and UI.|
 
 ### Prerequisites and setup
+
+> [!IMPORTANT]
+> There is a known issue when upgrading from an older version of the Hands Interaction Demo to a newer version. Script references in the Demo Scene for scripts included in the Hands Interaction Demo become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` and `Hands Interaction Demo` folders from your `Samples` directory before importing the new Hands Interaction Demo sample package.
 
 In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window. See [Install XR Hands](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/project-setup/install-xrhands.html) for installation steps for that package when using the Package Manager window.
   * [Starter Assets](#starter-assets) - imported from Package Manager under XR Interaction Toolkit in the Samples area 
   * [XR Plug-in Management (com.unity.xr.management)](https://docs.unity3d.com/Manual/com.unity.xr.management.html) - 4.3.1 or newer
   * [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) - 1.6.0 or newer
-  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.2.1 or newer
+  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.2.1 or newer (1.3.0 recommended)
     * HandVisualizer - imported from Package Manager under XR Hands in the Samples area
   * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used on the rendered hands
 
@@ -411,7 +403,7 @@ If building for Quest, Quest 2, or Quest Pro, you will also need to enable [Meta
 
 ![sample-hands-openxr-hand-subsystem.png](images/sample-hands-openxr-hand-subsystem.png)
 
-The main Hands Interaction Demo scene can be opened from the location `Assets\Samples\XR Interaction Toolkit\[version]\Hands Interaction Demo\Runtime\HandsDemoScene`. This scene uses the assets in the list below. The prefabs are designed as a starting point for your own XR hand interaction based projects.
+The main Hands Interaction Demo scene can be opened from the location `Assets\Samples\XR Interaction Toolkit\[version]\Hands Interaction Demo\HandsDemoScene`. This scene uses the assets in the list below. The prefabs are designed as a starting point for your own XR hand interaction based projects.
 
 ![sample-hands-demo-scene.png](images/sample-hands-demo-scene.png)
 
@@ -570,10 +562,87 @@ Note: if the XR Hands package has not been imported, you will also need to impor
 
 ![sample-hands-project-validation.png](images/sample-hands-project-validation-visualizer.png)
 
+## AR Starter Assets
+
+This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\AR Starter Assets` folder. You can move these Assets to a different location after importing it.
+
+The XR Interaction Toolkit package provides an example implementation for mobile AR development. This includes the a demo scene and some prefabs to get you started with your own projects.
+
+|**Asset**|**Description**|
+|---|---|
+|**`ARDemoSceneAssets\`**|Asset folder containing assets only used for the `ARDemoScene`.
+|**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
+|**`Materials\FeatheredPlaneMaterial`**|This material provides a visual representation used for AR plane detection in the XR Simulator and in builds.|
+|**`Prefabs\AR Feathered Plane`**|This prefab uses the `FeatheredPlaneMaterial` to show where the AR plane is detected or simulated.|
+|**`Prefabs\XR Origin (AR Rig)`**|This contains the basic configuration to use XRI with an mobile device, leveraging the XR Screen Space Controller prefab and the AR settings on the XR Ray Interactor.|
+|**`Prefabs\XR Screen Space Controller`**|This controller prefab contains the screen-space controller and XR Ray Interactor setup to work with mobile AR devices.|
+|**`Scripts\ARContactSpawnTrigger`**|Component that spawns an object from the designated list at the physical contact point with an AR plane.|
+|**`Scripts\ARFeatheredPlaneMeshVisualizer`**|Component that supports a feathering effect at the edge of a detected plane, which reduces the visual impression of a hard edge.|
+|**`Scripts\ARInteractorSpawnTrigger`**|Component that spawns an object from the designated list at the point where the `ARInteractor` hits the AR plane when the specific `spawnAction` is triggered from the Input System.|
+|**`ARDemoScene`**|Scene that illustrates a basic AR rig setup that supports screen space touch gestures along with example interactable objects that can be spawned and UI.|
+
+## XR Device Simulator
+
+This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\XR Device Simulator` folder. You can move these Assets to a different location.
+
+The XR Interaction Toolkit package provides an example implementation of an XR Device Simulator to allow for manipulating an HMD and a pair of controllers using mouse and keyboard input. This sample contains example bindings for use with that simulator, and a Prefab which you can add to your scene to quickly start using the simulator.
+
+|**Asset**|**Description**|
+|---|---|
+|**`Hand Expression Captures\`**|Asset folder containing captured hand poses for the simulator when simulating tracked hands.|
+|**`Scripts\`**|Asset folder containing scripts for the runtime UI for the simulator.|
+|**`UI\`**|Asset folder containing prefabs and textures for the runtime UI for the simulator.|
+|**`XR Device Controller Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator focused on controls for the simulated controllers.|
+|**`XR Device Hand Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator focused on controls for the simulated hands.|
+|**`XR Device Simulator Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Device Simulator focused on controls for the simulator itself.|
+|**`XR Device Simulator.prefab`**|Prefab with the XR Device Simulator component with references to actions configured.|
+
+## Meta Gaze Adapter
+
+This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Meta Gaze Adapter` folder. It provides a script to assist with eye tracking with the Meta Quest Pro and the [XR Gaze Interactor](xr-gaze-interactor.md).
+Currently the `XRGazeInteractor` uses the [OpenXR bindings](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/index.html?subfolder=/manual/features/eyegazeinteraction.html) for eye gaze position, tracking, and rotation. This binding is not currently supported for Quest Pro. When the OpenXR bindings are supported, this sample and adapter will be unnecessary.
+
+|**Asset**| **Description**|
+|---|---|
+|**`OculusEyeGazeInputAdapter`**|Script which creates an Eye Gaze input device and updates the device's state based on data from the Oculus `OVRPlugin` API. This script can be placed in a scene with an [XR Gaze Interactor](xr-gaze-interactor.md) to enable the gaze interactor to work with the Meta Quest Pro eye tracking.|
+|**`GazeAdapterSampleProjectValidation`**|Unity Editor script which adds Project Validation rules for the sample. Not necessary for the actual adapter.|
+
+### Requirements
+
+The [Oculus XR Plugin](https://docs.unity3d.com/Manual/com.unity.xr.oculus.html) package version `3.2.2` or newer is required for Meta Quest Pro support, and thus this sample requires at least the Unity Editor 2021.3.4f1 or newer.
+
+Additionally, this sample requires the `OVRPlugin` found in the `VR` folder of the [Oculus Integration asset](https://developer.oculus.com/downloads/package/unity-integration/), 
+`v47.0` or newer, and the [OpenXR Plugin](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/) package version `1.6.0` or newer. The OpenXR `EyeGazeDevice` is used to update the pose of the `Gaze Interactor`.
+
+### Setup
+
+1. Download `v47.0` or newer of the [Oculus Integration asset](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022)
+2. Import the Oculus Integration asset by using **Window** &gt; **Package Manager** &gt; **Packages: My Assets** &gt; **Oculus Integration** &gt; **Import** or by using **Assets** &gt; **Import Package** &gt; **Custom Package** to import the downloaded `.unitypackage` file. At a minimum, select the following assets to import:
+    - `Oculus\OculusProjectConfig.asset`
+    - `Oculus\VR\`
+3. Click **Yes** to accept the Update Oculus Utilities Plugin prompt to update OVRPlugin
+4. Click **Use OpenXR** to accept the OpenXR Backend prompt. If you canceled, enable it later using **Oculus** &gt; **Tools** &gt; **OVR Utilities Plugin** &gt; **Set OVRPlugin to OpenXR**.
+5. Import Meta Gaze Adapter sample from **Window** &gt; **Package Manager** &gt; **XR Interaction Toolkit**
+6. Install or update [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) to version `1.6.0` or newer and install or update [Oculus XR Plugin (com.unity.xr.oculus)](https://docs.unity3d.com/Manual/com.unity.xr.oculus.html) to version `3.2.2` or newer by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using **Window** &gt; **Package Manager**
+7. Add **`USE_INPUT_SYSTEM_POSE_CONTROL`** to Scripting Defines Symbols (**Edit** &gt; **Project Settings** &gt; **Player** &gt; **Other Settings** &gt; **Scripting Compilation** &gt; **Scripting Defines Symbols**) and click **Apply**. Do this for both the PC and Android tabs in the Player settings. This resolves the error "ArgumentException: Expected control 'pose' to be of type 'PoseControl' but is of type 'PoseControl' instead!"
+8. Enable **Oculus** plug-in provider in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management**. Do this for both the PC and Android tabs in the XR Plug-in Management settings.
+9. Add the Oculus Eye Gaze Input Adapter component to a GameObject in the scene
+10. (Android platform only) Enable **Eye Tracking Support** in the Inspector window of the `Assets\Oculus\OculusProjectConfig` asset under section **Quest Features** &gt; **General** by setting it to **Supported** or **Required**
+
+> [!TIP]
+> To enable eye tracking support while using Oculus Link, open the Oculus desktop application and go to **Settings** &gt; **Beta**. Click to enable **Developer Runtime Features** and **Eye tracking over Oculus Link**. Then click **Restart Oculus**, then unplug and plug in the USB cable. Finally, restart the Unity Editor.
+
+#### Optional
+
+- Enable **Quest Pro** under Target Devices in the Oculus settings Android tab in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Oculus**
+- Generate custom Android manifest file (**Oculus** &gt; **Tools** &gt; **Create store-compatible AndroidManifest.xml** to update `Assets\Plugins\Android\AndroidManifest.xml`, which also automatically updates **Edit** &gt; **Project Settings** &gt; **Player** &gt; **Android tab** &gt; **Publishing Settings** to enable **Custom Main Manifest**
+
+
 ## Document revision history
 
 |Date|Reason|
 |---|---|
+|**August 3, 2023**|Updated for new samples and reorganization of the files within each. Matches package version 2.5.0.|
 |**April 26, 2023**|Added detailed description of the XR Origin (XR Rig) prefabs and its GameObjects.|
 |**January 24, 2023**|Updated documentation for Hands Interaction Demo to include installation steps and troubleshooting.|
 |**January 18, 2023**|Added documentation for Meta Gaze Adapter and Hands Interaction Demo samples. Matches package version 2.3.0.|

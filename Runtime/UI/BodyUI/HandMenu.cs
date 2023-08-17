@@ -219,15 +219,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         [Tooltip("Only show menu if gaze to menu origin's divergence angle is below this value.")]
         float m_MenuVisibleGazeAngleDivergenceThreshold = 35f;
 
-        float m_MenuVisisbleDotThreshold;
+        float m_MenuVisibilityDotThreshold;
 
+        /// <summary>
+        /// Only show menu if gaze to menu origin's divergence angle is below this value.
+        /// </summary>
         public float menuVisibleGazeDivergenceThreshold
         {
             get => m_MenuVisibleGazeAngleDivergenceThreshold;
             set
             {
                 m_MenuVisibleGazeAngleDivergenceThreshold = value;
-                m_MenuVisisbleDotThreshold = AngleToDot(value);
+                m_MenuVisibilityDotThreshold = AngleToDot(value);
             }
         }
 
@@ -396,7 +399,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_HandAnchorSmartFollow.minDistanceAllowed = m_MinFollowDistance;
             m_HandAnchorSmartFollow.maxDistanceAllowed = m_MaxFollowDistance;
             m_HandAnchorSmartFollow.minToMaxDelaySeconds = m_MinToMaxDelaySeconds;
-            m_MenuVisisbleDotThreshold = AngleToDot(m_MenuVisibleGazeAngleDivergenceThreshold);
+            m_MenuVisibilityDotThreshold = AngleToDot(m_MenuVisibleGazeAngleDivergenceThreshold);
         }
         
         /// <summary>
@@ -503,7 +506,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 if (m_HideMenuWhenGazeDiverges)
                 {
                     var gazeDirection = m_LastValidCameraTransform.forward;
-                    showMenu = Vector3.Dot(gazeToObject, gazeDirection) > m_MenuVisisbleDotThreshold;
+                    showMenu = Vector3.Dot(gazeToObject, gazeDirection) > m_MenuVisibilityDotThreshold;
                 }
                 m_MenuVisibleBindableVariable.Value = showMenu;
             }

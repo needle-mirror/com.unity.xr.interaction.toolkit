@@ -42,6 +42,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_DirectionalAnchorRotationAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
         protected SerializedProperty m_TranslateAnchorAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.scaleToggleAction"/>.</summary>
+        protected SerializedProperty m_ScaleToggleAction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.scaleDeltaAction"/>.</summary>
+        protected SerializedProperty m_ScaleDeltaAction;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -78,6 +82,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static GUIContent directionalAnchorRotationAction = EditorGUIUtility.TrTextContent("Directional Anchor Rotation Action", "The action to use for computing a direction angle to rotate the interactor's attach point to match it. (Vector 2 Control)");
             /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.translateAnchorAction"/>.</summary>
             public static GUIContent translateAnchorAction = EditorGUIUtility.TrTextContent("Translate Anchor Action", "The action to use for translating the interactor's attach point closer or further away from the interactor. Will use the y-axis as the translation input. (Vector 2 Control)");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.scaleToggleAction"/>.</summary>
+            public static GUIContent scaleToggleAction = EditorGUIUtility.TrTextContent("Scale Toggle Action", "The action to use to enable or disabled reading from the Scale Delta Action. (Button Control)");
+            /// <summary><see cref="GUIContent"/> for <see cref="ActionBasedController.scaleDeltaAction"/>.</summary>
+            public static GUIContent scaleDeltaAction = EditorGUIUtility.TrTextContent("Scale Delta Action", "The action to use for providing a scale delta value to transformers. Will use the y-axis as the scaling input. (Vector 2 Control)");
 
             /// <summary>The help box message when Update Tracking Type is not Fixed.</summary>
             public static readonly GUIContent updateModeNotFixed = EditorGUIUtility.TrTextContent("Input System Update Mode is set to Process Events In Fixed Update, but the controller Update Tracking Type is not set to Fixed. This means that input querying of the controller pose will not be in sync with the Input System.");
@@ -105,6 +113,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
             m_DirectionalAnchorRotationAction = serializedObject.FindProperty("m_DirectionalAnchorRotationAction");
             m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
+            m_ScaleDeltaAction = serializedObject.FindProperty("m_ScaleDeltaAction");
+            m_ScaleToggleAction = serializedObject.FindProperty("m_ScaleToggleAction");
         }
 
         /// <inheritdoc />
@@ -152,6 +162,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.PropertyField(m_RotateAnchorAction, Contents.rotateAnchorAction);
             EditorGUILayout.PropertyField(m_DirectionalAnchorRotationAction, Contents.directionalAnchorRotationAction);
             EditorGUILayout.PropertyField(m_TranslateAnchorAction, Contents.translateAnchorAction);
+            EditorGUILayout.PropertyField(m_ScaleToggleAction, Contents.scaleToggleAction);
+            EditorGUILayout.PropertyField(m_ScaleDeltaAction, Contents.scaleDeltaAction);
         }
     }
 }

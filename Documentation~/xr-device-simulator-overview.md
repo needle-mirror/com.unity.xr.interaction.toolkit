@@ -47,6 +47,9 @@ After adding the `XR Device Simulator` and `XR Interaction Setup` to your scene 
 
 To automatically activate the XR Device Simulator across multiple scenes, go to **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and enable the **Use XR Device Simulator in scenes** option to automatically instantiate the sample's prefab at runtime.
 
+[!Note]
+> The XR Device Simulator is primarily designed as an Editor-only testing tool. If you wish to have the XR Device Simulator automatically instantiate the selected prefab on a standalone production build, you will need to either include the prefab in your scene or disable **Instantiate In Editor Only**.
+
 ![xr-device-simulator-automatic](images/xr-device-simulator/xr-device-simulator-automatic.png)
 
 This prefab will not be destroyed when changing between scenes and will persist across your project at runtime.

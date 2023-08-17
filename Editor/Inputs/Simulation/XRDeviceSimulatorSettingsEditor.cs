@@ -20,6 +20,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateSimulatorPrefab"/>.</summary>
         SerializedProperty m_AutomaticallyInstantiateSimulatorPrefab;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateInEditorOnly"/>.</summary>
+        SerializedProperty m_AutomaticallyInstantiateInEditorOnly;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
         SerializedProperty m_SimulatorPrefab;
 
@@ -31,7 +33,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateSimulatorPrefab"/>.</summary>
             public static readonly GUIContent automaticallyInstantiateSimulatorPrefab =
                 EditorGUIUtility.TrTextContent("Use XR Device Simulator in scenes",
-                    "When selected, the XR Device Simulator will be present on play mode in your scenes.");
+                    "When enabled, the XR Device Simulator will be automatically created on play mode in your scenes.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateInEditorOnly"/>.</summary>
+            public static readonly GUIContent automaticallyInstantiateInEditorOnly =
+                EditorGUIUtility.TrTextContent("Instantiate In Editor Only",
+                    "Enable to only automatically create the simulator prefab when running inside the Unity Editor." +
+                    " Disable to allow the simulator prefab to also be created in standalone builds.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
             public static readonly GUIContent simulatorPrefab =
@@ -42,6 +50,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         void OnEnable()
         {
             m_AutomaticallyInstantiateSimulatorPrefab = serializedObject.FindProperty("m_AutomaticallyInstantiateSimulatorPrefab");
+            m_AutomaticallyInstantiateInEditorOnly = serializedObject.FindProperty("m_AutomaticallyInstantiateInEditorOnly");
             m_SimulatorPrefab = serializedObject.FindProperty("m_SimulatorPrefab");
         }
 
@@ -58,6 +67,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 using (new EditorGUI.IndentLevelScope())
                 using (new EditorGUI.DisabledScope(!m_AutomaticallyInstantiateSimulatorPrefab.boolValue))
                 {
+                    EditorGUILayout.PropertyField(m_AutomaticallyInstantiateInEditorOnly, Contents.automaticallyInstantiateInEditorOnly);
                     EditorGUILayout.PropertyField(m_SimulatorPrefab, Contents.simulatorPrefab);
                 }
 

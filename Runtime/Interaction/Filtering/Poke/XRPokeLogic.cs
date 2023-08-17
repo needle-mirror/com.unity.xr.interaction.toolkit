@@ -167,6 +167,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                     }
                 }
             }
+
+            // Reset depth percent if hover requirements are not met.
+            if (!meetsHoverRequirements)
+            {
+                clampedDepthPercent = 1f;
+            }
             
             // Either depth lines up, or we've moved passed the goal post after passing the hover check
             bool meetsRequirements = meetsHoverRequirements && clampedDepthPercent < k_DepthPercentActivationThreshold;
@@ -210,6 +216,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 pokeInteractionPoint = pokerAttachPosition,
                 axisAlignedPokeInteractionPoint = pokableAttachPosition + clampedPokeDepth * axisNormal,
                 interactionStrength = 1f - clampedDepthPercent,
+                axisNormal = axisNormal,
                 target = pokedTransform,
             };
 
@@ -304,6 +311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             m_LastHoverEnterLocalPosition[interactor] = pokedTransform.InverseTransformPoint(updatedPose.position);
             
             m_LastInteractorPressDepth[interactor] = 1f;
+            m_HoldingHoverCheck[interactor] = false;
 
             if (!m_HoveredInteractorsOnThisTransform.TryGetValue(pokedTransform, out var hoveringInteractors))
             {
@@ -344,7 +352,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 return;
 
             var startPos = transform.position;
-            var axisExtent = startPos + ComputeRotatedDepthEvaluationAxis(transform) * interactionAxisLength;
+            var axisNormal = ComputeRotatedDepthEvaluationAxis(transform);
+            var axisExtent = startPos + axisNormal * interactionAxisLength;
 
             m_PokeStateData.Value = new PokeStateData
             {
@@ -352,6 +361,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 pokeInteractionPoint = axisExtent,
                 axisAlignedPokeInteractionPoint = axisExtent,
                 interactionStrength = 0f,
+                axisNormal = Vector3.zero,
                 target = null,
             };
         }
