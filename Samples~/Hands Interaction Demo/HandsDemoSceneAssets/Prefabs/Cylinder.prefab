@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 256826899755551065}
   - component: {fileID: 4802184161675562276}
   - component: {fileID: 5677050711131360266}
-  - component: {fileID: 4923918447339988222}
+  - component: {fileID: 7407278190534771666}
   m_Layer: 0
   m_Name: Visuals
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &4923918447339988222
-MeshCollider:
+--- !u!136 &7407278190534771666
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -94,10 +94,10 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -5076798556035486163, guid: bf65382e5e6d14e7f8140e4204ce07e2, type: 3}
+  m_Radius: 0.00575
+  m_Height: 0.011
+  m_Direction: 1
+  m_Center: {x: -0.0000000060535967, y: -0.000000007450581, z: 0.000000028405339}
 --- !u!1 &5709307613756117032
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,21 +260,21 @@ MonoBehaviour:
   m_SnapToColliderVolume: 1
   m_ReinitializeDynamicAttachEverySingleGrab: 1
   m_AttachEaseInTime: 0.15
-  m_MovementType: 1
+  m_MovementType: 2
   m_VelocityDamping: 1
   m_VelocityScale: 1
   m_AngularVelocityDamping: 1
   m_AngularVelocityScale: 1
   m_TrackPosition: 1
   m_SmoothPosition: 0
-  m_SmoothPositionAmount: 5
-  m_TightenPosition: 0.5
+  m_SmoothPositionAmount: 8
+  m_TightenPosition: 0.1
   m_TrackRotation: 1
   m_SmoothRotation: 0
-  m_SmoothRotationAmount: 5
-  m_TightenRotation: 0.5
+  m_SmoothRotationAmount: 8
+  m_TightenRotation: 0.1
   m_TrackScale: 1
-  m_SmoothScale: 0
+  m_SmoothScale: 1
   m_SmoothScaleAmount: 8
   m_TightenScale: 0.1
   m_ThrowOnDetach: 0
@@ -320,10 +320,10 @@ MonoBehaviour:
   m_AllowOneHandedScaling: 1
   m_AllowTwoHandedScaling: 1
   m_OneHandedScaleSpeed: 0.5
-  m_ThresholdMoveRatioForScale: 0.1
+  m_ThresholdMoveRatioForScale: 0.01
   m_ClampScaling: 1
   m_MinimumScaleRatio: 0.25
-  m_MaximumScaleRatio: 2
+  m_MaximumScaleRatio: 3
   m_ScaleMultiplier: 0.25
 --- !u!1001 &4330884014412049023
 PrefabInstance:

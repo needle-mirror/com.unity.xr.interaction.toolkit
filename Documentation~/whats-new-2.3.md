@@ -1,8 +1,8 @@
-# What's new in version 2.3.0
+# What's new in version 2.3
 
-Summary of changes in XR Interaction Toolkit package version 2.3.0:
+Summary of changes in XR Interaction Toolkit package version 2.3:
 
-With the XR Interaction Toolkit version 2.3.0 comes the most requested features yet. The main features in this release include Poke and Gaze Interactors, Interaction Groups, Snap Volumes, Device Simulator usability improvements, and an Interaction Affordance System, which allows users to easily build high-performance interaction feedback indicators (visual, audio, haptics, etc).
+With the XR Interaction Toolkit version 2.3 comes the most requested features yet. The main features in this release include Poke and Gaze Interactors, Interaction Groups, Snap Volumes, Device Simulator usability improvements, and an Interaction Affordance System, which allows users to easily build high-performance interaction feedback indicators (visual, audio, haptics, etc).
 
 ## Added
 

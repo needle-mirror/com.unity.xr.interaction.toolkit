@@ -1,6 +1,6 @@
 # Tunneling Vignette Controller
 
-The `TunnelingVignetteController` component, combined with the [Tunneling Vignette sample assets](samples.md#tunneling-vignette), provide an out-of-the-box tunneling vignette solution as a comfort mode option intended to mitigate motion sickness in VR. To install the sample assets, use the `Package Manager` to import the `Tunneling Vignette` sample under the `XR Interaction Toolkit` package.
+The `TunnelingVignetteController` component, combined with the [Tunneling Vignette sample assets](samples-starter-assets.md#tunneling-vignette), provide an out-of-the-box tunneling vignette solution as a comfort mode option intended to mitigate motion sickness in VR. To install the sample assets, use the `Package Manager` to import the `Tunneling Vignette` sample under the `XR Interaction Toolkit` package.
 
 The `TunnelingVignette.prefab` in the sample asset is recommended to be placed as a child GameObject of the Main Camera. It renders a hemisphere that consists of the inner transparent aperture and the black visual cut-off using the provided shader and material. The following image shows the Scene view of the rendered vignette.
 

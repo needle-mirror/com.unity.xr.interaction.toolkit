@@ -37,6 +37,7 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: 89a6790c28795dd4987bb267c3d05338, type: 3}
   m_ValidKeywords:
   - _BUILTIN_SURFACE_TYPE_TRANSPARENT
+  - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -44,7 +45,8 @@ Material:
   m_CustomRenderQueue: 3002
   stringTagMap:
     RenderType: Transparent
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - DepthOnly
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -100,7 +102,7 @@ Material:
     - _Blend: 0
     - _CastShadows: 1
     - _Cull: 2
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _EdgeHighlightPower: 5
     - _FadeSize: 0.01
     - _FadeStart: 0.12
@@ -115,7 +117,7 @@ Material:
     - _QueueControl: 1
     - _QueueOffset: 0
     - _Scale: 0.16
-    - _SrcBlend: 1
+    - _SrcBlend: 5
     - _Surface: 1
     - _TransitionSize: 0.1
     - _ZTest: 4

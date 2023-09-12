@@ -66,7 +66,7 @@ Depending on which mapped actions you want to modify in the XR Device Simulator,
 
 ![xr-device-simulator-keybindings1](images/xr-device-simulator/xr-device-simulator-keybindings1.png)
 
-To modify the key bindings, double click on either of the asset files and you will get an Input Action window. Refer to [Editing Input Action Assets](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/ActionAssets.html#editing-input-action-assets) in the Input System documentation for more information on how to set up key bindings in an Input Action asset.
+To modify the key bindings, double click on either of the asset files and you will get an Input Action window. Refer to [Editing Input Action Assets](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/ActionAssets.html#editing-input-action-assets) in the Input System documentation for more information on how to set up key bindings in an Input Action asset.
 
 To set up the controller bindings like grip, primary / secondary buttons, joystick, etc, double click on the `XR Device Controller Controls`:
 

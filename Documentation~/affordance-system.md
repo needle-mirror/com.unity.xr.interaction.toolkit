@@ -26,7 +26,7 @@ The theme assets are created by using the **Assets** &gt; **Create** &gt; **Affo
 
 ## How to set up your project using the affordance system
 
-The [Starter Assets](samples.md#starter-assets) sample contains a few different uses of various affordance effects to help understand how they are intended to be used. However, if you are starting from scratch, you can use the following steps to get started with the affordance system.
+The [Starter Assets](samples-starter-assets.md) sample contains a few different uses of various affordance effects to help understand how they are intended to be used. However, if you are starting from scratch, you can use the following steps to get started with the affordance system.
 
 ### Add an XR Interactable Affordance State Provider
 

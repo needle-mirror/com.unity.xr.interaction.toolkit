@@ -219,9 +219,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
             if (m_ApplyRandomAngleAtSpawn)
             {
-                var projectedAngle = Vector3.SignedAngle(Vector3.forward, projectedForward, spawnNormal);
                 var randomRotation = Random.Range(-m_SpawnAngleRange, m_SpawnAngleRange);
-                newObject.transform.Rotate(Vector3.up, projectedAngle + randomRotation);
+                newObject.transform.Rotate(Vector3.up, randomRotation);
             }
 
             if (m_SpawnVisualizationPrefab != null)

@@ -18,7 +18,7 @@ To install this package (minimum version: 2.0.4), follow the [installation instr
 This package was not listed in the Editor manifest in earlier versions of Unity 2021. Due to this, installation is a manual process. To install this package:
 1. Open the project that you plan to use.
 1. Click the following link to bring up the **Add package by name** window in Package Manager: 
-[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@2.5.0) 
+[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@2.5.1) 
 
    ![installation-add-package-by-name](images/installation-add-package-by-name.png)
 
@@ -45,7 +45,7 @@ In some cases, you may not be able to update the Unity Editor or may wish to man
 
 ## Input System
 
-This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it. For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
+This package has a dependency on [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/index.html). If that package has not already been installed, Unity will automatically add it to your Project. You might see a prompt asking you to enable input backends. Click **Yes** to accept it. For more information, see [Enabling the new input backends](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Installation.html#enabling-the-new-input-backends) in the Input System package documentation.
 
 ![installation-prompt-input-backends](images/installation-prompt-input-backends.png)
 

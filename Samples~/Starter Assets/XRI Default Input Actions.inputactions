@@ -425,6 +425,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Grip Position",
+                    "type": "Value",
+                    "id": "e1240870-ef45-4f3e-8110-ff1b9049c4ca",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Grip Rotation",
+                    "type": "Value",
+                    "id": "41873a55-b316-4dbe-96e6-93477eef5e47",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -634,6 +652,28 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Aim Flags",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "21a4b6f9-1ebe-434f-b572-066a77b04c48",
+                    "path": "<XRHandDevice>{LeftHand}/gripPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Grip Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3c1f9e74-aba4-41d6-b519-90ed563be5d7",
+                    "path": "<XRHandDevice>{LeftHand}/gripRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Grip Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1181,6 +1221,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Grip Position",
+                    "type": "Value",
+                    "id": "defe4495-ba8f-4958-b2fb-98d889e45ac5",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Grip Rotation",
+                    "type": "Value",
+                    "id": "6bc56065-b0db-4265-8cef-5c7d4f40128a",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -1390,6 +1448,28 @@
                     "processors": "",
                     "groups": "Generic XR Controller",
                     "action": "Aim Flags",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "efcaf94e-8faa-439e-983b-c65f79c3b743",
+                    "path": "<XRHandDevice>{RightHand}/gripPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Grip Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "70a747b6-46e8-4d3b-aaec-20bcab8f1dd7",
+                    "path": "<XRHandDevice>{RightHand}/gripRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Generic XR Controller",
+                    "action": "Grip Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1938,7 +2018,7 @@
                 {
                     "name": "",
                     "id": "05c1e38e-79dd-41cb-95d5-74f42e65d92f",
-                    "path": "<Touchscreen>/touch*/position",
+                    "path": "<Touchscreen>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2290,7 +2370,7 @@
                 {
                     "name": "",
                     "id": "198e6869-709e-448d-96d4-27186c9d56e6",
-                    "path": "<Touchscreen>/touch*/click",
+                    "path": "<Touchscreen>/Press",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

@@ -1166,7 +1166,7 @@ MonoBehaviour:
   m_SpawnVisualizationPrefab: {fileID: 0}
   m_SpawnOptionIndex: 0
   m_OnlySpawnInView: 1
-  m_ViewportPeriphery: 0.15
+  m_ViewportPeriphery: 0
   m_ApplyRandomAngleAtSpawn: 1
   m_SpawnAngleRange: 45
   m_SpawnAsChildren: 0

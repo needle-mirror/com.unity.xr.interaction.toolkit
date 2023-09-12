@@ -1,12 +1,12 @@
-# What's new in version 2.4.0
+# What's new in version 2.4
 
-Summary of changes in XR Interaction Toolkit package version 2.4.0:
+Summary of changes in XR Interaction Toolkit package version 2.4:
 
 ## Added
 
 ### XR Ray Stabilization and Visual Improvements
 
-The XR Interactor Line Visual has been updated so that it bends to the selected interactable by default. This helps improve the natural feeling of the Ray Interactor along with easier interactions for users. Along with the visual changes, the performance has also been improved for the line visual and ray interactor by optimizing most of the line computation math for the Burst compiler. The [Burst package](https://docs.unity3d.com/Manual/com.unity.burst.html) must be installed in your project to take advantage of the optimizations. In addition to the visual and performance updates, ray stabilization has been added by the use of the [XR Transform Stabilizer](xr-transform-stabilizer.md) component. This applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. These new updates have been added to the [Starter Assets](samples.md#starter-assets) prefabs and set up for immediate use.
+The XR Interactor Line Visual has been updated so that it bends to the selected interactable by default. This helps improve the natural feeling of the Ray Interactor along with easier interactions for users. Along with the visual changes, the performance has also been improved for the line visual and ray interactor by optimizing most of the line computation math for the Burst compiler. The [Burst package](https://docs.unity3d.com/Manual/com.unity.burst.html) must be installed in your project to take advantage of the optimizations. In addition to the visual and performance updates, ray stabilization has been added by the use of the [XR Transform Stabilizer](xr-transform-stabilizer.md) component. This applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. These new updates have been added to the [Starter Assets](samples-starter-assets.md) prefabs and set up for immediate use.
 
 ### XR Gaze and Aim Assistance
 
@@ -20,7 +20,7 @@ The new [XR Input Modality Manager](xr-input-modality-manager.md) manages swappi
 
 #### Reactive Hand Visuals
 
-Updated the [Hands Interaction Demo](samples.md#hands-interaction-demo) with new interaction-reactive visuals which respond to interaction strength visually for each finger. The `XR Origin Hands (XR Rig)` prefab in the Hands Interaction Demo was updated to use prefabs for each hand visual with affordances to highlight the fingers during interaction.
+Updated the [Hands Interaction Demo](samples-hands-interaction-demo.md) with new interaction-reactive visuals which respond to interaction strength visually for each finger. The `XR Origin Hands (XR Rig)` prefab in the Hands Interaction Demo was updated to use prefabs for each hand visual with affordances to highlight the fingers during interaction.
 
 #### Hand Tracking for Device Simulator
 
@@ -28,7 +28,7 @@ The [XR Device Simulator](xr-device-simulator-overview.md) has received another 
 
 ### Climb Locomotion Provider
 
-A new [Climb Locomotion Provider](climb-provider.md) and [Climb Interactables](climb-interactable.md) allow users to grab and pull themselves along a set of climbable objects. This works in any direction to create ladders, climbing walls or even monkey bars. A Climb Provider instance has been added to `XR Origin Preconfigured` in the [Starter Assets](samples.md#starter-assets) sample along with a `Climb Sample` prefab that can be tested out in the `DemoScene`. This prefab includes preconfigured Climb Interactables.
+A new [Climb Locomotion Provider](climb-provider.md) and [Climb Interactables](climb-interactable.md) allow users to grab and pull themselves along a set of climbable objects. This works in any direction to create ladders, climbing walls or even monkey bars. A Climb Provider instance has been added to `XR Origin Preconfigured` in the [Starter Assets](samples-starter-assets.md) sample along with a `Climb Sample` prefab that can be tested out in the `DemoScene`. This prefab includes preconfigured Climb Interactables.
 
 ### Interaction focus state
 

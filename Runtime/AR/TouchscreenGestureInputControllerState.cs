@@ -19,7 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         public static FourCC formatId => new FourCC('T', 'S', 'G', 'C');
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.LowLevel.IInputStateTypeInfo.html">IInputStateTypeInfo</a>.format.
         /// </summary>
         public FourCC format => formatId;
 

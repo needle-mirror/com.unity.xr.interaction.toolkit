@@ -2619,7 +2619,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Add simulated XR devices to the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
         protected virtual void AddDevices()
         {
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
@@ -2703,7 +2703,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Remove simulated XR devices from the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.4/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
+        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
         protected virtual void RemoveDevices()
         {
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)

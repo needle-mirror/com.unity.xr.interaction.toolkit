@@ -1,10 +1,10 @@
 * [XR Interaction Toolkit](index.md)
-  * What's new
-    * [2.5.0](whats-new-2.5.0.md)
-    * [2.4.0](whats-new-2.4.0.md)
-    * [2.3.0](whats-new-2.3.0.md)
-    * [2.2.0](whats-new-2.2.0.md)
-    * [2.1.0](whats-new-2.1.0.md)
+  * [What's new in 2.5](whats-new-2.5.md)
+    * Previous releases
+      * [What's new in 2.4](whats-new-2.4.md)
+      * [What's new in 2.3](whats-new-2.3.md)
+      * [What's new in 2.2](whats-new-2.2.md)
+      * [What's new in 2.1](whats-new-2.1.md)
 * Guides
   * [Installation](installation.md)
   * [Architecture](architecture.md)
@@ -17,8 +17,13 @@
   * [Affordance system](affordance-system.md)
   * [XR Device Simulator overview](xr-device-simulator-overview.md)
   * [Debugger window](debugger-window.md)
+* [Samples](samples.md)
+  * [Starter Assets](samples-starter-assets.md)
+  * [Hands Interaction Demo](samples-hands-interaction-demo.md)
+  * [AR Starter Assets](samples-ar-starter-assets.md)
+  * [XR Device Simulator](samples-xr-device-simulator.md)
+  * [Meta Gaze Adapter](samples-meta-gaze-adapter.md)
 * Reference
   * [Glossary](glossary.md)
   * [Components](components.md)
-  * [Samples](samples.md)
   * [Extending XR Interaction Toolkit](extending-xri.md)

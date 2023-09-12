@@ -5,7 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Transform
     /// <summary>
     /// Affordance receiver that takes an object transform and applies a relative uniform scale multiplier on the start value.
     /// </summary>
-    [AddComponentMenu("Affordance System/Receiver/Rendering/Uniform Transform Scale Affordance Receiver", 12)]
+    [AddComponentMenu("Affordance System/Receiver/Transformation/Uniform Transform Scale Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_UniformTransformScaleAffordanceReceiver)] 
     public class UniformTransformScaleAffordanceReceiver : FloatAffordanceReceiver
     {

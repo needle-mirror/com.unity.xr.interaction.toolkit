@@ -449,18 +449,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             optionalReticleForward = null;
             reticleUp = hitNormal;
             Vector3 reticleForward;
+            var xrOrigin = teleportationProvider.system.xrOrigin;
             switch (matchOrientation)
             {
                 case MatchOrientation.WorldSpaceUp:
                     reticleUp = Vector3.up;
                     if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
                         optionalReticleForward = reticleForward;
+                    else if (xrOrigin != null)
+                        optionalReticleForward = xrOrigin.Camera.transform.forward;
                     break;
 
                 case MatchOrientation.TargetUp:
                     reticleUp = transform.up;
                     if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
                         optionalReticleForward = reticleForward;
+                    else if (xrOrigin != null)
+                        optionalReticleForward = xrOrigin.Camera.transform.forward;
                     break;
 
                 case MatchOrientation.TargetUpAndForward:
@@ -469,6 +474,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     break;
 
                 case MatchOrientation.None:
+                    if (xrOrigin != null)
+                    {
+                        reticleUp = xrOrigin.Origin.transform.up;
+                        optionalReticleForward = xrOrigin.Camera.transform.forward;
+                    }
                     break;
 
                 default:

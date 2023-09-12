@@ -727,8 +727,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Query the raycaster to determine line hit information and determine if hit was valid. Also check for snap volumes.
             m_ValidHit = ExtractHitInformation(ref m_TargetPoints, m_NumTargetPoints, out var targetEndPoint, out var hitSnapVolume);
 
-            var curveRayTowardAttachPoint = (hasSelection && hasStraightRayCast);
-            var shouldBendLine = (hitSnapVolume || curveRayTowardAttachPoint) && m_LineBendRatio < 1f;
+            var curveRayTowardAttachPoint = hasSelection && hasStraightRayCast;
+            
+            // If overriding ray origin, the line end point will be decoupled from the raycast hit point, so we bend towards it.
+            bool bendForOverride = m_OverrideInteractorLineOrigin && m_ValidHit;
+            var curveRayTowardHitPoint = bendForOverride && hasStraightRayCast;
+            
+            var shouldBendLine = (hitSnapVolume || curveRayTowardAttachPoint || curveRayTowardHitPoint) && m_LineBendRatio < 1f;
 
             if (shouldBendLine)
             {
@@ -794,7 +799,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // We don't smooth points for the bent line as we smooth it when computing the curve
             var shouldSmoothPoints = !shouldBendLine && m_SmoothMovement && (m_NumPreviousRenderPoints == m_NumTargetPoints) && !m_SnapCurve;
 
-            if ((!shouldBendLine && m_OverrideInteractorLineLength) || shouldSmoothPoints)
+            if (m_OverrideInteractorLineLength || shouldSmoothPoints)
             {
                 var float3TargetPoints = m_TargetPoints.Reinterpret<float3>();
                 var float3PrevRenderPoints = m_PreviousRenderPoints.Reinterpret<float3>();
@@ -1184,10 +1189,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_HasHoverInteractor && m_LineRenderableAsHoverInteractor.GetOldestInteractableHovered() is IXRReticleDirectionProvider reticleDirectionProvider)
                 {
                     reticleDirectionProvider.GetReticleDirection(m_LineRenderableAsHoverInteractor, m_ReticleNormal, out var reticleUp, out var reticleForward);
+                    Quaternion lookRotation;
                     if (reticleForward.HasValue)
-                        m_ReticleToUse.transform.rotation = Quaternion.LookRotation(reticleForward.Value, reticleUp);
+                        BurstMathUtility.LookRotationWithForwardProjectedOnPlane(reticleForward.Value, reticleUp, out lookRotation);
                     else
-                        m_ReticleToUse.transform.up = reticleUp;
+                        BurstMathUtility.LookRotationWithForwardProjectedOnPlane(m_ReticleToUse.transform.forward, reticleUp, out lookRotation);
+
+                    m_ReticleToUse.transform.rotation = lookRotation;
                 }
                 else
                 {

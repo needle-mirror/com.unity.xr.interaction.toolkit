@@ -18,7 +18,7 @@ Interactor used for interacting with Interactables via gaze. This is handled via
 
 ## Fallback
 
-If a valid eye tracking device is not found, gaze can fallback to head tracking to support the desired gaze features. For an example of fall back support for gaze interaction, import the [Starter Assets](samples.md#starter-assets) sample and see the [`GazeInputManager`](samples.md#scripts) script. Add the `GazeInputManager` to a `XRGazeInteractor` GameObject to support gaze fallback.
+If a valid eye tracking device is not found, gaze can fallback to head tracking to support the desired gaze features. For an example of fall back support for gaze interaction, import the [Starter Assets](samples-starter-assets.md) sample and see the [`GazeInputManager`](samples-starter-assets.md#scripts) script. Add the `GazeInputManager` to a `XRGazeInteractor` GameObject to support gaze fallback.
 
 ## Eye tracking permission
 

@@ -31,12 +31,12 @@ This documentation outlines how to use and extend these components.
 | **Continuous Move** | A type of locomotion that smoothly moves the user by an amount over time. |
 | **Grab Move** | A type of locomotion that moves the user counter to controller movement, as if the user is grabbing the world around them. |
 | **Climb** | A type of locomotion that moves the user counter to Interactor movement while the user is selecting a Climb Interactable. |
-| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.5/manual/Actions.html) and their controller bindings in the Input System. |
+| **Action-based** | The recommended type of input based on referencing the [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html) and their controller bindings in the Input System. |
 | **Device-based** | An alternative type of input based on reading inputs from a [`InputDevice`]([`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html)). |
 
 ## Set up a basic scene for snap turn and teleportation
 
-Before you follow the steps below, to streamline setup of Action-based behaviors, it is recommended that you install the [Starter Assets](samples.md#starter-assets) sample and follow the steps for [Configuring Preset Manager defaults](samples.md#configuring-preset-manager-defaults) to reduce the burden of configuring the Actions when using Action-based behaviors. Using Action-based behaviors is recommended; for more information, see [Action-based vs Device-based behaviors](general-setup.md#action-based-vs-device-based-behaviors).
+Before you follow the steps below, to streamline setup of Action-based behaviors, it is recommended that you install the [Starter Assets]samples-starter-assets.md) sample and follow the steps for [Configuring Preset Manager defaults](samples-starter-assets.md#configuring-preset-manager-defaults) to reduce the burden of configuring the Actions when using Action-based behaviors. Using Action-based behaviors is recommended; for more information, see [Action-based vs Device-based behaviors](general-setup.md#action-based-vs-device-based-behaviors).
 
 ### 1. Set up the XR Origin and input actions
 

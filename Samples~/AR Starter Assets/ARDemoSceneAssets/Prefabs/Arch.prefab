@@ -329,6 +329,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 6621298676030886841}
     m_Modifications:
+    - target: {fileID: 2489836559761890320, guid: eb9104ef66b7305468adb3697fdeed5e, type: 3}
+      propertyPath: m_AffordanceThemeDatum.m_Variable
+      value: 
+      objectReference: {fileID: 11400000, guid: d5504b88946c14d2b877dca02a8aecfc, type: 2}
     - target: {fileID: 3774509235512974894, guid: eb9104ef66b7305468adb3697fdeed5e, type: 3}
       propertyPath: m_Name
       value: Interaction Affordance

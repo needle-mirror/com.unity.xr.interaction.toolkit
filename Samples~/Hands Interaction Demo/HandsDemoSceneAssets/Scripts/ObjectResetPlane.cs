@@ -15,6 +15,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [Tooltip("How often to check if objects should be reset.")]
         float m_CheckDuration = 2f;
 
+        [SerializeField]
+        [Tooltip("The object root used to compute local positions relative to. Objects will respawn relative to their position in this transform's hierarchy.")]
+        Transform m_ObjectRoot = null;
+
         readonly List<Pose> m_OriginalPositions = new List<Pose>();
 
         float m_CheckTimer;
@@ -28,7 +32,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             {
                 if (currentTransform != null)
                 {
-                    m_OriginalPositions.Add(new Pose(currentTransform.position, currentTransform.rotation));
+                    var position = currentTransform.position;
+                    
+                    if (m_ObjectRoot != null)
+                        position = m_ObjectRoot.InverseTransformPoint(currentTransform.position);
+                    
+                    m_OriginalPositions.Add(new Pose(position, currentTransform.rotation));
                 }
                 else
                 {
@@ -60,7 +69,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 
                 if (currentTransform.position.y < resetPlane)
                 {
-                    currentTransform.SetPositionAndRotation(m_OriginalPositions[transformIndex].position, m_OriginalPositions[transformIndex].rotation);
+                    var originalWorldPosition = m_OriginalPositions[transformIndex].position;
+                    if (m_ObjectRoot != null)
+                        originalWorldPosition = m_ObjectRoot.TransformPoint(originalWorldPosition);
+
+                    currentTransform.SetPositionAndRotation(originalWorldPosition, m_OriginalPositions[transformIndex].rotation);
 
                     var rigidBody = currentTransform.GetComponentInChildren<Rigidbody>();
                     if (rigidBody != null)
