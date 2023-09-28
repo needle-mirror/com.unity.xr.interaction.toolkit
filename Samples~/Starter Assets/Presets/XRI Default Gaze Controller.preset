@@ -661,6 +661,86 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_UseReference
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Name
+    value: Scale Toggle
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Type
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_ExpectedControlType
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Id
+    value: c491f7d4-d5f5-485e-8ebe-d323ea5e8eee
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Processors
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Interactions
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_SingletonActionBindings.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Action.m_Flags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleToggleAction.m_Reference
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_UseReference
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Name
+    value: Scale Delta
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Type
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_ExpectedControlType
+    value: Vector2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Id
+    value: 702606e7-26dd-4ff2-8e26-59078e8cafee
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Processors
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Interactions
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_SingletonActionBindings.Array.size
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Action.m_Flags
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_ScaleDeltaAction.m_Reference
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_ButtonPressPoint
     value: 0.5
     objectReference: {fileID: 0}

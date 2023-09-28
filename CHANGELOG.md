@@ -4,7 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-<!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.5.2] - 2023-09-28
+
+### Fixed
+- Fixed an issue where the XR Ray Interactor can no longer interact with UI drag events correctly when the UI object is both a Tracked Device Graphics Raycaster and an XR Interactable. This fix introduces a property `blockUIOnInteractableSelection` to `XRRayInteractor` to control this behavior.
+- Fixed an issue where the XR Ray Interactors internal UI cache can cause error log spamming when it is not initialized or becomes null at runtime.
+- Fixed an issue where dropping a grab interactable, when scaling beyond min and max scale thresholds using an `ARTransformer`, didn't properly set the scale back within the threshold limits when Attach Ease In Time or Smooth Scale were enabled. As a part of this fix, `attachEaseInTime` and smoothing will only be considered when an `XRGrabInteractable` is selected.
+- Fixed an issue where poking UI elements with the controller poke wand did not work in the starter assets demo scene.
+
 ## [2.5.1] - 2023-09-12
 
 ### Changed

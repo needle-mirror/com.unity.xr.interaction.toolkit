@@ -531,6 +531,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        bool m_BlockUIOnInteractableSelection = true;
+
+        /// <summary>
+        /// Enabling this option will block UI interaction when selecting interactables.
+        /// </summary>
+        public bool blockUIOnInteractableSelection
+        {
+            get => m_BlockUIOnInteractableSelection;
+            set => m_BlockUIOnInteractableSelection = value;
+        }
+
+        [SerializeField]
         bool m_AllowAnchorControl = true;
         /// <summary>
         /// Allows the user to move the attach anchor point using the joystick.
@@ -937,7 +949,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnEnable();
 
             if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
+                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
         }
 
         /// <inheritdoc />
@@ -949,7 +961,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_SamplePoints?.Clear();
 
             if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache.UnregisterFromXRUIInputModule();
+                m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
         }
 
         /// <summary>
@@ -1394,7 +1406,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (!isActiveAndEnabled || m_SamplePoints == null ||
                 // If selecting interactables, don't update UI model.
-                interactablesSelected.Count > 0 
+                (m_EnableUIInteraction && m_BlockUIOnInteractableSelection && hasSelection)
                 || this.IsBlockedByInteractionWithinGroup())
             {
                 model.Reset(false);
@@ -1428,6 +1440,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
+            if (m_RegisteredUIInteractorCache == null)
+            {
+                model = TrackedDeviceModel.invalid;
+                return false;
+            }
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 

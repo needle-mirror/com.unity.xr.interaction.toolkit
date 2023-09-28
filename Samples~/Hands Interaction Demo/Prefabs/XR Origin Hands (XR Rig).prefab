@@ -222,7 +222,6 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
-  m_HasMigratedActions: 1
 --- !u!1 &1648469353267697591
 GameObject:
   m_ObjectHideFlags: 0
@@ -957,7 +956,6 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
-  m_HasMigratedActions: 1
 --- !u!1 &6355494128053973299
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -49,15 +49,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Split and moved [Samples](../manual/samples.html) documentation into a new area of the [Table of Contents](../manual/TableOfContents.html) to make discovery and navigation easier.\n- Redesigned and improved [Hands Interaction Demo](../manual/samples-hands-interaction-demo.html) sample scene and prefabs.\n  - Reworked colliders and interactions in sample scene.\n  - Added new rim light material made using Shader Graph.\n  - Added new blend shape pinch dropper for hand rays.\n  - Added grab handle to reposition and reorient the table.\n  - Added poke to drag chess piece examples.\n  - Added socket interactor example to show socket snapping.\n  - Added One Euro Filter algorithm to smooth hand root using XR Hands post processor.\n  - Changed ray visual to now originate from the pinch point instead of a fixed offset from the wrist.\n  - Moved hand menu prefab to be a child of the XR Origin to allow for locomotion.\n- Changed `com.unity.inputsystem` dependency from 1.5.0 to 1.7.0.\n\n### Fixed\n- Fixed how XR Interactor Line Visual sets the reticle rotation when hovering a teleportation interactable with **Match Orientation** set to **World Space Up**, **Target Up**, or **None**, so that it is consistent with how the XR Origin and camera would be oriented upon teleport.\n- Fixed `ObjectSpawner` script in Starter Assets sample applying extra y-axis rotation when **Apply Random Angle At Spawn** is enabled.\n- Fixed incorrect models in AR Starter Assets prefabs for Pyramid and Wedge objects.\n- Fixed incorrect theme asset reference in AR Starter Assets for Arch prefab.\n- When overriding the ray origin, there used to be a significant mismatch between the ray end point and the actual target. To fix this, we now bend the ray towards the hit point found by the raycaster. This ensures the ray visually aligns, while still keeping our preferred ray origin.\n- Fixed Add Component menu path to put Uniform Transform Scale Affordance Receiver in Affordance System &gt; Receiver &gt; Transformation instead of Rendering to match its namespace."
+    "changelog": "### Fixed\n- Fixed an issue where the XR Ray Interactor can no longer interact with UI drag events correctly when the UI object is both a Tracked Device Graphics Raycaster and an XR Interactable. This fix introduces a property `blockUIOnInteractableSelection` to `XRRayInteractor` to control this behavior.\n- Fixed an issue where the XR Ray Interactors internal UI cache can cause error log spamming when it is not initialized or becomes null at runtime.\n- Fixed an issue where dropping a grab interactable, when scaling beyond min and max scale thresholds using an `ARTransformer`, didn't properly set the scale back within the threshold limits when Attach Ease In Time or Smooth Scale were enabled. As a part of this fix, `attachEaseInTime` and smoothing will only be considered when an `XRGrabInteractable` is selected.\n- Fixed an issue where poking UI elements with the controller poke wand did not work in the starter assets demo scene."
   },
   "upmCi": {
-    "footprint": "a8a104ce339c208580697e859ce14d4af673c018"
+    "footprint": "fc50984bc4e233e6546293503c1f1b1b3899f79a"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.5/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "a69615d10db2b00d9e081ca2825ef5e3ffec3043"
+    "revision": "b246090d3472f6ddef44f0d6251360fc3d19a2b5"
   }
 }

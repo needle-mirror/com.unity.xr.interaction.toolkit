@@ -878,7 +878,6 @@ MonoBehaviour:
       m_Action: Rotation
       m_Flags: 0
     m_Flags: 0
-  m_HasMigratedActions: 1
 --- !u!1 &58445280694286476
 GameObject:
   m_ObjectHideFlags: 0

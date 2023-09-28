@@ -1499,10 +1499,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             InvokeGrabTransformersProcess(updatePhase, ref rawTargetPose, ref rawTargetScale);
 
+            if (!isSelected)
+            {
+                m_TargetPose = rawTargetPose;
+                m_TargetLocalScale = rawTargetScale;
+                return;
+            }
+
             // Skip during OnBeforeRender since it doesn't require that high accuracy.
             // Skip when not selected since the the detach velocity has already been applied and we no longer need to compute it.
             // This means that the final Process for drop grab transformers does not contribute to throw velocity.
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic && isSelected)
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
                 // Track the target pose before easing.
                 // This avoids an unintentionally high detach velocity if grabbing with an XRRayInteractor

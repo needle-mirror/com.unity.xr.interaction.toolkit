@@ -27,6 +27,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -120,6 +121,7 @@ MonoBehaviour:
   m_MouseYRotateInvert: 0
   m_DesiredCursorLockMode: 1
   m_RemoveOtherHMDDevices: 1
+  m_HandTrackingCapability: 1
   m_DeviceSimulatorUI: {fileID: 7662076761675301960, guid: ead42e0472b7547fbba6c229aeaf37d3, type: 3}
   m_GripAmount: 1
   m_TriggerAmount: 1
@@ -130,6 +132,4 @@ MonoBehaviour:
   m_RightControllerIsTracked: 1
   m_RightControllerTrackingState: 3
   m_LeftHandIsTracked: 1
-  m_LeftHandTrackingState: 3
   m_RightHandIsTracked: 1
-  m_RightHandTrackingState: 3

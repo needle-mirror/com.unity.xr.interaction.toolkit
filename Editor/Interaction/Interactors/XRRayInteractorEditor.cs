@@ -35,6 +35,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_TimeToAutoDeselect;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
         protected SerializedProperty m_EnableUIInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.blockUIOnInteractableSelection"/>.</summary>
+        protected SerializedProperty m_BlockUIOnInteractableSelection;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
         protected SerializedProperty m_RayOriginTransform;
 
@@ -122,6 +124,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent timeToAutoDeselect = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds for which this Interactor will select an Interactable before the Interactable is automatically deselected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blockUIOnInteractableSelection"/>.</summary>
+            public static readonly GUIContent blockUIOnInteractableSelection = EditorGUIUtility.TrTextContent("Block UI on Interactable Selection", "Enabling this option will block UI interaction when selecting interactables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
             public static readonly GUIContent rayOriginTransform = EditorGUIUtility.TrTextContent("Ray Origin Transform", "The starting position and direction of any ray casts. If not set at startup, it will automatically be created based on the Attach Transform.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.lineType"/>.</summary>
@@ -197,6 +201,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AutoDeselect = serializedObject.FindProperty("m_AutoDeselect");
             m_TimeToAutoDeselect = serializedObject.FindProperty("m_TimeToAutoDeselect");
             m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
+            m_BlockUIOnInteractableSelection = serializedObject.FindProperty("m_BlockUIOnInteractableSelection");
             m_RayOriginTransform = serializedObject.FindProperty("m_RayOriginTransform");
 
             m_LineType = serializedObject.FindProperty("m_LineType");
@@ -277,6 +282,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawInteractionConfiguration()
         {
             EditorGUILayout.PropertyField(m_EnableUIInteraction, Contents.enableUIInteraction);
+            if (m_EnableUIInteraction.boolValue)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    EditorGUILayout.PropertyField(m_BlockUIOnInteractableSelection, Contents.blockUIOnInteractableSelection);
+                }
+            }
+
             EditorGUILayout.PropertyField(m_UseForceGrab, Contents.useForceGrab);
             EditorGUILayout.PropertyField(m_AllowAnchorControl, Contents.allowAnchorControl);
             if (m_AllowAnchorControl.boolValue)
