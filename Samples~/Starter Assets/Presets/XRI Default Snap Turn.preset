@@ -9,7 +9,7 @@ Preset:
   m_Name: XRI Default Snap Turn
   m_TargetType:
     m_NativeTypeID: 114
-    m_ManagedTypePPtr: {fileID: 11500000, guid: 2213c36610e3b1c4bbf886810ed9db12, type: 3}
+    m_ManagedTypePPtr: {fileID: 11500000, guid: e9f365cf844c03449bc8973eead2c3c1, type: 3}
     m_ManagedTypeFallback: 
   m_Properties:
   - target: {fileID: 0}
@@ -27,6 +27,10 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_System
     value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_TransformationPriority
+    value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_TurnAmount
@@ -49,83 +53,107 @@ Preset:
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_UseReference
-    value: 1
+    propertyPath: m_LeftHandTurnInput.m_InputSourceMode
+    value: 2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Name
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Name
     value: Left Hand Snap Turn
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Type
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Type
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_ExpectedControlType
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_ExpectedControlType
     value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Id
-    value: a1d07c24-ca50-422a-a23f-685d9fabf63b
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Id
+    value: 536e141d-ee23-4272-b0fd-3984d1655f02
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Processors
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Processors
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Interactions
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Interactions
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_SingletonActionBindings.Array.size
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_SingletonActionBindings.Array.size
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Action.m_Flags
+    propertyPath: m_LeftHandTurnInput.m_InputAction.m_Flags
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandSnapTurnAction.m_Reference
+    propertyPath: m_LeftHandTurnInput.m_InputActionReference
     value: 
     objectReference: {fileID: -7374733323251553461, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_UseReference
-    value: 1
+    propertyPath: m_LeftHandTurnInput.m_ObjectReferenceObject
+    value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Name
+    propertyPath: m_LeftHandTurnInput.m_ManualValue.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LeftHandTurnInput.m_ManualValue.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandTurnInput.m_InputSourceMode
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Name
     value: Right Hand Snap Turn
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Type
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Type
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_ExpectedControlType
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_ExpectedControlType
     value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Id
-    value: a7b54797-6974-4f75-81d0-42b9c15ef1e0
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Id
+    value: b17ca378-4740-48c7-abe1-7f35bce317e9
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Processors
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Processors
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Interactions
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Interactions
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_SingletonActionBindings.Array.size
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_SingletonActionBindings.Array.size
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Action.m_Flags
+    propertyPath: m_RightHandTurnInput.m_InputAction.m_Flags
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandSnapTurnAction.m_Reference
+    propertyPath: m_RightHandTurnInput.m_InputActionReference
     value: 
     objectReference: {fileID: -8525429354371678379, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandTurnInput.m_ObjectReferenceObject
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandTurnInput.m_ManualValue.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandTurnInput.m_ManualValue.y
+    value: 0
+    objectReference: {fileID: 0}
   m_ExcludedProperties: []

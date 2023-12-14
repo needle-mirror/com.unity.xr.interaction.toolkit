@@ -1,4 +1,5 @@
-#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
+using System;
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
 using UnityEngine.Experimental.XR.Interaction;
 using UnityEngine.SpatialTracking;
 #endif
@@ -18,8 +19,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     /// <seealso cref="XRBaseController"/>
     /// <seealso cref="ActionBasedController"/>
-    [AddComponentMenu("XR/XR Controller (Device-based)", 11)]
+    [AddComponentMenu("/XR Controller (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_XRController)]
+    [Obsolete("XRController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.")]
     public class XRController : XRBaseController
     {
         [SerializeField]
@@ -144,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_DirectionalAnchorRotation = value;
         }
 
-#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
         [SerializeField]
         BasePoseProvider m_PoseProvider;
 
@@ -156,6 +158,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_PoseProvider;
             set => m_PoseProvider = value;
         }
+#else
+        // Try to maintain the serialized reference if the XR Legacy Input Helpers package is not installed
+        [SerializeField]
+        MonoBehaviour m_PoseProvider;
 #endif
 
         InputDevice m_InputDevice;
@@ -176,6 +182,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+#if !XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
+            if (m_PoseProvider != null)
+            {
+                Debug.LogWarning("Pose Provider requires the XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers) package to be installed to use.", this);
+            }
+#endif
+        }
+
+        /// <inheritdoc />
         protected override void UpdateTrackingInput(XRControllerState controllerState)
         {
             base.UpdateTrackingInput(controllerState);
@@ -184,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             controllerState.isTracked = inputDevice.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked;
             controllerState.inputTrackingState = InputTrackingState.None;
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
             if (m_PoseProvider != null)
             {
                 var retFlags = m_PoseProvider.GetPoseFromProvider(out var poseProviderPose);

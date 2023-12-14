@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -9,7 +9,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="ActionBasedController"/>.
     /// </summary>
     [CustomEditor(typeof(ActionBasedController), true), CanEditMultipleObjects]
-    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
+    [Obsolete("ActionBasedControllerEditor has been deprecated in version 3.0.0.")]
     public class ActionBasedControllerEditor : XRBaseControllerEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.positionAction"/>.</summary>

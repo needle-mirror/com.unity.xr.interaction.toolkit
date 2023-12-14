@@ -12,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme
     /// </summary>
     /// <typeparam name="T">Serialized type used in affordance blending.</typeparam>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public sealed class AffordanceThemeData<T>
     {
         /// <summary>
@@ -40,6 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme
     /// </summary>
     /// <typeparam name="T">Serialized type used in affordance blending.</typeparam>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class BaseAffordanceTheme<T> : IEquatable<BaseAffordanceTheme<T>> where T : struct
     {
         [SerializeField]

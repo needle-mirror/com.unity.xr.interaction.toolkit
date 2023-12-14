@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -43,7 +42,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRGrabInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(XRGrabInteractable), true), CanEditMultipleObjects]
-    public class XRGrabInteractableEditor : XRBaseInteractableEditor
+    public partial class XRGrabInteractableEditor : XRBaseInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachTransform"/>.</summary>
         protected SerializedProperty m_AttachTransform;
@@ -109,8 +108,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_ForceGravityOnDetach;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
         protected SerializedProperty m_RetainTransformParent;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
-        protected SerializedProperty m_AttachPointCompatibilityMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
         protected SerializedProperty m_AddDefaultGrabTransformers;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>.</summary>
@@ -137,7 +134,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        protected static class Contents
+        protected static partial class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachTransform"/>.</summary>
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The attachment point Unity uses on this Interactable (will use this object's position if none set).");
@@ -203,8 +200,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent forceGravityOnDetach = EditorGUIUtility.TrTextContent("Force Gravity On Detach", "Force this object to have gravity when released (will still use pre-grab value if this is false).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
             public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
-            public static readonly GUIContent attachPointCompatibilityMode = EditorGUIUtility.TrTextContent("Attach Point Compatibility Mode", "Use Default for consistent attach points between all Movement Type values. Use Legacy for older projects that want to maintain the incorrect method which was partially based on center of mass.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
             public static readonly GUIContent addDefaultGrabTransformers = EditorGUIUtility.TrTextContent("Add Default Grab Transformers", "Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>.</summary>
@@ -267,7 +262,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
             m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
-            m_AttachPointCompatibilityMode = serializedObject.FindProperty("m_AttachPointCompatibilityMode");
             m_AddDefaultGrabTransformers = serializedObject.FindProperty("m_AddDefaultGrabTransformers");
             m_StartingMultipleGrabTransformers = serializedObject.FindProperty("m_StartingMultipleGrabTransformers");
             m_StartingSingleGrabTransformers = serializedObject.FindProperty("m_StartingSingleGrabTransformers");
@@ -439,7 +433,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             EditorGUILayout.PropertyField(m_AttachEaseInTime, Contents.attachEaseInTime);
-            XRInteractionEditorGUI.EnumPropertyField(m_AttachPointCompatibilityMode, Contents.attachPointCompatibilityMode, Contents.attachPointCompatibilityModeOptions);
         }
 
         /// <summary>
@@ -462,15 +455,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawGrabTransformersConfigurationNested()
         {
-            using (new EditorGUI.DisabledScope(m_AttachPointCompatibilityMode.intValue == (int)XRGrabInteractable.AttachPointCompatibilityMode.Legacy))
-            {
-                EditorGUILayout.PropertyField(m_AddDefaultGrabTransformers, Contents.addDefaultGrabTransformers);
+            EditorGUILayout.PropertyField(m_AddDefaultGrabTransformers, Contents.addDefaultGrabTransformers);
 
-                using (new EditorGUI.DisabledScope(Application.isPlaying))
-                {
-                    EditorGUILayout.PropertyField(m_StartingMultipleGrabTransformers, Contents.startingMultipleGrabTransformers);
-                    EditorGUILayout.PropertyField(m_StartingSingleGrabTransformers, Contents.startingSingleGrabTransformers);
-                }
+            using (new EditorGUI.DisabledScope(Application.isPlaying))
+            {
+                EditorGUILayout.PropertyField(m_StartingMultipleGrabTransformers, Contents.startingMultipleGrabTransformers);
+                EditorGUILayout.PropertyField(m_StartingSingleGrabTransformers, Contents.startingSingleGrabTransformers);
             }
 
             if (Application.isPlaying)

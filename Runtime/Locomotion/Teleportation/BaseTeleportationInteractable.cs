@@ -89,25 +89,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// <summary>
             /// (Deprecated) OnSelectExit has been deprecated. Use OnSelectExited instead.
             /// </summary>
-            [Obsolete("OnSelectExit has been deprecated. Use OnSelectExited instead. (UnityUpgradable) -> OnSelectExited")]
+            [Obsolete("OnSelectExit has been deprecated. Use OnSelectExited instead. (UnityUpgradable) -> OnSelectExited", true)]
             OnSelectExit = OnSelectExited,
 
             /// <summary>
             /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
             /// </summary>
-            [Obsolete("OnSelectEnter has been deprecated. Use OnSelectEntered instead. (UnityUpgradable) -> OnSelectEntered")]
+            [Obsolete("OnSelectEnter has been deprecated. Use OnSelectEntered instead. (UnityUpgradable) -> OnSelectEntered", true)]
             OnSelectEnter = OnSelectEntered,
 
             /// <summary>
             /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
             /// </summary>
-            [Obsolete("OnActivate has been deprecated. Use OnActivated instead. (UnityUpgradable) -> OnActivated")]
+            [Obsolete("OnActivate has been deprecated. Use OnActivated instead. (UnityUpgradable) -> OnActivated", true)]
             OnActivate = OnActivated,
 
             /// <summary>
             /// (Deprecated) OnDeactivate has been deprecated. Use OnDeactivated instead.
             /// </summary>
-            [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated")]
+            [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated", true)]
             OnDeactivate = OnDeactivated,
         }
 
@@ -299,13 +299,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 requestTime = Time.time,
             };
 
-            bool success;
-            if (interactor is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                success = GenerateTeleportRequest(baseInteractor, raycastHit, ref teleportRequest);
-#pragma warning restore 618
-            else
-                success = GenerateTeleportRequest(interactor, raycastHit, ref teleportRequest);
+            var success = GenerateTeleportRequest(interactor, raycastHit, ref teleportRequest);
 
             if (success)
             {
@@ -449,7 +443,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             optionalReticleForward = null;
             reticleUp = hitNormal;
             Vector3 reticleForward;
-            var xrOrigin = teleportationProvider.system.xrOrigin;
+            var xrOrigin = teleportationProvider.mediator.xrOrigin;
             switch (matchOrientation)
             {
                 case MatchOrientation.WorldSpaceUp:

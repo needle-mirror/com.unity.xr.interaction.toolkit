@@ -28,3 +28,6 @@ apiRules:
   - exclude:
       uidRegex: XRInteractionEditorUtility
       type: Type
+  - exclude:
+      uidRegex: XRBaseControllerInteractor
+      type: Type

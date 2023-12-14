@@ -1,6 +1,7 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
 using UnityEngine.Experimental.XR.Interaction;
 using UnityEngine.SpatialTracking;
 #endif
@@ -8,6 +9,7 @@ using UnityEngine.SpatialTracking;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
+    [Obsolete("XRControllerTests has been deprecated in version 3.0.0.")]
     class XRControllerTests
     {
         // ReSharper disable once ClassNeverInstantiated.Local -- MonoBehaviour class
@@ -22,7 +24,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         }
 
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
         class TestPoseProvider : BasePoseProvider
         {
             public static readonly Vector3 testPosition = new Vector3(1f, 2f, 3f);
@@ -46,14 +48,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             CreateGOSphereCollider(interactorGO);
             var controllerWrapper = interactorGO.AddComponent<XRControllerWrapper>();
             var interactor = interactorGO.AddComponent<XRDirectInteractor>();
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
             var tpp = interactorGO.AddComponent<TestPoseProvider>();
             controllerWrapper.poseProvider = tpp;
 #endif
             return interactor;
         }
 
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
         [Test]
         public void XRControllerPoseProviderTest()
         {

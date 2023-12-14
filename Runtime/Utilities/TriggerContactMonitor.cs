@@ -37,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <summary>
         /// The Interaction Manager used to fetch the Interactable associated with a Collider.
         /// </summary>
-        /// <seealso cref="XRInteractionManager.GetInteractableForCollider"/>
+        /// <seealso cref="XRInteractionManager.TryGetInteractableForCollider(Collider, out IXRInteractable)"/>
         public XRInteractionManager interactionManager { get; set; }
 
         readonly Dictionary<Collider, IXRInteractable> m_EnteredColliders = new Dictionary<Collider, IXRInteractable>();

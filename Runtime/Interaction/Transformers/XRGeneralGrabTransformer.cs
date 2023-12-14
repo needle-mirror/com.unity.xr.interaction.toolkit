@@ -639,13 +639,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool trackScale)
         {
             var interactorsCount = grabInteractable.interactorsSelecting.Count;
-            if (trackScale && interactorsCount == 1 && m_AllowOneHandedScaling && m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == ScaleMode.Input)
+            if (trackScale && interactorsCount == 1 && m_AllowOneHandedScaling && m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == ScaleMode.ScaleOverTime)
             {
-                var scaleDelta = m_ScaleValueProvider.scaleValue;
-                if (Mathf.Approximately(scaleDelta, 0f))
+                var scaleInput = m_ScaleValueProvider.scaleValue;
+                if (Mathf.Approximately(scaleInput, 0f))
                     return currentScale;
                 
-                ComputeNewOneHandedScale(currentScale, m_InitialScaleProportions, m_ClampScaling, m_MinimumScale, m_MaximumScale, scaleDelta, Time.deltaTime, m_OneHandedScaleSpeed, out var newOneHandedScale);
+                ComputeNewOneHandedScale(currentScale, m_InitialScaleProportions, m_ClampScaling, m_MinimumScale, m_MaximumScale, scaleInput, Time.deltaTime, m_OneHandedScaleSpeed, out var newOneHandedScale);
                 return newOneHandedScale;
             }
 
@@ -661,11 +661,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewOneHandedScale(in Vector3 currentScale, in Vector3 initialScaleProportions, bool clampScale, in Vector3 minScale, in Vector3 maxScale, float scaleDelta, float deltaTime, float scaleSpeed, out Vector3 newScale)
+        static void ComputeNewOneHandedScale(in Vector3 currentScale, in Vector3 initialScaleProportions, bool clampScale, in Vector3 minScale, in Vector3 maxScale, float scaleInput, float deltaTime, float scaleSpeed, out Vector3 newScale)
         {
             newScale = currentScale;
 
-            var scaleAmount = scaleDelta * deltaTime * scaleSpeed;
+            var scaleAmount = scaleInput * deltaTime * scaleSpeed;
             var scaleAmount3 = new float3(scaleAmount, scaleAmount, scaleAmount);
             BurstMathUtility.Scale(scaleAmount3, (float3)initialScaleProportions, out var proportionedScaleAmount);
             float3 targetScale = (float3)currentScale + proportionedScaleAmount;

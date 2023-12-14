@@ -42,20 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
             using (new XRInteractableUtility.AllowTriggerCollidersScope(true))
             {
-                var baseInteractor = interactor as XRBaseInteractor;
-                float distanceSqr;
-                if (target is XRBaseInteractable baseInteractable && baseInteractor != null)
-                {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                    distanceSqr = baseInteractable.GetDistanceSqrToInteractor(baseInteractor);
-#pragma warning restore 618
-                }
-                else
-                {
-                    distanceSqr = target.GetDistanceSqrToInteractor(interactor);
-                }
-
-                return 1f - Mathf.Clamp01(distanceSqr / m_MaxDistance * m_MaxDistance);
+                return 1f - Mathf.Clamp01(target.GetDistanceSqrToInteractor(interactor) / (m_MaxDistance * m_MaxDistance));
             }
         }
     }

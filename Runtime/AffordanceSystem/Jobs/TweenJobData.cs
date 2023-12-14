@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Collections;
@@ -8,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
     /// Struct holding all data needed to compute a tween job.
     /// </summary>
     /// <typeparam name="T">Struct type of tween output.</typeparam>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct TweenJobData<T> where T : struct
     {
         /// <summary>

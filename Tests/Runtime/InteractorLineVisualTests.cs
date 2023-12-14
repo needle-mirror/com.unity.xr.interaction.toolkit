@@ -101,7 +101,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             const int numBendyLineRenderPoints = 20;
             var manager = TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateRayInteractor();
-            interactor.xrController.enabled = false;
             interactor.transform.position = Vector3.zero;
             const int sampleFrequency = 5;
             interactor.sampleFrequency = sampleFrequency;

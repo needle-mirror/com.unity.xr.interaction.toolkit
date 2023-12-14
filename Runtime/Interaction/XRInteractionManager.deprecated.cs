@@ -5,78 +5,135 @@ namespace UnityEngine.XR.Interaction.Toolkit
 {
     public partial class XRInteractionManager
     {
+        const string k_RegisterInteractorDeprecated = "RegisterInteractor(XRBaseInteractor) has been deprecated. Use RegisterInteractor(IXRInteractor) instead. You may need to modify your code by casting the argument to call the intended method, such as `RegisterInteractor((IXRInteractor)this)` instead.";
+        const string k_UnregisterInteractorDeprecated = "UnregisterInteractor(XRBaseInteractor) has been deprecated. Use UnregisterInteractor(IXRInteractor) instead. You may need to modify your code by casting the argument to call the intended method, such as `UnregisterInteractor((IXRInteractor)this)` instead.";
+        const string k_RegisterInteractableDeprecated = "RegisterInteractable(XRBaseInteractable) has been deprecated. Use RegisterInteractable(IXRInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `RegisterInteractable((IXRInteractable)this)` instead.";
+        const string k_UnregisterInteractableDeprecated = "UnregisterInteractable(XRBaseInteractable) has been deprecated. Use UnregisterInteractable(IXRInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `UnregisterInteractable((IXRInteractable)this)` instead.";
+        const string k_GetRegisteredInteractorsDeprecated = "GetRegisteredInteractors(List<XRBaseInteractor>) has been deprecated. Use GetRegisteredInteractors(List<IXRInteractor>) instead.";
+        const string k_GetRegisteredInteractablesDeprecated = "GetRegisteredInteractables(List<XRBaseInteractable>) has been deprecated. Use GetRegisteredInteractables(List<IXRInteractable>) instead.";
+        const string k_IsRegisteredInteractorDeprecated = "IsRegistered(XRBaseInteractor) has been deprecated. Use IsRegistered(IXRInteractor) instead. You may need to modify your code by casting the argument to call the intended method, such as `IsRegistered((IXRInteractor)this)` instead.";
+        const string k_IsRegisteredInteractableDeprecated = "IsRegistered(XRBaseInteractable) has been deprecated. Use IsRegistered(IXRInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `IsRegistered((IXRInteractable)this)` instead.";
+        const string k_TryGetInteractableForColliderDeprecated = "TryGetInteractableForCollider has been deprecated. Use GetInteractableForCollider instead. (UnityUpgradable) -> GetInteractableForCollider(*)";
+        const string k_GetInteractableForColliderDeprecated = "GetInteractableForCollider has been deprecated. Use TryGetInteractableForCollider(Collider, out IXRInteractable) instead.";
+        const string k_GetColliderToInteractableMapDeprecated = "GetColliderToInteractableMap has been deprecated. The signature no longer matches the field used by the XRInteractionManager, so a copy is returned instead of a ref. Changes to the returned Dictionary will not be observed by the XRInteractionManager.";
+        const string k_GetValidTargetsDeprecated = "GetValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use GetValidTargets(IXRInteractor, List<IXRInteractable>) instead.";
+        const string k_ForceSelectDeprecated = "ForceSelect(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead.";
+        const string k_ClearInteractorSelectionDeprecated = "ClearInteractorSelection(XRBaseInteractor) has been deprecated. Use ClearInteractorSelection(IXRSelectInteractor, List<IXRInteractable>) instead.";
+        const string k_CancelInteractorSelectionDeprecated = "CancelInteractorSelection(XRBaseInteractor) has been deprecated. Use CancelInteractorSelection(IXRSelectInteractor) instead.";
+        const string k_CancelInteractableSelectionDeprecated = "CancelInteractableSelection(XRBaseInteractable) has been deprecated. Use CancelInteractableSelection(IXRSelectInteractable) instead.";
+        const string k_ClearInteractorHoverDeprecated = "ClearInteractorHover(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use ClearInteractorHover(IXRHoverInteractor, List<IXRInteractable>) instead.";
+        const string k_CancelInteractorHoverDeprecated = "CancelInteractorHover(XRBaseInteractor) has been deprecated. Use CancelInteractorHover(IXRHoverInteractor) instead.";
+        const string k_CancelInteractableHoverDeprecated = "CancelInteractableHover(XRBaseInteractable) has been deprecated. Use CancelInteractableHover(IXRHoverInteractable) instead.";
+        const string k_SelectEnterDeprecated = "SelectEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable)` instead.";
+        const string k_SelectExitDeprecated = "SelectExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable)` instead.";
+        const string k_SelectCancelDeprecated = "SelectCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectCancel(IXRSelectInteractor, IXRSelectInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `SelectCancel((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable)` instead.";
+        const string k_HoverEnterDeprecated = "HoverEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable)` instead.";
+        const string k_HoverExitDeprecated = "HoverExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable)` instead.";
+        const string k_HoverCancelDeprecated = "HoverCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverCancel(IXRHoverInteractor, IXRHoverInteractable) instead. You may need to modify your code by casting the argument to call the intended method, such as `HoverCancel((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable)` instead.";
+        const string k_SelectEnterProtectedDeprecated = "SelectEnter(XRBaseInteractor, XRBaseInteractable, SelectEnterEventArgs) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable, SelectEnterEventArgs) instead.";
+        const string k_SelectExitProtectedDeprecated = "SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs) instead.";
+        const string k_HoverEnterProtectedDeprecated = "HoverEnter(XRBaseInteractor, XRBaseInteractable, HoverEnterEventArgs) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable, HoverEnterEventArgs) instead.";
+        const string k_HoverExitProtectedDeprecated = "HoverExit(XRBaseInteractor, XRBaseInteractable, HoverExitEventArgs) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable, HoverExitEventArgs) instead.";
+        const string k_InteractorSelectValidTargetsDeprecated = "InteractorSelectValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorSelectValidTargets(IXRSelectInteractor, List<IXRInteractable>) instead.";
+        const string k_InteractorHoverValidTargetsDeprecated = "InteractorHoverValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorHoverValidTargets(IXRHoverInteractor, List<IXRInteractable>) instead.";
+
         /// <inheritdoc cref="RegisterInteractor(IXRInteractor)"/>
         /// <remarks>
         /// <c>RegisterInteractor(XRBaseInteractor)</c> has been deprecated. Use <see cref="RegisterInteractor(IXRInteractor)"/> instead.
         /// </remarks>
-        [Obsolete("RegisterInteractor(XRBaseInteractor) has been deprecated. Use RegisterInteractor(IXRInteractor) instead.")]
-        public virtual void RegisterInteractor(XRBaseInteractor interactor) => RegisterInteractor((IXRInteractor)interactor);
+        [Obsolete(k_RegisterInteractorDeprecated, true)]
+        public virtual void RegisterInteractor(XRBaseInteractor interactor)
+        {
+            Debug.LogError(k_RegisterInteractorDeprecated, this);
+            throw new NotSupportedException(k_RegisterInteractorDeprecated);
+        }
 
         /// <inheritdoc cref="UnregisterInteractor(IXRInteractor)"/>
         /// <remarks>
         /// <c>UnregisterInteractor(XRBaseInteractor)</c> has been deprecated. Use <see cref="UnregisterInteractor(IXRInteractor)"/> instead.
         /// </remarks>
-        [Obsolete("UnregisterInteractor(XRBaseInteractor) has been deprecated. Use UnregisterInteractor(IXRInteractor) instead.")]
-        public virtual void UnregisterInteractor(XRBaseInteractor interactor) => UnregisterInteractor((IXRInteractor)interactor);
+        [Obsolete(k_UnregisterInteractorDeprecated, true)]
+        public virtual void UnregisterInteractor(XRBaseInteractor interactor)
+        {
+            Debug.LogError(k_UnregisterInteractorDeprecated, this);
+            throw new NotSupportedException(k_UnregisterInteractorDeprecated);
+        }
 
         /// <inheritdoc cref="RegisterInteractable(IXRInteractable)"/>
         /// <remarks>
         /// <c>RegisterInteractable(XRBaseInteractable)</c> has been deprecated. Use <see cref="RegisterInteractable(IXRInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("RegisterInteractable(XRBaseInteractable) has been deprecated. Use RegisterInteractable(IXRInteractable) instead.")]
-        public virtual void RegisterInteractable(XRBaseInteractable interactable) => RegisterInteractable((IXRInteractable)interactable);
+        [Obsolete(k_RegisterInteractableDeprecated, true)]
+        public virtual void RegisterInteractable(XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_RegisterInteractableDeprecated, this);
+            throw new NotSupportedException(k_RegisterInteractableDeprecated);
+        }
 
         /// <inheritdoc cref="UnregisterInteractable(IXRInteractable)"/>
         /// <remarks>
         /// <c>UnregisterInteractable(XRBaseInteractable)</c> has been deprecated. Use <see cref="UnregisterInteractable(IXRInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("UnregisterInteractable(XRBaseInteractable) has been deprecated. Use UnregisterInteractable(IXRInteractable) instead.")]
-        public virtual void UnregisterInteractable(XRBaseInteractable interactable) => UnregisterInteractable((IXRInteractable)interactable);
+        [Obsolete(k_UnregisterInteractableDeprecated, true)]
+        public virtual void UnregisterInteractable(XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_UnregisterInteractableDeprecated, this);
+            throw new NotSupportedException(k_UnregisterInteractableDeprecated);
+        }
 
         /// <inheritdoc cref="GetRegisteredInteractors(List{IXRInteractor})"/>
         /// <remarks>
         /// <c>GetRegisteredInteractors(List&lt;XRBaseInteractor&gt;)</c> has been deprecated. Use <see cref="GetRegisteredInteractors(List{IXRInteractor})"/> instead.
         /// </remarks>
-        [Obsolete("GetRegisteredInteractors(List<XRBaseInteractor>) has been deprecated. Use GetRegisteredInteractors(List<IXRInteractor>) instead.")]
+        [Obsolete(k_GetRegisteredInteractorsDeprecated, true)]
         public void GetRegisteredInteractors(List<XRBaseInteractor> results)
         {
-            GetRegisteredInteractors(m_ScratchInteractors);
-            GetOfType(m_ScratchInteractors, results);
+            Debug.LogError(k_GetRegisteredInteractorsDeprecated, this);
+            throw new NotSupportedException(k_GetRegisteredInteractorsDeprecated);
         }
 
         /// <inheritdoc cref="GetRegisteredInteractables(List{IXRInteractable})"/>
         /// <remarks>
         /// <c>GetRegisteredInteractables(List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="GetRegisteredInteractables(List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("GetRegisteredInteractables(List<XRBaseInteractable>) has been deprecated. Use GetRegisteredInteractables(List<IXRInteractable>) instead.")]
+        [Obsolete(k_GetRegisteredInteractablesDeprecated, true)]
         public void GetRegisteredInteractables(List<XRBaseInteractable> results)
         {
-            GetRegisteredInteractables(m_ScratchInteractables);
-            GetOfType(m_ScratchInteractables, results);
+            Debug.LogError(k_GetRegisteredInteractablesDeprecated, this);
+            throw new NotSupportedException(k_GetRegisteredInteractablesDeprecated);
         }
 
         /// <inheritdoc cref="IsRegistered(IXRInteractor)"/>
         /// <remarks>
         /// <c>IsRegistered(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsRegistered(IXRInteractor)"/> instead.
         /// </remarks>
-        [Obsolete("IsRegistered(XRBaseInteractor) has been deprecated. Use IsRegistered(IXRInteractor) instead.")]
-        public bool IsRegistered(XRBaseInteractor interactor) => IsRegistered((IXRInteractor)interactor);
+        [Obsolete(k_IsRegisteredInteractorDeprecated, true)]
+        public bool IsRegistered(XRBaseInteractor interactor)
+        {
+            Debug.LogError(k_IsRegisteredInteractorDeprecated, this);
+            throw new NotSupportedException(k_IsRegisteredInteractorDeprecated);
+        }
 
         /// <inheritdoc cref="IsRegistered(IXRInteractable)"/>
         /// <remarks>
         /// <c>IsRegistered(XRBaseInteractable)</c> has been deprecated. Use <see cref="IsRegistered(IXRInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("IsRegistered(XRBaseInteractable) has been deprecated. Use IsRegistered(IXRInteractable) instead.")]
-        public bool IsRegistered(XRBaseInteractable interactable) => IsRegistered((IXRInteractable)interactable);
+        [Obsolete(k_IsRegisteredInteractableDeprecated, true)]
+        public bool IsRegistered(XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_IsRegisteredInteractableDeprecated, this);
+            throw new NotSupportedException(k_IsRegisteredInteractableDeprecated);
+        }
 
         /// <inheritdoc cref="GetInteractableForCollider"/>
         /// <remarks>
         /// <c>TryGetInteractableForCollider</c> has been deprecated. Use <see cref="GetInteractableForCollider"/> instead.
         /// </remarks>
-        [Obsolete("TryGetInteractableForCollider has been deprecated. Use GetInteractableForCollider instead. (UnityUpgradable) -> GetInteractableForCollider(*)")]
+        [Obsolete(k_TryGetInteractableForColliderDeprecated, true)]
         public XRBaseInteractable TryGetInteractableForCollider(Collider interactableCollider)
         {
-            return GetInteractableForCollider(interactableCollider);
+            Debug.LogError(k_TryGetInteractableForColliderDeprecated, this);
+            throw new NotSupportedException(k_TryGetInteractableForColliderDeprecated);
         }
 
         /// <summary>
@@ -87,13 +144,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>GetInteractableForCollider</c> has been deprecated. Use <see cref="TryGetInteractableForCollider(Collider, out IXRInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("GetInteractableForCollider has been deprecated. Use TryGetInteractableForCollider(Collider, out IXRInteractable) instead.")]
+        [Obsolete(k_GetInteractableForColliderDeprecated, true)]
         public XRBaseInteractable GetInteractableForCollider(Collider interactableCollider)
         {
-            if (TryGetInteractableForCollider(interactableCollider, out var interactable))
-                return interactable as XRBaseInteractable;
-
-            return null;
+            Debug.LogError(k_GetInteractableForColliderDeprecated, this);
+            throw new NotSupportedException(k_GetInteractableForColliderDeprecated);
         }
 
         /// <summary>
@@ -105,18 +160,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <br />
         /// <c>GetColliderToInteractableMap</c> has been deprecated. GetColliderToInteractableMap has been deprecated. The signature no longer matches the field used by the XRInteractionManager, so a copy is returned instead of a ref. Changes to the returned Dictionary will not be observed by the XRInteractionManager.
         /// </remarks>
-        [Obsolete("GetColliderToInteractableMap has been deprecated. The signature no longer matches the field used by the XRInteractionManager, so a copy is returned instead of a ref. Changes to the returned Dictionary will not be observed by the XRInteractionManager.", true)]
+        [Obsolete(k_GetColliderToInteractableMapDeprecated, true)]
         public void GetColliderToInteractableMap(ref Dictionary<Collider, XRBaseInteractable> map)
         {
-            if (map != null)
-            {
-                map.Clear();
-                foreach (var kvp in m_ColliderToInteractableMap)
-                {
-                    if (kvp.Value is XRBaseInteractable baseInteractable)
-                        map.Add(kvp.Key, baseInteractable);
-                }
-            }
+            Debug.LogError(k_GetColliderToInteractableMapDeprecated, this);
+            throw new NotSupportedException(k_GetColliderToInteractableMapDeprecated);
         }
 
         /// <summary>
@@ -129,13 +177,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>GetValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="GetValidTargets(IXRInteractor, List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("GetValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use GetValidTargets(IXRInteractor, List<IXRInteractable>) instead.")]
+        [Obsolete(k_GetValidTargetsDeprecated, true)]
         public List<XRBaseInteractable> GetValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
-            GetValidTargets(interactor, m_ScratchInteractables);
-            GetOfType(m_ScratchInteractables, validTargets);
-
-            return validTargets;
+            Debug.LogError(k_GetValidTargetsDeprecated, this);
+            throw new NotSupportedException(k_GetValidTargetsDeprecated);
         }
 
         /// <summary>
@@ -146,8 +192,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>ForceSelect(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("ForceSelect(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead.")]
-        public void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable) => SelectEnter(interactor, interactable);
+        [Obsolete(k_ForceSelectDeprecated, true)]
+        public void ForceSelect(XRBaseInteractor interactor, XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_ForceSelectDeprecated, this);
+            throw new NotSupportedException(k_ForceSelectDeprecated);
+        }
 
         /// <summary>
         /// Automatically called each frame during Update to clear the selection of the Interactor if necessary due to current conditions.
@@ -156,9 +206,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>ClearInteractorSelection(XRBaseInteractor)</c> has been deprecated. Use <see cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("ClearInteractorSelection(XRBaseInteractor) has been deprecated. Use ClearInteractorSelection(IXRSelectInteractor, List<IXRInteractable>) instead.")]
+        [Obsolete(k_ClearInteractorSelectionDeprecated, true)]
         public virtual void ClearInteractorSelection(XRBaseInteractor interactor)
         {
+            Debug.LogError(k_ClearInteractorSelectionDeprecated, this);
+            throw new NotSupportedException(k_ClearInteractorSelectionDeprecated);
         }
 
         /// <summary>
@@ -168,8 +220,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>CancelInteractorSelection(XRBaseInteractor)</c> has been deprecated. Use <see cref="CancelInteractorSelection(IXRSelectInteractor)"/> instead.
         /// </remarks>
-        [Obsolete("CancelInteractorSelection(XRBaseInteractor) has been deprecated. Use CancelInteractorSelection(IXRSelectInteractor) instead.")]
-        public virtual void CancelInteractorSelection(XRBaseInteractor interactor) => CancelInteractorSelection((IXRSelectInteractor)interactor);
+        [Obsolete(k_CancelInteractorSelectionDeprecated, true)]
+        public virtual void CancelInteractorSelection(XRBaseInteractor interactor)
+        {
+            Debug.LogError(k_CancelInteractorSelectionDeprecated, this);
+            throw new NotSupportedException(k_CancelInteractorSelectionDeprecated);
+        }
 
         /// <summary>
         /// Automatically called when an Interactable is unregistered to cancel the selection of the Interactable if necessary.
@@ -178,8 +234,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>CancelInteractableSelection(XRBaseInteractable)</c> has been deprecated. Use <see cref="CancelInteractableSelection(IXRSelectInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("CancelInteractableSelection(XRBaseInteractable) has been deprecated. Use CancelInteractableSelection(IXRSelectInteractable) instead.")]
-        public virtual void CancelInteractableSelection(XRBaseInteractable interactable) => CancelInteractableSelection((IXRSelectInteractable)interactable);
+        [Obsolete(k_CancelInteractableSelectionDeprecated, true)]
+        public virtual void CancelInteractableSelection(XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_CancelInteractableSelectionDeprecated, this);
+            throw new NotSupportedException(k_CancelInteractableSelectionDeprecated);
+        }
 
         /// <summary>
         /// Automatically called each frame during Update to clear the hover state of the Interactor if necessary due to current conditions.
@@ -189,9 +249,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>ClearInteractorHover(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("ClearInteractorHover(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use ClearInteractorHover(IXRHoverInteractor, List<IXRInteractable>) instead.")]
+        [Obsolete(k_ClearInteractorHoverDeprecated, true)]
         public virtual void ClearInteractorHover(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
+            Debug.LogError(k_ClearInteractorHoverDeprecated, this);
+            throw new NotSupportedException(k_ClearInteractorHoverDeprecated);
         }
 
         /// <summary>
@@ -201,8 +263,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>CancelInteractorHover(XRBaseInteractor)</c> has been deprecated. Use <see cref="CancelInteractorHover(IXRHoverInteractor)"/> instead.
         /// </remarks>
-        [Obsolete("CancelInteractorHover(XRBaseInteractor) has been deprecated. Use CancelInteractorHover(IXRHoverInteractor) instead.")]
-        public virtual void CancelInteractorHover(XRBaseInteractor interactor) => CancelInteractorHover((IXRHoverInteractor)interactor);
+        [Obsolete(k_CancelInteractorHoverDeprecated, true)]
+        public virtual void CancelInteractorHover(XRBaseInteractor interactor)
+        {
+            Debug.LogError(k_CancelInteractorHoverDeprecated, this);
+            throw new NotSupportedException(k_CancelInteractorHoverDeprecated);
+        }
 
         /// <summary>
         /// Automatically called when an Interactable is unregistered to cancel the hover state of the Interactable if necessary.
@@ -211,8 +277,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>CancelInteractableHover(XRBaseInteractable)</c> has been deprecated. Use <see cref="CancelInteractableHover(IXRHoverInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("CancelInteractableHover(XRBaseInteractable) has been deprecated. Use CancelInteractableHover(IXRHoverInteractable) instead.")]
-        public virtual void CancelInteractableHover(XRBaseInteractable interactable) => CancelInteractableHover((IXRHoverInteractable)interactable);
+        [Obsolete(k_CancelInteractableHoverDeprecated, true)]
+        public virtual void CancelInteractableHover(XRBaseInteractable interactable)
+        {
+            Debug.LogError(k_CancelInteractableHoverDeprecated, this);
+            throw new NotSupportedException(k_CancelInteractableHoverDeprecated);
+        }
 
         /// <summary>
         /// Initiates selection of an Interactable by an Interactor. This method may first result in other interaction events
@@ -225,11 +295,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <br />
         /// <c>SelectEnter(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("SelectEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectEnter(IXRSelectInteractor, IXRSelectInteractable) instead.")]
+        [Obsolete(k_SelectEnterDeprecated, true)]
         public virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_SelectEnterDeprecated, this);
+            throw new NotSupportedException(k_SelectEnterDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending selection of an Interactable by an Interactor.
@@ -239,9 +310,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable) instead.")]
+        [Obsolete(k_SelectExitDeprecated, true)]
         public virtual void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
-            => SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+        {
+            Debug.LogError(k_SelectExitDeprecated, this);
+            throw new NotSupportedException(k_SelectExitDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending selection of an Interactable by an Interactor due to cancellation,
@@ -252,9 +326,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>SelectCancel(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="SelectCancel(IXRSelectInteractor, IXRSelectInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("SelectCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use SelectCancel(IXRSelectInteractor, IXRSelectInteractable) instead.")]
+        [Obsolete(k_SelectCancelDeprecated, true)]
         public virtual void SelectCancel(XRBaseInteractor interactor, XRBaseInteractable interactable)
-            => SelectCancel((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+        {
+            Debug.LogError(k_SelectCancelDeprecated, this);
+            throw new NotSupportedException(k_SelectCancelDeprecated);
+        }
 
         /// <summary>
         /// Initiates hovering of an Interactable by an Interactor.
@@ -264,11 +341,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>HoverEnter(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("HoverEnter(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable) instead.")]
+        [Obsolete(k_HoverEnterDeprecated, true)]
         public virtual void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_HoverEnterDeprecated, this);
+            throw new NotSupportedException(k_HoverEnterDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending hovering of an Interactable by an Interactor.
@@ -278,11 +356,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>HoverExit(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverExit(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("HoverExit(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable) instead.")]
+        [Obsolete(k_HoverExitDeprecated, true)]
         public virtual void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_HoverExitDeprecated, this);
+            throw new NotSupportedException(k_HoverExitDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending hovering of an Interactable by an Interactor due to cancellation,
@@ -293,11 +372,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>HoverCancel(XRBaseInteractor, XRBaseInteractable)</c> has been deprecated. Use <see cref="HoverCancel(IXRHoverInteractor, IXRHoverInteractable)"/> instead.
         /// </remarks>
-        [Obsolete("HoverCancel(XRBaseInteractor, XRBaseInteractable) has been deprecated. Use HoverCancel(IXRHoverInteractor, IXRHoverInteractable) instead.")]
+        [Obsolete(k_HoverCancelDeprecated, true)]
         public virtual void HoverCancel(XRBaseInteractor interactor, XRBaseInteractable interactable)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => HoverCancel((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_HoverCancelDeprecated, this);
+            throw new NotSupportedException(k_HoverCancelDeprecated);
+        }
 
         /// <summary>
         /// Initiates selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
@@ -308,11 +388,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs)"/> instead.
         /// </remarks>
-        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs) instead.")]
+        [Obsolete(k_SelectEnterProtectedDeprecated, true)]
         protected virtual void SelectEnter(XRBaseInteractor interactor, XRBaseInteractable interactable, SelectEnterEventArgs args)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable, args);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_SelectEnterProtectedDeprecated, this);
+            throw new NotSupportedException(k_SelectEnterProtectedDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
@@ -323,11 +404,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs)</c> has been deprecated. Use <see cref="SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs)"/> instead.
         /// </remarks>
-        [Obsolete("SelectExit(XRBaseInteractor, XRBaseInteractable, SelectExitEventArgs) has been deprecated. Use SelectExit(IXRSelectInteractor, IXRSelectInteractable, SelectExitEventArgs) instead.")]
+        [Obsolete(k_SelectExitProtectedDeprecated, true)]
         protected virtual void SelectExit(XRBaseInteractor interactor, XRBaseInteractable interactable, SelectExitEventArgs args)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable, args);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_SelectExitProtectedDeprecated, this);
+            throw new NotSupportedException(k_SelectExitProtectedDeprecated);
+        }
 
         /// <summary>
         /// Initiates hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
@@ -338,11 +420,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>HoverEnter(XRBaseInteractor, XRBaseInteractable, HoverEnterEventArgs)</c> has been deprecated. Use <see cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable, HoverEnterEventArgs)"/> instead.
         /// </remarks>
-        [Obsolete("HoverEnter(XRBaseInteractor, XRBaseInteractable, HoverEnterEventArgs) has been deprecated. Use HoverEnter(IXRHoverInteractor, IXRHoverInteractable, HoverEnterEventArgs) instead.")]
+        [Obsolete(k_HoverEnterProtectedDeprecated, true)]
         protected virtual void HoverEnter(XRBaseInteractor interactor, XRBaseInteractable interactable, HoverEnterEventArgs args)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable, args);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_HoverEnterProtectedDeprecated, this);
+            throw new NotSupportedException(k_HoverEnterProtectedDeprecated);
+        }
 
         /// <summary>
         /// Initiates ending hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
@@ -353,11 +436,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>HoverExit(XRBaseInteractor, XRBaseInteractable, HoverExitEventArgs)</c> has been deprecated. Use <see cref="HoverExit(IXRHoverInteractor, IXRHoverInteractable, HoverExitEventArgs)"/> instead.
         /// </remarks>
-        [Obsolete("HoverExit(XRBaseInteractor, XRBaseInteractable, HoverExitEventArgs) has been deprecated. Use HoverExit(IXRHoverInteractor, IXRHoverInteractable, HoverExitEventArgs) instead.")]
+        [Obsolete(k_HoverExitProtectedDeprecated, true)]
         protected virtual void HoverExit(XRBaseInteractor interactor, XRBaseInteractable interactable, HoverExitEventArgs args)
-#pragma warning disable IDE0004 // ReSharper disable twice RedundantCast
-            => HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable, args);
-#pragma warning restore IDE0004
+        {
+            Debug.LogError(k_HoverExitProtectedDeprecated, this);
+            throw new NotSupportedException(k_HoverExitProtectedDeprecated);
+        }
 
         /// <summary>
         /// Automatically called each frame during Update to enter the selection state of the Interactor if necessary due to current conditions.
@@ -367,9 +451,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>InteractorSelectValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("InteractorSelectValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorSelectValidTargets(IXRSelectInteractor, List<IXRInteractable>) instead.")]
+        [Obsolete(k_InteractorSelectValidTargetsDeprecated, true)]
         protected virtual void InteractorSelectValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
+            Debug.LogError(k_InteractorSelectValidTargetsDeprecated, this);
+            throw new NotSupportedException(k_InteractorSelectValidTargetsDeprecated);
         }
 
         /// <summary>
@@ -380,9 +466,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>InteractorHoverValidTargets(XRBaseInteractor, List&lt;XRBaseInteractable&gt;)</c> has been deprecated. Use <see cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/> instead.
         /// </remarks>
-        [Obsolete("InteractorHoverValidTargets(XRBaseInteractor, List<XRBaseInteractable>) has been deprecated. Use InteractorHoverValidTargets(IXRHoverInteractor, List<IXRInteractable>) instead.")]
+        [Obsolete(k_InteractorHoverValidTargetsDeprecated, true)]
         protected virtual void InteractorHoverValidTargets(XRBaseInteractor interactor, List<XRBaseInteractable> validTargets)
         {
+            Debug.LogError(k_InteractorHoverValidTargetsDeprecated, this);
+            throw new NotSupportedException(k_InteractorHoverValidTargetsDeprecated);
         }
     }
 }

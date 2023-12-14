@@ -1,6 +1,8 @@
+#if AR_FOUNDATION_PRESENT
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
@@ -91,19 +93,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         }
 
         [SerializeField]
-        [Tooltip("The screen space controller associated with the demo scene.")]
-        XRScreenSpaceController m_ScreenSpaceController;
-
-        /// <summary>
-        /// The screen space controller associated with the demo scene.
-        /// </summary>
-        public XRScreenSpaceController screenSpaceController
-        {
-            get => m_ScreenSpaceController;
-            set => m_ScreenSpaceController = value;
-        }
-
-        [SerializeField]
         [Tooltip("The interaction group for the AR demo scene.")]
         XRInteractionGroup m_InteractionGroup;
 
@@ -116,13 +105,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             set => m_InteractionGroup = value;
         }
 
-        bool m_IsPointerOverUI;
+        [SerializeField]
+        XRInputValueReader<Vector2> m_TapStartPositionInput = new XRInputValueReader<Vector2>("Tap Start Position");
+
+        /// <summary>
+        /// Input to use for the screen tap start position.
+        /// </summary>
+        /// <seealso cref="TouchscreenGestureInputController.tapStartPosition"/>
+        public XRInputValueReader<Vector2> tapStartPositionInput
+        {
+            get => m_TapStartPositionInput;
+            set => XRInputReaderUtility.SetInputProperty(ref m_TapStartPositionInput, value, this);
+        }
+
         bool m_ShowObjectMenu;
 
         void OnEnable()
         {
-            m_ScreenSpaceController.dragCurrentPositionAction.action.started += HideTapOutsideUI;
-            m_ScreenSpaceController.tapStartPositionAction.action.started += HideTapOutsideUI;
+            m_TapStartPositionInput.EnableDirectActionIfModeUsed();
             m_CreateButton.onClick.AddListener(ShowMenu);
             m_CancelButton.onClick.AddListener(HideMenu);
             m_DeleteButton.onClick.AddListener(DeleteFocusedObject);
@@ -130,9 +130,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 
         void OnDisable()
         {
+            m_TapStartPositionInput.DisableDirectActionIfModeUsed();
             m_ShowObjectMenu = false;
-            m_ScreenSpaceController.dragCurrentPositionAction.action.started -= HideTapOutsideUI;
-            m_ScreenSpaceController.tapStartPositionAction.action.started -= HideTapOutsideUI;
             m_CreateButton.onClick.RemoveListener(ShowMenu);
             m_CancelButton.onClick.RemoveListener(HideMenu);
             m_DeleteButton.onClick.RemoveListener(DeleteFocusedObject);
@@ -149,17 +148,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             {
                 m_CreateButton.gameObject.SetActive(false);
                 m_DeleteButton.gameObject.SetActive(false);
-                m_IsPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(-1);
+                var isPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(-1);
+                if (!isPointerOverUI && m_TapStartPositionInput.TryReadValue(out _))
+                {
+                    HideMenu();
+                }
             }
-            else
+            else if (m_InteractionGroup is not null)
             {
-                m_IsPointerOverUI = false;
-                if (m_InteractionGroup?.focusInteractable != null && (!m_DeleteButton.isActiveAndEnabled || m_CreateButton.isActiveAndEnabled))
+                var currentFocusedObject = m_InteractionGroup.focusInteractable;
+                if (currentFocusedObject != null && (!m_DeleteButton.isActiveAndEnabled || m_CreateButton.isActiveAndEnabled))
                 {
                     m_CreateButton.gameObject.SetActive(false);
                     m_DeleteButton.gameObject.SetActive(true);
                 }
-                else if (m_InteractionGroup?.focusInteractable == null && (!m_CreateButton.isActiveAndEnabled || m_DeleteButton.isActiveAndEnabled))
+                else if (currentFocusedObject == null && (!m_CreateButton.isActiveAndEnabled || m_DeleteButton.isActiveAndEnabled))
                 {
                     m_CreateButton.gameObject.SetActive(true);
                     m_DeleteButton.gameObject.SetActive(false);
@@ -171,17 +174,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         {
             if (m_ObjectSpawner == null)
             {
-                Debug.LogWarning("Object Spawner not configured correctly: no ObjectSpawner set.");
+                Debug.LogWarning("Menu Manager not configured correctly: no Object Spawner set.", this);
             }
             else
             {
-                if (m_ObjectSpawner.objectPrefabs.Count > objectIndex)
+                if (objectIndex < m_ObjectSpawner.objectPrefabs.Count)
                 {
                     m_ObjectSpawner.spawnOptionIndex = objectIndex;
                 }
                 else
                 {
-                    Debug.LogWarning("Object Spawner not configured correctly: object index larger than number of Object Prefabs.");
+                    Debug.LogWarning("Object Spawner not configured correctly: object index larger than number of Object Prefabs.", this);
                 }
             }
 
@@ -207,16 +210,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             m_ShowObjectMenu = false;
         }
 
-        void HideTapOutsideUI(InputAction.CallbackContext context)
-        {
-            if (!m_IsPointerOverUI)
-            {
-                HideMenu();
-            }
-        }
-
         void DeleteFocusedObject()
         {
+            if (m_InteractionGroup == null)
+                return;
+
             var currentFocusedObject = m_InteractionGroup.focusInteractable;
             if (currentFocusedObject != null)
             {
@@ -225,3 +223,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         }
     }
 }
+#endif

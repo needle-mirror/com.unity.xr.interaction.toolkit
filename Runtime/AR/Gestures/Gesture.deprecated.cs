@@ -30,11 +30,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     {
 #pragma warning disable IDE1006 // Naming Styles
         /// <inheritdoc cref="isCanceled"/>
-        [Obsolete("WasCancelled has been deprecated. Use isCanceled instead. (UnityUpgradable) -> isCanceled")]
+        [Obsolete("WasCancelled has been deprecated. Use isCanceled instead.", true)]
         public bool WasCancelled => isCanceled;
 
         /// <inheritdoc cref="targetObject"/>
-        [Obsolete("TargetObject has been deprecated. Use targetObject instead. (UnityUpgradable) -> targetObject")]
+        [Obsolete("TargetObject has been deprecated. Use targetObject instead.", true)]
         public GameObject TargetObject
         {
             get => targetObject;
@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <inheritdoc cref="recognizer"/>
-        [Obsolete("m_Recognizer has been deprecated. Use recognizer instead. (UnityUpgradable) -> recognizer")]
+        [Obsolete("m_Recognizer has been deprecated. Use recognizer instead.", true)]
         // ReSharper disable once InconsistentNaming -- Deprecated
         protected internal GestureRecognizer<T> m_Recognizer => recognizer;
 #pragma warning restore IDE1006 // Naming Styles

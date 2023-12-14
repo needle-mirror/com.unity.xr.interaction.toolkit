@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 {
     /// <summary>
     /// Affordance state shortcuts to facilitate the use of affordance state indices in an enum-like way.
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public static class AffordanceStateShortcuts
     {
         /// <summary>

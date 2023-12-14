@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
@@ -7,6 +8,7 @@ using UnityEngine.TestTools.Utils;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
+    [Obsolete("ActionBasedControllerInputTests has been deprecated in version 3.0.0.")]
     class ActionBasedControllerInputTests : InputTestFixture
     {
         public override void TearDown()

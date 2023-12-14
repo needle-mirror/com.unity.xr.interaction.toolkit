@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -24,12 +25,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRRayInteractor.LineType.BezierCurve,
         };
 
-        static readonly XRBaseControllerInteractor.InputTriggerType[] s_SelectActionTriggers =
+        static readonly XRBaseInputInteractor.InputTriggerType[] s_SelectActionTriggers =
         {
-            XRBaseControllerInteractor.InputTriggerType.State,
-            XRBaseControllerInteractor.InputTriggerType.StateChange,
-            XRBaseControllerInteractor.InputTriggerType.Toggle,
-            XRBaseControllerInteractor.InputTriggerType.Sticky,
+            XRBaseInputInteractor.InputTriggerType.State,
+            XRBaseInputInteractor.InputTriggerType.StateChange,
+            XRBaseInputInteractor.InputTriggerType.Toggle,
+            XRBaseInputInteractor.InputTriggerType.Sticky,
         };
 
         [TearDown]
@@ -238,8 +239,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            var controller = interactor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isSelected, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
@@ -252,11 +263,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForSeconds(0.1f);
 
+            Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorCanSelectAndReleaseInteractable([ValueSource(nameof(s_SelectActionTriggers))] XRBaseControllerInteractor.InputTriggerType selectActionTrigger)
+        public IEnumerator RayInteractorCanSelectAndReleaseInteractable([ValueSource(nameof(s_SelectActionTriggers))] XRBaseInputInteractor.InputTriggerType selectActionTrigger)
         {
             var manager = TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateRayInteractor();
@@ -266,87 +278,83 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateSimpleInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true, false, false, false);
-            controller.currentControllerState = controllerState;
+            interactor.selectInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
 
             // Press Grip
-            controllerState.selectInteractionState = new InteractionState { active = true, activatedThisFrame = true };
+            interactor.selectInput.QueueManualState(true, 1f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.True);
-            Assert.That(controllerState.selectInteractionState.activatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.True);
+            Assert.That(interactor.selectInput.ReadWasPerformedThisFrame(), Is.True);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.isSelectActive, Is.True);
 
             // Release Grip
-            controllerState.selectInteractionState = new InteractionState { active = false, deactivatedThisFrame = true };
+            interactor.selectInput.QueueManualState(false, 0f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
-            Assert.That(controllerState.selectInteractionState.deactivatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             switch (selectActionTrigger)
             {
-                case XRBaseControllerInteractor.InputTriggerType.State:
-                case XRBaseControllerInteractor.InputTriggerType.StateChange:
+                case XRBaseInputInteractor.InputTriggerType.State:
+                case XRBaseInputInteractor.InputTriggerType.StateChange:
                     Assert.That(interactable.isSelected, Is.False);
                     Assert.That(interactor.isSelectActive, Is.False);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.Toggle:
-                case XRBaseControllerInteractor.InputTriggerType.Sticky:
+                case XRBaseInputInteractor.InputTriggerType.Toggle:
+                case XRBaseInputInteractor.InputTriggerType.Sticky:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
             }
 
             // Press Grip again
-            controllerState.selectInteractionState = new InteractionState { active = true, activatedThisFrame = true };
+            interactor.selectInput.QueueManualState(true, 1f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.True);
-            Assert.That(controllerState.selectInteractionState.activatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.True);
+            Assert.That(interactor.selectInput.ReadWasPerformedThisFrame(), Is.True);
             Assert.That(interactable.isHovered, Is.True);
             switch (selectActionTrigger)
             {
-                case XRBaseControllerInteractor.InputTriggerType.State:
-                case XRBaseControllerInteractor.InputTriggerType.StateChange:
-                case XRBaseControllerInteractor.InputTriggerType.Sticky:
+                case XRBaseInputInteractor.InputTriggerType.State:
+                case XRBaseInputInteractor.InputTriggerType.StateChange:
+                case XRBaseInputInteractor.InputTriggerType.Sticky:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.Toggle:
+                case XRBaseInputInteractor.InputTriggerType.Toggle:
                     Assert.That(interactable.isSelected, Is.False);
                     Assert.That(interactor.isSelectActive, Is.False);
                     break;
             }
 
             // Release Grip again
-            controllerState.selectInteractionState = new InteractionState { active = false, deactivatedThisFrame = true };
+            interactor.selectInput.QueueManualState(false, 0f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
-            Assert.That(controllerState.selectInteractionState.deactivatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorCanReleaseInteractableAfterHoverToSelectWhenNotGripping([ValueSource(nameof(s_SelectActionTriggers))] XRBaseControllerInteractor.InputTriggerType selectActionTrigger)
+        public IEnumerator RayInteractorCanReleaseInteractableAfterHoverToSelectWhenNotGripping([ValueSource(nameof(s_SelectActionTriggers))] XRBaseInputInteractor.InputTriggerType selectActionTrigger)
         {
             var manager = TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateRayInteractor();
@@ -358,14 +366,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateSimpleInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true, false, false, false);
-            controller.currentControllerState = controllerState;
+            interactor.selectInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
 
             yield return new WaitForSeconds(0.1f);
 
             // Hasn't met duration threshold yet
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
@@ -373,7 +379,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForSeconds(0.2f);
 
             // Hovered for long enough
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.isSelectActive, Is.True);
@@ -391,64 +397,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // |StateChange|Press then Release Grip   |Release Grip                               |
             // |Toggle     |Press Grip                |Nothing (will drop since already toggled)  |
             // |Sticky     |Press then Release Grip   |Release Grip                               |
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             switch (selectActionTrigger)
             {
-                case XRBaseControllerInteractor.InputTriggerType.State:
+                case XRBaseInputInteractor.InputTriggerType.State:
                     Assert.That(interactable.isSelected, Is.False);
                     Assert.That(interactor.isSelectActive, Is.False);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.StateChange:
-                case XRBaseControllerInteractor.InputTriggerType.Toggle:
-                case XRBaseControllerInteractor.InputTriggerType.Sticky:
+                case XRBaseInputInteractor.InputTriggerType.StateChange:
+                case XRBaseInputInteractor.InputTriggerType.Toggle:
+                case XRBaseInputInteractor.InputTriggerType.Sticky:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
             }
 
             // Press Grip
-            controllerState.selectInteractionState = new InteractionState { active = true, activatedThisFrame = true };
+            interactor.selectInput.QueueManualState(true, 1f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.True);
-            Assert.That(controllerState.selectInteractionState.activatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.True);
+            Assert.That(interactor.selectInput.ReadWasPerformedThisFrame(), Is.True);
             Assert.That(interactable.isHovered, Is.True);
             switch (selectActionTrigger)
             {
-                case XRBaseControllerInteractor.InputTriggerType.State:
+                case XRBaseInputInteractor.InputTriggerType.State:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.StateChange:
+                case XRBaseInputInteractor.InputTriggerType.StateChange:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.Toggle:
+                case XRBaseInputInteractor.InputTriggerType.Toggle:
                     Assert.That(interactable.isSelected, Is.False);
                     Assert.That(interactor.isSelectActive, Is.False);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.Sticky:
+                case XRBaseInputInteractor.InputTriggerType.Sticky:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
             }
 
             // Release Grip
-            controllerState.selectInteractionState = new InteractionState { active = false, deactivatedThisFrame = true };
+            interactor.selectInput.QueueManualState(false, 0f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
-            Assert.That(controllerState.selectInteractionState.deactivatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
         }
 
         [UnityTest]
-        public IEnumerator RayInteractorCanReleaseInteractableAfterHoverToSelectWhenGripping([ValueSource(nameof(s_SelectActionTriggers))] XRBaseControllerInteractor.InputTriggerType selectActionTrigger)
+        public IEnumerator RayInteractorCanReleaseInteractableAfterHoverToSelectWhenGripping([ValueSource(nameof(s_SelectActionTriggers))] XRBaseInputInteractor.InputTriggerType selectActionTrigger)
         {
             var manager = TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateRayInteractor();
@@ -460,15 +465,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateSimpleInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            var controller = interactor.GetComponent<XRBaseController>();
-
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true, false, false, false);
-            controller.currentControllerState = controllerState;
+            interactor.selectInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
 
             yield return new WaitForSeconds(0.1f);
 
             // Hasn't met duration threshold yet
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
@@ -476,24 +478,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return new WaitForSeconds(0.2f);
 
             // Hovered for long enough
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.isSelectActive, Is.True);
 
             // Press Grip
-            controllerState.selectInteractionState = new InteractionState { active = true, activatedThisFrame = true };
+            interactor.selectInput.QueueManualState(true, 1f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.True);
-            Assert.That(controllerState.selectInteractionState.activatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.True);
+            Assert.That(interactor.selectInput.ReadWasPerformedThisFrame(), Is.True);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.isSelectActive, Is.True);
 
             interactor.hoverToSelect = false;
-            controllerState.selectInteractionState = new InteractionState { active = true };
 
             yield return null;
 
@@ -506,29 +507,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // |StateChange|Press then Release Grip   |Release Grip                               |
             // |Toggle     |Press Grip                |Nothing (will drop since already toggled)  |
             // |Sticky     |Press then Release Grip   |Release Grip                               |
-            Assert.That(controllerState.selectInteractionState.active, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.True);
             Assert.That(interactable.isHovered, Is.True);
             switch (selectActionTrigger)
             {
-                case XRBaseControllerInteractor.InputTriggerType.State:
-                case XRBaseControllerInteractor.InputTriggerType.StateChange:
-                case XRBaseControllerInteractor.InputTriggerType.Sticky:
+                case XRBaseInputInteractor.InputTriggerType.State:
+                case XRBaseInputInteractor.InputTriggerType.StateChange:
+                case XRBaseInputInteractor.InputTriggerType.Sticky:
                     Assert.That(interactable.isSelected, Is.True);
                     Assert.That(interactor.isSelectActive, Is.True);
                     break;
-                case XRBaseControllerInteractor.InputTriggerType.Toggle:
+                case XRBaseInputInteractor.InputTriggerType.Toggle:
                     Assert.That(interactable.isSelected, Is.False);
                     Assert.That(interactor.isSelectActive, Is.False);
                     break;
             }
 
             // Release Grip
-            controllerState.selectInteractionState = new InteractionState { active = false, deactivatedThisFrame = true };
+            interactor.selectInput.QueueManualState(false, 0f);
 
             yield return null;
 
-            Assert.That(controllerState.selectInteractionState.active, Is.False);
-            Assert.That(controllerState.selectInteractionState.deactivatedThisFrame, Is.True);
+            Assert.That(interactor.selectInput.ReadIsPerformed(), Is.False);
             Assert.That(interactable.isHovered, Is.True);
             Assert.That(interactable.isSelected, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
@@ -571,8 +571,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
-            var controller = interactor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
@@ -605,7 +604,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.CreateInteractionManager();
             TestUtilities.CreateXROrigin();
             var interactor = CreateRayInteractor(rayInteractorType);
-            interactor.xrController.enabled = false;
             interactor.hitClosestOnly = false;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
 
@@ -662,7 +660,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             TestUtilities.CreateInteractionManager();
             var interactor = CreateRayInteractor(rayInteractorType);
-            interactor.xrController.enabled = false;
             interactor.lineType = XRRayInteractor.LineType.StraightLine;
             interactor.maxRaycastDistance = 50f;
             interactor.transform.position = Vector3.zero;
@@ -737,7 +734,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.CreateInteractionManager();
             TestUtilities.CreateXROrigin();
             var interactor = TestUtilities.CreateRayInteractor();
-            interactor.xrController.enabled = false;
             const int sampleFrequency = 5;
             interactor.sampleFrequency = sampleFrequency;
             interactor.hitClosestOnly = false;
@@ -804,7 +800,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactor = CreateRayInteractor(rayInteractorType);
             if (rayInteractorType == typeof(XRGazeInteractor))
                 interactor.gameObject.AddComponent<XRInteractorLineVisual>();
-            interactor.xrController.enabled = false;
             interactor.transform.position = Vector3.zero;
             interactor.transform.rotation = Quaternion.Euler(-45f, 0f, 0f);
             const int sampleFrequency = 5;
@@ -1001,8 +996,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             snapVolume.snapToCollider = interactable.colliders[0];
             snapVolume.transform.position = interactable.transform.position;
             
-            var controller = interactor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));

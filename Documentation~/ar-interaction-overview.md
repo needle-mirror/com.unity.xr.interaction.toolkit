@@ -1,15 +1,15 @@
 # AR Interaction Overview
 
-This page provides a brief explanation for setting up a scene for mobile touchscreen  AR and the related components.
+This page provides a brief explanation for setting up a scene for mobile touchscreen AR and the related components.
 
 > [!NOTE]
-> AR interaction components are only available in a Project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
+> AR interaction components are only available in a project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
 
 ## Touchscreen gestures
 
 Touchscreen gesture data is surfaced by the `TouchscreenGestureInputController` which translates touch events into gestures such as tap, drag, pinch and twist. This gesture data can be used as bindings for [Input System](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) actions.
 
-The XR Interaction Toolkit package comes with a number of pre-defined gestures and gesture interactables, but you can always extend this package by defining your own gestures.
+The XR Interaction Toolkit package comes with a number of pre-defined gestures, but you can always extend this package by defining your own gestures.
 
 | Gesture | Triggered by input |
 |---|---|
@@ -22,23 +22,41 @@ The XR Interaction Toolkit package comes with a number of pre-defined gestures a
 ## Setting up for Touchscreen AR 
 
 > [!NOTE]
-> The AR Sample Assets package contains an already configured input action map which can be used in place of creating one from scratch.
+> The [AR Sample Assets](samples-ar-starter-assets.md) sample contains an already configured input action map which can be used in place of creating one from scratch.
 
 To set up a scene for Touchscreen AR you will want to create an Input Action Map with action bindings to the `TouchscreenGestureInputController` gesture data. (An action map asset can be created by right-clicking on the Assets folder and going to **Create** &gt; **Input Actions**.)
 
 ![Gesture Input Action Map](images/gesture-action-map.png)
 
 > [!NOTE]
-> The AR Sample Assets package contains a screen-space controller preset, but if creating the controller from scratch, follow the instructions below.
+> The AR Sample Assets sample contains a `Screen Space Ray Interactor` prefab, but if creating the GameObject from scratch, follow the instructions below.
 
-Add an [XR Screen Space Controller](xr-screen-space-controller.md) to the scene and toggle `Enable Touchscreen Gesture Input Control`. This will ensure that a `TouchscreenGestureInputController` device gets added to the scene. Additionally, make sure to include an XR Ray Interactor and that `Enable AR Raycasting` is checked. 
+Add a **Touchscreen Gesture Input Loader** to the scene. This will ensure that a `TouchscreenGestureInputController` device gets added automatically to the Input System so the bindings can resolve to the gestures.
 
-![TouchscreenGestureInputController toggle](images/xr-screen-space-controller-touchscreen.png)
+![Touchscreen Gesture Input Loader component](images/touchscreen-gesture-input-loader.png)
 
-Connect the input actions to the appropriate properties on the screen space controller. The application should now be ready to receive touchscreen input.
+Add an **XR Ray Interactor** component and enable **Enable AR Raycasting** to allow it to ray cast against the AR environment trackables, and also set **Scale Mode** to **Distance Delta**. Add a **Touchscreen Hover Filter** component and assign a reference to it on the XR Ray Interactor in its **Starting Hover Filters** property. This will make that interactor only hover interactables while the user is touching the screen.
+
+![Touchscreen Hover Filter component](images/touchscreen-hover-filter.png)
+
+Then add a **Screen Space Ray Pose Driver** component to the GameObject to allow the Transform component to be automatically updated based on the touch gestures on the screen.
+
+![Screen Space Ray Pose Driver component](images/screen-space-ray-pose-driver.png)
+
+To allow the XR Ray Interactor to respond to gesture inputs as expected, you will need to assign the inputs for **Rotate Input**, **Scale Distance Delta Input**, and **Select Input**. Click the More menu (`⋮`) button on each of the three input properties and set to **Object Reference**. Then add a **Screen Space Select Input** component, a **Screen Space Rotate Input** component, and a **Screen Space Pinch Scale Input** component and assign references to each.
+
+![Screen Space Select Input component](images/screen-space-select-input.png)
+
+![Screen Space Rotate Input component](images/screen-space-rotate-input.png)
+
+![Screen Space Pinch Scale Input component](images/screen-space-pinch-scale-input.png)
+
+Now that the XR Ray Interactor configuration is complete, connect the gesture input actions to the appropriate properties on the other added components. The application should now be ready to receive touchscreen input.
+
+![XR Ray Interactor component](images/ar-interaction-ray-interactor.png)
 
 ## AR Transformer
 
-In order to have interactables adhere to the AR environment, adding an `ARTransformer` is necessary. The AR transformer allows objects to be moved and rotated only within the limits of the AR environment. Currently, only AR planes are supported.
+In order to have interactables like XR Grab Interactable adhere to the AR environment, adding an AR Transformer component is necessary. The AR Transformer allows objects to be moved and rotated only within the limits of the AR environment. Currently, only AR planes are supported.
 
 ![AR Transformer component](images/ar-transformer.png)

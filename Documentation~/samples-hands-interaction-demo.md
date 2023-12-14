@@ -137,9 +137,9 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td>
       [XR Direct Interactor](xr-direct-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
       [Sphere Collider](https://docs.unity3d.com/Manual/class-SphereCollider.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)
+      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
     </td>
-    <td>Interactor used for interacting with interactables by pinching at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables. Has an XR Controller to override the Position action to use the pinch position of the hand.</td>
+    <td>Interactor used for interacting with interactables by pinching at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables. Has a Tracked Pose Driver to set the Position action to use the pinch position of the hand.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Ray Interactor</strong></td>
@@ -148,9 +148,9 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
       [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
       [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
       [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)
+      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
     </td>
-    <td>Interactor used for interacting with interactables by pinching at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI. Has an XR Controller to override the Position and Rotation actions to use the Meta Hand Tracking Aim feature.</td>
+    <td>Interactor used for interacting with interactables by pinching at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI. Has a Tracked Pose Driver to set the Position and Rotation actions to use the Meta Hand Tracking Aim feature.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Poke Stabilized Attach</strong></td>
@@ -207,7 +207,7 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td>Visual representation of the tracked hands.</td>
   </tr>
   <tr>
-    <td colspan="4"><strong>Locomotion System</strong></td>
+    <td colspan="4"><strong>Locomotion</strong></td>
     <td>See base prefab.</td>
     <td>See base prefab.</td>
   </tr>

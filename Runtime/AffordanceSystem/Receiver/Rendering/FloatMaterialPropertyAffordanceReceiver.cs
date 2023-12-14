@@ -1,4 +1,5 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+﻿using System;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
@@ -9,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
     [AddComponentMenu("Affordance System/Receiver/Rendering/Float Material Property Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_FloatMaterialPropertyAffordanceReceiver)]
     [RequireComponent(typeof(MaterialPropertyBlockHelper))]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class FloatMaterialPropertyAffordanceReceiver : FloatAffordanceReceiver
     {
         [SerializeField]

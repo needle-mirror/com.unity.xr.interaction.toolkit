@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using System;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.UI
@@ -8,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.UI
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/UI/Image Color Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_ImageColorAffordanceReceiver)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ImageColorAffordanceReceiver : ColorAffordanceReceiver
     {
         [Tooltip("Image to apply the color to.")]

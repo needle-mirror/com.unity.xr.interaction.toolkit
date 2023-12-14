@@ -1,6 +1,7 @@
 #if BURST_PRESENT
 using Unity.Burst;
 #endif
+using System;
 using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 
@@ -25,6 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class SmartFollowVector3TweenableVariable : Vector3TweenableVariable
     {
         /// <summary>

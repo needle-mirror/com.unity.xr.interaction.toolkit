@@ -8,6 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
     /// Tweenable variable uses bindable variable and target value to tween over time towards a target value.
     /// </summary>
     /// <typeparam name="T">BindableVariable type.</typeparam>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class TweenableVariableBase<T> : BindableVariable<T> where T : IEquatable<T>
     {
         /// <summary>

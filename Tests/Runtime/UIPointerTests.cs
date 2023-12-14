@@ -16,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         internal static void SetNextPose(this XRControllerRecorder recorder, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
         {
-            XRControllerRecording currentRecording = recorder.recording;
+            var currentRecording = recorder.recording;
             currentRecording.InitRecording();
             currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, position, rotation, InputTrackingState.All, true, selectActive, activateActive, pressActive));
             currentRecording.AddRecordingFrameNonAlloc(new XRControllerState(1000f, position, rotation, InputTrackingState.All, true, selectActive, activateActive, pressActive));
@@ -453,11 +453,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             testObjects.globalUIReceiver = new GlobalUIReceiver(inputModule);
 
-            var interactorGo = new GameObject("Interactor", typeof(XRController), typeof(XRRayInteractor), typeof(XRControllerRecorder));
+            var interactorGo = new GameObject("Interactor", typeof(XRRayInteractor), typeof(XRControllerRecorder));
             interactorGo.transform.parent = rigGo.transform;
+            var rayInteractor = interactorGo.GetComponent<XRRayInteractor>();
             testObjects.controllerRecorder = interactorGo.GetComponent<XRControllerRecorder>();
             testObjects.controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
-            testObjects.interactor = interactorGo.GetComponent<XRRayInteractor>();
+            testObjects.controllerRecorder.SetInteractor(rayInteractor);
+            testObjects.interactor = rayInteractor;
             testObjects.interactor.maxRaycastDistance = int.MaxValue;
             testObjects.interactor.referenceFrame = rigGo.transform;
             testObjects.uiInputModule = inputModule;

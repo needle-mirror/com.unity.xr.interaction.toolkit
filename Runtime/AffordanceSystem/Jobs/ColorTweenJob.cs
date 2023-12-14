@@ -1,7 +1,7 @@
 ﻿#if BURST_PRESENT
 using Unity.Burst;
 #endif
-using JetBrains.Annotations;
+using System;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -13,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct ColorTweenJob : ITweenJob<Color>
     {
         /// <inheritdoc/>

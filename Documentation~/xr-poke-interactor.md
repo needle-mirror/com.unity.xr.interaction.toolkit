@@ -6,6 +6,7 @@ Interactor used for interacting with interactables through poking.
 |---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactor will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactables whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
+| **Handedness** | Represents which hand or controller the interactor is associated with. |
 | **Attach Transform** | The `Transform` that is used as the attach point for Interactables.<br />Automatically instantiated and set in `Awake` if **None**.<br />Setting this will not automatically destroy the previous object. |
 | **Disable Visuals When Blocked In Group** | Whether to disable visuals when this Interactor is part of an [Interaction Group](xr-interaction-group.md) and is incapable of interacting due to active interaction by another Interactor in the Group. |
 | **Starting Selected Interactable** | The Interactable that this Interactor automatically selects at startup (optional, may be **None**). |

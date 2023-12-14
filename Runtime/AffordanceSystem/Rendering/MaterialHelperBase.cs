@@ -1,10 +1,12 @@
-﻿using Unity.XR.CoreUtils;
+﻿using System;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
     /// Base class for renderer bridge components that abstract the work of setting up material instances or property blocks. 
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class MaterialHelperBase : MonoBehaviour
     {
         [SerializeField]

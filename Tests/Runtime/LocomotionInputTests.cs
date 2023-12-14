@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -53,6 +54,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 InputActionType.Value,
                 "<Gamepad>/leftStick");
 
+            var inputActionReference = ScriptableObject.CreateInstance<InputActionReference>();
+            inputActionReference.Set(action);
+
+            action.Enable();
+
             var xrOrigin = TestUtilities.CreateXROrigin();
             var rigTransform = xrOrigin.Origin.transform;
             var cameraTransform = xrOrigin.Camera.transform;
@@ -71,11 +77,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigTransform.forward, Is.Not.EqualTo(controllerForward).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             // Config continuous move on XR Origin
-            var locoSys = xrOrigin.gameObject.AddComponent<LocomotionSystem>();
-            locoSys.xrOrigin = xrOrigin;
-            var moveProvider = xrOrigin.gameObject.AddComponent<ActionBasedContinuousMoveProvider>();
-            moveProvider.system = locoSys;
-            moveProvider.leftHandMoveAction = new InputActionProperty(action);
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.GetComponent<XRBodyTransformer>().xrOrigin = xrOrigin;
+            var moveProvider = xrOrigin.gameObject.AddComponent<ContinuousMoveProvider>();
+            moveProvider.mediator = mediator;
+            moveProvider.leftHandMoveInput.inputActionReference = inputActionReference;
             moveProvider.moveSpeed = 1f;
 
             switch (forwardSource)
@@ -150,15 +156,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 InputActionType.Value,
                 "<Gamepad>/rightStick");
 
+            var inputActionReference = ScriptableObject.CreateInstance<InputActionReference>();
+            inputActionReference.Set(action);
+
+            action.Enable();
+
             var xrOrigin = TestUtilities.CreateXROrigin();
             var rigTransform = xrOrigin.Origin.transform;
 
             // Config continuous turn on XR Origin
-            var locoSys = xrOrigin.gameObject.AddComponent<LocomotionSystem>();
-            locoSys.xrOrigin = xrOrigin;
-            var turnProvider = xrOrigin.gameObject.AddComponent<ActionBasedContinuousTurnProvider>();
-            turnProvider.system = locoSys;
-            turnProvider.leftHandTurnAction = new InputActionProperty(action);
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.GetComponent<XRBodyTransformer>().xrOrigin = xrOrigin;
+            var turnProvider = xrOrigin.gameObject.AddComponent<ContinuousTurnProvider>();
+            turnProvider.mediator = mediator;
+            turnProvider.leftHandTurnInput.inputActionReference = inputActionReference;
             turnProvider.turnSpeed = 60f;
 
             // Partially push stick directly right.

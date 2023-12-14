@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -34,6 +36,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ClimbSettings = value;
         }
 
+        /// <summary>
+        /// The interactable that is currently grabbed and driving movement. This will be <see langword="null"/> if
+        /// there is no active climb.
+        /// </summary>
+        public ClimbInteractable climbAnchorInteractable
+        {
+            get
+            {
+                if (m_GrabbedClimbables.Count > 0)
+                    return m_GrabbedClimbables[m_GrabbedClimbables.Count - 1];
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The interactor that is currently grabbing and driving movement. This will be <see langword="null"/> if
+        /// there is no active climb.
+        /// </summary>
+        public IXRSelectInteractor climbAnchorInteractor
+        {
+            get
+            {
+                if (m_GrabbingInteractors.Count > 0)
+                    return m_GrabbingInteractors[m_GrabbingInteractors.Count - 1];
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The transformation that is used by this component to apply climb movement.
+        /// </summary>
+        public XROriginMovement transformation { get; set; } = new XROriginMovement { forceUnconstrained = true };
+
+        /// <summary>
+        /// Calls the methods in its invocation list when the provider updates <see cref="climbAnchorInteractable"/>
+        /// and <see cref="climbAnchorInteractor"/>. This can be invoked from either <see cref="StartClimbGrab"/> or
+        /// <see cref="FinishClimbGrab"/>. This is not invoked when climb locomotion ends.
+        /// </summary>
+        public event Action<ClimbProvider> climbAnchorUpdated;
+
         /// <inheritdoc />
         protected override void Awake()
         {
@@ -55,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         public void StartClimbGrab(ClimbInteractable climbInteractable, IXRSelectInteractor interactor)
         {
-            var xrOrigin = system.xrOrigin?.Origin;
+            var xrOrigin = mediator.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -63,8 +105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_GrabbedClimbables.Add(climbInteractable);
             UpdateClimbAnchor(climbInteractable, interactor);
 
-            if (locomotionPhase != LocomotionPhase.Moving)
-                locomotionPhase = LocomotionPhase.Started;
+            TryPrepareLocomotion();
         }
 
         /// <summary>
@@ -101,6 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var climbTransform = climbInteractable.climbTransform;
             m_InteractorAnchorWorldPosition = interactor.transform.position;
             m_InteractorAnchorClimbSpacePosition = climbTransform.InverseTransformPoint(m_InteractorAnchorWorldPosition);
+            climbAnchorUpdated?.Invoke(this);
         }
 
         /// <summary>
@@ -108,22 +150,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void Update()
         {
-            if (locomotionPhase == LocomotionPhase.Done)
-            {
-                locomotionPhase = LocomotionPhase.Idle;
+            if (!isLocomotionActive)
                 return;
-            }
 
             // Use the most recent interaction to drive movement
             if (m_GrabbingInteractors.Count > 0)
             {
-                if (locomotionPhase != LocomotionPhase.Moving)
-                {
-                    if (!BeginLocomotion())
-                        return;
-
-                    locomotionPhase = LocomotionPhase.Moving;
-                }
+                if (locomotionState == LocomotionState.Preparing)
+                    TryStartLocomotionImmediately();
 
                 Assert.AreEqual(m_GrabbingInteractors.Count, m_GrabbedClimbables.Count);
 
@@ -138,7 +172,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 StepClimbMovement(currentClimbInteractable, currentInteractor);
             }
-            else if (locomotionPhase != LocomotionPhase.Idle)
+            else
             {
                 FinishLocomotion();
             }
@@ -146,49 +180,44 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void StepClimbMovement(ClimbInteractable currentClimbInteractable, IXRSelectInteractor currentInteractor)
         {
-            var xrOrigin = system.xrOrigin?.Origin;
-            if (xrOrigin != null)
+            // Move rig such that climb interactor position stays constant
+            var activeClimbSettings = GetActiveClimbSettings(currentClimbInteractable);
+            var allowFreeXMovement = activeClimbSettings.allowFreeXMovement;
+            var allowFreeYMovement = activeClimbSettings.allowFreeYMovement;
+            var allowFreeZMovement = activeClimbSettings.allowFreeZMovement;
+            var interactorWorldPosition = currentInteractor.transform.position;
+            Vector3 movement;
+
+            if (allowFreeXMovement && allowFreeYMovement && allowFreeZMovement)
             {
-                // Move rig such that climb interactor position stays constant
-                var activeClimbSettings = GetActiveClimbSettings(currentClimbInteractable);
-                var allowFreeXMovement = activeClimbSettings.allowFreeXMovement;
-                var allowFreeYMovement = activeClimbSettings.allowFreeYMovement;
-                var allowFreeZMovement = activeClimbSettings.allowFreeZMovement;
-                var rigTransform = xrOrigin.transform;
-                var interactorWorldPosition = currentInteractor.transform.position;
-                Vector3 movement;
-
-                if (allowFreeXMovement && allowFreeYMovement && allowFreeZMovement)
-                {
-                    // No need to check position relative to climbable object if movement is unconstrained
-                    movement = m_InteractorAnchorWorldPosition - interactorWorldPosition;
-                }
-                else
-                {
-                    var climbTransform = currentClimbInteractable.climbTransform;
-                    var interactorClimbSpacePosition = climbTransform.InverseTransformPoint(interactorWorldPosition);
-                    var movementInClimbSpace = m_InteractorAnchorClimbSpacePosition - interactorClimbSpacePosition;
-
-                    if (!allowFreeXMovement)
-                        movementInClimbSpace.x = 0f;
-
-                    if (!allowFreeYMovement)
-                        movementInClimbSpace.y = 0f;
-
-                    if (!allowFreeZMovement)
-                        movementInClimbSpace.z = 0f;
-
-                    movement = climbTransform.TransformVector(movementInClimbSpace);
-                }
-
-                rigTransform.position += movement;
+                // No need to check position relative to climbable object if movement is unconstrained
+                movement = m_InteractorAnchorWorldPosition - interactorWorldPosition;
             }
+            else
+            {
+                var climbTransform = currentClimbInteractable.climbTransform;
+                var interactorClimbSpacePosition = climbTransform.InverseTransformPoint(interactorWorldPosition);
+                var movementInClimbSpace = m_InteractorAnchorClimbSpacePosition - interactorClimbSpacePosition;
+
+                if (!allowFreeXMovement)
+                    movementInClimbSpace.x = 0f;
+
+                if (!allowFreeYMovement)
+                    movementInClimbSpace.y = 0f;
+
+                if (!allowFreeZMovement)
+                    movementInClimbSpace.z = 0f;
+
+                movement = climbTransform.TransformVector(movementInClimbSpace);
+            }
+
+            transformation.motion = movement;
+            TryQueueTransformation(transformation);
         }
 
         void FinishLocomotion()
         {
-            EndLocomotion();
-            locomotionPhase = LocomotionPhase.Done;
+            TryEndLocomotion();
             m_GrabbingInteractors.Clear();
             m_GrabbedClimbables.Clear();
         }

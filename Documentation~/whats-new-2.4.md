@@ -44,4 +44,7 @@ The XR Interaction Toolkit project settings have been moved underneath the XR Pl
 
 If you are migrating from any 1.x version of the XR Interaction Toolkit, the interaction layer popup box will no longer appear automatically and instead you will have to manually start the tool by going to **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and clicking on the **Run Interaction Layer Mask Updater** button to migrate your layer mask settings.
 
+> [!NOTE]
+> This layer updater was removed with version 3.0.0 of the package.
+
 For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).

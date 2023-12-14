@@ -18,10 +18,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionManager"/>.</summary>
         protected SerializedProperty m_InteractionManager;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
-        protected SerializedProperty m_InteractionLayerMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayers"/>.</summary>
         protected SerializedProperty m_InteractionLayers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.handedness"/>.</summary>
+        protected SerializedProperty m_Handedness;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.attachTransform"/>.</summary>
         protected SerializedProperty m_AttachTransform;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
@@ -46,24 +46,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.selectExited"/>.</summary>
         protected SerializedProperty m_SelectExited;
 
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
-        protected SerializedProperty m_OnHoverEntered;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
-        protected SerializedProperty m_OnHoverExited;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
-        protected SerializedProperty m_OnSelectEntered;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
-        protected SerializedProperty m_OnSelectExited;
-
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
-        protected SerializedProperty m_OnHoverEnteredCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
-        protected SerializedProperty m_OnHoverExitedCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
-        protected SerializedProperty m_OnSelectEnteredCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
-        protected SerializedProperty m_OnSelectExitedCalls;
-
         bool m_FiltersExpanded;
         ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
         ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
@@ -71,14 +53,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        protected static class BaseContents
+        protected static partial class BaseContents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionManager"/>.</summary>
             public static readonly GUIContent interactionManager = EditorGUIUtility.TrTextContent("Interaction Manager", "The XR Interaction Manager that this Interactor will communicate with (will find one if None).");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
-            public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Deprecated Interaction Layer Mask", "Deprecated Interaction Layer Mask that uses the Unity physics Layers. Hide this property by disabling \'Show Old Interaction Layer Mask In Inspector\' in the XR Interaction Toolkit project settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayers"/>.</summary>
             public static readonly GUIContent interactionLayers = EditorGUIUtility.TrTextContent("Interaction Layer Mask", "Allows interaction with Interactables whose Interaction Layer Mask overlaps with any Layer in this Interaction Layer Mask.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.handedness"/>.</summary>
+            public static readonly GUIContent handedness = EditorGUIUtility.TrTextContent("Handedness", "Represents which hand or controller the interactor is associated with.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.attachTransform"/>.</summary>
             public static readonly GUIContent attachTransform = EditorGUIUtility.TrTextContent("Attach Transform", "The Transform that is used as the attach point for Interactables. Will create an empty GameObject if None.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.keepSelectedTargetValid"/>.</summary>
@@ -87,21 +69,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent disableVisualsWhenBlockedInGroup = EditorGUIUtility.TrTextContent("Disable Visuals When Blocked In Group", "Whether to disable visuals when this Interactor is part of an Interaction Group and is incapable of interacting due to active interaction by another Interactor in the Group.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.startingSelectedInteractable"/>.</summary>
             public static readonly GUIContent startingSelectedInteractable = EditorGUIUtility.TrTextContent("Starting Selected Interactable", "The Interactable that this Interactor will automatically select at startup (optional, may be None).");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
-            public static readonly GUIContent onHoverEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Entered");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
-            public static readonly GUIContent onHoverExited = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Exited");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
-            public static readonly GUIContent onSelectEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Select Entered");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
-            public static readonly GUIContent onSelectExited = EditorGUIUtility.TrTextContent("(Deprecated) On Select Exited");
             /// <summary><see cref="GUIContent"/> for the header label of Hover events.</summary>
             public static readonly GUIContent hoverEventsHeader = EditorGUIUtility.TrTextContent("Hover", "Called when this Interactor begins hovering over an Interactable (Entered), or ends hovering (Exited).");
             /// <summary><see cref="GUIContent"/> for the header label of Select events.</summary>
             public static readonly GUIContent selectEventsHeader = EditorGUIUtility.TrTextContent("Select", "Called when this Interactor begins selecting an Interactable (Entered), or ends selecting (Exited).");
-
-            /// <summary>The help box message when deprecated Interactor Events are being used.</summary>
-            public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactor Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");
 
             /// <summary>The Interactor filters foldout.</summary>
             public static readonly GUIContent interactorFilters = EditorGUIUtility.TrTextContent("Interactor Filters", "Add filters to extend this Interactor without needing to create a derived behavior.");
@@ -124,8 +95,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void OnEnable()
         {
             m_InteractionManager = serializedObject.FindProperty("m_InteractionManager");
-            m_InteractionLayerMask = serializedObject.FindProperty("m_InteractionLayerMask");
             m_InteractionLayers = serializedObject.FindProperty("m_InteractionLayers");
+            m_Handedness = serializedObject.FindProperty("m_Handedness");
             m_AttachTransform = serializedObject.FindProperty("m_AttachTransform");
             m_KeepSelectedTargetValid = serializedObject.FindProperty("m_KeepSelectedTargetValid");
             m_DisableVisualsWhenBlockedInGroup = serializedObject.FindProperty("m_DisableVisualsWhenBlockedInGroup");
@@ -135,16 +106,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_HoverExited = serializedObject.FindProperty("m_HoverExited");
             m_SelectEntered = serializedObject.FindProperty("m_SelectEntered");
             m_SelectExited = serializedObject.FindProperty("m_SelectExited");
-
-            m_OnHoverEntered = serializedObject.FindProperty("m_OnHoverEntered");
-            m_OnHoverExited = serializedObject.FindProperty("m_OnHoverExited");
-            m_OnSelectEntered = serializedObject.FindProperty("m_OnSelectEntered");
-            m_OnSelectExited = serializedObject.FindProperty("m_OnSelectExited");
-
-            m_OnHoverEnteredCalls = m_OnHoverEntered.FindPropertyRelative("m_PersistentCalls.m_Calls");
-            m_OnHoverExitedCalls = m_OnHoverExited.FindPropertyRelative("m_PersistentCalls.m_Calls");
-            m_OnSelectEnteredCalls = m_OnSelectEntered.FindPropertyRelative("m_PersistentCalls.m_Calls");
-            m_OnSelectExitedCalls = m_OnSelectExited.FindPropertyRelative("m_PersistentCalls.m_Calls");
 
             m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
 
@@ -180,8 +141,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             DrawBeforeProperties();
             DrawProperties();
             DrawDerivedProperties();
-
-            EditorGUILayout.Space();
 
             DrawFilters();
 
@@ -232,6 +191,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawCoreConfiguration()
         {
             DrawInteractionManagement();
+            EditorGUILayout.PropertyField(m_Handedness, BaseContents.handedness);
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
@@ -244,13 +204,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.PropertyField(m_InteractionManager, BaseContents.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayers, BaseContents.interactionLayers);
-            if (XRInteractionEditorSettings.Instance.showOldInteractionLayerMaskInInspector)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_InteractionLayerMask, BaseContents.interactionLayerMask);
-                }
-            }
         }
 
         /// <summary>
@@ -305,20 +258,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="DrawInteractorEventsNested"/>
         protected virtual void DrawInteractorEvents()
         {
-#pragma warning disable 618 // One-time migration of deprecated events.
-            if (IsDeprecatedEventsInUse())
-            {
-                EditorGUILayout.HelpBox(BaseContents.deprecatedEventsInUse.text, MessageType.Warning);
-                if (GUILayout.Button("Migrate Events"))
-                {
-                    serializedObject.ApplyModifiedProperties();
-                    MigrateEvents(targets);
-                    serializedObject.SetIsDifferentCacheDirty();
-                    serializedObject.Update();
-                }
-            }
-#pragma warning restore 618
-
             m_HoverEntered.isExpanded = EditorGUILayout.Foldout(m_HoverEntered.isExpanded, EditorGUIUtility.TrTempContent("Interactor Events"), true);
             if (m_HoverEntered.isExpanded)
             {
@@ -337,19 +276,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.LabelField(BaseContents.hoverEventsHeader, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_HoverEntered);
-            if (m_OnHoverEnteredCalls.arraySize > 0 || m_OnHoverEnteredCalls.hasMultipleDifferentValues)
-                EditorGUILayout.PropertyField(m_OnHoverEntered, BaseContents.onHoverEntered);
             EditorGUILayout.PropertyField(m_HoverExited);
-            if (m_OnHoverExitedCalls.arraySize > 0 || m_OnHoverExitedCalls.hasMultipleDifferentValues)
-                EditorGUILayout.PropertyField(m_OnHoverExited, BaseContents.onHoverExited);
 
             EditorGUILayout.LabelField(BaseContents.selectEventsHeader, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_SelectEntered);
-            if (m_OnSelectEnteredCalls.arraySize > 0 || m_OnSelectEnteredCalls.hasMultipleDifferentValues)
-                EditorGUILayout.PropertyField(m_OnSelectEntered, BaseContents.onSelectEntered);
             EditorGUILayout.PropertyField(m_SelectExited);
-            if (m_OnSelectExitedCalls.arraySize > 0 || m_OnSelectExitedCalls.hasMultipleDifferentValues)
-                EditorGUILayout.PropertyField(m_OnSelectExited, BaseContents.onSelectExited);
         }
     }
 }

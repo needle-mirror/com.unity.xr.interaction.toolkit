@@ -12,7 +12,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// <summary>
     /// Custom editor for the deprecated <see cref="XRRig"/>.
     /// </summary>
-    [Obsolete("XRRigEditor has been deprecated. Use XROriginEditor instead.")]
+    [Obsolete("XRRigEditor has been deprecated. Use XROriginEditor instead.", true)]
     [CustomEditor(typeof(XRRig), true), CanEditMultipleObjects]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class XRRigEditor : BaseInteractionEditor

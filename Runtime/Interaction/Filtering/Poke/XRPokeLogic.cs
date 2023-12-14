@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
+using UnityEngine.XR.Interaction.Toolkit.Interaction;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -142,9 +143,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                         }
                         
                         // If we've met the first hover check of starting from the right side, we then check to ensure our velocity delta approach meets our threshold.
-                        if (meetsHoverRequirements && interactor is XRBaseInteractor baseInteractor && baseInteractor.useAttachPointVelocity)
+                        if (meetsHoverRequirements && interactor is IAttachPointVelocityProvider velocityProvider)
                         {
-                            var interactorVelocity = baseInteractor.GetAttachPointVelocity();
+                            var interactorVelocity = velocityProvider.GetAttachPointVelocity();
 
                             bool isVelocitySufficient = Vector3.SqrMagnitude(interactorVelocity) > k_SquareVelocityHoverThreshold;
 

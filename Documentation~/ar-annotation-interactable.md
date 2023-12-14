@@ -1,3 +1,6 @@
+> [!NOTE]
+> The following class has been deprecated in favor of newer cross-platform AR architecture that is compatible with Mixed Reality devices. See [the AR interaction documentation](ar-interaction-overview.md) for more information.
+
 # AR Annotation Interactable
 
 Controls displaying one or more annotations when hovering over the `GameObject` this component is attached to.

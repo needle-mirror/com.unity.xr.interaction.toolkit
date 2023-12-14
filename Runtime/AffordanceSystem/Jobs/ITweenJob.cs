@@ -1,4 +1,5 @@
-﻿using Unity.Jobs;
+﻿using System;
+using Unity.Jobs;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 {
@@ -6,6 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
     /// Interface representing a tween job's basic functions.
     /// </summary>
     /// <typeparam name="T">Struct type of tween output.</typeparam>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public interface ITweenJob<T> : IJob where T : struct
     {
         /// <summary>

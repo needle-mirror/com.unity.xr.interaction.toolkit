@@ -1,4 +1,5 @@
-﻿using Unity.Jobs;
+﻿using System;
+using Unity.Jobs;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;
@@ -13,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitive
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Primitives/Color Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_ColorAffordanceReceiver)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ColorAffordanceReceiver : BaseAsyncAffordanceStateReceiver<Color>
     {
         [SerializeField]

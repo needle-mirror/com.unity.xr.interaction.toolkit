@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -290,6 +291,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             otherInteractor.interactionLayers = 0;
             otherInteractable.interactionLayers = 0;
 
+            // Set the input mode so it can be manually driven
+            interactor.selectInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
+
             // Upon Select, enable the other Interactor to have it register with the Interaction Manager during the update loop.
             // Upon Deselect, disable the other Interactor to have it unregister from the Interaction Manager during the update loop.
             interactor.selectEntered.AddListener(args =>
@@ -302,11 +306,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 otherInteractor.enabled = false;
                 otherInteractable.enabled = false;
             });
-
-            // Prepare controller state which will be used to cause a Select during the Interaction Manager update loop
-            var controller = interactor.GetComponent<XRBaseController>();
-            var controllerState = new XRControllerState(0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true, false, false, false);
-            controller.currentControllerState = controllerState;
 
             var interactors = new List<IXRInteractor>();
             var interactables = new List<IXRInteractable>();
@@ -323,7 +322,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.isSelected, Is.False);
 
             // Press Grip
-            controllerState.selectInteractionState = new InteractionState { active = true, activatedThisFrame = true };
+            interactor.selectInput.QueueManualState(true, 1f);
 
             yield return null;
 
@@ -336,7 +335,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactables, Is.EqualTo(new IXRInteractable[] { interactable, otherInteractable }));
 
             // Release Grip
-            controllerState.selectInteractionState = new InteractionState { active = false, deactivatedThisFrame = true };
+            interactor.selectInput.QueueManualState(false, 0f);
 
             yield return null;
 
@@ -626,7 +625,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactableB = TestUtilities.CreateGrabInteractable();
             interactableB.interactionManager = managerB;
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             managerA.GetValidTargets(interactorA, validTargets);

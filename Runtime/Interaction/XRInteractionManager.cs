@@ -262,10 +262,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         readonly HashSet<IXRInteractionGroup> m_GroupsInGroup = new HashSet<IXRInteractionGroup>();
 
-        readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
         readonly List<IXRInteractionGroup> m_ScratchInteractionGroups = new List<IXRInteractionGroup>();
         readonly List<IXRInteractor> m_ScratchInteractors = new List<IXRInteractor>();
-        readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
 
         // Reusable event args
         readonly LinkedPool<FocusEnterEventArgs> m_FocusEnterEventArgs = new LinkedPool<FocusEnterEventArgs>(() => new FocusEnterEventArgs(), collectionCheck: false);
@@ -363,7 +361,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     continue;
 
                 using (s_EvaluateInvalidFocusMarker.Auto())
-                    ClearInteractionGroupFocusInternal(interactionGroup);
+                    ClearInteractionGroupFocus(interactionGroup);
 
                 using (s_UpdateGroupMemberInteractionsMarker.Auto())
                     interactionGroup.UpdateGroupMemberInteractions();
@@ -377,34 +375,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (s_GetValidTargetsMarker.Auto())
                     GetValidTargets(interactor, m_ValidTargets);
 
-                // Cast to the abstract base classes to assist with backwards compatibility with existing user code.
-                GetOfType(m_ValidTargets, m_DeprecatedValidTargets);
-
                 var selectInteractor = interactor as IXRSelectInteractor;
                 var hoverInteractor = interactor as IXRHoverInteractor;
 
                 if (selectInteractor != null)
                 {
                     using (s_EvaluateInvalidSelectionsMarker.Auto())
-                        ClearInteractorSelectionInternal(selectInteractor, m_ValidTargets);
+                        ClearInteractorSelection(selectInteractor, m_ValidTargets);
                 }
 
                 if (hoverInteractor != null)
                 {
                     using (s_EvaluateInvalidHoversMarker.Auto())
-                        ClearInteractorHoverInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                        ClearInteractorHover(hoverInteractor, m_ValidTargets);
                 }
 
                 if (selectInteractor != null)
                 {
                     using (s_EvaluateValidSelectionsMarker.Auto())
-                        InteractorSelectValidTargetsInternal(selectInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                        InteractorSelectValidTargets(selectInteractor, m_ValidTargets);
                 }
 
                 if (hoverInteractor != null)
                 {
                     using (s_EvaluateValidHoversMarker.Auto())
-                        InteractorHoverValidTargetsInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                        InteractorHoverValidTargets(hoverInteractor, m_ValidTargets);
                 }
             }
 
@@ -858,13 +853,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // We suppress canceling focus for inactive interactors vs. destroyed interactors as that is used as a method of mediation
             if (interactorTransform == null || interactorTransform.gameObject.activeSelf)
-                CancelInteractorFocusInternal(interactor);
+                CancelInteractorFocus(interactor);
 
             if (interactor is IXRSelectInteractor selectInteractor)
-                CancelInteractorSelectionInternal(selectInteractor);
+                CancelInteractorSelection(selectInteractor);
 
             if (interactor is IXRHoverInteractor hoverInteractor)
-                CancelInteractorHoverInternal(hoverInteractor);
+                CancelInteractorHover(hoverInteractor);
 
             if (m_Interactors.Unregister(interactor))
             {
@@ -917,15 +912,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         m_ColliderToInteractableMap.Add(interactableCollider, interactable);
                     }
-#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT 
+#pragma warning disable 618
                     else if (!(interactable is ARBaseGestureInteractable && associatedInteractable is ARBaseGestureInteractable))
+#pragma warning restore 618
 #else
                     else
 #endif
                     {
                         Debug.LogWarning("A collider used by an Interactable object is already registered with another Interactable object." +
                             $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
-                            $" The value returned by {nameof(XRInteractionManager)}.{nameof(TryGetInteractableForCollider)} will be the first association.",
+                            " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
                             interactable as Object);
                     }
                 }
@@ -966,13 +963,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
 
             if (interactable is IXRFocusInteractable focusable)
-                CancelInteractableFocusInternal(focusable);
+                CancelInteractableFocus(focusable);
 
             if (interactable is IXRSelectInteractable selectable)
-                CancelInteractableSelectionInternal(selectable);
+                CancelInteractableSelection(selectable);
 
             if (interactable is IXRHoverInteractable hoverable)
-                CancelInteractableHoverInternal(hoverable);
+                CancelInteractableHover(hoverable);
 
             if (m_Interactables.Unregister(interactable))
             {
@@ -1036,7 +1033,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 Debug.LogWarning("A collider used by a snap volume component is already registered with another snap volume component." +
                     $" The {snapCollider} will remain associated with {associatedSnapVolume}, which was registered before {snapVolume}." +
-                    $" The value returned by {nameof(XRInteractionManager)}.{nameof(TryGetInteractableForCollider)} will be the first association.",
+                    " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
                     snapVolume);
             }
         }
@@ -1210,6 +1207,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Checks if a given collider is paired with an interactable registered with the interaction mananger, or if it is paired to a snap volume.
+        /// </summary>
+        /// <param name="colliderToCheck">Collider to lookup</param>
+        /// <returns>True if collider is paired to either an interactable directly, or indirectly via a snap volume.</returns>
+        public bool IsColliderRegisteredToInteractable(in Collider colliderToCheck)
+        {
+            return m_ColliderToInteractableMap.ContainsKey(colliderToCheck) || m_ColliderToSnapVolumes.ContainsKey(colliderToCheck);
+        }
+
+        /// <summary>
+        /// Checks if the given <paramref name="potentialSnapVolumeCollider"/> is registered with a snap volume.
+        /// </summary>
+        /// <param name="potentialSnapVolumeCollider">Collider to check.</param>
+        /// <returns>True if the collider is paired to a snap volume.</returns>
+        public bool IsColliderRegisteredSnapVolume(in Collider potentialSnapVolumeCollider)
+        {
+            return m_ColliderToSnapVolumes.ContainsKey(potentialSnapVolumeCollider);
+        }
+
+        /// <summary>
         /// Gets whether the given Interactable is the highest priority candidate for selection in this frame, useful for
         /// custom feedback.
         /// Only <see cref="IXRTargetPriorityInteractor"/>s that are configured to monitor Targets will be considered.
@@ -1248,22 +1265,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             targets.Clear();
             interactor.GetValidTargets(targets);
-
-            // To attempt to be backwards compatible with user scripts that have not been upgraded to use the interfaces,
-            // call the old method to let existing code modify the list.
-            if (interactor is XRBaseInteractor baseInteractor)
-            {
-                m_DeprecatedValidTargets.Clear();
-                GetOfType(targets, m_DeprecatedValidTargets);
-                if (targets.Count == m_DeprecatedValidTargets.Count)
-                {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                    baseInteractor.GetValidTargets(m_DeprecatedValidTargets);
-#pragma warning restore 618
-
-                    GetOfType(m_DeprecatedValidTargets, targets);
-                }
-            }
 
             // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
             using (s_FilterRegisteredValidTargetsMarker.Auto())
@@ -1318,23 +1319,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (cleared || !CanFocus(focusInteractor, focusInteractable))
             {
-                FocusExitInternal(interactionGroup, interactionGroup.focusInteractable);
+                FocusExit(interactionGroup, interactionGroup.focusInteractable);
             }
         }
 
-        internal void ClearInteractionGroupFocusInternal(IXRInteractionGroup interactionGroup)
-        {
-            ClearInteractionGroupFocus(interactionGroup);
-        }
-
-        void CancelInteractorFocusInternal(IXRInteractor interactor)
+        void CancelInteractorFocus(IXRInteractor interactor)
         {
             var asGroupMember = interactor as IXRGroupMember;
             var group = asGroupMember?.containingGroup;
 
             if (group != null && group.focusInteractable != null)
             {
-                FocusCancelInternal(group, group.focusInteractable);
+                FocusCancel(group, group.focusInteractable);
             }
         }
 
@@ -1346,14 +1342,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactable.interactionGroupsFocusing.Count - 1; i >= 0; --i)
             {
-                FocusCancelInternal(interactable.interactionGroupsFocusing[i], interactable);
+                FocusCancel(interactable.interactionGroupsFocusing[i], interactable);
             }
-        }
-
-        void CancelInteractableFocusInternal(IXRFocusInteractable interactable)
-        {
-
-            CancelInteractableFocus(interactable);
         }
 
         /// <summary>
@@ -1362,7 +1352,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to potentially exit its selection state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         /// <seealso cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/>
-        protected virtual void ClearInteractorSelection(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
+        protected internal virtual void ClearInteractorSelection(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
             if (interactor.interactablesSelected.Count == 0)
                 return;
@@ -1388,17 +1378,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Selection, unlike hover, can control whether the interactable has to continue being a valid target
                 // to automatically cause it to be deselected.
                 if (!CanSelect(interactor, interactable) || (!interactor.keepSelectedTargetValid && !m_UnorderedValidTargets.Contains(interactable)))
-                    SelectExitInternal(interactor, interactable);
+                    SelectExit(interactor, interactable);
             }
-        }
-
-        internal void ClearInteractorSelectionInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
-        {
-            ClearInteractorSelection(interactor, validTargets);
-            if (interactor is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                ClearInteractorSelection(baseInteractor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1409,18 +1390,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactor.interactablesSelected.Count - 1; i >= 0; --i)
             {
-                SelectCancelInternal(interactor, interactor.interactablesSelected[i]);
+                SelectCancel(interactor, interactor.interactablesSelected[i]);
             }
-        }
-
-        void CancelInteractorSelectionInternal(IXRSelectInteractor interactor)
-        {
-            if (interactor is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                CancelInteractorSelection(baseInteractor);
-#pragma warning restore 618
-            else
-                CancelInteractorSelection(interactor);
         }
 
         /// <summary>
@@ -1431,18 +1402,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
             {
-                SelectCancelInternal(interactable.interactorsSelecting[i], interactable);
+                SelectCancel(interactable.interactorsSelecting[i], interactable);
             }
-        }
-
-        void CancelInteractableSelectionInternal(IXRSelectInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactable is XRBaseInteractable baseInteractable)
-                CancelInteractableSelection(baseInteractable);
-#pragma warning restore 618
-            else
-                CancelInteractableSelection(interactable);
         }
 
         /// <summary>
@@ -1451,7 +1412,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to potentially exit its hover state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         /// <seealso cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/>
-        protected virtual void ClearInteractorHover(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
+        protected internal virtual void ClearInteractorHover(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
         {
             if (interactor.interactablesHovered.Count == 0)
                 return;
@@ -1475,17 +1436,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 var interactable = m_CurrentHovered[i];
                 if (!CanHover(interactor, interactable) || !m_UnorderedValidTargets.Contains(interactable))
-                    HoverExitInternal(interactor, interactable);
+                    HoverExit(interactor, interactable);
             }
-        }
-
-        internal void ClearInteractorHoverInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
-        {
-            ClearInteractorHover(interactor, validTargets);
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor)
-                ClearInteractorHover(baseInteractor, deprecatedValidTargets);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1496,18 +1448,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactor.interactablesHovered.Count - 1; i >= 0; --i)
             {
-                HoverCancelInternal(interactor, interactor.interactablesHovered[i]);
+                HoverCancel(interactor, interactor.interactablesHovered[i]);
             }
-        }
-
-        void CancelInteractorHoverInternal(IXRHoverInteractor interactor)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor)
-                CancelInteractorHover(baseInteractor);
-#pragma warning restore 618
-            else
-                CancelInteractorHover(interactor);
         }
 
         /// <summary>
@@ -1518,18 +1460,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactable.interactorsHovering.Count - 1; i >= 0; --i)
             {
-                HoverCancelInternal(interactable.interactorsHovering[i], interactable);
+                HoverCancel(interactable.interactorsHovering[i], interactable);
             }
-        }
-
-        void CancelInteractableHoverInternal(IXRHoverInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactable is XRBaseInteractable baseInteractable)
-                CancelInteractableHover(baseInteractable);
-#pragma warning restore 618
-            else
-                CancelInteractableHover(interactable);
         }
 
         /// <summary>
@@ -1558,7 +1490,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 args.interactionGroup = group;
-                FocusEnterInternal(group, interactable, args);
+                FocusEnter(group, interactable, args);
             }
         }
 
@@ -1578,13 +1510,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactableObject = interactable;
                 args.interactionGroup = group;
                 args.isCanceled = false;
-                FocusExitInternal(group, interactable, args);
+                FocusExit(group, interactable, args);
             }
-        }
-
-        internal void FocusExitInternal(IXRInteractionGroup group, IXRFocusInteractable interactable)
-        {
-            FocusExit(group, interactable);
         }
 
         /// <summary>
@@ -1602,13 +1529,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactableObject = interactable;
                 args.interactionGroup = group;
                 args.isCanceled = true;
-                FocusExitInternal(group, interactable, args);
+                FocusExit(group, interactable, args);
             }
-        }
-
-        void FocusCancelInternal(IXRInteractionGroup group, IXRFocusInteractable interactable)
-        {
-            FocusCancel(group, interactable);
         }
 
         /// <summary>
@@ -1630,23 +1552,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.manager = this;
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
-                SelectEnterInternal(interactor, interactable, args);
+                SelectEnter(interactor, interactable, args);
             }
 
             if (interactable is IXRFocusInteractable focusInteractable)
             {
                 FocusEnter(interactor, focusInteractable);                    
             }
-        }
-
-        void SelectEnterInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                SelectEnter(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                SelectEnter(interactor, interactable);
         }
 
         /// <summary>
@@ -1662,18 +1574,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 args.isCanceled = false;
-                SelectExitInternal(interactor, interactable, args);
+                SelectExit(interactor, interactable, args);
             }
-        }
-
-        internal void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                SelectExit(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                SelectExit(interactor, interactable);
         }
 
         /// <summary>
@@ -1690,18 +1592,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 args.isCanceled = true;
-                SelectExitInternal(interactor, interactable, args);
+                SelectExit(interactor, interactable, args);
             }
-        }
-
-        void SelectCancelInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                SelectCancel(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                SelectCancel(interactor, interactable);
         }
 
         /// <summary>
@@ -1716,18 +1608,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.manager = this;
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
-                HoverEnterInternal(interactor, interactable, args);
+                HoverEnter(interactor, interactable, args);
             }
-        }
-
-        void HoverEnterInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                HoverEnter(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                HoverEnter(interactor, interactable);
         }
 
         /// <summary>
@@ -1743,18 +1625,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 args.isCanceled = false;
-                HoverExitInternal(interactor, interactable, args);
+                HoverExit(interactor, interactable, args);
             }
-        }
-
-        internal void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                HoverExit(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                HoverExit(interactor, interactable);
         }
 
         /// <summary>
@@ -1771,18 +1643,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 args.interactorObject = interactor;
                 args.interactableObject = interactable;
                 args.isCanceled = true;
-                HoverExitInternal(interactor, interactable, args);
+                HoverExit(interactor, interactable, args);
             }
-        }
-
-        void HoverCancelInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                HoverCancel(baseInteractor, baseInteractable);
-#pragma warning restore 618
-            else
-                HoverCancel(interactor, interactable);
         }
 
         /// <summary>
@@ -1814,11 +1676,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             lastFocused = interactable;
             focusGained?.Invoke(args);
-        }
-
-        void FocusEnterInternal(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusEnterEventArgs args)
-        {
-            FocusEnter(group, interactable, args);
         }
 
         /// <summary>
@@ -1853,11 +1710,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             focusLost?.Invoke(args);
         }
 
-        void FocusExitInternal(IXRInteractionGroup group, IXRFocusInteractable interactable, FocusExitEventArgs args)
-        {
-            FocusExit(group, interactable, args);
-        }
-
         /// <summary>
         /// Initiates selection of an Interactable by an Interactor, passing the given <paramref name="args"/>.
         /// </summary>
@@ -1885,16 +1737,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 interactor.OnSelectEntered(args);
                 interactable.OnSelectEntered(args);
             }
-        }
-
-        void SelectEnterInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                SelectEnter(baseInteractor, baseInteractable, args);
-#pragma warning restore 618
-            else
-                SelectEnter(interactor, interactable, args);
         }
 
         /// <summary>
@@ -1925,16 +1767,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
         }
 
-        void SelectExitInternal(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectExitEventArgs args)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                SelectExit(baseInteractor, baseInteractable, args);
-#pragma warning restore 618
-            else
-                SelectExit(interactor, interactable, args);
-        }
-
         /// <summary>
         /// Initiates hovering of an Interactable by an Interactor, passing the given <paramref name="args"/>.
         /// </summary>
@@ -1961,16 +1793,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 interactor.OnHoverEntered(args);
                 interactable.OnHoverEntered(args);
             }
-        }
-
-        void HoverEnterInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverEnterEventArgs args)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                HoverEnter(baseInteractor, baseInteractable, args);
-#pragma warning restore 618
-            else
-                HoverEnter(interactor, interactable, args);
         }
 
         /// <summary>
@@ -2002,16 +1824,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
         // ReSharper restore PossiblyImpureMethodCallOnReadonlyVariable
 
-        void HoverExitInternal(IXRHoverInteractor interactor, IXRHoverInteractable interactable, HoverExitEventArgs args)
-        {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && interactable is XRBaseInteractable baseInteractable)
-                HoverExit(baseInteractor, baseInteractable, args);
-#pragma warning restore 618
-            else
-                HoverExit(interactor, interactable, args);
-        }
-
         /// <summary>
         /// Automatically called each frame during Update to enter the selection state of the Interactor if necessary due to current conditions.
         /// </summary>
@@ -2022,7 +1834,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Targets For Selection property.
         /// </remarks>
         /// <seealso cref="InteractorHoverValidTargets(IXRHoverInteractor, List{IXRInteractable})"/>
-        protected virtual void InteractorSelectValidTargets(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
+        protected internal virtual void InteractorSelectValidTargets(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
             if (validTargets.Count == 0)
                 return;
@@ -2041,7 +1853,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (targetPriorityMode == TargetPriorityMode.None || targetPriorityMode == TargetPriorityMode.HighestPriorityOnly && foundHighestPriorityTarget)
                 {
                     if (CanSelect(interactor, interactable))
-                        SelectEnterInternal(interactor, interactable);
+                        SelectEnter(interactor, interactable);
                 }
                 else if (IsSelectPossible(interactor, interactable))
                 {
@@ -2061,18 +1873,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     targetPriorityInteractor.targetsForSelection?.Add(interactable);
 
                     if (interactor.isSelectActive)
-                        SelectEnterInternal(interactor, interactable);
+                        SelectEnter(interactor, interactable);
                 }
             }
-        }
-
-        internal void InteractorSelectValidTargetsInternal(IXRSelectInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
-        {
-            InteractorSelectValidTargets(interactor, validTargets);
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor)
-                InteractorSelectValidTargets(baseInteractor, deprecatedValidTargets);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -2081,7 +1884,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to potentially enter its hover state.</param>
         /// <param name="validTargets">The list of interactables that this Interactor could possibly interact with this frame.</param>
         /// <seealso cref="InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/>
-        protected virtual void InteractorHoverValidTargets(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
+        protected internal virtual void InteractorHoverValidTargets(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
         {
             if (validTargets.Count == 0)
                 return;
@@ -2092,19 +1895,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     if (CanHover(interactor, interactable) && !interactor.IsHovering(interactable))
                     {
-                        HoverEnterInternal(interactor, interactable);
+                        HoverEnter(interactor, interactable);
                     }
                 }
             }
-        }
-
-        internal void InteractorHoverValidTargetsInternal(IXRHoverInteractor interactor, List<IXRInteractable> validTargets, List<XRBaseInteractable> deprecatedValidTargets)
-        {
-            InteractorHoverValidTargets(interactor, validTargets);
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor)
-                InteractorHoverValidTargets(baseInteractor, deprecatedValidTargets);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -2153,11 +1947,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (interactor.IsSelecting(interactable))
                 return false;
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (interactor is XRBaseInteractor baseInteractor && baseInteractor.requireSelectExclusive)
-                return false;
-#pragma warning restore 618
 
             switch (interactable.selectMode)
             {
@@ -2222,7 +2011,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactable.interactorsSelecting.Count - 1; i >= 0; --i)
             {
-                SelectExitInternal(interactable.interactorsSelecting[i], interactable);
+                SelectExit(interactable.interactorsSelecting[i], interactable);
             }
         }
 
@@ -2230,7 +2019,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             for (var i = interactable.interactionGroupsFocusing.Count - 1; i >= 0; --i)
             {
-                FocusExitInternal(interactable.interactionGroupsFocusing[i], interactable);
+                FocusExit(interactable.interactionGroupsFocusing[i], interactable);
             }
         }
 
@@ -2255,21 +2044,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_InteractionGroups.Flush();
             m_Interactors.Flush();
             m_Interactables.Flush();
-        }
-
-        internal static void GetOfType<TSource, TDestination>(List<TSource> source, List<TDestination> destination)
-        {
-            destination.Clear();
-            if (source.Count == 0)
-                return;
-
-            foreach (var item in source)
-            {
-                if (item is TDestination destinationItem)
-                {
-                    destination.Add(destinationItem);
-                }
-            }
         }
 
 #if UNITY_EDITOR

@@ -1,10 +1,8 @@
-﻿using UnityEngine.InputSystem;
+﻿using System;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
-
-#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
-using UnityEngine.InputSystem.XR;
-#endif
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -20,10 +18,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// input actions in an Input Action Asset are not enabled by default.
     /// </remarks>
     /// <seealso cref="XRBaseController"/>
-    [AddComponentMenu("XR/XR Controller (Action-based)", 11)]
+    [AddComponentMenu("/XR Controller (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedController)]
-    public partial class ActionBasedController : XRBaseController
+    [Obsolete("ActionBasedController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.")]
+    public class ActionBasedController : XRBaseController
     {
+        /// <summary>
+        /// (Deprecated) The value threshold for when a button is considered pressed to trigger an interaction event.
+        /// If a button has a value equal to or greater than this value, it is considered pressed.
+        /// </summary>
+        [Obsolete("Deprecated, this obsolete property is not used when Input System version is 1.1.0 or higher. Configure press point on the action or binding instead.", true)]
+        public float buttonPressPoint
+        {
+            get => default;
+            set => _ = value;
+        }
+
         [SerializeField]
         InputActionProperty m_PositionAction = new InputActionProperty(new InputAction("Position", expectedControlType: "Vector3"));
         /// <summary>
@@ -254,6 +264,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_HasCheckedDisabledTrackingInputReferenceActions;
         bool m_HasCheckedDisabledInputReferenceActions;
 
+        readonly HapticControlActionManager m_HapticControlActionManager = new HapticControlActionManager();
+
         /// <inheritdoc />
         protected override void OnEnable()
         {
@@ -423,9 +435,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 uiPressValueAction = m_UIPressAction.action;
             controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressAction.action), ReadValue(uiPressValueAction));
 
-            var uiScrollAction = m_UIScrollAction.action;
-            if (uiScrollAction != null)
-                controllerState.uiScrollValue = uiScrollAction.ReadValue<Vector2>();
+            var uiScrollValueAction = m_UIScrollAction.action;
+            if (uiScrollValueAction != null)
+                controllerState.uiScrollValue = uiScrollValueAction.ReadValue<Vector2>();
         }
 
         /// <summary>
@@ -447,17 +459,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (action == null)
                 return false;
 
-#if INPUT_SYSTEM_1_1_OR_NEWER || INPUT_SYSTEM_1_1_PREVIEW // 1.1.0-preview.2 or newer, including pre-release
-                return action.phase == InputActionPhase.Performed;
-#else
-            if (action.activeControl is ButtonControl buttonControl)
-                return buttonControl.isPressed;
-
-            if (action.activeControl is AxisControl)
-                return action.ReadValue<float>() >= m_ButtonPressPoint;
-
-            return action.triggered || action.phase == InputActionPhase.Performed;
-#endif
+            var phase = action.phase;
+            return phase == InputActionPhase.Performed || (phase != InputActionPhase.Disabled && action.WasPerformedThisFrame());
         }
 
         /// <summary>
@@ -485,15 +488,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public override bool SendHapticImpulse(float amplitude, float duration)
         {
-#if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
-            if (m_HapticDeviceAction.action?.activeControl?.device is XRControllerWithRumble rumbleController)
-            {
-                rumbleController.SendImpulse(amplitude, duration);
-                return true;
-            }
-#endif
-
-            return false;
+            return m_HapticControlActionManager.GetChannelGroup(m_HapticDeviceAction.action)?.GetChannel()?.SendHapticImpulse(amplitude, duration) ?? false;
         }
 
         void EnableAllDirectActions()

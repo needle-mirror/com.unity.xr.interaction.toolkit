@@ -1,4 +1,6 @@
-﻿using UnityEngine.Serialization;
+﻿using System;
+using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -9,7 +11,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="ActionBasedController"/>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Controllers)]
     [DisallowMultipleComponent]
-    public abstract partial class XRBaseController : MonoBehaviour
+    [Obsolete("XRBaseController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.")]
+    public abstract class XRBaseController : MonoBehaviour, IXRHapticImpulseProvider
     {
         /// <summary>
         /// The time within the frame that controller pose will be sampled.
@@ -38,6 +41,67 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Sample input corresponding to <see cref="FixedUpdate"/>.
             /// </summary>
             Fixed,
+        }
+
+        /// <summary>
+        /// (Deprecated) Gets the state of the controller.
+        /// </summary>
+        /// <param name="controllerState">When this method returns, contains the <see cref="XRControllerState"/> object representing the state of the controller.</param>
+        /// <returns>Returns <see langword="false"/>.</returns>
+        /// <seealso cref="currentControllerState"/>
+        [Obsolete("GetControllerState has been deprecated. Use currentControllerState instead.", true)]
+        public virtual bool GetControllerState(out XRControllerState controllerState)
+        {
+            controllerState = default;
+            return default;
+        }
+
+        /// <summary>
+        /// (Deprecated) Sets the state of the controller.
+        /// </summary>
+        /// <param name="controllerState">The state of the controller to set.</param>
+        /// <seealso cref="currentControllerState"/>
+        [Obsolete("SetControllerState has been deprecated. Use currentControllerState instead.", true)]
+        public virtual void SetControllerState(XRControllerState controllerState)
+        {
+        }
+
+        /// <inheritdoc cref="modelParent"/>
+        /// <remarks><c>modelTransform</c> has been deprecated due to being renamed. Use <see cref="modelParent"/> instead.</remarks>
+        [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead. (UnityUpgradable) -> modelParent", true)]
+        public Transform modelTransform
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="XRRayInteractor.TranslateAnchor"/>
+        /// <seealso cref="XRRayInteractor.RotateAnchor"/>
+        /// <remarks>
+        /// <c>anchorControlDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
+        [Obsolete("anchorControlDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlDeadzone
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Defines the off-axis deadzone values for device-based input when performing translate or rotate anchor actions.
+        /// </summary>
+        /// <seealso cref="Application.onBeforeRender"/>
+        /// <remarks>
+        /// <c>anchorControlOffAxisDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
+        /// </remarks>
+        [Obsolete("anchorControlOffAxisDeadzone is obsolete. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.", true)]
+        public float anchorControlOffAxisDeadzone
+        {
+            get => default;
+            set => _ = value;
         }
 
         [SerializeField]
@@ -191,7 +255,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Whether to hide the controller model.
         /// </summary>
         /// <seealso cref="model"/>
-        /// <seealso cref="XRBaseControllerInteractor.hideControllerOnSelect"/>
+        /// <seealso cref="XRBaseInputInteractor.hideControllerOnSelect"/>
         public bool hideControllerModel
         {
             get => m_HideControllerModel;
@@ -261,6 +325,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// A boolean value that indicates setup should be performed on Update.
         /// </summary>
         bool m_PerformSetup = true;
+
+        HapticImpulseChannel m_HapticChannel;
+        HapticImpulseSingleChannelGroup m_HapticChannelGroup;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -490,5 +557,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="duration">Duration (in seconds) to play haptic impulse.</param>
         /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
         public virtual bool SendHapticImpulse(float amplitude, float duration) => false;
+
+        /// <inheritdoc />
+        IXRHapticImpulseChannelGroup IXRHapticImpulseProvider.GetChannelGroup()
+        {
+            m_HapticChannel ??= new HapticImpulseChannel(this);
+            return m_HapticChannelGroup ??= new HapticImpulseSingleChannelGroup(m_HapticChannel);
+        }
+
+        class HapticImpulseChannel : IXRHapticImpulseChannel
+        {
+            readonly XRBaseController m_Controller;
+
+            bool m_WarningLogged;
+
+            public HapticImpulseChannel(XRBaseController controller)
+            {
+                m_Controller = controller;
+            }
+
+            /// <inheritdoc />
+            public bool SendHapticImpulse(float amplitude, float duration, float frequency)
+            {
+                if (frequency > 0f && !m_WarningLogged)
+                {
+                    Debug.LogWarning($"Frequency is not supported when using {m_Controller} as the haptic impulse channel." +
+                        $" You may need to update the {nameof(HapticImpulsePlayer)} to use an Input Action Reference with a Haptic control binding" +
+                        " rather than using an Object Reference to the controller.", m_Controller);
+                    m_WarningLogged = true;
+                }
+
+                return m_Controller.SendHapticImpulse(amplitude, duration);
+            }
+        }
     }
 }

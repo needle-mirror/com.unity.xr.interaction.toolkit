@@ -1,4 +1,5 @@
-﻿using Unity.Mathematics;
+﻿using System;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -10,6 +11,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
     /// Follow animation affordance for <see cref="IPokeStateDataProvider"/>, such as <see cref="XRPokeFilter"/>.
     /// Used to animate a pressed transform, such as a button to follow the poke position.
     /// </summary>
+    /// <remarks>
+    /// The Affordance System namespace and all associated classes have been deprecated.
+    /// The existing affordance system will be moved, replaced and updated with a new interaction
+    /// feedback system in a future version of XRI, including this sample script.
+    /// </remarks>
     [AddComponentMenu("XR/XR Poke Follow Affordance", 22)]
     public class XRPokeFollowAffordance : MonoBehaviour
     {
@@ -109,7 +115,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         IPokeStateDataProvider m_PokeDataProvider;
         IMultiPokeStateDataProvider m_MultiPokeStateDataProvider;
 
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly Vector3TweenableVariable m_TransformTweenableVariable = new Vector3TweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
         Vector3 m_InitialPosition;
         bool m_IsFirstFrame;

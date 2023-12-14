@@ -1,4 +1,5 @@
-﻿using Unity.Jobs;
+﻿using System;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
@@ -14,6 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitive
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Primitives/Vector2 Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_Vector2AffordanceReceiver)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class Vector2AffordanceReceiver : BaseAsyncAffordanceStateReceiver<float2>
     {
         [SerializeField]

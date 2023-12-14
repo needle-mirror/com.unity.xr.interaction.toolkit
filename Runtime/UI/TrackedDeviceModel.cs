@@ -26,8 +26,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// </summary>
     public partial struct TrackedDeviceModel
     {
-        const float k_DefaultMaxRaycastDistance = 1000f;
-
         internal struct ImplementationData
         {
             /// <summary>
@@ -331,9 +329,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public TrackedDeviceModel(int pointerId) : this()
         {
             this.pointerId = pointerId;
-#pragma warning disable 618 // Setting deprecated property, this will be removed once the property is removed
-            maxRaycastDistance = k_DefaultMaxRaycastDistance;
-#pragma warning restore 618
             m_RaycastPoints = new List<Vector3>();
             m_ImplementationData = new ImplementationData();
 
@@ -422,10 +417,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             currentRaycast = eventData.pointerCurrentRaycast;
             currentRaycastEndpointIndex = eventData.rayHitIndex;
         }
-
-        // this only exists to clean up a warning in the .deprecated.cs file for this type - when removing that file, remove this field
-        float m_MaxRaycastDistance;
-
+        
         internal static TrackedDeviceModel invalid { get; } = new TrackedDeviceModel(-1);
     }
 }

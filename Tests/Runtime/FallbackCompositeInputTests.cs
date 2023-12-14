@@ -1,6 +1,7 @@
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Composites;
@@ -26,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator FallbackCompositeIsSupportedByActionBasedController()
+        public IEnumerator FallbackCompositeIsSupportedByTrackedPoseDriver()
         {
             var asset = ScriptableObject.CreateInstance<InputActionAsset>();
             var actionMap = asset.AddActionMap("Main");
@@ -48,12 +49,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 .With("first", "<XRController>{LeftHand}/trackingState")
                 .With("second", "<XRController>{RightHand}/trackingState");
 
+            actionMap.Enable();
+
             var controllerGameObject = new GameObject("Action Based Controller");
-            var actionBasedController = controllerGameObject.AddComponent<ActionBasedController>();
-            actionBasedController.positionAction = new InputActionProperty(positionAction);
-            actionBasedController.rotationAction = new InputActionProperty(rotationAction);
-            actionBasedController.isTrackedAction = new InputActionProperty(isTrackedAction);
-            actionBasedController.trackingStateAction = new InputActionProperty(trackingStateAction);
+            var transform = controllerGameObject.transform;
+            var trackedPoseDriver = controllerGameObject.AddComponent<TrackedPoseDriver>();
+            trackedPoseDriver.positionInput = new InputActionProperty(positionAction);
+            trackedPoseDriver.rotationInput = new InputActionProperty(rotationAction);
+            trackedPoseDriver.trackingStateInput = new InputActionProperty(trackingStateAction);
 
             // Add a device that will be resolved in the second part of the fallback composite binding
             var secondDevice = InputSystem.InputSystem.AddDevice<InputSystem.XR.XRController>();
@@ -80,12 +83,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(isTrackedAction.activeControl, Is.Null);
             Assert.That(trackingStateAction.activeControl, Is.EqualTo(secondDevice.trackingState));
 
-            var currentControllerState = actionBasedController.currentControllerState;
-
-            Assert.That(currentControllerState.position, Is.EqualTo(secondPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(currentControllerState.rotation, Is.EqualTo(secondPose.rotation).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(currentControllerState.isTracked, Is.False);
-            Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(secondTrackingState));
+            Assert.That(transform.localPosition, Is.EqualTo(secondPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(transform.localRotation, Is.EqualTo(secondPose.rotation).Using(QuaternionEqualityComparer.Instance));
 
             // Extra verification that Is Tracked works like a button and has an active control when true
             Set(secondDevice.isTracked, 1f);
@@ -94,7 +93,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(isTrackedAction.ReadValue<float>(), Is.EqualTo(1f));
             Assert.That(isTrackedAction.activeControl, Is.EqualTo(secondDevice.isTracked));
-            Assert.That(currentControllerState.isTracked, Is.True);
 
             // Add a device that will be resolved in the first part of the fallback composite binding
             var firstDevice = InputSystem.InputSystem.AddDevice<InputSystem.XR.XRController>();
@@ -116,12 +114,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(isTrackedAction.activeControl, Is.Null);
             Assert.That(trackingStateAction.activeControl, Is.EqualTo(firstDevice.trackingState));
 
-            currentControllerState = actionBasedController.currentControllerState;
-
-            Assert.That(currentControllerState.position, Is.EqualTo(firstPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(currentControllerState.rotation, Is.EqualTo(firstPose.rotation).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(currentControllerState.isTracked, Is.False);
-            Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(firstTrackingState));
+            Assert.That(transform.localPosition, Is.EqualTo(firstPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(transform.localRotation, Is.EqualTo(firstPose.rotation).Using(QuaternionEqualityComparer.Instance));
 
             // Extra verification that Is Tracked works like a button and has an active control when true
             Set(firstDevice.isTracked, 1f);
@@ -130,10 +124,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(isTrackedAction.ReadValue<float>(), Is.EqualTo(1f));
             Assert.That(isTrackedAction.activeControl, Is.EqualTo(firstDevice.isTracked));
-
-            currentControllerState = actionBasedController.currentControllerState;
-
-            Assert.That(currentControllerState.isTracked, Is.True);
 
             // Remove the first device, the actions should start falling back again
             InputSystem.InputSystem.RemoveDevice(firstDevice);
@@ -149,12 +139,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(isTrackedAction.activeControl, Is.EqualTo(secondDevice.isTracked));
             Assert.That(trackingStateAction.activeControl, Is.EqualTo(secondDevice.trackingState));
 
-            currentControllerState = actionBasedController.currentControllerState;
-
-            Assert.That(currentControllerState.position, Is.EqualTo(secondPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
-            Assert.That(currentControllerState.rotation, Is.EqualTo(secondPose.rotation).Using(QuaternionEqualityComparer.Instance));
-            Assert.That(currentControllerState.isTracked, Is.True);
-            Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(secondTrackingState));
+            Assert.That(transform.localPosition, Is.EqualTo(secondPose.position).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(transform.localRotation, Is.EqualTo(secondPose.rotation).Using(QuaternionEqualityComparer.Instance));
 
             // Extra verification that Is Tracked works like a button and has no active control when false
             Set(secondDevice.isTracked, 0f);
@@ -163,7 +149,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(isTrackedAction.ReadValue<float>(), Is.EqualTo(0f));
             Assert.That(isTrackedAction.activeControl, Is.Null);
-            Assert.That(currentControllerState.isTracked, Is.False);
         }
     }
 }

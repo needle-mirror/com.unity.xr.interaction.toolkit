@@ -541,7 +541,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_HasSelectInteractor;
 
         readonly BindableVariable<float> m_UserScaleVar = new BindableVariable<float>();
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly FloatTweenableVariable m_LineLengthOverrideTweenableVariable = new FloatTweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
 
         /// <summary>

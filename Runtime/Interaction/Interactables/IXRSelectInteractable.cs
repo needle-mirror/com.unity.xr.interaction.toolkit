@@ -191,6 +191,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRSelectInteractable.interactorsSelecting"/>
         public static IXRSelectInteractor GetOldestInteractorSelecting(this IXRSelectInteractable interactable) =>
             interactable?.interactorsSelecting.Count > 0 ? interactable.interactorsSelecting[0] : null;
+
+        /// <summary>
+        /// Gets whether the interactable is currently being selected by an interactor associated with the left hand or controller.
+        /// </summary>
+        /// <param name="interactable">The interactable to operate on.</param>
+        /// <returns>Returns <see langword="true"/> if any interactor currently selecting this interactable has <see cref="IXRInteractor.handedness"/> of <see cref="InteractorHandedness.Left"/>.</returns>
+        /// <remarks>
+        /// This method will return <see langword="true"/> even if it is not exclusively being selected by the left hand or controller.
+        /// In other words, it will still return <see langword="true"/> if the interactable is also being selected by
+        /// an interactor associated with the right hand or controller.
+        /// </remarks>
+        /// <seealso cref="IsSelectedByRight"/>
+        /// <seealso cref="IXRInteractor.handedness"/>
+        public static bool IsSelectedByLeft(this IXRSelectInteractable interactable) =>
+            IsSelectedBy(interactable, InteractorHandedness.Left);
+
+        /// <summary>
+        /// Gets whether the interactable is currently being selected by an interactor associated with the right hand or controller.
+        /// </summary>
+        /// <param name="interactable">The interactable to operate on.</param>
+        /// <returns>Returns <see langword="true"/> if any interactor currently selecting this interactable has <see cref="IXRInteractor.handedness"/> of <see cref="InteractorHandedness.Right"/>.</returns>
+        /// <remarks>
+        /// This method will return <see langword="true"/> even if it is not exclusively being selected by the right hand or controller.
+        /// In other words, it will still return <see langword="true"/> if the interactable is also being selected by
+        /// an interactor associated with the left hand or controller.
+        /// </remarks>
+        /// <seealso cref="IsSelectedByLeft"/>
+        /// <seealso cref="IXRInteractor.handedness"/>
+        public static bool IsSelectedByRight(this IXRSelectInteractable interactable) =>
+            IsSelectedBy(interactable, InteractorHandedness.Right);
+
+        static bool IsSelectedBy(IXRSelectInteractable interactable, InteractorHandedness handedness)
+        {
+            var interactorsSelecting = interactable.interactorsSelecting;
+            for (var i = 0; i < interactorsSelecting.Count; ++i)
+            {
+                if (interactorsSelecting[i].handedness == handedness)
+                    return true;
+            }
+
+            return false;
+        }
     }
 
     /// <summary>

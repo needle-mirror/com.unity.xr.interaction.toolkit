@@ -5,6 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
     /// <summary>
     /// Struct to store affordance state data used to compute affordance transition tweens.
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public readonly struct AffordanceStateData : IEquatable<AffordanceStateData>
     {
         /// <summary>

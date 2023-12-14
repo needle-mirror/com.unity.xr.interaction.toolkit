@@ -10,23 +10,26 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         const float k_LabelsWidth = 270f;
 
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractionEditorSettings.showOldInteractionLayerMaskInInspector"/>.</summary>
-        SerializedProperty m_ShowOldInteractionLayerMaskInInspector;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractionEditorSettings.inputReaderPropertyDrawerMode"/>.</summary>
+        SerializedProperty m_InputReaderPropertyDrawerMode;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
         static class Contents
         {
-            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractionEditorSettings.showOldInteractionLayerMaskInInspector"/>.</summary>
-            public static readonly GUIContent showOldInteractionLayerMaskInInspector =
-                EditorGUIUtility.TrTextContent("Show Old Layer Mask In Inspector",
-                    "Enable this to show the \'Deprecated Interaction Layer Mask\' property in the Inspector window.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractionEditorSettings.inputReaderPropertyDrawerMode"/>.</summary>
+            public static readonly GUIContent inputReaderPropertyDrawerMode =
+                EditorGUIUtility.TrTextContent("Input Reader Property Drawer Mode",
+                    "Determines how the Inspector window displays input reader fields.\n\n" +
+                    "'Compact' displays the property in a compact format, using a minimal number of lines.\n" +
+                    "'Multiline Effective' displays the effective input source underlying the property, using multiple lines.\n" +
+                    "'Multiline All' displays all the input sources underlying the property.");
         }
 
         void OnEnable()
         {
-            m_ShowOldInteractionLayerMaskInInspector = serializedObject.FindProperty(nameof(m_ShowOldInteractionLayerMaskInInspector));
+            m_InputReaderPropertyDrawerMode = serializedObject.FindProperty(nameof(m_InputReaderPropertyDrawerMode));
         }
 
         public override void OnInspectorGUI()
@@ -37,7 +40,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 var labelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = k_LabelsWidth;
-                EditorGUILayout.PropertyField(m_ShowOldInteractionLayerMaskInInspector, Contents.showOldInteractionLayerMaskInInspector);
+                EditorGUILayout.PropertyField(m_InputReaderPropertyDrawerMode, Contents.inputReaderPropertyDrawerMode);
                 EditorGUIUtility.labelWidth = labelWidth;
 
                 if (check.changed)

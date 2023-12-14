@@ -6,7 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// <see cref="UnityEvent"/> that responds to changes of hover, selection, and activation by this Interactable.
     /// </summary>
-    [Serializable, Obsolete("XRInteractableEvent has been deprecated. Use events specific to each state change instead.")]
+    [Serializable, Obsolete("XRInteractableEvent has been deprecated. Use events specific to each state change instead.", true)]
     public class XRInteractableEvent : UnityEvent<XRBaseInteractor>
     {
     }
@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this Interactor.
     /// </summary>
-    [Serializable, Obsolete("XRInteractorEvent has been deprecated. Use events specific to each state change instead.")]
+    [Serializable, Obsolete("XRInteractorEvent has been deprecated. Use events specific to each state change instead.", true)]
     public class XRInteractorEvent : UnityEvent<XRBaseInteractable>
     {
     }
@@ -27,11 +27,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
         /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
+        [Obsolete("interactor has been deprecated. Use interactorObject instead.", true)]
         public XRBaseInteractor interactor
         {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
+            get => default;
+            set => _ = value;
         }
 
         /// <summary>
@@ -40,11 +40,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
         /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
+        [Obsolete("interactable has been deprecated. Use interactableObject instead.", true)]
         public XRBaseInteractable interactable
         {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
+            get => default;
+            set => _ = value;
         }
     }
 
@@ -58,11 +58,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
         /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
+        [Obsolete("interactor has been deprecated. Use interactorObject instead.", true)]
         public XRBaseInteractor interactor
         {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
+            get => default;
+            set => _ = value;
         }
     }
 
@@ -74,11 +74,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
         /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
+        [Obsolete("interactable has been deprecated. Use interactableObject instead.", true)]
         public XRBaseInteractable interactable
         {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
+            get => default;
+            set => _ = value;
         }
     }
 
@@ -90,11 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactor</c> has been deprecated. Use <see cref="interactorObject"/> instead.
         /// </remarks>
-        [Obsolete("interactor has been deprecated. Use interactorObject instead.")]
+        [Obsolete("interactor has been deprecated. Use interactorObject instead.", true)]
         public XRBaseInteractor interactor
         {
-            get => interactorObject as XRBaseInteractor;
-            set => interactorObject = value;
+            get => default;
+            set => _ = value;
         }
     }
 
@@ -106,11 +106,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>interactable</c> has been deprecated. Use <see cref="interactableObject"/> instead.
         /// </remarks>
-        [Obsolete("interactable has been deprecated. Use interactableObject instead.")]
+        [Obsolete("interactable has been deprecated. Use interactableObject instead.", true)]
         public XRBaseInteractable interactable
         {
-            get => interactableObject as XRBaseInteractable;
-            set => interactableObject = value;
+            get => default;
+            set => _ = value;
         }
     }
 

@@ -106,9 +106,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
                 {
-                    var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                    if (interactableObject != null)
-                        targetObject = interactableObject.gameObject;
+                    var grabInteractable = gameObject.GetComponentInParent<XRGrabInteractable>();
+                    if (grabInteractable != null)
+                    {
+                        var interactableObject = grabInteractable.gameObject;
+                        if (interactableObject != null)
+                            targetObject = interactableObject;
+                    }
+                    else
+                    {
+#pragma warning disable 618
+                        var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
+                        if (baseGestureInteractable != null)
+                        {
+                            var interactableObject = baseGestureInteractable.gameObject;
+                            if (interactableObject != null)
+                                targetObject = interactableObject;
+                        }
+#pragma warning restore 618
+                    }                    
                 }
             }
         }

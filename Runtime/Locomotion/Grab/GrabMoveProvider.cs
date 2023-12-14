@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using UnityEngine.InputSystem;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -13,11 +14,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="LocomotionProvider"/>
     [AddComponentMenu("XR/Locomotion/Grab Move Provider", 11)]
     [HelpURL(XRHelpURLConstants.k_GrabMoveProvider)]
-    public class GrabMoveProvider : ConstrainedMoveProvider
+    public partial class GrabMoveProvider : ConstrainedMoveProvider
     {
         [SerializeField]
-        [Tooltip("The controller Transform that will drive grab movement with its local position. Will use this " +
-                 "GameObject's Transform if not set.")]
         Transform m_ControllerTransform;
         /// <summary>
         /// The controller Transform that will drive grab movement with its local position. Will use this GameObject's
@@ -34,7 +33,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("Controls whether to allow grab move locomotion while the controller is selecting an interactable.")]
         bool m_EnableMoveWhileSelecting;
         /// <summary>
         /// Controls whether to allow grab move locomotion while the controller is selecting an interactable.
@@ -46,7 +44,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The ratio of actual movement distance to controller movement distance.")]
         float m_MoveFactor = 1f;
         /// <summary>
         /// The ratio of actual movement distance to controller movement distance.
@@ -58,15 +55,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Tooltip("The Input System Action that will be used to perform grab movement while held. Must be a Button Control.")]
-        InputActionProperty m_GrabMoveAction = new InputActionProperty(new InputAction("Grab Move", type: InputActionType.Button));
+        XRInputButtonReader m_GrabMoveInput = new XRInputButtonReader("Grab Move");
+
         /// <summary>
-        /// The Input System Action that Unity uses to perform grab movement while held. Must be a <see cref="ButtonControl"/> Control.
+        /// Input data that will be used to perform grab movement while held.
+        /// If the source is an Input Action, it must have a button-like interaction where phase equals performed when pressed.
+        /// Typically a <see cref="ButtonControl"/> Control or a Value type action with a Press interaction.
         /// </summary>
-        public InputActionProperty grabMoveAction
+        public XRInputButtonReader grabMoveInput
         {
-            get => m_GrabMoveAction;
-            set => SetInputActionProperty(ref m_GrabMoveAction, value);
+            get => m_GrabMoveInput;
+            set => XRInputReaderUtility.SetInputProperty(ref m_GrabMoveInput, value, this);
         }
 
         /// <summary>
@@ -91,6 +90,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_ControllerTransform = transform;
 
             GatherControllerInteractors();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (m_GrabMoveAction.reference != null || (m_GrabMoveAction.action != null && m_GrabMoveAction.action.bindings.Count > 0))
+                Debug.LogWarning("Grab Move Action has been deprecated. Please configure input action using Grab Move Input instead.", this);
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -98,7 +102,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnEnable()
         {
+            // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
+            m_GrabMoveInput.EnableDirectActionIfModeUsed();
+#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
             m_GrabMoveAction.EnableDirectAction();
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -106,14 +114,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void OnDisable()
         {
+            m_GrabMoveInput.DisableDirectActionIfModeUsed();
+#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
             m_GrabMoveAction.DisableDirectAction();
+#pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
         protected override Vector3 ComputeDesiredMove(out bool attemptingMove)
         {
             attemptingMove = false;
-            var xrOrigin = system.xrOrigin?.Origin;
+            var xrOrigin = mediator.xrOrigin?.Origin;
             var wasMoving = m_IsMoving;
             m_IsMoving = canMove && IsGrabbing() && xrOrigin != null;
             if (!m_IsMoving)
@@ -140,7 +151,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Whether grab move is active.</returns>
         public bool IsGrabbing()
         {
-            return m_GrabMoveAction.action.IsPressed() && (m_EnableMoveWhileSelecting || !ControllerHasSelection());
+            var isPerformed = m_GrabMoveInput.ReadIsPerformed();
+
+#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
+            var deprecatedAction = m_GrabMoveAction.action;
+#pragma warning restore CS0618
+            if (deprecatedAction != null)
+            {
+                isPerformed |= deprecatedAction.IsPressed();
+            }
+
+            return isPerformed && (m_EnableMoveWhileSelecting || !ControllerHasSelection());
         }
 
         void GatherControllerInteractors()
@@ -152,24 +173,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool ControllerHasSelection()
         {
-            foreach (var interactor in m_ControllerInteractors)
+            for (var index = 0; index < m_ControllerInteractors.Count; ++index)
             {
+                var interactor = m_ControllerInteractors[index];
                 if (interactor.hasSelection)
                     return true;
             }
 
             return false;
-        }
-
-        void SetInputActionProperty(ref InputActionProperty property, InputActionProperty value)
-        {
-            if (Application.isPlaying)
-                property.DisableDirectAction();
-
-            property = value;
-
-            if (Application.isPlaying && isActiveAndEnabled)
-                property.EnableDirectAction();
         }
     }
 }

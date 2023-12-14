@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -7,6 +8,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRBaseControllerInteractor"/>.
     /// </summary>
     [CustomEditor(typeof(XRBaseControllerInteractor), true), CanEditMultipleObjects]
+    [Obsolete("XRBaseControllerInteractorEditor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractorEditor. (UnityUpgradable) -> XRBaseInputInteractorEditor")]
     public class XRBaseControllerInteractorEditor : XRBaseInteractorEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
@@ -87,6 +89,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
+        [Obsolete("XRBaseControllerInteractorEditor.BaseControllerContents has been deprecated in version 3.0.0. It has been moved to XRBaseInputInteractorEditor.BaseInputContents.")]
         protected static class BaseControllerContents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
@@ -258,7 +261,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             foreach (var targetObject in serializedObject.targetObjects)
             {
                 var interactor = (XRBaseControllerInteractor)targetObject;
-                if (interactor.FindControllerComponent() == null)
+                if (interactor.GetComponentInParent<XRBaseController>(true) == null)
                 {
                     EditorGUILayout.HelpBox(BaseControllerContents.missingRequiredController, MessageType.Warning, true);
                     break;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interaction;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -14,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRPokeFilter"/>
     [AddComponentMenu("XR/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
-    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider
+    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider, IAttachPointVelocityProvider
     {
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
@@ -184,6 +185,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeStateData;
 
+        /// <summary>
+        /// The tracker used to compute the velocity of the attach point.
+        /// This behavior automatically updates this velocity tracker each frame during <see cref="PreprocessInteractor"/>.
+        /// </summary>
+        /// <seealso cref="GetAttachPointVelocity"/>
+        /// <seealso cref="GetAttachPointAngularVelocity"/>
+        protected IAttachPointVelocityTracker attachPointVelocityTracker { get; set; } = new AttachPointVelocityTracker();
+
         GameObject m_HoverDebugSphere;
         MeshRenderer m_HoverDebugRenderer;
 
@@ -209,7 +218,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void Awake()
         {
             base.Awake();
-            useAttachPointVelocity = true;
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
             m_PositionGetter = GetPokePosition;
@@ -237,18 +245,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-        }
-
-        /// <inheritdoc />
         public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             base.PreprocessInteractor(updatePhase);
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
+                if (TryGetXROrigin(out var origin))
+                    attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null), origin);
+                else
+                    attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
+                
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
                 m_PokeCanSelect = EvaluatePokeInteraction(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
@@ -569,6 +576,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnUIHoverExited(UIHoverEventArgs args)
         {
             m_UIHoverExited?.Invoke(args);
+        }
+
+        /// <summary>
+        /// Last computed default attach point velocity, based on multi-frame sampling of the pose in world space.
+        /// </summary>
+        /// <returns>Returns the transformed attach point linear velocity.</returns>
+        /// <seealso cref="GetAttachPointAngularVelocity"/>
+        public Vector3 GetAttachPointVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return attachPointVelocityTracker.GetAttachPointVelocity(origin);
+            }
+            return attachPointVelocityTracker.GetAttachPointVelocity();
+        }
+
+        /// <summary>
+        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose in world space.
+        /// </summary>
+        /// <returns>Returns the transformed attach point angular velocity.</returns>
+        /// <seealso cref="GetAttachPointVelocity"/>
+        public Vector3 GetAttachPointAngularVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return attachPointVelocityTracker.GetAttachPointAngularVelocity(origin);
+            }
+            return attachPointVelocityTracker.GetAttachPointAngularVelocity();
         }
     }
 }

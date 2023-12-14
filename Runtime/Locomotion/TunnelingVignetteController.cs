@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Assertions;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -322,7 +323,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         LocomotionProvider m_LocomotionProvider;
 
         /// <summary>
-        /// The <see cref="LocomotionProvider"/> to trigger the tunneling vignette effects based on its <see cref="LocomotionPhase"/>.
+        /// The <see cref="LocomotionProvider"/> to trigger the tunneling vignette effects based on its <see cref="LocomotionState"/>.
         /// </summary>
         public LocomotionProvider locomotionProvider
         {
@@ -561,16 +562,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (!provider.enabled || locomotionProvider == null)
                         continue;
 
-                    switch (locomotionProvider.locomotionPhase)
-                    {
-                        case LocomotionPhase.Started:
-                        case LocomotionPhase.Moving:
-                            BeginTunnelingVignette(provider);
-                            break;
-                        case LocomotionPhase.Done:
-                            EndTunnelingVignette(provider);
-                            break;
-                    }
+                    if (locomotionProvider.isLocomotionActive)
+                        BeginTunnelingVignette(provider);
+                    else if (locomotionProvider.locomotionState == LocomotionState.Ended)
+                        EndTunnelingVignette(provider);
                 }
             }
 

@@ -6,6 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// <summary>
     /// Blend mode used by the color affordance receiver when applying the new color.
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public enum ColorBlendMode : byte
     {
         /// <summary>
@@ -28,6 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// Affordance state theme data structure for for Color affordances. 
     /// </summary>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ColorAffordanceTheme : BaseAffordanceTheme<Color>
     {
         [Header("Color Blend Configuration")]
@@ -78,6 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// </summary>
     /// <seealso cref="ColorAffordanceThemeDatum"/>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ColorAffordanceThemeDatumProperty : DatumProperty<ColorAffordanceTheme, ColorAffordanceThemeDatum>
     {
         /// <inheritdoc/>
@@ -96,6 +99,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// </summary>
     [CreateAssetMenu(fileName = "ColorAffordanceTheme", menuName = "Affordance Theme/Color Affordance Theme", order = 0)]
     [HelpURL(XRHelpURLConstants.k_ColorAffordanceThemeDatum)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ColorAffordanceThemeDatum : Datum<ColorAffordanceTheme>
     {
     }

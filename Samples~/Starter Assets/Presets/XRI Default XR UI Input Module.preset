@@ -46,7 +46,7 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_TrackedDeviceDragThresholdMultiplier
-    value: 1.4
+    value: 2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_TrackedScrollDeltaMultiplier
@@ -55,10 +55,6 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_ActiveInputMode
     value: 1
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
-    propertyPath: m_MaxTrackedDeviceRaycastDistance
-    value: 1000
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_EnableXRInput

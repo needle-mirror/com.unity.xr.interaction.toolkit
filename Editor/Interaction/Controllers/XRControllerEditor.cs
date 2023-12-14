@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
+﻿using System;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -8,7 +8,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRController"/>.
     /// </summary>
     [CustomEditor(typeof(XRController), true), CanEditMultipleObjects]
-    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
+    [Obsolete("XRControllerEditor has been deprecated in version 3.0.0.")]
     public class XRControllerEditor : XRBaseControllerEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.controllerNode"/>.</summary>
@@ -32,10 +32,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.directionalAnchorRotation"/>.</summary>
         SerializedProperty m_DirectionalAnchorRotation;
 
-#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.poseProvider"/>.</summary>
-        SerializedProperty m_PoseProvider;
 #endif
+        SerializedProperty m_PoseProvider;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -63,7 +63,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.directionalAnchorRotation"/>.</summary>
             public static GUIContent directionalAnchorRotation = EditorGUIUtility.TrTextContent("Directional Anchor Rotation", "The input to use to compute a directional angle to rotate the interactor's attach point to match it.");
 
-#if ENABLE_VR || ENABLE_AR || PACKAGE_DOCS_GENERATION
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.poseProvider"/>.</summary>
             public static GUIContent poseProvider = EditorGUIUtility.TrTextContent("Pose Provider", "Pose provider used to provide tracking data separate from the XR Node.");
             /// <summary>The help box message when Pose Provider is being used.</summary>
@@ -86,17 +86,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_MoveObjectIn = serializedObject.FindProperty("m_MoveObjectIn");
             m_MoveObjectOut = serializedObject.FindProperty("m_MoveObjectOut");
             m_DirectionalAnchorRotation = serializedObject.FindProperty("m_DirectionalAnchorRotation");
-
-#if ENABLE_VR || ENABLE_AR
             m_PoseProvider = serializedObject.FindProperty("m_PoseProvider");
-#endif
         }
 
         /// <inheritdoc />
         protected override void DrawInputConfiguration()
         {
             base.DrawInputConfiguration();
-#if ENABLE_VR || ENABLE_AR
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
             EditorGUILayout.PropertyField(m_PoseProvider, Contents.poseProvider);
             if (m_PoseProvider.objectReferenceValue != null)
                 EditorGUILayout.HelpBox(Contents.poseProviderWarning.text, MessageType.Info, true);

@@ -1,12 +1,15 @@
 ﻿# Two Handed Grab Move Provider
 
-Allows the user to combine two [GrabMoveProvider](grab-move-provider.md) instances for locomotion. This allows the user to translate, scale, and rotate themselves counter to transformations of the line segment between both hands.
+A Two-Handed Grab Move Provider allows for grab movement with both hands by using two [Grab Move Provider](grab-move-provider.md) components. In addition to performing translation, this provider is able to rotate and scale the Origin counter to hand movements. It uses the vector from the left hand to the right hand to determine yaw rotation and uniform scale.
+
+When a Two-Handed Grab Move Provider is used, either of its Grab Move Providers will only perform locomotion by itself if the other single-handed provider is not trying to perform locomotion. This means that when both grab move inputs are held, the Two Handed Grab Move Provider is the Locomotion Provider performing translation of the Origin.
 
 ![TwoHandedGrabMoveProvider](images/two-handed-grab-move-provider.png)
 
 | **Property** | **Description** |
 |---|---|
-| **System** | The [LocomotionSystem](locomotion-system.md) that this `LocomotionProvider` communicates with for exclusive access to an XR Origin. If one is not provided, the behavior will attempt to locate one during its Awake call. |
+|**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
+|**Transform Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Enable Free X Movement** | Controls whether to enable unconstrained movement along the x-axis. |
 | **Enable Free Y Movement** | Controls whether to enable unconstrained movement along the y-axis. |
 | **Enable Free Z Movement** | Controls whether to enable unconstrained movement along the z-axis. |

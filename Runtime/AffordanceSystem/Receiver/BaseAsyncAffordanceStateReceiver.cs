@@ -13,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
     /// Base implementation of an asynchronous affordance state receiver to be used with affordance types to tween using the job system.
     /// </summary>
     /// <typeparam name="T">The type of the value struct.</typeparam>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class BaseAsyncAffordanceStateReceiver<T> : BaseAffordanceStateReceiver<T>, IAsyncAffordanceStateReceiver where T : struct, IEquatable<T>
     {
         NativeArray<T> m_JobOutputStore;

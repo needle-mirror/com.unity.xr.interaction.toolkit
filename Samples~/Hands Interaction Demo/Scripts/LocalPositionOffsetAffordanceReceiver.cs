@@ -1,3 +1,4 @@
+using System;
 using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
@@ -8,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     /// Broadcasts new affordance value with Unity Event.
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Transformation/Local Position Offset Affordance Receiver", 12)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class LocalPositionOffsetAffordanceReceiver : Vector3AffordanceReceiver
     {
         [SerializeField]

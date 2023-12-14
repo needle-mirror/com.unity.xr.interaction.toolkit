@@ -72,28 +72,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const float k_DefaultThrowAngularVelocityScale = 1f;
         const float k_DeltaTimeThreshold = 0.001f;
 
-        /// <summary>
-        /// Controls the method used when calculating the target position of the object.
-        /// </summary>
-        /// <seealso cref="attachPointCompatibilityMode"/>
-        public enum AttachPointCompatibilityMode
-        {
-            /// <summary>
-            /// Use the default, correct method for calculating the target position of the object.
-            /// </summary>
-            Default,
-
-            /// <summary>
-            /// Use an additional offset from the center of mass when calculating the target position of the object.
-            /// Also incorporate the scale of the Interactor's Attach Transform.
-            /// Marked for deprecation.
-            /// This is the backwards compatible support mode for projects that accounted for the
-            /// unintended difference when using XR Interaction Toolkit prior to version <c>1.0.0-pre.4</c>.
-            /// To have the effective attach position be the same between all <see cref="XRBaseInteractable.MovementType"/> values, use <see cref="Default"/>.
-            /// </summary>
-            Legacy,
-        }
-
         [SerializeField]
         Transform m_AttachTransform;
 
@@ -607,28 +585,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        AttachPointCompatibilityMode m_AttachPointCompatibilityMode = AttachPointCompatibilityMode.Default;
-
-        /// <summary>
-        /// Controls the method used when calculating the target position of the object.
-        /// Use <see cref="AttachPointCompatibilityMode.Default"/> for consistent attach points
-        /// between all <see cref="XRBaseInteractable.MovementType"/> values.
-        /// Marked for deprecation, this property will be removed in a future version.
-        /// </summary>
-        /// <remarks>
-        /// This is a backwards compatibility option in order to keep the old, incorrect method
-        /// of calculating the attach point. Projects that already accounted for the difference
-        /// can use the Legacy option to maintain the same attach positioning from older versions
-        /// without needing to modify the Attach Transform position.
-        /// </remarks>
-        /// <seealso cref="AttachPointCompatibilityMode"/>
-        public AttachPointCompatibilityMode attachPointCompatibilityMode
-        {
-            get => m_AttachPointCompatibilityMode;
-            set => m_AttachPointCompatibilityMode = value;
-        }
-
-        [SerializeField]
         List<XRBaseGrabTransformer> m_StartingSingleGrabTransformers = new List<XRBaseGrabTransformer>();
 
         /// <summary>
@@ -789,15 +745,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             InitializeTargetPoseAndScale(transform);
-
-            if (m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Legacy)
-            {
-#pragma warning disable 618 // Adding deprecated component to help with backwards compatibility with existing user projects.
-                var legacyGrabTransformer = GetOrAddComponent<XRLegacyGrabTransformer>();
-#pragma warning restore 618
-                legacyGrabTransformer.enabled = true;
-                return;
-            }
 
             // Load the starting grab transformers into the Play mode lists.
             // It is more efficient to add than move, but if there are existing items
@@ -1134,7 +1081,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void InitializeTargetPoseAndScale(Transform thisTransform)
         {
-            m_TargetPose.position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default ? thisTransform.position : m_Rigidbody.worldCenterOfMass;
+            m_TargetPose.position = thisTransform.position;
             m_TargetPose.rotation = thisTransform.rotation;
             m_TargetLocalScale = thisTransform.localScale;
         }
@@ -1614,12 +1561,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
                 if (m_TrackPosition)
-                {
-                    var position = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
-                        ? m_TargetPose.position
-                        : m_TargetPose.position - m_Rigidbody.worldCenterOfMass + m_Rigidbody.position;
-                    m_Rigidbody.MovePosition(position);
-                }
+                    m_Rigidbody.MovePosition(m_TargetPose.position);
 
                 if (m_TrackRotation)
                     m_Rigidbody.MoveRotation(m_TargetPose.rotation);
@@ -1643,9 +1585,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     // Scale initialized velocity by prediction factor
                     m_Rigidbody.velocity *= (1f - m_VelocityDamping);
-                    var positionDelta = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
-                        ? m_TargetPose.position - transform.position
-                        : m_TargetPose.position - m_Rigidbody.worldCenterOfMass;
+                    var positionDelta = m_TargetPose.position - transform.position;
                     var velocity = positionDelta / deltaTime;
                     m_Rigidbody.velocity += (velocity * m_VelocityScale);
                 }

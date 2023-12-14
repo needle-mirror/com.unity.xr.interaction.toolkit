@@ -12,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
     [AddComponentMenu("Affordance System/XR Interactable Affordance State Provider", 11)]
     [HelpURL(XRHelpURLConstants.k_XRInteractableAffordanceStateProvider)]
     [DisallowMultipleComponent]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class XRInteractableAffordanceStateProvider : BaseAffordanceStateProvider
     {
         /// <summary>

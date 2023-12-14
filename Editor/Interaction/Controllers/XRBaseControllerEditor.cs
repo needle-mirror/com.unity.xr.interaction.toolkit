@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -10,9 +8,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRBaseController"/>.
     /// </summary>
     [CustomEditor(typeof(XRBaseController), true), CanEditMultipleObjects]
-    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
-    public partial class XRBaseControllerEditor : BaseInteractionEditor
+    [Obsolete("XRBaseControllerEditor has been deprecated in version 3.0.0.")]
+    public class XRBaseControllerEditor : BaseInteractionEditor
     {
+        /// <inheritdoc cref="m_ModelParent"/>
+        [Obsolete("m_ModelTransform has been deprecated due to being renamed. Use m_ModelParent instead. (UnityUpgradable) -> m_ModelParent", true)]
+        protected SerializedProperty m_ModelTransform;
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.updateTrackingType"/>.</summary>
         protected SerializedProperty m_UpdateTrackingType;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.enableInputTracking"/>.</summary>
@@ -67,8 +69,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent modelPrefabIgnored = EditorGUIUtility.TrTextContent("Model Prefab will be ignored and not instantiated since Model is already set.");
 
             /// <inheritdoc cref="modelParent"/>
-            [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead.")]
-            public static GUIContent modelTransform = modelParent;
+            [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead.", true)]
+            public static GUIContent modelTransform;
         }
 
         /// <summary>
@@ -86,20 +88,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AnimateModel = serializedObject.FindProperty("m_AnimateModel");
             m_ModelSelectTransition = serializedObject.FindProperty("m_ModelSelectTransition");
             m_ModelDeSelectTransition = serializedObject.FindProperty("m_ModelDeSelectTransition");
-
-#pragma warning disable 618 // Setting deprecated field to help with backwards compatibility with existing user code.
-            m_ModelTransform = m_ModelParent;
-#pragma warning restore 618
-        }
-
-        /// <inheritdoc />
-        protected override List<string> GetDerivedSerializedPropertyNames()
-        {
-            var propertyNames = base.GetDerivedSerializedPropertyNames();
-            // Ignore m_ButtonPressPoint since it is deprecated and planned to be removed when Input System 1.1 is released.
-            // The expectation is if a user needs to modify it, they can do so through setting the property.
-            propertyNames.Add("m_ButtonPressPoint");
-            return propertyNames;
         }
 
         /// <inheritdoc />

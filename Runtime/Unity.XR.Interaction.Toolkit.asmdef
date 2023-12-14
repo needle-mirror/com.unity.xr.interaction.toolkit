@@ -87,6 +87,11 @@
             "name": "com.unity.xr.openxr",
             "expression": "1.6.0",
             "define": "OPENXR_1_6_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.legacyinputhelpers",
+            "expression": "2.1.10",
+            "define": "XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

@@ -5,11 +5,12 @@ using Unity.XR.CoreUtils;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
-    internal static class TestUtilities
+    static class TestUtilities
     {
         internal static void DestroyAllSceneObjects()
         {
@@ -52,11 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             GameObject interactorGO = new GameObject("Direct Interactor");
             CreateGOSphereCollider(interactorGO);
-            XRController controller = interactorGO.AddComponent<XRController>();
             XRDirectInteractor interactor = interactorGO.AddComponent<XRDirectInteractor>();
-            interactor.xrController = controller;
-            controller.enableInputTracking = false;
-            controller.enableInputActions = false;
             return interactor;
         }
 
@@ -78,21 +75,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var cameraOffsetGO = new GameObject("CameraOffset");
             cameraOffsetGO.transform.SetParent(xrOrigin.transform,false);
             xrOrigin.CameraFloorOffsetObject = cameraOffsetGO;
-
-            xrOrigin.transform.position = Vector3.zero;
-            xrOrigin.transform.rotation = Quaternion.identity;
+            xrOrigin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
             // Add camera
             var cameraGO = new GameObject("Camera");
             var camera = cameraGO.AddComponent<Camera>();
 
             cameraGO.transform.SetParent(cameraOffsetGO.transform, false);
-            xrOrigin.Camera = cameraGO.GetComponent<Camera>();
+            xrOrigin.Camera = camera;
             xrOriginGO.SetActive(true);
-
-#if ENABLE_VR
-            XRDevice.DisableAutoXRCameraTracking(camera, true);
-#endif
 
             return xrOrigin;
         }
@@ -108,25 +99,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         internal static XRRayInteractor CreateRayInteractor()
         {
             GameObject interactorGO = new GameObject("Ray Interactor");
-            XRController controller = interactorGO.AddComponent<XRController>();
             XRRayInteractor interactor = interactorGO.AddComponent<XRRayInteractor>();
-            XRInteractorLineVisual ilv = interactorGO.AddComponent<XRInteractorLineVisual>();
-            interactor.xrController = controller;
-            controller.enableInputTracking = false;
             interactor.enableUIInteraction = false;
-            controller.enableInputActions = false;
+            interactorGO.AddComponent<XRInteractorLineVisual>();
             return interactor;
         }
 
         internal static XRGazeInteractor CreateGazeInteractor()
         {
             GameObject interactorGO = new GameObject("Gaze Interactor");
-            XRController controller = interactorGO.AddComponent<XRController>();
             XRGazeInteractor interactor = interactorGO.AddComponent<XRGazeInteractor>();
-            interactor.xrController = controller;
-            controller.enableInputTracking = false;
             interactor.enableUIInteraction = false;
-            controller.enableInputActions = false;
             return interactor;
         }
 
@@ -194,7 +177,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         internal static XRInteractableSnapVolume CreateSnapVolume()
         {
             GameObject snapVolumeGO = new GameObject("Snap Volume");
-            CreateGOBoxCollider(snapVolumeGO, true);
+            CreateGOBoxCollider(snapVolumeGO);
             var boxCollider = snapVolumeGO.GetComponent<BoxCollider>();
             XRInteractableSnapVolume snapVolume = snapVolumeGO.AddComponent<XRInteractableSnapVolume>();
             snapVolume.snapCollider = boxCollider;
@@ -220,10 +203,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactable;
         }
 
-        internal static XRControllerRecorder CreateControllerRecorder(XRController controller, Action<XRControllerRecording> addRecordingFrames)
+        internal static XRControllerRecorder CreateControllerRecorder(XRBaseInputInteractor interactor, Action<XRControllerRecording> addRecordingFrames)
         {
-            var controllerRecorder = controller.gameObject.AddComponent<XRControllerRecorder>();
-            controllerRecorder.xrController = controller;
+            var controllerRecorder = interactor.gameObject.AddComponent<XRControllerRecorder>();
+            controllerRecorder.SetInteractor(interactor);
             controllerRecorder.recording = ScriptableObject.CreateInstance<XRControllerRecording>();
             addRecordingFrames(controllerRecorder.recording);
             controllerRecorder.recording.SetFrameDependentData();
@@ -285,6 +268,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             group.AddGroupMember(memberGroup2);
             group.AddGroupMember(memberGroup3);
             return group;
+        }
+
+        internal static XRBodyTransformer CreateXRBodyTransformer(XROrigin xrOrigin)
+        {
+            var xrBodyTransformerGO = new GameObject("XR Body Transformer");
+            var xrBodyTransformer = xrBodyTransformerGO.AddComponent<XRBodyTransformer>();
+            xrBodyTransformer.xrOrigin = xrOrigin;
+            return xrBodyTransformer;
+        }
+
+        internal static LocomotionMediator CreateLocomotionMediatorWithXROrigin()
+        {
+            var xrOrigin = CreateXROrigin();
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            return mediator;
+        }
+
+        internal static MockLocomotionProvider CreateMockLocomotionProvider(LocomotionMediator mediator)
+        {
+            var provider = new GameObject("Mock Locomotion Provider").AddComponent<MockLocomotionProvider>();
+            provider.mediator = mediator;
+            return provider;
         }
     }
 
@@ -550,4 +555,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public override bool IsPointerOverGameObject(int pointerId) => true;
     }
 
+    class MockLocomotionProvider : LocomotionProvider
+    {
+        /// <inheritdoc />
+        public override bool canStartMoving => m_FinishedPreparation;
+
+        public DelegateXRBodyTransformation delegateTransformation { get; } = new DelegateXRBodyTransformation();
+
+        bool m_FinishedPreparation;
+
+        public bool InvokeTryPrepareLocomotion()
+        {
+            m_FinishedPreparation = false;
+            return TryPrepareLocomotion();
+        }
+
+        public void FinishPreparation()
+        {
+            m_FinishedPreparation = true;
+        }
+
+        public bool InvokeTryStartLocomotionImmediately()
+        {
+            return TryStartLocomotionImmediately();
+        }
+
+        public bool InvokeTryEndLocomotion()
+        {
+            return TryEndLocomotion();
+        }
+
+        public bool InvokeTryQueueTransformation()
+        {
+            return TryQueueTransformation(delegateTransformation);
+        }
+    }
 }

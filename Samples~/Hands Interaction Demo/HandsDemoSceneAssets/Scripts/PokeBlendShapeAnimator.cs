@@ -34,7 +34,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 
         IXRHoverInteractable m_HoverInteractable;
         IXRInteractionStrengthInteractable m_InteractionStrengthInteractable;
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly FloatTweenableVariable m_TweenableVariable = new FloatTweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         float m_TweenTarget;
         

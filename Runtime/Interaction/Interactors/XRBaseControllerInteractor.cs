@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
@@ -10,12 +11,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// hover and selection. Additionally, this class provides functionality for checking the controller's selection status
     /// and hiding the controller on selection.
     /// </summary>
-    public abstract partial class XRBaseControllerInteractor : XRBaseInteractor, IXRActivateInteractor
+    [Obsolete("XRBaseControllerInteractor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractor. (UnityUpgradable) -> XRBaseInputInteractor")]
+    public abstract class XRBaseControllerInteractor : XRBaseInteractor, IXRActivateInteractor
     {
         /// <summary>
         /// This defines the type of input that triggers an interaction.
         /// </summary>
         /// <seealso cref="selectActionTrigger"/>
+        [Obsolete("XRBaseControllerInteractor.InputTriggerType has been deprecated in version 3.0.0. It has been moved to XRBaseInputInteractor.InputTriggerType.")]
         public enum InputTriggerType
         {
             /// <summary>
@@ -54,6 +57,153 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// </summary>
             Sticky,
         }
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays an <see cref="AudioClip"/> on Select Entered.
+        /// </summary>
+        /// <seealso cref="audioClipForOnSelectEntered"/>
+        /// <remarks><c>playAudioClipOnSelectEnter</c> has been deprecated. Use <see cref="playAudioClipOnSelectEntered"/> instead.</remarks>
+        [Obsolete("playAudioClipOnSelectEnter has been deprecated. Use playAudioClipOnSelectEntered instead. (UnityUpgradable) -> playAudioClipOnSelectEntered", true)]
+        public bool playAudioClipOnSelectEnter => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Select Entered.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnSelectEntered"/>
+        /// <remarks><c>audioClipForOnSelectEnter</c> has been deprecated. Use <see cref="audioClipForOnSelectEntered"/> instead.</remarks>
+        [Obsolete("audioClipForOnSelectEnter has been deprecated. Use audioClipForOnSelectEntered instead. (UnityUpgradable) -> audioClipForOnSelectEntered", true)]
+        public AudioClip audioClipForOnSelectEnter => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Select Entered.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnSelectEntered"/>
+        /// <remarks><c>AudioClipForOnSelectEnter</c> has been deprecated. Use <see cref="audioClipForOnSelectEntered"/> instead.</remarks>
+        [Obsolete("AudioClipForOnSelectEnter has been deprecated. Use audioClipForOnSelectEntered instead. (UnityUpgradable) -> audioClipForOnSelectEntered", true)]
+        public AudioClip AudioClipForOnSelectEnter
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays an <see cref="AudioClip"/> on Select Exited.
+        /// </summary>
+        /// <seealso cref="audioClipForOnSelectExited"/>
+        /// <remarks><c>playAudioClipOnSelectExit</c> has been deprecated. Use <see cref="playAudioClipOnSelectExited"/> instead.</remarks>
+        [Obsolete("playAudioClipOnSelectExit has been deprecated. Use playAudioClipOnSelectExited instead. (UnityUpgradable) -> playAudioClipOnSelectExited", true)]
+        public bool playAudioClipOnSelectExit => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Select Exited.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnSelectExited"/>
+        /// <remarks><c>audioClipForOnSelectExit</c> has been deprecated. Use <see cref="audioClipForOnSelectExited"/> instead.</remarks>
+        [Obsolete("audioClipForOnSelectExit has been deprecated. Use audioClipForOnSelectExited instead. (UnityUpgradable) -> audioClipForOnSelectExited", true)]
+        public AudioClip audioClipForOnSelectExit => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Select Exited.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnSelectExited"/>
+        /// <remarks><c>AudioClipForOnSelectExit</c> has been deprecated. Use <see cref="audioClipForOnSelectExited"/> instead.</remarks>
+        [Obsolete("AudioClipForOnSelectExit has been deprecated. Use audioClipForOnSelectExited instead. (UnityUpgradable) -> audioClipForOnSelectExited", true)]
+        public AudioClip AudioClipForOnSelectExit
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays an <see cref="AudioClip"/> on Hover Entered.
+        /// </summary>
+        /// <seealso cref="audioClipForOnHoverEntered"/>
+        /// <remarks><c>playAudioClipOnHoverEnter</c> has been deprecated. Use <see cref="playAudioClipOnHoverEntered"/> instead.</remarks>
+        [Obsolete("playAudioClipOnHoverEnter has been deprecated. Use playAudioClipOnHoverEntered instead. (UnityUpgradable) -> playAudioClipOnHoverEntered", true)]
+        public bool playAudioClipOnHoverEnter => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Hover Entered.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnHoverEntered"/>
+        /// <remarks><c>audioClipForOnHoverEnter</c> has been deprecated. Use <see cref="audioClipForOnHoverEntered"/> instead.</remarks>
+        [Obsolete("audioClipForOnHoverEnter has been deprecated. Use audioClipForOnHoverEntered instead. (UnityUpgradable) -> audioClipForOnHoverEntered", true)]
+        public AudioClip audioClipForOnHoverEnter => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Hover Entered.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnHoverEntered"/>
+        /// <remarks><c>AudioClipForOnHoverEnter</c> has been deprecated. Use <see cref="audioClipForOnHoverEntered"/> instead.</remarks>
+#pragma warning disable IDE1006 // Naming Styles
+        [Obsolete("AudioClipForOnHoverEnter has been deprecated. Use audioClipForOnHoverEntered instead. (UnityUpgradable) -> audioClipForOnHoverEntered", true)]
+        public AudioClip AudioClipForOnHoverEnter
+        {
+            get => default;
+            set => _ = value;
+        }
+#pragma warning restore IDE1006
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays an <see cref="AudioClip"/> on Hover Exited.
+        /// </summary>
+        /// <seealso cref="audioClipForOnHoverExited"/>
+        /// <remarks><c>playAudioClipOnHoverExit</c> has been deprecated. Use <see cref="playAudioClipOnHoverExited"/> instead.</remarks>
+        [Obsolete("playAudioClipOnHoverExit has been deprecated. Use playAudioClipOnHoverExited instead. (UnityUpgradable) -> playAudioClipOnHoverExited", true)]
+        public bool playAudioClipOnHoverExit => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Hover Exited.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnHoverExited"/>
+        /// <remarks><c>audioClipForOnHoverExit</c> has been deprecated. Use <see cref="audioClipForOnHoverExited"/> instead.</remarks>
+        [Obsolete("audioClipForOnHoverExit has been deprecated. Use audioClipForOnHoverExited instead. (UnityUpgradable) -> audioClipForOnHoverExited", true)]
+        public AudioClip audioClipForOnHoverExit => default;
+
+        /// <summary>
+        /// (Deprecated) The <see cref="AudioClip"/> Unity plays on Hover Exited.
+        /// </summary>
+        /// <seealso cref="playAudioClipOnHoverExited"/>
+        /// <remarks><c>AudioClipForOnHoverExit</c> has been deprecated. Use <see cref="audioClipForOnHoverExited"/> instead.</remarks>
+        [Obsolete("AudioClipForOnHoverExit has been deprecated. Use audioClipForOnHoverExited instead. (UnityUpgradable) -> audioClipForOnHoverExited", true)]
+        public AudioClip AudioClipForOnHoverExit
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays haptics on Select Entered.
+        /// </summary>
+        /// <seealso cref="hapticSelectEnterIntensity"/>
+        /// <seealso cref="hapticSelectEnterDuration"/>
+        /// <remarks><c>playHapticsOnSelectEnter</c> has been deprecated. Use <see cref="playHapticsOnSelectEntered"/> instead.</remarks>
+        [Obsolete("playHapticsOnSelectEnter has been deprecated. Use playHapticsOnSelectEntered instead. (UnityUpgradable) -> playHapticsOnSelectEntered", true)]
+        public bool playHapticsOnSelectEnter => default;
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays haptics on Select Exited.
+        /// </summary>
+        /// <seealso cref="hapticSelectExitIntensity"/>
+        /// <seealso cref="hapticSelectExitDuration"/>
+        /// <remarks><c>playHapticsOnSelectExit</c> has been deprecated. Use <see cref="playHapticsOnSelectExited"/> instead.</remarks>
+        [Obsolete("playHapticsOnSelectExit has been deprecated. Use playHapticsOnSelectExited instead. (UnityUpgradable) -> playHapticsOnSelectExited", true)]
+        public bool playHapticsOnSelectExit => default;
+
+        /// <summary>
+        /// (Deprecated) Controls whether Unity plays haptics on Hover Entered.
+        /// </summary>
+        /// <seealso cref="hapticHoverEnterIntensity"/>
+        /// <seealso cref="hapticHoverEnterDuration"/>
+        /// <remarks><c>playHapticsOnHoverEnter</c> has been deprecated. Use <see cref="playHapticsOnHoverEntered"/> instead.</remarks>
+        [Obsolete("playHapticsOnHoverEnter has been deprecated. Use playHapticsOnHoverEntered instead. (UnityUpgradable) -> playHapticsOnHoverEntered", true)]
+        public bool playHapticsOnHoverEnter => default;
+
+        /// <summary>
+        /// (Deprecated) (Read Only) A list of Interactables that this Interactor could possibly interact with this frame.
+        /// </summary>
+        [Obsolete("validTargets has been deprecated. Use a property of type List<IXRInteractable> instead.", true)]
+        protected virtual List<XRBaseInteractable> validTargets { get; } = default;
 
         [SerializeField]
         InputTriggerType m_SelectActionTrigger = InputTriggerType.StateChange;
@@ -556,9 +706,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
         }
+        static ActivateEventArgs CreateActivateEventArgs() => new ActivateEventArgs();
+        readonly LinkedPool<ActivateEventArgs> m_ActivateEventArgs = new LinkedPool<ActivateEventArgs>(CreateActivateEventArgs, collectionCheck: false);
 
-        readonly LinkedPool<ActivateEventArgs> m_ActivateEventArgs = new LinkedPool<ActivateEventArgs>(() => new ActivateEventArgs(), collectionCheck: false);
-        readonly LinkedPool<DeactivateEventArgs> m_DeactivateEventArgs = new LinkedPool<DeactivateEventArgs>(() => new DeactivateEventArgs(), collectionCheck: false);
+        static DeactivateEventArgs CreateDeactivateEventArgs() => new DeactivateEventArgs();
+        readonly LinkedPool<DeactivateEventArgs> m_DeactivateEventArgs = new LinkedPool<DeactivateEventArgs>(CreateDeactivateEventArgs, collectionCheck: false);
 
         static readonly List<IXRActivateInteractable> s_ActivateTargets = new List<IXRActivateInteractable>();
 
@@ -575,7 +727,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.Awake();
 
             // Setup interaction controller (for sending down selection state and input)
-            xrController = FindControllerComponent();
+            xrController = gameObject.GetComponentInParent<XRBaseController>(true);
             if (xrController == null)
                 Debug.LogWarning($"Could not find {nameof(XRBaseController)} component on {gameObject} or any of its parents.", this);
 
@@ -588,28 +740,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 CreateEffectsAudioSource();
             }
-        }
-
-        /// <summary>
-        /// Finds and returns the controller component in the hierarchy for this interactor.
-        /// </summary>
-        /// <returns>Returns the controller component if found, otherwise <see langword="null"/>.</returns>
-        internal XRBaseController FindControllerComponent()
-        {
-#if UNITY_2020_1_OR_NEWER
-            return gameObject.GetComponentInParent<XRBaseController>(true);
-#else
-            var t = transform;
-            do
-            {
-                if (t.TryGetComponent<XRBaseController>(out var controller))
-                    return controller;
-
-                t = t.parent;
-            } while (t != null);
-
-            return null;
-#endif
         }
 
         /// <summary>

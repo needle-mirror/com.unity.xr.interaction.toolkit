@@ -99,7 +99,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if XR_HANDS_1_3_OR_NEWER
         XRHandSkeletonDriver m_SkeletonDriver;
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly Vector3TweenableVariable m_PokeOffset = new Vector3TweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
 #endif
 
         /// <summary>

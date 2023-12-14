@@ -9,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
     /// Affordance state theme data structure for for Audio Clip affordances.
     /// </summary>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public sealed class AudioAffordanceThemeData
     {
         /// <summary>
@@ -35,6 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
     /// It does not support state tweening so it is simplified and does not inherit from <see cref="BaseAffordanceTheme{T}"/>.
     /// </remarks>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class AudioAffordanceTheme
     {
         [SerializeField]
@@ -125,6 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
     /// </summary>
     /// <seealso cref="AudioAffordanceThemeDatum"/>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class AudioAffordanceThemeDatumProperty : DatumProperty<AudioAffordanceTheme, AudioAffordanceThemeDatum>
     {
         /// <inheritdoc/>
@@ -143,6 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
     /// </summary>
     [CreateAssetMenu(fileName = "AudioAffordanceTheme", menuName = "Affordance Theme/Audio Affordance Theme", order = 0)]
     [HelpURL(XRHelpURLConstants.k_AudioAffordanceThemeDatum)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class AudioAffordanceThemeDatum : Datum<AudioAffordanceTheme>
     {
     }

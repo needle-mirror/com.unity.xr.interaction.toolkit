@@ -4,6 +4,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 {
     public abstract partial class BaseTeleportationInteractable
     {
+        const string k_GenerateTeleportRequestDeprecated = "GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest) has been deprecated. Use GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest) instead.";
+
         /// <summary>
         /// Automatically called upon the teleport trigger when a teleport request should be generated.
         /// </summary>
@@ -15,8 +17,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest)</c> has been deprecated. Use <see cref="GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest)"/> instead.
         /// </remarks>
-        [Obsolete("GenerateTeleportRequest(XRBaseInteractor, RaycastHit, ref TeleportRequest) has been deprecated. Use GenerateTeleportRequest(IXRInteractor, RaycastHit, ref TeleportRequest) instead.")]
+        [Obsolete(k_GenerateTeleportRequestDeprecated, true)]
         protected virtual bool GenerateTeleportRequest(XRBaseInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
-            => GenerateTeleportRequest((IXRInteractor)interactor, raycastHit, ref teleportRequest);
+        {
+            Debug.LogError(k_GenerateTeleportRequestDeprecated, this);
+            throw new NotSupportedException(k_GenerateTeleportRequestDeprecated);
+        }
     }
 }

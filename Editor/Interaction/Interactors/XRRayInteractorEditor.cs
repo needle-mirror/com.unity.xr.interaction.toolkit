@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -7,7 +8,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRRayInteractor"/>.
     /// </summary>
     [CustomEditor(typeof(XRRayInteractor), true), CanEditMultipleObjects]
-    public class XRRayInteractorEditor : XRBaseControllerInteractorEditor
+    public partial class XRRayInteractorEditor : XRBaseInputInteractorEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.maxRaycastDistance"/>.</summary>
         protected SerializedProperty m_MaxRaycastDistance;
@@ -66,8 +67,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.referenceFrame"/>.</summary>
         protected SerializedProperty m_ReferenceFrame;
 
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.allowAnchorControl"/>.</summary>
-        protected SerializedProperty m_AllowAnchorControl;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.manipulateAttachTransform"/>.</summary>
+        protected SerializedProperty m_ManipulateAttachTransform;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.useForceGrab"/>.</summary>
         protected SerializedProperty m_UseForceGrab;
 
@@ -75,13 +76,29 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_RotateSpeed;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.translateSpeed"/>.</summary>
         protected SerializedProperty m_TranslateSpeed;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
-        protected SerializedProperty m_AnchorRotateReferenceFrame;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
-        protected SerializedProperty m_AnchorRotationMode;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rotateReferenceFrame"/>.</summary>
+        protected SerializedProperty m_RotateReferenceFrame;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rotateMode"/>.</summary>
+        protected SerializedProperty m_RotateMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.scaleMode"/>.</summary>
         protected SerializedProperty m_ScaleMode;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiPressInput"/>.</summary>
+        protected SerializedProperty m_UIPressInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiScrollInput"/>.</summary>
+        protected SerializedProperty m_UIScrollInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.translateManipulationInput"/>.</summary>
+        protected SerializedProperty m_TranslateManipulationInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rotateManipulationInput"/>.</summary>
+        protected SerializedProperty m_RotateManipulationInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.directionalManipulationInput"/>.</summary>
+        protected SerializedProperty m_DirectionalManipulationInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.scaleToggleInput"/>.</summary>
+        protected SerializedProperty m_ScaleToggleInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.scaleOverTimeInput"/>.</summary>
+        protected SerializedProperty m_ScaleOverTimeInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.scaleDistanceDeltaInput"/>.</summary>
+        protected SerializedProperty m_ScaleDistanceDeltaInput;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiHoverEntered"/>.</summary>
         protected SerializedProperty m_UIHoverEntered;
@@ -123,7 +140,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.timeToAutoDeselect"/>.</summary>
             public static readonly GUIContent timeToAutoDeselect = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds for which this Interactor will select an Interactable before the Interactable is automatically deselected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
-            public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("Enable Interaction with UI GameObjects", "If checked, this interactor will be able to affect UI.");
+            public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("UI Interaction", "Enable to affect Unity UI GameObjects in a way that is similar to a mouse pointer. Requires the XR UI Input Module on the Event System.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blockUIOnInteractableSelection"/>.</summary>
             public static readonly GUIContent blockUIOnInteractableSelection = EditorGUIUtility.TrTextContent("Block UI on Interactable Selection", "Enabling this option will block UI interaction when selecting interactables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
@@ -154,20 +171,37 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent referenceFrame = EditorGUIUtility.TrTextContent("Reference Frame", "The reference frame of the curve to define the ground plane and up. If not set at startup it will try to find the Rig GameObject, and if that does not exist it will use global up and origin by default.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitDetectionType"/>.</summary>
             public static readonly GUIContent hitDetectionType = EditorGUIUtility.TrTextContent("Hit Detection Type", "The type of hit detection used to hit interactable objects.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.allowAnchorControl"/>.</summary>
-            public static readonly GUIContent allowAnchorControl = EditorGUIUtility.TrTextContent("Anchor Control", "Allows the user to move the attach anchor point using the thumbstick.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.manipulateAttachTransform"/>.</summary>
+            public static readonly GUIContent manipulateAttachTransform = EditorGUIUtility.TrTextContent("Manipulate Attach Transform", "Allows the user to move the Attach Transform using the thumbstick.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.useForceGrab"/>.</summary>
             public static readonly GUIContent useForceGrab = EditorGUIUtility.TrTextContent("Force Grab", "Force grab moves the object to your hand rather than interacting with it at a distance.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateSpeed"/>.</summary>
-            public static readonly GUIContent rotateSpeed = EditorGUIUtility.TrTextContent("Rotate Speed", "Speed that the anchor is rotated.");
+            public static readonly GUIContent rotateSpeed = EditorGUIUtility.TrTextContent("Rotate Speed", "Speed that the Attach Transform is rotated.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.translateSpeed"/>.</summary>
-            public static readonly GUIContent translateSpeed = EditorGUIUtility.TrTextContent("Translate Speed", "Speed that the anchor is translated.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotateReferenceFrame"/>.</summary>
-            public static readonly GUIContent anchorRotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.anchorRotationMode"/>.</summary>
-            public static readonly GUIContent anchorRotationMode = EditorGUIUtility.TrTextContent("Rotation Mode", "How the anchor rotation is controlled.");
+            public static readonly GUIContent translateSpeed = EditorGUIUtility.TrTextContent("Translate Speed", "Speed that the Attach Transform is translated along the ray.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateReferenceFrame"/>.</summary>
+            public static readonly GUIContent rotateReferenceFrame = EditorGUIUtility.TrTextContent("Rotate Reference Frame", "The optional reference frame to define the up axis when rotating the Attach Transform. When not set, rotates about the local up axis of the Attach Transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateMode"/>.</summary>
+            public static readonly GUIContent rotateMode = EditorGUIUtility.TrTextContent("Rotate Mode", "How the Attach Transform rotation manipulation is controlled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleMode"/>.</summary>
             public static readonly GUIContent scaleMode = EditorGUIUtility.TrTextContent("Scale Mode", "Determines how the Scale Value should be used by the interactable objects requesting it.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.uiPressInput"/>.</summary>
+            public static readonly GUIContent uiPressInput = EditorGUIUtility.TrTextContent("UI Press Input", "Input to use for pressing UI elements. Functions like a mouse button when pointing over UI.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.uiScrollInput"/>.</summary>
+            public static readonly GUIContent uiScrollInput = EditorGUIUtility.TrTextContent("UI Scroll Input", "Input to use for scrolling UI elements. Functions like a mouse scroll wheel when pointing over UI.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.translateManipulationInput"/>.</summary>
+            public static readonly GUIContent translateManipulationInput = EditorGUIUtility.TrTextContent("Translate Input", "Input to use for translating the attach point closer or further away from the interactor. This effectively moves the selected grab interactable along the ray.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateManipulationInput"/>.</summary>
+            public static readonly GUIContent rotateManipulationInput = EditorGUIUtility.TrTextContent("Rotate Input", "Input to use for rotating the attach point over time. This effectively rotates the selected grab interactable while the input is pushed in either direction.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.directionalManipulationInput"/>.</summary>
+            public static readonly GUIContent directionalManipulationInput = EditorGUIUtility.TrTextContent("Directional Input", "Input to use for rotating the attach point to match the direction of the input. This effectively rotates the selected grab interactable or teleport target to match the direction of the input.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleToggleInput"/>.</summary>
+            public static readonly GUIContent scaleToggleInput = EditorGUIUtility.TrTextContent("Scale Toggle Input", "The input to use for toggling between Attach Transform manipulation modes to either scale or translate/rotate.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleOverTimeInput"/>.</summary>
+            public static readonly GUIContent scaleOverTimeInput = EditorGUIUtility.TrTextContent("Scale Over Time Input", "The input to use for providing a scale value to grab transformers for scaling over time. This effectively scales the selected grab interactable while the input is pushed in either direction.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleDistanceDeltaInput"/>.</summary>
+            public static readonly GUIContent scaleDistanceDeltaInput = EditorGUIUtility.TrTextContent("Scale Distance Delta Input", "The input to use for providing a scale value to grab transformers for scaling based on a distance delta from last frame. This input is typically used for scaling with a pinch gesture on mobile AR.");
 
             /// <summary><see cref="GUIContent"/> for the header label of UI events.</summary>
             public static readonly GUIContent uiEventsHeader = EditorGUIUtility.TrTextContent("UI", "Called when this Interactor begins hovering over UI (Entered), or ends hovering (Exited).");
@@ -175,12 +209,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableARRaycasting"/>.</summary>
             public static readonly GUIContent enableARRaycasting = EditorGUIUtility.TrTextContent("Enable AR Raycasting", "Allow raycasts against the AR environment trackables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith3DObjects"/>.</summary>
-            public static readonly GUIContent occludeARHitsWith3DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 3D Objects", "If checked, AR Raycasts will be occluded by 3D objects.");
+            public static readonly GUIContent occludeARHitsWith3DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 3D Objects", "If enabled, AR Raycasts will be occluded by 3D objects.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith2DObjects"/>.</summary>
-            public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If checked, AR Raycasts will be occluded by 2D objects.");
+            public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If enabled, AR Raycasts will be occluded by 2D world space objects.");
 
             /// <summary>The help box message when the hit detection type is cone cast but the line type is not straight line.</summary>
             public static readonly GUIContent coneCastRequiresStraightLineWarning = EditorGUIUtility.TrTextContent("Cone Cast requires Straight Line.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.manipulateAttachTransform"/>.</summary>
+            [Obsolete("allowAnchorControl has been renamed in version 3.0.0. Use manipulateAttachTransform instead.")]
+            public static readonly GUIContent allowAnchorControl = manipulateAttachTransform;
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateReferenceFrame"/>.</summary>
+            [Obsolete("anchorRotateReferenceFrame has been renamed in version 3.0.0. Use rotateReferenceFrame instead.")]
+            public static readonly GUIContent anchorRotateReferenceFrame = rotateReferenceFrame;
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateMode"/>.</summary>
+            [Obsolete("anchorRotationMode has been renamed in version 3.0.0. Use rotateMode instead.")]
+            public static readonly GUIContent anchorRotationMode = rotateMode;
         }
 
         /// <inheritdoc />
@@ -218,20 +264,35 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_AdditionalFlightTime = serializedObject.FindProperty("m_AdditionalFlightTime");
             m_ReferenceFrame = serializedObject.FindProperty("m_ReferenceFrame");
 
-            m_AllowAnchorControl = serializedObject.FindProperty("m_AllowAnchorControl");
+            m_ManipulateAttachTransform = serializedObject.FindProperty("m_ManipulateAttachTransform");
             m_UseForceGrab = serializedObject.FindProperty("m_UseForceGrab");
 
             m_RotateSpeed = serializedObject.FindProperty("m_RotateSpeed");
             m_TranslateSpeed = serializedObject.FindProperty("m_TranslateSpeed");
-            m_AnchorRotateReferenceFrame = serializedObject.FindProperty("m_AnchorRotateReferenceFrame");
-            m_AnchorRotationMode = serializedObject.FindProperty("m_AnchorRotationMode");
+            m_RotateReferenceFrame = serializedObject.FindProperty("m_RotateReferenceFrame");
+            m_RotateMode = serializedObject.FindProperty("m_RotateMode");
             m_ScaleMode = serializedObject.FindProperty("m_ScaleMode");
+
+            m_UIPressInput = serializedObject.FindProperty("m_UIPressInput");
+            m_UIScrollInput = serializedObject.FindProperty("m_UIScrollInput");
+            m_TranslateManipulationInput = serializedObject.FindProperty("m_TranslateManipulationInput");
+            m_RotateManipulationInput = serializedObject.FindProperty("m_RotateManipulationInput");
+            m_DirectionalManipulationInput = serializedObject.FindProperty("m_DirectionalManipulationInput");
+            m_ScaleToggleInput = serializedObject.FindProperty("m_ScaleToggleInput");
+            m_ScaleOverTimeInput = serializedObject.FindProperty("m_ScaleOverTimeInput");
+            m_ScaleDistanceDeltaInput = serializedObject.FindProperty("m_ScaleDistanceDeltaInput");
 
             m_UIHoverEntered = serializedObject.FindProperty("m_UIHoverEntered");
             m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");      
             m_EnableARRaycasting = serializedObject.FindProperty("m_EnableARRaycasting");
             m_OccludeARHitsWith3DObjects = serializedObject.FindProperty("m_OccludeARHitsWith3DObjects");
             m_OccludeARHitsWith2DObjects = serializedObject.FindProperty("m_OccludeARHitsWith2DObjects");
+
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
+            m_AllowAnchorControl = m_ManipulateAttachTransform;
+            m_AnchorRotateReferenceFrame = m_RotateReferenceFrame;
+            m_AnchorRotationMode = m_RotateMode;
+#pragma warning restore CS0618
 
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
@@ -248,9 +309,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // Not calling base method to completely override drawn properties
 
             DrawInteractionManagement();
-
-            EditorGUILayout.Space();
-
             DrawInteractionConfiguration();
 
             EditorGUILayout.Space();
@@ -261,12 +319,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             DrawSelectionConfiguration();
 
-#if AR_FOUNDATION_PRESENT            
+#if AR_FOUNDATION_PRESENT
             EditorGUILayout.Space();
             
             DrawARConfiguration();
 #endif
 
+            EditorGUILayout.Space();
+
+            DrawInputConfiguration();
         }
 
         /// <inheritdoc />
@@ -281,32 +342,41 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawInteractionConfiguration()
         {
+            EditorGUILayout.PropertyField(m_Handedness, BaseContents.handedness);
             EditorGUILayout.PropertyField(m_EnableUIInteraction, Contents.enableUIInteraction);
             if (m_EnableUIInteraction.boolValue)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_BlockUIOnInteractableSelection, Contents.blockUIOnInteractableSelection);
+                    DrawUIInteractionInputConfiguration();
                 }
             }
 
             EditorGUILayout.PropertyField(m_UseForceGrab, Contents.useForceGrab);
-            EditorGUILayout.PropertyField(m_AllowAnchorControl, Contents.allowAnchorControl);
-            if (m_AllowAnchorControl.boolValue)
+            EditorGUILayout.PropertyField(m_ManipulateAttachTransform, Contents.manipulateAttachTransform);
+            if (m_ManipulateAttachTransform.boolValue)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_TranslateSpeed, Contents.translateSpeed);
-                    EditorGUILayout.PropertyField(m_AnchorRotateReferenceFrame, Contents.anchorRotateReferenceFrame);
-                    EditorGUILayout.PropertyField(m_AnchorRotationMode, Contents.anchorRotationMode);
-                    if (m_AnchorRotationMode.intValue == (int)XRRayInteractor.AnchorRotationMode.RotateOverTime)
+                    EditorGUILayout.PropertyField(m_RotateMode, Contents.rotateMode);
+                    if (m_RotateMode.intValue == (int)XRRayInteractor.RotateMode.RotateOverTime)
                     {
                         using (new EditorGUI.IndentLevelScope())
                         {
                             EditorGUILayout.PropertyField(m_RotateSpeed, Contents.rotateSpeed);
                         }
                     }
+
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(m_RotateReferenceFrame, Contents.rotateReferenceFrame);
+                    }
+
                     EditorGUILayout.PropertyField(m_ScaleMode, Contents.scaleMode);
+
+                    DrawAttachTransformManipulationInputConfiguration();
                 }
             }
 
@@ -428,8 +498,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             DrawSelectActionTrigger();
             EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
-            EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
-            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
+            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseInputContents.allowHoveredActivate);
             EditorGUILayout.PropertyField(m_HoverToSelect, Contents.hoverToSelect);
             if (m_HoverToSelect.boolValue)
             {
@@ -446,10 +515,32 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     }
                 }
             }
-            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
+            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseInputContents.targetPriorityMode);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
         }
- 
+
+        /// <summary>
+        /// Draw the input configuration for UI interactions.
+        /// </summary>
+        protected virtual void DrawUIInteractionInputConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_UIPressInput, Contents.uiPressInput);
+            EditorGUILayout.PropertyField(m_UIScrollInput, Contents.uiScrollInput);
+        }
+
+        /// <summary>
+        /// Draw the input configuration for Attach Transform Manipulation.
+        /// </summary>
+        protected virtual void DrawAttachTransformManipulationInputConfiguration()
+        {
+            EditorGUILayout.PropertyField(m_TranslateManipulationInput, Contents.translateManipulationInput);
+            EditorGUILayout.PropertyField(m_RotateManipulationInput, Contents.rotateManipulationInput);
+            EditorGUILayout.PropertyField(m_DirectionalManipulationInput, Contents.directionalManipulationInput);
+            EditorGUILayout.PropertyField(m_ScaleToggleInput, Contents.scaleToggleInput);
+            EditorGUILayout.PropertyField(m_ScaleOverTimeInput, Contents.scaleOverTimeInput);
+            EditorGUILayout.PropertyField(m_ScaleDistanceDeltaInput, Contents.scaleDistanceDeltaInput);
+        }
+
         /// <inheritdoc />
         protected override void DrawInteractorEventsNested()
         {

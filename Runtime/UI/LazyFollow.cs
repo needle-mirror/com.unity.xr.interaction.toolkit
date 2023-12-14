@@ -309,8 +309,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         SmartFollowVector3TweenableVariable m_Vector3TweenableVariable;
         SmartFollowQuaternionTweenableVariable m_QuaternionTweenableVariable;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -340,8 +342,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         protected void Awake()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             m_Vector3TweenableVariable = new SmartFollowVector3TweenableVariable(m_MinDistanceAllowed, m_MaxDistanceAllowed, m_TimeUntilThresholdReachesMaxDistance);
             m_QuaternionTweenableVariable = new SmartFollowQuaternionTweenableVariable(m_MinAngleAllowed, m_MaxAngleAllowed, m_TimeUntilThresholdReachesMaxAngle);
+#pragma warning restore CS0618 // Type or member is obsolete
             UpdateUpperAndLowerSpeedBounds();
             ValidateFollowMode();
         }

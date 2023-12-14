@@ -1,5 +1,8 @@
+using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -13,6 +16,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     public static class XRInteractionUpdateOrder
     {
+        /// <summary>
+        /// Order when instances of type <see cref="XRInputDeviceButtonReader"/> are updated.
+        /// </summary>
+        public const int k_XRInputDeviceButtonReader = -31000;
+
+        /// <summary>
+        /// Order when instances of type <see cref="ScreenSpaceRayPoseDriver"/> are updated.
+        /// </summary>
+        public const int k_ScreenSpaceRayPoseDriver = -31000;
+
+        /// <summary>
+        /// Order when instances of type <see cref="ScreenSpaceSelectInput"/> are updated.
+        /// </summary>
+        public const int k_ScreenSpaceSelectInput = -30050;
+
         /// <summary>
         /// Order when instances of type <see cref="XRControllerRecorder"/> are updated.
         /// </summary>
@@ -47,6 +65,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Order when instances of type <see cref="TwoHandedGrabMoveProvider"/> are updated.
         /// </summary>
         public const int k_TwoHandedGrabMoveProviders = -209; // After GrabMoveProvider
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRBodyTransformer"/> are updated.
+        /// </summary>
+        public const int k_XRBodyTransformer = -205; // After LocomotionProviders
 
         /// <summary>
         /// Order when instances of type <see cref="UIInputModule"/> are updated.

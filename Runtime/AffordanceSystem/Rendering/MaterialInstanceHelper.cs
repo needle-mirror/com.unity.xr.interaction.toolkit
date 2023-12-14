@@ -1,10 +1,13 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
+﻿using System;
+
+namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
     /// Creates material instance for a material associated with a given renderer material index and provide accessor to it.
     /// </summary>
     [AddComponentMenu("Affordance System/Rendering/Material Instance Helper", 12)]
     [HelpURL(XRHelpURLConstants.k_MaterialInstanceHelper)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class MaterialInstanceHelper : MaterialHelperBase
     {
         Material m_MaterialInstance;

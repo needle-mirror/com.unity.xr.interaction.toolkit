@@ -47,6 +47,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         InteractionLayerMask interactionLayers { get; }
 
         /// <summary>
+        /// (Read Only) Represents which hand or controller the interactor is associated with.
+        /// </summary>
+        /// <seealso cref="InteractorHandedness"/>
+        InteractorHandedness handedness { get; }
+
+        /// <summary>
         /// (Read Only) The <see cref="Transform"/> associated with the Interactor.
         /// </summary>
         /// <remarks>

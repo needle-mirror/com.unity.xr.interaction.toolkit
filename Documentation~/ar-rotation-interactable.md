@@ -1,3 +1,6 @@
+> [!NOTE]
+> The following class has been deprecated in favor of newer cross-platform AR architecture that is compatible with Mixed Reality devices. See [the AR interaction documentation](ar-interaction-overview.md) for more information.
+
 # AR Rotation Interactable
 
 Manipulates the rotation of an object via a drag or a twist gesture. If an object is selected, then dragging along the horizontal axis or performing a twist gesture will rotate along the y-axis of the item.

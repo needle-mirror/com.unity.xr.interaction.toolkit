@@ -10,12 +10,13 @@ For a more comprehensive example, you can download a larger example from the [XR
 | **[Hands Interaction Demo](samples-hands-interaction-demo.md)** | Sample scene and other assets for hand-tracking integration with the XR Interaction Toolkit. |
 | **[AR Starter Assets](samples-ar-starter-assets.md)** | Assets to streamline setup of scenarios specific to mobile-based AR. |
 | **[XR Device Simulator](samples-xr-device-simulator.md)** | Assets related to the simulation of XR HMD and controllers. |
-| **[Meta Gaze Adapter](samples-meta-gaze-adapter.md)** | This sample provides an example to get eye tracking working with the Meta Quest Pro and the XRI Gaze Interactor. |
+| **[Legacy XR Input Readers](samples-legacy-xr-input-readers.md)** | This sample provides ScriptableObjects to assist with migration from the older device-based controller input to be used with the new input readers introduced with version 3.0.0. |
 
 ## Document revision history
 
 |Date|Reason|
 |---|---|
+|**December 14, 2023**|Added section for Legacy XR Input Readers sample. Removed Meta Gaze Adapter sample. Matches package version 3.0.0-pre.1.|
 |**September 8, 2023**|Moved sections of the samples to individual pages.|
 |**August 3, 2023**|Updated for new samples and reorganization of the files within each. Matches package version 2.5.0.|
 |**April 26, 2023**|Added detailed description of the XR Origin (XR Rig) prefabs and its GameObjects.|

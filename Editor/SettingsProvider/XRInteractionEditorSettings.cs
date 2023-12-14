@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Editor;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -11,30 +12,39 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [ScriptableSettingsPath(ProjectPath.k_XRInteractionSettingsFolder)]
     class XRInteractionEditorSettings : EditorScriptableSettings<XRInteractionEditorSettings>
     {
+        /// <summary>
+        /// Determines how the Inspector window displays <see cref="XRInputValueReader{TValue}"/> fields.
+        /// </summary>
+        /// <seealso cref="inputReaderPropertyDrawerMode"/>
+        /// <seealso cref="XRInputValueReader{TValue}"/>
+        public enum InputReaderPropertyDrawerMode
+        {
+            /// <summary>
+            /// Display the property in a compact format, using a minimal number of lines.
+            /// </summary>
+            Compact,
+
+            /// <summary>
+            /// Display the effective input source underlying the property, using multiple lines.
+            /// </summary>
+            MultilineEffective,
+
+            /// <summary>
+            /// Display all the input sources underlying the property.
+            /// </summary>
+            MultilineAll,
+        }
+
         [SerializeField]
-        bool m_InteractionLayerUpdaterShown = true;
+        InputReaderPropertyDrawerMode m_InputReaderPropertyDrawerMode = InputReaderPropertyDrawerMode.Compact;
 
         /// <summary>
-        /// Gets whether the updater dialog option was shown for users.
+        /// Gets the setting for how the Inspector window displays <see cref="XRInputValueReader{TValue}"/> fields.
         /// </summary>
-        /// <returns>Returns whether the dialog option to update Interaction Layers was shown.</returns>
-        internal bool interactionLayerUpdaterShown
+        internal InputReaderPropertyDrawerMode inputReaderPropertyDrawerMode
         {
-            get => m_InteractionLayerUpdaterShown;
-            set => m_InteractionLayerUpdaterShown = value;
-        }
-        
-        [SerializeField]
-        bool m_ShowOldInteractionLayerMaskInInspector;
-        
-        /// <summary>
-        /// Gets whether the deprecated physics Layer property <c>m_InteractionLayerMask</c> should be shown in the Inspector window.
-        /// </summary>
-        /// <returns>Returns whether the old <c>m_InteractionLayerMask</c> property should be shown in the Inspector window.</returns>
-        internal bool showOldInteractionLayerMaskInInspector
-        {
-            get => m_ShowOldInteractionLayerMaskInInspector;
-            set => m_ShowOldInteractionLayerMaskInInspector = value;
+            get => m_InputReaderPropertyDrawerMode;
+            set => m_InputReaderPropertyDrawerMode = value;
         }
     }
 }

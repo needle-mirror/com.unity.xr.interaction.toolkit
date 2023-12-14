@@ -1,4 +1,7 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using System;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Allows the user to combine two <see cref="GrabMoveProvider"/> instances for locomotion. This allows the user to
@@ -119,6 +122,16 @@
             set => m_MaximumScale = value;
         }
 
+        /// <summary>
+        /// The transformation that is used by this component to apply rotation movement.
+        /// </summary>
+        public XRBodyYawRotation rotateTransformation { get; set; } = new XRBodyYawRotation();
+
+        /// <summary>
+        /// The transformation that is used by this component to apply scaling.
+        /// </summary>
+        public XRBodyScale scaleTransformation { get; set; } = new XRBodyScale();
+
         bool m_IsMoving;
 
         Vector3 m_PreviousMidpointBetweenControllers;
@@ -150,23 +163,19 @@
 
             if (m_OverrideSharedSettingsOnInit)
             {
-                m_LeftGrabMoveProvider.system = system;
+                m_LeftGrabMoveProvider.mediator = mediator;
                 m_LeftGrabMoveProvider.enableFreeXMovement = enableFreeXMovement;
                 m_LeftGrabMoveProvider.enableFreeYMovement = enableFreeYMovement;
                 m_LeftGrabMoveProvider.enableFreeZMovement = enableFreeZMovement;
                 m_LeftGrabMoveProvider.useGravity = useGravity;
-                m_LeftGrabMoveProvider.gravityMode = gravityMode;
                 m_LeftGrabMoveProvider.moveFactor = m_MoveFactor;
-                m_RightGrabMoveProvider.system = system;
+                m_RightGrabMoveProvider.mediator = mediator;
                 m_RightGrabMoveProvider.enableFreeXMovement = enableFreeXMovement;
                 m_RightGrabMoveProvider.enableFreeYMovement = enableFreeYMovement;
                 m_RightGrabMoveProvider.enableFreeZMovement = enableFreeZMovement;
                 m_RightGrabMoveProvider.useGravity = useGravity;
-                m_RightGrabMoveProvider.gravityMode = gravityMode;
                 m_RightGrabMoveProvider.moveFactor = m_MoveFactor;
             }
-
-            beginLocomotion += OnBeginLocomotion;
         }
 
         /// <summary>
@@ -178,8 +187,6 @@
                 m_LeftGrabMoveProvider.canMove = true;
             if (m_RightGrabMoveProvider != null)
                 m_RightGrabMoveProvider.canMove = true;
-
-            beginLocomotion -= OnBeginLocomotion;
         }
 
         /// <inheritdoc/>
@@ -187,7 +194,7 @@
         {
             attemptingMove = false;
             var wasMoving = m_IsMoving;
-            var xrOrigin = system.xrOrigin?.Origin;
+            var xrOrigin = mediator.xrOrigin?.Origin;
             m_IsMoving = m_LeftGrabMoveProvider.IsGrabbing() && m_RightGrabMoveProvider.IsGrabbing() && xrOrigin != null;
             if (!m_IsMoving)
             {
@@ -230,9 +237,12 @@
             return move;
         }
 
-        void OnBeginLocomotion(LocomotionSystem otherSystem)
+        /// <inheritdoc/>
+        protected override void MoveRig(Vector3 translationInWorldSpace)
         {
-            var xrOrigin = system.xrOrigin?.Origin;
+            base.MoveRig(translationInWorldSpace);
+
+            var xrOrigin = mediator.xrOrigin?.Origin;
             if (xrOrigin == null)
                 return;
 
@@ -246,7 +256,8 @@
                 leftToRightDirection.y = 0f; // Only use yaw rotation
                 var yawSign = Mathf.Sign(Vector3.Dot(m_InitialLeftToRightOrthogonal, leftToRightDirection));
                 var targetYaw = m_InitialOriginYaw + Vector3.Angle(m_InitialLeftToRightDirection, leftToRightDirection) * yawSign;
-                originTransform.rotation = Quaternion.AngleAxis(targetYaw, Vector3.up);
+                rotateTransformation.angleDelta = targetYaw - originTransform.eulerAngles.y;
+                TryQueueTransformation(rotateTransformation);
             }
 
             if (m_EnableScaling)
@@ -257,7 +268,8 @@
                     : originTransform.localScale.x;
 
                 targetScale = Mathf.Clamp(targetScale, m_MinimumScale, m_MaximumScale);
-                originTransform.localScale = Vector3.one * targetScale;
+                scaleTransformation.uniformScale = targetScale;
+                TryQueueTransformation(scaleTransformation);
             }
         }
     }

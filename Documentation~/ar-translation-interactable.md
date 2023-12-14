@@ -1,3 +1,6 @@
+> [!NOTE]
+> The following class has been deprecated in favor of newer cross-platform AR architecture that is compatible with Mixed Reality devices. See [the AR interaction documentation](ar-interaction-overview.md) for more information.
+
 # AR Translation Interactable
 
 Manipulates the position of an object via a drag gesture. If not selected, the object will be selected when the drag gesture starts.

@@ -234,10 +234,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly SmartFollowVector3TweenableVariable m_HandAnchorSmartFollow = new SmartFollowVector3TweenableVariable();
         readonly QuaternionTweenableVariable m_RotTweenFollow = new QuaternionTweenableVariable();
         readonly Vector3TweenableVariable m_MenuScaleTweenable = new Vector3TweenableVariable();
-        
+#pragma warning restore CS0618 // Type or member is obsolete
+
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
         
         Transform m_CameraTransform;

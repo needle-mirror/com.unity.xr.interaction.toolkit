@@ -179,6 +179,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
+        /// Returns the angle in degrees between two vectors <paramref name="a"/> and <paramref name="b"/>.
+        /// Equivalent to <see cref="Vector3.Angle"/>.
+        /// </summary>
+        /// <param name="a">The first vector.</param>
+        /// <param name="b">The second vector.</param>
+        /// <param name="angle">The angle in degrees between a and b.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static void Angle(in Vector3 a, in Vector3 b, out float angle)
+        {
+            // See Vector3.cs in Unity source code
+            // 1e-15f = Vector3.kEpsilonNormalSqrt
+            // 57.29578f = Mathf.Rad2Deg
+            var denominator = math.sqrt(a.sqrMagnitude * b.sqrMagnitude);
+            if (denominator < 1e-15f)
+            {
+                angle = 0f;
+                return;
+            }
+
+            var dot = math.clamp(math.dot(a, b) / denominator, -1f, 1f);
+            angle = math.acos(dot) * 57.29578f;
+        }
+
+        /// <summary>
         /// Compares two float3s for equality with a specified level of tolerance.
         /// </summary>
         /// <param name="a">The first float3 to compare.</param>

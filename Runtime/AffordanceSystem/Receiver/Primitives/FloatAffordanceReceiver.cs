@@ -1,4 +1,5 @@
-﻿using Unity.Jobs;
+﻿using System;
+using Unity.Jobs;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;
@@ -13,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitive
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Primitives/Float Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_FloatAffordanceReceiver)]
+    [Obsolete("The Affordance System namespace has ")]
     public class FloatAffordanceReceiver : BaseAsyncAffordanceStateReceiver<float>
     {
         [SerializeField]

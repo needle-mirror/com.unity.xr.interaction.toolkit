@@ -1,6 +1,7 @@
 ﻿#if BURST_PRESENT
 using Unity.Burst;
 #endif
+using System;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -12,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct FloatTweenJob : ITweenJob<float>
     {
         /// <inheritdoc/>
@@ -54,6 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct Float2TweenJob : ITweenJob<float2>
     {
         /// <inheritdoc/>
@@ -96,6 +99,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct Float3TweenJob : ITweenJob<float3>
     {
         /// <inheritdoc/>
@@ -138,6 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 #if BURST_PRESENT
     [BurstCompile]
 #endif
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public struct Float4TweenJob : ITweenJob<float4>
     {
         /// <inheritdoc/>

@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
+﻿using System;
+
+namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
     /// Bridge between components needing to write to a renderer's material property block.
@@ -6,6 +8,7 @@
     /// </summary>
     [AddComponentMenu("Affordance System/Rendering/Material Property Block Helper", 12)]
     [HelpURL(XRHelpURLConstants.k_MaterialPropertyBlockHelper)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class MaterialPropertyBlockHelper : MaterialHelperBase
     {
         MaterialPropertyBlock m_PropertyBlock;

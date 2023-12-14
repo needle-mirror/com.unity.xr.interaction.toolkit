@@ -1,4 +1,6 @@
+using System;
 using UnityEngine.Assertions;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -34,6 +36,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_DelayTime = value;
         }
 
+        /// <inheritdoc/>
+        public override bool canStartMoving => m_DelayTime <= 0f || Time.time - m_DelayStartTime >= m_DelayTime;
+
         /// <summary>
         /// This function will queue a teleportation request within the provider.
         /// </summary>
@@ -46,16 +51,25 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
-        bool m_HasExclusiveLocomotion;
-        float m_TimeStarted = -1f;
+        /// <summary>
+        /// The transformation that is used by this component to apply up vector orientation.
+        /// </summary>
+        /// <seealso cref="MatchOrientation.WorldSpaceUp"/>
+        /// <seealso cref="MatchOrientation.TargetUp"/>
+        public XROriginUpAlignment upTransformation { get; set; } = new XROriginUpAlignment();
 
-        /// <inheritdoc />
-        protected override void Awake()
-        {
-            base.Awake();
-            if (system != null && m_DelayTime > 0f && m_DelayTime > system.timeout)
-                Debug.LogWarning($"Delay Time ({m_DelayTime}) is longer than the Locomotion System's Timeout ({system.timeout}).", this);
-        }
+        /// <summary>
+        /// The transformation that is used by this component to apply forward vector orientation.
+        /// </summary>
+        /// <seealso cref="MatchOrientation.TargetUpAndForward"/>
+        public XRCameraForwardXZAlignment forwardTransformation { get; set; } = new XRCameraForwardXZAlignment();
+
+        /// <summary>
+        /// The transformation that is used by this component to apply teleport positioning movement.
+        /// </summary>
+        public XRBodyGroundPosition positionTransformation { get; set; } = new XRBodyGroundPosition();
+
+        float m_DelayStartTime;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -63,40 +77,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Update()
         {
             if (!validRequest)
-            {
-                locomotionPhase = LocomotionPhase.Idle;
-                return;
-            }
-
-            if (!m_HasExclusiveLocomotion)
-            {
-                if (!BeginLocomotion())
-                    return;
-
-                m_HasExclusiveLocomotion = true;
-                locomotionPhase = LocomotionPhase.Started;
-                m_TimeStarted = Time.time;
-            }
-
-            // Wait for configured Delay Time
-            if (m_DelayTime > 0f && Time.time - m_TimeStarted < m_DelayTime)
                 return;
 
-            locomotionPhase = LocomotionPhase.Moving;
+            if (locomotionState == LocomotionState.Idle)
+            {
+                if (m_DelayTime > 0f)
+                {
+                    if (TryPrepareLocomotion())
+                        m_DelayStartTime = Time.time;
+                }
+                else
+                {
+                    TryStartLocomotionImmediately();
+                }
+            }
 
-            var xrOrigin = system.xrOrigin;
-            if (xrOrigin != null)
+            if (locomotionState == LocomotionState.Moving)
             {
                 switch (currentRequest.matchOrientation)
                 {
                     case MatchOrientation.WorldSpaceUp:
-                        xrOrigin.MatchOriginUp(Vector3.up);
+                        upTransformation.targetUp = Vector3.up;
+                        TryQueueTransformation(upTransformation);
                         break;
                     case MatchOrientation.TargetUp:
-                        xrOrigin.MatchOriginUp(currentRequest.destinationRotation * Vector3.up);
+                        upTransformation.targetUp = currentRequest.destinationRotation * Vector3.up;
+                        TryQueueTransformation(upTransformation);
                         break;
                     case MatchOrientation.TargetUpAndForward:
-                        xrOrigin.MatchOriginUpCameraForward(currentRequest.destinationRotation * Vector3.up, currentRequest.destinationRotation * Vector3.forward);
+                        upTransformation.targetUp = currentRequest.destinationRotation * Vector3.up;
+                        TryQueueTransformation(upTransformation);
+                        forwardTransformation.targetDirection = currentRequest.destinationRotation * Vector3.forward;
+                        TryQueueTransformation(forwardTransformation);
                         break;
                     case MatchOrientation.None:
                         // Change nothing. Maintain current origin rotation.
@@ -106,17 +118,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         break;
                 }
 
-                var heightAdjustment = xrOrigin.Origin.transform.up * xrOrigin.CameraInOriginSpaceHeight;
+                positionTransformation.targetPosition = currentRequest.destinationPosition;
+                TryQueueTransformation(positionTransformation);
 
-                var cameraDestination = currentRequest.destinationPosition + heightAdjustment;
-
-                xrOrigin.MoveCameraToWorldLocation(cameraDestination);
+                TryEndLocomotion();
+                validRequest = false;
             }
-
-            EndLocomotion();
-            m_HasExclusiveLocomotion = false;
-            validRequest = false;
-            locomotionPhase = LocomotionPhase.Done;
         }
     }
 }

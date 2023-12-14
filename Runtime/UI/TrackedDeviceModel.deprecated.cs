@@ -10,12 +10,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <remarks>
         /// <c>maxRaycastDistance</c> has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.
         /// </remarks>
-        [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.")]
+        [Obsolete("maxRaycastDistance has been deprecated. Its value was unused, calling this property is unnecessary and should be removed.", true)]
         public float maxRaycastDistance
         {
-            // m_MaxRaycastDistance only exists to clean up a warning - when removing this property, remove that field
-            get => m_MaxRaycastDistance;
-            set => m_MaxRaycastDistance = value;
+            get => default;
+            set => _ = value;
         }
     }
 }

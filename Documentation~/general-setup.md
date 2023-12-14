@@ -5,13 +5,7 @@ uid: xri-general-setup
 
 This section will walk you through the steps to create an XR Origin camera rig for a head-mounted device and create the basic building blocks of XR interactivity.
 
-These steps will guide you through setup to use the action-based behaviors, which is the recommended path.
-
-## Action-based vs Device-based behaviors
-
-Several behaviors, such as the [Snap Turn Provider](locomotion.md#snap-turn-provider), have two variants: an Action-based behavior and a Device-based behavior. Action-based behaviors use [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html) to indirectly read input from one or more controls. Device-based behaviors use [`InputDevice.TryGetFeatureValue`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.TryGetFeatureValue.html) to read input directly from an [`InputDevice`](https://docs.unity3d.com/ScriptReference/XR.InputDevice.html) from a specific control configured on the behavior itself.
-
-It is recommended that you use the Action-based variant instead of the Device-based variant to take advantage of the benefits that the Input System package provides. For example, it separates the logical inputs from the physical inputs, and users can create and switch between customized action maps, bind multiple cross-platform controller inputs to a single semantic action, and use event callbacks of input actions. Some features of the XR Interaction Toolkit package, such as the XR Device Simulator, are only supported when using input actions.
+These steps will guide you through setup to use [Input Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html) to indirectly read input from one or more controls, which is the recommended path.
 
 ## Import starter assets
 
@@ -37,36 +31,23 @@ For this guide, leave the **Tracking Origin Mode** set to **Not Specified**.
 > [!NOTE]
 > When the mode is **Device**, the XR runtime will generally report the position of tracked devices relative to a fixed position in space, such as the initial position of the HMD when started. Set the **Camera Y Offset** on XR Origin to the height you want the Main Camera to be above ground when in that mode. When the mode is **Floor**, the XR runtime will generally report the position of tracked devices relative to the player's real floor. Unity will automatically clear the height of the Camera Offset when in this mode since it is not necessary to artificially raise the tracking origin up. Set the mode to **Not Specified** to use the default mode of the XR runtime.
 
-To have the position and rotation of the XR HMD update the Main Camera Transform, a Tracked Pose Driver (Input System) component is added. This component is configured to set the **Position Input** binding to `<XRHMD>/centerEyePosition` and the **Rotation Input** binding to `<XRHMD>/centerEyeRotation`.
+To have the position and rotation of the XR HMD update the Main Camera Transform, a Tracked Pose Driver (Input System) component is added. This component is configured to set the **Position Input** binding to `<XRHMD>/centerEyePosition`, the **Rotation Input** binding to `<XRHMD>/centerEyeRotation`, and the **Tracking State Input** binding to `<XRHMD>/trackingState`.
 
-## Configure XR Controller and Interactor
+## Configure Interactor
 
 An Interactor component controls how a GameObject interacts with Interactable components in the scene. There are multiple types of Interactors, one of which is an [XR Ray Interactor](xr-ray-interactor.md), a component that uses [ray casting](https://docs.unity3d.com/ScriptReference/Physics.Raycast.html) in order to find valid Interactable objects in the scene.
 
-To read input from an XR input device, the Interactor requires an XR Controller component.
+To read input from an XR input device, the Interactor has various input properties that allow you to define the source of input. One example is the **Select Input** which allows you to set the input action that triggers selection. Refer to the property table in the documentation for [Interactor components](components.md#interactors) or refer to the tooltips in the Inspector window for more information.
 
-Select the foldout arrows to expand the hierarchy of the XR Origin, then select the **Left Controller** GameObject. This GameObject has an [XR Controller (Action-based)](xr-controller-action-based.md) component. If you do not see the **Reference** set for each action, click the Preset selector (the slider icon) at the top-right of the component in the Inspector window and select **XRI Default Left Controller**. If you do not see any presets, make sure to [import starter assets](#import-starter-assets). Do the same with the **Right Controller** GameObject and select the **XRI Default Right Controller** preset.
+To enable haptic vibration feedback for an interactor, add a [Simple Haptic Feedback](simple-haptic-feedback.md) component to the GameObject to trigger haptics in response to select and hover events. You can then specify intensities and durations of haptic feedback to play back on select and hover events in the Inspector window. That component references a [Haptic Impulse Player](haptic-impulse-player.md) component (which can be shared by different interactors) that is used to actually play the haptics to a device. On the Haptic Impulse Player, set **Haptic Output** to an input action with a binding path to any active control, such as `<XRController>{LeftHand}/*`, in order to identify the device. If you are using OpenXR, you can instead set the binding path to a `haptic` control.
 
-The table below describes the actions on the XR Controller that should be bound to an XR input device:
+The **UI Interaction** option controls whether this XR Ray Interactor can interact with Unity UI elements in a world space canvas in the scene. See [UI Setup](ui-setup.md) for more information and steps for enabling UI interactivity.
 
-|Action|Required for|
-|---|---|
-|**Position, Rotation, and Select**|Basic interaction|
-|**Tracking State**|Knowing if Position and/or Rotation inputs are valid|
-|**Activate**|Activating a selected object|
-|**UI Press**|Interacting with UI canvas elements|
-|**Haptic Device**|Identifying the device to send haptic impulses to|
-|**Rotate and Translate Anchor**|Manipulating a selected object at a distance|
+To have the position and rotation of a motion controller update the Transform component, a Tracked Pose Driver (Input System) component should be added. As an example for the left controller, this component should be configured to set the **Position Input** binding to `<XRController>{LeftHand}/devicePosition`, the **Rotation Input** binding to `<XRController>{LeftHand}/deviceRotation`, and the **Tracking State Input** binding to `<XRController>{LeftHand}/trackingState`.
 
-The [XR Controller (Action-based)](xr-controller-action-based.md) component has some input action reference properties which are optional and do not need to be assigned. Refer to the property table in the documentation or refer to the tooltips in the Inspector window for more information.
+## Enable input actions used for input
 
-The Controller and Interactor have limited support for haptic feedback. To enable haptic feedback for an XR Controller (Action-based), specify a **Haptic Device Action** with a binding path to an active control, such as `<XRController>{LeftHand}/*`. To enable haptic feedback for an [XR Controller (Device-based)](xr-controller-device-based.md), specify a **Controller Node** that supports haptic feedback, such as **Left Hand**. The Interactor can then specify intensities and durations of haptic feedback to play back on select and hover events, which is configured under Haptic Events in the Inspector window.
-
-The **Enable Interaction with UI GameObjects** option controls whether this XR Ray Interactor can interact with Unity UI elements in a world space canvas in the scene. See [UI Setup](ui-setup.md) for more information and steps for enabling UI interactivity.
-
-## Enable actions for action-based behaviors
-
-Actions must be enabled before they react to input. See [Using Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html#using-actions) in the Input System documentation for details about this process. Action-based behaviors in this package have properties of type [`InputActionProperty`](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputActionProperty.html) which can either store an Action directly, or indirectly by referencing an Action contained in an Input Action Asset. Action-based behaviors automatically enable and disable the Actions that are directly defined (that is, not a reference) during their own `OnEnable` and `OnDisable` events. Action-based behaviors don't automatically enable or disable the Actions that are indirectly defined (that is, a reference) to allow the enabled state to be managed externally.
+Actions must be enabled before they react to input. See [Using Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html#using-actions) in the Input System documentation for details about this process. Most behaviors in this package have input properties which can either store an Input Action directly, or indirectly by referencing an input action contained in an Input Action Asset. When directly defined actions are used (in other words, the mode is set to **Input Action**), behaviors automatically enable and disable the actions that are directly defined during their own `OnEnable` and `OnDisable` events. This can be useful when doing rapid prototyping. However when indirect action references are used (in other words, the mode is set to **Input Action Reference**), behaviors intentionally don't automatically enable or disable the Input Actions that are indirectly defined to allow the enabled state to be managed externally.
 
 The Input Action Manager component can be used to automatically enable or disable the Actions defined in an Input Action Asset during its own `OnEnable` and `OnDisable` events.
 

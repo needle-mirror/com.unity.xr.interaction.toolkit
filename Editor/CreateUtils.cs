@@ -9,15 +9,14 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
-using UnityEngine.XR;
+#if AR_FOUNDATION_5_0_OR_NEWER
+using UnityEngine.XR.ARFoundation;
+#endif
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
-
-#if AR_FOUNDATION_PRESENT
-using UnityEngine.XR.Interaction.Toolkit.AR;
-#endif
 
 using Object = UnityEngine.Object;
 
@@ -27,73 +26,39 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         internal enum HardwareTarget
         {
-            AR,
             VR,
-        }
-
-        internal enum InputType
-        {
-            ActionBased,
-            DeviceBased,
+            MobileAR,
         }
 
         const string k_LineMaterial = "Default-Line.mat";
         const string k_UILayerName = "UI";
 
-        [MenuItem("GameObject/XR/Ray Interactor (Action-based)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateRayInteractorActionBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
+        [MenuItem("GameObject/XR/Ray Interactor", false, 10), UsedImplicitly]
+        public static void CreateRayInteractor(MenuCommand menuCommand)
         {
             CreateInteractionManager();
 
-            Finalize(CreateRayInteractor(menuCommand?.GetContextTransform(), InputType.ActionBased));
+            Finalize(CreateRayInteractor(menuCommand?.GetContextTransform()));
         }
 
-        [MenuItem("GameObject/XR/Device-based/Ray Interactor", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateRayInteractorDeviceBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
+        [MenuItem("GameObject/XR/Direct Interactor", false, 10), UsedImplicitly]
+        public static void CreateDirectInteractor(MenuCommand menuCommand)
         {
             CreateInteractionManager();
 
-            Finalize(CreateRayInteractor(menuCommand?.GetContextTransform(), InputType.DeviceBased));
-        }
-
-        [MenuItem("GameObject/XR/Direct Interactor (Action-based)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateDirectInteractorActionBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform(), InputType.ActionBased));
-        }
-
-        [MenuItem("GameObject/XR/Device-based/Direct Interactor", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateDirectInteractorDeviceBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform(), InputType.DeviceBased));
+            Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform()));
         }
         
-        [MenuItem("GameObject/XR/Gaze Interactor (Action-based)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateGazeInteractorActionBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
+        [MenuItem("GameObject/XR/Gaze Interactor", false, 10), UsedImplicitly]
+        public static void CreateGazeInteractor(MenuCommand menuCommand)
         {
             CreateInteractionManager();
 
-            Finalize(CreateGazeInteractor(menuCommand?.GetContextTransform(), InputType.ActionBased));
+            Finalize(CreateGazeInteractor(menuCommand?.GetContextTransform()));
         }
 
         [MenuItem("GameObject/XR/Socket Interactor", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateSocketInteractor(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             CreateInteractionManager();
 
@@ -108,9 +73,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/Grab Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateGrabInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             CreateInteractionManager();
 
@@ -135,9 +98,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/Interactable Snap Volume", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateInteractableSnapVolume(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             CreateInteractionManager();
 
@@ -165,33 +126,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/Interaction Manager", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateInteractionManager(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             Finalize(CreateInteractionManager(menuCommand?.GetContextTransform()));
         }
 
-        [MenuItem("GameObject/XR/Locomotion System (Action-based)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateLocomotionSystemActionBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            Finalize(CreateLocomotionSystem(menuCommand?.GetContextTransform(), InputType.ActionBased));
-        }
-
-        [MenuItem("GameObject/XR/Device-based/Locomotion System", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        public static void CreateLocomotionSystemDeviceBased(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            Finalize(CreateLocomotionSystem(menuCommand?.GetContextTransform(), InputType.DeviceBased));
-        }
-
         [MenuItem("GameObject/XR/Teleportation Area", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateTeleportationArea(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             CreateInteractionManager();
 
@@ -201,9 +142,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/Teleportation Anchor", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateTeleportationAnchor(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             CreateInteractionManager();
 
@@ -220,9 +159,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/UI Canvas", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateXRUICanvas(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             var parentOfNewGameObject = menuCommand?.GetContextTransform();
 
@@ -265,9 +202,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [MenuItem("GameObject/XR/UI Event System", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateXRUIEventSystem(MenuCommand menuCommand)
-#pragma warning restore IDE0051
         {
             var eventSystemGO = CreateXRUIEventSystemWithParent(menuCommand?.GetContextTransform(), out var changeSelectionOnly);
 
@@ -283,14 +218,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/XR Origin (VR)", false, 10), UsedImplicitly]
         public static void CreateXROriginForVR(MenuCommand menuCommand)
         {
-            Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.VR, InputType.ActionBased));
+            CreateInteractionManager();
+
+            Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.VR));
         }
 
-        [MenuItem("GameObject/XR/Device-based/XR Origin (VR)", false, 10), UsedImplicitly]
-        public static void CreateXROriginDeviceBased(MenuCommand menuCommand)
+#if AR_FOUNDATION_5_0_OR_NEWER
+        [MenuItem("GameObject/XR/XR Origin (Mobile AR)", false, 10), UsedImplicitly]
+        static void CreateXROriginForAR(MenuCommand menuCommand)
         {
-            Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.VR, InputType.DeviceBased));
+            CreateInteractionManager();
+
+            Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.MobileAR));
         }
+#endif
 
         /// <summary>
         /// Registers <paramref name="gameObject"/> on the Undo stack as the root of a newly created GameObject hierarchy and selects it.
@@ -319,27 +260,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return interactionManager.gameObject;
         }
 
-        static GameObject CreateLocomotionSystem(Transform parent, InputType inputType, string name = "Locomotion System")
-        {
-            var locomotionSystemGO = CreateAndPlaceGameObject(name, parent,
-                typeof(LocomotionSystem),
-                typeof(TeleportationProvider),
-                GetSnapTurnType(inputType));
-
-            var locomotionSystem = locomotionSystemGO.GetComponent<LocomotionSystem>();
-
-            var teleportationProvider = locomotionSystemGO.GetComponent<TeleportationProvider>();
-            teleportationProvider.system = locomotionSystem;
-
-            var snapTurnProvider = locomotionSystemGO.GetComponent<SnapTurnProviderBase>();
-            snapTurnProvider.system = locomotionSystem;
-            return locomotionSystemGO;
-        }
-
-        static GameObject CreateRayInteractor(Transform parent, InputType inputType, string name = "Ray Interactor")
+        static GameObject CreateRayInteractor(Transform parent, string name = "Ray Interactor")
         {
             var rayInteractableGO = CreateAndPlaceGameObject(name, parent,
-                GetControllerType(inputType),
                 typeof(XRRayInteractor),
                 typeof(LineRenderer),
                 typeof(XRInteractorLineVisual),
@@ -349,21 +272,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
             var sortingGroup = rayInteractableGO.GetComponent<SortingGroup>();
-            sortingGroup.sortingOrder = 5;
+            sortingGroup.sortingOrder = 30005;
 
             return rayInteractableGO;
         }
 
-        static GameObject CreateGazeInteractor(Transform parent, InputType inputType, string name = "Gaze Interactor")
+        static GameObject CreateGazeInteractor(Transform parent, string name = "Gaze Interactor")
         {
             var gazeInteractableGO = CreateAndPlaceGameObject(name, parent,
-                GetControllerType(inputType),
                 typeof(XRGazeInteractor),
                 typeof(SortingGroup));
 
             // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
             var sortingGroup = gazeInteractableGO.GetComponent<SortingGroup>();
-            sortingGroup.sortingOrder = 5;
+            sortingGroup.sortingOrder = 30005;
 
             return gazeInteractableGO;
         }
@@ -382,10 +304,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             lineRenderer.useWorldSpace = true;
         }
 
-        static GameObject CreateDirectInteractor(Transform parent, InputType inputType, string name = "Direct Interactor")
+        static GameObject CreateDirectInteractor(Transform parent, string name = "Direct Interactor")
         {
             var directInteractorGO = CreateAndPlaceGameObject(name, parent,
-                GetControllerType(inputType),
                 typeof(SphereCollider),
                 typeof(XRDirectInteractor));
 
@@ -432,96 +353,75 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return eventSystemGO;
         }
 
-        static GameObject CreateXROriginWithParent(Transform parent, HardwareTarget target, InputType inputType)
+        static GameObject CreateXROriginWithParent(Transform parent, HardwareTarget target)
         {
-            CreateInteractionManager();
+            GameObject originGo;
+            if (target == HardwareTarget.VR)
+            {
+                originGo = CreateAndPlaceGameObject("XR Origin (VR)", parent, typeof(XROrigin), typeof(InputActionManager));
+            }
+            else if (target == HardwareTarget.MobileAR)
+            {
+                var types = new[]
+                {
+                    typeof(XROrigin),
+                    typeof(InputActionManager),
+#if AR_FOUNDATION_5_0_OR_NEWER
+                    typeof(ARPlaneManager),
+                    typeof(ARRaycastManager),
+#endif
+                };
+                originGo = CreateAndPlaceGameObject("XR Origin (Mobile AR)", parent, types);
+            }
+            else
+            {
+                throw new InvalidEnumArgumentException($"Invalid {nameof(HardwareTarget)}: {target}");
+            }
 
-            var originGo = CreateAndPlaceGameObject("XR Origin (XR Rig)", parent, typeof(XROrigin));
             var offsetGo = CreateAndPlaceGameObject("Camera Offset", originGo.transform);
             var offsetTransform = offsetGo.transform;
 
-            var xrCamera = XRMainCameraFactory.CreateXRMainCamera(target, inputType);
+            var xrCamera = XRMainCameraFactory.CreateXRMainCamera(target);
             Place(xrCamera.gameObject, offsetTransform);
 
             var origin = originGo.GetComponent<XROrigin>();
             origin.CameraFloorOffsetObject = offsetGo;
             origin.Camera = xrCamera;
 
-            // Set the Camera Offset y position based on the default height.
-            // This will make the Scene view of the Camera when not in Play mode more closely match
-            // what the position will be when entering Play mode. In Device mode, it will be this value.
-            // In Floor mode, it will get reset to 0, but will at least be higher than the XROrigin position.
-            var desiredPosition = offsetTransform.localPosition;
-            desiredPosition.y = origin.CameraYOffset;
-            offsetGo.transform.localPosition = desiredPosition;
-
-            AddXRControllersToOrigin(origin, inputType);
-
-            if (inputType == InputType.ActionBased)
+            if (target == HardwareTarget.VR)
             {
-                var inputActionManager = originGo.AddComponent<InputActionManager>();
+                // Set the Camera Offset y position based on the default height.
+                // This will make the Scene view of the Camera when not in Play mode more closely match
+                // what the position will be when entering Play mode. In Device mode, it will be this value.
+                // In Floor mode, it will get reset to 0, but will at least be higher than the XROrigin position.
+                offsetTransform.localPosition = new Vector3(0f, origin.CameraYOffset, 0f);
+            }
+            else if (target == HardwareTarget.MobileAR)
+            {
+                offsetTransform.localPosition = Vector3.zero;
+                origin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Device;
+                origin.CameraYOffset = 0f;
+            }
 
-                const string assetName = "XRI Default Input Actions";
-                const string searchFilter = "\"" + assetName + "\" t:InputActionAsset";
-                foreach (var guid in AssetDatabase.FindAssets(searchFilter))
+            var inputActionManager = originGo.GetComponent<InputActionManager>();
+
+            const string assetName = "XRI Default Input Actions";
+            const string searchFilter = "\"" + assetName + "\" t:InputActionAsset";
+            foreach (var guid in AssetDatabase.FindAssets(searchFilter))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
+
+                // The search filter string will return all assets that contains the name,
+                // so ensure an exact match to the expected asset we want to set.
+                if (asset.name.Equals(assetName, StringComparison.OrdinalIgnoreCase))
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(guid);
-                    var asset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
-                    // The search filter string will return all assets that contains the name,
-                    // so ensure an exact match to the expected asset we want to set.
-                    if (asset.name.Equals(assetName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        inputActionManager.actionAssets = new List<InputActionAsset> { asset };
-                        break;
-                    }
+                    inputActionManager.actionAssets = new List<InputActionAsset> { asset };
+                    break;
                 }
             }
 
             return originGo;
-        }
-
-        static void AddXRControllersToOrigin(XROrigin origin, InputType inputType)
-        {
-            var cameraOffsetTransform = origin.CameraFloorOffsetObject.transform;
-
-            var leftHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "Left Controller");
-            var leftHandController = leftHandRayInteractorGo.GetComponent<XRController>();
-            if (leftHandController != null)
-                leftHandController.controllerNode = XRNode.LeftHand;
-
-            var rightHandRayInteractorGo = CreateRayInteractor(cameraOffsetTransform, inputType, "Right Controller");
-            var rightHandController = rightHandRayInteractorGo.GetComponent<XRController>();
-            if (rightHandController != null)
-                rightHandController.controllerNode = XRNode.RightHand;
-
-            Place(leftHandRayInteractorGo, cameraOffsetTransform);
-            Place(rightHandRayInteractorGo, cameraOffsetTransform);
-        }
-
-        static Type GetControllerType(InputType inputType)
-        {
-            switch (inputType)
-            {
-                case InputType.ActionBased:
-                    return typeof(ActionBasedController);
-                case InputType.DeviceBased:
-                    return typeof(XRController);
-                default:
-                    throw new InvalidEnumArgumentException(nameof(inputType), (int)inputType, typeof(InputType));
-            }
-        }
-
-        static Type GetSnapTurnType(InputType inputType)
-        {
-            switch (inputType)
-            {
-                case InputType.ActionBased:
-                    return typeof(ActionBasedSnapTurnProvider);
-                case InputType.DeviceBased:
-                    return typeof(DeviceBasedSnapTurnProvider);
-                default:
-                    throw new InvalidEnumArgumentException(nameof(inputType), (int)inputType, typeof(InputType));
-            }
         }
 
         /// <summary>
@@ -533,9 +433,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static Transform GetContextTransform(this MenuCommand menuCommand)
         {
             var context = menuCommand.context as GameObject;
-#pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
             return context != null ? context.transform : null;
-#pragma warning restore IDE0031
         }
 
         static GameObject CreateAndPlaceGameObject(string name, Transform parent, params Type[] types)
@@ -653,102 +551,5 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var scaleFactor = GetRadiusScaleFactor(collider);
             return !Mathf.Approximately(scaleFactor, 0f) ? radius / scaleFactor : 0f;
         }
-
-#if AR_FOUNDATION_PRESENT
-#if AR_FOUNDATION_5_0_OR_NEWER
-        [MenuItem("GameObject/XR/XR Origin (AR)", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateXROriginForAR(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.AR, InputType.ActionBased));
-        }
-#endif
-
-        [MenuItem("GameObject/XR/AR Gesture Interactor", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARGestureInteractor(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Gesture Interactor",
-                menuCommand?.GetContextTransform(),
-                typeof(ARGestureInteractor)));
-        }
-
-        [MenuItem("GameObject/XR/AR Placement Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARPlacementInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Placement Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARPlacementInteractable)));
-        }
-
-        [MenuItem("GameObject/XR/AR Selection Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARSelectionInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Selection Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARSelectionInteractable)));
-        }
-
-        [MenuItem("GameObject/XR/AR Translation Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARTranslationInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Translation Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARTranslationInteractable)));
-        }
-
-        [MenuItem("GameObject/XR/AR Scale Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARScaleInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Scale Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARScaleInteractable)));
-        }
-
-        [MenuItem("GameObject/XR/AR Rotation Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARRotationInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Rotation Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARRotationInteractable)));
-        }
-
-        [MenuItem("GameObject/XR/AR Annotation Interactable", false, 10), UsedImplicitly]
-#pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
-        static void CreateARAnnotationInteractable(MenuCommand menuCommand)
-#pragma warning restore IDE0051
-        {
-            CreateInteractionManager();
-
-            Finalize(CreateAndPlaceGameObject("AR Annotation Interactable",
-                menuCommand?.GetContextTransform(),
-                typeof(ARAnnotationInteractable)));
-        }
-
-#endif // AR_FOUNDATION_PRESENT
     }
 }

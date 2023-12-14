@@ -175,7 +175,6 @@ GameObject:
   - component: {fileID: 5052899177804544578}
   - component: {fileID: 1045418193867555627}
   - component: {fileID: 5555598553481967032}
-  - component: {fileID: 646553838392029925}
   m_Layer: 0
   m_Name: X
   m_TagString: Untagged
@@ -248,19 +247,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &646553838392029925
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6496114727741476650}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.075, y: 0.15, z: 0.15}
-  m_Center: {x: 0.54, y: 0.5, z: 0}
 --- !u!1 &6845981941787145376
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,7 +258,6 @@ GameObject:
   - component: {fileID: 3667527555113755330}
   - component: {fileID: 1680143821234599065}
   - component: {fileID: 5466341165858485983}
-  - component: {fileID: 817125790858431452}
   m_Layer: 0
   m_Name: Y
   m_TagString: Untagged
@@ -345,19 +330,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &817125790858431452
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6845981941787145376}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.15, y: 0.075, z: 0.15}
-  m_Center: {x: 0, y: 1.04, z: 0}
 --- !u!1 &7190559763459483146
 GameObject:
   m_ObjectHideFlags: 0
@@ -425,9 +397,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
   m_Colliders: []
-  m_InteractionLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
@@ -486,33 +455,6 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
-  m_OnFirstHoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnLastHoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnHoverEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnHoverExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnSelectEntered:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnSelectExited:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnSelectCanceled:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnActivate:
-    m_PersistentCalls:
-      m_Calls: []
-  m_OnDeactivate:
-    m_PersistentCalls:
-      m_Calls: []
   m_AttachTransform: {fileID: 4024815596887789279}
   m_SecondaryAttachTransform: {fileID: 0}
   m_UseDynamicAttach: 1
@@ -559,7 +501,6 @@ MonoBehaviour:
   m_ThrowAngularVelocityScale: 1
   m_ForceGravityOnDetach: 0
   m_RetainTransformParent: 1
-  m_AttachPointCompatibilityMode: 0
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
@@ -581,7 +522,7 @@ MonoBehaviour:
   m_MaxScale: 2
   m_ScaleSensitivity: 0.75
   m_Elasticity: 0.15
-  m_EnableElasticBreakLimit: 0
+  m_EnableElasticBreakLimit: 1
   m_ElasticBreakLimit: 0.5
 --- !u!1 &9032734234910463639
 GameObject:
@@ -594,7 +535,6 @@ GameObject:
   - component: {fileID: 7863809778608035975}
   - component: {fileID: 8890643123443250309}
   - component: {fileID: 1058943081387071150}
-  - component: {fileID: 5745571111148119445}
   m_Layer: 0
   m_Name: Z
   m_TagString: Untagged
@@ -667,19 +607,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5745571111148119445
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9032734234910463639}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.15, y: 0.15, z: 0.075}
-  m_Center: {x: 0, y: 0.5, z: 0.54}
 --- !u!1001 &7927255909090456969
 PrefabInstance:
   m_ObjectHideFlags: 0

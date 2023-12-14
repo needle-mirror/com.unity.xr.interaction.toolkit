@@ -10,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
     /// </summary>
     /// <typeparam name="T">The type of the value struct.</typeparam>
     /// <seealso cref="BaseAsyncAffordanceStateReceiver{T}"/>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class BaseSynchronousAffordanceStateReceiver<T> : BaseAffordanceStateReceiver<T>, ISynchronousAffordanceStateReceiver where T : struct, IEquatable<T>
     {
         /// <inheritdoc />

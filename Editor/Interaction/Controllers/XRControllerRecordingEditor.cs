@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -8,7 +7,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRControllerRecording"/>.
     /// </summary>
     [CustomEditor(typeof(XRControllerRecording), true)]
-    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class XRControllerRecordingEditor : BaseInteractionEditor
     {
         /// <summary>String format used to display the interaction values.</summary>
@@ -115,14 +113,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.FloatField((float)frame.time, GUILayout.ExpandWidth(true));
+            EditorGUILayout.EnumFlagsField(frame.inputTrackingState, GUILayout.Width(180));
+            EditorGUILayout.Toggle(frame.isTracked, GUILayout.MaxWidth(14));
             EditorGUILayout.TextField(frame.position.ToString(), GUILayout.Width(120));
-            EditorGUILayout.TextField(frame.rotation.ToString(), GUILayout.Width(160));
+            EditorGUILayout.TextField(frame.rotation.eulerAngles.ToString(), GUILayout.Width(142));
             EditorGUILayout.Toggle(frame.selectInteractionState.active, GUILayout.MaxWidth(14));
             EditorGUILayout.Toggle(frame.activateInteractionState.active, GUILayout.MaxWidth(14));
             EditorGUILayout.Toggle(frame.uiPressInteractionState.active, GUILayout.MaxWidth(14));
             EditorGUILayout.TextField(frame.selectInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
             EditorGUILayout.TextField(frame.activateInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
             EditorGUILayout.TextField(frame.uiPressInteractionState.value.ToString(k_ValueFormat), GUILayout.MaxWidth(28f));
+            EditorGUILayout.TextField(frame.uiScrollValue.ToString(), GUILayout.MaxWidth(90));
             EditorGUILayout.EndHorizontal();
         }
     }

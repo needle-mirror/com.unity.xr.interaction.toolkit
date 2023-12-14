@@ -18,6 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
     /// While the destructor of this class should be able to automatically dispose of allocated resources, it is best practice
     /// to manually call dispose when instances are no longer needed.
     /// </remarks>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class TweenableVariableAsyncBase<T> : TweenableVariableBase<T>, IDisposable where T : struct, IEquatable<T>
     {
         /// <summary>

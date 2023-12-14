@@ -1,4 +1,5 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+﻿using System;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Transformation
 {
@@ -7,6 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Transform
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Transformation/Uniform Transform Scale Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_UniformTransformScaleAffordanceReceiver)] 
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class UniformTransformScaleAffordanceReceiver : FloatAffordanceReceiver
     {
         [SerializeField]

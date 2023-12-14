@@ -7,6 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
     /// </summary>
     /// <typeparam name="T">BindableVariable type.</typeparam>
     /// <seealso cref="TweenableVariableAsyncBase{T}"/>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class TweenableVariableSynchronousBase<T> : TweenableVariableBase<T> where T : IEquatable<T>
     {
         /// <inheritdoc />

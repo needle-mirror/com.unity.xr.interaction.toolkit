@@ -11,10 +11,9 @@ XR Interaction Toolkit contains a set of components that support the following I
 - Utility for interacting with XR Origin, a VR camera rig for handling stationary and room-scale VR experiences
 
 To use the AR interaction components in the package, you must have the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package in your Project. The AR functionality provided by the XR Interaction Toolkit includes:
-- AR gesture system to map screen touches to gesture events
-- AR interactable can place virtual objects in the real world
-- AR gesture interactor and interactables to translate gestures such as place, select, translate, rotate, and scale into object manipulation
-- AR annotations to inform users about AR objects placed in the real world
+- AR gesture system to map screen touches to gesture events in the Input System via the `TouchscreenGestureInputController`.
+- Various Screen Space input components that feeds screen-space interaction data into an `XRRayInteractor` that works with AR.
+- `ARTransformer` that translates gestures such as place, select, translate, rotate, and scale into object manipulation.
 
 Finally, its possible to simulate all of your interactions with the [XR Device Simulator](xr-device-simulator.md) in case you don't have the hardware for the project you are working on, or just want to test interactions without entering the headset. For more information, see [XR Device Simulator overview](xr-device-simulator-overview.md).
 
@@ -31,13 +30,14 @@ This version of the XR Interaction Toolkit is compatible with the following vers
 The XR Interaction Toolkit package has several dependencies which are automatically added to your project when installing:
 
 * [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/index.html)
+* [Mathematics (com.unity.mathematics)](https://docs.unity3d.com/Packages/com.unity.mathematics@1.2/manual/index.html)
 * [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
 * [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/index.html)
-* [XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers)](https://docs.unity3d.com/Packages/com.unity.xr.legacyinputhelpers@2.1/manual/index.html)
 * Built-in modules
   * [Audio](https://docs.unity3d.com/Manual/com.unity.modules.audio.html)
   * [IMGUI](https://docs.unity3d.com/Manual/com.unity.modules.imgui.html)
   * [Physics](https://docs.unity3d.com/Manual/com.unity.modules.physics.html)
+  * [XR](https://docs.unity3d.com/Manual/com.unity.modules.xr.html)
 
 #### Optional dependencies
 

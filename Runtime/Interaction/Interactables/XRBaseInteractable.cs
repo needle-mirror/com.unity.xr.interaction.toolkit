@@ -172,9 +172,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public List<Collider> colliders => m_Colliders;
 
         [SerializeField]
-        LayerMask m_InteractionLayerMask = -1;
-
-        [SerializeField]
         InteractionLayerMask m_InteractionLayers = 1;
 
         /// <summary>
@@ -601,11 +598,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// which is used as the pre-filtered interaction strength.
         /// </summary>
         /// <remarks>
-        /// Uses <see cref="XRBaseControllerInteractor"/> as the type to get the select input value to use as the pre-filtered
-        /// interaction strength. This will be replaced with the interface for the select input value when the dependency
-        /// on the <see cref="XRBaseController"/> is removed in a future version of XRI.
+        /// Uses <see cref="XRBaseInputInteractor"/> as the type to get the select input value to use as the pre-filtered
+        /// interaction strength.
         /// </remarks>
-        readonly HashSetList<XRBaseControllerInteractor> m_VariableSelectInteractors = new HashSetList<XRBaseControllerInteractor>();
+        readonly HashSetList<XRBaseInputInteractor> m_VariableSelectInteractors = new HashSetList<XRBaseInputInteractor>();
 
         readonly Dictionary<IXRInteractor, float> m_InteractionStrengths = new Dictionary<IXRInteractor, float>();
 
@@ -645,21 +641,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Setup Interaction Manager
             FindCreateInteractionManager();
-
-            // Warn about use of deprecated events
-            if (m_OnFirstHoverEntered.GetPersistentEventCount() > 0 ||
-                m_OnLastHoverExited.GetPersistentEventCount() > 0 ||
-                m_OnHoverEntered.GetPersistentEventCount() > 0 ||
-                m_OnHoverExited.GetPersistentEventCount() > 0 ||
-                m_OnSelectEntered.GetPersistentEventCount() > 0 ||
-                m_OnSelectExited.GetPersistentEventCount() > 0 ||
-                m_OnSelectCanceled.GetPersistentEventCount() > 0 ||
-                m_OnActivate.GetPersistentEventCount() > 0 ||
-                m_OnDeactivate.GetPersistentEventCount() > 0)
-            {
-                Debug.LogWarning("Some deprecated Interactable Events are being used. These deprecated events will be removed in a future version." +
-                    " Please convert these to use the newer events, and update script method signatures for Dynamic listeners.", this);
-            }
         }
 
         /// <summary>
@@ -704,22 +685,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_InteractionManager != null)
             {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                m_InteractionManager.RegisterInteractable(this);
-#pragma warning restore 618
+                m_InteractionManager.RegisterInteractable((IXRInteractable)this);
                 m_RegisteredInteractionManager = m_InteractionManager;
             }
         }
 
         void UnregisterWithInteractionManager()
         {
-            if (m_RegisteredInteractionManager == null)
-                return;
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            m_RegisteredInteractionManager.UnregisterInteractable(this);
-#pragma warning restore 618
-            m_RegisteredInteractionManager = null;
+            if (m_RegisteredInteractionManager != null)
+            {
+                m_RegisteredInteractionManager.UnregisterInteractable((IXRInteractable)this);
+                m_RegisteredInteractionManager = null;
+            }
         }
 
         /// <inheritdoc />
@@ -899,6 +876,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Attaches the custom reticle to the Interactor.
         /// </summary>
         /// <param name="interactor">Interactor that is interacting with this Interactable.</param>
+        /// <remarks>
+        /// If the custom reticle has an <see cref="IXRInteractableCustomReticle"/> component, this will call
+        /// <see cref="IXRInteractableCustomReticle.OnReticleAttached"/> on it.
+        /// </remarks>
         /// <seealso cref="RemoveCustomReticle(IXRInteractor)"/>
         public virtual void AttachCustomReticle(IXRInteractor interactor)
         {
@@ -921,6 +902,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     var reticleInstance = Instantiate(m_CustomReticle);
                     m_ReticleCache.Add(interactor, reticleInstance);
                     reticleProvider.AttachCustomReticle(reticleInstance);
+                    var customReticleBehavior = reticleInstance.GetComponent<IXRInteractableCustomReticle>();
+                    if (customReticleBehavior != null)
+                        customReticleBehavior.OnReticleAttached(this, reticleProvider);
                 }
             }
         }
@@ -929,6 +913,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Removes the custom reticle from the Interactor.
         /// </summary>
         /// <param name="interactor">Interactor that is no longer interacting with this Interactable.</param>
+        /// <remarks>
+        /// If the custom reticle has an <see cref="IXRInteractableCustomReticle"/> component, this will call
+        /// <see cref="IXRInteractableCustomReticle.OnReticleDetaching"/> on it.
+        /// </remarks>
         /// <seealso cref="AttachCustomReticle(IXRInteractor)"/>
         public virtual void RemoveCustomReticle(IXRInteractor interactor)
         {
@@ -942,6 +930,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (m_ReticleCache.TryGetValue(interactor, out var reticleInstance))
                 {
+                    var customReticleBehavior = reticleInstance.GetComponent<IXRInteractableCustomReticle>();
+                    if (customReticleBehavior != null)
+                        customReticleBehavior.OnReticleDetaching();
+
                     Destroy(reticleInstance);
                     m_ReticleCache.Remove(interactor);
                     reticleProvider.RemoveCustomReticle();
@@ -1001,10 +993,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         bool IXRHoverInteractable.IsHoverableBy(IXRHoverInteractor interactor)
         {
-            if (interactor is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return IsHoverableBy(baseInteractor) && ProcessHoverFilters(interactor);
-#pragma warning restore 618
             return IsHoverableBy(interactor) && ProcessHoverFilters(interactor);
         }
 
@@ -1023,10 +1011,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         bool IXRSelectInteractable.IsSelectableBy(IXRSelectInteractor interactor)
         {
-            if (interactor is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return IsSelectableBy(baseInteractor) && ProcessSelectFilters(interactor);
-#pragma warning restore 618
             return IsSelectableBy(interactor) && ProcessSelectFilters(interactor);
         }
 
@@ -1103,25 +1087,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnHoverEntering(HoverEnterEventArgs args)
         {
             if (m_CustomReticle != null)
-            {
-                if (args.interactorObject is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                    AttachCustomReticle(baseInteractor);
-#pragma warning restore 618
-                else
-                    AttachCustomReticle(args.interactorObject);
-            }
+                AttachCustomReticle(args.interactorObject);
 
             var added = m_InteractorsHovering.Add(args.interactorObject);
             Debug.Assert(added, "An Interactable received a Hover Enter event for an Interactor that was already hovering over it.", this);
 
-            if (args.interactorObject is XRBaseControllerInteractor variableSelectInteractor)
+            if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
                 m_VariableSelectInteractors.Add(variableSelectInteractor);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            hoveringInteractors.Add(args.interactor);
-            OnHoverEntering(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1140,10 +1112,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_FirstHoverEntered?.Invoke(args);
 
             m_HoverEntered?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnHoverEntered(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1159,29 +1127,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnHoverExiting(HoverExitEventArgs args)
         {
             if (m_CustomReticle != null)
-            {
-                if (args.interactorObject is XRBaseInteractor baseInteractor)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                    RemoveCustomReticle(baseInteractor);
-#pragma warning restore 618
-                else
-                    RemoveCustomReticle(args.interactorObject);
-            }
+                RemoveCustomReticle(args.interactorObject);
 
             var removed = m_InteractorsHovering.Remove(args.interactorObject);
             Debug.Assert(removed, "An Interactable received a Hover Exit event for an Interactor that was not hovering over it.", this);
 
             if (m_VariableSelectInteractors.Count > 0 &&
-                args.interactorObject is XRBaseControllerInteractor variableSelectInteractor &&
+                args.interactorObject is XRBaseInputInteractor variableSelectInteractor &&
                 !IsSelected(variableSelectInteractor))
             {
                 m_VariableSelectInteractors.Remove(variableSelectInteractor);
             }
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            hoveringInteractors.Remove(args.interactor);
-            OnHoverExiting(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1200,10 +1156,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_LastHoverExited?.Invoke(args);
 
             m_HoverExited?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnHoverExited(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1221,17 +1173,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var added = m_InteractorsSelecting.Add(args.interactorObject);
             Debug.Assert(added, "An Interactable received a Select Enter event for an Interactor that was already selecting it.", this);
 
-            if (args.interactorObject is XRBaseControllerInteractor variableSelectInteractor)
+            if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
                 m_VariableSelectInteractors.Add(variableSelectInteractor);
 
             if (m_InteractorsSelecting.Count == 1)
                 firstInteractorSelecting = args.interactorObject;
 
             CaptureAttachPose(args.interactorObject);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectEntering(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1250,10 +1198,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_FirstSelectEntered?.Invoke(args);
 
             m_SelectEntered?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectEntered(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1272,18 +1216,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Debug.Assert(removed, "An Interactable received a Select Exit event for an Interactor that was not selecting it.", this);
 
             if (m_VariableSelectInteractors.Count > 0 &&
-                args.interactorObject is XRBaseControllerInteractor variableSelectInteractor &&
+                args.interactorObject is XRBaseInputInteractor variableSelectInteractor &&
                 !IsHovered(variableSelectInteractor))
             {
                 m_VariableSelectInteractors.Remove(variableSelectInteractor);
             }
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (args.isCanceled)
-                OnSelectCanceling(args.interactor);
-            else
-                OnSelectExiting(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1302,13 +1239,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_LastSelectExited?.Invoke(args);
 
             m_SelectExited?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            if (args.isCanceled)
-                OnSelectCanceled(args.interactor);
-            else
-                OnSelectExited(args.interactor);
-#pragma warning restore 618
 
             // The dictionaries are pruned so that they don't infinitely grow in size as selections are made.
             if (m_InteractorsSelecting.Count == 0)
@@ -1394,7 +1324,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// <see cref="XRBaseControllerInteractor"/> calls this method when the
+        /// <see cref="XRBaseInputInteractor"/> calls this method when the
         /// Interactor begins an activation event on this Interactable.
         /// </summary>
         /// <param name="args">Event data containing the Interactor that is sending the activate event.</param>
@@ -1405,14 +1335,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnActivated(ActivateEventArgs args)
         {
             m_Activated?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnActivate(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
-        /// <see cref="XRBaseControllerInteractor"/> calls this method when the
+        /// <see cref="XRBaseInputInteractor"/> calls this method when the
         /// Interactor ends an activation event on this Interactable.
         /// </summary>
         /// <param name="args">Event data containing the Interactor that is sending the deactivate event.</param>
@@ -1423,10 +1349,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnDeactivated(DeactivateEventArgs args)
         {
             m_Deactivated?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnDeactivate(args.interactor);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -1448,7 +1370,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 for (int i = 0, count = m_InteractorsSelecting.Count; i < count; ++i)
                 {
                     var interactor = m_InteractorsSelecting[i];
-                    if (interactor is XRBaseControllerInteractor)
+                    if (interactor is XRBaseInputInteractor)
                         continue;
 
                     var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthSelect);
@@ -1460,7 +1382,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 for (int i = 0, count = m_InteractorsHovering.Count; i < count; ++i)
                 {
                     var interactor = m_InteractorsHovering[i];
-                    if (interactor is XRBaseControllerInteractor || IsSelected(interactor))
+                    if (interactor is XRBaseInputInteractor || IsSelected(interactor))
                         continue;
 
                     var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthHover);
@@ -1476,10 +1398,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     // Use the Select input value as the initial interaction strength.
                     // For interactors that use motion controller input, this is typically the analog trigger or grip press amount.
                     // Fall back to the default values for selected and hovered interactors in the case when the interactor
-                    // is misconfigured and is missing the component reference.
-                    var interactionStrength = interactor.xrController != null
-                        ? interactor.xrController.selectInteractionState.value
-                        : (IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover);
+                    // is misconfigured and is missing the input wrapper or component reference.
+                    float interactionStrength;
+                    if (!interactor.forceDeprecatedInput)
+                        interactionStrength = interactor.selectInput.ReadValue();
+#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
+                    else if (interactor.xrController != null)
+                        interactionStrength = interactor.xrController.selectInteractionState.value;
+#pragma warning restore CS0618
+                    else
+                        interactionStrength = IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover;
+
                     interactionStrength = ProcessInteractionStrengthFilters(interactor, interactionStrength);
                     m_InteractionStrengths[interactor] = interactionStrength;
 

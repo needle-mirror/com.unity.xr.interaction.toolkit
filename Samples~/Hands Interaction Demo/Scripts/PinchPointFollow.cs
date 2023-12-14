@@ -40,7 +40,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         bool m_HasTargetRotationTransform;
 
         OneEuroFilterVector3 m_OneEuroFilterVector3;
+
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly QuaternionTweenableVariable m_QuaternionTweenableVariable = new QuaternionTweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
 #endif
 

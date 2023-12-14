@@ -53,10 +53,74 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             InteractorPositionOption.InteractorOutsideCollider,
         };
 
+        static readonly InteractorHandedness[] s_HandednessValues =
+        {
+            InteractorHandedness.None,
+            InteractorHandedness.Left,
+            InteractorHandedness.Right,
+        };
+
         [TearDown]
         public void TearDown()
         {
             TestUtilities.DestroyAllSceneObjects();
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableIsHoveredOrSelectedBy([ValueSource(nameof(s_HandednessValues))] InteractorHandedness handedness)
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.handedness = handedness;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.selectMode = InteractableSelectMode.Multiple;
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactable.IsHoveredByLeft(), Is.False);
+            Assert.That(interactable.IsHoveredByRight(), Is.False);
+
+            Assert.That(interactable.isSelected, Is.False);
+            Assert.That(interactable.IsSelectedByLeft(), Is.False);
+            Assert.That(interactable.IsSelectedByRight(), Is.False);
+
+            interactor.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactable.IsHoveredByLeft(), Is.EqualTo(handedness == InteractorHandedness.Left));
+            Assert.That(interactable.IsHoveredByRight(), Is.EqualTo(handedness == InteractorHandedness.Right));
+
+            Assert.That(interactable.isSelected, Is.True);
+            Assert.That(interactable.IsSelectedByLeft(), Is.EqualTo(handedness == InteractorHandedness.Left));
+            Assert.That(interactable.IsSelectedByRight(), Is.EqualTo(handedness == InteractorHandedness.Right));
+
+            // Add another interactor with opposite handedness. If None, make another None type.
+            var interactorOpposite = TestUtilities.CreateMockInteractor();
+            switch (handedness)
+            {
+                case InteractorHandedness.Left:
+                    interactorOpposite.handedness = InteractorHandedness.Right;
+                    break;
+                case InteractorHandedness.Right:
+                    interactorOpposite.handedness = InteractorHandedness.Left;
+                    break;
+                default:
+                    interactorOpposite.handedness = InteractorHandedness.None;
+                    break;
+            }
+
+            interactorOpposite.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactable.IsHoveredByLeft(), Is.EqualTo(handedness != InteractorHandedness.None));
+            Assert.That(interactable.IsHoveredByRight(), Is.EqualTo(handedness != InteractorHandedness.None));
+
+            Assert.That(interactable.isSelected, Is.True);
+            Assert.That(interactable.IsSelectedByLeft(), Is.EqualTo(handedness != InteractorHandedness.None));
+            Assert.That(interactable.IsSelectedByRight(), Is.EqualTo(handedness != InteractorHandedness.None));
         }
 
         [UnityTest]
@@ -439,8 +503,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable2 = TestUtilities.CreateGrabInteractable();
             interactable2.transform.position = new Vector3(10f, 0, 0);
 
-            var controller = directInteractor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(directInteractor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
@@ -464,11 +527,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable2.isFocused, Is.EqualTo(false));
             
             controllerRecorder.isPlaying = false;
-            GameObject.Destroy(controllerRecorder);
+            Object.Destroy(controllerRecorder);
             yield return null;
 
             var offset = new Vector3(10.0f, 0.0f, 0.0f);
-            controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            controllerRecorder = TestUtilities.CreateControllerRecorder(directInteractor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, offset, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));

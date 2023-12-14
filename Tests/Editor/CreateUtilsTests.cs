@@ -43,7 +43,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [Test]
         public void UndoRedoCreateXROrigin_WorksWithNoErrors()
         {
-            CreateUtils.CreateXROriginDeviceBased(null);
+            CreateUtils.CreateXROriginForVR(null);
             var origin = FindByType<XROrigin>();
             var cameraBgColor = origin.Camera.backgroundColor;
             var originPosition = origin.transform.position;
@@ -70,7 +70,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [Test]
         public void CreateRayInteractorActionBased_CreatesSuccessfully()
         {
-            CreateUtils.CreateRayInteractorActionBased(null);
+            CreateUtils.CreateRayInteractor(null);
             var rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor != null);
         }
@@ -83,7 +83,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         {
             var parentTransform = new GameObject().transform;
             parentTransform.position = new Vector3(5f, 5f, 5f);
-            CreateUtils.CreateRayInteractorDeviceBased(new MenuCommand(parentTransform.gameObject));
+            CreateUtils.CreateRayInteractor(new MenuCommand(parentTransform.gameObject));
             
             Undo.PerformUndo();
             var rayInteractor = FindByType<XRRayInteractor>();

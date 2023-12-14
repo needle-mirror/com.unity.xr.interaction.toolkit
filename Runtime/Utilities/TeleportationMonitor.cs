@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
@@ -36,13 +37,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// The <see cref="Pose"/> of the <see cref="XROrigin"/> rig before teleportation.
         /// Used to calculate the teleportation delta using this as reference.
         /// </summary>
-        Dictionary<LocomotionSystem, Pose> m_OriginPosesBeforeTeleport;
+        Dictionary<LocomotionMediator, Pose> m_OriginPosesBeforeTeleport;
 
         static readonly LinkedPool<Dictionary<TeleportationProvider, List<IXRInteractor>>> s_TeleportInteractorsPool =
             new LinkedPool<Dictionary<TeleportationProvider, List<IXRInteractor>>>(() => new Dictionary<TeleportationProvider, List<IXRInteractor>>());
 
-        static readonly LinkedPool<Dictionary<LocomotionSystem, Pose>> s_OriginPosesBeforeTeleportPool =
-            new LinkedPool<Dictionary<LocomotionSystem, Pose>>(() => new Dictionary<LocomotionSystem, Pose>());
+        static readonly LinkedPool<Dictionary<LocomotionMediator, Pose>> s_OriginPosesBeforeTeleportPool =
+            new LinkedPool<Dictionary<LocomotionMediator, Pose>>(() => new Dictionary<LocomotionMediator, Pose>());
 
         /// <summary>
         /// Cached reference to <see cref="TeleportationProvider"/> instances found.
@@ -89,8 +90,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                 if (interactors.Count == 1)
                 {
-                    teleportationProvider.beginLocomotion += OnBeginTeleportation;
-                    teleportationProvider.endLocomotion += OnEndTeleportation;
+                    teleportationProvider.locomotionStarted += OnBeginTeleportation;
+                    teleportationProvider.locomotionEnded += OnEndTeleportation;
                 }
             }
         }
@@ -115,8 +116,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                     if (interactors.Remove(interactor) && interactors.Count == 0 && teleportationProvider != null)
                     {
-                        teleportationProvider.beginLocomotion -= OnBeginTeleportation;
-                        teleportationProvider.endLocomotion -= OnEndTeleportation;
+                        teleportationProvider.locomotionStarted -= OnBeginTeleportation;
+                        teleportationProvider.locomotionEnded -= OnEndTeleportation;
                     }
 
                     totalInteractors += interactors.Count;
@@ -145,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             // Correct version of locomotionProvider?.system?.xrOrigin?.Origin?.transform
             if (locomotionProvider != null)
             {
-                var system = locomotionProvider.system;
+                var system = locomotionProvider.mediator;
                 return TryGetOriginTransform(system, out originTransform);
             }
 
@@ -153,12 +154,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             return false;
         }
 
-        static bool TryGetOriginTransform(LocomotionSystem system, out Transform originTransform)
+        static bool TryGetOriginTransform(LocomotionMediator mediator, out Transform originTransform)
         {
             // Correct version of system?.xrOrigin?.Origin?.transform
-            if (system != null)
+            if (mediator != null)
             {
-                var xrOrigin = system.xrOrigin;
+                var xrOrigin = mediator.xrOrigin;
                 if (xrOrigin != null)
                 {
                     var origin = xrOrigin.Origin;
@@ -186,26 +187,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             return s_TeleportationProvidersCache.Length > 0;
         }
 
-        void OnBeginTeleportation(LocomotionSystem locomotionSystem)
+        void OnBeginTeleportation(LocomotionProvider provider)
         {
-            if (!TryGetOriginTransform(locomotionSystem, out var originTransform))
+            var mediator = provider.mediator;
+            if (!TryGetOriginTransform(mediator, out var originTransform))
                 return;
 
             if (m_OriginPosesBeforeTeleport == null)
                 m_OriginPosesBeforeTeleport = s_OriginPosesBeforeTeleportPool.Get();
 
-            m_OriginPosesBeforeTeleport[locomotionSystem] = originTransform.GetWorldPose();
+            m_OriginPosesBeforeTeleport[mediator] = originTransform.GetWorldPose();
         }
 
-        void OnEndTeleportation(LocomotionSystem locomotionSystem)
+        void OnEndTeleportation(LocomotionProvider provider)
         {
-            if (!TryGetOriginTransform(locomotionSystem, out var originTransform))
+            var mediator = provider.mediator;
+            if (!TryGetOriginTransform(mediator, out var originTransform))
                 return;
 
             if (m_OriginPosesBeforeTeleport == null)
                 return;
 
-            if (!m_OriginPosesBeforeTeleport.TryGetValue(locomotionSystem, out var originPoseBeforeTeleport))
+            if (!m_OriginPosesBeforeTeleport.TryGetValue(mediator, out var originPoseBeforeTeleport))
                 return;
 
             var translated = originTransform.position - originPoseBeforeTeleport.position;

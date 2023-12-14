@@ -1,41 +1,25 @@
 ﻿using System;
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
 using UnityEngine.SpatialTracking;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     public partial class XRControllerState
     {
-#pragma warning disable 618
+#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
         /// <summary>
         /// (Deprecated) The pose data flags of the controller.
         /// </summary>
         /// <seealso cref="inputTrackingState"/>
-        [Obsolete("poseDataFlags has been deprecated. Use inputTrackingState instead.")]
+        [Obsolete("poseDataFlags has been deprecated. Use inputTrackingState instead.", true)]
         public PoseDataFlags poseDataFlags
         {
-            get
-            {
-                var value = PoseDataFlags.NoData;
-                
-                if ((inputTrackingState & InputTrackingState.Position) != 0)
-                    value |= PoseDataFlags.Position;
-                if ((inputTrackingState & InputTrackingState.Rotation) != 0)
-                    value |= PoseDataFlags.Rotation;
-                
-                return value;
-            }
-
-            set
-            {
-                inputTrackingState = InputTrackingState.None;
-
-                if ((value & PoseDataFlags.Position) != 0)
-                    inputTrackingState |= InputTrackingState.Position;
-                if ((value & PoseDataFlags.Rotation) != 0)
-                    inputTrackingState |= InputTrackingState.Rotation;
-            }
+            get => default;
+            set => _ = value;
         }
-        
+#endif
+
         /// <summary>
         /// (Deprecated) Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>
@@ -45,12 +29,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
         /// <param name="pressActive">Whether UI press is active or not.</param>
-        [Obsolete("This constructor has been deprecated. Use the constructors with the inputTrackingState parameter.")]
+        [Obsolete("This constructor has been deprecated. Use the constructors with the inputTrackingState parameter.", true)]
         public XRControllerState(double time, Vector3 position, Quaternion rotation, bool selectActive, bool activateActive, bool pressActive)
             : this(time, position, rotation, InputTrackingState.Rotation | InputTrackingState.Position, selectActive, activateActive, pressActive)
         {
         }
-#pragma warning restore 618
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="XRControllerState"/>.
@@ -59,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="position">The position for this controller.</param>
         /// <param name="rotation">The rotation for this controller.</param>
         /// <param name="inputTrackingState">The inputTrackingState for this controller.</param>
-        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.", true)]
         protected XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState)
             : this(time, position, rotation, inputTrackingState, true)
         {
@@ -75,14 +58,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="selectActive">Whether select is active or not.</param>
         /// <param name="activateActive">Whether activate is active or not.</param>
         /// <param name="pressActive">Whether UI press is active or not.</param>
-        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.", true)]
         public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState,
             bool selectActive, bool activateActive, bool pressActive)
             : this(time, position, rotation, inputTrackingState, true)
         {
-            this.selectInteractionState.SetFrameState(selectActive);
-            this.activateInteractionState.SetFrameState(activateActive);
-            this.uiPressInteractionState.SetFrameState(pressActive);
         }
 
         /// <summary>
@@ -98,15 +78,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="selectValue">The select value.</param>
         /// <param name="activateValue">The activate value.</param>
         /// <param name="pressValue">The UI press value.</param>
-        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.")]
+        [Obsolete("This constructor has been deprecated. Use the constructor with the isTracked parameter.", true)]
         public XRControllerState(double time, Vector3 position, Quaternion rotation, InputTrackingState inputTrackingState,
             bool selectActive, bool activateActive, bool pressActive,
             float selectValue, float activateValue, float pressValue)
             : this(time, position, rotation, inputTrackingState, true)
         {
-            this.selectInteractionState.SetFrameState(selectActive, selectValue);
-            this.activateInteractionState.SetFrameState(activateActive, activateValue);
-            this.uiPressInteractionState.SetFrameState(pressActive, pressValue);
         }
 
         /// <summary>
@@ -115,34 +92,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <remarks>
         /// <c>ResetInputs</c> has been renamed. Use <see cref="ResetFrameDependentStates"/> instead.
         /// </remarks>
-        [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()")]
-        public void ResetInputs() => ResetFrameDependentStates();
-    }
-
-    public partial struct InteractionState
-    {
-        /// <summary>
-        /// (Deprecated) Whether the interaction state was deactivated this frame.
-        /// </summary>
-        /// <remarks>
-        /// <c>deActivatedThisFrame</c> has been deprecated. Use <see cref="deactivatedThisFrame"/> instead.
-        /// </remarks>
-#pragma warning disable IDE1006 // Naming Styles
-        [Obsolete("deActivatedThisFrame has been deprecated. Use deactivatedThisFrame instead. (UnityUpgradable) -> deactivatedThisFrame")]
-        public bool deActivatedThisFrame
+        [Obsolete("ResetInputs has been renamed. Use ResetFrameDependentStates instead. (UnityUpgradable) -> ResetFrameDependentStates()", true)]
+        public void ResetInputs()
         {
-            get => deactivatedThisFrame;
-            set => deactivatedThisFrame = value;
         }
-#pragma warning restore IDE1006
-
-        /// <summary>
-        /// (Deprecated) Resets the interaction states that are based on whether they occurred "this frame".
-        /// </summary>
-        /// <remarks>
-        /// <c>Reset</c> has been deprecated. Use <see cref="ResetFrameDependent"/> instead.
-        /// </remarks>
-        [Obsolete("Reset has been renamed. Use ResetFrameDependent instead. (UnityUpgradable) -> ResetFrameDependent()")]
-        public void Reset() => ResetFrameDependent();
     }
 }

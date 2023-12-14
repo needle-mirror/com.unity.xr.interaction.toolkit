@@ -44,18 +44,13 @@ An Interaction Group can also contain other Groups in its sorted list of members
 
 Interaction Groups also register with an Interaction Manager. A member Interactor or Group must be registered with the same Interaction Manager as its containing Group for the member to function as part of the Group. A Group first registers with an Interaction Manager during the behavior's `Awake`. Upon being disabled (during the behavior's `OnDisable`) the Group will unregister from the Interaction Manager. If the Group is then re-enabled (during the behavior's `OnEnable`) it again registers with an Interaction Manager. If an Interactor or Group is added to a Group at runtime, it will unregister from and then re-registers with its Interaction Manager so that it can be treated as a Group member in the update loop.
 
-### Controllers
-The XR Controller component provides a way to abstract input data, which Interactors then use to translate into interaction states, notably for selection and activation. The input actions are bound to a tracked device's controls and are read from each frame, which Interactors then query to determine if they should select or activate.
+### Input Readers
+The input properties on interactor components and locomotion provider components provides a way to abstract the source of input data, which Interactors then use to translate into interaction states, notably for selection and activation. The input actions are bound to a tracked device's controls and are read from each frame they are needed. Interactor like the XR Ray Interactor that depend on controller or hand input then query to determine if they should select or activate.
 
-When there are multiple Interactors associated with a hand, it is typical for there to also be multiple XR Controller components also associated with that same hand. In other words, you do not need to only have a single XR Controller component to represent all interactors for a hand. For example, you may want different inputs to be used for a ray-based teleportation interactor and a close range direct interactor for grabbing, and both Interactor components can reference different XR Controller components to read different input values from the same tracked controller device.
+You may want different inputs to be used for a ray-based teleportation interactor and a ray-based interactor for grabbing, and both Interactor components can reference different input actions to read different input values from the same tracked controller device.
 
-This component is also responsible for reading the position and rotation of the tracked device, and applying it to the Transform component.
-
-#### Controller Recorder
-You can also use the Controller Recorder component to record and play back input data. You can use this to to test out interactions or run test scenes without an XR device attached.
-
-> [!Note]
-> Controller Recorder currently only works in the Unity Editor.
+### Tracked Pose Driver
+This component in the Input System package is responsible for reading the position and rotation of the tracked device, and applying it to the Transform component.
 
 ## Update loop
 

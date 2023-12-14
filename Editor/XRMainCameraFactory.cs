@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,29 +14,29 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// </summary>
     static class XRMainCameraFactory
     {
-        internal static Camera CreateXRMainCamera(CreateUtils.HardwareTarget target, CreateUtils.InputType inputType)
+        internal static Camera CreateXRMainCamera(CreateUtils.HardwareTarget target)
         {
             switch (target)
             {
                 case CreateUtils.HardwareTarget.VR:
-                    return CreateVRMainCamera(inputType);
-                case CreateUtils.HardwareTarget.AR:
-                    return CreateARMainCamera(inputType);
+                    return CreateVRMainCamera();
+                case CreateUtils.HardwareTarget.MobileAR:
+                    return CreateARMainCamera();
                 default:
                     throw new InvalidEnumArgumentException($"Invalid {nameof(CreateUtils.HardwareTarget)}: {target}");
             }
         }
 
-        static Camera CreateVRMainCamera(CreateUtils.InputType inputType)
+        static Camera CreateVRMainCamera()
         {
             var camera = CreateMainCamera();
             camera.nearClipPlane = 0.01f;
 
-            SetupInput(camera, inputType);
+            SetupTrackedPoseDriverInput(camera);
             return camera;
         }
 
-        static Camera CreateARMainCamera(CreateUtils.InputType inputType)
+        static Camera CreateARMainCamera()
         {
             var mainCam = Camera.main;
             if (mainCam != null)
@@ -60,7 +59,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             cameraGo.AddComponent<ARCameraBackground>();
 #endif
 
-            SetupInput(camera, inputType);
+            SetupTrackedPoseDriverInput(camera);
             return camera;
         }
 
@@ -77,22 +76,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return camera;
         }
 
-        static void SetupInput(Camera camera, CreateUtils.InputType inputType)
-        {
-            switch (inputType)
-            {
-                case CreateUtils.InputType.ActionBased:
-                    SetupActionBasedInput(camera);
-                    break;
-                case CreateUtils.InputType.DeviceBased:
-                    SetupDeviceBasedInput(camera);
-                    break;
-                default:
-                    throw new InvalidEnumArgumentException($"Invalid {nameof(CreateUtils.InputType)}: {inputType}");
-            }
-        }
-
-        static void SetupActionBasedInput(Camera camera)
+        static void SetupTrackedPoseDriverInput(Camera camera)
         {
             var trackedPoseDriver = camera.gameObject.AddComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>();
 
@@ -100,27 +84,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
             positionAction.AddBinding("<HandheldARInputDevice>/devicePosition");
             var rotationAction = new InputAction("Rotation", binding: "<XRHMD>/centerEyeRotation", expectedControlType: "Quaternion");
             rotationAction.AddBinding("<HandheldARInputDevice>/deviceRotation");
-#if INPUT_SYSTEM_1_1_OR_NEWER && !INPUT_SYSTEM_1_1_PREVIEW // 1.1.0-pre.6 or newer, excluding older preview
+            var trackingStateAction = new InputAction("Tracking State", binding: "<XRHMD>/trackingState", expectedControlType: "Integer");
+
             trackedPoseDriver.positionInput = new InputActionProperty(positionAction);
             trackedPoseDriver.rotationInput = new InputActionProperty(rotationAction);
-#if INPUT_SYSTEM_1_5_OR_NEWER
-            var trackingStateAction = new InputAction("Tracking State", binding: "<XRHMD>/trackingState", expectedControlType: "Integer");
             trackedPoseDriver.trackingStateInput = new InputActionProperty(trackingStateAction);
             trackedPoseDriver.ignoreTrackingState = false;
-#endif
-#else
-            trackedPoseDriver.positionAction = positionAction;
-            trackedPoseDriver.rotationAction = rotationAction;
-#endif
-        }
-
-        static void SetupDeviceBasedInput(Camera camera)
-        {
-            var trackedPoseDriver = camera.gameObject.AddComponent<UnityEngine.SpatialTracking.TrackedPoseDriver>();
-
-            trackedPoseDriver.SetPoseSource(
-                UnityEngine.SpatialTracking.TrackedPoseDriver.DeviceType.GenericXRDevice,
-                UnityEngine.SpatialTracking.TrackedPoseDriver.TrackedPose.Center);
         }
     }
 }

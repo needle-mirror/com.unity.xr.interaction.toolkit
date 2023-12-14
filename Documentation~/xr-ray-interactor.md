@@ -8,15 +8,17 @@ Interactor used for interacting with Interactables at a distance. This is handle
 |---|---|
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactor will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactables whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
-| **Enable Interaction with UI GameObjects** | Enable to allow this Interactor to affect UI. |
+| **Handedness** | Represents which hand or controller the interactor is associated with. |
+| **UI Interaction** | Enable to affect Unity UI GameObjects in a way that is similar to a mouse pointer. Requires the XR UI Input Module on the Event System. |
+| **Block UI on Interactable Selection** | Enabling this option will block UI interaction when selecting interactables. |
 | **Force Grab** | Force grab moves the object to your hand rather than interacting with it at a distance. |
-| **Anchor Control** | Allows the user to move the attach anchor point using the joystick. |
-| **Translate Speed** | Speed that the anchor is translated. Only used and displayed when **Anchor Control** is enabled. |
-| **Rotate Reference Frame** | The optional reference frame to define the up axis when rotating the attach anchor point. When not set, rotates about the local up axis of the attach transform. Only used and displayed when **Anchor Control** is enabled. |
-| **Rotation Mode** | Specifies how the anchor rotation is controlled. Only used and displayed when **Anchor Control** is enabled. |
-| &emsp;Rotate Over Time | Set **Rotation Mode** to **Rotate Over Time** to control anchor rotation over time while rotation input is active. |
-| &emsp;Match Direction | Set **Rotation Mode** to **Match Direction** to match the anchor rotation to the direction of the 2-dimensional rotation input. |
-| **Rotate Speed** | Speed that the anchor is rotated. Only used and displayed when **Anchor Control** is enabled and **Rotation Mode** is set to **Rotate Over Time**. |
+| **Manipulate Attach Transform** | Allows the user to move the Attach Transform using the thumbstick. |
+| **Translate Speed** | Speed that the Attach Transform is translated along the ray. Only used and displayed when **Manipulate Attach Transform** is enabled. |
+| **Rotate Reference Frame** | The optional reference frame to define the up axis when rotating the Attach Transform. When not set, rotates about the local up axis of the attach transform. Only used and displayed when **Manipulate Attach Transform** is enabled. |
+| **Rotate Mode** | Specifies how the Attach Transform rotation manipulation is controlled. Only used and displayed when **Manipulate Attach Transform** is enabled. |
+| &emsp;Rotate Over Time | Set **Rotation Mode** to **Rotate Over Time** to control attach rotation over time while rotation input is active. |
+| &emsp;Match Direction | Set **Rotation Mode** to **Match Direction** to match the attach rotation to the direction of the 2-dimensional rotation input. |
+| **Rotate Speed** | Speed that the Attach Transform is rotated. Only used and displayed when **Manipulate Attach Transform** is enabled and **Rotation Mode** is set to **Rotate Over Time**. |
 | **Scale Mode** | Determines how the Scale Value should be used by the interactable objects requesting it. |
 | **Attach Transform** | The `Transform` that is used as the attach point for Interactables.<br />Automatically instantiated and set in `Awake` if **None**.<br />Setting this will not automatically destroy the previous object. |
 | **Ray Origin Transform** | The starting position and direction of any ray casts.<br />Automatically instantiated and set in `Awake` if **None** and initialized with the pose of the `XRBaseInteractor.attachTransform`. Setting this will not automatically destroy the previous object. |
@@ -54,7 +56,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Hide Controller On Select** | Controls whether this Interactor should hide the controller model on selection. |
 | **Allow Hovered Activate** | Controls whether to send activate and deactivate events to interactables that this interactor is hovered over but not selected when there is no current selection. By default, the interactor will only send activate and deactivate events to interactables that it's selected. |
 | **Target Track Mode** | Specifies how many Interactables that should be tracked in the Targets For Selection property, useful for custom feedback. The options are in order of best performance. |
-| **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. Will also select UI if Enable Interaction with UI GameObjects is also enabled. |
+| **Hover To Select** | Enable to have Interactor automatically select an Interactable after hovering over it for a period of time. Will also select UI if UI Interaction is also enabled. |
 | **Hover Time To Select** | Number of seconds an Interactor must hover over an Interactable to select it. |
 | **Auto Deselect** | Enable to have Interactor automatically deselect an Interactable after selecting it for a period of time. |
 | **Time To Auto Deselect** | Number of seconds an Interactor must select an Interactable before it is automatically deselected when **Auto Deselect** is true. |

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 
 #if AR_FOUNDATION_PRESENT
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -82,7 +83,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 typeof(XROrigin), typeof(ARPlaneManager), typeof(ARRaycastManager));
             m_XROrigin = xrOriginGO.GetComponent<XROrigin>();
 
+#pragma warning disable 618
             var cameraGO = ObjectFactory.CreateGameObject("AR Camera", typeof(Camera), typeof(ARGestureInteractor));
+#pragma warning restore 618
             cameraGO.tag = "MainCamera";
             m_Camera = cameraGO.GetComponent<Camera>();
 
@@ -218,6 +221,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_SelectPlacementInteractable_CreatesGO([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -253,6 +257,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_SelectSelectionInteractable_Selects([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -273,6 +278,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_DragTranslateInteractable_TranslatesAlongPlane([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -316,6 +322,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_PinchScaleInteractable_Scales([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -356,6 +363,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_TwistRotationInteractable_Rotates([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -395,6 +403,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_UICanBlockObjectPlacement([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -429,6 +438,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_UICanBlockObjectSelection([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -451,6 +461,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_UICanBlockObjectTranslation([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -497,6 +508,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_UICanBlockObjectRotation([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);
@@ -538,6 +550,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        [Obsolete("The old AR unit tests are deprecated due to the touchscreen AR refactor.")]
         public IEnumerator GestureInteractor_UICanBlockObjectScaling([ValueSource(nameof(s_TouchInputSources))] GestureTouchesUtility.TouchInputSource touchInputSource)
         {
             SetupTouches(touchInputSource);

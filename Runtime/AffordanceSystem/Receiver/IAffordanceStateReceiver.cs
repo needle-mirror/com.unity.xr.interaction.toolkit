@@ -1,4 +1,5 @@
-﻿using Unity.XR.CoreUtils.Bindings.Variables;
+﻿using System;
+using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme;
 
@@ -12,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
     /// <seealso cref="IAffordanceStateReceiver{T}"/>
     /// <seealso cref="IAsyncAffordanceStateReceiver"/>
     /// <seealso cref="ISynchronousAffordanceStateReceiver"/>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public interface IAffordanceStateReceiver
     {
         /// <summary>
@@ -32,6 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
     /// for an affordance state receiver to work.
     /// </summary>
     /// <typeparam name="T">The type of the value struct.</typeparam>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public interface IAffordanceStateReceiver<T> : IAffordanceStateReceiver where T : struct
     {
         /// <summary>

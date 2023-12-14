@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine.TestTools;
@@ -7,6 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     class TweenableVariableTests
     {
         [TearDown]

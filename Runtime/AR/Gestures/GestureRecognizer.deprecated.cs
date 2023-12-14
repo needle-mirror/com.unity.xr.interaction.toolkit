@@ -45,7 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <remarks>
         /// <c>m_Gestures</c> has been deprecated. Use <see cref="gestures"/> instead.
         /// </remarks>
-        [Obsolete("m_Gestures has been deprecated. Use gestures instead. (UnityUpgradable) -> gestures")]
+        [Obsolete("m_Gestures has been deprecated. Use gestures instead.", true)]
         protected List<T> m_Gestures = new List<T>();
 #pragma warning restore IDE1006 // Naming Styles
 

@@ -155,5 +155,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRHoverInteractable.interactorsHovering"/>
         public static IXRHoverInteractor GetOldestInteractorHovering(this IXRHoverInteractable interactable) =>
             interactable?.interactorsHovering.Count > 0 ? interactable.interactorsHovering[0] : null;
+
+        /// <summary>
+        /// Gets whether the interactable is currently being hovered by an interactor associated with the left hand or controller.
+        /// </summary>
+        /// <param name="interactable">The interactable to operate on.</param>
+        /// <returns>Returns <see langword="true"/> if any interactor currently hovering this interactable has <see cref="IXRInteractor.handedness"/> of <see cref="InteractorHandedness.Left"/>.</returns>
+        /// <remarks>
+        /// This method will return <see langword="true"/> even if it is not exclusively being hovered by the left hand or controller.
+        /// In other words, it will still return <see langword="true"/> if the interactable is also being hovered by
+        /// an interactor associated with the right hand or controller.
+        /// </remarks>
+        /// <seealso cref="IsHoveredByRight"/>
+        /// <seealso cref="IXRInteractor.handedness"/>
+        public static bool IsHoveredByLeft(this IXRHoverInteractable interactable) =>
+            IsHoveredBy(interactable, InteractorHandedness.Left);
+
+        /// <summary>
+        /// Gets whether the interactable is currently being hovered by an interactor associated with the right hand or controller.
+        /// </summary>
+        /// <param name="interactable">The interactable to operate on.</param>
+        /// <returns>Returns <see langword="true"/> if any interactor currently hovering this interactable has <see cref="IXRInteractor.handedness"/> of <see cref="InteractorHandedness.Right"/>.</returns>
+        /// <remarks>
+        /// This method will return <see langword="true"/> even if it is not exclusively being hovered by the right hand or controller.
+        /// In other words, it will still return <see langword="true"/> if the interactable is also being hovered by
+        /// an interactor associated with the left hand or controller.
+        /// </remarks>
+        /// <seealso cref="IsHoveredByLeft"/>
+        /// <seealso cref="IXRInteractor.handedness"/>
+        public static bool IsHoveredByRight(this IXRHoverInteractable interactable) =>
+            IsHoveredBy(interactable, InteractorHandedness.Right);
+
+        static bool IsHoveredBy(IXRHoverInteractable interactable, InteractorHandedness handedness)
+        {
+            var interactorsHovering = interactable.interactorsHovering;
+            for (var i = 0; i < interactorsHovering.Count; ++i)
+            {
+                if (interactorsHovering[i].handedness == handedness)
+                    return true;
+            }
+
+            return false;
+        }
     }
 }

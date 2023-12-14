@@ -1,9 +1,12 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
+﻿using System;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
 {
     /// <summary>
     /// Bindable variable that can tween over time towards a target Quaternion value.
     /// Uses an synchronous implementation so the tween does not use the job system.
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class QuaternionTweenableVariable : TweenableVariableSynchronousBase<Quaternion>
     {
         /// <summary>

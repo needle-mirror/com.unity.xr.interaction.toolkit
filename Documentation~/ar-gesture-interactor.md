@@ -1,3 +1,6 @@
+> [!NOTE]
+> The following class has been deprecated in favor of newer cross-platform AR architecture that is compatible with Mixed Reality devices. See [the AR interaction documentation](ar-interaction-overview.md) for more information.
+
 # AR Gesture Interactor
 
 The `ARGestureInteractor` allows the user to manipulate virtual objects (select, translate, rotate, scale, and elevate) through gestures (tap, drag, twist, and pinch).

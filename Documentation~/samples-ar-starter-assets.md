@@ -10,9 +10,9 @@ The XR Interaction Toolkit package provides an example implementation for mobile
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
 |**`Materials\FeatheredPlaneMaterial`**|This material provides a visual representation used for AR plane detection in the XR Simulator and in builds.|
 |**`Prefabs\AR Feathered Plane`**|This prefab uses the `FeatheredPlaneMaterial` to show where the AR plane is detected or simulated.|
-|**`Prefabs\XR Origin (AR Rig)`**|This contains the basic configuration to use XRI with an mobile device, leveraging the XR Screen Space Controller prefab and the AR settings on the XR Ray Interactor.|
-|**`Prefabs\XR Screen Space Controller`**|This controller prefab contains the screen-space controller and XR Ray Interactor setup to work with mobile AR devices.|
+|**`Prefabs\Screen Space Ray Interactor`**|This prefab contains the component for adding the input device to the input system that the Touchscreen Gestures actions are bound to and the XR Ray Interactor setup to work with mobile AR devices.|
+|**`Prefabs\XR Origin (AR Rig)`**|This contains the basic configuration to use interactions with a mobile device, containing components from AR Foundation and leveraging the Screen Space Ray Interactor prefab and the AR settings on the XR Ray Interactor.|
 |**`Scripts\ARContactSpawnTrigger`**|Component that spawns an object from the designated list at the physical contact point with an AR plane.|
 |**`Scripts\ARFeatheredPlaneMeshVisualizer`**|Component that supports a feathering effect at the edge of a detected plane, which reduces the visual impression of a hard edge.|
-|**`Scripts\ARInteractorSpawnTrigger`**|Component that spawns an object from the designated list at the point where the `ARInteractor` hits the AR plane when the specific `spawnAction` is triggered from the Input System.|
+|**`Scripts\ARInteractorSpawnTrigger`**|Component that spawns an object from the designated list at the point where the Ray Interactor hits the AR plane when the specific `Spawn Object` action is triggered from the Input System.|
 |**`ARDemoScene`**|Scene that illustrates a basic AR rig setup that supports screen space touch gestures along with example interactable objects that can be spawned and UI.|

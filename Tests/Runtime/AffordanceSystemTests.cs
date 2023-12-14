@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -11,6 +12,7 @@ using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     class AffordanceSystemTests
     {
         // Workaround class until we make the AudioAffordanceTheme constructor public instead of protected

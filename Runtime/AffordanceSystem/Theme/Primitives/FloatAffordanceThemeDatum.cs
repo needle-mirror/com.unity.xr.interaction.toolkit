@@ -7,6 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// Affordance state theme data structure for for float affordances. 
     /// </summary>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class FloatAffordanceTheme : BaseAffordanceTheme<float>
     {
     }
@@ -16,6 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// </summary>
     /// <seealso cref="FloatAffordanceThemeDatum"/>
     [Serializable]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class FloatAffordanceThemeDatumProperty : DatumProperty<FloatAffordanceTheme, FloatAffordanceThemeDatum>
     {
         /// <inheritdoc/>
@@ -34,6 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     /// </summary>
     [CreateAssetMenu(fileName = "FloatAffordanceTheme", menuName = "Affordance Theme/Float Affordance Theme", order = 0)]
     [HelpURL(XRHelpURLConstants.k_FloatAffordanceThemeDatum)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class FloatAffordanceThemeDatum : Datum<FloatAffordanceTheme>
     {
     }

@@ -23,9 +23,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         bool m_HasRigidbody;
 
         Transform m_ThisTransform;
-        
+
+#pragma warning disable CS0618 // Type or member is obsolete
         readonly Vector3TweenableVariable m_PositionTweenable = new Vector3TweenableVariable();
         readonly QuaternionTweenableVariable m_RotationTweenable = new QuaternionTweenableVariable();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.

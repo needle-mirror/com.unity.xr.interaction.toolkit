@@ -322,13 +322,17 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 2512387470890420967}
     m_Modifications:
+    - target: {fileID: 774100038497631397, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
+      propertyPath: m_ControllerCamera
+      value: 
+      objectReference: {fileID: 2512387469002778331}
     - target: {fileID: 6605111590819766853, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
       propertyPath: m_ControllerCamera
       value: 
       objectReference: {fileID: 2512387469002778331}
     - target: {fileID: 6605111590819766858, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
       propertyPath: m_Name
-      value: XR Screen Space Controller
+      value: Screen Space Ray Interactor
       objectReference: {fileID: 0}
     - target: {fileID: 6605111590819766859, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
       propertyPath: m_RootOrder

@@ -81,6 +81,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        [Tooltip("The teleport volume used to assist with movement to a specific destination after ending a climb " +
+            "(optional, may be None). Only used if there is a Climb Teleport Interactor in the scene.")]
+        TeleportationMultiAnchorVolume m_ClimbAssistanceTeleportVolume;
+
+        /// <summary>
+        /// The teleport volume used to assist with movement to a specific destination after ending a climb (optional,
+        /// may be <see langword="null"/>). If there is a <see cref="ClimbTeleportInteractor"/> in the scene that
+        /// references the same <see cref="ClimbProvider"/> as this interactable, it will interact with the volume while
+        /// this interactable is being climbed.
+        /// </summary>
+        public TeleportationMultiAnchorVolume climbAssistanceTeleportVolume
+        {
+            get => m_ClimbAssistanceTeleportVolume;
+            set => m_ClimbAssistanceTeleportVolume = value;
+        }
+
+        [SerializeField]
         [Tooltip("Optional override of locomotion settings specified in the climb provider. " +
                  "Only applies as an override if set to Use Value or if the asset reference is set.")]
         ClimbSettingsDatumProperty m_ClimbSettingsOverride;

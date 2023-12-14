@@ -90,8 +90,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // The built-in Cube resource has its center at the center of the cube.
             var centerOffset = Vector3.zero;
 
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
-
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
             yield return null;
@@ -194,8 +192,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // The built-in Cube resource has its center at the center of the cube.
             var centerOffset = Vector3.zero;
 
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
-
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
             yield return null;
@@ -295,8 +291,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractableAttach.localPosition = attachOffset;
             grabInteractableAttach.localRotation = Quaternion.identity;
             grabInteractable.attachTransform = grabInteractableAttach;
-
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
 
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
@@ -420,8 +414,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractableAttach.rotation = attachRotation;
             grabInteractable.attachTransform = grabInteractableAttach;
 
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
-
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
             yield return null;
@@ -517,8 +509,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.attachTransform = grabInteractableAttach;
             // Disable track rotation
             grabInteractable.trackRotation = false;
-
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
 
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
@@ -622,8 +612,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.matchAttachRotation = true;
             grabInteractable.snapToColliderVolume = false;
             DisableDelayProperties(grabInteractable);
-
-            Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
 
             // Wait for physics update to ensure the Rigidbody is stable and center of mass has been calculated
             yield return new WaitForFixedUpdate();
@@ -1571,6 +1559,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(externalInteractor.IsSelecting(grabInteractable), Is.True);
             Assert.That(playerInteractor.IsSelecting(grabInteractable), Is.False);
             Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
+
+            yield return new WaitForFixedUpdate();
 
             Assert.That(characterController.Move(playerToInteractableDelta), Is.Not.EqualTo(CollisionFlags.None));
         }

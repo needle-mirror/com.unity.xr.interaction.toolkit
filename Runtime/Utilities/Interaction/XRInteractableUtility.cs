@@ -65,14 +65,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var minColDistanceSqr = float.MaxValue;
             Collider closestCollider = null;
             var hasCollider = false;
+            
             foreach (var col in interactable.colliders)
             {
                 if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || (col.isTrigger && !allowTriggerColliders))
                     continue;
 
                 var colPosition = col.transform.position;
-                var offset = position - colPosition;
-                var colDistanceSqr = offset.sqrMagnitude;
+                var colDistanceSqr = (position - colPosition).sqrMagnitude;
+
                 if (colDistanceSqr >= minColDistanceSqr)
                     continue;
 
@@ -118,14 +119,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             Collider closestPointCollider = null;
             var minPointDistanceSqr = float.MaxValue;
             var hasCollider = false;
+
             foreach (var col in interactable.colliders)
             {
                 if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || (col.isTrigger && !allowTriggerColliders))
                     continue;
 
                 var colClosestPoint = col.ClosestPoint(position);
-                var offset = position - colClosestPoint;
-                var pointDistanceSqr = offset.sqrMagnitude;
+                var pointDistanceSqr = (position - colClosestPoint).sqrMagnitude;
+
                 if (pointDistanceSqr >= minPointDistanceSqr)
                     continue;
 
@@ -144,5 +146,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
             return hasCollider;
         }
+
     }
 }

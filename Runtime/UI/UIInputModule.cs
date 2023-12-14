@@ -68,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         [FormerlySerializedAs("trackedDeviceDragThresholdMultiplier")]
         [SerializeField, Tooltip("Scales the EventSystem.pixelDragThreshold, for tracked devices, to make selection easier.")]
-        float m_TrackedDeviceDragThresholdMultiplier = 1.4f;
+        float m_TrackedDeviceDragThresholdMultiplier = 2f;
         /// <summary>
         /// Scales the <see cref="EventSystem.pixelDragThreshold"/>, for tracked devices, to make selection easier.
         /// </summary>

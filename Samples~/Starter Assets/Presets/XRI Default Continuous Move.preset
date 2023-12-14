@@ -9,7 +9,7 @@ Preset:
   m_Name: XRI Default Continuous Move
   m_TargetType:
     m_NativeTypeID: 114
-    m_ManagedTypePPtr: {fileID: 11500000, guid: 0bf296fc962d7184ab14ad1841598d5f, type: 3}
+    m_ManagedTypePPtr: {fileID: 11500000, guid: 626a4d6723d6ad24b9aebb811ad5a3dd, type: 3}
     m_ManagedTypeFallback: 
   m_Properties:
   - target: {fileID: 0}
@@ -29,8 +29,12 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_TransformationPriority
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_MoveSpeed
-    value: 1
+    value: 2.5
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_EnableStrafe
@@ -53,83 +57,107 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_UseReference
-    value: 1
+    propertyPath: m_LeftHandMoveInput.m_InputSourceMode
+    value: 2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Name
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Name
     value: Left Hand Move
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Type
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Type
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_ExpectedControlType
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_ExpectedControlType
     value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Id
-    value: 75f1b245-c357-48c8-9acb-8967bec9dda2
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Id
+    value: 2c9225f2-be1b-4f69-8acc-007d58b10449
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Processors
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Processors
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Interactions
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Interactions
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_SingletonActionBindings.Array.size
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_SingletonActionBindings.Array.size
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Action.m_Flags
+    propertyPath: m_LeftHandMoveInput.m_InputAction.m_Flags
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_LeftHandMoveAction.m_Reference
+    propertyPath: m_LeftHandMoveInput.m_InputActionReference
     value: 
     objectReference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_UseReference
-    value: 1
+    propertyPath: m_LeftHandMoveInput.m_ObjectReferenceObject
+    value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Name
+    propertyPath: m_LeftHandMoveInput.m_ManualValue.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_LeftHandMoveInput.m_ManualValue.y
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandMoveInput.m_InputSourceMode
+    value: 2
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Name
     value: Right Hand Move
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Type
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Type
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_ExpectedControlType
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_ExpectedControlType
     value: Vector2
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Id
-    value: 6bf6c732-e011-46b1-acc5-b649a4ec5f10
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Id
+    value: 4e18714b-a6d2-4e88-b89e-4d9aa436967b
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Processors
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Processors
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Interactions
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Interactions
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_SingletonActionBindings.Array.size
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_SingletonActionBindings.Array.size
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Action.m_Flags
+    propertyPath: m_RightHandMoveInput.m_InputAction.m_Flags
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_RightHandMoveAction.m_Reference
+    propertyPath: m_RightHandMoveInput.m_InputActionReference
     value: 
     objectReference: {fileID: -8198699208435500284, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandMoveInput.m_ObjectReferenceObject
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandMoveInput.m_ManualValue.x
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_RightHandMoveInput.m_ManualValue.y
+    value: 0
+    objectReference: {fileID: 0}
   m_ExcludedProperties: []

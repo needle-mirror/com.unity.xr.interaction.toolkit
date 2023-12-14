@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
@@ -12,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
     [RequireComponent(typeof(AudioSource))]
     [AddComponentMenu("Affordance System/Receiver/Audio/Audio Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_AudioAffordanceReceiver)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class AudioAffordanceReceiver : MonoBehaviour
     {
         [SerializeField]

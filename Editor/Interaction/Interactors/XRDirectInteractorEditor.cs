@@ -7,7 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRDirectInteractor"/>.
     /// </summary>
     [CustomEditor(typeof(XRDirectInteractor), true), CanEditMultipleObjects]
-    public class XRDirectInteractorEditor : XRBaseControllerInteractorEditor
+    public class XRDirectInteractorEditor : XRBaseInputInteractorEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDirectInteractor.improveAccuracyWithSphereCollider"/>.</summary>
         protected SerializedProperty m_ImproveAccuracyWithSphereCollider;
@@ -44,6 +44,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             EditorGUILayout.Space();
 
             DrawSelectionConfiguration();
+
+            EditorGUILayout.Space();
+
+            DrawInputConfiguration();
         }
 
         /// <summary>
@@ -51,6 +55,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawInteractionConfiguration()
         {
+            EditorGUILayout.PropertyField(m_Handedness, BaseContents.handedness);
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
         }
@@ -72,15 +77,31 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Draw the property fields related to selection configuration.
+        /// Draw the Selection Configuration foldout.
         /// </summary>
+        /// <seealso cref="DrawSelectionConfigurationNested"/>
         protected virtual void DrawSelectionConfiguration()
+        {
+            m_SelectActionTrigger.isExpanded = EditorGUILayout.Foldout(m_SelectActionTrigger.isExpanded, EditorGUIUtility.TrTempContent("Selection Configuration"), true);
+            if (m_SelectActionTrigger.isExpanded)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    DrawSelectionConfigurationNested();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draw the nested contents of the Selection Configuration foldout.
+        /// </summary>
+        /// <seealso cref="DrawSelectionConfiguration"/>
+        protected virtual void DrawSelectionConfigurationNested()
         {
             DrawSelectActionTrigger();
             EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
-            EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
-            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
-            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
+            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseInputContents.allowHoveredActivate);
+            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseInputContents.targetPriorityMode);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
         }
     }

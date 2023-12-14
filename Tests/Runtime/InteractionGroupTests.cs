@@ -2278,6 +2278,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // ReSharper disable UnassignedGetOnlyAutoProperty -- Not needed for test, class used to cause error
             public IXRInteractionGroup containingGroup { get; }
             public InteractionLayerMask interactionLayers { get; }
+
+            public InteractorHandedness handedness { get; }
+
             public Transform transform { get; }
             // ReSharper restore UnassignedGetOnlyAutoProperty
 

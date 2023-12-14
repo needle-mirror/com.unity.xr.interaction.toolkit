@@ -8,7 +8,9 @@ using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
@@ -29,9 +31,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [AddComponentMenu("XR/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 #if AR_FOUNDATION_PRESENT
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider, IARInteractor
+    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider, IARInteractor
 #else
-    public partial class XRRayInteractor : XRBaseControllerInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider
+    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider
 #endif
     {
         const int k_MaxRaycastHits = 10;
@@ -137,18 +139,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Sets how anchor rotation is controlled.
+        /// Sets how Attach Transform rotation is controlled.
         /// </summary>
-        /// <seealso cref="anchorRotationMode"/>
-        public enum AnchorRotationMode
+        /// <seealso cref="rotateMode"/>
+        public enum RotateMode
         {
             /// <summary>
-            /// The anchor rotates over time while rotation input is active.
+            /// The Attach Transform rotates over time while rotation input is active.
             /// </summary>
             RotateOverTime,
 
             /// <summary>
-            /// The anchor rotates to match the direction of the 2-dimensional rotation input.
+            /// The Attach Transform rotates to match the direction of the 2-dimensional rotation input.
             /// </summary>
             MatchDirection,
         }
@@ -515,7 +517,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         bool m_EnableUIInteraction = true;
         /// <summary>
-        /// Gets or sets whether this Interactor is able to affect UI.
+        /// Enable to affect Unity UI GameObjects in a way that is similar to a mouse pointer.
+        /// Requires the XR UI Input Module on the Event System.
         /// </summary>
         public bool enableUIInteraction
         {
@@ -542,19 +545,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_BlockUIOnInteractableSelection = value;
         }
 
+        [FormerlySerializedAs("m_AllowAnchorControl")]
         [SerializeField]
-        bool m_AllowAnchorControl = true;
+        bool m_ManipulateAttachTransform = true;
         /// <summary>
-        /// Allows the user to move the attach anchor point using the joystick.
+        /// Allows the user to move the Attach Transform using the thumbstick.
         /// </summary>
         /// <seealso cref="rotateSpeed"/>
         /// <seealso cref="translateSpeed"/>
-        /// <seealso cref="anchorRotateReferenceFrame"/>
-        /// <seealso cref="anchorRotationMode"/>
-        public bool allowAnchorControl
+        /// <seealso cref="rotateReferenceFrame"/>
+        /// <seealso cref="rotateMode"/>
+        public bool manipulateAttachTransform
         {
-            get => m_AllowAnchorControl;
-            set => m_AllowAnchorControl = value;
+            get => m_ManipulateAttachTransform;
+            set => m_ManipulateAttachTransform = value;
         }
 
         [SerializeField]
@@ -571,11 +575,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_RotateSpeed = 180f;
         /// <summary>
-        /// Speed that the anchor is rotated when <see cref="anchorRotationMode"/> is set to <see cref="AnchorRotationMode.RotateOverTime"/>.
+        /// Speed that the Attach Transform is rotated when <see cref="rotateMode"/> is set to <see cref="RotateMode.RotateOverTime"/>.
         /// </summary>
-        /// <seealso cref="allowAnchorControl"/>
+        /// <seealso cref="manipulateAttachTransform"/>
         /// <seealso cref="translateSpeed"/>
-        /// <seealso cref="anchorRotationMode"/>
+        /// <seealso cref="rotateMode"/>
         public float rotateSpeed
         {
             get => m_RotateSpeed;
@@ -585,9 +589,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [SerializeField]
         float m_TranslateSpeed = 1f;
         /// <summary>
-        /// Speed that the anchor is translated.
+        /// Speed that the Attach Transform is translated along the ray.
         /// </summary>
-        /// <seealso cref="allowAnchorControl"/>
+        /// <seealso cref="manipulateAttachTransform"/>
         /// <seealso cref="rotateSpeed"/>
         public float translateSpeed
         {
@@ -595,32 +599,34 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_TranslateSpeed = value;
         }
 
+        [FormerlySerializedAs("m_AnchorRotateReferenceFrame")]
         [SerializeField]
-        Transform m_AnchorRotateReferenceFrame;
+        Transform m_RotateReferenceFrame;
         /// <summary>
-        /// The optional reference frame to define the up axis when rotating the attach anchor point.
-        /// When not set, rotates about the local up axis of the attach transform.
+        /// The optional reference frame to define the up axis when rotating the Attach Transform.
+        /// When not set, rotates about the local up axis of the Attach Transform.
         /// </summary>
-        /// <seealso cref="allowAnchorControl"/>
-        /// <seealso cref="RotateAnchor(Transform, float)"/>
-        /// <seealso cref="RotateAnchor(Transform, Vector2, Quaternion)"/>
-        public Transform anchorRotateReferenceFrame
+        /// <seealso cref="manipulateAttachTransform"/>
+        /// <seealso cref="RotateAttachTransform(Transform,float)"/>
+        /// <seealso cref="RotateAttachTransform(Transform,Vector2,Quaternion)"/>
+        public Transform rotateReferenceFrame
         {
-            get => m_AnchorRotateReferenceFrame;
-            set => m_AnchorRotateReferenceFrame = value;
+            get => m_RotateReferenceFrame;
+            set => m_RotateReferenceFrame = value;
         }
 
+        [FormerlySerializedAs("m_AnchorRotationMode")]
         [SerializeField]
-        AnchorRotationMode m_AnchorRotationMode;
+        RotateMode m_RotateMode;
         /// <summary>
-        /// Gets or sets how the anchor rotation is controlled.
+        /// How the Attach Transform rotation manipulation is controlled.
         /// </summary>
-        /// <seealso cref="allowAnchorControl"/>
-        /// <seealso cref="AnchorRotationMode"/>
-        public AnchorRotationMode anchorRotationMode
+        /// <seealso cref="manipulateAttachTransform"/>
+        /// <seealso cref="RotateMode"/>
+        public RotateMode rotateMode
         {
-            get => m_AnchorRotationMode;
-            set => m_AnchorRotationMode = value;
+            get => m_RotateMode;
+            set => m_RotateMode = value;
         }
 
         [SerializeField]
@@ -671,12 +677,143 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_OccludeARHitsWith2DObjects;
 
         /// <summary>
-        /// Gets or sets whether AR raycast hits will be occluded by 2D objects such as UI.
+        /// Gets or sets whether AR raycast hits will be occluded by 2D world space objects such as UI.
         /// </summary>
         public bool occludeARHitsWith2DObjects
         {
             get => m_OccludeARHitsWith2DObjects;
             set => m_OccludeARHitsWith2DObjects = value;
+        }
+
+        [SerializeField]
+        ScaleMode m_ScaleMode = ScaleMode.None;
+
+        /// <inheritdoc />
+        public ScaleMode scaleMode
+        {
+            get => m_ScaleMode;
+            set => m_ScaleMode = value;
+        }
+
+        [SerializeField]
+        XRInputButtonReader m_UIPressInput = new XRInputButtonReader("UI Press");
+
+        /// <summary>
+        /// Input to use for pressing UI elements.
+        /// Functions like a mouse button when pointing over UI.
+        /// </summary>
+        public XRInputButtonReader uiPressInput
+        {
+            get => m_UIPressInput;
+            set => SetInputProperty(ref m_UIPressInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_UIScrollInput = new XRInputValueReader<Vector2>("UI Scroll");
+
+        /// <summary>
+        /// Input to use for scrolling UI elements.
+        /// Functions like a mouse scroll wheel when pointing over UI.
+        /// </summary>
+        public XRInputValueReader<Vector2> uiScrollInput
+        {
+            get => m_UIScrollInput;
+            set => SetInputProperty(ref m_UIScrollInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_TranslateManipulationInput = new XRInputValueReader<Vector2>("Translate Manipulation");
+
+        /// <summary>
+        /// Input to use for translating the attach point closer or further away from the interactor.
+        /// This effectively moves the selected grab interactable along the ray.
+        /// </summary>
+        /// <remarks>
+        /// Uses the y-axis as the translation input.
+        /// </remarks>
+        public XRInputValueReader<Vector2> translateManipulationInput
+        {
+            get => m_TranslateManipulationInput;
+            set => SetInputProperty(ref m_TranslateManipulationInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_RotateManipulationInput = new XRInputValueReader<Vector2>("Rotate Manipulation");
+
+        /// <summary>
+        /// Input to use for rotating the attach point over time.
+        /// This effectively rotates the selected grab interactable while the input is pushed in either direction.
+        /// </summary>
+        /// <remarks>
+        /// Uses the x-axis as the rotation input.
+        /// </remarks>
+        /// <seealso cref="RotateMode.RotateOverTime"/>
+        public XRInputValueReader<Vector2> rotateManipulationInput
+        {
+            get => m_RotateManipulationInput;
+            set => SetInputProperty(ref m_RotateManipulationInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_DirectionalManipulationInput = new XRInputValueReader<Vector2>("Directional Manipulation");
+
+        /// <summary>
+        /// Input to use for rotating the attach point to match the direction of the input.
+        /// This effectively rotates the selected grab interactable or teleport target to match the direction of the input.
+        /// </summary>
+        /// <remarks>
+        /// The direction angle should be computed as the arctangent function of x/y.
+        /// </remarks>
+        /// <seealso cref="RotateMode.MatchDirection"/>
+        public XRInputValueReader<Vector2> directionalManipulationInput
+        {
+            get => m_DirectionalManipulationInput;
+            set => SetInputProperty(ref m_DirectionalManipulationInput, value);
+        }
+
+        [SerializeField]
+        XRInputButtonReader m_ScaleToggleInput = new XRInputButtonReader("Scale Toggle");
+
+        /// <summary>
+        /// The input to use for toggling between Attach Transform manipulation modes to either scale or translate/rotate.
+        /// </summary>
+        public XRInputButtonReader scaleToggleInput
+        {
+            get => m_ScaleToggleInput;
+            set => SetInputProperty(ref m_ScaleToggleInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_ScaleOverTimeInput = new XRInputValueReader<Vector2>("Scale Over Time");
+
+        /// <summary>
+        /// The input to use for providing a scale value to grab transformers for scaling over time.
+        /// This effectively scales the selected grab interactable while the input is pushed in either direction.
+        /// </summary>
+        /// <remarks>
+        /// Uses the y-axis as the scale input.
+        /// </remarks>
+        /// <seealso cref="ScaleMode.ScaleOverTime"/>
+        /// <seealso cref="XRGeneralGrabTransformer.allowOneHandedScaling"/>
+        public XRInputValueReader<Vector2> scaleOverTimeInput
+        {
+            get => m_ScaleOverTimeInput;
+            set => SetInputProperty(ref m_ScaleOverTimeInput, value);
+        }
+
+        [SerializeField]
+        XRInputValueReader<float> m_ScaleDistanceDeltaInput = new XRInputValueReader<float>("Scale Distance Delta", XRInputValueReader.InputSourceMode.Unused);
+
+        /// <summary>
+        /// The input to use for providing a scale value to grab transformers for scaling based on a distance delta from last frame.
+        /// This input is typically used for scaling with a pinch gesture on mobile AR.
+        /// </summary>
+        /// <seealso cref="ScaleMode.DistanceDelta"/>
+        /// <seealso cref="ARTransformer"/>
+        public XRInputValueReader<float> scaleDistanceDeltaInput
+        {
+            get => m_ScaleDistanceDeltaInput;
+            set => SetInputProperty(ref m_ScaleDistanceDeltaInput, value);
         }
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
@@ -721,16 +858,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <inheritdoc />
         public Transform rayEndTransform { get; private set; }
-
-        [SerializeField]
-        ScaleMode m_ScaleMode = ScaleMode.None;
-
-        /// <inheritdoc />
-        public ScaleMode scaleMode
-        {
-            get => m_ScaleMode;
-            set => m_ScaleMode = value;
-        }
 
         /// <inheritdoc />
         public float scaleValue { get; protected set; }
@@ -885,14 +1012,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool m_IsARHitClosest;
 #endif
 
-        // Cached controller types
-        ActionBasedController m_ActionBasedController;
-        XRController m_DeviceBasedController;
-        XRScreenSpaceController m_ScreenSpaceController;
-        bool m_IsActionBasedController;
-        bool m_IsDeviceBasedController;
-        bool m_IsScreenSpaceController;
-
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -905,30 +1024,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-        private protected override void OnXRControllerChanged()
-        {
-            base.OnXRControllerChanged();
-
-            m_ActionBasedController = xrController as ActionBasedController;
-            m_IsActionBasedController = m_ActionBasedController != null;
-
-            m_DeviceBasedController = xrController as XRController;
-            m_IsDeviceBasedController = m_DeviceBasedController != null;
-
-            m_ScreenSpaceController = xrController as XRScreenSpaceController;
-            m_IsScreenSpaceController = m_ScreenSpaceController != null;
-            
-            if (m_IsScreenSpaceController && m_AllowAnchorControl && m_AnchorRotationMode == AnchorRotationMode.RotateOverTime)
-            {
-                Debug.LogWarning("Rotate Over Time is not a valid value for Rotation Mode when using XR Screen Space Controller." +
-                    " This XR Ray Interactor will not be able to rotate the anchor using screen touches.", this);
-            }
-        }
-
-        /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
+
+            buttonReaders.Add(m_UIPressInput);
+            valueReaders.Add(m_UIScrollInput);
+            valueReaders.Add(m_TranslateManipulationInput);
+            valueReaders.Add(m_RotateManipulationInput);
+            valueReaders.Add(m_DirectionalManipulationInput);
+            buttonReaders.Add(m_ScaleToggleInput);
+            valueReaders.Add(m_ScaleOverTimeInput);
+            valueReaders.Add(m_ScaleDistanceDeltaInput);
 
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
@@ -1415,10 +1522,37 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var originTransform = effectiveRayOrigin;
 
+            bool select;
+            if (forceDeprecatedInput)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                select = isUISelectActive;
+#pragma warning restore CS0618
+            }
+            else
+            {
+                if (m_HoverToSelect && m_HoverUISelectActive)
+                    select = allowSelect;
+                else
+                    select = m_UIPressInput.ReadIsPerformed();
+            }
+
+            Vector2 scrollDelta;
+            if (forceDeprecatedInput)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                scrollDelta = uiScrollValue;
+#pragma warning restore CS0618
+            }
+            else
+            {
+                scrollDelta = m_UIScrollInput.ReadValue();
+            }
+
             model.position = originTransform.position;
             model.orientation = originTransform.rotation;
-            model.select = isUISelectActive;
-            model.scrollDelta = uiScrollValue;
+            model.select = select;
+            model.scrollDelta = scrollDelta;
             model.raycastLayerMask = m_RaycastMask;
             model.interactionType = UIInteractionType.Ray;
 
@@ -1754,77 +1888,61 @@ namespace UnityEngine.XR.Interaction.Toolkit
             CurveUtility.CalculateProjectileFlightTime(m_Velocity, m_Acceleration, angleRad, height, m_AdditionalFlightTime, out flightTime);
         }
 
-        static bool TryRead2DAxis(InputAction action, out Vector2 output)
-        {
-            if (action != null)
-            {
-                output = action.ReadValue<Vector2>();
-                return true;
-            }
-            output = default;
-            return false;
-        }
-        
-        static bool TryReadButton(InputAction action)
-        {
-            return action != null && action.WasPerformedThisFrame();
-        }
-
         /// <summary>
-        /// Rotates the attach anchor for this interactor. This can be useful to rotate a held object.
+        /// Rotates the Attach Transform for this interactor. This can be useful to rotate a held object.
         /// </summary>
-        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="attach">The Attach Transform of the interactor.</param>
         /// <param name="directionAmount">The rotation amount.</param>
-        protected virtual void RotateAnchor(Transform anchor, float directionAmount)
+        protected virtual void RotateAttachTransform(Transform attach, float directionAmount)
         {
             if (Mathf.Approximately(directionAmount, 0f))
                 return;
 
             var rotateAngle = directionAmount * (m_RotateSpeed * Time.deltaTime);
 
-            if (m_AnchorRotateReferenceFrame != null)
-                anchor.Rotate(m_AnchorRotateReferenceFrame.up, rotateAngle, Space.World);
+            if (m_RotateReferenceFrame != null)
+                attach.Rotate(m_RotateReferenceFrame.up, rotateAngle, Space.World);
             else
-                anchor.Rotate(Vector3.up, rotateAngle);
+                attach.Rotate(Vector3.up, rotateAngle);
         }
 
         /// <summary>
-        /// Rotates the attach anchor for this interactor to match a given direction. This can be useful to compute a direction angle for teleportation.
+        /// Rotates the Attach Transform for this interactor to match a given direction. This can be useful to compute a direction angle for teleportation.
         /// </summary>
-        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="attach">The Attach Transform of the interactor.</param>
         /// <param name="direction">The directional input.</param>
         /// <param name="referenceRotation">The reference rotation to define the up axis for rotation.</param>
-        protected virtual void RotateAnchor(Transform anchor, Vector2 direction, Quaternion referenceRotation)
+        protected virtual void RotateAttachTransform(Transform attach, Vector2 direction, Quaternion referenceRotation)
         {
             if (Mathf.Approximately(direction.sqrMagnitude, 0f))
                 return;
 
             var rotateAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
             var directionalQuaternion = Quaternion.AngleAxis(rotateAngle, Vector3.up);
-            anchor.rotation = referenceRotation * directionalQuaternion;
+            attach.rotation = referenceRotation * directionalQuaternion;
         }
 
         /// <summary>
-        /// Translates the attach anchor for this interactor. This can be useful to move a held object closer or further away from the interactor.
+        /// Translates the Attach Transform for this interactor. This can be useful to move a held object closer or further away from the interactor.
         /// </summary>
         /// <param name="rayOrigin">The starting position and direction of any ray casts.</param>
-        /// <param name="anchor">The attach transform of the interactor.</param>
+        /// <param name="attach">The Attach Transform of the interactor.</param>
         /// <param name="directionAmount">The translation amount.</param>
-        protected virtual void TranslateAnchor(Transform rayOrigin, Transform anchor, float directionAmount)
+        protected virtual void TranslateAttachTransform(Transform rayOrigin, Transform attach, float directionAmount)
         {
             if (Mathf.Approximately(directionAmount, 0f))
                 return;
 
             GetLineOriginAndDirection(rayOrigin, out var lineOrigin, out var lineDirection);
 
-            var resultingPosition = anchor.position + lineDirection * (directionAmount * m_TranslateSpeed * Time.deltaTime);
+            var resultingPosition = attach.position + lineDirection * (directionAmount * m_TranslateSpeed * Time.deltaTime);
 
             // Check the delta between the origin position and the calculated position.
             // Clamp so it doesn't go further back than the origin position.
             var posInAttachSpace = resultingPosition - lineOrigin;
             var dotResult = Vector3.Dot(posInAttachSpace, lineDirection);
 
-            anchor.position = dotResult > 0f ? resultingPosition : lineOrigin;
+            attach.position = dotResult > 0f ? resultingPosition : lineOrigin;
         }
 
         /// <inheritdoc />
@@ -1885,130 +2003,73 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 scaleValue = 0f;
 
-                // Update the pose of the attach point
-                if (m_AllowAnchorControl && hasSelection)
+                // Update the pose of the Attach Transform
+                if (m_ManipulateAttachTransform && hasSelection)
                 {
-                    if (m_IsDeviceBasedController && m_DeviceBasedController.inputDevice.isValid)
+                    if (forceDeprecatedInput)
                     {
-                        m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.moveObjectIn, out var inPressed, m_DeviceBasedController.axisToPressThreshold);
-                        m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.moveObjectOut, out var outPressed, m_DeviceBasedController.axisToPressThreshold);
-
-                        if (inPressed || outPressed)
-                        {
-                            var directionAmount = inPressed ? 1f : -1f;
-                            TranslateAnchor(effectiveRayOrigin, attachTransform, directionAmount);
-                        }
-
-                        switch (m_AnchorRotationMode)
-                        {
-                            case AnchorRotationMode.RotateOverTime:
-                                m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.rotateObjectLeft, out var leftPressed, m_DeviceBasedController.axisToPressThreshold);
-                                m_DeviceBasedController.inputDevice.IsPressed(m_DeviceBasedController.rotateObjectRight, out var rightPressed, m_DeviceBasedController.axisToPressThreshold);
-                                if (leftPressed || rightPressed)
-                                {
-                                    var directionAmount = leftPressed ? -1f : 1f;
-                                    RotateAnchor(attachTransform, directionAmount);
-                                }
-                                break;
-
-                            case AnchorRotationMode.MatchDirection:
-                                if (m_DeviceBasedController.inputDevice.TryReadAxis2DValue(m_DeviceBasedController.directionalAnchorRotation, out var directionalValue))
-                                {
-                                    var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
-                                    RotateAnchor(attachTransform, directionalValue, referenceRotation);
-                                }
-                                break;
-
-                            default:
-                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode}.");
-                                break;
-                        }
+#pragma warning disable CS0618 // Type or member is obsolete -- Use old methods for manipulation
+                        ProcessManipulationInputDeviceBasedController();
+                        ProcessManipulationInputActionBasedController();
+                        ProcessManipulationInputScreenSpaceController();
+#pragma warning restore CS0618
                     }
-
-                    if (m_IsActionBasedController)
+                    else
                     {
-                        // Check if the scaling toggle was performed this frame.
-                        if (TryReadButton(m_ActionBasedController.scaleToggleAction.action))
-                        {
-                            m_ScaleInputActive = !m_ScaleInputActive;
-                        }
-
-                        // If not scaling, we can translate and rotate
-                        if (!m_ScaleInputActive)
-                        {
-                            switch (m_AnchorRotationMode)
-                            {
-                                case AnchorRotationMode.RotateOverTime:
-                                    if (TryRead2DAxis(m_ActionBasedController.rotateAnchorAction.action, out var rotateAmt))
-                                        RotateAnchor(attachTransform, rotateAmt.x);
-                                    break;
-
-                                case AnchorRotationMode.MatchDirection:
-                                    if (TryRead2DAxis(m_ActionBasedController.directionalAnchorRotationAction.action, out var directionAmt))
-                                    {
-                                        var referenceRotation = m_AnchorRotateReferenceFrame != null ? m_AnchorRotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
-                                        RotateAnchor(attachTransform, directionAmt, referenceRotation);
-                                    }
-                                    break;
-
-                                default:
-                                    Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(ActionBasedController)}.");
-                                    break;
-                            }
-
-                            if (TryRead2DAxis(m_ActionBasedController.translateAnchorAction.action, out var translateAmt))
-                            {
-                                TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
-                            }
-                        }
-                        else if (scaleMode == ScaleMode.Input && TryRead2DAxis(m_ActionBasedController.scaleDeltaAction.action, out var scaleAmt))
-                        {
-                            scaleValue = scaleAmt.y;
-                        }
-                    }
-
-                    if (m_IsScreenSpaceController)
-                    {
-                        switch (m_AnchorRotationMode)
-                        {
-                            case AnchorRotationMode.RotateOverTime:
-                                // Not a valid value for a screen space controller, don't do anything.
-                                // Warning logged in OnXRControllerChanged.
-                                break;
-
-                            case AnchorRotationMode.MatchDirection:
-                                if (m_ScreenSpaceController.twistDeltaRotationAction.action != null &&
-                                    m_ScreenSpaceController.twistDeltaRotationAction.action.phase.IsInProgress())
-                                {
-                                    var deltaRotation = m_ScreenSpaceController.twistDeltaRotationAction.action.ReadValue<float>();
-                                    var rotationAmount = -deltaRotation;
-                                    RotateAnchor(attachTransform, rotationAmount);
-                                }
-                                else if (m_ScreenSpaceController.dragDeltaAction.action != null &&
-                                         m_ScreenSpaceController.dragDeltaAction.action.phase.IsInProgress() &&
-                                         m_ScreenSpaceController.screenTouchCountAction.action?.ReadValue<int>() > 1)
-                                {
-                                    var deltaRotation = m_ScreenSpaceController.dragDeltaAction.action.ReadValue<Vector2>();
-                                    var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(attachTransform.forward, Vector3.up));
-                                    var rotatedDelta = worldToVerticalOrientedDevice * attachTransform.rotation * deltaRotation;
-
-                                    var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * 50f;
-                                    RotateAnchor(attachTransform, rotationAmount);
-                                }
-
-                                break;
-
-                            default:
-                                Assert.IsTrue(false, $"Unhandled {nameof(AnchorRotationMode)}={m_AnchorRotationMode} for {nameof(XRScreenSpaceController)}.");
-                                break;
-                        }
-
-                        if (scaleMode == ScaleMode.Distance)
-                        {
-                            scaleValue = m_ScreenSpaceController.scaleDelta;
-                        }
+                        ProcessManipulationInput();
                     }
                 }
+            }
+        }
+
+        void ProcessManipulationInput()
+        {
+            // Check if the scaling toggle was performed this frame.
+            if (m_ScaleToggleInput.ReadWasPerformedThisFrame())
+                m_ScaleInputActive = !m_ScaleInputActive;
+
+            // If not scaling, we can translate and rotate
+            if (!m_ScaleInputActive)
+            {
+                switch (m_RotateMode)
+                {
+                    case RotateMode.RotateOverTime:
+                        if (m_RotateManipulationInput.TryReadValue(out var rotateAmt))
+#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls RotateAttachTransform for backwards compatibility
+                            RotateAnchor(attachTransform, rotateAmt.x);
+#pragma warning restore CS0618
+                        break;
+
+                    case RotateMode.MatchDirection:
+                        if (m_DirectionalManipulationInput.TryReadValue(out var directionAmt))
+                        {
+                            var referenceRotation = m_RotateReferenceFrame != null ? m_RotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
+#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls RotateAttachTransform for backwards compatibility
+                            RotateAnchor(attachTransform, directionAmt, referenceRotation);
+#pragma warning restore CS0618
+                        }
+                        break;
+
+                    default:
+                        Assert.IsTrue(false, $"Unhandled {nameof(RotateMode)}={m_RotateMode}.");
+                        break;
+                }
+
+                if (m_TranslateManipulationInput.TryReadValue(out var translateAmt))
+                {
+#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls TranslateAttach for backwards compatibility
+                    TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
+#pragma warning restore CS0618
+                }
+            }
+            else if (m_ScaleMode == ScaleMode.ScaleOverTime && m_ScaleOverTimeInput.TryReadValue(out var scaleAmt))
+            {
+                scaleValue = scaleAmt.y;
+            }
+
+            if (m_ScaleMode == ScaleMode.DistanceDelta && m_ScaleDistanceDeltaInput.TryReadValue(out var scaleDistanceDelta))
+            {
+                scaleValue = scaleDistanceDelta;
             }
         }
 
@@ -2435,24 +2496,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return base.isSelectActive;
             }
         }
-
-        /// <inheritdoc />
-        protected override bool isUISelectActive
-        { 
-            get
-            {
-                if (m_HoverToSelect && m_HoverUISelectActive)
-                    return allowSelect;
-
-                return base.isUISelectActive;
-            }
-        }
         
 
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
-            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable)) && (!m_IsScreenSpaceController || m_ScreenSpaceController.currentControllerState.isTracked);
+            if (base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable)))
+            {
+                if (forceDeprecatedInput)
+                {
+#pragma warning disable CS0618 // Type or member is obsolete
+                    return !m_IsScreenSpaceController || m_ScreenSpaceController.currentControllerState.isTracked;
+#pragma warning restore CS0618
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />

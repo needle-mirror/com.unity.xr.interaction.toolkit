@@ -141,10 +141,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_ActiveInputMode = value;
         }
 
-        [SerializeField, HideInInspector]
-        [Tooltip("The maximum distance to ray cast with tracked devices to find hit objects.")]
-        float m_MaxTrackedDeviceRaycastDistance = 1000f;
-
         [Header("Input Devices")]
         [SerializeField]
         [Tooltip("If true, will forward 3D tracked device data to UI elements.")]

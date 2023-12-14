@@ -4,6 +4,7 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using System;
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
@@ -26,7 +27,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="TouchscreenGestureInputController"/>
     [AddComponentMenu("XR/XR Screen Space Controller", 11)]
     [HelpURL(XRHelpURLConstants.k_XRScreenSpaceController)]
-    public partial class XRScreenSpaceController : XRBaseController
+    [Obsolete("XRScreenSpaceController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.")]
+    public class XRScreenSpaceController : XRBaseController
     {
         [Header("Touchscreen Gesture Actions")]
         [SerializeField]
@@ -182,6 +184,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_BlockInteractionsWithScreenSpaceUI = value;
         }
 
+        [SerializeField]
+        [Tooltip("Enables a rotation threshold that blocks pinch scale gestures when surpassed.")]
+        bool m_UseRotationThreshold = true;
+        /// <summary>
+        /// Enables a rotation threshold that blocks pinch scale gestures when surpassed.
+        /// </summary>
+        /// <seealso cref="rotationThreshold"/>
+        public bool useRotationThreshold
+        {
+            get => m_UseRotationThreshold;
+            set => m_UseRotationThreshold = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The threshold at which a gestures will be interpreted only as rotation and not a pinch scale gesture.")]
+        float m_RotationThreshold = 0.02f;
+
+        /// <summary>
+        /// The threshold at which a gestures will be interpreted only as rotation and not a pinch scale gesture.
+        /// </summary>
+        /// <seealso cref="useRotationThreshold"/>
+        public float rotationThreshold
+        {
+            get => m_RotationThreshold;
+            set => m_RotationThreshold = value;
+        }
+
         /// <summary>
         /// This value is the change in scale based on input from the <see cref="pinchGapDeltaAction"/> pinch gap delta action
         /// with <see cref="Screen.dpi"/> applied as a factor of the value read in. The delta refers to the change from the previous frame.
@@ -190,6 +219,56 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// This value may come back as zero if the input action is not assigned or cannot be read.
         /// </remarks>
         public float scaleDelta { get; private set; }
+
+        /// <summary>
+        /// (Deprecated) pinchStartPosition has been deprecated. Use pinchStartPositionAction instead.
+        /// </summary>
+        [Obsolete("pinchStartPosition has been deprecated. Use pinchStartPositionAction instead. (UnityUpgradable) -> pinchStartPositionAction", true)]
+        public InputActionProperty pinchStartPosition
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) pinchGapDelta has been deprecated. Use pinchGapDeltaAction instead.
+        /// </summary>
+        [Obsolete("pinchGapDelta has been deprecated. Use pinchGapDeltaAction instead. (UnityUpgradable) -> pinchGapDeltaAction", true)]
+        public InputActionProperty pinchGapDelta
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) twistStartPosition has been deprecated. Use twistStartPositionAction instead.
+        /// </summary>
+        [Obsolete("twistStartPosition has been deprecated. Use twistStartPositionAction instead. (UnityUpgradable) -> twistStartPositionAction", true)]
+        public InputActionProperty twistStartPosition
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) twistRotationDeltaAction has been deprecated. Use twistDeltaRotationAction instead.
+        /// </summary>
+        [Obsolete("twistRotationDeltaAction has been deprecated. Use twistDeltaRotationAction instead. (UnityUpgradable) -> twistDeltaRotationAction", true)]
+        public InputActionProperty twistRotationDeltaAction
+        {
+            get => default;
+            set => _ = value;
+        }
+
+        /// <summary>
+        /// (Deprecated) screenTouchCount has been deprecated. Use screenTouchCountAction instead.
+        /// </summary>
+        [Obsolete("screenTouchCount has been deprecated. Use screenTouchCountAction instead. (UnityUpgradable) -> screenTouchCountAction", true)]
+        public InputActionProperty screenTouchCount
+        {
+            get => default;
+            set => _ = value;
+        }
 
 #if AR_FOUNDATION_PRESENT
         TouchscreenGestureInputController m_GestureInputController;
@@ -228,7 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnDisable();
             DisableAllDirectActions();
-            DestroyTouchscreenGestureController();
+            RemoveTouchscreenGestureController();
             m_UIInputModule = null;
         }
 
@@ -314,8 +393,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 controllerState.selectInteractionState.SetFrameState(false, 0f);
             }
-
-            scaleDelta = m_PinchGapDeltaAction.action != null ? m_PinchGapDeltaAction.action.ReadValue<float>() / Screen.dpi : 0f;
+        
+            if (m_UseRotationThreshold && TryGetAbsoluteValue(m_TwistDeltaRotationAction.action, out var absRotationValue) && absRotationValue >= m_RotationThreshold)
+            {
+                scaleDelta = 0f;
+            }
+            else 
+            {
+                scaleDelta = m_PinchGapDeltaAction.action != null ? m_PinchGapDeltaAction.action.ReadValue<float>() / Screen.dpi : 0f;
+            }
         }
 
         bool TryGetCurrentPositionAction(int touchCount, out InputAction action)
@@ -330,7 +416,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
 
                 if (m_TapStartPositionAction.action != null &&
-                    m_TapStartPositionAction.action.phase == InputActionPhase.Started)
+                    (m_TapStartPositionAction.action.phase == InputActionPhase.Performed || m_TapStartPositionAction.action.WasPerformedThisFrame()))
                 {
                     action = m_TapStartPositionAction.action;
                     return true;
@@ -351,7 +437,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             if (m_TapStartPositionAction.action != null &&
-                m_TapStartPositionAction.action.phase == InputActionPhase.Started)
+                (m_TapStartPositionAction.action.phase == InputActionPhase.Performed || m_TapStartPositionAction.action.WasPerformedThisFrame()))
             {
                 action = m_TapStartPositionAction.action;
                 return true;
@@ -385,6 +471,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             action = null;
+            return false;
+        }
+
+        static bool TryGetAbsoluteValue(InputAction action, out float value)
+        {
+            if (action != null &&
+                action.phase.IsInProgress())
+            {
+                value = Mathf.Abs(action.ReadValue<float>());
+                return true;
+            }
+
+            value = 0f;
             return false;
         }
 
@@ -431,10 +530,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     Debug.LogError($"Failed to create {nameof(TouchscreenGestureInputController)}.", this);
                 }
             }
+            else
+            {
+                InputSystem.InputSystem.AddDevice(m_GestureInputController);
+            }
 #endif
         }
 
-        void DestroyTouchscreenGestureController()
+        void RemoveTouchscreenGestureController()
         {
 #if AR_FOUNDATION_PRESENT
             if (m_GestureInputController != null && m_GestureInputController.added)

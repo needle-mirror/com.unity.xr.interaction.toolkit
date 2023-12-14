@@ -1,4 +1,5 @@
-﻿using Unity.XR.CoreUtils;
+﻿using System;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
@@ -8,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/Rendering/Blend Shape Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_BlendShapeAffordanceReceiver)]
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class BlendShapeAffordanceReceiver : FloatAffordanceReceiver
     {
         [SerializeField]

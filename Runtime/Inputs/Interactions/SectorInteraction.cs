@@ -156,7 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         /// <summary>
         /// See <see cref="IInputInteraction.Process(ref InputInteractionContext)"/>
         /// </summary>
-        /// <param name="context">Context for an interaction occuring that the input system passed here for interaction operations.</param>
+        /// <param name="context">Context for an interaction occurring that the input system passed here for interaction operations.</param>
         public void Process(ref InputInteractionContext context)
         {
             var isActuated = context.ControlIsActuated(pressPointOrDefault);

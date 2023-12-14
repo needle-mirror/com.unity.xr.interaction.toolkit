@@ -80,8 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.selectMode, Is.EqualTo(InteractableSelectMode.Single));
 
             var directInteractor = TestUtilities.CreateDirectInteractor();
-            var controller = directInteractor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(directInteractor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));
@@ -110,8 +109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.selectMode = InteractableSelectMode.Multiple;
 
             var directInteractor = TestUtilities.CreateDirectInteractor();
-            var controller = directInteractor.GetComponent<XRController>();
-            var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(directInteractor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
                     false, false, false));

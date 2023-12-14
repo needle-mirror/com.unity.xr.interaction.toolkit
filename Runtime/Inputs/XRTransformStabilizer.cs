@@ -1,4 +1,5 @@
 using Unity.Mathematics;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if BURST_PRESENT
@@ -24,11 +25,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         [Tooltip("The Transform component whose position and rotation will be matched and stabilized.")]
         Transform m_Target;
 
-        [SerializeField]
-        [RequireInterface(typeof(IXRRayProvider))]
-        [Tooltip("Optional - When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.")]
-        Object m_AimTargetObject;
-
         /// <summary>
         /// The <see cref="Transform"/> component whose position and rotation will be matched and stabilized.
         /// </summary>
@@ -37,6 +33,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             get => m_Target;
             set => m_Target = value;
         }
+        
+        [SerializeField]
+        [RequireInterface(typeof(IXRRayProvider))]
+        [Tooltip("Optional - When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.")]
+        Object m_AimTargetObject;
 
         /// <summary>
         /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable. 
@@ -116,14 +117,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 m_AimTarget = m_AimTargetObject as IXRRayProvider;
 
             if (m_UseLocalSpace)
-            {
-                m_ThisTransform.localPosition = m_Target.localPosition;
-                m_ThisTransform.localRotation = m_Target.localRotation;
-            }
+                m_ThisTransform.SetLocalPose(m_Target.GetLocalPose());
             else
-            {
-                m_ThisTransform.SetPositionAndRotation(m_Target.position, m_Target.rotation);
-            }
+                m_ThisTransform.SetWorldPose(m_Target.GetWorldPose());
         }
 
         /// <summary>
@@ -131,35 +127,65 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         protected void Update()
         {
-            var currentPosition = m_ThisTransform.position;
-            var currentRotation = m_ThisTransform.rotation;
-            var targetPosition = m_Target.position;
-            var targetRotation = m_Target.rotation;
+            ApplyStabilization(ref m_ThisTransform, m_Target, m_AimTarget, m_PositionStabilization, m_AngleStabilization, Time.deltaTime, m_UseLocalSpace);
+        }
+
+        /// <summary>
+        /// Stabilizes the position and rotation of a Transform relative to a target Transform.
+        /// </summary>
+        /// <param name="toStabilize">The Transform to be stabilized.</param>
+        /// <param name="target">The target Transform to stabilize against.</param>
+        /// <param name="aimTarget">Provides the ray endpoint for rotation calculations (optional).</param>
+        /// <param name="positionStabilization">Factor for stabilizing position (larger values result in quicker stabilization).</param>
+        /// <param name="angleStabilization">Factor for stabilizing angle (larger values result in quicker stabilization).</param>
+        /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
+        /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Defaults to false.</param>
+        /// <remarks>
+        /// This method adjusts the position and rotation of 'toStabilize' Transform to make it gradually align with the 'target' Transform. 
+        /// If 'aimTarget' is provided, it also considers the endpoint of the ray for more precise rotation stabilization.
+        /// The 'positionStabilization' and 'angleStabilization' parameters control the speed of stabilization.
+        /// If 'useLocalSpace' is true, the method operates in the local space of the 'toStabilize' Transform.
+        /// </remarks>
+        public static void ApplyStabilization(ref Transform toStabilize, in Transform target, in IXRRayProvider aimTarget, float positionStabilization, float angleStabilization, float deltaTime, bool useLocalSpace = false)
+        {
+            var currentPose = useLocalSpace ? toStabilize.GetLocalPose() : toStabilize.GetWorldPose();
+            var targetPose = useLocalSpace ? target.GetLocalPose() : target.GetWorldPose();
+            var currentPosition = (float3)currentPose.position;
+            var currentRotation = (quaternion)currentPose.rotation;
+            var targetPosition = (float3)targetPose.position;
+            var targetRotation = (quaternion)targetPose.rotation;
 
             // Processing in local space means we want to scale the position stabilization to keep it normalized
-            var localScale = m_UseLocalSpace ? m_ThisTransform.lossyScale.x : 1f;
+            var localScale = useLocalSpace ? toStabilize.lossyScale.x : 1f;
             localScale = Mathf.Abs(localScale) < 0.01f ? 0.01f : localScale;
             var invScale = 1f / localScale;
 
-            if (m_AimTarget == null)
+            float3 resultPosition;
+            quaternion resultRotation;
+            
+            if (aimTarget == null)
             {
-                StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, Time.deltaTime, m_PositionStabilization * localScale, m_AngleStabilization,
-                out var resultPosition, out var resultRotation);
-                m_ThisTransform.SetPositionAndRotation(resultPosition, resultRotation);
+                StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, deltaTime, positionStabilization * localScale, angleStabilization,
+                    out resultPosition, out resultRotation);
             }
             else
             {
                 // Calculate the stabilized position
-                StabilizePosition(currentPosition, targetPosition, Time.deltaTime, m_PositionStabilization * localScale, out var resultPosition);
+                StabilizePosition(currentPosition, targetPosition, deltaTime, positionStabilization * localScale, out resultPosition);
 
                 // Use that to come up with the rotation that would put the endpoint of the ray at it's last position
                 // Stabilize rotation to whatever value is closer - keeping the endpoint stable or the ray itself stable
-                CalculateRotationParams(currentPosition, resultPosition, m_ThisTransform.forward, m_ThisTransform.up, m_AimTarget.rayEndPoint, invScale, m_AngleStabilization, 
-                                        out var antiRotation, out var scaleFactor, out var targetAngleScale);
+                CalculateRotationParams(currentPosition, resultPosition, toStabilize.forward, toStabilize.up, aimTarget.rayEndPoint, invScale, angleStabilization, 
+                    out var antiRotation, out var scaleFactor, out var targetAngleScale);
 
-                StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, Time.deltaTime, m_AngleStabilization, targetAngleScale, scaleFactor, out var resultRotation);
-                m_ThisTransform.SetPositionAndRotation(resultPosition, resultRotation);
+                StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, deltaTime, angleStabilization, targetAngleScale, scaleFactor, out resultRotation);
             }
+
+            var resultPose = new Pose(resultPosition, resultRotation);
+            if (useLocalSpace)
+                toStabilize.SetLocalPose(resultPose);
+            else
+                toStabilize.SetWorldPose(resultPose);
         }
         
 #if BURST_PRESENT

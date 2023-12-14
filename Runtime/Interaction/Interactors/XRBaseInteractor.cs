@@ -12,9 +12,9 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
-    /// Abstract base class from which all interactor behaviours derive.
+    /// Abstract base class from which all interactor behaviors derive.
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
-    /// hover and selection
+    /// hover and selection.
     /// </summary>
     [SelectionBase]
     [DisallowMultipleComponent]
@@ -52,9 +52,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public IXRInteractionGroup containingGroup { get; private set; }
 
         [SerializeField]
-        LayerMask m_InteractionLayerMask = -1;
-
-        [SerializeField]
         InteractionLayerMask m_InteractionLayers = -1;
 
         /// <summary>
@@ -68,6 +65,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_InteractionLayers;
             set => m_InteractionLayers = value;
+        }
+
+        [SerializeField]
+        InteractorHandedness m_Handedness;
+
+        /// <summary>
+        /// Represents which hand or controller the interactor is associated with.
+        /// </summary>
+        public InteractorHandedness handedness
+        {
+            get => m_Handedness;
+            set => m_Handedness = value;
         }
 
         [SerializeField]
@@ -356,45 +365,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength.Interactors");
 
-        /// <summary>
-        /// When set to <see langword="true"/>, attach point velocity and angular velocity will be updated
-        /// during the <see cref="PreprocessInteractor"/> calls. Set to <see langword="false"/> to avoid unnecessary performance cost
-        /// when the velocity values are not needed.
-        /// </summary>
-        internal bool useAttachPointVelocity { get; set; }
-
-        /// <summary>
-        /// Last computed default attach point velocity, based on multi-frame sampling of the pose in world space.
-        /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
-        /// </summary>
-        /// <seealso cref="GetAttachPointAngularVelocity"/>
-        internal Vector3 GetAttachPointVelocity()
-        {
-            if (TryGetXROrigin(out var origin))
-            {
-                return origin.TransformDirection(m_AttachPointVelocity);
-            }
-            return m_AttachPointVelocity;
-        }
-
-        Vector3 m_AttachPointVelocity;
-
-        /// <summary>
-        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose in world space.
-        /// Only calculated if <see cref="useAttachPointVelocity"/> is enabled.
-        /// </summary>
-        /// <seealso cref="GetAttachPointVelocity"/>
-        internal Vector3 GetAttachPointAngularVelocity()
-        {
-            if (TryGetXROrigin(out var origin))
-            {
-                return origin.TransformDirection(m_AttachPointAngularVelocity);
-            }
-            return m_AttachPointAngularVelocity;
-        }
-        
-        Vector3 m_AttachPointAngularVelocity;
-
         Transform m_XROriginTransform;
         bool m_HasXROrigin;
         bool m_FailedToFindXROrigin;
@@ -458,16 +428,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Setup Interaction Manager
             FindCreateInteractionManager();
-
-            // Warn about use of deprecated events
-            if (m_OnHoverEntered.GetPersistentEventCount() > 0 ||
-                m_OnHoverExited.GetPersistentEventCount() > 0 ||
-                m_OnSelectEntered.GetPersistentEventCount() > 0 ||
-                m_OnSelectExited.GetPersistentEventCount() > 0)
-            {
-                Debug.LogWarning("Some deprecated Interactor Events are being used. These deprecated events will be removed in a future version." +
-                    " Please convert these to use the newer events, and update script method signatures for Dynamic listeners.", this);
-            }
         }
 
         /// <summary>
@@ -493,7 +453,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Start()
         {
             if (m_InteractionManager != null && m_StartingSelectedInteractable != null)
-                m_InteractionManager.SelectEnter(this, (IXRSelectInteractable)m_StartingSelectedInteractable);
+                m_InteractionManager.SelectEnter((IXRSelectInteractor)this, m_StartingSelectedInteractable);
         }
 
         /// <summary>
@@ -548,22 +508,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_InteractionManager != null)
             {
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                m_InteractionManager.RegisterInteractor(this);
-#pragma warning restore 618
+                m_InteractionManager.RegisterInteractor((IXRInteractor)this);
                 m_RegisteredInteractionManager = m_InteractionManager;
             }
         }
 
         void UnregisterWithInteractionManager()
         {
-            if (m_RegisteredInteractionManager == null)
-                return;
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            m_RegisteredInteractionManager.UnregisterInteractor(this);
-#pragma warning restore 618
-            m_RegisteredInteractionManager = null;
+            if (m_RegisteredInteractionManager != null)
+            {
+                m_RegisteredInteractionManager.UnregisterInteractor((IXRInteractor)this);
+                m_RegisteredInteractionManager = null;
+            }
         }
 
         /// <inheritdoc />
@@ -687,8 +643,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public virtual void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            if (useAttachPointVelocity)
-                UpdateVelocityAndAngularVelocity();
         }
 
         /// <inheritdoc />
@@ -717,10 +671,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         bool IXRHoverInteractor.CanHover(IXRHoverInteractable interactable)
         {
-            if (interactable is XRBaseInteractable baseInteractable)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return CanHover(baseInteractable) && ProcessHoverFilters(interactable);
-#pragma warning restore 618
             return CanHover(interactable) && ProcessHoverFilters(interactable);
         }
 
@@ -739,10 +689,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         bool IXRSelectInteractor.CanSelect(IXRSelectInteractable interactable)
         {
-            if (interactable is XRBaseInteractable baseInteractable)
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-                return CanSelect(baseInteractable) && ProcessSelectFilters(interactable);
-#pragma warning restore 618
             return CanSelect(interactable) && ProcessSelectFilters(interactable);
         }
 
@@ -811,11 +757,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (args.interactableObject is IXRInteractionStrengthInteractable interactionStrengthInteractable)
                 m_InteractionStrengthInteractables.Add(interactionStrengthInteractable);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            hoverTargets.Add(args.interactable);
-            OnHoverEntering(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -831,10 +772,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnHoverEntered(HoverEnterEventArgs args)
         {
             m_HoverEntered?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnHoverEntered(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -858,11 +795,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_InteractionStrengthInteractables.Remove(interactionStrengthInteractable);
             }
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            hoverTargets.Remove(args.interactable);
-            OnHoverExiting(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -878,10 +810,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnHoverExited(HoverExitEventArgs args)
         {
             m_HoverExited?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnHoverExited(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -906,10 +834,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 firstInteractableSelected = args.interactableObject;
 
             CaptureAttachPose(args.interactableObject);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectEntering(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -925,10 +849,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnSelectEntered(SelectEnterEventArgs args)
         {
             m_SelectEntered?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectEntered(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -952,10 +872,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_InteractionStrengthInteractables.Remove(interactionStrengthInteractable);
             }
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectExiting(args.interactable);
-#pragma warning restore 618
         }
 
         /// <summary>
@@ -971,10 +887,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnSelectExited(SelectExitEventArgs args)
         {
             m_SelectExited?.Invoke(args);
-
-#pragma warning disable 618 // Calling deprecated method to help with backwards compatibility with existing user code.
-            OnSelectExited(args.interactable);
-#pragma warning restore 618
 
             // The dictionaries are pruned so that they don't infinitely grow in size as selections are made.
             if (m_InteractablesSelected.Count == 0)
@@ -1127,64 +1039,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void IXRGroupMember.OnRegisteringAsNonGroupMember()
         {
             containingGroup = null;
-        }
-        
-        // Velocity logic taken from MRTK:
-        // https://github.com/microsoft/MixedRealityToolkit-Unity/blob/6e061451d7caed1fcb7c324baf92be293efda4cf/Assets/MRTK/Core/Providers/Hands/BaseHand.cs#L42
-        // Velocity internal states
-        float m_DeltaTimeStart;
-        const int k_VelocityUpdateInterval = 6;
-        int m_FrameOn;
-
-        readonly Vector3[] m_VelocityPositionsCache = new Vector3[k_VelocityUpdateInterval];
-        readonly Vector3[] m_VelocityNormalsCache = new Vector3[k_VelocityUpdateInterval];
-        Vector3 m_VelocityPositionsSum;
-        Vector3 m_VelocityNormalsSum;
-
-        /// <summary>
-        /// Compute and updates the velocity and angular velocity properties using the attach transform pose as a reference.
-        /// </summary>
-        void UpdateVelocityAndAngularVelocity()
-        {
-            // $TODO: Update to take/use IXRInteractable instead of 'null'
-            var currentAttachTransform = GetAttachTransform(null);
-            bool hasXROrigin = TryGetXROrigin(out var xrOrigin);
-            
-            if (m_FrameOn < k_VelocityUpdateInterval)
-            {
-                m_VelocityPositionsCache[m_FrameOn] = hasXROrigin ? xrOrigin.InverseTransformPoint(currentAttachTransform.position) : currentAttachTransform.position;
-                m_VelocityPositionsSum += m_VelocityPositionsCache[m_FrameOn];
-                m_VelocityNormalsCache[m_FrameOn] = hasXROrigin ? xrOrigin.InverseTransformVector(currentAttachTransform.up) : currentAttachTransform.up;
-                m_VelocityNormalsSum += m_VelocityNormalsCache[m_FrameOn];
-            }
-            else
-            {
-                var frameIndex = m_FrameOn % k_VelocityUpdateInterval;
-
-                var deltaTime = Time.unscaledTime - m_DeltaTimeStart;
-
-                var newPosition = hasXROrigin ? xrOrigin.InverseTransformPoint(currentAttachTransform.position) : currentAttachTransform.position;
-                var newNormal = hasXROrigin ? xrOrigin.InverseTransformVector(currentAttachTransform.up) : currentAttachTransform.up;
-
-                var newPositionsSum = m_VelocityPositionsSum - m_VelocityPositionsCache[frameIndex] + newPosition;
-                var newNormalsSum = m_VelocityNormalsSum - m_VelocityNormalsCache[frameIndex] + newNormal;
-                m_AttachPointVelocity = (newPositionsSum - m_VelocityPositionsSum) / deltaTime / k_VelocityUpdateInterval;
-
-                var fromDirection = m_VelocityNormalsSum / k_VelocityUpdateInterval;
-                var toDirection = newNormalsSum / k_VelocityUpdateInterval;
-                
-                var rotation = Quaternion.FromToRotation(fromDirection, toDirection);
-                var rotationRate = rotation.eulerAngles * Mathf.Deg2Rad;
-                m_AttachPointAngularVelocity = rotationRate / deltaTime;
-
-                m_VelocityPositionsCache[frameIndex] = newPosition;
-                m_VelocityNormalsCache[frameIndex] = newNormal;
-                m_VelocityPositionsSum = newPositionsSum;
-                m_VelocityNormalsSum = newNormalsSum;
-            }
-
-            m_DeltaTimeStart = Time.unscaledTime;
-            m_FrameOn++;
         }
     }
 }

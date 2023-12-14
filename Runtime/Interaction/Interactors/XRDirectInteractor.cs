@@ -12,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Direct Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
-    public partial class XRDirectInteractor : XRBaseControllerInteractor
+    public partial class XRDirectInteractor : XRBaseInputInteractor
     {
         [SerializeField]
         bool m_ImproveAccuracyWithSphereCollider;

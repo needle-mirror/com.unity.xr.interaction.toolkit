@@ -19,6 +19,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_FilterInteractionByDistance;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ClimbInteractable.maxInteractionDistance"/>.</summary>
         protected SerializedProperty m_MaxInteractionDistance;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ClimbInteractable.climbAssistanceTeleportVolume"/>.</summary>
+        protected SerializedProperty m_ClimbAssistanceTeleportVolume;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ClimbInteractable.climbSettingsOverride"/>.</summary>
         protected SerializedProperty m_ClimbSettingsOverride;
 
@@ -42,6 +44,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ClimbTransform = serializedObject.FindProperty("m_ClimbTransform");
             m_FilterInteractionByDistance = serializedObject.FindProperty("m_FilterInteractionByDistance");
             m_MaxInteractionDistance = serializedObject.FindProperty("m_MaxInteractionDistance");
+            m_ClimbAssistanceTeleportVolume = serializedObject.FindProperty("m_ClimbAssistanceTeleportVolume");
             m_ClimbSettingsOverride = serializedObject.FindProperty("m_ClimbSettingsOverride");
 
             m_ClimbConfigurationExpanded = SessionState.GetBool(k_ClimbConfigurationExpandedKey, true);
@@ -96,6 +99,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 }
             }
 
+            EditorGUILayout.PropertyField(m_ClimbAssistanceTeleportVolume);
             EditorGUILayout.PropertyField(m_ClimbSettingsOverride);
         }
     }

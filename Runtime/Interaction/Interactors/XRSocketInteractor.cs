@@ -34,10 +34,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
     /// <summary>
-    /// Interactor used for holding interactables via a socket. This component is not designed to be attached to a controller
-    /// (thus does not derive from <see cref="XRBaseControllerInteractor"/>) and instead will always attempt to select an interactable that it is
-    /// hovering over.
+    /// Interactor used for holding interactables via a socket.
     /// </summary>
+    /// <remarks>
+    /// A socket is defined as the target for a specific interactable, such as a keyhole for a key
+    /// or a battery socket for a battery. Not to be confused with network programming.
+    /// <br />
+    /// This component is not designed to use input (thus does not derive from <see cref="XRBaseInputInteractor"/>)
+    /// and instead will always attempt to select an interactable that it is hovering over.
+    /// </remarks>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Socket Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]

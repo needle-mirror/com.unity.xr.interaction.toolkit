@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
@@ -11,6 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
     /// Base state machine for scheduling tween jobs on registered receivers.
     /// Starts when affordance state updates and new tweens need computing. Stops when transitions are complete.
     /// </summary>
+    [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public abstract class BaseAffordanceStateProvider : MonoBehaviour
     {
         [SerializeField]

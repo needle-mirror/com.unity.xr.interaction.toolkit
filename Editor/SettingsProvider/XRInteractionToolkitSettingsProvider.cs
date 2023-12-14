@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using Unity.XR.CoreUtils.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -41,10 +40,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         internal static class Contents
         {
-            public static readonly GUIContent layerMaskUpdater = EditorGUIUtility.TrTextContent("Run Interaction Layer Mask Updater", "Open the dialog box to update the Interaction Layer Mask for projects upgrading from older versions of the XR Interaction Toolkit.");
-
             public static readonly GUIContent deviceSimulatorSettingsTitle = new GUIContent("XR Device Simulator Settings");
             public static readonly GUIContent interactionLayerSettingsTitle = new GUIContent("Interaction Layer Settings");
+            public static readonly GUIContent editorSettingsTitle = new GUIContent("Editor Settings");
 
             public static readonly GUIStyle sectionTitleStyle = new GUIStyle("Label")
             {
@@ -62,8 +60,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         Editor m_XRInteractionEditorSettingsEditor;
         Editor m_XRDeviceSimulatorSettingsEditor;
 
-        static readonly List<BuildValidationRule> s_ValidationRules = new List<BuildValidationRule>();
-        
         /// <summary>
         /// Create and returns this settings provider.
         /// </summary>
@@ -82,47 +78,33 @@ namespace UnityEditor.XR.Interaction.Toolkit
             : base(path, scopes, keywords)
         {
         }
-        
-        /// <summary>
-        /// Draw the interaction layer updater button.
-        /// </summary>
-        static void DrawInteractionLayerUpdateButton()
-        {
-            var oldGuiEnabled = GUI.enabled;
-            GUI.enabled = !EditorApplication.isPlayingOrWillChangePlaymode;
-            
-            if (GUILayout.Button(Contents.layerMaskUpdater, GUILayout.ExpandWidth(false)))
-            {
-                InteractionLayerUpdater.RunIfUserWantsTo();
-                GUIUtility.ExitGUI();
-            }
-
-            GUI.enabled = oldGuiEnabled;
-        }
 
         /// <summary>
-        /// Draws the XR Interaction Settings editor.
+        /// Draws the <see cref="XRInteractionEditorSettings"/> editor.
         /// </summary>
         void DrawXRInteractionEditorSettingsEditor()
         {
             if (m_XRInteractionEditorSettingsEditor != null)
             {
-                GUILayout.Label(Contents.interactionLayerSettingsTitle, Contents.sectionTitleStyle);
+                GUILayout.Label(Contents.editorSettingsTitle, Contents.sectionTitleStyle);
                 m_XRInteractionEditorSettingsEditor.OnInspectorGUI();
             }
         }
-        
+
         /// <summary>
-        /// Draws the Interaction Layer Settings editor.
+        /// Draws the <see cref="InteractionLayerSettings"/> editor.
         /// </summary>
         void DrawInteractionLayerSettingsEditor()
         {
             if (m_InteractionLayerSettingsEditor != null)
+            {
+                GUILayout.Label(Contents.interactionLayerSettingsTitle, Contents.sectionTitleStyle);
                 m_InteractionLayerSettingsEditor.OnInspectorGUI();
+            }
         }
 
         /// <summary>
-        /// Draws the Interaction Layer Settings editor.
+        /// Draws the <see cref="XRDeviceSimulatorSettings"/> editor.
         /// </summary>
         void DrawXRDeviceSimulatorSettingsEditor()
         {
@@ -168,7 +150,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 DrawXRDeviceSimulatorSettingsEditor();
                 EditorGUILayout.Space();
                 DrawXRInteractionEditorSettingsEditor();
-                DrawInteractionLayerUpdateButton();
                 EditorGUILayout.Space();
                 DrawInteractionLayerSettingsEditor();
             }

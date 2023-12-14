@@ -139,7 +139,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             new Dictionary<IXRGroupMember, HashSet<IXRGroupMember>>();
 
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
-        readonly List<XRBaseInteractable> m_DeprecatedValidTargets = new List<XRBaseInteractable>();
 
         static readonly List<IXRSelectInteractable> s_InteractablesSelected = new List<IXRSelectInteractable>();
         static readonly List<IXRHoverInteractable> s_InteractablesHovered = new List<IXRHoverInteractable>();
@@ -1088,10 +1087,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             using (XRInteractionManager.s_GetValidTargetsMarker.Auto())
                 m_RegisteredInteractionManager.GetValidTargets(interactor, m_ValidTargets);
-
-            // Cast to the abstract base classes to assist with backwards compatibility with existing user code.
-            XRInteractionManager.GetOfType(m_ValidTargets, m_DeprecatedValidTargets);
-
+            
             var selectInteractor = interactor as IXRSelectInteractor;
             var hoverInteractor = interactor as IXRHoverInteractor;
 
@@ -1102,7 +1098,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (preventInteraction)
                         ClearAllInteractorSelections(selectInteractor);
                     else
-                        m_RegisteredInteractionManager.ClearInteractorSelectionInternal(selectInteractor, m_ValidTargets);
+                        m_RegisteredInteractionManager.ClearInteractorSelection(selectInteractor, m_ValidTargets);
                 }
             }
 
@@ -1113,7 +1109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (preventInteraction)
                         ClearAllInteractorHovers(hoverInteractor);
                     else
-                        m_RegisteredInteractionManager.ClearInteractorHoverInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                        m_RegisteredInteractionManager.ClearInteractorHover(hoverInteractor, m_ValidTargets);
                 }
             }
 
@@ -1123,7 +1119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (selectInteractor != null)
             {
                 using (XRInteractionManager.s_EvaluateValidSelectionsMarker.Auto())
-                    m_RegisteredInteractionManager.InteractorSelectValidTargetsInternal(selectInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                    m_RegisteredInteractionManager.InteractorSelectValidTargets(selectInteractor, m_ValidTargets);
 
                 // Alternatively check if the base interactor is interacting with UGUI
                 // TODO move this api call to IUIInteractor for XRI 3.0
@@ -1134,7 +1130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (hoverInteractor != null)
             {
                 using (XRInteractionManager.s_EvaluateValidHoversMarker.Auto())
-                    m_RegisteredInteractionManager.InteractorHoverValidTargetsInternal(hoverInteractor, m_ValidTargets, m_DeprecatedValidTargets);
+                    m_RegisteredInteractionManager.InteractorHoverValidTargets(hoverInteractor, m_ValidTargets);
 
                 if (hoverInteractor.hasHover)
                     performedInteraction = true;
@@ -1151,7 +1147,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             for (var i = s_InteractablesSelected.Count - 1; i >= 0; --i)
             {
                 var interactable = s_InteractablesSelected[i];
-                m_RegisteredInteractionManager.SelectExitInternal(selectInteractor, interactable);
+                m_RegisteredInteractionManager.SelectExit(selectInteractor, interactable);
             }
         }
 
@@ -1165,7 +1161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             for (var i = s_InteractablesHovered.Count - 1; i >= 0; --i)
             {
                 var interactable = s_InteractablesHovered[i];
-                m_RegisteredInteractionManager.HoverExitInternal(hoverInteractor, interactable);
+                m_RegisteredInteractionManager.HoverExit(hoverInteractor, interactable);
             }
         }
 

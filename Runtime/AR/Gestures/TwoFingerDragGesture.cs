@@ -159,18 +159,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #pragma warning restore 618
             {
                 var gameObject = hit1.transform.gameObject;
-                var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                if (interactableObject != null)
-                    targetObject = interactableObject.gameObject;
+                var grabInteractable = gameObject.GetComponentInParent<XRGrabInteractable>();
+                if (grabInteractable != null)
+                {
+                    var interactableObject = grabInteractable.gameObject;
+                    if (interactableObject != null)
+                        targetObject = interactableObject;
+                }
+                else
+                {
+#pragma warning disable 618
+                    var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
+                    if (baseGestureInteractable != null)
+                    {
+                        var interactableObject = baseGestureInteractable.gameObject;
+                        if (interactableObject != null)
+                            targetObject = interactableObject;
+                    }
+#pragma warning restore 618
+                }
             }
 #pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
             else if (GestureTouchesUtility.RaycastFromCamera(startPosition2, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit2, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
 #pragma warning restore 618
             {
                 var gameObject = hit2.transform.gameObject;
-                var interactableObject = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                if (interactableObject != null)
-                    targetObject = interactableObject.gameObject;
+                var grabInteractable = gameObject.GetComponentInParent<XRGrabInteractable>();
+                if (grabInteractable != null)
+                {
+                    var interactableObject = grabInteractable.gameObject;
+                    if (interactableObject != null)
+                        targetObject = interactableObject;
+                }
+                else
+                {
+#pragma warning disable 618
+                    var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
+                    if (baseGestureInteractable != null)
+                    {
+                        var interactableObject = baseGestureInteractable.gameObject;
+                        if (interactableObject != null)
+                            targetObject = interactableObject;
+                    }
+#pragma warning restore 618
+                }
             }
 
             GestureTouchesUtility.TryFindTouch(fingerId1, out var touch1);

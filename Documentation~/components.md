@@ -1,24 +1,18 @@
 # Components
 
-## Controller Components
-
-- [XR Controller (Action-based)](xr-controller-action-based.md)
-- [XR Controller (Device-based)](xr-controller-device-based.md)
-- [XR Controller Recorder](xr-controller-recorder.md)
-- [XR Screen Space Controller](xr-screen-space-controller.md)
-
 ## Interactables
 
 - [XR Grab Interactable](xr-grab-interactable.md)
 - [XR Simple Interactable](xr-simple-interactable.md)
 
-### Locomotion Interactables
+### Locomotion interactables
 
 - [Climb Interactable](climb-interactable.md)
 - [Teleportation Anchor](teleportation-anchor.md)
 - [Teleportation Area](teleportation-area.md)
+- [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md)
 
-### AR Interactables
+### AR interactables (deprecated)
 
 - [AR Annotation Interactable](ar-annotation-interactable.md)
 - [AR Placement Interactable](ar-placement-interactable.md)
@@ -29,11 +23,18 @@
 
 ## Interactors
 
-- [AR Gesture Interactor](ar-gesture-interactor.md)
 - [XR Direct Interactor](xr-direct-interactor.md)
 - [XR Poke Interactor](xr-poke-interactor.md)
 - [XR Ray Interactor](xr-ray-interactor.md)
 - [XR Socket Interactor](xr-socket-interactor.md)
+
+### Locomotion Interactors
+
+- [Climb Teleport Interactor](climb-teleport-interactor.md)
+
+### AR interactors (deprecated)
+
+- [AR Gesture Interactor](ar-gesture-interactor.md)
 
 ## Filters
 
@@ -42,19 +43,19 @@
 
 ## Locomotion
 
-- [Character Controller Driver](character-controller-driver.md)
-- [Climb Provider](climb-provider.md)
-- [Continuous Move Provider (Action-based)](continuous-move-provider-action-based.md)
-- [Continuous Move Provider (Device-based)](continuous-move-provider-device-based.md)
-- [Continuous Turn Provider (Action-based)](continuous-turn-provider-action-based.md)
-- [Continuous Turn Provider (Device-based)](continuous-turn-provider-device-based.md)
-- [Grab Move Provider](grab-move-provider.md)
-- [Locomotion System](locomotion-system.md)
-- [Snap Turn Provider (Action-based)](snap-turn-provider-action-based.md)
-- [Snap Turn Provider (Device-based)](snap-turn-provider-device-based.md)
-- [Teleportation Provider](teleportation-provider.md)
+- [Locomotion Mediator](locomotion-mediator.md)
 - [Tunneling Vignette Controller](tunneling-vignette-controller.md)
-- [Two Handed Grab Move Provider](two-handed-grab-move-provider.md)
+- [XR Body Transformer](xr-body-transformer.md)
+
+### Providers
+
+- [Climb Provider](climb-provider.md)
+- [Continuous Move Provider](continuous-move-provider.md)
+- [Continuous Turn Provider](continuous-turn-provider.md)
+- [Grab Move Provider](grab-move-provider.md)
+- [Snap Turn Provider](snap-turn-provider.md)
+- [Teleportation Provider](teleportation-provider.md)
+- [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md)
 
 ## Visuals
 
@@ -62,7 +63,13 @@
 - [XR Interactor Reticle Visual](xr-interactor-reticle-visual.md)
 - [XR Tint Interactable Visual](xr-tint-interactable-visual.md)
 
-## Affordance system
+## Feedback
+
+- [Haptic Impulse Player](haptic-impulse-player.md)
+- [Simple Audio Feedback](simple-audio-feedback.md)
+- [Simple Haptic Feedback](simple-haptic-feedback.md)
+
+## Affordance system (deprecated)
 
 - [XR Interactable Affordance State Provider](xr-interactable-affordance-state-provider.md)
 - [XR Interactor Affordance State Provider](xr-interactor-affordance-state-provider.md)
@@ -73,9 +80,10 @@
 - [Hand Menu](hand-menu.md)
 - [Lazy Follow](lazy-follow.md)
 
-## Other Components
+## Other components
 
 - [Input Action Manager](input-action-manager.md)
+- [XR Controller Recorder](xr-controller-recorder.md)
 - [XR Device Simulator](xr-device-simulator.md)
 - [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
 - [XR Input Modality Manager](xr-input-modality-manager.md)
