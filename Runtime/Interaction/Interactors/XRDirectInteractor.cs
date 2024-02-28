@@ -254,7 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    m_StayedColliders.Add(m_OverlapSphereHits[i]);
+                    m_StayedColliders.Add(m_SphereCastHits[i].collider);
                 }
             }
 

@@ -1,3 +1,9 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses in GenericXRDevice.cs to define the XRController and XRHMD classes.
+#if ENABLE_VR || UNITY_GAMECORE
+#define XR_INPUT_DEVICES_AVAILABLE
+#endif
+
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
@@ -15,6 +21,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.DestroyAllSceneObjects();
         }
 
+#if XR_INPUT_DEVICES_AVAILABLE
         [UnityTest]
         public IEnumerator TrackingStatusUsesFallbackTrackedDevice()
         {
@@ -66,7 +73,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(currentControllerState.isTracked, Is.True);
             Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(InputTrackingState.All));
         }
+#endif
 
+#if XR_INPUT_DEVICES_AVAILABLE
         [UnityTest]
         public IEnumerator IsTrackedUsesTrackingStateFallback()
         {
@@ -121,7 +130,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(currentControllerState.isTracked, Is.True);
             Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(InputTrackingState.All));
         }
+#endif
 
+#if XR_INPUT_DEVICES_AVAILABLE
         [UnityTest]
         public IEnumerator TrackingStateUsesIsTrackedFallback()
         {
@@ -177,6 +188,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(currentControllerState.isTracked, Is.True);
             Assert.That(currentControllerState.inputTrackingState, Is.EqualTo(InputTrackingState.All));
         }
+#endif
 
         [UnityTest]
         public IEnumerator TrackingStatusCombinesPositionRotationTrackedDevice()

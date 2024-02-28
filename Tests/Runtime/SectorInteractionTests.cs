@@ -38,10 +38,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(gamepad.rightStick.IsActuated(), Is.False);
             Assert.That(action.triggered, Is.False);
 
-            using (var trace = new InputActionTrace())
+            using (var trace = new InputActionTrace(action))
             {
-                trace.SubscribeToAll();
-
                 // Actuate above threshold, in valid sector
                 Set(gamepad.rightStick, north);
 
@@ -132,10 +130,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(gamepad.rightStick.IsActuated(), Is.False);
             Assert.That(action.triggered, Is.False);
 
-            using (var trace = new InputActionTrace())
+            using (var trace = new InputActionTrace(action))
             {
-                trace.SubscribeToAll();
-
                 // Actuate above threshold, in invalid sector
                 Set(gamepad.rightStick, east);
 

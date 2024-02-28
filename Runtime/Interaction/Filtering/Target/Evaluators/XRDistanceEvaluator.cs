@@ -55,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                     distanceSqr = target.GetDistanceSqrToInteractor(interactor);
                 }
 
-                return 1f - Mathf.Clamp01(distanceSqr / m_MaxDistance * m_MaxDistance);
+                return 1f - Mathf.Clamp01(distanceSqr / (m_MaxDistance * m_MaxDistance));
             }
         }
     }

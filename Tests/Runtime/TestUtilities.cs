@@ -424,6 +424,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             results.AddRange(targets);
         }
     }
+    
+    class MockInversionTargetFilter : IXRTargetFilter
+    {
+        public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
+
+        public bool canProcess { get; set; } = true;
+
+        public void Link(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Link);
+        }
+
+        public void Unlink(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Unlink);
+        }
+
+        public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
+        {
+            results.Clear();
+            callbackExecution.Add(TargetFilterCallback.Process);
+            for(int i = targets.Count - 1; i >= 0; i--)
+            {
+                results.Add(targets[i]);
+            }
+        }
+    }
 
     class MockGrabTransformer : IXRGrabTransformer
     {

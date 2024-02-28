@@ -116,10 +116,10 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
   <tr>
     <td colspan="3"><strong>Left</strong>/<strong>Right Hand</strong></td>
     <td>
-      [XR Interaction Group](xr-interaction-group.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interaction-group.md">XR Interaction Group</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       Poke Gesture Detector<hr style="margin-top: 7px; margin-bottom: 7px;">
       Meta System Gesture Detector<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Audio Source](https://docs.unity3d.com/Manual/class-AudioSource.html)
+      <a href="https://docs.unity3d.com/Manual/class-AudioSource.html">Audio Source</a>
     </td>
     <td>Represents the interaction groups for tracked hand-based interaction. The Poke Gesture Detector is used to mediate between poke and ray pinch interactions. The Meta System Gesture Detector is used to disable interactions while doing menu palm pinch gestures. The Audio Source is used as an example response to the menu palm pinch gesture.</td>
   </tr>
@@ -127,44 +127,44 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td rowspan="10"></td>
     <td colspan="2"><strong>Poke Interactor</strong></td>
     <td>
-      [XR Poke Interactor](xr-poke-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
+      <a href="xr-poke-interactor.md">XR Poke Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@latest?subfolder=/api/UnityEngine.InputSystem.XR.TrackedPoseDriver.html">Tracked Pose Driver</a>
     </td>
     <td>Interactor used for interacting with interactables by poking. Pose driven by the index finger's tip.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Direct Interactor</strong></td>
     <td>
-      [XR Direct Interactor](xr-direct-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Sphere Collider](https://docs.unity3d.com/Manual/class-SphereCollider.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)
+      <a href="xr-direct-interactor.md">XR Direct Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-SphereCollider.html">Sphere Collider</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-controller-action-based.md">XR Controller</a>
     </td>
     <td>Interactor used for interacting with interactables by pinching at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables. Has an XR Controller to override the Position action to use the pinch position of the hand.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Ray Interactor</strong></td>
     <td>
-      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)
+      <a href="xr-ray-interactor.md">XR Ray Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-LineRenderer.html">Line Renderer</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interactor-line-visual.md">XR Interactor Line Visual</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-SortingGroup.html">Sorting Group</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-controller-action-based.md">XR Controller</a>
     </td>
     <td>Interactor used for interacting with interactables by pinching at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI. Has an XR Controller to override the Position and Rotation actions to use the Meta Hand Tracking Aim feature.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Poke Stabilized Attach</strong></td>
-    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td><a href="xr-transform-stabilizer.md">XR Transform Stabilizer</a></td>
     <td>Stabilized left or right poke pose used as the Attach Transform of the XR Poke Interactor.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Direct Stabilized Attach</strong></td>
-    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td><a href="xr-transform-stabilizer.md">XR Transform Stabilizer</a></td>
     <td>Stabilized left or right pinch pose used as the Attach Transform of the XR Direct Interactor.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Ray Stabilized</strong></td>
-    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td><a href="xr-transform-stabilizer.md">XR Transform Stabilizer</a></td>
     <td>Stabilized left or right aim pose used as the Ray Origin Transform of the XR Ray Interactor.</td>
   </tr>
   <tr>
@@ -177,7 +177,7 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td colspan="2"><strong>Pinch Point Stabilized</strong></td>
     <td>
       Pinch Point Follow<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Interactor Affordance State Provider](xr-interactor-affordance-state-provider.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interactor-affordance-state-provider.md">XR Interactor Affordance State Provider</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       Hide Object When Ray Interactor Blocked
     </td>
     <td>Stabilized left or right pinch dropper pose used as the Line Origin Transform of the XR Interactor Line Visual on the Ray Interactor.</td>
@@ -186,24 +186,24 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td rowspan="1"></td>
     <td><strong>Pinch Visual</strong></td>
     <td>
-      [Skinned Mesh Renderer](https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      Multiple [Affordance Receivers](affordance-system.md#affordance-receivers)
+      <a href="https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html">Skinned Mesh Renderer</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      Multiple <a href="affordance-system.md#affordance-receivers">Affordance Receivers</a>
     </td>
     <td>Pinch dropper visual.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Left/Right Hand Interaction Visual</strong></td>
     <td>
-      [XR Hand Tracking Events](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-access-data.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Hand Mesh Controller](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-visuals.html#xr-hand-mesh-controller)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Hand Skeleton Driver](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-visuals.html#xr-hand-skeleton-driver)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-access-data.html">XR Hand Tracking Events</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-visuals.html#xr-hand-mesh-controller">XR Hand Mesh Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-visuals.html#xr-hand-skeleton-driver">XR Hand Skeleton Driver</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-hand-skeleton-poke-displacer.md">XR Hand Skeleton Poke Displacer</a>
     </td>
     <td>Adds hand interaction shader affordances that highlight the hand and fingers during interactions.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Hand Visualizer</strong></td>
-    <td>[Hand Visualizer](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html#samples)</td>
+    <td><a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html#samples">Hand Visualizer</a></td>
     <td>Visual representation of the tracked hands.</td>
   </tr>
   <tr>

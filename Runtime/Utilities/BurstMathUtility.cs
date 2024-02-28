@@ -274,5 +274,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             result = new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
         }
+
+        /// <summary>
+        /// Calculates an orthogonal vector to the given vector.
+        /// The method finds the smallest component of the input vector and crosses it with the corresponding basis vector.
+        /// </summary>
+        /// <param name="input">The input vector.</param>
+        /// <returns>The resulting orthogonal vector.</returns>
+        internal static Vector3 Orthogonal(Vector3 input)
+        {
+            Orthogonal(input, out float3 resultFloat3);
+            return resultFloat3;
+        }
+
+        /// <summary>
+        /// Calculates an orthogonal vector to the given vector.
+        /// The method finds the smallest component of the input vector and crosses it with the corresponding basis vector.
+        /// </summary>
+        /// <param name="input">The input vector.</param>
+        /// <param name="result">The resulting orthogonal vector.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        internal static void Orthogonal(in float3 input, out float3 result)
+        {
+            // Find the smallest component of v and cross it with the corresponding basis vector
+            if (math.abs(input.x) < math.abs(input.y) && math.abs(input.x) < math.abs(input.z))
+                result = math.cross(input, new float3(1, 0, 0)); // equivalent to Vector3.right
+            else if (math.abs(input.y) < math.abs(input.z))
+                result = math.cross(input, new float3(0, 1, 0)); // equivalent to Vector3.up
+            else
+                result = math.cross(input, new float3(0, 0, 1)); // equivalent to Vector3.forward
+        }
     }
 }

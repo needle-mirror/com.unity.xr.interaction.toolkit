@@ -61,14 +61,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
     {
         const float k_DefaultTighteningAmount = 0.1f;
         const float k_DefaultSmoothingAmount = 8f;
-        const float k_VelocityDamping = 1f;
-        const float k_VelocityScale = 1f;
+        const float k_LinearVelocityDamping = 1f;
+        const float k_LinearVelocityScale = 1f;
         const float k_AngularVelocityDamping = 1f;
         const float k_AngularVelocityScale = 1f;
         const int k_ThrowSmoothingFrameCount = 20;
         const float k_DefaultAttachEaseInTime = 0.15f;
         const float k_DefaultThrowSmoothingDuration = 0.25f;
-        const float k_DefaultThrowVelocityScale = 1.5f;
+        const float k_DefaultThrowLinearVelocityScale = 1.5f;
         const float k_DefaultThrowAngularVelocityScale = 1f;
         const float k_DeltaTimeThreshold = 0.001f;
 
@@ -251,10 +251,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField, Range(0f, 1f)]
-        float m_VelocityDamping = k_VelocityDamping;
+        float m_VelocityDamping = k_LinearVelocityDamping;
 
         /// <summary>
-        /// Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor.
+        /// Scale factor of how much to dampen the existing linear velocity when tracking the position of the Interactor.
         /// The smaller the value, the longer it takes for the velocity to decay.
         /// </summary>
         /// <remarks>
@@ -269,10 +269,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        float m_VelocityScale = k_VelocityScale;
+        float m_VelocityScale = k_LinearVelocityScale;
 
         /// <summary>
-        /// Scale factor Unity applies to the tracked velocity while updating the <see cref="Rigidbody"/>
+        /// Scale factor Unity applies to the tracked linear velocity while updating the <see cref="Rigidbody"/>
         /// when tracking the position of the Interactor.
         /// </summary>
         /// <remarks>
@@ -556,10 +556,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        float m_ThrowVelocityScale = k_DefaultThrowVelocityScale;
+        float m_ThrowVelocityScale = k_DefaultThrowLinearVelocityScale;
 
         /// <summary>
-        /// Scale factor Unity applies to this object's velocity inherited from the Interactor when released.
+        /// Scale factor Unity applies to this object's linear velocity inherited from the Interactor when released.
         /// </summary>
         /// <seealso cref="throwOnDetach"/>
         public float throwVelocityScale
@@ -731,12 +731,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         MovementType m_CurrentMovementType;
 
         bool m_DetachInLateUpdate;
-        Vector3 m_DetachVelocity;
+        Vector3 m_DetachLinearVelocity;
         Vector3 m_DetachAngularVelocity;
 
         int m_ThrowSmoothingCurrentFrame;
         readonly float[] m_ThrowSmoothingFrameTimes = new float[k_ThrowSmoothingFrameCount];
-        readonly Vector3[] m_ThrowSmoothingVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
+        readonly Vector3[] m_ThrowSmoothingLinearVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
         readonly Vector3[] m_ThrowSmoothingAngularVelocityFrames = new Vector3[k_ThrowSmoothingFrameCount];
         bool m_ThrowSmoothingFirstUpdate;
         Pose m_LastThrowReferencePose;
@@ -747,8 +747,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         // Rigidbody's settings upon select, kept to restore these values when dropped
         bool m_WasKinematic;
         bool m_UsedGravity;
-        float m_OldDrag;
-        float m_OldAngularDrag;
+        float m_OldLinearDamping;
+        float m_OldAngularDamping;
 
         // Used to keep track of colliders for which to ignore collision with character only while grabbed
         bool m_IgnoringCharacterCollision;
@@ -1638,16 +1638,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
-                // Do velocity tracking
+                // Do linear velocity tracking
                 if (m_TrackPosition)
                 {
                     // Scale initialized velocity by prediction factor
+#if UNITY_2023_3_OR_NEWER
+                    m_Rigidbody.linearVelocity *= (1f - m_VelocityDamping);
+#else
                     m_Rigidbody.velocity *= (1f - m_VelocityDamping);
+#endif
                     var positionDelta = m_AttachPointCompatibilityMode == AttachPointCompatibilityMode.Default
                         ? m_TargetPose.position - transform.position
                         : m_TargetPose.position - m_Rigidbody.worldCenterOfMass;
                     var velocity = positionDelta / deltaTime;
+#if UNITY_2023_3_OR_NEWER
+                    m_Rigidbody.linearVelocity += (velocity * m_VelocityScale);
+#else
                     m_Rigidbody.velocity += (velocity * m_VelocityScale);
+#endif
                 }
 
                 // Do angular velocity tracking
@@ -1970,7 +1978,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             SetupRigidbodyGrab(m_Rigidbody);
 
             // Reset detach velocities
-            m_DetachVelocity = Vector3.zero;
+            m_DetachLinearVelocity = Vector3.zero;
             m_DetachAngularVelocity = Vector3.zero;
 
             // Initialize target pose and scale
@@ -2027,11 +2035,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 if (m_ThrowAssist != null)
                 {
-                    m_DetachVelocity = m_ThrowAssist.GetAssistedVelocity(m_Rigidbody.position, m_DetachVelocity, m_Rigidbody.useGravity ? -Physics.gravity.y : 0f);
+                    m_DetachLinearVelocity = m_ThrowAssist.GetAssistedVelocity(m_Rigidbody.position, m_DetachLinearVelocity, m_Rigidbody.useGravity ? -Physics.gravity.y : 0f);
                     m_ThrowAssist = null;
                 }
 
-                m_Rigidbody.velocity = m_DetachVelocity;
+#if UNITY_2023_3_OR_NEWER
+                m_Rigidbody.linearVelocity = m_DetachLinearVelocity;
+#else
+                m_Rigidbody.velocity = m_DetachLinearVelocity;
+#endif
                 m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
         }
@@ -2048,12 +2060,22 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Remember Rigidbody settings and setup to move
             m_WasKinematic = rigidbody.isKinematic;
             m_UsedGravity = rigidbody.useGravity;
-            m_OldDrag = rigidbody.drag;
-            m_OldAngularDrag = rigidbody.angularDrag;
+#if UNITY_2023_3_OR_NEWER
+            m_OldLinearDamping = rigidbody.linearDamping;
+            m_OldAngularDamping = rigidbody.angularDamping;
+#else
+            m_OldLinearDamping = rigidbody.drag;
+            m_OldAngularDamping = rigidbody.angularDrag;
+#endif
             rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic || m_CurrentMovementType == MovementType.Instantaneous;
             rigidbody.useGravity = false;
+#if UNITY_2023_3_OR_NEWER
+            rigidbody.linearDamping = 0f;
+            rigidbody.angularDamping = 0f;
+#else
             rigidbody.drag = 0f;
             rigidbody.angularDrag = 0f;
+#endif
         }
 
         /// <summary>
@@ -2068,8 +2090,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Restore Rigidbody settings
             rigidbody.isKinematic = m_WasKinematic;
             rigidbody.useGravity = m_UsedGravity;
-            rigidbody.drag = m_OldDrag;
-            rigidbody.angularDrag = m_OldAngularDrag;
+#if UNITY_2023_3_OR_NEWER
+            rigidbody.linearDamping = m_OldLinearDamping;
+            rigidbody.angularDamping = m_OldAngularDamping;
+#else
+            rigidbody.drag = m_OldLinearDamping;
+            rigidbody.angularDrag = m_OldAngularDamping;
+#endif
 
             if (!isSelected)
                 m_Rigidbody.useGravity |= m_ForceGravityOnDetach;
@@ -2078,7 +2105,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         void ResetThrowSmoothing()
         {
             Array.Clear(m_ThrowSmoothingFrameTimes, 0, m_ThrowSmoothingFrameTimes.Length);
-            Array.Clear(m_ThrowSmoothingVelocityFrames, 0, m_ThrowSmoothingVelocityFrames.Length);
+            Array.Clear(m_ThrowSmoothingLinearVelocityFrames, 0, m_ThrowSmoothingLinearVelocityFrames.Length);
             Array.Clear(m_ThrowSmoothingAngularVelocityFrames, 0, m_ThrowSmoothingAngularVelocityFrames.Length);
             m_ThrowSmoothingCurrentFrame = 0;
             m_ThrowSmoothingFirstUpdate = true;
@@ -2092,9 +2119,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // after the first interactor releases if the second interactor also releases within
                 // a short period of time. Since the target pose is tracked before easing, the most
                 // recent frames might have been a large change.
-                var smoothedVelocity = GetSmoothedVelocityValue(m_ThrowSmoothingVelocityFrames);
+                var smoothedLinearVelocity = GetSmoothedVelocityValue(m_ThrowSmoothingLinearVelocityFrames);
                 var smoothedAngularVelocity = GetSmoothedVelocityValue(m_ThrowSmoothingAngularVelocityFrames);
-                m_DetachVelocity = smoothedVelocity * m_ThrowVelocityScale;
+                m_DetachLinearVelocity = smoothedLinearVelocity * m_ThrowVelocityScale;
                 m_DetachAngularVelocity = smoothedAngularVelocity * m_ThrowAngularVelocityScale;
             }
         }
@@ -2111,7 +2138,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
             else
             {
-                m_ThrowSmoothingVelocityFrames[m_ThrowSmoothingCurrentFrame] = (targetPose.position - m_LastThrowReferencePose.position) / deltaTime;
+                m_ThrowSmoothingLinearVelocityFrames[m_ThrowSmoothingCurrentFrame] = (targetPose.position - m_LastThrowReferencePose.position) / deltaTime;
 
                 var rotationDiff = targetPose.rotation * Quaternion.Inverse(m_LastThrowReferencePose.rotation);
                 var eulerAngles = rotationDiff.eulerAngles;
@@ -2171,7 +2198,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_ThrowSmoothingFrameTimes[frameIdx] == 0f)
                     break;
 
-                m_ThrowSmoothingVelocityFrames[frameIdx] = rotated * m_ThrowSmoothingVelocityFrames[frameIdx];
+                m_ThrowSmoothingLinearVelocityFrames[frameIdx] = rotated * m_ThrowSmoothingLinearVelocityFrames[frameIdx];
             }
 
             m_LastThrowReferencePose.position += translated;

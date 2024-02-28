@@ -158,9 +158,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.movementType"/>.</summary>
             public static readonly GUIContent movementType = EditorGUIUtility.TrTextContent("Movement Type", "Specifies how this object is moved when selected, either through setting the velocity of the Rigidbody, moving the kinematic Rigidbody during Fixed Update, or by directly updating the Transform each frame.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityDamping"/>.</summary>
-            public static readonly GUIContent velocityDamping = EditorGUIUtility.TrTextContent("Velocity Damping", "Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.");
+            public static readonly GUIContent velocityDamping = EditorGUIUtility.TrTextContent("Velocity Damping", "Scale factor of how much to dampen the existing linear velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.velocityScale"/>.</summary>
-            public static readonly GUIContent velocityScale = EditorGUIUtility.TrTextContent("Velocity Scale", "Scale factor applied to the tracked velocity while updating the Rigidbody when tracking the position of the Interactor.");
+            public static readonly GUIContent velocityScale = EditorGUIUtility.TrTextContent("Velocity Scale", "Scale factor applied to the tracked linear velocity while updating the Rigidbody when tracking the position of the Interactor.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.angularVelocityDamping"/>.</summary>
             public static readonly GUIContent angularVelocityDamping = EditorGUIUtility.TrTextContent("Angular Velocity Damping", "Scale factor of how much to dampen the existing angular velocity when tracking the rotation of the Interactor. The smaller the value, the longer it takes for the angular velocity to decay.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.angularVelocityScale"/>.</summary>
@@ -196,7 +196,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwSmoothingCurve"/>.</summary>
             public static readonly GUIContent throwSmoothingCurve = EditorGUIUtility.TrTextContent("Throw Smoothing Curve", "The curve to use to weight thrown velocity smoothing (most recent frames to the right).");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwVelocityScale"/>.</summary>
-            public static readonly GUIContent throwVelocityScale = EditorGUIUtility.TrTextContent("Throw Velocity Scale", "Scale factor applied to this object's inherited velocity of the Interactor when released.");
+            public static readonly GUIContent throwVelocityScale = EditorGUIUtility.TrTextContent("Throw Velocity Scale", "Scale factor applied to this object's inherited linear velocity of the Interactor when released.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.throwAngularVelocityScale"/>.</summary>
             public static readonly GUIContent throwAngularVelocityScale = EditorGUIUtility.TrTextContent("Throw Angular Velocity Scale", "Scale factor applied to this object's inherited angular velocity of the Interactor when released.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.forceGravityOnDetach"/>.</summary>

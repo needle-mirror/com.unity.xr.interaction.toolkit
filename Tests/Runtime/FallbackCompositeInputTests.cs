@@ -32,21 +32,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var actionMap = asset.AddActionMap("Main");
             var positionAction = actionMap.AddAction("Position");
             positionAction.AddCompositeBinding("Vector3Fallback")
-                .With("first", "<XRController>{LeftHand}/devicePosition")
-                .With("second", "<XRController>{RightHand}/devicePosition");
+                .With("first", "<TrackedDevice>{LeftHand}/devicePosition")
+                .With("second", "<TrackedDevice>{RightHand}/devicePosition");
             var rotationAction = actionMap.AddAction("Rotation");
             rotationAction.AddCompositeBinding("QuaternionFallback")
-                .With("first", "<XRController>{LeftHand}/deviceRotation")
-                .With("second", "<XRController>{RightHand}/deviceRotation");
+                .With("first", "<TrackedDevice>{LeftHand}/deviceRotation")
+                .With("second", "<TrackedDevice>{RightHand}/deviceRotation");
             var isTrackedAction = actionMap.AddAction("Is Tracked", InputActionType.Button);
             isTrackedAction.wantsInitialStateCheck = true;
             isTrackedAction.AddCompositeBinding("ButtonFallback")
-                .With("first", "<XRController>{LeftHand}/isTracked")
-                .With("second", "<XRController>{RightHand}/isTracked");
+                .With("first", "<TrackedDevice>{LeftHand}/isTracked")
+                .With("second", "<TrackedDevice>{RightHand}/isTracked");
             var trackingStateAction = actionMap.AddAction("Tracking State");
             trackingStateAction.AddCompositeBinding("IntegerFallback")
-                .With("first", "<XRController>{LeftHand}/trackingState")
-                .With("second", "<XRController>{RightHand}/trackingState");
+                .With("first", "<TrackedDevice>{LeftHand}/trackingState")
+                .With("second", "<TrackedDevice>{RightHand}/trackingState");
 
             var controllerGameObject = new GameObject("Action Based Controller");
             var actionBasedController = controllerGameObject.AddComponent<ActionBasedController>();
@@ -56,7 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             actionBasedController.trackingStateAction = new InputActionProperty(trackingStateAction);
 
             // Add a device that will be resolved in the second part of the fallback composite binding
-            var secondDevice = InputSystem.InputSystem.AddDevice<InputSystem.XR.XRController>();
+            var secondDevice = InputSystem.InputSystem.AddDevice<TrackedDevice>();
             InputSystem.InputSystem.SetDeviceUsage(secondDevice, InputSystem.CommonUsages.RightHand);
 
             var firstPose = new Pose(new Vector3(1f, 2f, 3f), Quaternion.Euler(0f, 45f, 0f));
@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(currentControllerState.isTracked, Is.True);
 
             // Add a device that will be resolved in the first part of the fallback composite binding
-            var firstDevice = InputSystem.InputSystem.AddDevice<InputSystem.XR.XRController>();
+            var firstDevice = InputSystem.InputSystem.AddDevice<TrackedDevice>();
             InputSystem.InputSystem.SetDeviceUsage(firstDevice, InputSystem.CommonUsages.LeftHand);
 
             Set(firstDevice.devicePosition, firstPose.position);

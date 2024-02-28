@@ -37,8 +37,8 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Smooth Position** | Enable to have Unity apply smoothing while following the position of the Interactor when selected. |
 | **Smooth Position Amount** | Scale factor for how much smoothing is applied while following the position of the Interactor when selected. The larger the value, the closer this object will remain to the position of the Interactor. |
 | **Tighten Position** | Reduces the maximum follow position difference when using smoothing.<br />Fractional amount of how close the smoothed position should remain to the position of the Interactor when using smoothing. The value ranges from 0 meaning no bias in the smoothed follow distance, to 1 meaning effectively no smoothing at all. |
-| **Velocity Damping** | Scale factor of how much to dampen the existing velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.<br />Only applies when **Movement Type** is in Velocity Tracking mode. |
-| **Velocity Scale** | Scale factor Unity applies to the tracked velocity while updating the `Rigidbody` when tracking the position of the Interactor.<br />Only applies when **Movement Type** is in Velocity Tracking mode. |
+| **Velocity Damping** | Scale factor of how much to dampen the existing linear velocity when tracking the position of the Interactor. The smaller the value, the longer it takes for the velocity to decay.<br />Only applies when **Movement Type** is in Velocity Tracking mode. |
+| **Velocity Scale** | Scale factor Unity applies to the tracked linear velocity while updating the `Rigidbody` when tracking the position of the Interactor.<br />Only applies when **Movement Type** is in Velocity Tracking mode. |
 | **Track Rotation** | Enable to have this object follow the rotation of the Interactor when selected. |
 | **Smooth Rotation** | Apply smoothing while following the rotation of the Interactor when selected. |
 | **Smooth Rotation Amount** | Scale factor for how much smoothing is applied while following the rotation of the Interactor when selected. The larger the value, the closer this object will remain to the rotation of the Interactor. |
@@ -52,7 +52,7 @@ Interactable component that allows for basic grab functionality. When this behav
 | **Throw On Detach** | Enable to have this object inherit the velocity of the Interactor when released. This is not supported for a kinematic Rigidbody. |
 | **Throw Smoothing Duration** | This value represents the time over which collected samples are used for velocity calculation (up to a max of 20 previous frames, which is dependent on both Smoothing Duration and framerate). As an example, if this value is set to 0.25, position and velocity values will be averaged over the past 0.25 seconds. Each of those values is weighted (multiplied) by the Throw Smoothing Curve as well. |
 | **Throw Smoothing Curve** | The curve used to weight velocity smoothing upon throwing (most recent frames to the right). By default this curve is flat with a 1.0 value so all smoothing values are treated equally across the smoothing duration. |
-| **Throw Velocity Scale** | Scale factor Unity applies to this object's velocity inherited from the Interactor when released. |
+| **Throw Velocity Scale** | Scale factor Unity applies to this object's linear velocity inherited from the Interactor when released. |
 | **Throw Angular Velocity Scale** | Scale factor Unity applies to this object's angular velocity inherited from the Interactor when released. |
 | **Force Gravity On Detach** | Forces this object to have gravity when released (will still use pre-grab value if this is `false` / unchecked). |
 | **Attach Transform** | The attachment point Unity uses on this Interactable (will use this object's position if none set). |

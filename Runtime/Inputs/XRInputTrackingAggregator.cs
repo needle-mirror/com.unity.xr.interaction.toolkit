@@ -1,6 +1,15 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses in GenericXRDevice.cs to define the XRController and XRHMD classes.
+#if ENABLE_VR || UNITY_GAMECORE
+#define XR_INPUT_DEVICES_AVAILABLE
+#endif
+
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+
+#if XR_INPUT_DEVICES_AVAILABLE
 using UnityEngine.InputSystem.XR;
+#endif
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
@@ -121,10 +130,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (!Application.isPlaying)
                 return default;
 
+#if XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<XRHMD>();
             if (currentDevice != null)
                 return GetTrackingStatus(currentDevice);
+#endif
 
             // Try XR module devices
             if (TryGetDeviceWithExactCharacteristics(Characteristics.hmd, out var xrInputDevice))
@@ -165,10 +176,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (!Application.isPlaying)
                 return default;
 
+#if XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.LeftHand);
             if (currentDevice != null)
                 return GetTrackingStatus(currentDevice);
+#endif
 
             // Try XR module devices
             if (TryGetDeviceWithExactCharacteristics(Characteristics.leftController, out var xrInputDevice))
@@ -186,10 +199,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (!Application.isPlaying)
                 return default;
 
+#if XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.RightHand);
             if (currentDevice != null)
                 return GetTrackingStatus(currentDevice);
+#endif
 
             // Try XR module devices
             if (TryGetDeviceWithExactCharacteristics(Characteristics.rightController, out var xrInputDevice))
@@ -212,10 +227,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (TryGetHandSubsystem(out var handSubsystem))
                 return GetTrackingStatus(handSubsystem.leftHand);
 
+#if XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<XRHandDevice>(InputSystem.CommonUsages.LeftHand);
             if (currentDevice != null)
                 return GetTrackingStatus(currentDevice);
+#endif
 #endif
 
             // Try XR module devices
@@ -239,10 +256,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (TryGetHandSubsystem(out var handSubsystem))
                 return GetTrackingStatus(handSubsystem.rightHand);
 
+#if XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<XRHandDevice>(InputSystem.CommonUsages.RightHand);
             if (currentDevice != null)
                 return GetTrackingStatus(currentDevice);
+#endif
 #endif
 
             // Try XR module devices
@@ -261,7 +280,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (!Application.isPlaying)
                 return default;
 
-#if XR_HANDS_1_1_OR_NEWER
+#if XR_HANDS_1_1_OR_NEWER && XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<MetaAimHand>(InputSystem.CommonUsages.LeftHand);
             if (currentDevice != null)
@@ -280,7 +299,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (!Application.isPlaying)
                 return default;
 
-#if XR_HANDS_1_1_OR_NEWER
+#if XR_HANDS_1_1_OR_NEWER && XR_INPUT_DEVICES_AVAILABLE
             // Try Input System devices
             var currentDevice = InputSystem.InputSystem.GetDevice<MetaAimHand>(InputSystem.CommonUsages.RightHand);
             if (currentDevice != null)

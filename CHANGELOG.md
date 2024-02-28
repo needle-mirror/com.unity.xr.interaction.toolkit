@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+
+## [2.5.3] - 2024-02-28
+
+### Fixed
+- Fixed issue where rotating on vertical planes with the `ARTransformer` would snap to an unintended rotation. (Backport from 3.0.0-pre.1)
+- Fixed failing unit tests caused by introduction of global actions in Input System 1.8.0. (Backport from 3.0.0-pre.1)
+- Fixed a math error in the `XRDistanceEvaluator` where `CalculateNormalizedScore` would return an incorrect score. (Backport from 3.0.0-pre.1)
+- Fixed an issue where the direct interactor wasn't correctly processing colliders after the first frame. ([XRIT-116](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-116)) (Backport from 3.0.0-pre.1)
+- Fixed a bug where a `NullReferenceException` was thrown when `Affordance Theme Datum` was not set. If it is null, an error is logged and the `AudioAffordanceReceiver` is disabled, but no exception is thrown. ([XRIT-107](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-107)) (Backport from 3.0.0-pre.1)
+- Fixed the `ActionBasedControllerManager` script in Starter Assets to not stop move locomotion when beginning to point at scrollable UI during locomotion. (Backport from 3.0.0-pre.1)
+- Fixed the `ActionBasedControllerManager` script in Starter Assets to not scroll UI when beginning to point at scrollable UI during locomotion until stopping locomotion. (Backport from 3.0.0-pre.2)
+- Fixed `XRPokeInteractor` and `TrackedGraphicRaycaster` to ensure poke interactor data is cleared when the UI element with a poke interaction is disabled. ([XRIT-115](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-115)) (Backport from 3.0.0-pre.2)
+ - Fixed an issue where target filters could not influence the prioritized poke interactable. ([XRIT-114](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-114)) (Backport from 3.0.0-pre.2)
+- Fixed an issue in `XRUIInputModule` where display index was not being set for mouse or touch in the `PointerEventData` object causing it to always default to the first display. ([XRIT-125](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-125)) (Backport from 3.0.0-pre.2)
+- Fixed use of renamed Rigidbody properties in Unity 2023.3 to avoid script migration prompt. (Backport from 3.0.0-pre.2)
+- Fixed a small performance issue at startup by making XR Ray Interactor only search for AR Raycast Manager when both AR Foundation is installed and Enable AR Raycasting is enabled. (Backport from 3.0.0-pre.2)
+- Fixed an issue with two handed rotations using the XRGeneralGrabTransformer where some inconsistent motion would occur when the user would rotate more than 180 degrees in any axis. (Backport from 3.0.0-pre.2)
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined. (Backport from 3.0.0-pre.2)
+- Fixed a bug in `XRSocketInteractor` that prevented the deselecting of the Starting Selected Interactable when Hover Socket Snapping was enabled. (Backport from 3.0.0-pre.2)
+- Fixed broken markdown links within tables in samples documentation in the manual. (Backport from 3.0.0-pre.2)
+
 ## [2.5.2] - 2023-09-28
 
 ### Fixed

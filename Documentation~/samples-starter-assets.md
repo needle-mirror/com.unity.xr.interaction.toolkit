@@ -159,20 +159,20 @@ The `XR Interaction Setup` has the following hierarchy, which contains the `XR O
   <tr>
     <td rowspan="4"></td>
     <td><strong>Input Action Manager</strong></td>
-    <td>[Input Action Manager](input-action-manager.md)</td>
+    <td><a href="input-action-manager.md">Input Action Manager</a></td>
     <td>Enables the input actions used by the interactors. Input actions in an Input Action Asset are not enabled by default, so this component will automatically enable them.</td>
   </tr>
   <tr>
     <td><strong>XR Interaction Manager</strong></td>
-    <td>[XR Interaction Manager](xr-interaction-manager.md)</td>
+    <td><a href="xr-interaction-manager.md">XR Interaction Manager</a></td>
     <td>Enables XR interactions between the interactors and interactables in your scene.</td>
   </tr>
   <tr>
     <td><strong>EventSystem</strong></td>
     <td>
-      [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR UI Input Module](ui-setup.md#xr-ui-input-module)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Canvas Optimizer](canvas-optimizer.md)
+      <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html">Event System</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="ui-setup.md#xr-ui-input-module">XR UI Input Module</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="canvas-optimizer.md">Canvas Optimizer</a>
     </td>
     <td>The XR Poke Interactor and XR Ray Interactor communicate with the XR UI Input Module to enable UI pointer events in world space canvases.</td>
   </tr>
@@ -201,10 +201,10 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
   <tr>
     <td colspan="5"><strong>XR Origin (XR Rig)</strong></td>
     <td>
-      [XR Origin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/xr-origin.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Character Controller](https://docs.unity3d.com/Manual/class-CharacterController.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Character Controller Driver](character-controller-driver.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Input Modality Manager](xr-input-modality-manager.md)
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/xr-origin.html">XR Origin</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-CharacterController.html">Character Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="character-controller-driver.md">Character Controller Driver</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-input-modality-manager.md">XR Input Modality Manager</a>
     </td>
     <td>Represents the center of the tracking space for the user's tracked devices. Implements the generic concept of a camera rig. This is the GameObject moved when doing locomotion. The Character Controller allows the move locomotion providers to move the rig without moving through colliders. The XR Input Modality Manager component manages automatically swapping between sets of interactors used for hand tracking (Left Hand and Right Hand GameObjects) and for motion controllers (Left Controller and Right Controller GameObjects) by activating or deactivating those GameObjects.</td>
   </tr>
@@ -218,24 +218,24 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
     <td rowspan="12"></td>
     <td colspan="3"><strong>Main Camera</strong></td>
     <td>
-      [Camera](https://docs.unity3d.com/Manual/class-Camera.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Audio Listener](https://docs.unity3d.com/Manual/class-AudioListener.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Tracked Pose Driver](xref:UnityEngine.InputSystem.XR.TrackedPoseDriver)
+      <a href="https://docs.unity3d.com/Manual/class-Camera.html">Camera</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-AudioListener.html">Audio Listener</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@latest?subfolder=/api/UnityEngine.InputSystem.XR.TrackedPoseDriver.html">Tracked Pose Driver</a>
     </td>
     <td>Pose driven by the HMD.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Gaze Interactor</strong></td>
     <td>
-      [XR Gaze Interactor](xr-gaze-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Gaze Input Manager](#scripts)
+      <a href="xr-gaze-interactor.md">XR Gaze Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-controller-action-based.md">XR Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="#scripts">Gaze Input Manager</a>
     </td>
     <td>Interactor which represents the eye gaze (if available) or the HMD direction. Interactables can interact with it if configured to do so under its Gaze Configuration foldout. The Gaze Input Manager will deactivate this GameObject when eye tracking is unavailable if falling back to HMD head tracking is not desired. This GameObject is deactivated by default to disable gaze interaction.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Gaze Stabilized</strong></td>
-    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td><a href="xr-transform-stabilizer.md">XR Transform Stabilizer</a></td>
     <td>Stabilized eye gaze pose used as the Ray Origin Transform of the XR Gaze Interactor.</td>
   </tr>
   <tr>
@@ -247,16 +247,16 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
   <tr>
     <td colspan="3"><strong>Left</strong>/<strong>Right Controller</strong></td>
     <td>
-      [Action Based Controller Manager](#scripts)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Interaction Group](xr-interaction-group.md)
+      <a href="#scripts">Action Based Controller Manager</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-controller-action-based.md">XR Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interaction-group.md">XR Interaction Group</a>
     </td>
     <td>Pose driven by the left or right controller. The XR Interaction Group handles mediation between the interactors so only one can select at a time and so visuals can be disabled. The Action Based Controller Manager is what is responsible for swapping between the Ray Interactor and Teleport Interactor when Teleport Mode Activate input action is performed. It also toggles input actions used by locomotion while the XR Ray Interactor is selecting to resolve overlapping input bindings with the anchor controls. The XR Controller is shared by each of the interactors and is how the interactors read input data.</td>
   </tr>
   <tr>
     <td rowspan="5"></td>
     <td colspan="2"><strong>Poke Interactor</strong></td>
-    <td>[XR Poke Interactor](xr-poke-interactor.md)</td>
+    <td><a href="xr-poke-interactor.md">XR Poke Interactor</a></td>
     <td>Interactor used for interacting with interactables by poking.</td>
   </tr>
   <tr>
@@ -268,35 +268,35 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
   <tr>
     <td colspan="2"><strong>Direct Interactor</strong></td>
     <td>
-      [XR Direct Interactor](xr-direct-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Sphere Collider](https://docs.unity3d.com/Manual/class-SphereCollider.html)
+      <a href="xr-direct-interactor.md">XR Direct Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-SphereCollider.html">Sphere Collider</a>
     </td>
     <td>Interactor used for interacting with interactables by grabbing at close range. The Sphere Collider is configured as a trigger collider and used by the XR Direct Interactor to detect collisions with interactables.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Ray Interactor</strong></td>
     <td>
-      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)
+      <a href="xr-ray-interactor.md">XR Ray Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-LineRenderer.html">Line Renderer</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interactor-line-visual.md">XR Interactor Line Visual</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-SortingGroup.html">Sorting Group</a>
     </td>
     <td>Interactor used for interacting with interactables by grabbing at a distance. Uses physics ray casts to detect collisions with interactables. The Sorting Group is used to make the line visual draw in the expected order over UI.</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Teleport Interactor</strong></td>
     <td>
-      [XR Ray Interactor](xr-ray-interactor.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Line Renderer](https://docs.unity3d.com/Manual/class-LineRenderer.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Interactor Line Visual](xr-interactor-line-visual.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Sorting Group](https://docs.unity3d.com/Manual/class-SortingGroup.html)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [XR Controller](xr-controller-action-based.md)
+      <a href="xr-ray-interactor.md">XR Ray Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-LineRenderer.html">Line Renderer</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-interactor-line-visual.md">XR Interactor Line Visual</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Manual/class-SortingGroup.html">Sorting Group</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-controller-action-based.md">XR Controller</a>
     </td>
     <td>Similar to the Ray Interactor but configured to use a Projectile Curve and only interact with interactables on the Teleport interaction layer mask. Has an XR Controller to override the Select Action and Select Action Value properties to use Teleport Select instead.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Left</strong>/<strong>Right Controller Stabilized</strong></td>
-    <td>[XR Transform Stabilizer](xr-transform-stabilizer.md)</td>
+    <td><a href="xr-transform-stabilizer.md">XR Transform Stabilizer</a></td>
     <td>Stabilized left or right controller pose used as the Ray Origin Transform of the XR Ray Interactor.</td>
   </tr>
   <tr>
@@ -307,40 +307,40 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
   </tr>
   <tr>
     <td colspan="4"><strong>Locomotion System</strong></td>
-    <td>[Locomotion System](locomotion-system.md)</td>
+    <td><a href="locomotion-system.md">Locomotion System</a></td>
     <td>Holds a reference to the XR Origin which the locomotion providers use to move or rotate the player. Controls access to the XR Origin to ensure only one locomotion provider can move it at a time when locked.</td>
   </tr>
   <tr>
     <td rowspan="5"></td>
     <td colspan="3"><strong>Turn</strong></td>
     <td>
-      [Snap Turn Provider](snap-turn-provider-action-based.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Continuous Turn Provider](continuous-move-provider-action-based.md)
+      <a href="snap-turn-provider-action-based.md">Snap Turn Provider</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="continuous-move-provider-action-based.md">Continuous Turn Provider</a>
     </td>
     <td>Locomotion providers which handle turning (rotating) the player, either in fixed angle intervals or continuously over time, typically via thumbstick input. The Action Based Controller Manager enables or disables the input actions to control whether snap turn or smooth turn is used.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Move</strong></td>
-    <td>[Dynamic Move Provider](#scripts)</td>
+    <td><a href="#scripts">Dynamic Move Provider</a></td>
     <td>Locomotion provider which handles moving (translating) the player continuously over time, typically via thumbstick input.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Grab Move</strong></td>
     <td>
-      [Grab Move Provider](grab-move-provider.md)<hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="grab-move-provider.md">Grab Move Provider</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       Grab Move Provider<hr style="margin-top: 7px; margin-bottom: 7px;">
-      [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md)
+      <a href="two-handed-grab-move-provider.md">Two-Handed Grab Move Provider</a>
     </td>
     <td>Locomotion providers which handle moving and/or turning the player typically via squeezing the grip of a controller and moving them as if grabbing the whole world and pulling. This GameObject is deactivated by default to disable this locomotion style.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Teleportation</strong></td>
-    <td>[Teleportation Provider](teleportation-provider.md)</td>
+    <td><a href="teleportation-provider.md">Teleportation Provider</a></td>
     <td>Locomotion provider which handles teleporting the player to a desired location. This component is what allows the Teleportation Anchor and Teleportation Area components to move the player when they are triggered, in this case by the Teleport Interactor.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Climb</strong></td>
-    <td>[Climb Provider](climb-provider.md)</td>
+    <td><a href="climb-provider.md">Climb Provider</a></td>
     <td>Locomotion provider which handles moving the player counter to controller movement while they are grabbing a Climb Interactable.</td>
   </tr>
 </tbody>

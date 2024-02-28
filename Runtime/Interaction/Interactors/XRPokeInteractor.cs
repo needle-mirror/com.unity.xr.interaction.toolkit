@@ -189,7 +189,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         Vector3 m_LastPokeInteractionPoint;
 
-        bool m_PokeCanSelect;
         bool m_FirstFrame = true;
         IXRSelectInteractable m_CurrentPokeTarget;
         IXRPokeFilter m_CurrentPokeFilter;
@@ -198,6 +197,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly Collider[] m_OverlapSphereHits = new Collider[25];
         readonly List<PokeCollision> m_PokeTargets = new List<PokeCollision>();
         readonly List<IXRSelectFilter> m_InteractableSelectFilters = new List<IXRSelectFilter>();
+        
+        readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
+        static readonly Dictionary<IXRInteractable, IXRPokeFilter> s_ValidTargetsScratchMap = new Dictionary<IXRInteractable, IXRPokeFilter>();
 
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
         PhysicsScene m_LocalPhysicsScene;
@@ -249,8 +251,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
+                TrackedDeviceGraphicRaycaster.ValidatePokeInteractionData(this);
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
-                m_PokeCanSelect = EvaluatePokeInteraction(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
+                RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
             }
         }
@@ -261,9 +264,54 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.ProcessInteractor(updatePhase);
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
-            {
                 UpdateDebugVisuals();
+        }
+
+        bool RegisterValidTargets(out IXRSelectInteractable currentTarget, out IXRPokeFilter pokeFilter)
+        {
+            int sphereOverlapCount = EvaluateSphereOverlap();
+            bool hasOverlap = sphereOverlapCount > 0;
+            
+            m_ValidTargets.Clear();
+            s_ValidTargetsScratchMap.Clear();
+
+            if (hasOverlap)
+            {
+                
+                int pokeTargetsCount = m_PokeTargets.Count;
+                for (var i = 0; i < pokeTargetsCount; ++i)
+                {
+                    var interactable = m_PokeTargets[i].interactable;
+                    if (interactable is not (IXRSelectInteractable and IXRHoverInteractable hoverable) || !hoverable.IsHoverableBy(this))
+                        continue;
+                    m_ValidTargets.Add(m_PokeTargets[i].interactable);
+                    s_ValidTargetsScratchMap.Add(m_PokeTargets[i].interactable, m_PokeTargets[i].filter);
+                }
+                
+                // Sort before target filter
+                if (m_ValidTargets.Count > 1)
+                {
+                    SortingHelpers.SortByDistanceToInteractor(this, m_ValidTargets, s_Results);
+                    m_ValidTargets.Clear();
+                    m_ValidTargets.AddRange(s_Results);
+                }
+                
+                var filter = targetFilter;
+                if (filter != null && filter.canProcess)
+                {
+                    filter.Process(this, m_ValidTargets, s_Results);
+
+                    // Copy results elements to targets
+                    m_ValidTargets.Clear();
+                    m_ValidTargets.AddRange(s_Results);
+                }
+                
+                if (m_ValidTargets.Count == 0)
+                    hasOverlap = false;
             }
+            currentTarget = hasOverlap ? (IXRSelectInteractable)m_ValidTargets[0] : null;
+            pokeFilter = hasOverlap ? s_ValidTargetsScratchMap[currentTarget] : null;
+            return hasOverlap;
         }
 
         void ProcessPokeStateData()
@@ -288,78 +336,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!isActiveAndEnabled)
                 return;
 
-            foreach (var pokeCollision in m_PokeTargets)
-            {
-                targets.Add(pokeCollision.interactable);
-            }
-
-            var filter = targetFilter;
-            if (filter != null && filter.canProcess)
-            {
-                filter.Process(this, targets, s_Results);
-
-                // Copy results elements to targets
-                targets.Clear();
-                targets.AddRange(s_Results);
-            }
-        }
-
-        /// <inheritdoc />
-        public override bool CanSelect(IXRSelectInteractable interactable)
-        {
-            return m_PokeCanSelect && interactable == m_CurrentPokeTarget && base.CanSelect(interactable);
-        }
-
-        /// <summary>
-        /// Evaluates whether or not an attempted poke interaction is valid.
-        /// </summary>
-        /// <param name="newHoveredInteractable">The newly hovered interactable.</param>
-        /// <param name="newPokeFilter">The new poke filter.</param>
-        /// <returns>
-        /// Returns <see langword="true"/> if poke interaction can be completed.
-        /// Otherwise, returns <see langword="false"/>.
-        /// </returns>
-        bool EvaluatePokeInteraction(out IXRSelectInteractable newHoveredInteractable, out IXRPokeFilter newPokeFilter)
-        {
-            newHoveredInteractable = default;
-            newPokeFilter = default;
-
-            int sphereOverlapCount = EvaluateSphereOverlap();
-            bool hasOverlap = sphereOverlapCount > 0;
-            bool canCompletePokeInteraction = false;
-
-            if (hasOverlap)
-            {
-                var smallestSqrDistance = float.MaxValue;
-                int pokeTargetsCount = m_PokeTargets.Count;
-                IXRSelectInteractable closestInteractable = null;
-                IXRPokeFilter closestPokeFilter = null;
-
-                for (var i = 0; i < pokeTargetsCount; ++i)
-                {
-                    var interactable = m_PokeTargets[i].interactable;
-                    if (interactable is IXRSelectInteractable selectable &&
-                        interactable is IXRHoverInteractable hoverable && hoverable.IsHoverableBy(this))
-                    {
-                        var sqrDistance = interactable.GetDistanceSqrToInteractor(this);
-                        if (sqrDistance < smallestSqrDistance)
-                        {
-                            smallestSqrDistance = sqrDistance;
-                            closestInteractable = selectable;
-                            closestPokeFilter = m_PokeTargets[i].filter;
-                        }
-                    }
-                }
-
-                if (closestInteractable != null)
-                {
-                    canCompletePokeInteraction = true;
-                    newHoveredInteractable = closestInteractable;
-                    newPokeFilter = closestPokeFilter;
-                }
-            }
-
-            return canCompletePokeInteraction;
+            if(m_ValidTargets.Count > 0)
+                targets.Add(m_ValidTargets[0]);
         }
 
         int EvaluateSphereOverlap()
@@ -428,7 +406,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         {
                             if (filter is XRPokeFilter pokeFilter && filter.canProcess)
                             {
-                                newPokeCollision = new PokeCollision(hitCollider, interactable, pokeFilter);
+                                newPokeCollision = new PokeCollision(interactable, pokeFilter);
                                 return true;
                             }
                         }
@@ -436,7 +414,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
                 else
                 {
-                    newPokeCollision = new PokeCollision(hitCollider, interactable, null);
+                    newPokeCollision = new PokeCollision(interactable, null);
                     return true;
                 }
             }
@@ -484,17 +462,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         readonly struct PokeCollision
         {
-            public readonly Collider collider;
             public readonly IXRInteractable interactable;
             public readonly IXRPokeFilter filter;
-            public readonly bool hasPokeFilter;
 
-            public PokeCollision(Collider collider, IXRInteractable interactable, IXRPokeFilter filter)
+            public PokeCollision(IXRInteractable interactable, IXRPokeFilter filter)
             {
-                this.collider = collider;
                 this.interactable = interactable;
                 this.filter = filter;
-                this.hasPokeFilter = filter != null;
             }
         }
 

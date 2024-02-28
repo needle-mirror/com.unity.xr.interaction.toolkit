@@ -67,12 +67,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => CameraYOffset = value;
         }
 
+#if ENABLE_VR || UNITY_GAMECORE || PACKAGE_DOCS_GENERATION
         /// <summary>
         /// (Deprecated) (Read Only) The Tracking Origin Mode of this XR Origin.
         /// </summary>
         /// <seealso cref="XROrigin.RequestedTrackingOriginMode"/>
         [Obsolete("currentTrackingOriginMode has been deprecated. Use CurrentTrackingOriginMode instead.")]
         public TrackingOriginModeFlags currentTrackingOriginMode => CurrentTrackingOriginMode;
+#endif
 
         /// <summary>
         /// (Deprecated) (Read Only) The rig's local position in camera space.

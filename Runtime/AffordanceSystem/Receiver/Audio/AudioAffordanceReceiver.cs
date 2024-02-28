@@ -74,7 +74,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
             if (m_AudioSource == null)
                 m_AudioSource = GetComponent<AudioSource>();
 
-            if (m_AffordanceThemeDatum != null)
+            if (m_AffordanceThemeDatum != null && m_AffordanceThemeDatum.Value != null)
             {
                 m_AffordanceThemeDatum.Value.ValidateTheme();
                 LogIfMissingAffordanceStates(m_AffordanceThemeDatum.Value);
@@ -93,7 +93,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 return;
             }
 
-            if (m_AffordanceThemeDatum == null)
+            if (m_AffordanceThemeDatum == null || m_AffordanceThemeDatum.Value == null)
             {
                 XRLoggingUtils.LogError($"Missing Audio Affordance Theme Datum on {this}.", this);
                 enabled = false;
@@ -154,7 +154,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 // Likewise, do not play hover exit if going to selected state because it is a modifier state.
                 if (!selectToActivate && !hoverToSelect)
                 {
-                    var exitData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(m_LastAffordanceStateIndex);
+                    var exitData = m_AffordanceThemeDatum.Value?.GetAffordanceThemeDataForIndex(m_LastAffordanceStateIndex);
                     if (exitData != null)
                     {
                         PlayAudioClip(exitData.stateExited);
@@ -165,7 +165,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                 // Likewise, do not play hover enter if coming from selected state because it is a modifier state.
                 if (!activateToSelect && !selectToHover)
                 {
-                    var enterData = m_AffordanceThemeDatum.Value.GetAffordanceThemeDataForIndex(newIndex);
+                    var enterData = m_AffordanceThemeDatum.Value?.GetAffordanceThemeDataForIndex(newIndex);
                     if (enterData != null)
                     {
                         PlayAudioClip(enterData.stateEntered);

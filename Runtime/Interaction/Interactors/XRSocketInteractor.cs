@@ -505,9 +505,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.OnSelectExited(args);
 
-            if (m_HoverSocketSnapping)
-                return;
-
             if (args.interactableObject is XRGrabInteractable grabInteractable)
                 EndSocketSnapping(grabInteractable);
         }

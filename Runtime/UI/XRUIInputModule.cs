@@ -620,6 +620,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     if (Mouse.current != null)
                     {
                         m_MouseState.position = Mouse.current.position.ReadValue();
+#if UNITY_2022_3_OR_NEWER
+                        m_MouseState.displayIndex = Mouse.current.displayIndex.ReadValue();
+#endif
                         m_MouseState.scrollDelta = Mouse.current.scroll.ReadValue() * (1 / kPixelPerLine);
                         m_MouseState.leftButtonPressed = Mouse.current.leftButton.isPressed;
                         m_MouseState.rightButtonPressed = Mouse.current.rightButton.isPressed;
@@ -629,7 +632,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 else
                 {
                     if (IsActionEnabled(m_PointAction))
+                    {
                         m_MouseState.position = m_PointAction.action.ReadValue<Vector2>();
+#if UNITY_2022_3_OR_NEWER
+                        m_MouseState.displayIndex = GetDisplayIndexFor(m_PointAction.action.activeControl);
+#endif
+                    }
                     if (IsActionEnabled(m_ScrollWheelAction))
                         m_MouseState.scrollDelta = m_ScrollWheelAction.action.ReadValue<Vector2>() * (1 / kPixelPerLine);
                     if (IsActionEnabled(m_LeftClickAction))
@@ -825,5 +833,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (Application.isPlaying && isActiveAndEnabled && inputAction != null)
                 inputAction.action?.Enable();
         }
+
+#if UNITY_2022_3_OR_NEWER
+        int GetDisplayIndexFor(InputControl control)
+        {
+            var displayIndex = 0;
+            if (control != null && control.device is Pointer pointerCast && pointerCast != null)
+            {
+                displayIndex = pointerCast.displayIndex.ReadValue();
+                Debug.Assert(displayIndex <= byte.MaxValue, "Display index was larger than expected", this);
+            }
+            return displayIndex;
+        }
+#endif
     }
 }

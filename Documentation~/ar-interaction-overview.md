@@ -22,14 +22,14 @@ The XR Interaction Toolkit package comes with a number of pre-defined gestures a
 ## Setting up for Touchscreen AR 
 
 > [!NOTE]
-> The AR Sample Assets package contains an already configured input action map which can be used in place of creating one from scratch.
+> The AR Starter Assets sample contains an already configured input action map which can be used in place of creating one from scratch.
 
 To set up a scene for Touchscreen AR you will want to create an Input Action Map with action bindings to the `TouchscreenGestureInputController` gesture data. (An action map asset can be created by right-clicking on the Assets folder and going to **Create** &gt; **Input Actions**.)
 
 ![Gesture Input Action Map](images/gesture-action-map.png)
 
 > [!NOTE]
-> The AR Sample Assets package contains a screen-space controller preset, but if creating the controller from scratch, follow the instructions below.
+> The AR Starter Assets sample contains a screen-space controller preset, but if creating the controller from scratch, follow the instructions below.
 
 Add an [XR Screen Space Controller](xr-screen-space-controller.md) to the scene and toggle `Enable Touchscreen Gesture Input Control`. This will ensure that a `TouchscreenGestureInputController` device gets added to the scene. Additionally, make sure to include an XR Ray Interactor and that `Enable AR Raycasting` is checked. 
 
@@ -42,3 +42,12 @@ Connect the input actions to the appropriate properties on the screen space cont
 In order to have interactables adhere to the AR environment, adding an `ARTransformer` is necessary. The AR transformer allows objects to be moved and rotated only within the limits of the AR environment. Currently, only AR planes are supported.
 
 ![AR Transformer component](images/ar-transformer.png)
+
+## AR Starter Assets
+
+A configured scene for touchscreen AR is available in the AR Starter Assets sample which is installable through the Samples tab under the XR Interaction Toolkit package in the Package Manager window.
+
+This scene includes key mappings to simulate gestures in-editor. The following are keys to note:
+
+- 'E' and 'R' rotate the object around the up axis.
+- 'Z', 'X' and the scroll wheel scale the object up and down.

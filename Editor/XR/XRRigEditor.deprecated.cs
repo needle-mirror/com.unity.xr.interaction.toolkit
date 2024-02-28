@@ -130,6 +130,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 m_RequestedTrackingOriginMode.hasMultipleDifferentValues;
             if (showCameraYOffset)
             {
+#if ENABLE_VR || UNITY_GAMECORE
                 // The property should be enabled when not playing since the default for the XR device
                 // may be Device, so the property should be editable to define the offset.
                 // When playing, disable the property to convey that it isn't having an effect,
@@ -141,6 +142,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     !m_RequestedTrackingOriginMode.hasMultipleDifferentValues &&
                     m_RequestedTrackingOriginMode.intValue == (int)XROrigin.TrackingOriginMode.NotSpecified &&
                     allCurrentlyFloor;
+#else
+                const bool disabled = false;
+#endif
                 using (new EditorGUI.IndentLevelScope())
                 using (new EditorGUI.DisabledScope(disabled))
                 {
@@ -157,6 +161,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="XROrigin.CurrentTrackingOriginMode"/>
         protected void DrawCurrentTrackingOriginMode()
         {
+#if ENABLE_VR || UNITY_GAMECORE
             if (!Application.isPlaying)
                 return;
 
@@ -168,6 +173,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 else
                     EditorGUILayout.Popup(Contents.currentTrackingOriginMode, 0, m_MixedValuesOptions);
             }
+#endif
         }
     }
 }

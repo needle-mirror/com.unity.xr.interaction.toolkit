@@ -31,7 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// </summary>
         const float k_MinElasticScale = 0.001f; // 1 mm
 
-        const float k_DiffThreshold = 0.0001f;
+        const float k_DiffThreshold = 0.0015f;
 
         /// <summary>
         /// Represents the alignment of a plane where translation is allowed.

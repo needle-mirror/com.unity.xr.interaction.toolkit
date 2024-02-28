@@ -652,7 +652,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool enableARRaycasting
         {
             get => m_EnableARRaycasting;
-            set => m_EnableARRaycasting = value;
+            set 
+            {
+                m_EnableARRaycasting = value;
+#if AR_FOUNDATION_PRESENT
+                if (Application.isPlaying && isActiveAndEnabled && m_EnableARRaycasting)
+                    FindCreateARRaycastManager();
+#endif
+            }
         }
 
         [SerializeField]
@@ -902,6 +909,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_HasReferenceFrame = m_ReferenceFrame != null;
             m_SampleFrequency = SanitizeSampleFrequency(m_SampleFrequency);
             m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+
+#if AR_FOUNDATION_PRESENT
+            if (Application.isPlaying && isActiveAndEnabled && m_EnableARRaycasting)
+                FindCreateARRaycastManager();
+#endif
         }
 
         /// <inheritdoc />
@@ -939,7 +951,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             CreateRayOrigin();
 
 #if AR_FOUNDATION_PRESENT
-            FindCreateARRaycastManager();
+            if (m_EnableARRaycasting)
+                FindCreateARRaycastManager();
 #endif
         }
 
@@ -950,6 +963,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+            
+#if AR_FOUNDATION_PRESENT
+            if (m_EnableARRaycasting)
+                FindCreateARRaycastManager();
+#endif
         }
 
         /// <inheritdoc />
