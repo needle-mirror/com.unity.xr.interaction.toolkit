@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
@@ -28,9 +30,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [Header("Interactors")]
 
         [SerializeField]
-        [Tooltip("The interactor used for distant/ray manipulation.")]
+        [Tooltip("The interactor used for distant/ray manipulation. Use this or Near-Far Interactor, not both.")]
         XRRayInteractor m_RayInteractor;
 
+        [SerializeField]
+        [Tooltip("Near-Far Interactor used for distant/ray manipulation. Use this or Ray Interactor, not both.")]
+        NearFarInteractor m_NearFarInteractor;
+        
         [SerializeField]
         [Tooltip("The interactor used for teleportation.")]
         XRRayInteractor m_TeleportInteractor;
@@ -73,6 +79,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [SerializeField]
         [Tooltip("If true, continuous turn will be enabled. If false, snap turn will be enabled. Note: If smooth motion is enabled and enable strafe is enabled on the continuous move provider, turn will be overriden in favor of strafe.")]
         bool m_SmoothTurnEnabled;
+        
+        [SerializeField]
+        [Tooltip("With the Near-Far Interactor, if true, teleport will be enabled during near interaction. If false, teleport will be disabled during near interaction.")]
+        bool m_NearFarEnableTeleportDuringNearInteraction = true;
 
         [Space]
         [Header("UI Settings")]
@@ -120,12 +130,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         bool m_StartCalled;
         bool m_PostponedDeactivateTeleport;
-        bool m_UIScrollModeActive;
+        bool m_HoveringScrollableUI;
 
         readonly HashSet<InputAction> m_LocomotionUsers = new HashSet<InputAction>();
+        readonly BindingsGroup m_BindingsGroup = new BindingsGroup(); 
 
         void SetupInteractorEvents()
         {
+            if (m_NearFarInteractor != null)
+            {
+                m_NearFarInteractor.uiHoverEntered.AddListener(OnUIHoverEntered);
+                m_NearFarInteractor.uiHoverExited.AddListener(OnUIHoverExited);
+                m_BindingsGroup.AddBinding(m_NearFarInteractor.selectionRegion.Subscribe(OnNearFarSelectionRegionChanged));
+            }
+            
             if (m_RayInteractor != null)
             {
                 m_RayInteractor.selectEntered.AddListener(OnRaySelectEntered);
@@ -173,10 +191,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void TeardownInteractorEvents()
         {
+            m_BindingsGroup.Clear();
+            
+            if (m_NearFarInteractor != null)
+            {
+                m_NearFarInteractor.uiHoverEntered.RemoveListener(OnUIHoverEntered);
+                m_NearFarInteractor.uiHoverExited.RemoveListener(OnUIHoverExited);
+            }
+            
             if (m_RayInteractor != null)
             {
                 m_RayInteractor.selectEntered.RemoveListener(OnRaySelectEntered);
                 m_RayInteractor.selectExited.RemoveListener(OnRaySelectExited);
+                m_RayInteractor.uiHoverEntered.RemoveListener(OnUIHoverEntered);
+                m_RayInteractor.uiHoverExited.RemoveListener(OnUIHoverExited);
             }
 
             var teleportModeAction = GetInputAction(m_TeleportMode);
@@ -226,6 +254,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             if (m_RayInteractor != null)
                 m_RayInteractor.gameObject.SetActive(false);
 
+            if (m_NearFarInteractor != null && m_NearFarInteractor.selectionRegion.Value != NearFarInteractor.Region.Near)
+                m_NearFarInteractor.gameObject.SetActive(false);
+    
             m_RayInteractorChanged?.Invoke(m_TeleportInteractor);
         }
 
@@ -239,9 +270,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
             if (m_RayInteractor != null)
                 m_RayInteractor.gameObject.SetActive(true);
+            
+            if (m_NearFarInteractor != null)
+                m_NearFarInteractor.gameObject.SetActive(true);
 
             m_RayInteractorChanged?.Invoke(m_RayInteractor);
-
+        }
+        
+        void OnNearFarSelectionRegionChanged(NearFarInteractor.Region selectionRegion)
+        {
+            if (selectionRegion == NearFarInteractor.Region.Far ||
+                (selectionRegion == NearFarInteractor.Region.Near && !m_NearFarEnableTeleportDuringNearInteraction))
+                DisableTeleportActions();
+            else
+                UpdateLocomotionActions();
         }
 
         void OnStartLocomotion(InputAction.CallbackContext context)
@@ -253,9 +295,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             m_LocomotionUsers.Remove(context.action);
 
-            if (m_LocomotionUsers.Count == 0 && m_UIScrollModeActive)
+            if (m_LocomotionUsers.Count == 0 && m_HoveringScrollableUI)
             {
-                DisableLocomotionActions();
+                DisableAllLocomotionActions();
+                UpdateUIActions();
             }
         }
 
@@ -264,7 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             if (m_RayInteractor.manipulateAttachTransform)
             {
                 // Disable locomotion and turn actions
-                DisableLocomotionActions();
+                DisableAllLocomotionActions();
             }
         }
 
@@ -279,21 +322,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         void OnUIHoverEntered(UIHoverEventArgs args)
         {
-            m_UIScrollModeActive = m_UIScrollingEnabled && args.deviceModel.isScrollable; 
-            if (!m_UIScrollModeActive)
-                return;
+            m_HoveringScrollableUI = m_UIScrollingEnabled && args.deviceModel.isScrollable;
+            UpdateUIActions();
 
             // If locomotion is occurring, wait
-            if (m_LocomotionUsers.Count == 0)
+            if (m_HoveringScrollableUI && m_LocomotionUsers.Count == 0)
             {
                 // Disable locomotion and turn actions
-                DisableLocomotionActions();
+                DisableAllLocomotionActions();
             }
         }
 
         void OnUIHoverExited(UIHoverEventArgs args)
         {
-            m_UIScrollModeActive = false;
+            m_HoveringScrollableUI = false;
+            UpdateUIActions();
 
             // Re-enable the locomotion and turn actions
             UpdateLocomotionActions();
@@ -301,6 +344,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         protected void OnEnable()
         {
+            if (m_RayInteractor != null && m_NearFarInteractor != null)
+            {
+                Debug.LogWarning("Both Ray Interactor and Near-Far Interactor are assigned. Only one should be assigned, not both. Clearing Ray Interactor.", this);
+                m_RayInteractor = null;
+            }
+
             if (m_TeleportInteractor != null)
                 m_TeleportInteractor.gameObject.SetActive(false);
 
@@ -357,18 +406,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             SetEnabled(m_SnapTurn, !m_SmoothMotionEnabled && !m_SmoothTurnEnabled);
         }
 
-        void DisableLocomotionActions()
+        void DisableTeleportActions()
         {
-            DisableAction(m_Move);
             DisableAction(m_TeleportMode);
             DisableAction(m_TeleportModeCancel);
+        }
+
+        void DisableMoveAndTurnActions()
+        {
+            DisableAction(m_Move);
             DisableAction(m_Turn);
             DisableAction(m_SnapTurn);
         }
 
+        void DisableAllLocomotionActions()
+        {
+            DisableTeleportActions();
+            DisableMoveAndTurnActions();
+        }
+
         void UpdateUIActions()
         {
-            SetEnabled(m_UIScroll, m_UIScrollingEnabled);
+            SetEnabled(m_UIScroll, m_UIScrollingEnabled && m_HoveringScrollableUI && m_LocomotionUsers.Count == 0);
         }
 
         static void SetEnabled(InputActionReference actionReference, bool enabled)

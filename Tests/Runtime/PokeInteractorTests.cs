@@ -252,6 +252,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator PokeInteractorCanUseTargetFilter()
         {
+            // This test differs from other target filter tests because the poke interactor processes the target filter on PreProcess, rather than on GetValidTargets.
+            
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreatePokeInteractor();
             interactor.requirePokeFilter = false;
@@ -272,6 +274,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Link,
             }));
 
+            // Wait 1 frame for next process.
+            yield return null;
+            
             // Process the filter
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
@@ -282,18 +287,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Link,
                 TargetFilterCallback.Process,
             }));
-
+            
             // Disable the filter and check if it will no longer be processed
             filter.canProcess = false;
+            
+            // Wait one frame for next interactor PreProcess to occur
+            yield return null;
+            
+            // Validate that process has not been called
             interactor.GetValidTargets(validTargets);
             Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
             {
                 TargetFilterCallback.Link,
                 TargetFilterCallback.Process,
             }));
+            
+            yield return null;
 
             // Unlink the filter
             interactor.targetFilter = null;
+            
+            yield return null;
+            
             Assert.That(interactor.targetFilter, Is.EqualTo(null));
             Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
             {
@@ -301,6 +316,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Process,
                 TargetFilterCallback.Unlink,
             }));
+        }
+        
+        [UnityTest]
+        public IEnumerator PokeInteractorTargetFilterModifiesValidTargets()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.requirePokeFilter = false;
+            
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+            // Put interactable2 slightly further away than interactable
+            interactable2.transform.position = new Vector3(0f, 0f, 0.00001f);
+            
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            var validTargets = new List<IXRInteractable>();
+
+            // Test that normal valid target sorting works
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Create the filter
+            var filter = new MockInversionTargetFilter();
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            interactor.GetValidTargets(validTargets);
+            
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable2 }));
         }
     }
 }

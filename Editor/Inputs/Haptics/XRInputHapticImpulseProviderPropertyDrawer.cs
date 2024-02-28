@@ -58,8 +58,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Haptics
             if (effectiveProperty != null)
                 m_CompactPropertyControl.properties.Add(effectiveProperty);
 
-            m_CompactPropertyControl.hasWarningHelpBox = ShouldCheckActionEnabled(m_Fields) && IsEffectiveActionNotNullAndDisabled(m_Fields);
-            m_CompactPropertyControl.warningHelpBoxMessage = Contents.actionIsDisabledText;
+            m_CompactPropertyControl.hasInfoHelpBox = ShouldCheckActionEnabled(m_Fields) && IsEffectiveActionNotNullAndDisabled(m_Fields);
+            m_CompactPropertyControl.infoHelpBoxMessage = Contents.actionIsDisabledText;
         }
 
         /// <inheritdoc/>
@@ -90,8 +90,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Haptics
                 m_MultilinePropertyControl.propertiesContent.Add(Contents.objectReference);
             }
 
-            m_MultilinePropertyControl.hasWarningHelpBox = ShouldCheckActionEnabled(m_Fields) && IsEffectiveActionNotNullAndDisabled(m_Fields);
-            m_MultilinePropertyControl.warningHelpBoxMessage = Contents.actionIsDisabledText;
+            m_MultilinePropertyControl.hasInfoHelpBox = ShouldCheckActionEnabled(m_Fields) && IsEffectiveActionNotNullAndDisabled(m_Fields);
+            m_MultilinePropertyControl.infoHelpBoxMessage = Contents.actionIsDisabledText;
         }
 
         static bool ShouldCheckActionEnabled(SerializedPropertyFields fields)

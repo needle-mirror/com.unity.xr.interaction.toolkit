@@ -13,8 +13,11 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 #endif
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -32,6 +35,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         const string k_LineMaterial = "Default-Line.mat";
         const string k_UILayerName = "UI";
+        
+        [MenuItem("GameObject/XR/Near-Far Interactor", false, 10), UsedImplicitly]
+        public static void CreateNearFarInteractor(MenuCommand menuCommand)
+        {
+            CreateInteractionManager();
+
+            Finalize(CreateNearFarInteractor(menuCommand?.GetContextTransform()));
+        }
 
         [MenuItem("GameObject/XR/Ray Interactor", false, 10), UsedImplicitly]
         public static void CreateRayInteractor(MenuCommand menuCommand)
@@ -258,6 +269,44 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 return CreateAndPlaceGameObject("XR Interaction Manager", parent, typeof(XRInteractionManager));
 
             return interactionManager.gameObject;
+        }
+        
+        static GameObject CreateNearFarInteractor(Transform parent, string name = "Near-Far Interactor")
+        {
+            var nearFarInteractableGO = CreateAndPlaceGameObject(name, parent,
+                typeof(NearFarInteractor),
+                typeof(InteractionAttachController),
+                typeof(SphereInteractionCaster),
+                typeof(CurveInteractionCaster));
+            var interactor = nearFarInteractableGO.GetComponent<NearFarInteractor>();
+            
+            var attachController = nearFarInteractableGO.GetComponent<InteractionAttachController>();
+            interactor.interactionAttachController = attachController;
+            
+            var nearCaster = nearFarInteractableGO.GetComponent<SphereInteractionCaster>();
+            interactor.nearInteractionCaster = nearCaster;
+            
+            var farCaster = nearFarInteractableGO.GetComponent<CurveInteractionCaster>();
+            interactor.farInteractionCaster = farCaster;
+
+            var lineVisualGO = CreateAndPlaceGameObject("Line Visual", nearFarInteractableGO.transform,
+                typeof(LineRenderer),
+                typeof(CurveVisualController),
+                typeof(SortingGroup));
+            
+            var lineRenderer = lineVisualGO.GetComponent<LineRenderer>();
+            SetupLineRenderer(lineRenderer);
+
+            var curveVisualController = lineVisualGO.GetComponent<CurveVisualController>();
+            curveVisualController.lineRenderer = lineRenderer;
+            curveVisualController.curveInteractionDataProvider = interactor;
+            curveVisualController.lineOriginTransform = curveVisualController.transform;
+
+            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            var sortingGroup = lineVisualGO.GetComponent<SortingGroup>();
+            sortingGroup.sortingOrder = 30005;
+
+            return nearFarInteractableGO;
         }
 
         static GameObject CreateRayInteractor(Transform parent, string name = "Ray Interactor")

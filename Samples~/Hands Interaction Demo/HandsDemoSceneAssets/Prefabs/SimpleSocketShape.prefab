@@ -256,6 +256,7 @@ MonoBehaviour:
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
+  m_FarAttachMode: 0
 --- !u!65 &2175187011753756096
 BoxCollider:
   m_ObjectHideFlags: 0

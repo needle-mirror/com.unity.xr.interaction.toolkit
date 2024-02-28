@@ -1251,6 +1251,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Checks if any registered interactor with the associated handedness is currently selecting any interactable.
+        /// </summary>
+        /// <param name="hand">Hand to check, such as Left or Right.</param>
+        /// <returns>Returns <see langword="true"/> if any registered interactor has the given handedness and is selecting any interactable.</returns>
+        public bool IsHandSelecting(InteractorHandedness hand)
+        {
+            foreach (var interactor in m_Interactors.registeredSnapshot)
+            {
+                if (!m_Interactors.IsStillRegistered(interactor) || interactor.handedness != hand)
+                    continue;
+
+                if (interactor is IXRSelectInteractor { hasSelection: true })
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Retrieves the list of Interactables that the given Interactor could possibly interact with this frame.
         /// This list is sorted by priority (with highest priority first), and will only contain Interactables
         /// that are registered with this Interaction Manager.

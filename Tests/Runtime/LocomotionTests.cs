@@ -637,6 +637,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator TeleportToAnchorManually()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var xrOrigin = TestUtilities.CreateXROrigin();
+
+            // Config teleportation on XR Origin
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            var teleProvider = xrOrigin.gameObject.AddComponent<TeleportationProvider>();
+            teleProvider.mediator = mediator;
+
+            // Create teleportation anchor
+            var teleAnchor = TestUtilities.CreateTeleportAnchorPlane();
+            teleAnchor.interactionManager = manager;
+            teleAnchor.teleportationProvider = teleProvider;
+            teleAnchor.matchOrientation = MatchOrientation.TargetUpAndForward;
+
+            teleAnchor.transform.position = new Vector3(0f, -1f, 1f);
+            teleAnchor.transform.Rotate(-45f, 0f, 0f, Space.World);
+
+            var teleportingInvoked = false;
+            teleAnchor.teleporting.AddListener(_ => teleportingInvoked = true);
+
+            // Manually trigger teleport to the anchor
+            teleAnchor.RequestTeleport();
+
+            // Wait a frame for the queued teleport request to be executed
+            yield return null;
+
+            Assert.That(teleportingInvoked, Is.True);
+
+            var cameraPosAdjustment = xrOrigin.Origin.transform.up * xrOrigin.CameraInOriginSpaceHeight;
+            Assert.That(xrOrigin.Camera.transform.position, Is.EqualTo(teleAnchor.transform.position + cameraPosAdjustment).Using(Vector3ComparerWithEqualsOperator.Instance));
+            Assert.That(xrOrigin.Origin.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
+            var projectedCameraForward = Vector3.ProjectOnPlane(xrOrigin.Camera.transform.forward, teleAnchor.transform.up);
+            Assert.That(projectedCameraForward.normalized, Is.EqualTo(teleAnchor.transform.forward).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
         public IEnumerator SnapTurn()
         {
             var xrOrigin = TestUtilities.CreateXROrigin();

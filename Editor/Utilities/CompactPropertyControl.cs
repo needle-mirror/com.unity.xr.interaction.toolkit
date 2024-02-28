@@ -28,16 +28,22 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         public List<SerializedProperty> properties { get; } = new List<SerializedProperty>();
 
         /// <summary>
-        /// Whether to show a warning help box below the properties.
+        /// The text message for a warning icon to show next to each property. Corresponds 1:1 with the <see cref="properties"/> list.
+        /// May be less than the size of the properties list if remaining properties do not have warnings.
         /// </summary>
-        /// <seealso cref="warningHelpBoxMessage"/>
-        public bool hasWarningHelpBox { get; set; }
+        public List<string> propertiesWarningMessage { get; } = new List<string>();
 
         /// <summary>
-        /// The text message to show in the warning help box.
+        /// Whether to show an info help box below the properties.
         /// </summary>
-        /// <seealso cref="hasWarningHelpBox"/>
-        public GUIContent warningHelpBoxMessage { get; set; }
+        /// <seealso cref="infoHelpBoxMessage"/>
+        public bool hasInfoHelpBox { get; set; }
+
+        /// <summary>
+        /// The text message to show in the info help box.
+        /// </summary>
+        /// <seealso cref="hasInfoHelpBox"/>
+        public GUIContent infoHelpBoxMessage { get; set; }
 
         /// <summary>
         /// Whether to show a help icon with mouseover tooltip next to the second property.
@@ -52,7 +58,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         /// <seealso cref="hasHelpTooltip"/>
         public string helpTooltip { get; set; }
 
-        readonly GUIContent m_HelpContent = new GUIContent();
+        readonly HelpBoxPopup m_HelpBoxPopup = new HelpBoxPopup { messageType = MessageType.Warning };
+        readonly GUIContent m_TempContent = new GUIContent();
 
         public float GetPropertyHeight()
         {
@@ -71,7 +78,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                     height += EditorGUIUtility.standardVerticalSpacing * (properties.Count - 1);
             }
 
-            if (hasWarningHelpBox)
+            if (hasInfoHelpBox)
                 height += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             return height;
@@ -108,12 +115,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 
             if (properties.Count > 0)
             {
-                var firstRect = position;
-                firstRect.height = EditorGUI.GetPropertyHeight(properties[0]);
+                // Rect for the first property, including the warning icon if applicable.
+                var rowRect = position;
+                rowRect.height = EditorGUI.GetPropertyHeight(properties[0]);
+
+                // Rect for the property itself, which may be shifted over if there is a warning icon.
+                var rect = rowRect;
+                if (propertiesWarningMessage.Count > 0)
+                    DrawWarningIcon(ref rect, propertiesWarningMessage[0]);
 
                 using (var check = new EditorGUI.ChangeCheckScope())
                 {
-                    EditorGUI.PropertyField(firstRect, properties[0], GUIContent.none);
+                    EditorGUI.PropertyField(rect, properties[0], GUIContent.none);
                     if (check.changed)
                         propertyChanged?.Invoke(properties[0]);
                 }
@@ -121,17 +134,21 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                 if (properties.Count > 1 && hasHelpTooltip)
                 {
                     var helpRect = buttonRect;
-                    helpRect.y += firstRect.height + EditorGUIUtility.standardVerticalSpacing;
-                    m_HelpContent.image = Contents.helpIcon.image;
-                    m_HelpContent.tooltip = helpTooltip;
-                    EditorGUI.LabelField(helpRect, m_HelpContent, EditorStyles.iconButton);
+                    helpRect.y += rowRect.height + EditorGUIUtility.standardVerticalSpacing;
+                    m_TempContent.image = Contents.helpIcon.image;
+                    m_TempContent.tooltip = helpTooltip;
+                    EditorGUI.LabelField(helpRect, m_TempContent, EditorStyles.iconButton);
                 }
 
-                var rect = firstRect;
                 for (var index = 1; index < properties.Count; ++index)
                 {
-                    rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing;
-                    rect.height = EditorGUI.GetPropertyHeight(properties[index]);
+                    rowRect.y += rowRect.height + EditorGUIUtility.standardVerticalSpacing;
+                    rowRect.height = EditorGUI.GetPropertyHeight(properties[index]);
+
+                    rect = rowRect;
+                    if (propertiesWarningMessage.Count > index)
+                        DrawWarningIcon(ref rect, propertiesWarningMessage[index]);
+
                     using (var check = new EditorGUI.ChangeCheckScope())
                     {
                         EditorGUI.PropertyField(rect, properties[index], GUIContent.none);
@@ -140,11 +157,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                     }
                 }
 
-                if (hasWarningHelpBox)
+                if (hasInfoHelpBox)
                 {
-                    rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing;
-                    rect.height = EditorGUIUtility.singleLineHeight;
-                    EditorGUI.HelpBox(rect, warningHelpBoxMessage.text, MessageType.Info);
+                    rowRect.y += rowRect.height + EditorGUIUtility.standardVerticalSpacing;
+                    rowRect.height = EditorGUIUtility.singleLineHeight;
+                    EditorGUI.HelpBox(rowRect, infoHelpBoxMessage.text, MessageType.Info);
                 }
             }
             else
@@ -156,10 +173,33 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
             EditorGUI.indentLevel = indent;
         }
 
+        void DrawWarningIcon(ref Rect rowRect, string warningMessage)
+        {
+            if (warningMessage == null)
+                return;
+
+            // Create space for the warning icon and shift the property rect over.
+            var warningRect = rowRect;
+            var iconButtonStyle = EditorStyles.iconButton;
+            warningRect.yMin += iconButtonStyle.margin.top + 1f;
+            warningRect.width = iconButtonStyle.fixedWidth + iconButtonStyle.margin.right;
+            warningRect.height = EditorGUIUtility.singleLineHeight;
+            rowRect.xMin = warningRect.xMax;
+
+            m_TempContent.image = Contents.warningIcon.image;
+            m_TempContent.tooltip = string.Empty;
+            if (EditorGUI.DropdownButton(warningRect, m_TempContent, FocusType.Keyboard, EditorStyles.iconButton))
+            {
+                m_HelpBoxPopup.message = warningMessage;
+                PopupWindow.Show(warningRect, m_HelpBoxPopup);
+            }
+        }
+
         static class Contents
         {
             public static readonly GUIContent unusedLabelText = EditorGUIUtility.TrTextContent("Unused");
             public static readonly GUIContent helpIcon = EditorGUIUtility.TrIconContent("_Help");
+            public static readonly GUIContent warningIcon = EditorGUIUtility.TrIconContent("console.warnicon.sml");
         }
 
         static class Styles

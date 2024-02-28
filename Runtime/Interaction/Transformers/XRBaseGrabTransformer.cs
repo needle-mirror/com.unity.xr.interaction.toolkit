@@ -65,7 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// <summary>
         /// This function is called just before any of the Update methods is called the first time. See <see cref="MonoBehaviour"/>.
         /// </summary>
-        protected void Start()
+        protected virtual void Start()
         {
             if (TryGetComponent<XRGrabInteractable>(out var grabInteractable))
             {
@@ -118,7 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// <summary>
         /// This function is called when the MonoBehaviour will be destroyed. See <see cref="MonoBehaviour"/>.
         /// </summary>
-        protected void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (TryGetComponent<XRGrabInteractable>(out var grabInteractable))
             {

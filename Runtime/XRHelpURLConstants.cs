@@ -1,10 +1,14 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -24,18 +28,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
         const string k_ARNamespace = "AR.";
+        const string k_AttachmentNamespace = "Attachment.";
         const string k_BodyUINamespace = "BodyUI.";
+        const string k_CastersNamespace = "Casters.";
         const string k_FeedbackNamespace = "Feedback.";
         const string k_FilteringNamespace = "Filtering.";
         const string k_HapticsNamespace = "Haptics.";
         const string k_InputsNamespace = "Inputs.";
+        const string k_InteractorsNamespace = "Interactors.";
         const string k_LocomotionNamespace = "Locomotion.";
         const string k_ReadersNamespace = "Readers.";
         const string k_SimulationNamespace = "Simulation.";
         const string k_TransformersNamespace = "Transformers.";
         const string k_UINamespace = "UI.";
         const string k_UtilitiesNamespace = "Utilities.";
-        
+        const string k_VisualsNamespace = "Visuals.";
+            
+            
         /// <summary>
         /// Current documentation version for XR Interaction Toolkit API and Manual pages.
         /// </summary>
@@ -65,6 +74,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="TouchscreenGestureInputLoader"/>.
         /// </summary>
         public const string k_TouchscreenGestureInputLoader = k_BaseApi + k_BaseNamespace + k_ARNamespace + k_InputsNamespace + nameof(TouchscreenGestureInputLoader) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="InteractionAttachController"/>
+        /// </summary>
+        public const string k_InteractionAttachController = k_BaseApi + k_BaseNamespace + k_AttachmentNamespace + nameof(InteractionAttachController) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ClimbInteractable"/>.
@@ -212,6 +226,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRTransformStabilizer = k_BaseApi + k_BaseNamespace + k_InputsNamespace + nameof(XRTransformStabilizer) + k_HtmlFileSuffix;
 
         /// <summary>
+        /// Scripting API URL for <see cref="CurveInteractionCaster"/>
+        /// </summary>
+        public const string k_CurveInteractionCaster = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + k_CastersNamespace + nameof(CurveInteractionCaster) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="SphereInteractionCaster"/>
+        /// </summary>
+        public const string k_SphereInteractionCaster = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + k_CastersNamespace + nameof(SphereInteractionCaster) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="NearFarInteractor"/>
+        /// </summary>
+        public const string k_NearFarInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(NearFarInteractor) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="CurveVisualController"/>
+        /// </summary>
+        public const string k_CurveVisualController = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + k_VisualsNamespace + nameof(CurveVisualController) + k_HtmlFileSuffix;
+
+        /// <summary>
         /// Scripting API URL for <see cref="CharacterControllerBodyManipulator"/>.
         /// </summary>
         public const string k_CharacterControllerBodyManipulator = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(CharacterControllerBodyManipulator) + k_HtmlFileSuffix;
@@ -222,6 +256,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_LocomotionMediator = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(LocomotionMediator) + k_HtmlFileSuffix;
 
         /// <summary>
+        /// Scripting API URL for <see cref="SnapTurnProvider"/>.
+        /// </summary>
+        public const string k_SnapTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(SnapTurnProvider) + k_HtmlFileSuffix;
+
+        /// <summary>
         /// Scripting API URL for <see cref="UnderCameraBodyPositionEvaluator"/>.
         /// </summary>
         public const string k_UnderCameraBodyPositionEvaluator = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(UnderCameraBodyPositionEvaluator) + k_HtmlFileSuffix;
@@ -230,11 +269,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRBodyTransformer"/>.
         /// </summary>
         public const string k_XRBodyTransformer = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(XRBodyTransformer) + k_HtmlFileSuffix;
-
-        /// <summary>
-        /// Scripting API URL for <see cref="SnapTurnProvider"/>.
-        /// </summary>
-        public const string k_SnapTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(SnapTurnProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TeleportationAnchor"/>.

@@ -9,8 +9,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
     [CustomEditor(typeof(XRBaseInputInteractor), true), CanEditMultipleObjects]
     public partial class XRBaseInputInteractorEditor : XRBaseInteractorEditor
     {
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.forceDeprecatedInput"/>.</summary>
-        protected SerializedProperty m_ForceDeprecatedInput;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.selectInput"/>.</summary>
         protected SerializedProperty m_SelectInput;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.activateInput"/>.</summary>
@@ -21,14 +19,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected SerializedProperty m_AllowHoveredActivate;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.targetPriorityMode"/>.</summary>
         protected SerializedProperty m_TargetPriorityMode;
+        
+        /// <summary>
+        /// Determines if deprecated properties should be shown.
+        /// </summary>
+        protected virtual bool showDeprecatedProperties => true;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
         protected static partial class BaseInputContents
         {
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.forceDeprecatedInput"/>.</summary>
-            public static readonly GUIContent forceDeprecatedInput = EditorGUIUtility.TrTextContent("Force Deprecated Input", "Force the use of the deprecated input path where the input values are obtained through the XR Controller (Action-based) or XR Controller (Device-based). Not recommended.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.selectInput"/>.</summary>
             public static readonly GUIContent selectInput = EditorGUIUtility.TrTextContent("Select Input", "Input to use for selecting an interactable.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.activateInput"/>.</summary>
@@ -52,7 +53,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             base.OnEnable();
 
-            m_ForceDeprecatedInput = serializedObject.FindProperty("m_ForceDeprecatedInput");
             m_SelectInput = serializedObject.FindProperty("m_SelectInput");
             m_ActivateInput = serializedObject.FindProperty("m_ActivateInput");
             m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
@@ -60,6 +60,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_TargetPriorityMode = serializedObject.FindProperty("m_TargetPriorityMode");
 
 #pragma warning disable CS0618 // Type or member is obsolete
+            m_InputCompatibilityMode = serializedObject.FindProperty("m_InputCompatibilityMode");
             m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
 
             m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
@@ -103,8 +104,19 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             base.DrawInspector();
 
-            EditorGUILayout.Space();
+            if (showDeprecatedProperties)
+            {
+                EditorGUILayout.Space();
 
+                DrawDeprecatedProperties();
+            }
+        }
+
+        /// <summary>
+        /// Draw the deprecated properties.
+        /// </summary>
+        protected virtual void DrawDeprecatedProperties()
+        {
 #pragma warning disable CS0618 // Type or member is obsolete
             DrawAudioEvents();
             DrawHapticEvents();

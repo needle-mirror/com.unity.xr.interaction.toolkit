@@ -59,6 +59,8 @@ MonoBehaviour:
   m_MenuVisibleGazeAngleDivergenceThreshold: 35
   m_AnimateMenuHideAndReveal: 1
   m_RevealHideAnimationDuration: 0.1
+  m_HideMenuOnSelect: 1
+  m_InteractionManager: {fileID: 0}
   m_HandTrackingFollowPreset:
     m_UseConstant: 0
     m_ConstantValue:

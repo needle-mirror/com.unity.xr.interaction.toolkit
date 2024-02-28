@@ -358,6 +358,7 @@ MonoBehaviour:
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
+  m_FarAttachMode: 0
 --- !u!114 &6689389171845895231
 MonoBehaviour:
   m_ObjectHideFlags: 0

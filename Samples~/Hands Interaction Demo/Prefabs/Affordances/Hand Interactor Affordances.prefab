@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1592230186234949353
+--- !u!1 &3535746112591574418
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,26 +8,26 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1592230186234949352}
-  - component: {fileID: 1592230186234949356}
-  - component: {fileID: 1592230186234949357}
-  - component: {fileID: 1592230186234949358}
-  - component: {fileID: 4400848853422611441}
-  - component: {fileID: 1592230186234949359}
+  - component: {fileID: 3535746112591574419}
+  - component: {fileID: 3535746112591574423}
+  - component: {fileID: 3535746112591574422}
+  - component: {fileID: 3535746112591574421}
+  - component: {fileID: 1881156673079181450}
+  - component: {fileID: 3535746112591574420}
   m_Layer: 0
-  m_Name: Hand Ray Interactor Affordances
+  m_Name: Hand Interactor Affordances
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1592230186234949352
+--- !u!4 &3535746112591574419
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -36,13 +36,13 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1592230186234949356
+--- !u!114 &3535746112591574423
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c83f12c537584f51b92c01f10d7090c0, type: 3}
@@ -86,13 +86,13 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     m_Variable: {fileID: 0}
---- !u!114 &1592230186234949357
+--- !u!114 &3535746112591574422
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1410cbaaadf84a7aaa6459d37ad21b3a, type: 3}
@@ -100,19 +100,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Renderer: {fileID: 0}
   m_MaterialIndex: 1
---- !u!114 &1592230186234949358
+--- !u!114 &3535746112591574421
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f86d13fca2ec430d870c0f7765ad0dde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AffordanceStateProvider: {fileID: 1592230186234949356}
+  m_AffordanceStateProvider: {fileID: 3535746112591574423}
   m_ReplaceIdleStateValueWithInitialValue: 0
   m_AffordanceThemeDatum:
     m_UseConstant: 0
@@ -172,21 +172,21 @@ MonoBehaviour:
   m_ValueUpdated:
     m_PersistentCalls:
       m_Calls: []
-  m_MaterialPropertyBlockHelper: {fileID: 1592230186234949357}
+  m_MaterialPropertyBlockHelper: {fileID: 3535746112591574422}
   m_ColorPropertyName: _FingerColor_1
---- !u!114 &4400848853422611441
+--- !u!114 &1881156673079181450
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f86d13fca2ec430d870c0f7765ad0dde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AffordanceStateProvider: {fileID: 1592230186234949356}
+  m_AffordanceStateProvider: {fileID: 3535746112591574423}
   m_ReplaceIdleStateValueWithInitialValue: 0
   m_AffordanceThemeDatum:
     m_UseConstant: 0
@@ -246,21 +246,21 @@ MonoBehaviour:
   m_ValueUpdated:
     m_PersistentCalls:
       m_Calls: []
-  m_MaterialPropertyBlockHelper: {fileID: 1592230186234949357}
+  m_MaterialPropertyBlockHelper: {fileID: 3535746112591574422}
   m_ColorPropertyName: _ThumbColor
---- !u!114 &1592230186234949359
+--- !u!114 &3535746112591574420
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1592230186234949353}
+  m_GameObject: {fileID: 3535746112591574418}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f86d13fca2ec430d870c0f7765ad0dde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AffordanceStateProvider: {fileID: 1592230186234949356}
+  m_AffordanceStateProvider: {fileID: 3535746112591574423}
   m_ReplaceIdleStateValueWithInitialValue: 0
   m_AffordanceThemeDatum:
     m_UseConstant: 0
@@ -320,5 +320,5 @@ MonoBehaviour:
   m_ValueUpdated:
     m_PersistentCalls:
       m_Calls: []
-  m_MaterialPropertyBlockHelper: {fileID: 1592230186234949357}
+  m_MaterialPropertyBlockHelper: {fileID: 3535746112591574422}
   m_ColorPropertyName: _EdgeColor

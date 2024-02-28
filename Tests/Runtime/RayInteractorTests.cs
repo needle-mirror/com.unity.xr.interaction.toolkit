@@ -544,19 +544,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.right * 5.0f;
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.Empty);
 
             interactor.StartManualInteraction((IXRSelectInteractable)interactable);
-
-            yield return new WaitForSeconds(0.1f);
+            
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
             interactor.EndManualInteraction();
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.Empty);
         }
@@ -570,6 +573,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.forward = Vector3.forward;
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            var attachPosition = interactor.attachTransform.position;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
 
             var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
             {
@@ -586,13 +595,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
-            // The above part is the same test for selecting a grab interactable.
-
-            var attachPosition = interactor.attachTransform.position;
-
             Object.Destroy(interactable.gameObject);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.attachTransform.position, Is.EqualTo(attachPosition));

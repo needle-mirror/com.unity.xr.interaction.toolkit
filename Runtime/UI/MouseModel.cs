@@ -202,6 +202,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </remarks>
         public bool changedThisFrame { get; private set; }
 
+        int m_DisplayIndex;
+
+        /// <summary>
+        /// The index of the display that the mouse is currently on.
+        /// </summary>
+        public int displayIndex
+        {
+            get => m_DisplayIndex;
+            set
+            {
+                if (m_DisplayIndex != value)
+                {
+                    m_DisplayIndex = value;
+                    changedThisFrame = true;
+                }
+            }
+        }
+
         Vector2 m_Position;
 
         public Vector2 position
@@ -331,6 +349,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             this.pointerId = pointerId;
             changedThisFrame = false;
+            m_DisplayIndex = 0;
             m_Position = Vector2.zero;
             deltaPosition = Vector2.zero;
             m_ScrollDelta = Vector2.zero;
@@ -362,6 +381,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public void CopyTo(PointerEventData eventData)
         {
             eventData.pointerId = pointerId;
+#if UNITY_2022_3_OR_NEWER            
+            eventData.displayIndex = m_DisplayIndex;
+#endif
             eventData.position = position;
             eventData.delta = deltaPosition;
             eventData.scrollDelta = scrollDelta;
@@ -378,6 +400,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_InternalData.hoverTargets.AddRange(eventData.hovered);
             m_InternalData.hoverTargets = hoverTargets;
             m_InternalData.pointerTarget = eventData.pointerEnter;
+
+#if UNITY_2022_3_OR_NEWER            
+            m_DisplayIndex = eventData.displayIndex;
+#endif
         }
     }
 }

@@ -50,6 +50,11 @@
         },
         {
             "name": "com.unity.xr.arfoundation",
+            "expression": "6.0.0-pre.4",
+            "define": "AR_FOUNDATION_6_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",
             "define": "AR_FOUNDATION_PRESENT"
         },

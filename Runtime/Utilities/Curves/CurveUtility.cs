@@ -33,15 +33,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
 #endif
         public static void SampleQuadraticBezierPoint(in float3 p0, in float3 p1, in float3 p2, float t, out float3 point)
         {
-            var u = 1f - t;   // (1 - t)
-            var uu = u * u;   // (1 - t)²
-            var tt = t * t;   // t²
+            var u = 1f - t; // (1 - t)
+            var uu = u * u; // (1 - t)²
+            var tt = t * t; // t²
 
             // (1 - t)²P₀ + 2(1 - t)tP₁ + t²P₂ where 0 ≤ t ≤ 1
             // u²P₀ + 2utP₁ + t²P₂
             point = (uu * p0) +
-                (2f * u * t * p1) +
-                (tt * p2);
+                    (2f * u * t * p1) +
+                    (tt * p2);
         }
 
         /// <summary>
@@ -58,18 +58,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
 #endif
         public static void SampleCubicBezierPoint(in float3 p0, in float3 p1, in float3 p2, in float3 p3, float t, out float3 point)
         {
-            var u = 1f - t;   // (1 - t)
-            var uu = u * u;   // (1 - t)²
+            var u = 1f - t; // (1 - t)
+            var uu = u * u; // (1 - t)²
             var uuu = uu * u; // (1 - t)³
-            var tt = t * t;   // t²
+            var tt = t * t; // t²
             var ttt = tt * t; // t³
 
             // (1 - t)³P₀ + 3(1 - t)²tP₁ + 3(1 - t)t²P₂ + t³P₃ where 0 ≤ t ≤ 1
             // u³P₀ + 3u²tP₁ + 3ut²P₂ + t³P₃
             point = (uuu * p0) +
-                (3f * uu * t * p1) +
-                (3f * u * tt * p2) +
-                (ttt * p3);
+                    (3f * uu * t * p1) +
+                    (3f * u * tt * p2) +
+                    (ttt * p3);
         }
 
         /// <summary>
@@ -126,6 +126,135 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
                 SampleCubicBezierPoint(p0, p1, p2, p3, percent, out var newPoint);
                 targetPoints[i] = newPoint;
             }
+        }
+
+        /// <summary>
+        /// Generates a cubic Bezier curve from a given curve segment and a curve ratio.
+        /// </summary>
+        /// <param name="numTargetPoints">The number of points to generate for the curve.</param>
+        /// <param name="curveRatio">The ratio of the curve length to use as the distance from the midpoint to the control point.</param>
+        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param> 
+        /// <param name="endOffset">Fixed offset to omit from the end of the curve.</param>
+        /// <param name="curveOrigin">The starting point of the curve segment.</param>
+        /// <param name="curveDirection">The normalized forward direction vector of the curve segment.</param>
+        /// <param name="endPoint">The ending point of the curve segment.</param>
+        /// <param name="targetPoints">A reference to a native array of <see cref="float3"/> that will store the generated curve points.</param>
+        /// <param name="minLineLength">Minimum line length that will be computed before the function returns false.</param>
+        /// <returns>True if the cubic Bezier curve was successfully generated, false otherwise.</returns>
+#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static bool TryGenerateCubicBezierCurve(int numTargetPoints, float curveRatio, in float3 curveOrigin, in float3 curveDirection, in float3 endPoint, ref NativeArray<float3> targetPoints, float minLineLength = 0.005f, float startOffset = 0f, float endOffset = 0f)
+        {
+            var lineLength = math.length(endPoint - curveOrigin);
+            var combinedOffset = startOffset + endOffset;
+
+            // The offsets exceed the length of the line
+            if (combinedOffset > lineLength || lineLength - combinedOffset < minLineLength)
+                return false;
+
+            float3 adjustedMidPoint;
+            if (curveRatio > 0)
+                adjustedMidPoint = curveOrigin + curveDirection * lineLength * curveRatio;
+            else
+                adjustedMidPoint = math.lerp(curveOrigin, endPoint, 0.5f);
+
+            return TryGenerateCubicBezierCurveCore(numTargetPoints, curveOrigin, adjustedMidPoint, endPoint, ref targetPoints, minLineLength, startOffset, endOffset);
+        }
+
+        /// <summary>
+        /// Generates a cubic Bezier curve from a given curve segment and a curve ratio.
+        /// </summary>
+        /// <param name="numTargetPoints">The number of points to generate for the curve.</param>
+        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param> 
+        /// <param name="endOffset">Fixed offset to omit from the end of the curve.</param>
+        /// <param name="curveOrigin">The starting point of the curve segment.</param>
+        /// <param name="midPoint">The midpoint the cubic bezier curve.</param>
+        /// <param name="endPoint">The ending point of the curve segment.</param>
+        /// <param name="targetPoints">A reference to a native array of <see cref="float3"/> that will store the generated curve points.</param>
+        /// <param name="minLineLength">Minimum line length that will be computed before the function returns false.</param>
+        /// <returns>True if the cubic Bezier curve was successfully generated, false otherwise.</returns>
+#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static bool TryGenerateCubicBezierCurve(int numTargetPoints, in float3 curveOrigin, in float3 midPoint, in float3 endPoint, ref NativeArray<float3> targetPoints, float minLineLength = 0.005f, float startOffset = 0f, float endOffset = 0f)
+        {
+            var lineLength = math.length(endPoint - curveOrigin);
+            var combinedOffset = startOffset + endOffset;
+
+            // The offsets exceed the length of the line
+            if (combinedOffset > lineLength || lineLength - combinedOffset < minLineLength)
+                return false;
+
+            return TryGenerateCubicBezierCurveCore(numTargetPoints, curveOrigin, midPoint, endPoint, ref targetPoints, minLineLength, startOffset, endOffset);
+        }
+
+        static bool TryGenerateCubicBezierCurveCore(int numTargetPoints, in float3 curveOrigin, in float3 midPoint, in float3 endPoint, ref NativeArray<float3> targetPoints, float minLineLength = 0.005f, float startOffset = 0f, float endOffset = 0f)
+        {
+            ElevateQuadraticToCubicBezier(curveOrigin, midPoint, endPoint,
+                out var p0, out var p1, out var p2, out var p3);
+
+            bool hasStartOffset = startOffset > 0;
+            bool hasEndOffset = endOffset > 0;
+
+            float tStart = 0f;
+            float tEnd = 1f;
+            if (hasStartOffset || hasEndOffset)
+            {
+                var combinedOffset = startOffset + endOffset;
+                float totalCurveLength = ApproximateCubicBezierLength(p0, p1, p2, p3, math.max(numTargetPoints / 2, 4));
+                if (combinedOffset > totalCurveLength || totalCurveLength - (combinedOffset) < minLineLength)
+                    return false;
+
+                if (hasStartOffset)
+                    tStart = startOffset / totalCurveLength;
+                if (hasEndOffset)
+                    tEnd = (totalCurveLength - endOffset) / totalCurveLength;
+            }
+
+            var interval = (tEnd - tStart) / (numTargetPoints - 1);
+
+            for (var i = 0; i < numTargetPoints; ++i)
+            {
+                var percent = tStart + i * interval;
+                SampleCubicBezierPoint(p0, p1, p2, p3, percent, out var newPoint);
+                targetPoints[i] = newPoint;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Calculates an approximate length of a cubic Bezier curve.
+        /// </summary>
+        /// <param name="p0">The starting point of the Bezier curve.</param>
+        /// <param name="p1">The first control point influencing the curve's shape.</param>
+        /// <param name="p2">The second control point influencing the curve's shape.</param>
+        /// <param name="p3">The ending point of the Bezier curve.</param>
+        /// <param name="subdivisions">The number of subdivisions used for approximation. Higher values increase accuracy.</param>
+        /// <returns>The approximate length of the cubic Bezier curve.</returns>
+        /// <remarks>
+        /// This method approximates the length of a cubic Bezier curve by subdividing it into smaller segments
+        /// and summing the lengths of these linear segments. The accuracy of the approximation increases
+        /// with the number of subdivisions. The method uses linear interpolation to find points along the curve at regular intervals.
+        /// </remarks>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        public static float ApproximateCubicBezierLength(in float3 p0, in float3 p1, in float3 p2, in float3 p3, int subdivisions)
+        {
+            float length = 0f;
+            float3 previousPoint = p0;
+
+            for (int i = 1; i <= subdivisions; i++)
+            {
+                float t = (float)i / subdivisions;
+                SampleCubicBezierPoint(p0, p1, p2, p3, t, out float3 currentPoint);
+                length += math.distance(currentPoint, previousPoint);
+                previousPoint = currentPoint;
+            }
+
+            return length;
         }
 
         /// <summary>

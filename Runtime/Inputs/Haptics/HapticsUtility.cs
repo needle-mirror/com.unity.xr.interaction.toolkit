@@ -1,3 +1,9 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses in GenericXRDevice.cs to define the XRController and XRHMD classes.
+#if ENABLE_VR || UNITY_GAMECORE
+#define XR_INPUT_DEVICES_AVAILABLE
+#endif
+
 using UnityEngine.InputSystem;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
@@ -62,7 +68,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
 
             if (controller == Controller.Left || controller == Controller.Both)
             {
+#if XR_INPUT_DEVICES_AVAILABLE
                 var device = InputSystem.XR.XRController.leftHand;
+#else
+                InputSystem.InputDevice device = null;
+#endif
                 if (device != null)
                 {
                     // Currently, the only code path that we can send a specific frequency is through OpenXR.
@@ -84,7 +94,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
 
             if (controller == Controller.Right || controller == Controller.Both)
             {
+#if XR_INPUT_DEVICES_AVAILABLE
                 var device = InputSystem.XR.XRController.rightHand;
+#else
+                InputSystem.InputDevice device = null;
+#endif
                 if (device != null)
                 {
                     if (frequency > 0f && channel == 0)

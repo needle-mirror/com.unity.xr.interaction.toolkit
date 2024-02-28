@@ -132,13 +132,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactable.allowGazeSelect = true;
             interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
 
+            var attachPosition = interactor.attachTransform.position;
+
             // Wait for Physics update for hit
             yield return new WaitForFixedUpdate();
             yield return new WaitForSeconds(0.2f);
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
-
-            var attachPosition = interactor.attachTransform.position;
 
             Object.Destroy(interactable.gameObject);
 

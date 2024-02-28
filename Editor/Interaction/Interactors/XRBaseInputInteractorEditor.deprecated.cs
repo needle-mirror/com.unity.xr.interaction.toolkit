@@ -6,9 +6,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
 {
     public partial class XRBaseInputInteractorEditor
     {
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.inputCompatibilityMode"/>.</summary>
+        [Obsolete("m_InputCompatibilityMode introduced in version 3.0.0 is marked for removal. This is only used for backwards compatibility and will be eventually removed in a future version.")]
+        protected SerializedProperty m_InputCompatibilityMode;
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.hideControllerOnSelect"/>.</summary>
         [Obsolete("m_HideControllerOnSelect has been deprecated in version 3.0.0.")]
         protected SerializedProperty m_HideControllerOnSelect;
+
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.forceDeprecatedInput"/>.</summary>
+        [Obsolete("m_ForceDeprecatedInput introduced in version 3.0.0-pre.1 has been removed in version 3.0.0-pre.2. Use m_InputCompatibilityMode instead.", true)]
+        protected SerializedProperty m_ForceDeprecatedInput;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.playAudioClipOnSelectEntered"/>.</summary>
         [Obsolete("m_PlayAudioClipOnSelectEntered has been deprecated in version 3.0.0. Use SimpleAudioFeedbackEditor.m_PlaySelectEntered instead.")]
@@ -110,9 +118,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         protected static partial class BaseInputContents
         {
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.inputCompatibilityMode"/>.</summary>
+            [Obsolete("inputCompatibilityMode introduced in version 3.0.0 is marked for removal. This is only used for backwards compatibility and will be eventually removed in a future version.")]
+            public static readonly GUIContent inputCompatibilityMode = EditorGUIUtility.TrTextContent("Input Compatibility Mode", "Controls whether input is obtained through the deprecated legacy method where the XR Controller component is used. This is only used for backwards compatibility and will be eventually removed in a future version.");
+
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.hideControllerOnSelect"/>.</summary>
             [Obsolete("hideControllerOnSelect has been deprecated in version 3.0.0.")]
             public static readonly GUIContent hideControllerOnSelect = EditorGUIUtility.TrTextContent("Hide Controller On Select", "(Deprecated) Hide the controller model on select. Requires an XR Controller component.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInputInteractor.forceDeprecatedInput"/>.</summary>
+            [Obsolete("forceDeprecatedInput introduced in version 3.0.0-pre.1 has been removed in version 3.0.0-pre.2. Use m_InputCompatibilityMode instead.", true)]
+            public static readonly GUIContent forceDeprecatedInput = EditorGUIUtility.TrTextContent("Force Deprecated Input", "Force the use of the deprecated input path where the input values are obtained through the XR Controller (Action-based) or XR Controller (Device-based). Not recommended.");
 
             /// <summary>The help box message when <see cref="XRBaseController"/> is missing.</summary>
             [Obsolete("missingRequiredController has been deprecated in version 3.0.0.")]
@@ -498,12 +514,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [Obsolete("DrawDeprecatedControllerConfiguration has been deprecated in version 3.0.0.")]
         protected void DrawDeprecatedControllerConfiguration()
         {
-            m_ForceDeprecatedInput.isExpanded = EditorGUILayout.Foldout(m_ForceDeprecatedInput.isExpanded, EditorGUIUtility.TrTempContent("(Deprecated) Controller Configuration"), true);
-            if (m_ForceDeprecatedInput.isExpanded)
+            m_InputCompatibilityMode.isExpanded = EditorGUILayout.Foldout(m_InputCompatibilityMode.isExpanded, EditorGUIUtility.TrTempContent("(Deprecated) XR Controller Configuration"), true);
+            if (m_InputCompatibilityMode.isExpanded)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(m_ForceDeprecatedInput, BaseInputContents.forceDeprecatedInput);
+                    EditorGUILayout.PropertyField(m_InputCompatibilityMode, BaseInputContents.inputCompatibilityMode);
                     VerifyControllerPresent();
                     EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseInputContents.hideControllerOnSelect);
                 }
@@ -520,7 +536,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             foreach (var targetObject in serializedObject.targetObjects)
             {
                 var interactor = (XRBaseInputInteractor)targetObject;
-                if (interactor.forceDeprecatedInput && interactor.GetComponentInParent<XRBaseController>(true) == null)
+                if (interactor.inputCompatibilityMode == XRBaseInputInteractor.InputCompatibilityMode.ForceDeprecatedInput &&
+                    interactor.GetComponentInParent<XRBaseController>(true) == null)
                 {
                     EditorGUILayout.HelpBox(BaseInputContents.missingRequiredController, MessageType.Warning, true);
                     break;

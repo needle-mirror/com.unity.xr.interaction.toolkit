@@ -6,6 +6,99 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.0-pre.2] - 2024-02-28
+
+### Added
+- Added the `NearFarInteractor` component, a versatile new interactor enabling both near and far interactions. It's designed to be more modular and delegate out responsibilities that used to be difficult to customize within classes like `XRDirectInteractor` and `XRRayInteractor`. It uses two distinct casters (`IInteractionCaster`) to find valid interaction targets, with the near caster optimized for close-range interactions and the far caster supporting UI interaction and distance-based sorting. The interactor also integrates UI interaction capabilities, snapping modes for interactable objects, and implements various interfaces for advanced XR interactions.
+- Added the `CurveInteractionCaster` component, a ray casting implementation to be used with `NearFarInteractor` as the Far Caster. It specializes in curved ray casting, offering advanced world-space UI interactions with flexible path creation. The class implements the `ICurveInteractionCaster` interface, supporting varied hit detection methods including sphere and cone casting, in addition to standard ray casting. Key features include customizable casting distances, curve segments, and casting radius. It is intended to fill the equivalent role of the casting performed by the `XRRayInteractor` component.
+- Added the `SphereInteractionCaster` component, a sphere casting implementation to be used with `NearFarInteractor` as the Near Caster. It executes a sphere overlap check to identify valid interaction targets. It's designed for scenarios where a spherical area of detection is preferable over a single point or line. The class features adjustable parameters like the radius of the sphere cast, physics layer mask for target filtering, and the option to include or ignore trigger colliders. It is intended to fill the equivalent role of the casting performed by the `XRDirectInteractor` component.
+- Added the `CurveVisualController` to manage the visual representation of a line, typically used for highlighting interaction paths or trajectories. It features customizable width, color gradients, and dynamic behaviors like retraction or expansion. The class supports dynamic line rendering with adjustable properties such as line width, gradient, and extension rate. It also offers different line dynamics modes (like traditional, retract on hit loss, and expand from hit point) and the ability to snap to specific points or volumes. It is intended to fill the equivalent role of controlling ray visuals in the `XRInteractorLineVisual` component.
+- Added the `InteractionAttachController` component. It is intended to be a simple template showing how to control the interaction attach transform used by the `NearFarInteractor`. It can handle stabilization when an offset is present and handle an amplified offset movement to move distant objects closer with ease using a pulling gesture.
+- Added the `farAttachMode` property in the `XRGrabInteractable`. It allows for overriding how the `NearFarInteractor` (when far selecting) and the `XRRayInteractor` adjusts their attach transform to cause the interactable to snap near to the hand or whether it moves to the far hit point.
+- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging.
+  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
+- Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types.
+- Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component.
+- Added warnings to the Inspector window of input button reader properties (`XRInputButtonReader`) when the performed Input Action is not configured correctly for button-like behavior.
+
+### Changed
+- Changed `LogicalInputState` by renaming `wasUnperformedThisFrame` to `wasCompletedThisFrame` to match terminology in Input System.
+- Improved input-related backwards compatibility of interactors that have not yet migrated to the new input reader architecture by replacing the Force Deprecated Input property in the Inspector window with Input Compatibility Mode. This property defaults to `Automatic`, which will search up the hierarchy for XR Controller components and only use the deprecated XR Controller component for input if found. This property can also be set to `ForceDeprecatedInput` or `ForceInputReaders` depending on the desired behavior.
+  - Added `XRBaseInputInteractor.inputCompatibilityMode` serialized property and `XRBaseInputInteractor.InputCompatibilityMode` enum.
+  - Deprecated and removed serialization of `XRBaseInputInteractor.forceDeprecatedInput` property.
+- Changed Hand Menu component to automatically hide the menu when a selection is made with the hand for which the menu is anchored to. This functionality can be reverted by disabling the new Hide Menu On Select property.
+- Changed the default value of Force Grab on the XR Ray Interactor component from enabled to disabled.
+- Changed Starter Assets sample script `ControllerInputActionManager` to support Near-Far Interactor, not just Ray Interactor, for the distant/ray manipulation interactor.
+- Changed Hands Interaction Demo sample script `HideObjectWhenRayInteractorBlocked` by renaming to `HideObjectWhenInteractorBlocked` and updated to work with `XRBaseInteractor` instead of just `XRRayInteractor`.
+- Changed `XRBaseGrabTransformer` by making `Start` and `OnDestroy` methods `virtual`.
+- Moved interactor components from the **Component** &gt; **XR** menu into the **Component** &gt; **XR** &gt; **Interactors** menu.
+
+### Fixed
+- Fixed `XRPokeInteractor` and `TrackedGraphicRaycaster` to ensure poke interactor data is cleared when the UI element with a poke interaction is disabled. ([XRIT-115](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-115))
+ - Fixed an issue where target filters could not influence the prioritized poke interactable. ([XRIT-114](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-114))
+- Fixed an issue in `XRUIInputModule` where display index was not being set for mouse or touch in the `PointerEventData` object causing it to always default to the first display. ([XRIT-125](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-125))
+- Fixed use of renamed Rigidbody properties in Unity 2023.3 to avoid script migration prompt.
+- Fixed a small performance issue at startup by making XR Ray Interactor only search for AR Raycast Manager when both AR Foundation is installed and Enable AR Raycasting is enabled.
+- Fixed an issue with two handed rotations using the XRGeneralGrabTransformer where some inconsistent motion would occur when the user would rotate more than 180 degrees in any axis.
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined.
+- Fixed a bug in `XRSocketInteractor` that prevented the deselecting of the Starting Selected Interactable when Hover Socket Snapping was enabled.
+- Fixed broken markdown links within tables in samples documentation in the manual.
+- Fixed mistakes in changelog with version 3.0.0-pre.1 where some entries in the section for version 2.5.2 were missing or should have been in the section for version 3.0.0-pre.1.
+
+## [2.6.0] - 2024-03-08
+
+### Added
+- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](../manual/teleportation-multi-anchor-volume.md), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`. (Backport from 3.0.0-pre.1)
+  - Added `FurthestTeleportationAnchorFilter`, which is the default filter that chooses the furthest anchor as the destination. Use the menu item **Assets > Create > XR > Locomotion > Furthest Teleportation Anchor Filter** to create an instance of this filter.
+  - Added `GazeTeleportationAnchorFilter`, which chooses a destination based on where the user is looking and how far away the anchor is. Use the menu item **Assets > Create > XR > Locomotion > Gaze Teleportation Anchor Filter** to create an instance of this filter.
+  - Added menu item **Assets > Create > XR > Locomotion > Teleport Volume Destination Settings**, which creates a Teleport Volume Destination Settings Datum asset.
+  - Added `Multi Floor Ladder` prefab to the Starter Assets sample, and added an instance of this prefab to the `Climb Sample` prefab. This prefab includes another ladder Climb Interactable and a Teleportation Multi-Anchor Volume that uses a Gaze Teleportation Anchor Filter to teleport to one of three destinations.
+- Added the interface `IXRInteractableCustomReticle`, which allows a component on an interactable's **Custom Reticle** prefab to respond to the interactable instantiating the reticle and attaching it to an instance of `IXRCustomReticleProvider`. (Backport from 3.0.0-pre.1)
+  - Added an example implementation of this interface in the new `Climb Teleport Reticle` prefab in the Starter Assets sample.
+- Added a rotation threshold to `XRScreenSpaceController` so that scaling is not triggered while rotating. (Backport from 3.0.0-pre.1)
+- Added in-editor touchscreen gesture support for rotation and scaling in the starter assets. The input action map now has bindings for the related gestures. (Backport from 3.0.0-pre.1)
+- Added Climb Teleport Interactor, which enables assistance with climb locomotion by teleporting the user to a specific destination when they end a climb interaction. (Backport from 3.0.0-pre.1)
+  - Added the property **Climb Assistance Teleport Volume** to Climb Interactable to enable this teleportation behavior for a specific climb interactable.
+  - Made the following changes to the Starter Assets sample to demonstrate climb teleportation:
+    - Added a Climb Teleport Interactor instance in the `XR Origin (XR Rig)` prefab under **Locomotion System** > **Climb**.
+    - Assigned the **Climb Assistance Teleport Volume** references in the `Single Floor Ladder` and `Multi Floor Ladder` prefabs.
+    - Added the affordance component Climb Teleport Destination Indicator, and added an instance of this component to the `XR Origin (XR Rig)` prefab.
+    - Added the `Climb Teleport Arrow` prefab and supporting assets.
+- Added public members `climbAnchorInteractable`, `climbAnchorInteractor`, and `climbAnchorUpdated` to `ClimbProvider`. (Backport from 3.0.0-pre.1)
+- Added public method `Angle(in Vector3, in Vector3, out float)`, which finds the angle between two vectors, to `BurstMathUtility`. (Backport from 3.0.0-pre.1)
+- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging. (Backport from 3.0.0-pre.2)
+  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
+- Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types. (Backport from 3.0.0-pre.2)
+- Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component. (Backport from 3.0.0-pre.2)
+
+### Changed
+- Changed setup of the ladder and elevated teleport area in the `Climb Sample` prefab in the Starter Assets sample so that the objects are set up in a new `Single Floor Ladder` prefab. This prefab also contains a Teleportation Multi-Anchor Volume to allow teleportation to the top or bottom, whichever is furthest from the user. (Backport from 3.0.0-pre.1)
+- Changed [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold. (Backport from 3.0.0-pre.1)
+- Changed `XRBaseGrabTransformer` by making `Start` and `OnDestroy` methods `virtual`. (Backport from 3.0.0-pre.2)
+
+### Fixed
+- Fixed the `ControllerInputActionManager` script in Starter Assets to not scroll UI when beginning to point at scrollable UI during locomotion until stopping locomotion.
+
+## [2.5.3] - 2024-02-28
+
+### Fixed
+- Fixed issue where rotating on vertical planes with the `ARTransformer` would snap to an unintended rotation. (Backport from 3.0.0-pre.1)
+- Fixed failing unit tests caused by introduction of global actions in Input System 1.8.0. (Backport from 3.0.0-pre.1)
+- Fixed a math error in the `XRDistanceEvaluator` where `CalculateNormalizedScore` would return an incorrect score. (Backport from 3.0.0-pre.1)
+- Fixed an issue where the direct interactor wasn't correctly processing colliders after the first frame. ([XRIT-116](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-116)) (Backport from 3.0.0-pre.1)
+- Fixed a bug where a `NullReferenceException` was thrown when `Affordance Theme Datum` was not set. If it is null, an error is logged and the `AudioAffordanceReceiver` is disabled, but no exception is thrown. ([XRIT-107](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-107)) (Backport from 3.0.0-pre.1)
+- Fixed the `ActionBasedControllerManager` script in Starter Assets to not stop move locomotion when beginning to point at scrollable UI during locomotion. (Backport from 3.0.0-pre.1)
+- Fixed the `ActionBasedControllerManager` script in Starter Assets to not scroll UI when beginning to point at scrollable UI during locomotion until stopping locomotion. (Backport from 3.0.0-pre.2)
+- Fixed `XRPokeInteractor` and `TrackedGraphicRaycaster` to ensure poke interactor data is cleared when the UI element with a poke interaction is disabled. ([XRIT-115](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-115)) (Backport from 3.0.0-pre.2)
+ - Fixed an issue where target filters could not influence the prioritized poke interactable. ([XRIT-114](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-114)) (Backport from 3.0.0-pre.2)
+- Fixed an issue in `XRUIInputModule` where display index was not being set for mouse or touch in the `PointerEventData` object causing it to always default to the first display. ([XRIT-125](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-125)) (Backport from 3.0.0-pre.2)
+- Fixed use of renamed Rigidbody properties in Unity 2023.3 to avoid script migration prompt. (Backport from 3.0.0-pre.2)
+- Fixed a small performance issue at startup by making XR Ray Interactor only search for AR Raycast Manager when both AR Foundation is installed and Enable AR Raycasting is enabled. (Backport from 3.0.0-pre.2)
+- Fixed an issue with two handed rotations using the XRGeneralGrabTransformer where some inconsistent motion would occur when the user would rotate more than 180 degrees in any axis. (Backport from 3.0.0-pre.2)
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined. (Backport from 3.0.0-pre.2)
+- Fixed a bug in `XRSocketInteractor` that prevented the deselecting of the Starting Selected Interactable when Hover Socket Snapping was enabled. (Backport from 3.0.0-pre.2)
+- Fixed broken markdown links within tables in samples documentation in the manual. (Backport from 3.0.0-pre.2)
+
 ## [3.0.0-pre.1] - 2023-12-14
 
 > [!WARNING]
@@ -75,6 +168,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed Enable Interaction with UI GameObjects on XR Ray Interactor to UI Interaction.
 - Changed the created hierarchy of GameObjects for the XR Origin from the **GameObject** &gt; **XR** menu to no longer include interactors and tweaked some settings for the Mobile AR variant.
 - Changed `XRDirectInteractorEditor` so the Selection Configuration properties are drawn in a foldout. The properties are now drawn in a new `DrawSelectionConfigurationNested` method which the previously defined `DrawSelectionConfiguration` calls into after drawing the foldout.
+- Changed `XRScreenSpaceController` to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold.
 
 ### Deprecated
 - Deprecated code and serialized fields from XRI 1.x.x are now treated as errors.
@@ -107,6 +201,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where rotating on vertical planes with the `ARTransformer` would snap to an unintended rotation.
 - Fixed failing unit tests caused by introduction of global actions in Input System 1.8.0.
 - Fixed a math error in the `XRDistanceEvaluator` where `CalculateNormalizedScore` would return an incorrect score.
+- Fixed an issue where the direct interactor wasn't correctly processing colliders after the first frame. ([XRIT-116](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-116))
+- Fixed a bug where a `NullReferenceException` was thrown when `Affordance Theme Datum` was not set. If it is null, an error is logged and the `AudioAffordanceReceiver` is disabled, but no exception is thrown. ([XRIT-107](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-107))
+- Fixed the `ControllerInputActionManager` script in Starter Assets to not stop move locomotion when beginning to point at scrollable UI during locomotion.
 
 ## [2.5.2] - 2023-09-28
 
@@ -114,9 +211,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the XR Ray Interactor can no longer interact with UI drag events correctly when the UI object is both a Tracked Device Graphics Raycaster and an XR Interactable. This fix introduces a property `blockUIOnInteractableSelection` to `XRRayInteractor` to control this behavior.
 - Fixed an issue where the XR Ray Interactors internal UI cache can cause error log spamming when it is not initialized or becomes null at runtime.
 - Fixed an issue where dropping a grab interactable, when scaling beyond min and max scale thresholds using an `ARTransformer`, didn't properly set the scale back within the threshold limits when Attach Ease In Time or Smooth Scale were enabled. As a part of this fix, `attachEaseInTime` and smoothing will only be considered when an `XRGrabInteractable` is selected.
-
-### Changed
-- Changed `XRScreenSpaceController` to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold.
+- Fixed an issue where poking UI elements with the controller poke wand did not work in the starter assets demo scene.
 
 ## [2.5.1] - 2023-09-12
 

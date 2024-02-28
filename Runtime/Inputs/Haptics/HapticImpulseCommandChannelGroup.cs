@@ -1,5 +1,13 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses to define the GetHapticCapabilitiesCommand class.
+#if ENABLE_VR || UNITY_GAMECORE
+#define INPUT_HAPTICS_AVAILABLE
+#endif
+
 using System.Collections.Generic;
+#if INPUT_HAPTICS_AVAILABLE
 using UnityEngine.InputSystem.XR.Haptics;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
 {
@@ -43,6 +51,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
             if (device == null)
                 return;
 
+#if INPUT_HAPTICS_AVAILABLE
             var command = GetHapticCapabilitiesCommand.Create();
             var result = device.ExecuteCommand(ref command);
             int numChannels;
@@ -55,6 +64,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
             {
                 numChannels = (int)command.numChannels;
             }
+#else
+            Debug.LogWarning($"Unable to get haptic capabilities of {device} on platform {Application.platform}. Continuing assuming a single haptic channel.");
+            const int numChannels = 1;
+#endif
 
             for (var index = 0; index < numChannels; ++index)
             {

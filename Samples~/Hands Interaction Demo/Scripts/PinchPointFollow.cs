@@ -2,6 +2,7 @@
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Hands;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 #endif
 
@@ -14,6 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     /// </summary>
     public class PinchPointFollow : MonoBehaviour
     {
+        [Header("Events")]
         [SerializeField]
         [Tooltip("The XR Hand Tracking Events component that will be used to subscribe to hand tracking events.")]
 #if XR_HANDS_1_2_OR_NEWER
@@ -22,13 +24,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         Object m_XRHandTrackingEvents;
 #endif
 
-        [SerializeField]
-        [Tooltip("The transform to match the rotation of.")]
-        Transform m_TargetRotation;
-
+        [Header("Interactor reference (Pick one)")]
         [SerializeField]
         [Tooltip("The transform will use the XRRayInteractor endpoint position to calculate the transform rotation.")]
         XRRayInteractor m_RayInteractor;
+
+        [SerializeField]
+        [Tooltip("The transform will use the NearFarInteractor endpoint position to calculate the transform rotation.")]
+        NearFarInteractor m_NearFarInteractor;
+        
+        [Header("Rotation Config")]
+        [SerializeField]
+        [Tooltip("The transform to match the rotation of.")]
+        Transform m_TargetRotation;
 
         [SerializeField]
         [Tooltip("How fast to match rotation (0 means no rotation smoothing.)")]
@@ -36,9 +44,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         float m_RotationSmoothingSpeed = 12f;
 
 #if XR_HANDS_1_2_OR_NEWER
-        bool m_HasRayInteractor;
         bool m_HasTargetRotationTransform;
-
+        IXRRayProvider m_RayProvider;
+        bool m_HasRayProvider;
         OneEuroFilterVector3 m_OneEuroFilterVector3;
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -57,7 +65,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 m_XRHandTrackingEvents.jointsUpdated.AddListener(OnJointsUpdated);
 
             m_OneEuroFilterVector3 = new OneEuroFilterVector3(transform.localPosition);
-            m_HasRayInteractor = m_RayInteractor != null;
+            if (m_RayInteractor != null)
+            {
+                m_RayProvider = m_RayInteractor;
+                m_HasRayProvider = true;
+            }
+            if (m_NearFarInteractor != null)
+            {
+                m_RayProvider = m_NearFarInteractor;
+                m_HasRayProvider = true;
+            }
             m_HasTargetRotationTransform = m_TargetRotation != null;
             m_BindingsGroup.AddBinding(m_QuaternionTweenableVariable.Subscribe(newValue => transform.rotation = newValue));
 #else
@@ -95,11 +112,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             // Hand pose data is in local space relative to the xr origin.
             transform.localPosition = filteredTargetPos;
 
-            if (m_HasTargetRotationTransform && m_HasRayInteractor)
+            if (m_HasTargetRotationTransform && m_HasRayProvider)
             {
                 // Given that the ray endpoint is in worldspace, we need to use the worldspace transform of this point to determine the target rotation.
                 // This allows us to keep orientation consistent when moving the xr origin for locomotion.
-                var targetDir = (m_RayInteractor.rayEndPoint - transform.position).normalized;
+                var targetDir = (m_RayProvider.rayEndPoint - transform.position).normalized;
                 var targetRot = Quaternion.LookRotation(targetDir);
                 
                 // If there aren't any major swings in rotation, follow the target rotation.

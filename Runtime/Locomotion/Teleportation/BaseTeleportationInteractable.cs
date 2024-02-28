@@ -272,14 +272,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="TeleportationProvider.QueueTeleportRequest"/>
         protected virtual bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest) => false;
 
-        void SendTeleportRequest(IXRInteractor interactor)
+        /// <summary>
+        /// Queues a request to teleport. This method can be called from script to initiate teleportation
+        /// manually rather than relying on the interaction system to initiate teleportation.
+        /// </summary>
+        /// <param name="interactor">The interactor, if any, that initiated the teleport trigger.
+        /// If <see langword="null"/>, the teleport request will be generated without a raycast hit.</param>
+        /// <returns>Returns <see langword="true"/> if successfully queued. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// Due to script execution order of the <seealso cref="TeleportationProvider"/>, depending on when this method is called,
+        /// teleportation of the XR Origin may not occur until the next frame.
+        /// </remarks>
+        protected bool SendTeleportRequest(IXRInteractor interactor)
         {
-            if (interactor == null)
-                return;
-
-            if (m_TeleportationProvider == null && !ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider))
-                return;
-
             RaycastHit raycastHit = default;
             if (interactor is XRRayInteractor rayInteractor && rayInteractor != null)
             {
@@ -289,9 +294,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     hitInteractable != (IXRInteractable)this ||
                     (m_FilterSelectionByHitNormal && Vector3.Angle(transform.up, raycastHit.normal) > m_UpNormalToleranceDegrees))
                 {
-                    return;
+                    return false;
                 }
             }
+
+            if (m_TeleportationProvider == null && !ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider))
+                return false;
 
             var teleportRequest = new TeleportRequest
             {
@@ -317,11 +325,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     }
                 }
             }
+
+            return success;
         }
 
         void UpdateTeleportRequestRotation(IXRInteractor interactor, ref TeleportRequest teleportRequest)
         {
-            if (!m_MatchDirectionalInput || !m_TeleportForwardPerInteractor.TryGetValue(interactor, out var forward))
+            if (!m_MatchDirectionalInput || interactor == null || !m_TeleportForwardPerInteractor.TryGetValue(interactor, out var forward))
                 return;
 
             switch (teleportRequest.matchOrientation)
@@ -448,7 +458,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 case MatchOrientation.WorldSpaceUp:
                     reticleUp = Vector3.up;
-                    if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
+                    if (m_MatchDirectionalInput && interactor != null && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
                         optionalReticleForward = reticleForward;
                     else if (xrOrigin != null)
                         optionalReticleForward = xrOrigin.Camera.transform.forward;
@@ -456,7 +466,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 case MatchOrientation.TargetUp:
                     reticleUp = transform.up;
-                    if (m_MatchDirectionalInput && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
+                    if (m_MatchDirectionalInput && interactor != null && m_TeleportForwardPerInteractor.TryGetValue(interactor, out reticleForward))
                         optionalReticleForward = reticleForward;
                     else if (xrOrigin != null)
                         optionalReticleForward = xrOrigin.Camera.transform.forward;

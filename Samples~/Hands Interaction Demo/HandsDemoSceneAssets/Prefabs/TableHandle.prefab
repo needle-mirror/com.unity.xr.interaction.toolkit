@@ -434,6 +434,7 @@ MonoBehaviour:
   - {fileID: 7403072356416083929}
   - {fileID: 7403072356416083928}
   m_AddDefaultGrabTransformers: 0
+  m_FarAttachMode: 0
 --- !u!114 &7403072356416083929
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -195,6 +195,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// Validate interactor graphic raycaster data and ensure there is no stale data. Checks that the tracked device
+        /// graphic raycaster associated with the interactor is active and enabled.
+        /// </summary>
+        /// <param name="interactor">Interactor to validate.</param>
+        internal static void ValidatePokeInteractionData(IUIInteractor interactor)
+        {
+            if (interactor != null && interactor.TryGetUIModel(out var uiModel) &&
+                uiModel.interactionType == UIInteractionType.Poke &&
+                s_InteractorRaycasters.TryGetValue(interactor, out var graphicRaycaster) &&
+                graphicRaycaster != null && !graphicRaycaster.isActiveAndEnabled)
+            {
+                    graphicRaycaster.EndPokeInteraction(interactor);
+            }
+        }
+
+        /// <summary>
+        /// Removes interactor from poke data and calls OnHoverExited on the <see cref="XRPokeLogic"/>.
+        /// </summary>
+        /// <param name="interactor">Interactor to end the poke interaction.</param>
+        void EndPokeInteraction(IUIInteractor interactor)
+        {
+            if (interactor == null)
+                return;
+            
+            m_PokeLogic.OnHoverExited(interactor);
+            s_InteractorRaycasters.Remove(interactor);
+            s_PokeHoverRaycasters[this].Remove(interactor);
+        }
+
+        /// <summary>
         /// Attempts to get the <see cref="PokeStateData"/> for the provided <see cref="IUIInteractor"/>.
         /// </summary>
         /// <param name="interactor">The <see cref="IUIInteractor"/> to check.</param>
@@ -388,9 +418,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
                 else
                 {
-                    m_PokeLogic.OnHoverExited(interactor);
-                    s_InteractorRaycasters.Remove(interactor);
-                    s_PokeHoverRaycasters[this].Remove(interactor);
+                    EndPokeInteraction(interactor);
                 }
             }
             else

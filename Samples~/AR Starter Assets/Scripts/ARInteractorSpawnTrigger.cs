@@ -188,7 +188,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             switch (m_SpawnTriggerType)
             {
                 case SpawnTriggerType.SelectAttempt:
-                    if (selectState.wasUnperformedThisFrame)
+                    if (selectState.wasCompletedThisFrame)
                         m_AttemptSpawn = !m_ARInteractor.hasSelection && !m_EverHadSelection;
                     break;
 

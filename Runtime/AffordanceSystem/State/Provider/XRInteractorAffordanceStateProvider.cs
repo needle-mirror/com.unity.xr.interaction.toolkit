@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Datums;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
@@ -255,10 +256,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         IXRSelectInteractor m_SelectInteractor;
         IXRInteractionStrengthInteractor m_InteractionStrengthInteractor;
         XRRayInteractor m_RayInteractor;
+        ICurveInteractionDataProvider m_CurveInteractionDataProvider;
 
         bool m_IsBoundToInteractionEvents;
 
         bool m_HasRayInteractor;
+        bool m_HasCurveInteractionDataProvider;
         bool m_HasHoverInteractor;
         bool m_HasSelectInteractor;
         bool m_HasInteractionStrengthInteractor;
@@ -319,6 +322,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
 
                 if (m_Interactor is XRRayInteractor rayInteractor)
                     m_RayInteractor = rayInteractor;
+
+                if (m_Interactor is ICurveInteractionDataProvider curveInteractionDataProvider)
+                    m_CurveInteractionDataProvider = curveInteractionDataProvider;
             }
             else
             {
@@ -327,13 +333,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 m_SelectInteractor = null;
                 m_InteractionStrengthInteractor = null;
                 m_RayInteractor = null;
+                m_CurveInteractionDataProvider = null;
             }
 
-            m_HasRayInteractor = m_RayInteractor != null;
+            m_IsIXRInteractor = m_Interactor != null;
             m_HasHoverInteractor = m_HoverInteractor != null;
             m_HasSelectInteractor = m_SelectInteractor != null;
             m_HasInteractionStrengthInteractor = m_InteractionStrengthInteractor != null;
-            m_IsIXRInteractor = m_Interactor != null;
+            m_HasRayInteractor = m_RayInteractor != null;
+            m_HasCurveInteractionDataProvider = m_CurveInteractionDataProvider != null;
 
             BindToProviders();
             return isInteractorValid;
@@ -698,21 +706,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             {
                 yield return null;
 
-                // Check if UGUI is active on ray interactor
-                if (m_HasRayInteractor)
+                // Check if UGUI is active on interactor
+                if (m_HasCurveInteractionDataProvider || m_HasRayInteractor)
                 {
                     var newUIHovering = false;
                     var newUISelecting = false;
-                    if (!(m_IgnoreHoverEvents && m_IgnoreSelectEvents) && m_RayInteractor.TryGetCurrentUIRaycastResult(out _, out var raycastEndpointIndex) && raycastEndpointIndex != 0)
+                    
+                    if (!m_IgnoreHoverEvents || !m_IgnoreSelectEvents)
                     {
-                        if (!m_IgnoreSelectEvents && !m_IgnoreUGUISelect && m_RayInteractor.TryGetUIModel(out var uiModel) && uiModel.select)
+                        var isOverUI = m_HasCurveInteractionDataProvider
+                            ? m_CurveInteractionDataProvider.TryGetCurveEndPoint(out _) == EndPointType.UI
+                            : m_RayInteractor.TryGetCurrentUIRaycastResult(out _, out var raycastEndpointIndex) && raycastEndpointIndex != 0;
+                        if (isOverUI)
                         {
-                            newUISelecting = true;
-                        }
+                            if (!m_IgnoreSelectEvents && !m_IgnoreUGUISelect)
+                            {
+                                newUISelecting = m_HasCurveInteractionDataProvider
+                                    ? m_CurveInteractionDataProvider.hasValidSelect
+                                    : m_RayInteractor.TryGetUIModel(out var uiModel) && uiModel.select;
+                            }
 
-                        if (!m_IgnoreHoverEvents && !m_IgnoreUGUIHover)
-                        {
-                            newUIHovering = true;
+                            if (!m_IgnoreHoverEvents && !m_IgnoreUGUIHover)
+                            {
+                                newUIHovering = true;
+                            }
                         }
                     }
 
@@ -722,9 +739,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                     m_UISelecting = newUISelecting;
 
                     if (stateChanged)
-                    {
                         RefreshState();
-                    }
                 }
             }
             // ReSharper disable once IteratorNeverReturns -- stopped when behavior is disabled.

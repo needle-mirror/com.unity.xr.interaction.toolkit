@@ -23,6 +23,7 @@
 
 ## Interactors
 
+- [Near-Far Interactor](near-far-interactor.md)
 - [XR Direct Interactor](xr-direct-interactor.md)
 - [XR Poke Interactor](xr-poke-interactor.md)
 - [XR Ray Interactor](xr-ray-interactor.md)
@@ -31,6 +32,10 @@
 ### Locomotion Interactors
 
 - [Climb Teleport Interactor](climb-teleport-interactor.md)
+
+### Attachment
+
+- [Interaction Attach Controller](interaction-attach-controller.md)
 
 ### AR interactors (deprecated)
 
@@ -59,6 +64,7 @@
 
 ## Visuals
 
+- [Curve Visual Controller](curve-visual-controller.md)
 - [XR Interactor Line Visual](xr-interactor-line-visual.md)
 - [XR Interactor Reticle Visual](xr-interactor-reticle-visual.md)
 - [XR Tint Interactable Visual](xr-tint-interactable-visual.md)

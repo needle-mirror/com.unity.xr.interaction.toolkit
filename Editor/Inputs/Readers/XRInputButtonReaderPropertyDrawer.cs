@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
@@ -6,6 +8,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
     [CustomPropertyDrawer(typeof(XRInputButtonReader), true)]
     class XRInputButtonReaderPropertyDrawer : XRBaseInputReaderPropertyDrawer<XRInputButtonReaderPropertyDrawer.SerializedPropertyFields>
     {
+        // Corresponds to the values in InputBindings.Flags, which is internal.
+        const int k_CompositeBindingFlags = 1 << 2;
+        const int k_PartOfCompositeBindingFlags = 1 << 3;
+
         public class SerializedPropertyFields : BaseSerializedPropertyFields
         {
             public SerializedProperty inputSourceMode;
@@ -92,6 +98,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
             m_CompactPropertyControl.modeProperty = m_Fields.inputSourceMode;
             m_CompactPropertyControl.modePopupOptions = Contents.compactPopupOptions;
             m_CompactPropertyControl.properties.Clear();
+            m_CompactPropertyControl.propertiesWarningMessage.Clear();
 
             var numProperties = GetEffectiveProperties(m_Fields, out var performed, out _,
                 out var value, out _);
@@ -102,26 +109,17 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
             if (numProperties > 1)
                 m_CompactPropertyControl.properties.Add(value);
 
-            GetWarningState(out var hasWarningHelpBox, out var warningHelpBoxMessage);
-            m_CompactPropertyControl.hasWarningHelpBox = hasWarningHelpBox;
-            m_CompactPropertyControl.warningHelpBoxMessage = warningHelpBoxMessage;
+            GetEffectivePropertyWarningState(m_Fields, out var hasPropertyWarning, out var propertyWarningMessage);
+            if (hasPropertyWarning)
+                m_CompactPropertyControl.propertiesWarningMessage.Add(propertyWarningMessage);
 
-            if (m_Fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputAction ||
-                m_Fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputActionReference)
-            {
-                m_CompactPropertyControl.hasHelpTooltip = true;
-                m_CompactPropertyControl.helpTooltip = Contents.actionsHelpTooltip.text;
-            }
-            else if (m_Fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.ManualValue)
-            {
-                m_CompactPropertyControl.hasHelpTooltip = true;
-                m_CompactPropertyControl.helpTooltip = Contents.manualHelpTooltip.text;
-            }
-            else
-            {
-                m_CompactPropertyControl.hasHelpTooltip = false;
-                m_CompactPropertyControl.helpTooltip = null;
-            }
+            GetInfoHelpBoxState(m_Fields, out var hasWarningHelpBox, out var warningHelpBoxMessage);
+            m_CompactPropertyControl.hasInfoHelpBox = hasWarningHelpBox;
+            m_CompactPropertyControl.infoHelpBoxMessage = warningHelpBoxMessage;
+
+            GetHelpState(m_Fields, out var hasHelpTooltip, out var helpTooltip);
+            m_CompactPropertyControl.hasHelpTooltip = hasHelpTooltip;
+            m_CompactPropertyControl.helpTooltip = helpTooltip;
         }
 
         /// <inheritdoc/>
@@ -131,6 +129,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
             m_CompactPropertyControl.modePopupOptions = Contents.compactPopupOptions;
             m_MultilinePropertyControl.properties.Clear();
             m_MultilinePropertyControl.propertiesContent.Clear();
+            m_MultilinePropertyControl.propertiesWarningMessage.Clear();
 
             if (showEffectiveOnly)
             {
@@ -148,6 +147,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
                     m_MultilinePropertyControl.properties.Add(value);
                     m_MultilinePropertyControl.propertiesContent.Add(valueContent);
                 }
+
+                GetEffectivePropertyWarningState(m_Fields, out var hasPropertyWarning, out var propertyWarningMessage);
+                if (hasPropertyWarning)
+                    m_MultilinePropertyControl.propertiesWarningMessage.Add(propertyWarningMessage);
             }
             else
             {
@@ -166,19 +169,157 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
                 m_MultilinePropertyControl.propertiesContent.Add(Contents.objectReference);
                 m_MultilinePropertyControl.propertiesContent.Add(Contents.manualPerformed);
                 m_MultilinePropertyControl.propertiesContent.Add(Contents.manualValue);
+
+                GetDirectActionPropertyWarningState(m_Fields.inputActionPerformed, out var hasPropertyWarning, out var propertyWarningMessage);
+                m_MultilinePropertyControl.propertiesWarningMessage.Add(hasPropertyWarning ? propertyWarningMessage : null);
+                m_MultilinePropertyControl.propertiesWarningMessage.Add(null);
+                GetPropertyWarningState(m_Fields.inputActionReferencePerformed, out hasPropertyWarning, out propertyWarningMessage);
+                m_MultilinePropertyControl.propertiesWarningMessage.Add(hasPropertyWarning ? propertyWarningMessage : null);
             }
 
-            GetWarningState(out var hasWarningHelpBox, out var warningHelpBoxMessage);
-            m_MultilinePropertyControl.hasWarningHelpBox = hasWarningHelpBox;
-            m_MultilinePropertyControl.warningHelpBoxMessage = warningHelpBoxMessage;
+            GetInfoHelpBoxState(m_Fields, out var hasInfoHelpBox, out var infoHelpBoxMessage);
+            m_MultilinePropertyControl.hasInfoHelpBox = hasInfoHelpBox;
+            m_MultilinePropertyControl.infoHelpBoxMessage = infoHelpBoxMessage;
         }
 
-        void GetWarningState(out bool hasWarningHelpBox, out GUIContent warningHelpBoxMessage)
+        static void GetEffectivePropertyWarningState(SerializedPropertyFields fields, out bool hasPropertyWarning, out string propertyWarningMessage)
+        {
+            if (fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputAction)
+            {
+                GetDirectActionPropertyWarningState(fields.inputActionPerformed, out hasPropertyWarning, out propertyWarningMessage);
+                return;
+            }
+
+            if (fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputActionReference)
+            {
+                GetPropertyWarningState(fields.inputActionReferencePerformed, out hasPropertyWarning, out propertyWarningMessage);
+                return;
+            }
+
+            hasPropertyWarning = false;
+            propertyWarningMessage = null;
+        }
+
+        static void GetPropertyWarningState(SerializedProperty inputActionReferencePerformed, out bool hasPropertyWarning, out string propertyWarningMessage)
+        {
+            var actionReference = inputActionReferencePerformed.objectReferenceValue as InputActionReference;
+            if (actionReference != null && actionReference.asset != null)
+            {
+                // This is an alternative to getting the action using actionReference.action.
+                // When the user follows the warning message and adds the Press interaction to the action/binding
+                // and saves the asset, the actionReference.action will return a stale value of the Input Action
+                // until Input System invalidates the reference, such as upon entering play mode. The stale action
+                // will have the old state of the action, which will not have the Press interaction added.
+                // So in order to avoid confusion where the warning icon would still show up until some time later,
+                // and to ensure we are validating against the up to date version of the action, we have to get
+                // the action from the asset directly. We use FindProperty to get the ID of the action since it
+                // isn't available as a public property.
+                var actionReferenceSerializedObject = new SerializedObject(actionReference);
+                actionReferenceSerializedObject.UpdateIfRequiredOrScript();
+                var actionIdProperty = actionReferenceSerializedObject.FindProperty("m_ActionId");
+                var action = actionReference.asset.FindAction(new Guid(actionIdProperty.stringValue));
+
+                GetPropertyWarningState(action, out hasPropertyWarning, out propertyWarningMessage);
+                return;
+            }
+
+            hasPropertyWarning = false;
+            propertyWarningMessage = null;
+        }
+
+        static void GetDirectActionPropertyWarningState(SerializedProperty inputActionPerformed, out bool hasPropertyWarning, out string propertyWarningMessage)
+        {
+            var actionType = (InputActionType)inputActionPerformed.FindPropertyRelative("m_Type").intValue;
+            if (actionType == InputActionType.Value || actionType == InputActionType.PassThrough)
+            {
+                // Determine if any of the bindings has the default interaction.
+                if (string.IsNullOrEmpty(inputActionPerformed.FindPropertyRelative("m_Interactions").stringValue))
+                {
+                    var singletonActionBindings = inputActionPerformed.FindPropertyRelative("m_SingletonActionBindings");
+                    for (var i = 0; i < singletonActionBindings.arraySize; ++i)
+                    {
+                        var binding = CreateInputBinding(singletonActionBindings.GetArrayElementAtIndex(i));
+                        if (binding.isPartOfComposite)
+                            continue;
+
+                        if (string.IsNullOrEmpty(binding.interactions))
+                        {
+                            hasPropertyWarning = true;
+                            propertyWarningMessage = string.Format(Contents.performedActionIsNotButtonLike.text, GetDisplayString(binding), actionType);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            hasPropertyWarning = false;
+            propertyWarningMessage = null;
+        }
+
+        static void GetPropertyWarningState(InputAction action, out bool hasPropertyWarning, out string propertyWarningMessage)
+        {
+            if (action != null && (action.type == InputActionType.Value || action.type == InputActionType.PassThrough))
+            {
+                // Determine if any of the bindings has the default interaction.
+                if (string.IsNullOrEmpty(action.interactions))
+                {
+                    var bindings = action.bindings;
+                    for (var i = 0; i < bindings.Count; ++i)
+                    {
+                        var binding = bindings[i];
+                        if (binding.isPartOfComposite)
+                            continue;
+
+                        if (string.IsNullOrEmpty(binding.interactions))
+                        {
+                            hasPropertyWarning = true;
+                            propertyWarningMessage = string.Format(Contents.performedActionIsNotButtonLike.text, GetDisplayString(binding), action.type);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            hasPropertyWarning = false;
+            propertyWarningMessage = null;
+        }
+
+        static string GetDisplayString(InputBinding binding)
+        {
+            return binding.ToDisplayString(InputBinding.DisplayStringOptions.DontUseShortDisplayNames |
+                InputBinding.DisplayStringOptions.DontOmitDevice |
+                InputBinding.DisplayStringOptions.DontIncludeInteractions);
+        }
+
+        static InputBinding CreateInputBinding(SerializedProperty bindingProperty)
+        {
+            if (bindingProperty == null)
+                return default;
+
+            var flagsProperty = bindingProperty.FindPropertyRelative("m_Flags");
+            var flags = flagsProperty.intValue;
+            var binding = new InputBinding(path: bindingProperty.FindPropertyRelative("m_Path").stringValue,
+                action: bindingProperty.FindPropertyRelative("m_Action").stringValue,
+                groups: bindingProperty.FindPropertyRelative("m_Groups").stringValue,
+                processors: bindingProperty.FindPropertyRelative("m_Processors").stringValue,
+                interactions: bindingProperty.FindPropertyRelative("m_Interactions").stringValue,
+                name: bindingProperty.FindPropertyRelative("m_Name").stringValue)
+            {
+                isComposite = (flags & k_CompositeBindingFlags) == k_CompositeBindingFlags,
+                isPartOfComposite = (flags & k_PartOfCompositeBindingFlags) == k_PartOfCompositeBindingFlags,
+                id = new Guid(bindingProperty.FindPropertyRelative("m_Id").stringValue),
+            };
+
+
+            return binding;
+        }
+
+        void GetInfoHelpBoxState(SerializedPropertyFields fields, out bool hasInfoHelpBox, out GUIContent infoHelpBoxMessage)
         {
             var performedDisabled = false;
             var valueDisabled = false;
-            hasWarningHelpBox = ShouldCheckActionEnabled(m_Fields) && IsEffectiveActionNotNullAndDisabled(m_Fields, out performedDisabled, out valueDisabled);
-            warningHelpBoxMessage = Contents.GetActionDisabledText(performedDisabled, valueDisabled);
+            hasInfoHelpBox = ShouldCheckActionEnabled(fields) && IsEffectiveActionNotNullAndDisabled(fields, out performedDisabled, out valueDisabled);
+            infoHelpBoxMessage = Contents.GetActionDisabledText(performedDisabled, valueDisabled);
         }
 
         static bool ShouldCheckActionEnabled(SerializedPropertyFields fields)
@@ -207,6 +348,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
             return performedDisabled || valueDisabled;
         }
 
+        static void GetHelpState(SerializedPropertyFields fields, out bool hasHelpTooltip, out string helpTooltip)
+        {
+            if (fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputAction ||
+                fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.InputActionReference)
+            {
+                hasHelpTooltip = true;
+                helpTooltip = Contents.actionsHelpTooltip.text;
+                return;
+            }
+
+            if (fields.inputSourceMode.intValue == (int)XRInputButtonReader.InputSourceMode.ManualValue)
+            {
+                hasHelpTooltip = true;
+                helpTooltip = Contents.manualHelpTooltip.text;
+                return;
+            }
+
+            hasHelpTooltip = false;
+            helpTooltip = null;
+        }
+
         /// <inheritdoc/>
         protected override void OnPropertyChanged(SerializedProperty property)
         {
@@ -230,6 +392,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
 
         static class Contents
         {
+            public static readonly GUIContent performedActionIsNotButtonLike = EditorGUIUtility.TrTextContent("{0} is using the default interaction on a {1} type Input Action. You should consider either adding a Press interaction to the action/binding or change the type of the Input Action to Button to get button-like interaction.");
             public static readonly GUIContent performedActionIsDisabledText = EditorGUIUtility.TrTextContent("Performed action is disabled.");
             public static readonly GUIContent valueActionIsDisabledText = EditorGUIUtility.TrTextContent("Value action is disabled.");
             public static readonly GUIContent actionsAreDisabledText = EditorGUIUtility.TrTextContent("Actions are disabled.");

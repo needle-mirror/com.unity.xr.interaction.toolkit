@@ -1,3 +1,9 @@
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses in GenericXRDevice.cs to define the XRController and XRHMD classes.
+#if ENABLE_VR || UNITY_GAMECORE
+#define XR_INPUT_DEVICES_AVAILABLE
+#endif
+
 using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings.Variables;
@@ -417,12 +423,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 return;
             }
 
+#if XR_INPUT_DEVICES_AVAILABLE
             var controllerDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.LeftHand);
             if (controllerDevice != null)
             {
                 UpdateMode(controllerDevice, SetLeftMode);
                 return;
             }
+#endif
 
             if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftController, out var xrInputDevice))
             {
@@ -441,12 +449,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 return;
             }
 
+#if XR_INPUT_DEVICES_AVAILABLE
             var controllerDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.RightHand);
             if (controllerDevice != null)
             {
                 UpdateMode(controllerDevice, SetRightMode);
                 return;
             }
+#endif
 
             if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightController, out var xrInputDevice))
             {
@@ -457,6 +467,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             SetRightMode(InputMode.None);
         }
 
+#if XR_INPUT_DEVICES_AVAILABLE
         void UpdateMode(InputSystem.XR.XRController controllerDevice, Action<InputMode> setModeMethod)
         {
             if (controllerDevice == null)
@@ -476,6 +487,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 m_TrackedDeviceMonitor.AddDevice(controllerDevice);
             }
         }
+#endif
 
         void UpdateMode(InputDevice controllerDevice, Action<InputMode> setModeMethod)
         {
@@ -499,6 +511,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
         void OnDeviceChange(InputSystem.InputDevice device, InputDeviceChange change)
         {
+#if XR_INPUT_DEVICES_AVAILABLE
             if (!(device is InputSystem.XR.XRController controllerDevice))
                 return;
 
@@ -540,6 +553,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                     SetRightMode(mode);
                 }
             }
+#endif
         }
 
         void OnDeviceConnected(InputDevice device)
@@ -582,6 +596,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
         void OnControllerTrackingAcquired(TrackedDevice device)
         {
+#if XR_INPUT_DEVICES_AVAILABLE
             if (!(device is InputSystem.XR.XRController))
                 return;
 
@@ -594,6 +609,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             {
                 SetRightMode(InputMode.MotionController);
             }
+#endif
         }
 
         void OnControllerTrackingAcquired(InputDevice device)

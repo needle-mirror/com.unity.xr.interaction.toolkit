@@ -44,7 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// and instead will always attempt to select an interactable that it is hovering over.
     /// </remarks>
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Socket Interactor", 11)]
+    [AddComponentMenu("XR/Interactors/XR Socket Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]
     public partial class XRSocketInteractor : XRBaseInteractor
     {
@@ -509,9 +509,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void OnSelectExited(SelectExitEventArgs args)
         {
             base.OnSelectExited(args);
-
-            if (m_HoverSocketSnapping)
-                return;
 
             if (args.interactableObject is XRGrabInteractable grabInteractable)
                 EndSocketSnapping(grabInteractable);

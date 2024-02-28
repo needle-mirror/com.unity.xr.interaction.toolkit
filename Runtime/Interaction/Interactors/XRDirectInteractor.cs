@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// set to be a trigger to work.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Direct Interactor", 11)]
+    [AddComponentMenu("XR/Interactors/XR Direct Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
     public partial class XRDirectInteractor : XRBaseInputInteractor
     {
@@ -254,7 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    m_StayedColliders.Add(m_OverlapSphereHits[i]);
+                    m_StayedColliders.Add(m_SphereCastHits[i].collider);
                 }
             }
 

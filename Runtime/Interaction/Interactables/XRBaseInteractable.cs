@@ -1400,9 +1400,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     // Fall back to the default values for selected and hovered interactors in the case when the interactor
                     // is misconfigured and is missing the input wrapper or component reference.
                     float interactionStrength;
+#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
                     if (!interactor.forceDeprecatedInput)
                         interactionStrength = interactor.selectInput.ReadValue();
-#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
                     else if (interactor.xrController != null)
                         interactionStrength = interactor.xrController.selectInteractionState.value;
 #pragma warning restore CS0618

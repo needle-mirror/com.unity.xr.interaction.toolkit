@@ -46,6 +46,11 @@
             "define": "AR_FOUNDATION_PRESENT"
         },
         {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "6.0.0-pre.4",
+            "define": "AR_FOUNDATION_6_0_OR_NEWER"
+        },
+        {
             "name": "com.unity.xr.legacyinputhelpers",
             "expression": "2.1.10",
             "define": "XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER"

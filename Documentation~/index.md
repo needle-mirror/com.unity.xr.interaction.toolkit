@@ -68,6 +68,7 @@ If you have a question after reading the documentation, you can:
 
 |Date|Reason|
 |---|---|
+|**February 21, 2024**|Updated description of AR functionality for new input architecture. Matches package version 3.0.0.|
 |**February 10, 2023**|Updated known limitations and package dependency versions. Matches package version 2.3.0.|
 |**March 4, 2022**|Samples updated and added link to example projects. Matches package version 2.0.1.|
 |**February 10, 2022**|Documentation split into multiple pages, added known limitations, and updated for transition from pre-release to released version 2.0.0.|

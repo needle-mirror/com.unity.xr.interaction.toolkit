@@ -275,6 +275,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             set => m_RevealHideAnimationDuration = value;
         }
         
+        [Header("Selection Behavior")]
+        [SerializeField]
+        [Tooltip("Should the menu hide when a selection is made with the hand for which the menu is anchored to.")]
+        bool m_HideMenuOnSelect = true;
+        
+        /// <summary>
+        /// Should the menu hide when a selection is made with the hand for which the menu is anchored to.
+        /// </summary>
+        public bool hideMenuOnSelect
+        {
+            get => m_HideMenuOnSelect;
+            set => m_HideMenuOnSelect = value;
+        }
+        
+        [SerializeField]
+        [Tooltip("XR Interaction Manager used to determine if a hand is selecting. Will find one if None. Used for Hide Menu On Select.")]
+        XRInteractionManager m_InteractionManager;
+
+        /// <summary>
+        /// XR Interaction Manager used to determine if a hand is selecting. Will find one if <see langword="null"/>.
+        /// Used for <see cref="hideMenuOnSelect"/>.
+        /// </summary>
+        /// <seealso cref="XRInteractionManager.IsHandSelecting"/>
+        public XRInteractionManager interactionManager
+        {
+            get => m_InteractionManager;
+            set => m_InteractionManager = value;
+        }
+        
         [Header("Follow presets")]
         
         [SerializeField]
@@ -561,15 +590,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             palmAnchor = null;
             palmAnchorOffset = null;
             targetHandedness = MenuHandedness.None;
-            
+
             if (!TryGetCamera(out cameraTransform) || desiredHandedness == MenuHandedness.None)
             {
                 return false;
             }
 
             // Check if each palm meets requirements. We expect the up vector to be aligned with the world up when the users palm is facing the ground.
-            var leftMeetsRequirements = PalmMeetsRequirements(cameraTransform, m_LeftPalmAnchor, false, currentPreset);
-            var rightMeetsRequirements = PalmMeetsRequirements(cameraTransform, m_RightPalmAnchor, true, currentPreset);
+
+            bool isLeftSelecting = false;
+            bool isRightSelecting = false;
+
+            if (m_HideMenuOnSelect && TryGetInteractionManager(out var manager))
+            {
+                isLeftSelecting = manager.IsHandSelecting(InteractorHandedness.Left);
+                isRightSelecting = manager.IsHandSelecting(InteractorHandedness.Right);
+            }
+
+            var leftMeetsRequirements = !isLeftSelecting && PalmMeetsRequirements(cameraTransform, m_LeftPalmAnchor, false, currentPreset);
+            var rightMeetsRequirements = !isRightSelecting && PalmMeetsRequirements(cameraTransform, m_RightPalmAnchor, true, currentPreset);
             
             if (!leftMeetsRequirements && !rightMeetsRequirements)
             {
@@ -633,6 +672,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 return false;
             }
 
+            return false;
+        }
+        
+        bool TryGetInteractionManager(out XRInteractionManager manager)
+        {
+            if (m_InteractionManager != null)
+            {
+                manager = m_InteractionManager;
+                return true;
+            }
+
+            if (ComponentLocatorUtility<XRInteractionManager>.TryFindComponent(out m_InteractionManager))
+            {
+                manager = m_InteractionManager;
+                return true;
+            }
+
+            manager = null;
             return false;
         }
 

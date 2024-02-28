@@ -60,7 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// such as the select input, which may not be the same as the physical state of the input.
         /// </summary>
         /// <seealso cref="InputTriggerType"/>
-        public class LogicalInputState
+        public partial class LogicalInputState
         {
             /// <summary>
             /// Whether the logical input state is currently active.
@@ -103,12 +103,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Read whether the button stopped performing this frame, which typically means whether the button stopped being pressed during this frame.
             /// This is typically only true for one single frame.
             /// </summary>
-            public bool wasUnperformedThisFrame { get; private set; }
+            public bool wasCompletedThisFrame { get; private set; }
 
             bool m_HasSelection;
 
             float m_TimeAtPerformed;
-            float m_TimeAtUnperformed;
+            float m_TimeAtCompleted;
 
             bool m_ToggleActive;
             bool m_ToggleDeactivatedThisFrame;
@@ -126,14 +126,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 isPerformed = performed;
                 wasPerformedThisFrame = performedThisFrame;
-                wasUnperformedThisFrame = prevPerformed && !performed;
+                wasCompletedThisFrame = prevPerformed && !performed;
                 m_HasSelection = hasSelection;
 
                 if (wasPerformedThisFrame)
                     m_TimeAtPerformed = realtime;
 
-                if (wasUnperformedThisFrame)
-                    m_TimeAtUnperformed = realtime;
+                if (wasCompletedThisFrame)
+                    m_TimeAtCompleted = realtime;
 
                 m_ToggleDeactivatedThisFrame = false;
                 if (mode == InputTriggerType.Toggle || mode == InputTriggerType.Sticky)
@@ -145,7 +145,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         m_WaitingForDeactivate = true;
                     }
 
-                    if (wasUnperformedThisFrame)
+                    if (wasCompletedThisFrame)
                         m_WaitingForDeactivate = false;
                 }
 
@@ -175,7 +175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         break;
 
                     case InputTriggerType.StateChange:
-                        active = wasPerformedThisFrame || (m_HasSelection && !wasUnperformedThisFrame);
+                        active = wasPerformedThisFrame || (m_HasSelection && !wasCompletedThisFrame);
                         break;
 
                     case InputTriggerType.Toggle:
@@ -191,20 +191,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         break;
                 }
             }
-        }
-
-        [SerializeField]
-        bool m_ForceDeprecatedInput;
-
-        /// <summary>
-        /// Force the use of the deprecated input path where the input values are obtained through the <see cref="xrController"/>.
-        /// This is only used for backwards compatibility and will be eventually removed in a future version.
-        /// The recommended value is <see langword="false"/>.
-        /// </summary>
-        public bool forceDeprecatedInput
-        {
-            get => m_ForceDeprecatedInput;
-            set => m_ForceDeprecatedInput = value;
         }
 
         [SerializeField]
@@ -326,7 +312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 if (m_AllowActivate && (hasSelection || m_AllowHoveredActivate && hasHover))
                 {
-                    return m_LogicalActivateState.wasUnperformedThisFrame;
+                    return m_LogicalActivateState.wasCompletedThisFrame;
                 }
 
                 return false;
@@ -387,10 +373,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 #pragma warning disable CS0618 // Type or member is obsolete -- Find reference for backwards compatibility
             xrController = gameObject.GetComponentInParent<XRBaseController>(true);
-#pragma warning restore CS0618
 
-            if (m_HideControllerOnSelect && !m_ForceDeprecatedInput)
-                Debug.LogWarning("Hide Controller On Select is deprecated and being used by this interactor.", this);
+            if (m_HideControllerOnSelect && m_Controller == null)
+                Debug.LogWarning("Hide Controller On Select is deprecated and being used by this interactor. It is only functional if a deprecated XR Controller component is added to this GameObject or a parent GameObject. Use the Select Entered and Select Exited events to hide the controller instead.", this);
+#pragma warning restore CS0618
 
             // Migrate deprecated Audio Events
             if (m_PlayAudioClipOnSelectEntered && m_AudioClipForOnSelectEntered != null ||
@@ -423,6 +409,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
             base.OnEnable();
             buttonReaders.ForEach(reader => reader?.EnableDirectActionIfModeUsed());
             valueReaders.ForEach(reader => reader?.EnableDirectActionIfModeUsed());
+
+            // Warn if using deprecated input path and the input readers are set up to be used since they would actually be ignored
+            WarnMixedInputConfiguration();
         }
 
         /// <inheritdoc />
@@ -440,9 +429,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                if (m_ForceDeprecatedInput)
-                {
 #pragma warning disable CS0618 // Type or member is obsolete -- Use deprecated input path for backwards compatibility
+                if (forceDeprecatedInput)
+                {
                     if (m_Controller != null)
                     {
                         var selectInteractionState = m_Controller.selectInteractionState;
@@ -451,8 +440,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         var activateInteractionState = m_Controller.activateInteractionState;
                         m_LogicalActivateState.UpdateInput(activateInteractionState.active, activateInteractionState.activatedThisFrame, hasSelection);
                     }
-#pragma warning restore CS0618
                 }
+#pragma warning restore CS0618
                 else
                 {
                     m_LogicalSelectState.UpdateInput(m_SelectInput.ReadIsPerformed(), m_SelectInput.ReadWasPerformedThisFrame(), hasSelection);

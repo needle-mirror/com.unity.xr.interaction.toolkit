@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             get => m_Target;
             set => m_Target = value;
         }
-        
+
         [SerializeField]
         [RequireInterface(typeof(IXRRayProvider))]
         [Tooltip("Optional - When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.")]
@@ -135,52 +135,91 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         /// <param name="toStabilize">The Transform to be stabilized.</param>
         /// <param name="target">The target Transform to stabilize against.</param>
-        /// <param name="aimTarget">Provides the ray endpoint for rotation calculations (optional).</param>
         /// <param name="positionStabilization">Factor for stabilizing position (larger values result in quicker stabilization).</param>
         /// <param name="angleStabilization">Factor for stabilizing angle (larger values result in quicker stabilization).</param>
         /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
         /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Defaults to false.</param>
         /// <remarks>
-        /// This method adjusts the position and rotation of 'toStabilize' Transform to make it gradually align with the 'target' Transform. 
-        /// If 'aimTarget' is provided, it also considers the endpoint of the ray for more precise rotation stabilization.
-        /// The 'positionStabilization' and 'angleStabilization' parameters control the speed of stabilization.
-        /// If 'useLocalSpace' is true, the method operates in the local space of the 'toStabilize' Transform.
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
+        /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
+        /// </remarks>
+        public static void ApplyStabilization(ref Transform toStabilize, in Transform target, float positionStabilization, float angleStabilization, float deltaTime, bool useLocalSpace = false)
+        {
+            CalculatePoses(toStabilize, target, useLocalSpace, out var currentPose, out var targetPose);
+            var localScale = CalculateScaleFactor(toStabilize, useLocalSpace);
+
+            ProcessStabilizationWithoutAimTarget(currentPose, targetPose, positionStabilization, angleStabilization, deltaTime, localScale, toStabilize, useLocalSpace);
+        }
+
+        /// <summary>
+        /// Stabilizes the position and rotation of a Transform relative to a target Transform.
+        /// </summary>
+        /// <param name="toStabilize">The Transform to be stabilized.</param>
+        /// <param name="target">The target Transform to stabilize against.</param>
+        /// <param name="targetEndpoint">Provides the ray endpoint for rotation calculations. If using local space this value should be in local space relative to the other transforms. (optional).</param>
+        /// <param name="positionStabilization">Factor for stabilizing position (larger values result in quicker stabilization).</param>
+        /// <param name="angleStabilization">Factor for stabilizing angle (larger values result in quicker stabilization).</param>
+        /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
+        /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Defaults to false.</param>
+        /// <remarks>
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
+        /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
+        /// </remarks>
+        public static void ApplyStabilization(ref Transform toStabilize, in Transform target, in float3 targetEndpoint, float positionStabilization, float angleStabilization, float deltaTime, bool useLocalSpace = false)
+        {
+            CalculatePoses(toStabilize, target, useLocalSpace, out var currentPose, out var targetPose);
+            var localScale = CalculateScaleFactor(toStabilize, useLocalSpace);
+
+            ProcessStabilization(currentPose, targetPose, targetEndpoint, positionStabilization, angleStabilization, deltaTime, localScale, toStabilize, useLocalSpace);
+        }
+
+        /// <summary>
+        /// Stabilizes the position and rotation of a Transform relative to a target Transform.
+        /// </summary>
+        /// <param name="toStabilize">The Transform to be stabilized.</param>
+        /// <param name="target">The target Transform to stabilize against.</param>
+        /// <param name="aimTarget">Provides the ray endpoint for rotation calculations (optional).</param>
+        /// <param name="positionStabilization">Factor for stabilizing position (larger values result in quicker stabilization).</param>
+        /// <param name="angleStabilization">Factor for stabilizing angle (larger values result in quicker stabilization).</param>
+        /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
+        /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Ignored if <paramref name="aimTarget"/> is not null as it only provides world space data. Defaults to false.</param>
+        /// <remarks>
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// If <paramref name="aimTarget"/> is provided, it also considers the endpoint of the ray for more precise rotation stabilization.
+        /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
+        /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
         /// </remarks>
         public static void ApplyStabilization(ref Transform toStabilize, in Transform target, in IXRRayProvider aimTarget, float positionStabilization, float angleStabilization, float deltaTime, bool useLocalSpace = false)
         {
-            var currentPose = useLocalSpace ? toStabilize.GetLocalPose() : toStabilize.GetWorldPose();
-            var targetPose = useLocalSpace ? target.GetLocalPose() : target.GetWorldPose();
+            if (aimTarget == null)
+                ApplyStabilization(ref toStabilize, target, positionStabilization, angleStabilization, deltaTime, useLocalSpace);
+            else
+                // Ignoring argument and forcing world space since the target endpoint is in world space
+                ApplyStabilization(ref toStabilize, target, aimTarget.rayEndPoint, positionStabilization, angleStabilization, deltaTime, false);
+        }
+        
+        static void ProcessStabilization(Pose currentPose, Pose targetPose, Vector3 targetEndpoint, float positionStabilization, float angleStabilization, float deltaTime, float localScale, Transform toStabilize, bool useLocalSpace)
+        {
             var currentPosition = (float3)currentPose.position;
             var currentRotation = (quaternion)currentPose.rotation;
             var targetPosition = (float3)targetPose.position;
             var targetRotation = (quaternion)targetPose.rotation;
 
-            // Processing in local space means we want to scale the position stabilization to keep it normalized
-            var localScale = useLocalSpace ? toStabilize.lossyScale.x : 1f;
-            localScale = Mathf.Abs(localScale) < 0.01f ? 0.01f : localScale;
             var invScale = 1f / localScale;
 
-            float3 resultPosition;
-            quaternion resultRotation;
-            
-            if (aimTarget == null)
-            {
-                StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, deltaTime, positionStabilization * localScale, angleStabilization,
-                    out resultPosition, out resultRotation);
-            }
-            else
-            {
-                // Calculate the stabilized position
-                StabilizePosition(currentPosition, targetPosition, deltaTime, positionStabilization * localScale, out resultPosition);
+            // Calculate the stabilized position
+            StabilizePosition(currentPosition, targetPosition, deltaTime, positionStabilization * localScale, out float3 resultPosition);
 
-                // Use that to come up with the rotation that would put the endpoint of the ray at it's last position
-                // Stabilize rotation to whatever value is closer - keeping the endpoint stable or the ray itself stable
-                CalculateRotationParams(currentPosition, resultPosition, toStabilize.forward, toStabilize.up, aimTarget.rayEndPoint, invScale, angleStabilization, 
-                    out var antiRotation, out var scaleFactor, out var targetAngleScale);
+            // Calculate rotation parameters for optimal rotation stabilization
+            CalculateRotationParams(currentPosition, resultPosition, toStabilize.forward, toStabilize.up, targetEndpoint, invScale, angleStabilization,
+                out var antiRotation, out var scaleFactor, out var targetAngleScale);
 
-                StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, deltaTime, angleStabilization, targetAngleScale, scaleFactor, out resultRotation);
-            }
+            // Stabilize the rotation
+            StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, deltaTime, angleStabilization, targetAngleScale, scaleFactor, out quaternion resultRotation);
 
+            // Set the result
             var resultPose = new Pose(resultPosition, resultRotation);
             if (useLocalSpace)
                 toStabilize.SetLocalPose(resultPose);
@@ -188,35 +227,85 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 toStabilize.SetWorldPose(resultPose);
         }
         
+        static void ProcessStabilizationWithoutAimTarget(Pose currentPose, Pose targetPose, float positionStabilization, float angleStabilization, float deltaTime, float localScale, Transform toStabilize, bool useLocalSpace)
+        {
+            var currentPosition = (float3)currentPose.position;
+            var currentRotation = (quaternion)currentPose.rotation;
+            var targetPosition = (float3)targetPose.position;
+            var targetRotation = (quaternion)targetPose.rotation;
+
+            // Using StabilizeTransform to calculate the stabilized position and rotation
+            StabilizeTransform(currentPosition, currentRotation, targetPosition, targetRotation, deltaTime, positionStabilization * localScale, angleStabilization, out float3 resultPosition, out quaternion resultRotation);
+
+            // Set the result
+            var resultPose = new Pose(resultPosition, resultRotation);
+            if (useLocalSpace)
+                toStabilize.SetLocalPose(resultPose);
+            else
+                toStabilize.SetWorldPose(resultPose);
+        }
+        
+        static void CalculatePoses(Transform toStabilize, Transform target, bool useLocalSpace, out Pose currentPose, out Pose targetPose)
+        {
+            currentPose = useLocalSpace ? toStabilize.GetLocalPose() : toStabilize.GetWorldPose();
+            targetPose = useLocalSpace ? target.GetLocalPose() : target.GetWorldPose();
+        }
+
+        static float CalculateScaleFactor(Transform toStabilize, bool useLocalSpace)
+        {
+            var localScale = useLocalSpace ? toStabilize.lossyScale.x : 1f;
+            return Mathf.Abs(localScale) < 0.01f ? 0.01f : localScale;
+        }
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
         static void StabilizeTransform(in float3 startPos, in quaternion startRot, in float3 targetPos, in quaternion targetRot, float deltaTime, float positionStabilization, float angleStabilization, out float3 resultPos, out quaternion resultRot)
         {
             // Calculate the stabilized position
-            var positionOffset = targetPos - startPos;
-            var positionDistance = math.length(positionOffset);
-            var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
+            if (positionStabilization > 0f)
+            {
+                var positionOffset = targetPos - startPos;
+                var positionDistance = math.length(positionOffset);
+                var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
+                resultPos = math.lerp(startPos, targetPos, positionLerp);
+            }
+            else
+            {
+                resultPos = targetPos;
+            }
 
             // Calculate the stabilized rotation
-            BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
-            var rotationLerp = CalculateStabilizedLerp(rotationOffset / angleStabilization, deltaTime);
-
-            resultPos = math.lerp(startPos, targetPos, positionLerp);
-            resultRot = math.slerp(startRot, targetRot, rotationLerp);
+            if (angleStabilization > 0f)
+            {
+                BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
+                var rotationLerp = CalculateStabilizedLerp(rotationOffset / angleStabilization, deltaTime);
+                resultRot = math.slerp(startRot, targetRot, rotationLerp);
+            }
+            else
+            {
+                resultRot = targetRot;
+            }
         }
 
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizePosition(in float3 startPos,in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
+        static void StabilizePosition(in float3 startPos, in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
         {
-            // Calculate the stabilized position
-            var positionOffset = targetPos - startPos;
-            var positionDistance = math.length(positionOffset);
-            var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
-            
-            resultPos = math.lerp(startPos, targetPos, positionLerp);
+            if (positionStabilization > 0f)
+            {
+                // Calculate the stabilized position
+                var positionOffset = targetPos - startPos;
+                var positionDistance = math.length(positionOffset);
+                var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
+
+                resultPos = math.lerp(startPos, targetPos, positionLerp);
+            }
+            else
+            {
+                resultPos = targetPos;
+            }
         }
 
 #if BURST_PRESENT
@@ -224,22 +313,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #endif
         static void StabilizeOptimalRotation(in quaternion startRot, in quaternion targetRot, in quaternion alternateStartRot, float deltaTime, float angleStabilization, float alternateStabilization, float scaleFactor, out quaternion resultRot)
         {
-            // Calculate the stabilized rotation
-            BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
-            var rotationLerp = rotationOffset / angleStabilization;
-
-            BurstMathUtility.Angle(targetRot, alternateStartRot, out var alternateRotationOffset);
-            var alternateRotationLerp = alternateRotationOffset / alternateStabilization;
-
-            if (alternateRotationLerp < rotationLerp)
+            if (angleStabilization > 0f)
             {
-                alternateRotationLerp = CalculateStabilizedLerp(alternateRotationLerp, deltaTime * scaleFactor);
-                resultRot = math.slerp(alternateStartRot, targetRot, alternateRotationLerp);
+                // Calculate the stabilized rotation
+                BurstMathUtility.Angle(targetRot, startRot, out var rotationOffset);
+                var rotationLerp = rotationOffset / angleStabilization;
+
+                BurstMathUtility.Angle(targetRot, alternateStartRot, out var alternateRotationOffset);
+                var alternateRotationLerp = alternateRotationOffset / alternateStabilization;
+
+                if (alternateRotationLerp < rotationLerp)
+                {
+                    alternateRotationLerp = CalculateStabilizedLerp(alternateRotationLerp, deltaTime * scaleFactor);
+                    resultRot = math.slerp(alternateStartRot, targetRot, alternateRotationLerp);
+                }
+                else
+                {
+                    rotationLerp = CalculateStabilizedLerp(rotationLerp, deltaTime * scaleFactor);
+                    resultRot = math.slerp(startRot, targetRot, rotationLerp);
+                }
             }
             else
             {
-                rotationLerp = CalculateStabilizedLerp(rotationLerp, deltaTime * scaleFactor);
-                resultRot = math.slerp(startRot, targetRot, rotationLerp);
+                resultRot = targetRot;
             }
         }
 
@@ -306,7 +402,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         [BurstCompile]
 #endif
         static void CalculateRotationParams(in float3 currentPosition, in float3 resultPosition, in float3 forward, in float3 up, in float3 rayEnd, float invScale, float angleStabilization,
-                                                out quaternion antiRotation, out float scaleFactor, out float targetAngleScale)
+            out quaternion antiRotation, out float scaleFactor, out float targetAngleScale)
         {
             var rayLength = math.length(rayEnd - currentPosition);
             var linearRayEnd = currentPosition + forward * rayLength;
@@ -317,4 +413,3 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
     }
 }
-

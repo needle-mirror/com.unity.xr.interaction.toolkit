@@ -1,12 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.XR.CoreUtils;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -47,6 +51,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             GameObject managerGO = new GameObject("Interaction Manager");
             XRInteractionManager manager = managerGO.AddComponent<XRInteractionManager>();
             return manager;
+        }
+        
+        internal static NearFarInteractor CreateNearFarInteractor()
+        {
+            GameObject interactorGO = new GameObject("Near-Far Interactor");
+            
+            NearFarInteractor interactor = interactorGO.AddComponent<NearFarInteractor>();
+            var attachController = interactorGO.GetComponent<InteractionAttachController>();
+            
+            // Distance based velocity scaling is disabled because it is not supported without an XR Origin
+            attachController.useDistanceBasedVelocityScaling = false;
+            
+            return interactor;
+        }
+
+        internal static NearFarInteractor CreateNearFarInteractorWithXROrigin(out Camera camera)
+        {
+            var xrOrigin = CreateXROrigin();
+            camera = xrOrigin.Camera;
+
+            var leftTesthand = new GameObject("Left Hand Test Controller");
+            leftTesthand.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform, false);
+
+            GameObject interactorGO = new GameObject("Near-Far Interactor");
+            interactorGO.transform.SetParent(leftTesthand.transform, false);
+
+            NearFarInteractor interactor = interactorGO.AddComponent<NearFarInteractor>();
+            interactor.handedness = InteractorHandedness.Left;
+
+            return interactor;
         }
 
         internal static XRDirectInteractor CreateDirectInteractor()
@@ -182,6 +216,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRInteractableSnapVolume snapVolume = snapVolumeGO.AddComponent<XRInteractableSnapVolume>();
             snapVolume.snapCollider = boxCollider;
             return snapVolume;
+        }
+        
+        internal static GameObject CreateUICanvas(Camera worldCamera)
+        {
+            var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
+            var canvas = canvasGo.GetComponent<Canvas>();
+            canvas.worldCamera = worldCamera;
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            // Set up a GameObject hierarchy that we send events to. In a real setup,
+            // this would be a hierarchy involving UI components.
+            var parentGameObject = new GameObject("Parent");
+            var parentTransform = parentGameObject.AddComponent<RectTransform>();
+
+            var leftChildGameObject = new GameObject("Left Child");
+            var leftChildTransform = leftChildGameObject.AddComponent<RectTransform>();
+            leftChildGameObject.AddComponent<Image>();
+            leftChildGameObject.AddComponent<Selectable>();
+
+            var rightChildGameObject = new GameObject("Right Child");
+            var rightChildTransform = rightChildGameObject.AddComponent<RectTransform>();
+            rightChildGameObject.AddComponent<Image>();
+            rightChildGameObject.AddComponent<Selectable>();
+
+            parentTransform.SetParent(canvas.transform, false);
+            leftChildTransform.SetParent(parentTransform, false);
+            rightChildTransform.SetParent(parentTransform, false);
+
+            // Parent occupies full space of canvas.
+            parentTransform.sizeDelta = new Vector2(640, 480);
+
+            // Left child occupies left half of parent.
+            const int quarterSize = 640 / 4;
+            leftChildTransform.anchoredPosition = new Vector2(-quarterSize, 0);
+            leftChildTransform.sizeDelta = new Vector2(320, 480);
+
+            // Right child occupies right half of parent.
+            rightChildTransform.anchoredPosition = new Vector2(quarterSize, 0);
+            rightChildTransform.sizeDelta = new Vector2(320, 480);
+
+            return canvasGo;
         }
 
         internal static XRSimpleInteractable CreateMultiSelectableSimpleInteractable()
@@ -427,6 +502,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             results.Clear();
             callbackExecution.Add(TargetFilterCallback.Process);
             results.AddRange(targets);
+        }
+    }
+    
+    class MockInversionTargetFilter : IXRTargetFilter
+    {
+        public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
+
+        public bool canProcess { get; set; } = true;
+
+        public void Link(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Link);
+        }
+
+        public void Unlink(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Unlink);
+        }
+
+        public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
+        {
+            results.Clear();
+            callbackExecution.Add(TargetFilterCallback.Process);
+            for(int i = targets.Count - 1; i >= 0; i--)
+            {
+                results.Add(targets[i]);
+            }
         }
     }
 

@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRBaseInteractable.allowGazeInteraction"/>
     /// <seealso cref="XRBaseInteractable.allowGazeSelect"/>
     /// <seealso cref="XRBaseInteractable.allowGazeAssistance"/>
-    [AddComponentMenu("XR/XR Gaze Interactor", 11)]
+    [AddComponentMenu("XR/Interactors/XR Gaze Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGazeInteractor)]
     public class XRGazeInteractor : XRRayInteractor
     {

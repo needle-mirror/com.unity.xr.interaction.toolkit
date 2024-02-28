@@ -9,6 +9,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -28,7 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// that update the current set of valid targets for this interactor.
     /// </summary>
     [DisallowMultipleComponent]
-    [AddComponentMenu("XR/XR Ray Interactor", 11)]
+    [AddComponentMenu("XR/Interactors/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 #if AR_FOUNDATION_PRESENT
     public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider, IARInteractor
@@ -562,7 +563,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        bool m_UseForceGrab = true;
+        bool m_UseForceGrab;
         /// <summary>
         /// Force grab moves the object to your hand rather than interacting with it at a distance.
         /// </summary>
@@ -658,7 +659,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool enableARRaycasting
         {
             get => m_EnableARRaycasting;
-            set => m_EnableARRaycasting = value;
+            set 
+            {
+                m_EnableARRaycasting = value;
+#if AR_FOUNDATION_PRESENT
+                if (Application.isPlaying && isActiveAndEnabled && m_EnableARRaycasting)
+                    FindCreateARRaycastManager();
+#endif
+            }
         }
 
         [SerializeField]
@@ -1021,6 +1029,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_HasReferenceFrame = m_ReferenceFrame != null;
             m_SampleFrequency = SanitizeSampleFrequency(m_SampleFrequency);
             m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+
+#if AR_FOUNDATION_PRESENT
+            if (Application.isPlaying && isActiveAndEnabled && m_EnableARRaycasting)
+                FindCreateARRaycastManager();
+#endif
         }
 
         /// <inheritdoc />
@@ -1046,7 +1059,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             CreateRayOrigin();
 
 #if AR_FOUNDATION_PRESENT
-            FindCreateARRaycastManager();
+            if (m_EnableARRaycasting)
+                FindCreateARRaycastManager();
 #endif
         }
 
@@ -1057,6 +1071,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+            
+#if AR_FOUNDATION_PRESENT
+            if (m_EnableARRaycasting)
+                FindCreateARRaycastManager();
+#endif
         }
 
         /// <inheritdoc />
@@ -1523,12 +1542,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var originTransform = effectiveRayOrigin;
 
             bool select;
+#pragma warning disable CS0618 // Type or member is obsolete
             if (forceDeprecatedInput)
             {
-#pragma warning disable CS0618 // Type or member is obsolete
                 select = isUISelectActive;
-#pragma warning restore CS0618
             }
+#pragma warning restore CS0618
             else
             {
                 if (m_HoverToSelect && m_HoverUISelectActive)
@@ -1538,12 +1557,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             Vector2 scrollDelta;
+#pragma warning disable CS0618 // Type or member is obsolete
             if (forceDeprecatedInput)
             {
-#pragma warning disable CS0618 // Type or member is obsolete
                 scrollDelta = uiScrollValue;
-#pragma warning restore CS0618
             }
+#pragma warning restore CS0618
             else
             {
                 scrollDelta = m_UIScrollInput.ReadValue();
@@ -2006,14 +2025,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // Update the pose of the Attach Transform
                 if (m_ManipulateAttachTransform && hasSelection)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete -- Use old methods for manipulation
                     if (forceDeprecatedInput)
                     {
-#pragma warning disable CS0618 // Type or member is obsolete -- Use old methods for manipulation
                         ProcessManipulationInputDeviceBasedController();
                         ProcessManipulationInputActionBasedController();
                         ProcessManipulationInputScreenSpaceController();
-#pragma warning restore CS0618
                     }
+#pragma warning restore CS0618
                     else
                     {
                         ProcessManipulationInput();
@@ -2503,12 +2522,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable)))
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (forceDeprecatedInput)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
                     return !m_IsScreenSpaceController || m_ScreenSpaceController.currentControllerState.isTracked;
-#pragma warning restore CS0618
                 }
+#pragma warning restore CS0618
 
                 return true;
             }
@@ -2556,8 +2575,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_PassedTimeToAutoDeselect = false;
             }
 
-            if (!m_UseForceGrab && interactablesSelected.Count == 1 && TryGetCurrent3DRaycastHit(out var raycastHit))
-                attachTransform.position = raycastHit.point;
+            if (interactablesSelected.Count == 1)
+            {
+                var moveToEndPoint = !m_UseForceGrab;
+
+                // Interactable can override
+                if (args.interactableObject is IFarAttachProvider farAttachProvider &&
+                    farAttachProvider.farAttachMode != InteractableFarAttachMode.DeferToInteractor)
+                {
+                    moveToEndPoint = farAttachProvider.farAttachMode == InteractableFarAttachMode.Far;
+                }
+
+                if (moveToEndPoint && TryGetCurrent3DRaycastHit(out var raycastHit))
+                    attachTransform.position = raycastHit.point;
+            }
         }
 
         /// <inheritdoc />

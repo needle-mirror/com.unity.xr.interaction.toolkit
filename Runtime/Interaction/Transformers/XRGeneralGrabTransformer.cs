@@ -271,10 +271,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         Vector3 m_InteractorLocalGrabPoint;
         Vector3 m_ObjectLocalGrabPoint;
         IXRInteractor m_OriginalInteractor;
-        
+
         // Two handed grab start cached values
         int m_LastGrabCount;
         Vector3 m_StartHandleBar;
+        Vector3 m_StartHandleBarNormalized;
+        Quaternion m_StartHandleBarLookRotation;
+        Quaternion m_InverseStartHandleBarLookRotation;
+        Quaternion m_LastHandleBarLocalRotation;
         Vector3 m_ScaleAtGrabStart;
 
         bool m_FirstFrameSinceTwoHandedGrab;
@@ -402,7 +406,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 m_ScaleAtGrabStart = localScale;
 
                 m_StartHandleBar = interactor0Transform.InverseTransformPoint(grabAttachTransform1.position);
+                m_StartHandleBarNormalized = m_StartHandleBar.normalized;
                 
+                m_StartHandleBarLookRotation = Quaternion.LookRotation(m_StartHandleBarNormalized, BurstMathUtility.Orthogonal(m_StartHandleBarNormalized));
+                m_InverseStartHandleBarLookRotation = Quaternion.Inverse(m_StartHandleBarLookRotation);
+                m_LastHandleBarLocalRotation = m_StartHandleBarLookRotation;
+
                 m_FirstFrameSinceTwoHandedGrab = true;
             }
 
@@ -437,19 +446,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 Quaternion newRotation;
                 if (m_TwoHandedRotationMode == TwoHandedRotationMode.FirstHandDirectedTowardsSecondHand)
                 {
-                    newRotation = interactor0Transform.rotation * Quaternion.FromToRotation(m_StartHandleBar, newHandleBar);
+                    // Use the fallback axis as the 'up' direction for the LookRotation
+                    Vector3 newHandleBarNormalized = newHandleBar.normalized;
+
+                    // Use the last calculated rotation to compute a temporally coherent up vector
+                    Vector3 newUpVector = m_LastHandleBarLocalRotation * Vector3.up;
+                    
+                    Quaternion newHandleBarLocalRotation = Quaternion.LookRotation(newHandleBarNormalized, newUpVector);
+                    
+                    // Store the last handle bar rotation for the next frame
+                    m_LastHandleBarLocalRotation = newHandleBarLocalRotation;
+
+                    // Compute the rotation difference
+                    Quaternion rotationDiff = newHandleBarLocalRotation * m_InverseStartHandleBarLookRotation;
+
+                    // Update the rotation
+                    newRotation = interactor0Transform.rotation * rotationDiff;
                 }
                 else if (m_TwoHandedRotationMode == TwoHandedRotationMode.TwoHandedAverage)
                 {
                     var forward = (interactor1Transform.position - interactor0Transform.position).normalized;
-                    
+
                     var averageRight = Vector3.Slerp(interactor0Transform.right, interactor1Transform.right, 0.5f);
                     var up = Vector3.Slerp(interactor0Transform.up, interactor1Transform.up, 0.5f);
-                    
+
                     var crossUp = Vector3.Cross(forward, averageRight);
                     var angleDiff = Mathf.PingPong(Vector3.Angle(up, forward), 90f);
                     up = Vector3.Slerp(crossUp, up, angleDiff / 90f);
-                    
+
                     var crossRight = Vector3.Cross(up, forward);
                     up = Vector3.Cross(forward, crossRight);
 
