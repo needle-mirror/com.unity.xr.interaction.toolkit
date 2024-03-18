@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {

@@ -1,6 +1,7 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Utilities;
+﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// Struct used to get information back from a distance calculation between an object and a location.
@@ -8,6 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRBaseInteractable.GetDistance"/>
     /// <seealso cref="XRInteractableUtility.TryGetClosestCollider"/>
     /// <seealso cref="XRInteractableUtility.TryGetClosestPointOnCollider"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public struct DistanceInfo
     {
         /// <summary>

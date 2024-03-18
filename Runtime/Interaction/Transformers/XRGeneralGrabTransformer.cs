@@ -1,6 +1,8 @@
 using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if BURST_PRESENT
 using Unity.Burst;
@@ -663,7 +665,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool trackScale)
         {
             var interactorsCount = grabInteractable.interactorsSelecting.Count;
-            if (trackScale && interactorsCount == 1 && m_AllowOneHandedScaling && m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == ScaleMode.ScaleOverTime)
+            if (trackScale && interactorsCount == 1 && m_AllowOneHandedScaling && m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == Interactors.ScaleMode.ScaleOverTime)
             {
                 var scaleInput = m_ScaleValueProvider.scaleValue;
                 if (Mathf.Approximately(scaleInput, 0f))

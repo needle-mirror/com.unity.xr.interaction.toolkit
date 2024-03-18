@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// The option of which object's orientation in the rig Unity matches with the destination after teleporting.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum MatchOrientation
     {
         /// <summary>
@@ -36,6 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// The Teleport Request that describes the result of the teleportation action. Each Teleportation Interactable must fill out a Teleport Request
     /// for each teleport action.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public struct TeleportRequest
     {
         /// <summary>
@@ -59,6 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// This is intended to be the base class for all Teleportation Interactables. This abstracts the teleport request process for specializations of this class.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public abstract partial class BaseTeleportationInteractable : XRBaseInteractable, IXRReticleDirectionProvider
     {
         /// <summary>

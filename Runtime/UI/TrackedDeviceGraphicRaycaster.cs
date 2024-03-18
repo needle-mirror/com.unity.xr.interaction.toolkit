@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.EventSystems;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -195,22 +196,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Validate interactor graphic raycaster data and ensure there is no stale data. Checks that the tracked device
-        /// graphic raycaster associated with the interactor is active and enabled.
-        /// </summary>
-        /// <param name="interactor">Interactor to validate.</param>
-        internal static void ValidatePokeInteractionData(IUIInteractor interactor)
-        {
-            if (interactor != null && interactor.TryGetUIModel(out var uiModel) &&
-                uiModel.interactionType == UIInteractionType.Poke &&
-                s_InteractorRaycasters.TryGetValue(interactor, out var graphicRaycaster) &&
-                graphicRaycaster != null && !graphicRaycaster.isActiveAndEnabled)
-            {
-                    graphicRaycaster.EndPokeInteraction(interactor);
-            }
-        }
-
-        /// <summary>
         /// Removes interactor from poke data and calls OnHoverExited on the <see cref="XRPokeLogic"/>.
         /// </summary>
         /// <param name="interactor">Interactor to end the poke interaction.</param>
@@ -309,6 +294,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #endif
             s_PokeHoverRaycasters.Add(this, new HashSet<IUIInteractor>());
             SetupPoke();
+        }
+
+        /// <inheritdoc />
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            // Clean up any existing data of interactors hovering or selecting this disabled TrackedDeviceGraphicRaycaster 
+            using (HashSetPool<IUIInteractor>.Get(out var interactorHashSet))
+            {
+                foreach (var kvp in s_InteractorRaycasters)
+                {
+                    if (kvp.Value == this)
+                        interactorHashSet.Add(kvp.Key);
+                }
+                foreach (var interactor in s_PokeHoverRaycasters[this])
+                {
+                    interactorHashSet.Add(interactor);
+                }
+                // End poke interaction on each interactor, which calls OnHoverExited
+                foreach (var interactor in interactorHashSet)
+                {
+                    EndPokeInteraction(interactor);
+                }
+            }
         }
 
         /// <summary>

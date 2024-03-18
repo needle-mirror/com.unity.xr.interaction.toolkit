@@ -2,7 +2,7 @@
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     public partial class XRRayInteractor
     {

@@ -1,8 +1,9 @@
 ﻿using Unity.XR.CoreUtils.Datums.Editor;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Property drawer for the serializable container class that holds a <see cref="TeleportVolumeDestinationSettings"/> value or container asset reference.
@@ -10,6 +11,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// <seealso cref="TeleportVolumeDestinationSettingsDatumProperty"/>
     /// <seealso cref="DatumPropertyDrawer"/>
     [CustomPropertyDrawer(typeof(TeleportVolumeDestinationSettingsDatumProperty))]
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class TeleportVolumeDestinationSettingsDatumPropertyDrawer : DatumPropertyDrawer
     {
         /// <inheritdoc />

@@ -1,11 +1,11 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
-#if XR_HANDS_1_3_OR_NEWER
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using Unity.XR.CoreUtils.Bindings;
-using UnityEngine.XR.Hands;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
+
+#if XR_HANDS_1_3_OR_NEWER
+using UnityEngine.XR.Hands;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs

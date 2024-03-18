@@ -4,17 +4,23 @@ using System.Diagnostics;
 using Unity.Profiling;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Gaze;
+using UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// Abstract base class from which all interactable behaviors derive.
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
     /// hover, selection, and focus.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactables)]
     public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable, IXRFocusInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect

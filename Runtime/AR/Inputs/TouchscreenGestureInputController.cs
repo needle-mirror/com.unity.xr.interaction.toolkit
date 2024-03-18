@@ -1,4 +1,6 @@
-#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+// ENABLE_VR is not defined on Game Core but the assembly is available with limited features when the XR module is enabled.
+// These are the guards that Input System uses in GenericXRDevice.cs to define the XRController and XRHMD classes.
+#if ((ENABLE_VR || UNITY_GAMECORE) && AR_FOUNDATION_PRESENT) || PACKAGE_DOCS_GENERATION
 using System.Text;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.EnhancedTouch;

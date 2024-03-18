@@ -3,15 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Enum used to determine how the socket should scale the interactable.
     /// </summary>
     /// <seealso cref="XRSocketInteractor.socketScaleMode"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum SocketScaleMode
     {
         /// <summary>
@@ -43,10 +46,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// This component is not designed to use input (thus does not derive from <see cref="XRBaseInputInteractor"/>)
     /// and instead will always attempt to select an interactable that it is hovering over.
     /// </remarks>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Socket Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRSocketInteractor)]
-    public partial class XRSocketInteractor : XRBaseInteractor
+    public class XRSocketInteractor : XRBaseInteractor
     {
         [SerializeField]
         bool m_ShowInteractableHoverMeshes = true;

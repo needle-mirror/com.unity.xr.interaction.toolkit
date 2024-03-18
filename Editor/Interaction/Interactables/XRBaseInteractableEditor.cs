@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// Custom editor for an <see cref="XRBaseInteractable"/>.
     /// </summary>
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     [CustomEditor(typeof(XRBaseInteractable), true), CanEditMultipleObjects]
     public partial class XRBaseInteractableEditor : BaseInteractionEditor
     {

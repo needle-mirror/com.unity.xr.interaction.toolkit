@@ -1,11 +1,14 @@
-﻿using UnityEngine.XR.Interaction.Toolkit;
+﻿using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Custom editor for a <see cref="GazeTeleportationAnchorFilter"/>.
     /// </summary>
     [CustomEditor(typeof(GazeTeleportationAnchorFilter), true), CanEditMultipleObjects]
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class GazeTeleportationAnchorFilterEditor : Editor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="GazeTeleportationAnchorFilter.maxGazeAngle"/>.</summary>

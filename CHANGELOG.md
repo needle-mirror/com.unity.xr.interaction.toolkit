@@ -6,6 +6,71 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.0] - 2024-03-18
+
+### Added
+- Added many improvements to the samples, mainly focusing on the material usage and better interaction feedback.
+  - Added `MaterialPipelineHandler` scriptable object to Starter Assets sample which allows the materials used in the sample to automatically adjust for the Built-in Render Pipeline or the Universal Render Pipeline (URP).
+  - Added `ControllerAnimator` script to Starter Assets sample to animate the thumbstick, trigger, and grip of the controller model.
+  - Added Far Grab Interactable Objects station to `DemoScene` in Starter Assets sample to demonstrate use of Far Attach Mode and Attach Transform setups.
+
+### Changed
+- Changed `IXRInputButtonReader` introduced in version 3.0.0-pre.1 to add a new `ReadWasCompletedThisFrame` method. This allows callers to determine if the button was released that frame without needing to track the status of input every frame.
+  - Changed `XRInputButtonReader` introduced in version 3.0.0-pre.1 by changing the method signature of `QueueManualState` to add a `bool` parameter for whether it should queue as completed.
+  - Updated `ValueDerivedButtonReader` script in the Hands Interaction Demo sample for the new signature.
+- Changed `com.unity.inputsystem` dependency from 1.7.0 to 1.8.1.
+- Changed namespace of interaction attachment classes and interfaces:
+  - `UnityEngine.XR.Interaction.Toolkit.Interaction` moved to `UnityEngine.XR.Interaction.Toolkit.Attachment`:
+    - `AttachPointVelocityTracker`, `IAttachPointVelocityProvider`, `AttachPointVelocityProviderExtensions`, `IAttachPointVelocityTracker`
+- Changed namespace of various interactable classes, enums, structs, and interfaces:
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Interactables`:
+    - `DistanceInfo`, `IXRActivateInteractable`, `IXRFocusInteractable`, `XRFocusInteractableExtensions`, `InteractableFocusMode`, `IXRHoverInteractable`, `XRHoverInteractableExtensions`, `IXRInteractable`, `IXRInteractionStrengthInteractable`, `IXRSelectInteractable`, `XRSelectInteractableExtensions`, `InteractableSelectMode`, `XRBaseInteractable`, `XRGrabInteractable`, `XRInteractableSnapVolume`, `XRSimpleInteractable`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals`:
+    - `IXRInteractableCustomReticle`, `XRTintInteractableVisual`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Interactables`:
+    - `XRBaseInteractableEditor`, `GrabTransformersReorderableList`, `XRGrabInteractableEditor`, `XRInteractableSnapVolumeEditor`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Filtering`:
+    - `IXRFilterList`, `IMultiPokeStateDataProvider`, `IPokeStateDataProvider`
+- Changed namespace of various interactor classes, enums, structs, and interfaces:
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Interactors`:
+    - `InteractorHandedness`, `IXRActivateInteractor`, `IXRHoverInteractor`, `XRHoverInteractorExtensions`, `IXRInteractionStrengthInteractor`, `IXRInteractor`, `XRInteractorExtensions`, `IXRRayProvider`, `ScaleMode`, `IXRScaleValueProvider`, `IXRSelectInteractor`, `XRSelectInteractorExtensions`, `TargetPriorityMode`, `IXRTargetPriorityInteractor`, `XRBaseInteractor`, `XRDirectInteractor`, `XRGazeInteractor`, `XRPokeInteractor`, `XRRayInteractor`, `SocketScaleMode`, `XRSocketInteractor`, `XRInteractionGroup`, `IXRInteractionOverrideGroup`, `IXRInteractionGroup`, `IXRGroupMember`, `XRGroupMemberExtensions`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Interactors`:
+    - `XRBaseInputInteractorEditor`, `XRBaseInteractorEditor`, `XRDirectInteractorEditor`, `XRGazeInteractorEditor`, `XRInteractionGroupEditor`, `XRRayInteractorEditor`, `XRSocketInteractorEditor`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals`:
+    - `ILineRenderable`, `IAdvancedLineRenderable`, `XRInteractorLineVisual`, `IXRReticleDirectionProvider`, `IXRCustomReticleProvider`, `XRInteractorReticleVisual`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals`:
+    - `XRInteractorLineVisualEditor`, `XRInteractorReticleVisualEditor`
+- Changed namespace of various gaze classes, and interfaces:
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Gaze`:
+    - `IXRAimAssist`, `IXROverridesGazeAutoSelect`, `XRGazeAssistance`
+- Changed namespace of various locomotion classes, structs, enums, and interfaces:
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion`:
+    - `LocomotionProvider`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing`:
+    - `ClimbInteractable`, `ClimbProvider`, `ClimbSettings`, `ClimbSettingsDatum`, `ClimbSettingsDatumProperty`, `ClimbTeleportInteractor`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement`:
+    - `ConstrainedMoveProvider`, `ContinuousMoveProvider`, `GrabMoveProvider`, `TwoHandedGrabMoveProvider`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation`:
+    - `MatchOrientation`, `TeleportRequest`, `FurthestTeleportationAnchorFilter`, `GazeTeleportationAnchorFilter`, `ITeleportationVolumeAnchorFilter`, `TeleportationAnchor`, `TeleportationArea`, `TeleportationMultiAnchorVolume`, `TeleportationProvider`, `TeleportingEvent`, `TeleportingEventArgs`, `TeleportVolumeDestinationSettings`, `TeleportVolumeDestinationSettingsDatum`, `TeleportVolumeDestinationSettingsDatumProperty`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning`:
+    - `ContinuousTurnProvider`, `SnapTurnProvider`
+  - `UnityEngine.XR.Interaction.Toolkit` moved to `UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort`:
+    - `VignetteParameters`, `EaseState`, `ITunnelingVignetteProvider`, `LocomotionVignetteProvider`, `TunnelingVignetteController`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Locomotion.Climbing`:
+    - `ClimbInteractableEditor`, `ClimbSettingsDatumPropertyDrawer`, `ClimbSettingsPropertyDrawer`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement`:
+    - `GrabMoveProviderEditor`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation`:
+    - `BaseTeleportationInteractableEditor`, `GazeTeleportationAnchorFilterEditor`, `TeleportationAnchorEditor`, `TeleportationAreaEditor`, `TeleportVolumeDestinationSettingsDatumPropertyDrawer`, `TeleportVolumeDestinationSettingsPropertyDrawer`
+  - `UnityEditor.XR.Interaction.Toolkit` moved to `UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort`:
+    - `TunnelingVignetteControllerEditor`
+- Updated scripts in package samples to add `using` statements for namespace changes.
+
+### Fixed
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined when AR Foundation is installed. Also fixed when XR Hands is installed in the Hands Interaction Demo sample.
+- Fixed `TrackedGraphicRaycaster` to clear poke interaction data when disabled. ([XRIT-142](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-142))
+- Fixed warning about use of deprecated `VersionsInfo.verified` by replacing with `VersionsInfo.recommended` in the Hands Interaction Demo sample in Unity 2022.2 and newer.
+
 ## [3.0.0-pre.2] - 2024-02-28
 
 ### Added
@@ -15,8 +80,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the `CurveVisualController` to manage the visual representation of a line, typically used for highlighting interaction paths or trajectories. It features customizable width, color gradients, and dynamic behaviors like retraction or expansion. The class supports dynamic line rendering with adjustable properties such as line width, gradient, and extension rate. It also offers different line dynamics modes (like traditional, retract on hit loss, and expand from hit point) and the ability to snap to specific points or volumes. It is intended to fill the equivalent role of controlling ray visuals in the `XRInteractorLineVisual` component.
 - Added the `InteractionAttachController` component. It is intended to be a simple template showing how to control the interaction attach transform used by the `NearFarInteractor`. It can handle stabilization when an offset is present and handle an amplified offset movement to move distant objects closer with ease using a pulling gesture.
 - Added the `farAttachMode` property in the `XRGrabInteractable`. It allows for overriding how the `NearFarInteractor` (when far selecting) and the `XRRayInteractor` adjusts their attach transform to cause the interactable to snap near to the hand or whether it moves to the far hit point.
-- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging.
-  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
+- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging.
+  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
 - Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types.
 - Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component.
 - Added warnings to the Inspector window of input button reader properties (`XRInputButtonReader`) when the performed Input Action is not configured correctly for button-like behavior.
@@ -44,40 +109,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug in `XRSocketInteractor` that prevented the deselecting of the Starting Selected Interactable when Hover Socket Snapping was enabled.
 - Fixed broken markdown links within tables in samples documentation in the manual.
 - Fixed mistakes in changelog with version 3.0.0-pre.1 where some entries in the section for version 2.5.2 were missing or should have been in the section for version 3.0.0-pre.1.
-
-## [2.6.0] - 2024-03-08
-
-### Added
-- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](../manual/teleportation-multi-anchor-volume.md), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`. (Backport from 3.0.0-pre.1)
-  - Added `FurthestTeleportationAnchorFilter`, which is the default filter that chooses the furthest anchor as the destination. Use the menu item **Assets > Create > XR > Locomotion > Furthest Teleportation Anchor Filter** to create an instance of this filter.
-  - Added `GazeTeleportationAnchorFilter`, which chooses a destination based on where the user is looking and how far away the anchor is. Use the menu item **Assets > Create > XR > Locomotion > Gaze Teleportation Anchor Filter** to create an instance of this filter.
-  - Added menu item **Assets > Create > XR > Locomotion > Teleport Volume Destination Settings**, which creates a Teleport Volume Destination Settings Datum asset.
-  - Added `Multi Floor Ladder` prefab to the Starter Assets sample, and added an instance of this prefab to the `Climb Sample` prefab. This prefab includes another ladder Climb Interactable and a Teleportation Multi-Anchor Volume that uses a Gaze Teleportation Anchor Filter to teleport to one of three destinations.
-- Added the interface `IXRInteractableCustomReticle`, which allows a component on an interactable's **Custom Reticle** prefab to respond to the interactable instantiating the reticle and attaching it to an instance of `IXRCustomReticleProvider`. (Backport from 3.0.0-pre.1)
-  - Added an example implementation of this interface in the new `Climb Teleport Reticle` prefab in the Starter Assets sample.
-- Added a rotation threshold to `XRScreenSpaceController` so that scaling is not triggered while rotating. (Backport from 3.0.0-pre.1)
-- Added in-editor touchscreen gesture support for rotation and scaling in the starter assets. The input action map now has bindings for the related gestures. (Backport from 3.0.0-pre.1)
-- Added Climb Teleport Interactor, which enables assistance with climb locomotion by teleporting the user to a specific destination when they end a climb interaction. (Backport from 3.0.0-pre.1)
-  - Added the property **Climb Assistance Teleport Volume** to Climb Interactable to enable this teleportation behavior for a specific climb interactable.
-  - Made the following changes to the Starter Assets sample to demonstrate climb teleportation:
-    - Added a Climb Teleport Interactor instance in the `XR Origin (XR Rig)` prefab under **Locomotion System** > **Climb**.
-    - Assigned the **Climb Assistance Teleport Volume** references in the `Single Floor Ladder` and `Multi Floor Ladder` prefabs.
-    - Added the affordance component Climb Teleport Destination Indicator, and added an instance of this component to the `XR Origin (XR Rig)` prefab.
-    - Added the `Climb Teleport Arrow` prefab and supporting assets.
-- Added public members `climbAnchorInteractable`, `climbAnchorInteractor`, and `climbAnchorUpdated` to `ClimbProvider`. (Backport from 3.0.0-pre.1)
-- Added public method `Angle(in Vector3, in Vector3, out float)`, which finds the angle between two vectors, to `BurstMathUtility`. (Backport from 3.0.0-pre.1)
-- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging. (Backport from 3.0.0-pre.2)
-  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
-- Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types. (Backport from 3.0.0-pre.2)
-- Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component. (Backport from 3.0.0-pre.2)
-
-### Changed
-- Changed setup of the ladder and elevated teleport area in the `Climb Sample` prefab in the Starter Assets sample so that the objects are set up in a new `Single Floor Ladder` prefab. This prefab also contains a Teleportation Multi-Anchor Volume to allow teleportation to the top or bottom, whichever is furthest from the user. (Backport from 3.0.0-pre.1)
-- Changed [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold. (Backport from 3.0.0-pre.1)
-- Changed `XRBaseGrabTransformer` by making `Start` and `OnDestroy` methods `virtual`. (Backport from 3.0.0-pre.2)
-
-### Fixed
-- Fixed the `ControllerInputActionManager` script in Starter Assets to not scroll UI when beginning to point at scrollable UI during locomotion until stopping locomotion.
 
 ## [2.5.3] - 2024-02-28
 
@@ -180,11 +211,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecated controller classes (`XRBaseController`, `ActionBasedController`, `XRController`, and `XRScreenSpaceController`) and their corresponding Editor classes. Inputs needed for each interactor are now directly serialized with the interactor. The Transform position and rotation can instead be driven by the Tracked Pose Driver (Input System) component. The model can be instantiated with a custom script or directly added to the XR Origin prefab. These components will no longer appear in the **Component** &gt; **XR** &gt; **Locomotion** menu or in the **Add Component** menu in the Inspector window.
 - Deprecated `InputHelpers`. The values from the XR `InputDevice` class can be read using the new input readers contained in the `Legacy XR Input Readers` sample instead.
 - Deprecated Action-based and Device-based locomotion components. These components will no longer appear in the **Component** &gt; **XR** &gt; **Locomotion** menu or in the **Add Component** menu in the Inspector window.
-  - `ActionBasedContinuousMoveProvider` and `DeviceBasedContinuousMoveProvider` should be replaced with [`ContinuousMoveProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.ContinuousMoveProvider).
-  - `ActionBasedContinuousTurnProvider` and `DeviceBasedContinuousTurnProvider` should be replaced with [`ContinuousTurnProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.ContinuousTurnProvider).
-  - `ActionBasedSnapTurnProvider` and `DeviceBasedSnapTurnProvider` should be replaced with [`SnapTurnProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.SnapTurnProvider).
-  - `GrabMoveProvider.grabMoveAction` should be replaced with [`GrabMoveProvider.grabMoveInput`](xref:UnityEngine.XR.Interaction.Toolkit.GrabMoveProvider.grabMoveInput).
-- Deprecated `XRBaseControllerInteractor` and replaced with [`XRBaseInputInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInputInteractor).
+  - `ActionBasedContinuousMoveProvider` and `DeviceBasedContinuousMoveProvider` should be replaced with [`ContinuousMoveProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement.ContinuousMoveProvider).
+  - `ActionBasedContinuousTurnProvider` and `DeviceBasedContinuousTurnProvider` should be replaced with [`ContinuousTurnProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning.ContinuousTurnProvider).
+  - `ActionBasedSnapTurnProvider` and `DeviceBasedSnapTurnProvider` should be replaced with [`SnapTurnProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning.SnapTurnProvider).
+  - `GrabMoveProvider.grabMoveAction` should be replaced with [`GrabMoveProvider.grabMoveInput`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement.GrabMoveProvider.grabMoveInput).
+- Deprecated `XRBaseControllerInteractor` and replaced with [`XRBaseInputInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractor).
 - Deprecated `XRBaseControllerInteractorEditor` and replaced with `XRBaseInputInteractorEditor`.
   - Deprecated `XRBaseControllerInteractorEditor.BaseControllerContents` and replaced with `XRBaseInputInteractorEditor.BaseInputContents`.
 - Deprecated `XRBaseInputInteractor.hideControllerOnSelect` since it depended on the deprecated XR Controller (Action-based) or XR Controller (Device-based) component. You can use the Select Entered and Select Exited events to deactivate/activate the controller model GameObject instead.
@@ -252,7 +283,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ray endpoint stabilization to the [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html).
 - Added [XR Hand Skeleton Poke Displacer](../manual/xr-hand-skeleton-poke-displacer.html) component to allow for displacing the hand skeleton when poking an interactable in order to prevent the hand from phasing through objects while poking them.
 - Added one handed scaling support to XR General Grab Transformer to allow grab interactables to be scaled, controlled by enabling Allow One Handed Scaling (which is enabled by default). For motion controller scaling with the XR Ray Interactor, Scale Mode (which is None by default) should be set to Input. For pinch scaling with the XR Ray Interactor, Scale Mode should be set to Distance.
-- Added new Scale Toggle and Scale Delta input actions to the XR Controller (Action-based) which the XR Ray Interactor reads. The `XRRayInteractor` implements the new [`IXRScaleValueProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRScaleValueProvider) by reading the scale delta values from the `ActionBasedController` or `XRScreenSpaceController` so that the `XRGeneralGrbTransformer` can scale using the controller and `ARTransformer` can be used to scale objects with touch pinch gestures.
+- Added new Scale Toggle and Scale Delta input actions to the XR Controller (Action-based) which the XR Ray Interactor reads. The `XRRayInteractor` implements the new [`IXRScaleValueProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRScaleValueProvider) by reading the scale delta values from the `ActionBasedController` or `XRScreenSpaceController` so that the `XRGeneralGrbTransformer` can scale using the controller and `ARTransformer` can be used to scale objects with touch pinch gestures.
 
 ### Changed
 - The Tunneling Vignette sample was moved into the Starter Assets sample.
@@ -349,7 +380,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ability for XR Interactor Line Visual to curve accurately and track interactable attach points during selection.
 - Added Auto Adjust Line Length property to XR Interactor Line Visual to retract the line end after a delay when the ray interactor doesn't hit any valid targets.
 - Added the [XR Gaze Assistance](../manual/xr-gaze-assistance.html) component to enable split interaction. Eye for aiming and controllers for selection.
-- Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
+- Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
 - Added `Focus State` to interactables. An interactable that is selected is also focused; it remains focused until another interactable is focused instead. Useful for highlighting an object to later perform operations on.
 - Added Visit Each Frame property to XR Controller Recorder to control whether each frame of the input recording must be played back regardless of the time period passed.
 - Added [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
@@ -367,7 +398,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new Shader Graphs and Materials in `Hand Interaction Demo` for a transparent hand that supports highlighting fingers
 - Added the [`TouchscreenGestureInputController`](xref:UnityEngine.XR.Interaction.Toolkit.AR.Inputs.TouchscreenGestureInputController) which allows users to surface touchscreen gesture data via the Input System.
 - Added the `XRScreenSpaceController` which enables usage of screen space input, from touchscreen or mouse, with interactors.
-- Added the `enableARRaycasting` property to [`XRRayInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRRayInteractor) which enables raycasting against the AR environment if AR Foundation is installed.
+- Added the `enableARRaycasting` property to [`XRRayInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor) which enables raycasting against the AR environment if AR Foundation is installed.
 
 ### Changed
 - Changed [`XRControllerState`](xref:UnityEngine.XR.Interaction.Toolkit.XRControllerState) by adding an `isTracked` field. Deprecated old constructors, users should update their code to call the ones with the added parameter.
@@ -521,15 +552,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ability to control the tracking state of the simulated devices in the XR Device Simulator Inspector window.
 - Added properties to XR Device Simulator to control the `[0.0, 1.0]` amount of the simulated grip and trigger inputs when those controls are activated.
 - Added lazy follow functionality for UI which can be enabled by adding the [LazyFollow](xref:UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow) component to a GameObject.
-- Added [`IXRInteractionStrengthInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractionStrengthInteractor) and [`IXRInteractionStrengthInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractionStrengthInteractable) interfaces that are implemented by [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable), respectively. These add additional properties and methods related to interaction strength, which conveys a variable (that is, analog) selection interaction strength between an interactor and interactable. This is typically based on a motion controller's grip or trigger amount, or based on a poke depth for those interactable objects that support being poked.
+- Added [`IXRInteractionStrengthInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractionStrengthInteractor) and [`IXRInteractionStrengthInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRInteractionStrengthInteractable) interfaces that are implemented by [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable), respectively. These add additional properties and methods related to interaction strength, which conveys a variable (that is, analog) selection interaction strength between an interactor and interactable. This is typically based on a motion controller's grip or trigger amount, or based on a poke depth for those interactable objects that support being poked.
 - Added the [`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) interface. Instances of this interface can be added to Interactables to extend their interaction strength computation without needing to create a derived class.
-- Added `IsHovered` and `IsSelected` methods to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable) that works similarly to `IsHovering` and `IsSelecting` on [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor) for querying whether a specific interactor is hovering or selecting that interactable.
-- Added [XRPokeInteractor](xref:UnityEngine.XR.Interaction.Toolkit.XRPokeInteractor) and [XRPokeFilter](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.XRPokeFilter) classes that provide basic poking functionality for both hands and controllers.
+- Added `IsHovered` and `IsSelected` methods to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) that works similarly to `IsHovering` and `IsSelecting` on [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) for querying whether a specific interactor is hovering or selecting that interactable.
+- Added [XRPokeInteractor](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor) and [XRPokeFilter](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.XRPokeFilter) classes that provide basic poking functionality for both hands and controllers.
 - Added XR Poke Follow Affordance component in the `Starter Assets` sample to control the smooth visual pressing of a Transform component (such as a button, for example) driven by the current select value of a poke interaction.
 - Added XR General Grab Transformer which supports moving and rotating unconstrained with one or two interactors, and scaling when using two interactors.
-- Added [`XRGazeInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRGazeInteractor), driven by either eye-gaze or head-gaze pose information. This allows a developer to use eye or head gaze to hover or select by dwelling on interactables.
-- Added [`XRInteractableSnapVolume`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractableSnapVolume) to allow snapping a ray interactor to a nearby target interactable. This can be combined with the `XRGazeInteractor` to achieve gaze-assisted hover and selection.
-- Added Gaze Configuration properties to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable) related to gaze interactions, automatic selection and deselection from hover, and gaze-assisted hover and selection.
+- Added [`XRGazeInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRGazeInteractor), driven by either eye-gaze or head-gaze pose information. This allows a developer to use eye or head gaze to hover or select by dwelling on interactables.
+- Added [`XRInteractableSnapVolume`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRInteractableSnapVolume) to allow snapping a ray interactor to a nearby target interactable. This can be combined with the `XRGazeInteractor` to achieve gaze-assisted hover and selection.
+- Added Gaze Configuration properties to [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) related to gaze interactions, automatic selection and deselection from hover, and gaze-assisted hover and selection.
 - Added a `drawOnNoHit` property to `XRInteractorReticleVisual` that forces the reticle to draw when no ray cast hits are detected.
 - Added a `snapEndpointIfAvailable` property to `XRInteractorLineVisual` to allow bending the visual ray towards a specified target point, such as guided by an `XRInteractableSnapVolume` for more user-friendly object selection.
 - Added `Eye Gaze Position` and `Eye Gaze Rotation` actions to the `XRI Default Input Actions` asset along with corresponding `XRI Default Gaze Controller` preset to the `Starter Assets` sample.
@@ -620,7 +651,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a warning message to the Inspector of XR Interactor Line Visual and XR Interactor Reticle Visual when the Reticle has a Collider which may disrupt the ray cast. This added an `XRInteractorReticleVisualEditor` class.
 
 ### Changed
-- Changed the dynamic attach behavior of XR Grab Interactable so it only ignores the Match Position property when being grabbed by an XR Ray Interactor with Force Grab enabled instead of ignoring both Match Position and Match Rotation. This lets you bring the object to your hand while keeping the rotation if configured. To make it easier to override the dynamic attach properties for a selecting interactor, the `protected` methods `ShouldMatchAttachPosition`, `ShouldMatchAttachRotation`, and `ShouldSnapToColliderVolume` were added to [`XRGrabInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRGrabInteractable).
+- Changed the dynamic attach behavior of XR Grab Interactable so it only ignores the Match Position property when being grabbed by an XR Ray Interactor with Force Grab enabled instead of ignoring both Match Position and Match Rotation. This lets you bring the object to your hand while keeping the rotation if configured. To make it easier to override the dynamic attach properties for a selecting interactor, the `protected` methods `ShouldMatchAttachPosition`, `ShouldMatchAttachRotation`, and `ShouldSnapToColliderVolume` were added to [`XRGrabInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable).
 - Updated Editor tooltip and documentation to clarify how the **Stop Line At First Raycast Hit** property works on the XR Interactor Line Visual component. ([XRIT-4](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-4))
 
 ### Fixed

@@ -29,6 +29,10 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_NearFarInteractor
+    value: 
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_TeleportInteractor
     value: 
     objectReference: {fileID: 0}
@@ -63,6 +67,10 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_SmoothTurnEnabled
     value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_NearFarEnableTeleportDuringNearInteraction
+    value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_UIScrollingEnabled

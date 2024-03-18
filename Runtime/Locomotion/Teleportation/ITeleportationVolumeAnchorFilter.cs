@@ -1,10 +1,13 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Interface for filtering a list of anchors for a <see cref="TeleportationMultiAnchorVolume"/> to designate one
     /// as the destination anchor.
     /// </summary>
     /// <seealso cref="TeleportationMultiAnchorVolume"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface ITeleportationVolumeAnchorFilter
     {
         /// <summary>

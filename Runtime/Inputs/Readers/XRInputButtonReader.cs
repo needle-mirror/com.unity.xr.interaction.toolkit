@@ -1,6 +1,5 @@
 using System;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
@@ -33,6 +32,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// default interaction if no specific interaction has been added to the action or binding).
         /// </remarks>
         bool ReadWasPerformedThisFrame();
+
+        /// <summary>
+        /// Read whether the button completed this frame, which typically means whether the button stopped being pressed during this frame.
+        /// This is typically only true for one single frame.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if the button completed this frame. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// For input actions, this depends directly on the interaction(s) driving the action (including the
+        /// default interaction if no specific interaction has been added to the action or binding).
+        /// </remarks>
+        bool ReadWasCompletedThisFrame();
     }
 
     /// <summary>
@@ -100,6 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
             /// <seealso cref="manualPerformed"/>
             /// <seealso cref="manualValue"/>
             /// <seealso cref="manualFramePerformed"/>
+            /// <seealso cref="manualFrameCompleted"/>
             ManualValue,
         }
 
@@ -192,6 +203,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// when the mode is set to <see cref="InputSourceMode.ManualValue"/>.
         /// </summary>
         /// <seealso cref="manualFramePerformed"/>
+        /// <seealso cref="manualFrameCompleted"/>
         /// <seealso cref="IXRInputButtonReader.ReadIsPerformed"/>
         public bool manualPerformed
         {
@@ -218,6 +230,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         [SerializeField]
         bool m_ManualQueueWasPerformedThisFrame;
         [SerializeField]
+        bool m_ManualQueueWasCompletedThisFrame;
+        [SerializeField]
         float m_ManualQueueValue;
         [SerializeField]
         int m_ManualQueueTargetFrame;
@@ -237,6 +251,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
             set => m_ManualFramePerformed = value;
         }
 
+        // Not serialized
+        int m_ManualFrameCompleted;
+
+        /// <summary>
+        /// The frame that the manual performed state was set to <see langword="false"/>
+        /// when the mode is set to <see cref="InputSourceMode.ManualValue"/>.
+        /// </summary>
+        /// <seealso cref="manualPerformed"/>
+        /// <seealso cref="IXRInputButtonReader.ReadWasCompletedThisFrame"/>
+        public int manualFrameCompleted
+        {
+            get => m_ManualFrameCompleted;
+            set => m_ManualFrameCompleted = value;
+        }
+
         /// <summary>
         /// A runtime bypass that can be used to override the button input state returned by this class.
         /// </summary>
@@ -253,8 +282,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
 
         readonly UnityObjectReferenceCache<InputActionReference> m_InputActionReferencePerformedCache = new UnityObjectReferenceCache<InputActionReference>();
         readonly UnityObjectReferenceCache<InputActionReference> m_InputActionReferenceValueCache = new UnityObjectReferenceCache<InputActionReference>();
-
-        bool? m_ReadAsVector2;
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="XRInputButtonReader"/>.
@@ -333,7 +360,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <param name="performed">The manual button performed state that should be returned next frame.</param>
         /// <param name="value">The manual scalar value that varies from 0 to 1 that should be returned next frame.</param>
         public void QueueManualState(bool performed, float value) =>
-            QueueManualState(performed, value, !m_ManualPerformed && performed);
+            QueueManualState(performed, value, !m_ManualPerformed && performed, m_ManualPerformed && !performed);
 
         /// <summary>
         /// Queue a manual state to be effective on the next frame.
@@ -341,7 +368,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <param name="performed">The manual button performed state that should be returned next frame.</param>
         /// <param name="value">The manual scalar value that varies from 0 to 1 that should be returned next frame.</param>
         /// <param name="performedThisFrame">Whether the manual button should be considered as performed that frame on the next frame.</param>
-        public void QueueManualState(bool performed, float value, bool performedThisFrame)
+        /// <param name="completedThisFrame">Whether the manual button should be considered as completed that frame on the next frame.</param>
+        public void QueueManualState(bool performed, float value, bool performedThisFrame, bool completedThisFrame)
         {
             if (m_InputSourceMode != InputSourceMode.ManualValue)
                 Debug.LogWarning($"QueueManualState was called but the input source mode is set to {m_InputSourceMode}." +
@@ -349,6 +377,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
 
             m_ManualQueuePerformed = performed;
             m_ManualQueueWasPerformedThisFrame = performedThisFrame;
+            m_ManualQueueWasCompletedThisFrame = completedThisFrame;
             m_ManualQueueValue = value;
             m_ManualQueueTargetFrame = Time.frameCount + 1;
         }
@@ -360,6 +389,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                 m_ManualPerformed = m_ManualQueuePerformed;
                 if (m_ManualQueueWasPerformedThisFrame)
                     m_ManualFramePerformed = Time.frameCount;
+                if (m_ManualQueueWasCompletedThisFrame)
+                    m_ManualFrameCompleted = Time.frameCount;
                 m_ManualValue = m_ManualQueueValue;
 
                 m_ManualQueueTargetFrame = 0;
@@ -433,6 +464,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();
                     return m_ManualPerformed && m_ManualFramePerformed == Time.frameCount;
+            }
+        }
+
+        /// <inheritdoc />
+        public bool ReadWasCompletedThisFrame()
+        {
+            if (bypass != null && !m_CallingBypass)
+            {
+                using (new BypassScope(this))
+                {
+                    return bypass.ReadWasCompletedThisFrame();
+                }
+            }
+
+            switch (m_InputSourceMode)
+            {
+                case InputSourceMode.Unused:
+                default:
+                    return false;
+
+                case InputSourceMode.InputAction:
+                    return WasCompletedThisFrame(m_InputActionPerformed);
+
+                case InputSourceMode.InputActionReference:
+                    return TryGetInputActionReferencePerformed(out var reference) && WasCompletedThisFrame(reference.action);
+
+                case InputSourceMode.ObjectReference:
+                {
+                    var objectReference = GetObjectReference();
+                    return objectReference?.ReadWasCompletedThisFrame() ?? false;
+                }
+
+                case InputSourceMode.ManualValue:
+                    RefreshManualIfNeeded();
+                    return !m_ManualPerformed && m_ManualFrameCompleted == Time.frameCount;
             }
         }
 
@@ -530,44 +596,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
             return action != null && action.WasPerformedThisFrame();
         }
 
+        static bool WasCompletedThisFrame(InputAction action)
+        {
+            return action != null && action.WasCompletedThisFrame();
+        }
+
         float ReadValueToFloat(InputAction action)
         {
             if (action == null)
                 return default;
 
-            // Initialize which method we try reading first based on the expected or active control type.
-            if (!m_ReadAsVector2.HasValue)
-            {
-                if (action.expectedControlType == "Vector2" || action.expectedControlType == "Stick")
-                    m_ReadAsVector2 = true;
-                else
-                    m_ReadAsVector2 = action.activeControl is Vector2Control;
-            }
+            // Processors such as AxisDeadzone or ScaleVector2 can cause the action's value (obtained with ReadValue)
+            // to be different from the control's magnitude (obtained with GetControlMagnitude).
+            // Evaluating whether the root binding, composite binding, or the action has any processors is not trivial.
+            // We evaluate the magnitude of the read Vector2 value instead of using GetControlMagnitude to be safe.
 
-            // Replace try-catch with activeValueType comparison or GetMagnitude() when Input System 1.8.0 is available.
-            // See https://github.com/Unity-Technologies/InputSystem/pull/1795
-            if (m_ReadAsVector2.Value)
-            {
-                try
-                {
-                    return action.ReadValue<Vector2>().magnitude;
-                }
-                catch (InvalidOperationException)
-                {
-                    m_ReadAsVector2 = false;
-                    return action.ReadValue<float>();
-                }
-            }
-
-            try
-            {
+            var activeValueType = action.activeValueType;
+            if (activeValueType == null || activeValueType == typeof(float))
                 return action.ReadValue<float>();
-            }
-            catch (InvalidOperationException)
-            {
-                m_ReadAsVector2 = true;
+
+            if (activeValueType == typeof(Vector2))
                 return action.ReadValue<Vector2>().magnitude;
-            }
+
+            return Mathf.Max(action.GetControlMagnitude(), 0f);
         }
 
         bool TryReadValue(InputAction action, out float value)

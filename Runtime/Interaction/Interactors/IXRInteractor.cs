@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents an Interactor component that controls how a GameObject
@@ -18,6 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="IXRSelectInteractor"/>
     /// <seealso cref="IXRGroupMember"/>
     /// <seealso cref="IXRInteractable"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRInteractor
     {
         /// <summary>
@@ -134,6 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Extension methods for <see cref="IXRInteractor"/>.
     /// </summary>
     /// <seealso cref="IXRInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public static class XRInteractorExtensions
     {
         /// <summary>

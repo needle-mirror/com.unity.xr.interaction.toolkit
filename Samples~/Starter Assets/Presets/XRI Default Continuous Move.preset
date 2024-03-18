@@ -25,7 +25,7 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_System
+    propertyPath: m_Mediator
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
@@ -47,10 +47,6 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_UseGravity
     value: 1
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
-    propertyPath: m_GravityApplicationMode
-    value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_ForwardSource

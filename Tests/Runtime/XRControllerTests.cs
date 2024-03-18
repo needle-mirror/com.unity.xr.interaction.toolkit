@@ -1,5 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 #if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
 using UnityEngine.Experimental.XR.Interaction;

@@ -1,6 +1,6 @@
 using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 {

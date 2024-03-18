@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
@@ -33,10 +34,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 if (currentTransform != null)
                 {
                     var position = currentTransform.position;
-                    
+
                     if (m_ObjectRoot != null)
                         position = m_ObjectRoot.InverseTransformPoint(currentTransform.position);
-                    
+
                     m_OriginalPositions.Add(new Pose(position, currentTransform.rotation));
                 }
                 else
@@ -78,11 +79,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                     var rigidBody = currentTransform.GetComponentInChildren<Rigidbody>();
                     if (rigidBody != null)
                     {
-                        rigidBody.velocity = Vector3.zero;
-                        rigidBody.angularVelocity = Vector3.zero;
+                        StartCoroutine(ResetRigidbodyRoutine(rigidBody));
                     }
                 }
             }
+        }
+
+        IEnumerator ResetRigidbodyRoutine(Rigidbody body)
+        {
+            body.isKinematic = true;
+            yield return new WaitForFixedUpdate();
+            body.isKinematic = false;
+
         }
     }
 }

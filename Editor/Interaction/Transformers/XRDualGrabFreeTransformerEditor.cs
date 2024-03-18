@@ -1,7 +1,7 @@
 ﻿using Unity.XR.CoreUtils;
 using UnityEditor.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Transformers

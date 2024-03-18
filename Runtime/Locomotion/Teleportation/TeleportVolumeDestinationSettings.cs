@@ -1,12 +1,14 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Settings for evaluating the destination anchor for a <see cref="TeleportationMultiAnchorVolume"/>.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class TeleportVolumeDestinationSettings
     {
         [SerializeField]

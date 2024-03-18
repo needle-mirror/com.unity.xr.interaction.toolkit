@@ -1,9 +1,12 @@
-namespace UnityEngine.XR.Interaction.Toolkit
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Represents which hand or controller the interactor is associated with.
     /// </summary>
     /// <seealso cref="IXRInteractor.handedness"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum InteractorHandedness
     {
         /// <summary>

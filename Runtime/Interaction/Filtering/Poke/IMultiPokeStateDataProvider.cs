@@ -1,11 +1,12 @@
 ﻿using Unity.XR.CoreUtils.Bindings.Variables;
-using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
+namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
     /// <summary>
     /// Multiplexed version of <see cref="IPokeStateDataProvider"/> that allows for multiple targets to be tracked with their own bindable poke state data. 
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State")]
     public interface IMultiPokeStateDataProvider
     {
         /// <summary>

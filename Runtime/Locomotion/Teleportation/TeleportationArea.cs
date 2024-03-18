@@ -1,4 +1,7 @@
-namespace UnityEngine.XR.Interaction.Toolkit
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// An area is a teleportation destination which teleports the user to their pointed
@@ -7,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="TeleportationAnchor"/>
     [AddComponentMenu("XR/Teleportation Area", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationArea)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class TeleportationArea : BaseTeleportationInteractable
     {
         /// <inheritdoc />

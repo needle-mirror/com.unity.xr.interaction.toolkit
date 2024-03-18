@@ -12,7 +12,7 @@ The new XR Screen Space Controller makes use of screen space gesture data to def
 
 #### Cone casting
 
-The [XR Ray Interactor](xr-ray-interactor.md) has been upgraded with a new cone casting hit detection type. This effectively creates a cone-shaped ray originating from the interactor and returns hits for anything within [cone casting angle](xref:UnityEngine.XR.Interaction.Toolkit.XRRayInteractor.coneCastAngle). This can make it much more user friendly to grab interactables from a distance. It can also be set up with the gaze interactor to provide meaningful interactions when using eye tracking or head rotation.
+The [XR Ray Interactor](xr-ray-interactor.md) has been upgraded with a new cone casting hit detection type. This effectively creates a cone-shaped ray originating from the interactor and returns hits for anything within [cone casting angle](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRRayInteractor.coneCastAngle). This can make it much more user friendly to grab interactables from a distance. It can also be set up with the gaze interactor to provide meaningful interactions when using eye tracking or head rotation.
 
 #### Ray endpoint stabilization
 

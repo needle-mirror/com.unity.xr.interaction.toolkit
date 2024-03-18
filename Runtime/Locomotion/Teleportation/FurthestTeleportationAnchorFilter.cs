@@ -1,6 +1,7 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Utilities;
+﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Filter for a <see cref="TeleportationMultiAnchorVolume"/> that designates the anchor furthest from the user
@@ -9,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [CreateAssetMenu(fileName = "FurthestTeleportationAnchorFilter", menuName = "XR/Locomotion/Furthest Teleportation Anchor Filter")]
     [HelpURL(XRHelpURLConstants.k_FurthestTeleportationAnchorFilter)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class FurthestTeleportationAnchorFilter : ScriptableObject, ITeleportationVolumeAnchorFilter
     {
         /// <inheritdoc/>

@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings.Variables;
-using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
-using UnityEngine.XR.Interaction.Toolkit.Interaction;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Interactor used for interacting with interactables through poking.
     /// </summary>
     /// <seealso cref="XRPokeFilter"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Interactors/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
     public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider, IAttachPointVelocityProvider
@@ -258,7 +260,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 else
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
                 
-                TrackedDeviceGraphicRaycaster.ValidatePokeInteractionData(this);
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();

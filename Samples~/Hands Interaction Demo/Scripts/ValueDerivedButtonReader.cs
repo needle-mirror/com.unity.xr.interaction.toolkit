@@ -25,6 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 
         bool m_IsPerformed;
         bool m_WasPerformedThisFrame;
+        bool m_WasCompletedThisFrame;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -54,8 +55,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             if (!newValue && prevPerformed)
                 newValue = pressAmount > m_ReleaseThreshold;
 
-            m_WasPerformedThisFrame = !prevPerformed && newValue;
             m_IsPerformed = newValue;
+            m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;
+            m_WasCompletedThisFrame = prevPerformed && !m_IsPerformed;
         }
 
         /// <inheritdoc />
@@ -68,6 +70,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         public bool ReadWasPerformedThisFrame()
         {
             return m_WasPerformedThisFrame;
+        }
+
+        /// <inheritdoc />
+        public bool ReadWasCompletedThisFrame()
+        {
+            return m_WasCompletedThisFrame;
         }
 
         /// <inheritdoc />

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents an Interaction Group component that is capable of overriding the interaction of the
@@ -10,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     /// <seealso cref="XRInteractionGroup"/>
     /// <seealso cref="IXRGroupMember"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRInteractionOverrideGroup : IXRInteractionGroup
     {
         /// <summary>

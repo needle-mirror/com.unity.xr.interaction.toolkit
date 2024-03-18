@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 {
     public partial class XRRayInteractorEditor
     {

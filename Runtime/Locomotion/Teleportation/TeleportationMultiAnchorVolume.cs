@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// An interactable that teleports the user to a specific position and/or rotation defined by one of several anchors.
@@ -11,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="TeleportationAnchor"/>
     [AddComponentMenu("XR/Teleportation Multi-Anchor Volume", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationMultiAnchorVolume)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class TeleportationMultiAnchorVolume : BaseTeleportationInteractable
     {
         [SerializeField]

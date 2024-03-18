@@ -1,4 +1,5 @@
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
@@ -8,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
     /// to provide a scale value.
     /// </summary>
     /// <seealso cref="XRRayInteractor.scaleDistanceDeltaInput"/>
-    /// <seealso cref="ScaleMode.DistanceDelta"/>
+    /// <seealso cref="Interactors.ScaleMode.DistanceDelta"/>
     [AddComponentMenu("XR/Input/Screen Space Pinch Scale Input", 11)]
     [HelpURL(XRHelpURLConstants.k_ScreenSpacePinchScaleInput)]
     public class ScreenSpacePinchScaleInput : MonoBehaviour, IXRInputValueReader<float>

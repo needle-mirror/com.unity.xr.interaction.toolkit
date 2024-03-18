@@ -5,6 +5,8 @@ using UnityEngine.InputSystem.Processors;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {

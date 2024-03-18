@@ -25,6 +25,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
 
             public SerializedProperty manualQueuePerformed;
             public SerializedProperty manualQueueWasPerformedThisFrame;
+            public SerializedProperty manualQueueWasCompletedThisFrame;
             public SerializedProperty manualQueueValue;
             public SerializedProperty manualQueueTargetFrame;
 
@@ -42,6 +43,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
 
                 manualQueuePerformed = property.FindPropertyRelative("m_ManualQueuePerformed");
                 manualQueueWasPerformedThisFrame = property.FindPropertyRelative("m_ManualQueueWasPerformedThisFrame");
+                manualQueueWasCompletedThisFrame = property.FindPropertyRelative("m_ManualQueueWasCompletedThisFrame");
                 manualQueueValue = property.FindPropertyRelative("m_ManualQueueValue");
                 manualQueueTargetFrame = property.FindPropertyRelative("m_ManualQueueTargetFrame");
             }
@@ -385,6 +387,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
                 // Duplicate logic from QueueManualState to set the performed value next frame.
                 m_Fields.manualQueuePerformed.boolValue = requestedPerformed;
                 m_Fields.manualQueueWasPerformedThisFrame.boolValue = requestedPerformed;
+                m_Fields.manualQueueWasCompletedThisFrame.boolValue = !requestedPerformed;
                 m_Fields.manualQueueValue.floatValue = m_Fields.manualValue.floatValue;
                 m_Fields.manualQueueTargetFrame.intValue = Time.frameCount + 1;
             }

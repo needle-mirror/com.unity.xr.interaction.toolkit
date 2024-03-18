@@ -2,14 +2,22 @@ using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Gaze;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI.BodyUI;
@@ -33,9 +41,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const string k_CastersNamespace = "Casters.";
         const string k_FeedbackNamespace = "Feedback.";
         const string k_FilteringNamespace = "Filtering.";
+        const string k_GazeNamespace = "Gaze.";
         const string k_HapticsNamespace = "Haptics.";
         const string k_InputsNamespace = "Inputs.";
         const string k_InteractorsNamespace = "Interactors.";
+        const string k_InteractablesNamespace = "Interactables.";
         const string k_LocomotionNamespace = "Locomotion.";
         const string k_ReadersNamespace = "Readers.";
         const string k_SimulationNamespace = "Simulation.";
@@ -43,8 +53,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const string k_UINamespace = "UI.";
         const string k_UtilitiesNamespace = "Utilities.";
         const string k_VisualsNamespace = "Visuals.";
-            
-            
+
+        // Locomotion
+        const string k_ClimbingNamespace = "Climbing.";
+        const string k_MovementNamespace = "Movement.";
+        const string k_TeleportationNamespace = "Teleportation.";
+        const string k_TurningNamespace = "Turning.";
+        const string k_ComfortNamespace = "Comfort.";
+
         /// <summary>
         /// Current documentation version for XR Interaction Toolkit API and Manual pages.
         /// </summary>
@@ -83,32 +99,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="ClimbInteractable"/>.
         /// </summary>
-        public const string k_ClimbInteractable = k_BaseApi + k_BaseNamespace + nameof(ClimbInteractable) + k_HtmlFileSuffix;
+        public const string k_ClimbInteractable = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ClimbingNamespace + nameof(ClimbInteractable) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ClimbProvider"/>.
         /// </summary>
-        public const string k_ClimbProvider = k_BaseApi + k_BaseNamespace + nameof(ClimbProvider) + k_HtmlFileSuffix;
+        public const string k_ClimbProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ClimbingNamespace + nameof(ClimbProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ClimbSettingsDatum"/>.
         /// </summary>
-        public const string k_ClimbSettingsDatum = k_BaseApi + k_BaseNamespace + nameof(ClimbSettingsDatum) + k_HtmlFileSuffix;
+        public const string k_ClimbSettingsDatum = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ClimbingNamespace + nameof(ClimbSettingsDatum) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ClimbTeleportInteractor"/>.
         /// </summary>
-        public const string k_ClimbTeleportInteractor = k_BaseApi + k_BaseNamespace + nameof(ClimbTeleportInteractor) + k_HtmlFileSuffix;
+        public const string k_ClimbTeleportInteractor = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ClimbingNamespace + nameof(ClimbTeleportInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ContinuousMoveProvider"/>.
         /// </summary>
-        public const string k_ContinuousMoveProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(ContinuousMoveProvider) + k_HtmlFileSuffix;
+        public const string k_ContinuousMoveProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_MovementNamespace + nameof(ContinuousMoveProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="ContinuousTurnProvider"/>.
         /// </summary>
-        public const string k_ContinuousTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(ContinuousTurnProvider) + k_HtmlFileSuffix;
+        public const string k_ContinuousTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TurningNamespace + nameof(ContinuousTurnProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="SimpleAudioFeedback"/>.
@@ -143,17 +159,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="FurthestTeleportationAnchorFilter"/>.
         /// </summary>
-        public const string k_FurthestTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + nameof(FurthestTeleportationAnchorFilter) + k_HtmlFileSuffix;
+        public const string k_FurthestTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(FurthestTeleportationAnchorFilter) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="GazeTeleportationAnchorFilter"/>.
         /// </summary>
-        public const string k_GazeTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + nameof(GazeTeleportationAnchorFilter) + k_HtmlFileSuffix;
+        public const string k_GazeTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(GazeTeleportationAnchorFilter) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="GrabMoveProvider"/>.
         /// </summary>
-        public const string k_GrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(GrabMoveProvider) + k_HtmlFileSuffix;
+        public const string k_GrabMoveProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_MovementNamespace + nameof(GrabMoveProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="HapticImpulsePlayer"/>.
@@ -258,7 +274,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="SnapTurnProvider"/>.
         /// </summary>
-        public const string k_SnapTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(SnapTurnProvider) + k_HtmlFileSuffix;
+        public const string k_SnapTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TurningNamespace + nameof(SnapTurnProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="UnderCameraBodyPositionEvaluator"/>.
@@ -273,27 +289,27 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="TeleportationAnchor"/>.
         /// </summary>
-        public const string k_TeleportationAnchor = k_BaseApi + k_BaseNamespace + nameof(TeleportationAnchor) + k_HtmlFileSuffix;
+        public const string k_TeleportationAnchor = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportationAnchor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TeleportationArea"/>.
         /// </summary>
-        public const string k_TeleportationArea = k_BaseApi + k_BaseNamespace + nameof(TeleportationArea) + k_HtmlFileSuffix;
+        public const string k_TeleportationArea = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportationArea) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TeleportationMultiAnchorVolume"/>.
         /// </summary>
-        public const string k_TeleportationMultiAnchorVolume = k_BaseApi + k_BaseNamespace + nameof(TeleportationMultiAnchorVolume) + k_HtmlFileSuffix;
+        public const string k_TeleportationMultiAnchorVolume = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportationMultiAnchorVolume) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TeleportationProvider"/>.
         /// </summary>
-        public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + nameof(TeleportationProvider) + k_HtmlFileSuffix;
+        public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportationProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TeleportVolumeDestinationSettingsDatum"/>.
         /// </summary>
-        public const string k_TeleportVolumeDestinationSettingsDatum = k_BaseApi + k_BaseNamespace + nameof(TeleportVolumeDestinationSettingsDatum) + k_HtmlFileSuffix;
+        public const string k_TeleportVolumeDestinationSettingsDatum = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportVolumeDestinationSettingsDatum) + k_HtmlFileSuffix;
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
         /// <summary>
@@ -330,12 +346,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="TunnelingVignetteController"/>
         /// </summary>
-        public const string k_TunnelingVignetteController = k_BaseApi + k_BaseNamespace + nameof(TunnelingVignetteController) + k_HtmlFileSuffix;
+        public const string k_TunnelingVignetteController = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ComfortNamespace + nameof(TunnelingVignetteController) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="TwoHandedGrabMoveProvider"/>.
         /// </summary>
-        public const string k_TwoHandedGrabMoveProvider = k_BaseApi + k_BaseNamespace + nameof(TwoHandedGrabMoveProvider) + k_HtmlFileSuffix;
+        public const string k_TwoHandedGrabMoveProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_MovementNamespace + nameof(TwoHandedGrabMoveProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="HandMenu"/>.
@@ -395,32 +411,32 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="XRDirectInteractor"/>.
         /// </summary>
-        public const string k_XRDirectInteractor = k_BaseApi + k_BaseNamespace + nameof(XRDirectInteractor) + k_HtmlFileSuffix;
+        public const string k_XRDirectInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRDirectInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRGazeAssistance"/>.
         /// </summary>
-        public const string k_XRGazeAssistance = k_BaseApi + k_BaseNamespace + nameof(XRGazeAssistance) + k_HtmlFileSuffix;
+        public const string k_XRGazeAssistance = k_BaseApi + k_BaseNamespace + k_GazeNamespace + nameof(XRGazeAssistance) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRGazeInteractor"/>.
         /// </summary>
-        public const string k_XRGazeInteractor = k_BaseApi + k_BaseNamespace + nameof(XRGazeInteractor) + k_HtmlFileSuffix;
+        public const string k_XRGazeInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRGazeInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRGrabInteractable"/>.
         /// </summary>
-        public const string k_XRGrabInteractable = k_BaseApi + k_BaseNamespace + nameof(XRGrabInteractable) + k_HtmlFileSuffix;
+        public const string k_XRGrabInteractable = k_BaseApi + k_BaseNamespace + k_InteractablesNamespace + nameof(XRGrabInteractable) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractableSnapVolume"/>.
         /// </summary>
-        public const string k_XRInteractableSnapVolume = k_BaseApi + k_BaseNamespace + nameof(XRInteractableSnapVolume) + k_HtmlFileSuffix;
+        public const string k_XRInteractableSnapVolume = k_BaseApi + k_BaseNamespace + k_InteractablesNamespace + nameof(XRInteractableSnapVolume) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractionGroup"/>.
         /// </summary>
-        public const string k_XRInteractionGroup = k_BaseApi + k_BaseNamespace + nameof(XRInteractionGroup) + k_HtmlFileSuffix;
+        public const string k_XRInteractionGroup = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRInteractionGroup) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractionManager"/>.
@@ -430,36 +446,36 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractorLineVisual"/>.
         /// </summary>
-        public const string k_XRInteractorLineVisual = k_BaseApi + k_BaseNamespace + nameof(XRInteractorLineVisual) + k_HtmlFileSuffix;
+        public const string k_XRInteractorLineVisual = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + k_VisualsNamespace + nameof(XRInteractorLineVisual) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractorReticleVisual"/>.
         /// </summary>
-        public const string k_XRInteractorReticleVisual = k_BaseApi + k_BaseNamespace + nameof(XRInteractorReticleVisual) + k_HtmlFileSuffix;
+        public const string k_XRInteractorReticleVisual = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + k_VisualsNamespace + nameof(XRInteractorReticleVisual) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRPokeInteractor"/>.
         /// </summary>
-        public const string k_XRPokeInteractor = k_BaseApi + k_BaseNamespace + nameof(XRPokeInteractor) + k_HtmlFileSuffix;
+        public const string k_XRPokeInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRPokeInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRRayInteractor"/>.
         /// </summary>
-        public const string k_XRRayInteractor = k_BaseApi + k_BaseNamespace + nameof(XRRayInteractor) + k_HtmlFileSuffix;
+        public const string k_XRRayInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRRayInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRSimpleInteractable"/>.
         /// </summary>
-        public const string k_XRSimpleInteractable = k_BaseApi + k_BaseNamespace + nameof(XRSimpleInteractable) + k_HtmlFileSuffix;
+        public const string k_XRSimpleInteractable = k_BaseApi + k_BaseNamespace + k_InteractablesNamespace + nameof(XRSimpleInteractable) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRSocketInteractor"/>.
         /// </summary>
-        public const string k_XRSocketInteractor = k_BaseApi + k_BaseNamespace + nameof(XRSocketInteractor) + k_HtmlFileSuffix;
+        public const string k_XRSocketInteractor = k_BaseApi + k_BaseNamespace + k_InteractorsNamespace + nameof(XRSocketInteractor) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRTintInteractableVisual"/>.
         /// </summary>
-        public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + nameof(XRTintInteractableVisual) + k_HtmlFileSuffix;
+        public const string k_XRTintInteractableVisual = k_BaseApi + k_BaseNamespace + k_InteractablesNamespace + k_VisualsNamespace + nameof(XRTintInteractableVisual) + k_HtmlFileSuffix;
     }
 }

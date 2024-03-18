@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactables
 {
     public partial class XRGrabInteractableEditor
     {

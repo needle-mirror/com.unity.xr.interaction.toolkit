@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// An interface that represents an Interactable component which
     /// Interactor components can hover over.
     /// </summary>
     /// <seealso cref="IXRHoverInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRHoverInteractable : IXRInteractable
     {
         /// <summary>
@@ -141,6 +144,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Extension methods for <see cref="IXRHoverInteractable"/>.
     /// </summary>
     /// <seealso cref="IXRHoverInteractable"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public static class XRHoverInteractableExtensions
     {
         /// <summary>

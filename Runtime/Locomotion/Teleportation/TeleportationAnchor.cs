@@ -1,4 +1,7 @@
-namespace UnityEngine.XR.Interaction.Toolkit
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// An anchor is a teleportation destination which teleports the user to a pre-determined
@@ -8,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="TeleportationMultiAnchorVolume"/>
     [AddComponentMenu("XR/Teleportation Anchor", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationAnchor)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class TeleportationAnchor : BaseTeleportationInteractable
     {
         [SerializeField]

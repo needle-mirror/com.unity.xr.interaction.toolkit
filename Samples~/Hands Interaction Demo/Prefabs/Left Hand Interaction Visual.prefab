@@ -1180,7 +1180,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3535746112591574418, guid: 67c52e745f2766644ba16bfb165e2659, type: 3}
       propertyPath: m_Name
-      value: "Hand Near-Far Interactor Affordances"
+      value: Hand Near-Far Interactor Affordances
       objectReference: {fileID: 0}
     - target: {fileID: 3535746112591574419, guid: 67c52e745f2766644ba16bfb165e2659, type: 3}
       propertyPath: m_RootOrder

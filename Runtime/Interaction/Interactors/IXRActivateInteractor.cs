@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents an Interactor component that can activate
@@ -9,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// toggling a flashlight on and off.
     /// </summary>
     /// <seealso cref="IXRActivateInteractable"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRActivateInteractor : IXRInteractor
     {
         /// <summary>

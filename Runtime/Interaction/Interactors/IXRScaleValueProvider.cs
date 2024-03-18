@@ -1,12 +1,14 @@
 using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Enum representing the two modes of scaling: <see cref="ScaleOverTime"/> and <see cref="DistanceDelta"/>.
     /// </summary>
     /// <seealso cref="IXRScaleValueProvider.scaleMode"/>
     /// <seealso cref="XRRayInteractor.scaleMode"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum ScaleMode
     {
         /// <summary>
@@ -50,6 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// mode supported by the upstream controller.
     /// </remarks>
     /// <seealso cref="XRRayInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRScaleValueProvider
     {
         /// <summary>

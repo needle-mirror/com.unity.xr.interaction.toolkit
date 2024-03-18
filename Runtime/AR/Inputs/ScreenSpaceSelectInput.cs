@@ -1,4 +1,5 @@
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
@@ -67,6 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 
         bool m_IsPerformed;
         bool m_WasPerformedThisFrame;
+        bool m_WasCompletedThisFrame;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -79,6 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                 m_DragCurrentPositionInput.TryReadValue(out _) ||
                 m_TapStartPositionInput.TryReadValue(out _);
             m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;
+            m_WasCompletedThisFrame = prevPerformed && !m_IsPerformed;
         }
 
         /// <inheritdoc />
@@ -91,6 +94,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         public bool ReadWasPerformedThisFrame()
         {
             return m_WasPerformedThisFrame;
+        }
+
+        /// <inheritdoc />
+        public bool ReadWasCompletedThisFrame()
+        {
+            return m_WasCompletedThisFrame;
         }
 
         /// <inheritdoc />

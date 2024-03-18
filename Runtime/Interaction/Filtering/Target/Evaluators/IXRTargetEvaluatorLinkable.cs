@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Filtering
+﻿using UnityEngine.XR.Interaction.Toolkit.Interactors;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
     /// <summary>
     /// An interface that an <see cref="XRTargetFilter"/> can implement to receive calls whenever an Interactor links to or

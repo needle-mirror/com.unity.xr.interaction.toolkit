@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine.Events;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -18,32 +20,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public IXRInteractable interactableObject { get; set; }
     }
-
-    #region Teleport
-
-    /// <summary>
-    /// <see cref="UnityEvent"/> that Unity invokes when queuing to teleport via
-    /// a <see cref="TeleportationProvider"/>.
-    /// </summary>
-    [Serializable]
-    public sealed class TeleportingEvent : UnityEvent<TeleportingEventArgs>
-    {
-    }
-
-    /// <summary>
-    /// Event data associated with the event that Unity invokes during a selection or
-    /// activation event between an Interactable and an Interactor, according to the
-    /// timing defined by <see cref="BaseTeleportationInteractable.TeleportTrigger"/>.
-    /// </summary>
-    public class TeleportingEventArgs : BaseInteractionEventArgs
-    {
-        /// <summary>
-        /// The <see cref="TeleportRequest"/> that is being queued, but has not been acted on yet.
-        /// </summary>
-        public TeleportRequest teleportRequest { get; set; }
-    }
-
-    #endregion
 
     #region Hover
 

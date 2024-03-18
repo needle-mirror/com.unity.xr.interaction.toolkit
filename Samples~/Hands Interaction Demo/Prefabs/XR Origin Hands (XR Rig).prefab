@@ -1804,7 +1804,7 @@ PrefabInstance:
       objectReference: {fileID: 2677369771392174608}
     - target: {fileID: 2447424620550846319, guid: b200f6587d118224eba8467281481800, type: 3}
       propertyPath: m_Name
-      value: "Near-Far Interactor"
+      value: Near-Far Interactor
       objectReference: {fileID: 0}
     - target: {fileID: 3234853630605623997, guid: b200f6587d118224eba8467281481800, type: 3}
       propertyPath: m_RootOrder
@@ -1999,7 +1999,7 @@ PrefabInstance:
       objectReference: {fileID: 3586141808747803997}
     - target: {fileID: 4804964734930210078, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
       propertyPath: m_Name
-      value: "Near-Far Interactor"
+      value: Near-Far Interactor
       objectReference: {fileID: 0}
     - target: {fileID: 5745700813747042508, guid: 3df3e1220f2164f448701a6de8084f92, type: 3}
       propertyPath: m_RootOrder

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -11,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// hover and selection. Additionally, this class provides functionality for checking the controller's selection status
     /// and hiding the controller on selection.
     /// </summary>
-    [Obsolete("XRBaseControllerInteractor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractor. (UnityUpgradable) -> XRBaseInputInteractor")]
+    [Obsolete("XRBaseControllerInteractor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractor. (UnityUpgradable) -> UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractor")]
     public abstract class XRBaseControllerInteractor : XRBaseInteractor, IXRActivateInteractor
     {
         /// <summary>

@@ -57,11 +57,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
     {
         /// <summary>
         /// Whether this is the state of actively preparing or performing locomotion. This returns <see langword="true"/>
-        /// if <see cref="state"/> is <see cref="LocomotionState.Preparing"/> or <see cref="LocomotionState.Moving"/>,
+        /// if <paramref name="state"/> is <see cref="LocomotionState.Preparing"/> or <see cref="LocomotionState.Moving"/>,
         /// <see langword="false"/> otherwise.
         /// </summary>
         /// <param name="state">The locomotion state to check.</param>
-        /// <returns>Returns <see langword="true"/> if <see cref="state"/> is <see cref="LocomotionState.Preparing"/> or
+        /// <returns>Returns <see langword="true"/> if <paramref name="state"/> is <see cref="LocomotionState.Preparing"/> or
         /// <see cref="LocomotionState.Moving"/>, <see langword="false"/> otherwise.</returns>
         public static bool IsActive(this LocomotionState state)
         {

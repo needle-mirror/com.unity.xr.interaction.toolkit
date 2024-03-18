@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Abstract base class from which all interactors that use inputs to drive interaction state derive from.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public abstract partial class XRBaseInputInteractor : XRBaseInteractor, IXRActivateInteractor
     {
         /// <summary>
@@ -114,19 +117,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             bool m_ToggleDeactivatedThisFrame;
             bool m_WaitingForDeactivate;
 
-            // Add wasUnperformedThisFrame when Input System 1.8.0 is available since this method may not be called every frame.
-            // Kept internal until then to avoid breaking changes.
-            // See https://github.com/Unity-Technologies/InputSystem/pull/1795
-            internal void UpdateInput(bool performed, bool performedThisFrame, bool hasSelection) =>
-                UpdateInput(performed, performedThisFrame, hasSelection, Time.realtimeSinceStartup);
+            internal void UpdateInput(bool performed, bool performedThisFrame, bool completedThisFrame, bool hasSelection) =>
+                UpdateInput(performed, performedThisFrame, completedThisFrame, hasSelection, Time.realtimeSinceStartup);
 
-            void UpdateInput(bool performed, bool performedThisFrame, bool hasSelection, float realtime)
+            void UpdateInput(bool performed, bool performedThisFrame, bool completedThisFrame, bool hasSelection, float realtime)
             {
-                var prevPerformed = isPerformed;
-
                 isPerformed = performed;
                 wasPerformedThisFrame = performedThisFrame;
-                wasCompletedThisFrame = prevPerformed && !performed;
+                wasCompletedThisFrame = completedThisFrame;
                 m_HasSelection = hasSelection;
 
                 if (wasPerformedThisFrame)
@@ -435,17 +433,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (m_Controller != null)
                     {
                         var selectInteractionState = m_Controller.selectInteractionState;
-                        m_LogicalSelectState.UpdateInput(selectInteractionState.active, selectInteractionState.activatedThisFrame, hasSelection);
+                        m_LogicalSelectState.UpdateInput(selectInteractionState.active, selectInteractionState.activatedThisFrame, selectInteractionState.deactivatedThisFrame, hasSelection);
 
                         var activateInteractionState = m_Controller.activateInteractionState;
-                        m_LogicalActivateState.UpdateInput(activateInteractionState.active, activateInteractionState.activatedThisFrame, hasSelection);
+                        m_LogicalActivateState.UpdateInput(activateInteractionState.active, activateInteractionState.activatedThisFrame, activateInteractionState.deactivatedThisFrame, hasSelection);
                     }
                 }
 #pragma warning restore CS0618
                 else
                 {
-                    m_LogicalSelectState.UpdateInput(m_SelectInput.ReadIsPerformed(), m_SelectInput.ReadWasPerformedThisFrame(), hasSelection);
-                    m_LogicalActivateState.UpdateInput(m_ActivateInput.ReadIsPerformed(), m_ActivateInput.ReadWasPerformedThisFrame(), hasSelection);
+                    m_LogicalSelectState.UpdateInput(m_SelectInput.ReadIsPerformed(), m_SelectInput.ReadWasPerformedThisFrame(), m_SelectInput.ReadWasCompletedThisFrame(), hasSelection);
+                    m_LogicalActivateState.UpdateInput(m_ActivateInput.ReadIsPerformed(), m_ActivateInput.ReadWasPerformedThisFrame(), m_ActivateInput.ReadWasCompletedThisFrame(), hasSelection);
                 }
             }
         }

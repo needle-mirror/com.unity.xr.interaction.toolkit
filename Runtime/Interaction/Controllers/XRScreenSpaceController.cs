@@ -1,3 +1,8 @@
+// These are the guards in TouchscreenGestureInputController.cs
+#if ((ENABLE_VR || UNITY_GAMECORE) && AR_FOUNDATION_PRESENT) || PACKAGE_DOCS_GENERATION
+#define TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+#endif
+
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -6,7 +11,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using System;
 
-#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
 using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
 #endif
 
@@ -270,7 +275,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => _ = value;
         }
 
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
         TouchscreenGestureInputController m_GestureInputController;
 #endif
         bool m_HasCheckedDisabledTrackingInputReferenceActions;
@@ -518,7 +523,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void InitializeTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (!m_EnableTouchscreenGestureInputController)
                 return;
 
@@ -539,7 +544,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void RemoveTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (m_GestureInputController != null && m_GestureInputController.added)
             {
                 InputSystem.InputSystem.RemoveDevice(m_GestureInputController);

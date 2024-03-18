@@ -22,6 +22,8 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     /// <summary>

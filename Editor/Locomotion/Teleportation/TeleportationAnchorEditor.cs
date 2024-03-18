@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Custom editor for an <see cref="TeleportationAnchor"/>.
     /// </summary>
     [CustomEditor(typeof(TeleportationAnchor), true), CanEditMultipleObjects]
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class TeleportationAnchorEditor : BaseTeleportationInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="TeleportationAnchor.teleportAnchorTransform"/>.</summary>

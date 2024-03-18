@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Transformers
@@ -515,7 +517,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         {
             if (grabInteractable.isSelected && !m_ElasticBreakLimitReached)
             {
-                if (m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == ScaleMode.DistanceDelta)
+                if (m_HasScaleValueProvider && m_ScaleValueProvider.scaleMode == Interactors.ScaleMode.DistanceDelta)
                 {
                     m_CurrentScaleRatio += m_ScaleSensitivity * m_ScaleValueProvider.scaleValue;
 

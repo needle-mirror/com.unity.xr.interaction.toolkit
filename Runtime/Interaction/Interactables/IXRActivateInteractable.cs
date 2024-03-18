@@ -1,4 +1,7 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// An interface that represents an Interactable component which Interactor
@@ -7,6 +10,7 @@
     /// toggling a flashlight on and off.
     /// </summary>
     /// <seealso cref="IXRActivateInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRActivateInteractable : IXRInteractable
     {
         /// <summary>

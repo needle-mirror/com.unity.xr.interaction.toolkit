@@ -1,12 +1,14 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Custom editor for an <see cref="XRRayInteractor"/>.
     /// </summary>
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     [CustomEditor(typeof(XRRayInteractor), true), CanEditMultipleObjects]
     public partial class XRRayInteractorEditor : XRBaseInputInteractorEditor
     {

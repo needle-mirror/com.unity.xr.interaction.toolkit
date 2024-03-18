@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Behaviour implementation of <see cref="IXRInteractionGroup"/>. An Interaction Group hooks into the interaction system
@@ -16,6 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// if it can select in the current frame. If there is no such member, then the interacting member is whichever one
     /// in the ordered list of members interacts first.
     /// </remarks>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Interaction Group", 11)]
     [HelpURL(XRHelpURLConstants.k_XRInteractionGroup)]

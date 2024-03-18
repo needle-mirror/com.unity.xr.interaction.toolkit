@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Transformers
+﻿using UnityEngine.XR.Interaction.Toolkit.Interactables;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 {
     /// <summary>
     /// An interface that allows the target position, rotation, and scale of an <see cref="XRGrabInteractable"/> to be

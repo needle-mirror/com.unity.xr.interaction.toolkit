@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents an Interactor component that can select
     /// an Interactable component.
     /// </summary>
     /// <seealso cref="IXRSelectInteractable"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRSelectInteractor : IXRInteractor
     {
         /// <summary>
@@ -175,6 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Extension methods for <see cref="IXRSelectInteractor"/>.
     /// </summary>
     /// <seealso cref="IXRSelectInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public static class XRSelectInteractorExtensions
     {
         /// <summary>

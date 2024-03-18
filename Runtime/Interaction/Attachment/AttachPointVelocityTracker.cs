@@ -1,9 +1,12 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Interaction
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
     /// <summary>
     /// Tracks the velocity and angular velocity of an attachment point in a XR interaction context.
     /// It uses a cache to calculate these velocities over a series of frames.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit.Interaction")]
     public class AttachPointVelocityTracker : IAttachPointVelocityTracker
     {
         // Stores the time when the velocity calculation started for the current frame.

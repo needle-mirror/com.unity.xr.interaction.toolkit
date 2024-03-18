@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if BURST_PRESENT
 using Unity.Burst;

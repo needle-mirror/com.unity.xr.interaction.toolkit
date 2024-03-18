@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 // ReSharper disable Unity.InefficientPropertyAccess -- Test code is easier to read with inefficient access
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests

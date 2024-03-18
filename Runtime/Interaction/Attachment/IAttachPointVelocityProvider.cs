@@ -1,10 +1,13 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Interaction
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
     /// <summary>
     /// Interface defining the contract for providers that can supply attach point velocity data.
     /// This includes both linear velocity and angular velocity.
     /// </summary>
     /// <seealso cref="AttachPointVelocityTracker"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit.Interaction")]
     public interface IAttachPointVelocityProvider
     {
         /// <summary>
@@ -24,6 +27,7 @@
     /// Extension methods for <see cref="IAttachPointVelocityProvider"/>.
     /// </summary>
     /// <seealso cref="IAttachPointVelocityProvider"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit.Interaction")]
     public static class AttachPointVelocityProviderExtensions
     {
         /// <summary>

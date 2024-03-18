@@ -27,6 +27,12 @@ A new way to move and manipulate the XR Origin in response to input and interact
 
 On top of the locomotion mediator changes, climbing and teleportation has been enhanced to provide teleportation up and down ladders. In addition to simple endpoint-to-endpoint teleportation, [Teleportation multi-anchor volumes](teleportation-multi-anchor-volume.md) have been added. These allow multiple predefined teleport outlets per climbing surface which can be selected based on head or eye gaze (or any other method of determination). For more information about these new additions, please read the [Locomotion](locomotion.md) documentation and check out an example of how these updates are used in the `Demo Scene` of the [Starter Assets](samples-starter-assets.md#demo-scene) sample package.
 
+## Changed
+
+### Namespace changes
+
+As a part of the move to XRI 3.0, a number of classes, structs, enums, and interfaces have been moved into namespaces that better reflect their use and the organizational structure they reside in. For a full list of namespace changes, please refer to our [changelog](../changelog/CHANGELOG.html).
+
 ## Deprecations
 
 ### Controller-based classes

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Options for how many Targets (or Interactables with priority for selection) to monitor.
@@ -9,6 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// The options are in order of best performance.
     /// </remarks>
     /// <seealso cref="IXRTargetPriorityInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum TargetPriorityMode
     {
         /// <summary>
@@ -40,6 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRInteractionManager.InteractorSelectValidTargets(IXRSelectInteractor, List{IXRInteractable})"/>
     /// <seealso cref="XRInteractionManager.IsHighestPriorityTarget"/>
     /// <seealso cref="IXRInteractor.GetValidTargets"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRTargetPriorityInteractor : IXRInteractor
     {
         /// <summary>

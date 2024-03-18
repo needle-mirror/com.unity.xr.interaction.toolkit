@@ -1,12 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+﻿using UnityEditor.XR.Interaction.Toolkit.Interactables;
+using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Custom editor for an <see cref="BaseTeleportationInteractable"/>.
     /// </summary>
     [CustomEditor(typeof(BaseTeleportationInteractable), true), CanEditMultipleObjects]
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class BaseTeleportationInteractableEditor : XRBaseInteractableEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="BaseTeleportationInteractable.teleportationProvider"/>.</summary>

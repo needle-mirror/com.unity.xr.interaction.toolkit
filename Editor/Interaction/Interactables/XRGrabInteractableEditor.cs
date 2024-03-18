@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactables
 {
     class GrabTransformersReorderableList : ReorderableList
     {
@@ -41,6 +42,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// <summary>
     /// Custom editor for an <see cref="XRGrabInteractable"/>.
     /// </summary>
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     [CustomEditor(typeof(XRGrabInteractable), true), CanEditMultipleObjects]
     public partial class XRGrabInteractableEditor : XRBaseInteractableEditor
     {

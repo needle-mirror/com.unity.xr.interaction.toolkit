@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI

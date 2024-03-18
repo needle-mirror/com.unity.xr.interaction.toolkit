@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Tests;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 

@@ -1,5 +1,6 @@
 ﻿using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
@@ -29,6 +30,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             public bool ReadWasPerformedThisFrame()
             {
                 return state.activatedThisFrame;
+            }
+
+            /// <inheritdoc />
+            public bool ReadWasCompletedThisFrame()
+            {
+                return state.deactivatedThisFrame;
             }
 
             /// <inheritdoc />
@@ -256,6 +263,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             value = selectInput.ReadValue(),
                             active = selectInput.ReadIsPerformed(),
                             activatedThisFrame = selectInput.ReadWasPerformedThisFrame(),
+                            deactivatedThisFrame = selectInput.ReadWasCompletedThisFrame(),
                         };
 
                         // Activate
@@ -265,6 +273,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             value = activateInput.ReadValue(),
                             active = activateInput.ReadIsPerformed(),
                             activatedThisFrame = activateInput.ReadWasPerformedThisFrame(),
+                            deactivatedThisFrame = activateInput.ReadWasCompletedThisFrame(),
                         };
                     }
                     else
@@ -282,6 +291,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                             value = uiPressInput.ReadValue(),
                             active = uiPressInput.ReadIsPerformed(),
                             activatedThisFrame = uiPressInput.ReadWasPerformedThisFrame(),
+                            deactivatedThisFrame = uiPressInput.ReadWasCompletedThisFrame(),
                         };
 
                         // UI Scroll

@@ -8,6 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {

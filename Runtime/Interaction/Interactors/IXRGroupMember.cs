@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+﻿using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents an object that can be contained as a member in an <see cref="IXRInteractionGroup"/>.
@@ -10,6 +12,7 @@
     /// </remarks>
     /// <seealso cref="XRInteractionGroup"/>
     /// <seealso cref="XRBaseInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRGroupMember
     {
         /// <summary>
@@ -47,6 +50,7 @@
     /// Extension methods for <see cref="IXRGroupMember"/>.
     /// </summary>
     /// <seealso cref="IXRGroupMember"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public static class XRGroupMemberExtensions
     {
         /// <summary>

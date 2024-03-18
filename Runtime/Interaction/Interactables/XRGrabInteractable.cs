@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
+using UnityEngine.XR.Interaction.Toolkit.Gaze;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
@@ -12,7 +15,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 using Unity.Burst;
 #endif
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// Interactable component that allows for basic grab functionality.
@@ -51,6 +54,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </para>
     /// </remarks>
     /// <seealso cref="IXRGrabTransformer"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody))]

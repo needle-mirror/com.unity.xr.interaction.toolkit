@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
-using UnityEngine.XR.Interaction.Toolkit.Interaction;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {

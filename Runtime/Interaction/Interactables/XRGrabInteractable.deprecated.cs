@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     public partial class XRGrabInteractable
     {

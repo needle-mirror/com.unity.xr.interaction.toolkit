@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {

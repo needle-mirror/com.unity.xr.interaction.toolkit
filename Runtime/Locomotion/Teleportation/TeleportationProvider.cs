@@ -1,8 +1,8 @@
 using System;
 using UnityEngine.Assertions;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// The <see cref="TeleportationProvider"/> is responsible for moving the XR Origin
@@ -10,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [AddComponentMenu("XR/Locomotion/Teleportation Provider", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationProvider)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class TeleportationProvider : LocomotionProvider
     {
         /// <summary>

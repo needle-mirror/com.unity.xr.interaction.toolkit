@@ -25,7 +25,7 @@ Preset:
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_System
+    propertyPath: m_Mediator
     value: 
     objectReference: {fileID: 0}
   - target: {fileID: 0}

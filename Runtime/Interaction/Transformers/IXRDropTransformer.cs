@@ -1,3 +1,5 @@
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+
 namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 {
     /// <summary>

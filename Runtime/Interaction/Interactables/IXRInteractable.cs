@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// An interface that represents an Interactable component that controls how a GameObject
@@ -17,6 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="IXRHoverInteractable"/>
     /// <seealso cref="IXRSelectInteractable"/>
     /// <seealso cref="IXRInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRInteractable
     {
         /// <summary>

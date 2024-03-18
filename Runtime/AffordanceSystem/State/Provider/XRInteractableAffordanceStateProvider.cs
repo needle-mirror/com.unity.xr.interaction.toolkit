@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Datums;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State

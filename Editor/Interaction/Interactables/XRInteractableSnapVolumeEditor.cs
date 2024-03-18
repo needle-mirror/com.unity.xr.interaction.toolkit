@@ -1,11 +1,13 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// Custom editor for an <see cref="XRInteractableSnapVolume"/>.
     /// </summary>
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     [CustomEditor(typeof(XRInteractableSnapVolume), true), CanEditMultipleObjects]
     public class XRInteractableSnapVolumeEditor : BaseInteractionEditor
     {

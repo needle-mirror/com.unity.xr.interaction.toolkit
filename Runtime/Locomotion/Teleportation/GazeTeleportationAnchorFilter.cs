@@ -1,6 +1,7 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Utilities;
+﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Filter for a <see cref="TeleportationMultiAnchorVolume"/> that designates the anchor most aligned with the
@@ -9,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [CreateAssetMenu(fileName = "GazeTeleportationAnchorFilter", menuName = "XR/Locomotion/Gaze Teleportation Anchor Filter")]
     [HelpURL(XRHelpURLConstants.k_GazeTeleportationAnchorFilter)]
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class GazeTeleportationAnchorFilter : ScriptableObject, ITeleportationVolumeAnchorFilter
     {
         [SerializeField]

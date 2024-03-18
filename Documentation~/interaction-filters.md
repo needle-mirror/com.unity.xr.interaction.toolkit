@@ -12,7 +12,7 @@ The current interaction filters supported in XRI  are:
 
 ## Hover filter
 
-[`IXRHoverFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRHoverFilter) is an interface that allows additional filter processing between an [`IXRHoverInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.IXRHoverInteractor) and an [`IXRHoverInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.IXRHoverInteractable).
+[`IXRHoverFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRHoverFilter) is an interface that allows additional filter processing between an [`IXRHoverInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRHoverInteractor) and an [`IXRHoverInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRHoverInteractable).
 
 ### Usage
 
@@ -21,8 +21,8 @@ An `IXRHoverFilter` can be added to the following objects to extend its hover va
 |Object|Usage|
 |---|---|
 |**[`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager)**|A hover filter added to the Interaction Manager is used to validate all hover interactions globally in the manager.|
-|**[`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor)**|A hover filter added to an Interactor is used to validate the hover interactions in the Interactor.|
-|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable)**|A hover filter added to an Interactable is used to validate the hover interactions in the Interactable.|
+|**[`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor)**|A hover filter added to an Interactor is used to validate the hover interactions in the Interactor.|
+|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable)**|A hover filter added to an Interactable is used to validate the hover interactions in the Interactable.|
 
 ### Interface definition
 
@@ -64,7 +64,7 @@ public class CustomHoverFilter : MonoBehaviour, IXRHoverFilter
 
 ## Select filter
 
-[`IXRSelectFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRSelectFilter) is an interface that allows additional filter processing between an [`IXRSelectInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.IXRSelectInteractor) and an [`IXRSelectInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.IXRSelectInteractable).
+[`IXRSelectFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRSelectFilter) is an interface that allows additional filter processing between an [`IXRSelectInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRSelectInteractor) and an [`IXRSelectInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRSelectInteractable).
 
 ### Usage
 
@@ -73,8 +73,8 @@ An `IXRSelectFilter` can be added following objects to extend its select validat
 |Object|Usage|
 |---|---|
 |**[`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager)**|A select filter added to the Interaction Manager is used to validate all select interactions globally in the manager.|
-|**[`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractor)**|A select filter added to an Interactor is used to validate the select interactions in the Interactor.|
-|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable)**|A select filter added to an Interactable is used to validate the select interactions in the Interactable.|
+|**[`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor)**|A select filter added to an Interactor is used to validate the select interactions in the Interactor.|
+|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable)**|A select filter added to an Interactable is used to validate the select interactions in the Interactable.|
 
 ### Interface definition
 
@@ -117,7 +117,7 @@ public class CustomSelectFilter : MonoBehaviour, IXRSelectFilter
 
 ## Interaction strength filter
 
-[`IXRInteractionStrengthFilter`](xerf:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) is an interface used to adjust or set the interaction strength between an [`IXRInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractor) and [`IXRInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.IXRInteractable).
+[`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) is an interface used to adjust or set the interaction strength between an [`IXRInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor) and [`IXRInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractable).
 
 ### Usage
 
@@ -125,7 +125,7 @@ An `IXRInteractionStrengthFilter` can be added following objects to extend its i
 
 |Object|Usage|
 |---|---|
-|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable)**| An interaction strength filter added to an Interactable is used to modify the interaction strength in the Interactable for a hovering or selecting Interactor.|
+|**[`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable)**| An interaction strength filter added to an Interactable is used to modify the interaction strength in the Interactable for a hovering or selecting Interactor.|
 
 ### Interface definition
 

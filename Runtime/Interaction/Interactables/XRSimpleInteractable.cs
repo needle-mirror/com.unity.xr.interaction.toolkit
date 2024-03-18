@@ -1,4 +1,6 @@
-namespace UnityEngine.XR.Interaction.Toolkit
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// The simplest Interactable object which provides events for interaction states like hover and select.
@@ -15,6 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// * [UI interaction setup](xref:xri-ui-setup)
     /// * [Interaction States](xref:xri-architecture#states)
     /// </remarks>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/XR Simple Interactable", 11)]

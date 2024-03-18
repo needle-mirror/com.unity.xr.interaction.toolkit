@@ -2,7 +2,7 @@
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
 
-This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
+This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@8/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
 
 This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
@@ -19,7 +19,12 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 |**`Scripts\`**|General-use scripts that can accelerate development when using XRI.<br />See [Scripts](#scripts) below.|
 |**`Tunneling Vignette\`**|Folder containing a prefab and shaders required to use the provided tunneling vignette comfort mode option.<br />See [Tunneling vignette](#tunneling-vignette) below.|
 |**`DemoScene`**|Scene that illustrates a basic setup using the package.<br />See [Demo Scene](#demo-scene) below.|
-|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings and several [Control Schemes](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/ActionBindings.html#control-schemes) for use in XR experiences.<br />See [Input Actions Asset](#input-actions-asset) below.|
+|**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings for use in XR experiences.<br />See [Input Actions Asset](#input-actions-asset) below.|
+
+## Prerequisites and setup
+
+In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
+  * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used
 
 ## Demo Scene
 
@@ -46,7 +51,7 @@ The Demo Scene in the Starter Assets sample package contains a number of simplif
 
 ## Input Actions Asset
 
-The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
+The following image shows the [Action editor](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionAssets.html#editing-input-action-assets) of the Asset included in the sample, while editing one of the bindings of an action in one of the maps.
 
 ![sample-default-input-actions-asset](images/sample-default-input-actions-asset.png)
 

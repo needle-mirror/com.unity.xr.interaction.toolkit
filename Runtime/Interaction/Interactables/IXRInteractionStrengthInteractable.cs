@@ -1,6 +1,8 @@
 using Unity.XR.CoreUtils.Bindings.Variables;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// An interface that represents an Interactable component which
@@ -12,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// It can also be based on a poke amount for how deep a poke interactor has pressed into an interactable.
     /// </remarks>
     /// <seealso cref="IXRInteractionStrengthInteractor"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRInteractionStrengthInteractable : IXRInteractable
     {
         /// <summary>

@@ -1,7 +1,10 @@
 using Unity.XR.CoreUtils;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Gaze;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Interactor used for interacting with interactables via gaze. This extends <see cref="XRRayInteractor"/> and
@@ -10,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRBaseInteractable.allowGazeInteraction"/>
     /// <seealso cref="XRBaseInteractable.allowGazeSelect"/>
     /// <seealso cref="XRBaseInteractable.allowGazeAssistance"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Interactors/XR Gaze Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRGazeInteractor)]
     public class XRGazeInteractor : XRRayInteractor

@@ -5,7 +5,7 @@ uid: xri-general-setup
 
 This section will walk you through the steps to create an XR Origin camera rig for a head-mounted device and create the basic building blocks of XR interactivity.
 
-These steps will guide you through setup to use [Input Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html) to indirectly read input from one or more controls, which is the recommended path.
+These steps will guide you through setup to use [Input Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) to indirectly read input from one or more controls, which is the recommended path.
 
 ## Import starter assets
 
@@ -47,7 +47,7 @@ To have the position and rotation of a motion controller update the Transform co
 
 ## Enable input actions used for input
 
-Actions must be enabled before they react to input. See [Using Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Actions.html#using-actions) in the Input System documentation for details about this process. Most behaviors in this package have input properties which can either store an Input Action directly, or indirectly by referencing an input action contained in an Input Action Asset. When directly defined actions are used (in other words, the mode is set to **Input Action**), behaviors automatically enable and disable the actions that are directly defined during their own `OnEnable` and `OnDisable` events. This can be useful when doing rapid prototyping. However when indirect action references are used (in other words, the mode is set to **Input Action Reference**), behaviors intentionally don't automatically enable or disable the Input Actions that are indirectly defined to allow the enabled state to be managed externally.
+Actions must be enabled before they react to input. See [Enabling actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html#enabling-actions) in the Input System documentation for details about this process. Most behaviors in this package have input properties which can either store an Input Action directly, or indirectly by referencing an input action contained in an Input Action Asset. When directly defined actions are used (in other words, the mode is set to **Input Action**), behaviors automatically enable and disable the actions that are directly defined during their own `OnEnable` and `OnDisable` events. This can be useful when doing rapid prototyping. However when indirect action references are used (in other words, the mode is set to **Input Action Reference**), behaviors intentionally don't automatically enable or disable the Input Actions that are indirectly defined to allow the enabled state to be managed externally.
 
 The Input Action Manager component can be used to automatically enable or disable the Actions defined in an Input Action Asset during its own `OnEnable` and `OnDisable` events.
 
@@ -60,7 +60,7 @@ If you have imported the **Starter Assets** sample package, the **XRI Default In
 If you later create additional Input Action Assets, add them to the **Action Assets** list to enable all its actions also.
 
 > [!NOTE]
-> For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view may need to have focus depending on the current project settings. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. See [Background and focus change behavior](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/manual/Devices.html#background-and-focus-change-behavior) to learn how to adjust settings to not require focus in the Game view.
+> For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view may need to have focus depending on the current project settings. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. See [Background and focus change behavior](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Devices.html#background-and-focus-change-behavior) to learn how to adjust settings to not require focus in the Game view.
 
 <a id="create-grab-interactable"></a>
 ## Create an Interactable for the player to grab

@@ -21,6 +21,7 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 

@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 {
     public partial class XRBaseInteractorEditor
     {

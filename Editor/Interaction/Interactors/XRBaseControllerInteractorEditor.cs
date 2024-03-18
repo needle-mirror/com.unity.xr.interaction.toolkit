@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.XR.Interaction.Toolkit.Interactors;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -8,7 +9,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRBaseControllerInteractor"/>.
     /// </summary>
     [CustomEditor(typeof(XRBaseControllerInteractor), true), CanEditMultipleObjects]
-    [Obsolete("XRBaseControllerInteractorEditor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractorEditor. (UnityUpgradable) -> XRBaseInputInteractorEditor")]
+    [Obsolete("XRBaseControllerInteractorEditor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractorEditor. (UnityUpgradable) -> UnityEditor.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractorEditor")]
     public class XRBaseControllerInteractorEditor : XRBaseInteractorEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>

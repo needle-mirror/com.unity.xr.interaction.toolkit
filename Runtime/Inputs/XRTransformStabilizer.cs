@@ -2,6 +2,7 @@ using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 #if BURST_PRESENT
 using Unity.Burst;
 #endif

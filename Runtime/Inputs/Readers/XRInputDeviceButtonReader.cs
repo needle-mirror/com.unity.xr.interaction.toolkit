@@ -40,6 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
 
         bool m_IsPerformed;
         bool m_WasPerformedThisFrame;
+        bool m_WasCompletedThisFrame;
 
         readonly UnityObjectReferenceCache<XRInputDeviceBoolValueReader> m_BoolValueReaderCache = new UnityObjectReferenceCache<XRInputDeviceBoolValueReader>();
         readonly UnityObjectReferenceCache<XRInputDeviceFloatValueReader> m_FloatValueReaderCache = new UnityObjectReferenceCache<XRInputDeviceFloatValueReader>();
@@ -64,6 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
             var prevPerformed = m_IsPerformed;
             m_IsPerformed = TryGetBoolValueReader(out var reference) && reference.ReadValue();
             m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;
+            m_WasCompletedThisFrame = prevPerformed && !m_IsPerformed;
         }
 
         /// <inheritdoc />
@@ -76,6 +78,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         public bool ReadWasPerformedThisFrame()
         {
             return m_WasPerformedThisFrame;
+        }
+
+        /// <inheritdoc />
+        public bool ReadWasCompletedThisFrame()
+        {
+            return m_WasCompletedThisFrame;
         }
 
         /// <inheritdoc />

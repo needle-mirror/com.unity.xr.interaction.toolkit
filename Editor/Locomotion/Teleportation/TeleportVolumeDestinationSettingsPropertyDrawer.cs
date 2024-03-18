@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
-namespace UnityEditor.XR.Interaction.Toolkit
+namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Custom property drawer for a <see cref="TeleportVolumeDestinationSettings"/>.
     /// </summary>
     [CustomPropertyDrawer(typeof(TeleportVolumeDestinationSettings))]
+    [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class TeleportVolumeDestinationSettingsPropertyDrawer : PropertyDrawer
     {
         const string k_EnableDestinationEvaluationDelayPath = "m_EnableDestinationEvaluationDelay";

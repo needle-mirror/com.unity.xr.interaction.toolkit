@@ -1,17 +1,20 @@
 using System.Diagnostics;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
-    /// Utility component for supporting interactors snapping and and selecting interactables.
+    /// Utility component for supporting interactors snapping to and selecting interactables.
     /// Add this component to a child GameObject of the interactable.
     /// </summary>
     /// <remarks>
     /// Currently supports one collider as the snapping volume. To support multiple snap colliders for a single interactable,
     /// add multiple components with each using a different collider.
     /// </remarks>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/XR Interactable Snap Volume", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractableSnapVolume)]
     [HelpURL(XRHelpURLConstants.k_XRInteractableSnapVolume)]

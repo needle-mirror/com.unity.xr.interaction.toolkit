@@ -1,10 +1,14 @@
-namespace UnityEngine.XR.Interaction.Toolkit
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Gaze;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// An interface that represents a <see cref="Transform"/>-driven XR Ray.
     /// </summary>
     /// <seealso cref="XRRayInteractor"/>
     /// <seealso cref="XRGazeAssistance"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRRayProvider
     {
         /// <summary>

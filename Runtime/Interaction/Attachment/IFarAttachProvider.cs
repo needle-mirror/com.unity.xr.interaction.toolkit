@@ -1,4 +1,7 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Attachment
+﻿using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+
+namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
     /// <summary>
     /// Controls the interactor's default behavior for how to adjust its attach transform on far select.
@@ -65,6 +68,6 @@
         /// Specifically, it controls whether the interactor's attach transform should move to the far hit point
         /// or whether it should stay near so the object can move to the hand.
         /// </summary>
-        public InteractableFarAttachMode farAttachMode { get; set; }
+        InteractableFarAttachMode farAttachMode { get; set; }
     }
 }

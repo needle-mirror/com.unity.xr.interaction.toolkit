@@ -47,6 +47,8 @@ using Unity.XR.CoreUtils;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR

@@ -1,18 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Interactor used for directly interacting with interactables that are touching. This is handled via trigger volumes
     /// that update the current set of valid targets for this interactor. This component must have a collision volume that is
     /// set to be a trigger to work.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Direct Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRDirectInteractor)]
-    public partial class XRDirectInteractor : XRBaseInputInteractor
+    public class XRDirectInteractor : XRBaseInputInteractor
     {
         [SerializeField]
         bool m_ImproveAccuracyWithSphereCollider;

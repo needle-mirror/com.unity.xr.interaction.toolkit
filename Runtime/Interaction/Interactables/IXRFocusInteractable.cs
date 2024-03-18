@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
     /// <summary>
     /// An interface that represents an Interactable component which
     /// an Interactor component can persistently select.
     /// </summary>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRFocusInteractable : IXRInteractable
     {
         /// <summary>
@@ -147,6 +150,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Extension methods for <see cref="IXRFocusInteractable"/>.
     /// </summary>
     /// <seealso cref="IXRFocusInteractable"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public static class XRFocusInteractableExtensions
     {
         /// <summary>
@@ -166,6 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Options for the focus policy of an Interactable.
     /// </summary>
     /// <seealso cref="IXRFocusInteractable.focusMode"/>
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public enum InteractableFocusMode
     {
         /// <summary>
