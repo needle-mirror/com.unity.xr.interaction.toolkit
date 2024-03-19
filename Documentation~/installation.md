@@ -18,7 +18,7 @@ To install this package (minimum version: 2.0.4), follow the [installation instr
 This package was not listed in the Editor manifest in earlier versions of Unity 2021. Due to this, installation is a manual process. To install this package:
 1. Open the project that you plan to use.
 1. Click the following link to bring up the **Add package by name** window in Package Manager: 
-[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@3.0.0) 
+[com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit@3.0.1) 
 
    ![installation-add-package-by-name](images/installation-add-package-by-name.png)
 

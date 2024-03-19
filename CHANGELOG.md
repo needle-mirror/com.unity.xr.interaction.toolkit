@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.1] - 2024-03-19
+
+### Fixed
+- Fixed warnings such as "Main Object Name '_MaterialPipelineHandler' does not match filename 'MaterialPipelineHandler'" in the package samples.
+
 ## [3.0.0] - 2024-03-18
 
 ### Added

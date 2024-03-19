@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7883133e628dff4a86f50c082f77055, type: 3}
-  m_Name: ARDemoSceneMaterialHandler
+  m_Name: MaterialPipelineHandler
   m_EditorClassIdentifier: 
   m_ShaderContainers:
   - material: {fileID: 2100000, guid: 405529b091e884f32ad1cdb05c634ebe, type: 2}
