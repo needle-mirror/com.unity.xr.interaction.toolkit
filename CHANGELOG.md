@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [2.5.4] - 2024-04-05
+
+### Fixed
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined when AR Foundation is installed. Also fixed when XR Hands is installed in the Hands Interaction Demo sample. (Backport from 3.0.0)
+- Fixed `TrackedGraphicRaycaster` to clear poke interaction data when disabled. ([XRIT-142](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-142)) (Backport from 3.0.0)
+- Fixed warning about use of deprecated `VersionsInfo.verified` by replacing with `VersionsInfo.recommended` in the Hands Interaction Demo sample in Unity 2022.2 and newer. (Backport from 3.0.0)
+- Fixed the XR Interactor Line Visual from bending towards an XR Interactable Snap Volume behind UI when the valid UI hit is closest. (Backport from 3.0.2)
+- Fixed tap gesture detection for selecting and spawning interactable objects in AR scenes. ([XRIT-145](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-145)) (Backport from 3.0.2)
+  - Changed the Tap Start Position input action to remove the Tap interaction from the `tapStartPosition` binding in the Starter Assets sample `XRI Default Input Actions` asset. The sample will need to be reimported to remove the Tap interaction from the binding for taps to be functional. This change along with changes to the `XRScreenSpaceController` also fixes the selected object from staying selected and movable with the mobile device orientation for 0.2 seconds after a tap was released.
+
 ## [2.5.3] - 2024-02-28
 
 ### Fixed

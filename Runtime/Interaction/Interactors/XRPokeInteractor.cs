@@ -251,7 +251,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                TrackedDeviceGraphicRaycaster.ValidatePokeInteractionData(this);
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();

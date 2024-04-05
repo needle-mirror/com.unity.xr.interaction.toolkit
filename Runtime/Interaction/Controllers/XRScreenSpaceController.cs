@@ -1,3 +1,8 @@
+// These are the guards in TouchscreenGestureInputController.cs
+#if ((ENABLE_VR || UNITY_GAMECORE) && AR_FOUNDATION_PRESENT) || PACKAGE_DOCS_GENERATION
+#define TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+#endif
+
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -5,7 +10,7 @@ using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
-#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
 using UnityEngine.XR.Interaction.Toolkit.AR.Inputs;
 #endif
 
@@ -191,7 +196,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </remarks>
         public float scaleDelta { get; private set; }
 
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
         TouchscreenGestureInputController m_GestureInputController;
 #endif
         bool m_HasCheckedDisabledTrackingInputReferenceActions;
@@ -258,8 +263,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             var currentTouchCount = m_ScreenTouchCountAction.action?.ReadValue<int>() ?? 0;
-            controllerState.isTracked = currentTouchCount > 0;
-
+            
             if (TryGetCurrentPositionAction(currentTouchCount, out var posAction))
             {
                 var screenPos =  posAction.ReadValue<Vector2>();
@@ -268,10 +272,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 controllerState.position = transform.parent != null ? transform.parent.InverseTransformPoint(screenToWorldPoint) : screenToWorldPoint;
                 controllerState.rotation = Quaternion.LookRotation(directionVector);
                 controllerState.inputTrackingState = InputTrackingState.Position | InputTrackingState.Rotation;
+                controllerState.isTracked = currentTouchCount > 0;
             }
             else
             {
                 controllerState.inputTrackingState = InputTrackingState.None;
+                controllerState.isTracked = false;
             }
         }
 
@@ -304,11 +310,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (TryGetCurrentTwoInputSelectAction(out var twoInputSelectAction))
             {
-                controllerState.selectInteractionState.SetFrameState(twoInputSelectAction.phase.IsInProgress(), twoInputSelectAction.ReadValue<float>());
+                controllerState.selectInteractionState.SetFrameState(true, twoInputSelectAction.ReadValue<float>());
             }
             else if (TryGetCurrentOneInputSelectAction(out var oneInputSelectAction))
             {
-                controllerState.selectInteractionState.SetFrameState(oneInputSelectAction.phase == InputActionPhase.Started, oneInputSelectAction.ReadValue<Vector2>().magnitude);
+                controllerState.selectInteractionState.SetFrameState(true, oneInputSelectAction.ReadValue<Vector2>().magnitude);
             }
             else
             {
@@ -323,14 +329,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (touchCount <= 1)
             {
                 if (m_DragCurrentPositionAction.action != null &&
-                    m_DragCurrentPositionAction.action.phase == InputActionPhase.Started)
+                    m_DragCurrentPositionAction.action.IsInProgress())
                 {
                     action = m_DragCurrentPositionAction.action;
                     return true;
                 }
 
                 if (m_TapStartPositionAction.action != null &&
-                    m_TapStartPositionAction.action.phase == InputActionPhase.Started)
+                    m_TapStartPositionAction.action.WasPerformedThisFrame())
                 {
                     action = m_TapStartPositionAction.action;
                     return true;
@@ -344,14 +350,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool TryGetCurrentOneInputSelectAction(out InputAction action)
         {
             if (m_DragCurrentPositionAction.action != null &&
-                m_DragCurrentPositionAction.action.phase == InputActionPhase.Started)
+                m_DragCurrentPositionAction.action.IsInProgress())
             {
                 action = m_DragCurrentPositionAction.action;
                 return true;
             }
 
             if (m_TapStartPositionAction.action != null &&
-                m_TapStartPositionAction.action.phase == InputActionPhase.Started)
+                m_TapStartPositionAction.action.WasPerformedThisFrame())
             {
                 action = m_TapStartPositionAction.action;
                 return true;
@@ -364,21 +370,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         bool TryGetCurrentTwoInputSelectAction(out InputAction action)
         {
             if (m_PinchGapAction.action != null &&
-                m_PinchGapAction.action.phase.IsInProgress())
+                m_PinchGapAction.action.IsInProgress())
             {
                 action = m_PinchGapAction.action;
                 return true;
             }
 
             if (m_PinchGapDeltaAction.action != null &&
-                m_PinchGapDeltaAction.action.phase.IsInProgress())
+                m_PinchGapDeltaAction.action.IsInProgress())
             {
                 action = m_PinchGapDeltaAction.action;
                 return true;
             }
 
             if (m_TwistDeltaRotationAction.action != null &&
-                m_TwistDeltaRotationAction.action.phase.IsInProgress())
+                m_TwistDeltaRotationAction.action.IsInProgress())
             {
                 action = m_TwistDeltaRotationAction.action;
                 return true;
@@ -419,7 +425,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void InitializeTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (!m_EnableTouchscreenGestureInputController)
                 return;
 
@@ -436,7 +442,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void DestroyTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (m_GestureInputController != null && m_GestureInputController.added)
             {
                 InputSystem.InputSystem.RemoveDevice(m_GestureInputController);

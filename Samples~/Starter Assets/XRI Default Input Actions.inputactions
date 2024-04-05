@@ -2471,7 +2471,7 @@
                     "name": "",
                     "id": "fea81b99-07f5-426a-beba-5e0832c14855",
                     "path": "<TouchscreenGestureInputController>/tapStartPosition",
-                    "interactions": "Tap",
+                    "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Tap Start Position",

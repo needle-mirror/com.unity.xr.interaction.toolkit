@@ -1,4 +1,9 @@
-#if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+// These are the guards in TouchscreenGestureInputController.cs
+#if ((ENABLE_VR || UNITY_GAMECORE) && AR_FOUNDATION_PRESENT) || PACKAGE_DOCS_GENERATION
+#define TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+#endif
+
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
 using UnityEditor;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.Scripting;

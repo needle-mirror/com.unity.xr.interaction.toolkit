@@ -206,9 +206,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands
             if (request.Status == StatusCode.Success && request.Result.Length > 0)
             {
                 var versions = request.Result[0].versions;
-                var verifiedVersion = new PackageVersion(versions.verified);
+#if UNITY_2022_2_OR_NEWER
+                var recommendedVersion = new PackageVersion(versions.recommended);
+#else
+                var recommendedVersion = new PackageVersion(versions.verified);
+#endif
                 var latestCompatible = new PackageVersion(versions.latestCompatible);
-                if (verifiedVersion < s_RecommendedPackageVersion && s_RecommendedPackageVersion <= latestCompatible)
+                if (recommendedVersion < s_RecommendedPackageVersion && s_RecommendedPackageVersion <= latestCompatible)
                     addRequest = $"{k_HandsPackageName}@{s_RecommendedPackageVersion}";
             }
 

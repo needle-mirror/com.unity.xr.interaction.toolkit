@@ -1038,11 +1038,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 targetEndPoint = m_CurrentHitPoint;
 
-                if (validHit && m_SnapEndpointIfAvailable && m_HasRayInteractor)
+                // Since any UI hit is considered a valid hit, we need to skip snap volume logic if the UI hit is closer than the snap volume hit
+                if (validHit && m_SnapEndpointIfAvailable && m_HasRayInteractor &&
+                    m_LineRenderableAsRayInteractor.TryGetCurrentRaycast(out var raycastHit, out _, out _, out _, out var isUIHitClosest) &&
+                    !isUIHitClosest)
                 {
                     // When hovering a new collider, check if it has a specified snapping volume, if it does then get the closest point on it
-                    if (m_LineRenderableAsRayInteractor.TryGetCurrent3DRaycastHit(out var raycastHit, out _))
-                        hitCollider = raycastHit.collider;
+                    if (raycastHit.HasValue)
+                        hitCollider = raycastHit.Value.collider;
 
                     if (hitCollider != m_PreviousCollider && hitCollider != null)
                         m_LineRenderableAsBaseInteractor.interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
@@ -1053,7 +1056,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         targetEndPoint = m_LineRenderableAsRayInteractor.hasSelection
                             ? m_XRInteractableSnapVolume.GetClosestPointOfAttachTransform(m_LineRenderableAsRayInteractor)
                             : m_XRInteractableSnapVolume.GetClosestPoint(targetEndPoint);
-                        
+
                         m_EndPositionInLine = k_NumberOfSegmentsForBendableLine - 1; // Override hit index because we're going to use a custom line where the hit point is the end
                         hitSnapVolume = true;
                     }

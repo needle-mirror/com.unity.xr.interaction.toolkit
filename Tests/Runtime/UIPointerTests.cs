@@ -1648,6 +1648,66 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(inputModule.uiCamera, Is.SameAs(camera2));
         }
 
+        [UnityTest]
+        public IEnumerator TrackedDeviceGraphicRaycasterClearsPokeDataWhenDisabled()
+        {
+            var testObjects = SetupUIScene(isWorldSpace: true);
+            var trackedDeviceGraphicRaycaster = testObjects.rightUIReceiver.GetComponentInParent<TrackedDeviceGraphicRaycaster>();
+            Assert.IsNotNull(trackedDeviceGraphicRaycaster);
+            
+            var pokeInteractor =  TestUtilities.CreatePokeInteractor();
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(pokeInteractor, out var model), Is.True);
+
+            // Ensure initial poke interactor is not poking 
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+            yield return null;
+            
+            // Set poke interactor position to begin interaction with the canvas
+            var trackedDeviceGraphicRaycasterPosition = trackedDeviceGraphicRaycaster.transform.position;
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeInteractor.pokeDepth / 2);
+            yield return null;
+
+            // Check that poke interactor is interacting with the UI 
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            
+            // Disable UI GameObject
+            trackedDeviceGraphicRaycaster.gameObject.SetActive(false);
+            yield return null;
+            
+            // Check that poke interactor is no longre interacting with the disable UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDeviceGraphicRaycasterClearsPokeDataWhenDestroyed()
+        {
+            var testObjects = SetupUIScene(isWorldSpace: true);
+            var trackedDeviceGraphicRaycaster = testObjects.rightUIReceiver.GetComponentInParent<TrackedDeviceGraphicRaycaster>();
+            Assert.IsNotNull(trackedDeviceGraphicRaycaster);
+            
+            var pokeInteractor =  TestUtilities.CreatePokeInteractor();
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(pokeInteractor, out var model), Is.True);
+
+            // Ensure initial poke interactor is not poking 
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+            yield return null;
+            
+            // Set poke interactor position to begin interaction with the canvas
+            var trackedDeviceGraphicRaycasterPosition = trackedDeviceGraphicRaycaster.transform.position;
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeInteractor.pokeDepth / 2);
+            yield return null;
+
+            // Check that poke interactor is interacting with the UI 
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            
+            // Disable UI GameObject
+            Object.Destroy(trackedDeviceGraphicRaycaster.gameObject);
+            yield return null;
+            
+            // Check that poke interactor is no longre interacting with the disable UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+        }
+
         [TearDown]
         public override void TearDown()
         {
