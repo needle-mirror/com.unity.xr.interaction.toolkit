@@ -16,8 +16,8 @@ Importantly the stabilization and smoothing options are configured by default to
 | **Angle Stabilization**                | Factor for stabilizing angle. This value represents the maximum angle (in degrees) over which angle stabilization will be applied. Larger values increase the range of stabilization, making the effect more pronounced over a greater angle. |
 | **Smooth Offset**                      | If true offset will be smoothed over time in XR Origin space. May present some instability if smoothing is toggled during an interaction. |
 | **Smoothing Speed**                    | Smoothing amount for the anchor's position and rotation. Higher values mean more smoothing occurs faster. |
-| **Use Distance Based Velocity Scaling**| Flag to use distance-based velocity scaling for anchor movement. |
-| **Use Momentum**                       | Flag to determine if momentum is active when distance scaling is in effect. |
+| **Use Distance Based Velocity Scaling**| Whether to use distance-based velocity scaling for anchor movement. |
+| **Use Momentum**                       | Whether momentum is used when distance scaling is in effect. |
 | **Momentum Decay Scale**               | Decay scalar for momentum. Higher values will cause momentum to decay faster. |
 | **Z Velocity Ramp Threshold**          | Scales anchor velocity from 0 to 1 based on z-velocity's deviation below a threshold. 0 means no scaling. |
 | **Pull Velocity Bias**                 | Adjusts the object's velocity calculation when moving towards the user. It modifies the distance-based calculation that determines the velocity scalar. |

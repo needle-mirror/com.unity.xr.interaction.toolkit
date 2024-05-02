@@ -7,6 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -107,6 +108,74 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.isSelected, Is.EqualTo(enableFarCasting));
             Assert.That(interactor.interactablesSelected, enableFarCasting ? Is.EqualTo(new[] { interactable }) : Is.Empty);
         }
+        
+        [UnityTest]
+        public IEnumerator TestFarCastingTargetFilterWithMultiColliderInteractable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+
+            interactor.enableNearCasting = false;
+            interactor.enableFarCasting = true;
+
+            // Setup target filter
+            var targetFilter = interactor.gameObject.AddComponent<XRTargetFilter>();
+            interactor.targetFilter = targetFilter;
+
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+
+            // Setup interactable with multiple colliders
+            GameObject interactableGO = new GameObject("Grab Interactable");
+            TestUtilities.CreateGOSphereCollider(interactableGO, false);
+            TestUtilities.CreateGOBoxCollider(interactableGO, false);
+            XRGrabInteractable interactable = interactableGO.AddComponent<XRGrabInteractable>();
+            var rigidBody = interactableGO.GetComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Setup interactable with multiple colliders
+            GameObject secondaryGameObject = new GameObject("Secondary Grab Interactable");
+            TestUtilities.CreateGOSphereCollider(secondaryGameObject, false);
+            TestUtilities.CreateGOBoxCollider(secondaryGameObject, false);
+            XRGrabInteractable secondaryInteractable = secondaryGameObject.AddComponent<XRGrabInteractable>();
+            rigidBody = secondaryGameObject.GetComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+
+            secondaryInteractable.transform.position = interactor.transform.position + interactor.transform.forward * 6.0f;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isSelected, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    true, false, false));
+            });
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+
+            yield return new WaitForSeconds(0.1f);
+
+            Assert.That(interactable.isSelected, Is.True);
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+        }
+
 
         [UnityTest]
         public IEnumerator TestEnableUIInteraction([ValueSource(nameof(s_BooleanValues))] bool enableUIInteraction)

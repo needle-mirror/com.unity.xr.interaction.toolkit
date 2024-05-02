@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using System;
@@ -106,11 +106,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
         [Header("Anchor Movement Parameters")]
         [SerializeField]
-        [Tooltip("Flag to use distance-based velocity scaling for anchor movement.")]
+        [Tooltip("Whether to use distance-based velocity scaling for anchor movement.")]
         bool m_UseDistanceBasedVelocityScaling = true;
 
         /// <summary>
-        /// Flag to use distance-based velocity scaling for anchor movement.
+        /// Whether to use distance-based velocity scaling for anchor movement.
         /// </summary>
         public bool useDistanceBasedVelocityScaling
         {
@@ -120,11 +120,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         
         [Space]
         [SerializeField]
-        [Tooltip("Flag to determine if momentum is active when distance scaling is in effect.")]
+        [Tooltip("Whether momentum is used when distance scaling is in effect.")]
         bool m_UseMomentum = true;
 
         /// <summary>
-        /// Flag to determine if momentum is active when <see cref="useDistanceBasedVelocityScaling"/> is active.
+        /// Whether momentum is used when <see cref="useDistanceBasedVelocityScaling"/> is active.
         /// </summary>
         public bool useMomentum
         {
@@ -233,12 +233,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// </summary>
         public event Action attachUpdated;
 
+        // Offset state
         bool m_FirstMovementFrame;
         bool m_HasOffset;
-        Vector3 m_StartOffset;
+
+        float m_StartOffsetLength;
+        Vector3 m_StartLocalOffset;
+        Vector3 m_NormStartOffset;
+        Vector3 m_NormTargetLocalOffset;
+        
         float m_Pivot;
         float m_Momentum;
 
+        bool m_WasVelocityScalingBlocked;
+        bool m_HasSelectInteractor;
+        IXRSelectInteractor m_SelectInteractor;
+        
         bool m_HasXROrigin;
         XROrigin m_XROrigin;
         Transform m_AnchorParent;
@@ -293,6 +303,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 Debug.LogWarning($"Missing XR Origin. Disabling distance-based velocity scaling on this {this}.", this);
                 m_UseDistanceBasedVelocityScaling = false;
             }
+
+            m_HasSelectInteractor = TryGetComponent(out m_SelectInteractor);
         }
 
         // ReSharper disable once Unity.RedundantEventFunction -- For consistent method override signature in derived classes
@@ -348,40 +360,52 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         void IInteractionAttachController.MoveTo(Vector3 targetWorldPosition)
         {
             SyncAnchor();
-            m_AnchorChild.position = targetWorldPosition;
-            var localPosition = m_AnchorChild.localPosition;
-            if (localPosition.z < 0f)
-            {
-                localPosition.z = 0f;
-                m_AnchorChild.localPosition = localPosition;
-            }
+            MoveToPositionWorldPosition(targetWorldPosition);
+        }
 
-            m_StartOffset = localPosition;
-            m_LastLocalTargetPosition = localPosition;
+        void SyncOffset()
+        {
+            MoveToPositionWorldPosition(m_AnchorChild.position);
+        }
+
+        void MoveToPositionWorldPosition(Vector3 targetWorldPosition)
+        {
+            m_AnchorChild.position = targetWorldPosition;
+
+            Vector3 delta = targetWorldPosition - m_AnchorParent.position;
+            
+            // Evaluate local start offset parameters
+            m_StartLocalOffset = m_AnchorParent.InverseTransformDirection(delta);
+            m_StartOffsetLength = m_StartLocalOffset.magnitude;
+            // Equivalent to m_StartLocalOffset.normalized but avoids second sqrt operation.
+            m_NormStartOffset = m_StartOffsetLength > Vector3.kEpsilon ? m_StartLocalOffset / m_StartOffsetLength : Vector3.zero;
+            
+            var upVector = m_HasXROrigin ? m_XROrigin.Origin.transform.up : Vector3.up;
+            bool deltaOrthogonalToUp = Vector3.Angle(delta.normalized, upVector) > 45f;
+
+            // When possible, we try to project the offset onto the plane orthogonal to the up vector to stabilize motion
+            // If the offset is too great, we use the unmodified offset.
+            var selectedWorldOffset = deltaOrthogonalToUp ? Vector3.ProjectOnPlane(delta, upVector) : delta;
+            m_NormTargetLocalOffset = m_AnchorParent.InverseTransformDirection(selectedWorldOffset).normalized;
+            
+            m_LastLocalTargetPosition = m_AnchorChild.localPosition;
 
             if (m_HasXROrigin)
                 m_LastChildOriginSpacePosition = m_XROrigin.Origin.transform.InverseTransformPoint(m_AnchorChild.position);
 
-            m_Pivot = localPosition.z;
-            m_HasOffset = m_Pivot > 0f;
+            m_Pivot = m_StartOffsetLength;
+            m_HasOffset = m_StartOffsetLength > 0f;
             m_Momentum = 0f;
             m_FirstMovementFrame = true;
+            m_WasVelocityScalingBlocked = false;
+            m_VelocityTracker.ResetVelocityTracking();
         }
 
         /// <inheritdoc />
         void IInteractionAttachController.ApplyLocalPositionOffset(Vector3 offset)
         {
-            var localPosition = m_AnchorChild.localPosition + offset;
-            if (localPosition.z < 0f)
-                localPosition.z = 0f;
-
-            m_AnchorChild.localPosition = localPosition;
-            m_LastLocalTargetPosition = localPosition;
-
-            if (m_HasXROrigin)
-                m_LastChildOriginSpacePosition = m_XROrigin.Origin.transform.InverseTransformPoint(m_AnchorChild.position);
-
-            m_HasOffset = localPosition.z > 0f;
+            SyncAnchor();
+            MoveToPositionWorldPosition(m_AnchorChild.position + m_AnchorParent.TransformDirection(offset));
         }
 
         /// <inheritdoc />
@@ -395,6 +419,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         {
             m_FirstMovementFrame = true;
             m_HasOffset = false;
+            m_WasVelocityScalingBlocked = false;
             m_Momentum = 0f;
             m_AnchorChild.SetLocalPose(Pose.identity);
             SyncAnchor();
@@ -427,8 +452,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
                     var anchorParentWorldPos = m_AnchorParent.position;
                     var worldOffset = m_AnchorChild.position - anchorParentWorldPos;
-                    var projectedWorldOffset = Vector3.ProjectOnPlane(worldOffset, originUp);
-                    var stabilizationTarget = anchorParentWorldPos + projectedWorldOffset;
+                    var isWorldOffsetOrthogonalToUp = Vector3.Angle(worldOffset.normalized, originUp) > 45f;
+                    var targetWorldOffset = isWorldOffsetOrthogonalToUp ? Vector3.ProjectOnPlane(worldOffset, originUp) : worldOffset;
+                    var stabilizationTarget = anchorParentWorldPos + targetWorldOffset;
 
                     XRTransformStabilizer.ApplyStabilization(ref m_AnchorParent, m_TransformToFollow, stabilizationTarget, adjustedPositionStabilization, adjustedAngleStabilization, deltaTime);
                 }
@@ -444,14 +470,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 return;
             }
 
-            if (!m_UseDistanceBasedVelocityScaling)
+            if (!m_UseDistanceBasedVelocityScaling || UpdateVelocityScalingBlock())
             {
-                UpdatePosition(m_LastLocalTargetPosition, m_StartOffset, deltaTime);
+                UpdatePosition(m_LastChildOriginSpacePosition, m_StartLocalOffset, deltaTime);
                 attachUpdated?.Invoke();
                 return;
             }
 
-            float3 offsetVector = m_SmoothOffset ? m_LastLocalTargetPosition : m_AnchorChild.localPosition;
+            float3 currentLocalOffset = m_SmoothOffset ? m_LastLocalTargetPosition : m_AnchorChild.localPosition;
 
             float3 velocityLocal;
             if (m_FirstMovementFrame)
@@ -466,15 +492,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 velocityLocal = m_AnchorParent.InverseTransformDirection(projectedVelocityWorld);
             }
 
-            ComputeAmplifiedOffset(velocityLocal, m_StartOffset, offsetVector, m_MinAdditionalVelocityScalar, m_MaxAdditionalVelocityScalar, m_PushVelocityBias, m_PullVelocityBias, m_ZVelocityRampThreshold, m_UseMomentum, m_MomentumDecayScale, ref m_Momentum, ref m_Pivot, deltaTime, out var newOffset);
+            ComputeAmplifiedOffset(velocityLocal, m_NormStartOffset, m_StartOffsetLength, m_NormTargetLocalOffset, currentLocalOffset, m_MinAdditionalVelocityScalar, m_MaxAdditionalVelocityScalar, m_PushVelocityBias, m_PullVelocityBias, m_ZVelocityRampThreshold, m_UseMomentum, m_MomentumDecayScale, ref m_Momentum, ref m_Pivot, deltaTime, out var newOffset);
 
-            // Check if the new offset's z-value is less than zero in local space 
-            if (newOffset.z < 0f)
+            // Check if the new offset's z-value is less than zero in local space to reset the offset
+            var newOffsetDot = math.dot(math.normalize(newOffset), m_NormStartOffset);
+            if (newOffsetDot < 0.05f)
                 ResetOffset();
             else
                 UpdatePosition(m_LastChildOriginSpacePosition, newOffset, deltaTime);
 
             attachUpdated?.Invoke();
+        }
+
+        bool UpdateVelocityScalingBlock()
+        {
+            if (!m_HasSelectInteractor)
+                return false;
+
+            bool shouldBlock = false;
+            
+            // Disable distance-based velocity scaling when target object is selected by multiple interactors
+            if (m_SelectInteractor.hasSelection)
+            {
+                var selectedInteractable = m_SelectInteractor.interactablesSelected[0];
+                if (selectedInteractable != null && selectedInteractable.interactorsSelecting.Count > 1)
+                    shouldBlock = true;
+            }
+
+            // If we start blocking velocity scaling, we need to sync the offset to prevent sudden jumps
+            if (shouldBlock && !m_WasVelocityScalingBlocked)
+                SyncOffset();
+            
+            m_WasVelocityScalingBlocked = shouldBlock;
+            return shouldBlock;
         }
 
         void UpdatePosition(Vector3 lastOriginSpacePosition, Vector3 targetLocalPosition, float deltaTime)
@@ -500,43 +550,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 startOffset, in float3 offsetVector, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar, float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool useMomentum, float momentumDecayScale, ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)        
+        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 normStartLocalOffset, float startOffsetLength, in float3 normTargetLocalOffset, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar, float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool useMomentum, float momentumDecayScale, ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)        
         {
             // Calculate the Bezier scale factor
             float distanceAdjustedMinVelocityScalar = minAdditionalVelocityScalar * pivot;
             float distanceAdjustedMaxVelocityScalar = maxAdditionalVelocityScalar * pivot;
 
-            bool isMovingAway = velocityLocal.z > 0f;
-            float distanceRatio = math.abs(offsetVector.z) / pivot;
+            // Determine how far away the offset currently is
+            float offsetMagnitude = math.length(currentLocalOffset);
+            
+            // Project the local velocity on the start offset direction in local space to ensure that we only scale motion along that axis
+            var projectedVelocityLocal = math.project(velocityLocal, normTargetLocalOffset);
+            
+            // Determine if the object is moving towards or away from the user
+            var velocitySign = math.sign(math.dot(math.normalize(projectedVelocityLocal), normStartLocalOffset));
+            bool isMovingAway = velocitySign > 0f;
+            
+            // We determine forward and back motion by using the signed magnitude of projected local velocity. 
+            var zMotionLocalSpace = math.length(projectedVelocityLocal) * velocitySign;
+
+            // We use a ratio against a pivot to get some sense of motion relative to distance from the user
+            float distanceRatio = math.abs(offsetMagnitude) / pivot;
             float t = math.clamp(distanceRatio * (isMovingAway ? pushVelocityBias : pullVelocityBias), 0f, 1f);
             float movementScale = BurstLerpUtility.BezierLerp(distanceAdjustedMinVelocityScalar, distanceAdjustedMaxVelocityScalar, t);
 
-            float rampAmount = zVelocityRampThreshold > 0 ? math.clamp(math.abs(velocityLocal.z) / zVelocityRampThreshold, 0f, 1f) : 1f;
+            // If below ramp threshold, we do not amplify motion
+            float rampAmount = zVelocityRampThreshold > 0f ? math.clamp(math.abs(zMotionLocalSpace) / zVelocityRampThreshold, 0f, 1f) : 1f;
             bool isAboveRampThreshold = !(rampAmount < 1f);
-            
-            float zMovement = velocityLocal.z * rampAmount * (1f + movementScale) * deltaTime;
 
-            // If zMovement changes direction and the change is above a threshold tolerance, reset momentum
+            // Movement magnitude collated from velocity and momentum along the motion axis, scaled by the delta time for the frame
+            float movement = zMotionLocalSpace * rampAmount * (1f + movementScale) * deltaTime;
+
+            // If movement changes direction and the change is above a threshold tolerance, reset momentum
             if (useMomentum)
             {
                 const float tolerance = 0.001f; 
                 float absMomentum = math.abs(momentum);
-                float absZMovement = math.abs(zMovement);
-                
-                if ((int)math.sign(momentum) != (int)math.sign(zMovement)
-                    && math.abs(absMomentum - absZMovement) > tolerance)
+                float absMovement = math.abs(movement);
+
+                if ((int)math.sign(momentum) != (int)math.sign(movement)
+                    && math.abs(absMomentum - absMovement) > tolerance)
                 {
                     if (isAboveRampThreshold)
-                        momentum = zMovement / 2f;
+                        momentum = movement / 2f;
                     else if (rampAmount > 0.25f)
                         momentum = 0f;
                 }
                 else if (isAboveRampThreshold)
                 {
-                    // Accumulate momentum in the direction of zMovement
-                    momentum = math.max(absMomentum, absZMovement / 2f) * math.sign(zMovement);
+                    // Accumulate momentum in the direction of movement
+                    momentum = math.max(absMomentum, absMovement / 2f) * math.sign(movement);
                 }
-                
+
                 // Cutoff momentum when value is too low
                 if (math.abs(momentum) < tolerance)
                     momentum = 0f;
@@ -549,18 +614,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 momentum = 0f;
             }
 
-            float newZOffset = offsetVector.z + zMovement + momentum;
+            // Compute new offset by scaling original offset with motion and momentum
+            float newOffsetMagnitude = offsetMagnitude + movement + momentum;
+            newOffset = normStartLocalOffset * newOffsetMagnitude;
 
-            // Interpolate the offset to zero as the z-value approaches zero
-            var offsetFactor = 1f - math.clamp(newZOffset / startOffset.z, 0f, 1f);
-            var adjustedXOffset = math.lerp(startOffset.x, 0f, offsetFactor);
-            var adjustedYOffset = math.lerp(startOffset.y, 0f, offsetFactor);
-
-            newOffset = new float3(adjustedXOffset, adjustedYOffset, newZOffset);
-            if (newZOffset > startOffset.z)
-                pivot = newZOffset;
+            // Update pivot
+            if (newOffsetMagnitude > startOffsetLength)
+                pivot = newOffsetMagnitude;
             else
-                pivot = math.lerp(pivot, (startOffset.z + newZOffset) / 2f, deltaTime * movementScale);
+                pivot = math.lerp(pivot, (startOffsetLength + newOffsetMagnitude) / 2f, deltaTime * movementScale);
         }
     }
 }

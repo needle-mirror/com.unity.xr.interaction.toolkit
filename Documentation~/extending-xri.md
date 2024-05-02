@@ -1,10 +1,16 @@
 # Extending the XR Interaction Toolkit
 
-You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the Interaction Manager to provide your own functionality. Additionally, you can use event callbacks to add functionality to the existing components. Below is a diagram showing how existing Interactor and Interactable classes inherit their base classes. 
+You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the XR Interaction Manager to provide your own functionality. Additionally, you can use event callbacks to add functionality to the existing components.
 
-![class-hierarchy](images/class-hierarchy.svg)
+Below are diagrams showing how existing Interactor and Interactable classes inherit their base classes along with key interaction interfaces they implement. Note that this is not an exhaustive representation of the interfaces implemented by each class or a full list of all classes
 
-The rest of this documentation details the ways to extend the XR Interaction Toolkit.  
+Interactor class diagram shown below.
+![class-hierarchy-interactor](images/class-hierarchy-interactor.svg)
+
+Interactable class diagram shown below.
+![class-hierarchy-interactable](images/class-hierarchy-interactable.svg)
+
+The rest of this documentation details the ways to extend the XR Interaction Toolkit.
 
 ## Interactor and Interactable event callbacks
 
@@ -14,7 +20,7 @@ Interactors and Interactables both have various event callbacks that can be used
 
 ## Extending Interactors
 
-You can derive from the `XRBaseInteractor` and/or `XRBaseControllerInteractor` abstract base classes to define your own way of interacting with the world. Unity currently provides Direct (collision) and Ray Interactors, but you can decide how you want the user to choose objects in the world and what they can do with them (though typically you do the latter by deriving from the Base Interactable class).
+You can derive from the `XRBaseInteractor` and/or `XRBaseInputInteractor` abstract base classes to define your own way of interacting with the world. Unity currently provides different interactors for poke, near, and far interaction, but you can decide how you want the user to choose objects in the world and what they can do with them (though typically you do the latter by deriving from the `XRBaseInteractable` class).
 
 In addition to standard Unity callbacks, you can override the following methods and properties:
 
@@ -64,6 +70,7 @@ The Multiple option can be disabled in the Inspector window by using the `CanSel
 
  ```csharp
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 [CanSelectMultiple(false)]
 public class ExampleInteractable : XRBaseInteractable
@@ -87,8 +94,9 @@ For Evaluators that do binary tests, it's recommended that its `CalculateNormali
 
 ```csharp
 using System;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 [Serializable]
 public class ExcludeByTagEvaluator : XRTargetEvaluator
@@ -112,34 +120,44 @@ Evaluators are [serialized as reference](https://docs.unity3d.com/ScriptReferenc
 
 Custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) classes are used to change the appearance and order of properties that appear in the Inspector, particularly for Interactors and Interactables. Derived behaviors that add additional serialized fields (those that are `public` or have the `SerializeField` attribute) will automatically have those appear in the Inspector. The Editor classes can be extended to further customize the Inspector, at which point any declared `SerializedProperty` fields that are assigned will no longer be automatically drawn during `DrawDerivedProperties`. Within those derived Editor classes, you will typically only need to override methods such as `DrawProperties` in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`.
 
-  ```csharp
-  // ExampleInteractable.cs in Assets.
-  public class ExampleInteractable : XRBaseInteractable
-  {
-      [SerializeField]
-      bool m_AdditionalField;
-  }
+```csharp
+// ExampleInteractable.cs in Assets.
 
-  // ExampleInteractableEditor.cs in an Editor folder in Assets
-  // which explicitly defines a SerializedProperty to choose
-  // where to display it in the Inspector rather than using
-  // the default location.
-  [CustomEditor(typeof(ExampleInteractable), true), CanEditMultipleObjects]
-  public class ExampleInteractableEditor : XRBaseInteractableEditor
-  {
-      protected SerializedProperty m_AdditionalField;
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-      protected override void OnEnable()
-      {
-          base.OnEnable();
-          m_AdditionalField = serializedObject.FindProperty("m_AdditionalField");
-      }
+public class ExampleInteractable : XRBaseInteractable
+{
+    [SerializeField]
+    bool m_AdditionalField;
+}
+```
 
-      protected override void DrawProperties()
-      {
-          base.DrawProperties();
-          EditorGUILayout.PropertyField(m_AdditionalField);
-      }
-  }
-  ```
+```csharp
+// ExampleInteractableEditor.cs in an Editor folder in Assets
+// which explicitly defines a SerializedProperty to choose
+// where to display it in the Inspector rather than using
+// the default location.
+
+using UnityEditor;
+using UnityEditor.XR.Interaction.Toolkit.Interactables;
+
+[CustomEditor(typeof(ExampleInteractable), true), CanEditMultipleObjects]
+public class ExampleInteractableEditor : XRBaseInteractableEditor
+{
+    protected SerializedProperty m_AdditionalField;
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        m_AdditionalField = serializedObject.FindProperty("m_AdditionalField");
+    }
+
+    protected override void DrawProperties()
+    {
+        base.DrawProperties();
+        EditorGUILayout.PropertyField(m_AdditionalField);
+    }
+}
+```
 The [`Editor.DrawDefaultInspector`](https://docs.unity3d.com/ScriptReference/Editor.DrawDefaultInspector.html) method can be used to draw the built-in Inspector instead. The [`PropertyDrawer`](https://docs.unity3d.com/ScriptReference/PropertyDrawer.html) class can also be utilized rather than creating custom `Editor` classes.

@@ -70,16 +70,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         bool m_WasPerformedThisFrame;
         bool m_WasCompletedThisFrame;
 
+        Vector2 m_TapStartPosition;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void Update()
         {
             var prevPerformed = m_IsPerformed;
+
+            var prevTapStartPosition = m_TapStartPosition;
+            var tapPerformedThisFrame = m_TapStartPositionInput.TryReadValue(out m_TapStartPosition) && prevTapStartPosition != m_TapStartPosition;
+
             m_IsPerformed = m_PinchGapDeltaInput.TryReadValue(out _) ||
                 m_TwistDeltaRotationInput.TryReadValue(out _) ||
                 m_DragCurrentPositionInput.TryReadValue(out _) ||
-                m_TapStartPositionInput.TryReadValue(out _);
+                tapPerformedThisFrame;
             m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;
             m_WasCompletedThisFrame = prevPerformed && !m_IsPerformed;
         }

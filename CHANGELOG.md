@@ -6,6 +6,93 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.3] - 2024-05-02
+
+### Fixed
+- Fixed missing Scripting API documentation on public enum value.
+
+## [3.0.2] - 2024-05-01
+
+### Added
+- Added [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample demo scene, scripts, and prefabs.
+- Added [visionOS](../manual/samples-vision-os.html) sample, including a Volume demo scene, and a simple XR Origin Rig specifically configured for Mixed Reality, bounded and unbounded on visionOS.
+
+### Changed
+- Changed `GrabTransformerRotationAxisLock` by moving the script from the Hands Interaction Demo sample to the Starter Assets sample, renamed to  `RotationAxisLockGrabTransformer`, and updated namespace to match the sample.
+  - Changed the Hands Interaction Demo sample `TableHandle` prefab to use the `RotationAxisLockGrabTransformer` component in Starter Assets.
+- Changed `XRDeviceSimulator` to drive AR Foundation's Simulation Camera so that there is no conflict between XR Simulation and XR Device Simulator. Requires AR Foundation 6.0.0 or newer.
+- Changed XR Poke Interactor to reset poke velocity tracking on hover to improve accuracy of poke interactions.
+- Changed `TouchscreenHoverFilter` to also use the interactor's select input state to fix an issue where an interactable object under the last tap position would start hovering when touching somewhere else on the screen before moving to exceed the drag gesture move threshold.
+- Updated Editor and Runtime .asmdef (assembly definition) files to strip out unnecessary version defines and related preprocessor define code usages for the Input System package.
+- Improved behavior of `InteractionAttachController` to more accurately scale motion along the initial grab direction, rather than a fixed forward axis based on the interactor's forward direction.
+
+### Fixed
+- Fixed an issue where the `InteractionAttachController` would not properly update the attach transform position property when the `smoothOffset` property was set to `true` and `useDistanceBasedVelocityScaling` was set to `false`.
+- Fixed issue with `InteractionAttachController` not resetting the velocity to zero when object is first grabbed, causing some edge cases where object moves on a first grab.
+- Fixed the XR Interactor Line Visual from bending towards an XR Interactable Snap Volume behind UI when the valid UI hit is closest.
+- Fixed tap gesture detection for selecting and spawning interactable objects in AR scenes. ([XRIT-145](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-145))
+- Fixed deprecation warnings when using `Rigidbody.velocity` in Unity 2023.3 or newer.
+- Fixed broken material reference in Teleport Area prefab in the Starter Assets sample.
+- Fixed compilation errors on tvOS platform in `TouchscreenGestureInputLoader` and updated warning message when `TouchscreenGestureInputController` is not available on the platform.
+- Fixed an issue where poke filters on nested transforms with different scales would fail to compute a valid poke axis length.
+- Fixed wobble that occurred when pointing objects up or down when using stabilization with the `InteractionAttachController`.
+- Fixed [Extending XR Interaction Toolkit](../manual/extending-xri.html) documentation for namespace changes and class changes in package version 3.0.
+- Fixed the error thrown from `NearFarInteractor` when the interactor has a target filter assigned and the interactable being hovered has multiple colliders associated with it.
+- Fixed issue with `InteractionAttachController` where velocity scaled motion would break two-handed interaction from afar.
+
+## [2.6.0] - 2024-05-01
+
+### Added
+- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](../manual/teleportation-multi-anchor-volume.md), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`. (Backport from 3.0.0-pre.1)
+  - Added `FurthestTeleportationAnchorFilter`, which is the default filter that chooses the furthest anchor as the destination. Use the menu item **Assets > Create > XR > Locomotion > Furthest Teleportation Anchor Filter** to create an instance of this filter.
+  - Added `GazeTeleportationAnchorFilter`, which chooses a destination based on where the user is looking and how far away the anchor is. Use the menu item **Assets > Create > XR > Locomotion > Gaze Teleportation Anchor Filter** to create an instance of this filter.
+  - Added menu item **Assets > Create > XR > Locomotion > Teleport Volume Destination Settings**, which creates a Teleport Volume Destination Settings Datum asset.
+  - Added `Multi Floor Ladder` prefab to the Starter Assets sample, and added an instance of this prefab to the `Climb Sample` prefab. This prefab includes another ladder Climb Interactable and a Teleportation Multi-Anchor Volume that uses a Gaze Teleportation Anchor Filter to teleport to one of three destinations.
+- Added the interface `IXRInteractableCustomReticle`, which allows a component on an interactable's **Custom Reticle** prefab to respond to the interactable instantiating the reticle and attaching it to an instance of `IXRCustomReticleProvider`. (Backport from 3.0.0-pre.1)
+  - Added an example implementation of this interface in the new `Climb Teleport Reticle` prefab in the Starter Assets sample.
+- Added a rotation threshold to [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) so that scaling is not triggered while rotating. (Backport from 3.0.0-pre.1)
+- Added in-editor touchscreen gesture support for rotation and scaling in the starter assets. The input action map now has bindings for the related gestures. (Backport from 3.0.0-pre.1)
+- Added Climb Teleport Interactor, which enables assistance with climb locomotion by teleporting the user to a specific destination when they end a climb interaction. (Backport from 3.0.0-pre.1)
+  - Added the property **Climb Assistance Teleport Volume** to Climb Interactable to enable this teleportation behavior for a specific climb interactable.
+  - Made the following changes to the Starter Assets sample to demonstrate climb teleportation:
+    - Added a Climb Teleport Interactor instance in the `XR Origin (XR Rig)` prefab under **Locomotion System** > **Climb**.
+    - Assigned the **Climb Assistance Teleport Volume** references in the `Single Floor Ladder` and `Multi Floor Ladder` prefabs.
+    - Added the affordance component Climb Teleport Destination Indicator, and added an instance of this component to the `XR Origin (XR Rig)` prefab.
+    - Added the `Climb Teleport Arrow` prefab and supporting assets.
+- Added public members `climbAnchorInteractable`, `climbAnchorInteractor`, and `climbAnchorUpdated` to `ClimbProvider`. (Backport from 3.0.0-pre.1)
+- Added public method `Angle(in Vector3, in Vector3, out float)`, which finds the angle between two vectors, to `BurstMathUtility`. (Backport from 3.0.0-pre.1)
+- Added `IAttachPointVelocityProvider`, `IAttachPointVelocityTracker`, and `AttachPointVelocityTracker` to make the attach point velocity tracking functionality accessible outside of the `XRBaseInteractor`. (Backport from 3.0.0-pre.1)
+- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging. (Backport from 3.0.0-pre.2)
+  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
+- Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types. (Backport from 3.0.0-pre.2)
+- Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component. (Backport from 3.0.0-pre.2)
+- Added [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample demo scene, scripts, and prefabs. (Backport from 3.0.2)
+
+### Changed
+- Changed setup of the ladder and elevated teleport area in the `Climb Sample` prefab in the Starter Assets sample so that the objects are set up in a new `Single Floor Ladder` prefab. This prefab also contains a Teleportation Multi-Anchor Volume to allow teleportation to the top or bottom, whichever is furthest from the user. (Backport from 3.0.0-pre.1)
+- Changed `XRPokeInteractor` to use `IAttachPointVelocityTracker` instead of the velocity tracking that used to live in `XRBaseInteractor`. (Backport from 3.0.0-pre.1)
+- Changed [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold. (Backport from 3.0.0-pre.1)
+- Changed `XRBaseGrabTransformer` by making `Start` and `OnDestroy` methods `virtual`. (Backport from 3.0.0-pre.2)
+- Changed `GrabTransformerRotationAxisLock` by moving the script from the Hands Interaction Demo sample to the Starter Assets sample, renamed to  `RotationAxisLockGrabTransformer`, and updated namespace to match the sample. (Backport from 3.0.2)
+  - Changed the Hands Interaction Demo sample `TableHandle` prefab to use the `RotationAxisLockGrabTransformer` component in Starter Assets.
+- Changed `XRDeviceSimulator` to drive AR Foundation's Simulation Camera so that there is no conflict between XR Simulation and XR Device Simulator. Requires AR Foundation 6.0.0 or newer. (Backport from 3.0.2)
+- Changed some APIs used by the `XRPokeInteractor` for enabling the ability to poke UGUI canvases from `internal` to `public` to allow for custom interactor implementations.
+- Changed XR Poke Interactor to reset poke velocity tracking on hover to improve accuracy of poke interactions. (Backport from 3.0.2)
+
+### Fixed
+- Fixed deprecation warnings when using `Rigidbody.velocity` in Unity 2023.3 or newer. (Backport from 3.0.2)
+- Fixed an issue where poke filters on nested transforms with different scales would fail to compute a valid poke axis length. (Backport from 3.0.2)
+
+## [2.5.4] - 2024-04-05
+
+### Fixed
+- Fixed compilation errors on tvOS platform where `ENABLE_VR` is not defined when AR Foundation is installed. Also fixed when XR Hands is installed in the Hands Interaction Demo sample. (Backport from 3.0.0)
+- Fixed `TrackedGraphicRaycaster` to clear poke interaction data when disabled. ([XRIT-142](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-142)) (Backport from 3.0.0)
+- Fixed warning about use of deprecated `VersionsInfo.verified` by replacing with `VersionsInfo.recommended` in the Hands Interaction Demo sample in Unity 2022.2 and newer. (Backport from 3.0.0)
+- Fixed the XR Interactor Line Visual from bending towards an XR Interactable Snap Volume behind UI when the valid UI hit is closest. (Backport from 3.0.2)
+- Fixed tap gesture detection for selecting and spawning interactable objects in AR scenes. ([XRIT-145](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-145)) (Backport from 3.0.2)
+  - Changed the Tap Start Position input action to remove the Tap interaction from the `tapStartPosition` binding in the Starter Assets sample `XRI Default Input Actions` asset. The sample will need to be reimported to remove the Tap interaction from the binding for taps to be functional. This change along with changes to the `XRScreenSpaceController` also fixes the selected object from staying selected and movable with the mobile device orientation for 0.2 seconds after a tap was released.
+
 ## [3.0.1] - 2024-03-19
 
 ### Fixed

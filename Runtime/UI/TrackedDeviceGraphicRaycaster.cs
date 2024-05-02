@@ -5,8 +5,8 @@ using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {

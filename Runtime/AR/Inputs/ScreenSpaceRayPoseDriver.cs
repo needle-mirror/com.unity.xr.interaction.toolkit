@@ -73,6 +73,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// </summary>
         readonly UnityObjectReferenceCache<Transform> m_ParentTransformCache = new UnityObjectReferenceCache<Transform>();
 
+        Vector2 m_TapStartPosition;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -110,6 +112,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// </summary>
         protected void Update()
         {
+            var prevTapStartPosition = m_TapStartPosition;
+            var tapPerformedThisFrame = m_TapStartPositionInput.TryReadValue(out m_TapStartPosition) && prevTapStartPosition != m_TapStartPosition;
+
             if (m_ScreenTouchCountInput.TryReadValue(out var screenTouchCount) && screenTouchCount > 1)
                 return;
 
@@ -119,9 +124,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                 return;
             }
 
-            if (m_TapStartPositionInput.TryReadValue(out screenPosition))
+            if (tapPerformedThisFrame)
             {
-                ApplyPose(screenPosition);
+                ApplyPose(m_TapStartPosition);
                 return;
             }
         }

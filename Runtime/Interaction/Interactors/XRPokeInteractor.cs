@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -259,7 +259,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null), origin);
                 else
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
-                
+
                 isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
@@ -546,6 +546,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected virtual void OnUIHoverExited(UIHoverEventArgs args)
         {
             m_UIHoverExited?.Invoke(args);
+        }
+
+        /// <inheritdoc />
+        protected override void OnHoverEntering(HoverEnterEventArgs args)
+        {
+            base.OnHoverEntering(args);
+            if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
+                velocityTracker.ResetVelocityTracking();
         }
 
         /// <summary>

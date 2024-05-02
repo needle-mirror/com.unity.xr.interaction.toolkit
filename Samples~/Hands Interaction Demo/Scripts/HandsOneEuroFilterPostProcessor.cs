@@ -17,11 +17,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     {
         [SerializeField]
         [Tooltip("Smoothing amount at low speeds.")]
+#pragma warning disable CS0414 // Field assigned but its value is never used -- Keep to retain serialized value when XR Hands is not installed
         float m_FilterMinCutoff = 0.1f;
+#pragma warning restore CS0414
 
         [SerializeField]
         [Tooltip("Filter's responsiveness to speed changes.")]
+#pragma warning disable CS0414 // Field assigned but its value is never used -- Keep to retain serialized value when XR Hands is not installed
         float m_FilterBeta = 0.2f;
+#pragma warning restore CS0414
 
 #if XR_HANDS_1_2_OR_NEWER
         /// <inheritdoc />

@@ -1,4 +1,5 @@
-﻿using UnityEngine.Scripting.APIUpdating;
+﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
@@ -87,6 +88,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
             m_DeltaTimeStart = Time.unscaledTime;
             m_FrameOn++;
+        }
+
+        /// <summary>
+        /// Resets the velocity tracking data.
+        /// </summary>
+        internal void ResetVelocityTracking()
+        {
+            m_FrameOn = 0;
+            m_VelocityPositionsSum = Vector3.zero;
+            m_VelocityNormalsSum = Vector3.zero;
+            m_AttachPointVelocity = Vector3.zero;
+            m_AttachPointAngularVelocity = Vector3.zero;
+            Array.Clear(m_VelocityPositionsCache, 0, k_VelocityUpdateInterval);
+            Array.Clear(m_VelocityNormalsCache, 0, k_VelocityUpdateInterval);
         }
 
         /// <inheritdoc />

@@ -1,3 +1,8 @@
+// These are the guards in TouchscreenGestureInputController.cs
+#if ((ENABLE_VR || UNITY_GAMECORE) && AR_FOUNDATION_PRESENT) || PACKAGE_DOCS_GENERATION
+#define TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
     /// <summary>
@@ -11,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
     [HelpURL(XRHelpURLConstants.k_TouchscreenGestureInputLoader)]
     public class TouchscreenGestureInputLoader : MonoBehaviour
     {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
         TouchscreenGestureInputController m_GestureInputController;
 #endif
 
@@ -22,6 +27,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         {
 #if !AR_FOUNDATION_PRESENT
             Debug.LogWarning("Script requires AR Foundation (com.unity.xr.arfoundation) package to add the TouchscreenGestureInputController device. Install using Window > Package Manager or click Fix on the related issue in Edit > Project Settings > XR Plug-in Management > Project Validation.", this);
+            enabled = false;
+#elif !TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+            Debug.LogWarning("The TouchscreenGestureInputController device cannot be added because it is not available on this platform.", this);
             enabled = false;
 #endif
         }
@@ -44,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 
         void InitializeTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (m_GestureInputController == null)
             {
                 m_GestureInputController = InputSystem.InputSystem.AddDevice<TouchscreenGestureInputController>();
@@ -62,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 
         void RemoveTouchscreenGestureController()
         {
-#if AR_FOUNDATION_PRESENT
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
             if (m_GestureInputController != null && m_GestureInputController.added)
             {
                 InputSystem.InputSystem.RemoveDevice(m_GestureInputController);

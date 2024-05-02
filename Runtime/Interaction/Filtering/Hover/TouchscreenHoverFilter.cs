@@ -8,7 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
     /// <summary>
-    /// Hover filter that checks if the screen is being touched.
+    /// Hover filter that checks if the screen is being touched and doing a selecting gesture.
     /// Can be used with the ray interactor to prevent hover interactions when the screen is not being touched.
     /// </summary>
     [AddComponentMenu("XR/AR/Touchscreen Hover Filter", 11)]
@@ -50,6 +50,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <inheritdoc />
         public bool Process(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
+            if (interactor is XRBaseInputInteractor inputInteractor)
+                return inputInteractor.selectInput.ReadIsPerformed() && m_ScreenTouchCountInput.ReadValue() <= 1;
+
             return m_ScreenTouchCountInput.ReadValue() > 0;
         }
     }

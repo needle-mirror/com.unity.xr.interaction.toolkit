@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
     /// <summary>
     /// An input device representing mobile 2D screen gestures.
     /// </summary>
-    [InputControlLayout(stateType = typeof(TouchscreenGestureInputControllerState), displayName = "Touchscreen Gesture Input Controller", isGenericTypeOfDevice = true, updateBeforeRender = true)]
+    [InputControlLayout(stateType = typeof(TouchscreenGestureInputControllerState), displayName = "Touchscreen Gesture Input Controller", isGenericTypeOfDevice = true, updateBeforeRender = false)]
     [Preserve]
     public class TouchscreenGestureInputController : InputSystem.XR.XRController, IInputUpdateCallbackReceiver
     {
@@ -170,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             if (m_ControllerState.fingerCount != updatedTouchCount)
             {
                 m_ControllerState.fingerCount = updatedTouchCount;
-                InputState.Change(this, m_ControllerState);
+                InputSystem.InputSystem.QueueStateEvent(this, m_ControllerState);
             }
         }
 
@@ -178,6 +178,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         {   
             gesture.onUpdated += OnGestureUpdated;
             gesture.onFinished += OnGestureFinished;
+
+            switch (gesture)
+            {
+                case TapGesture tapGesture:
+                    m_ControllerState.tapStartPosition = Vector2.zero;
+                    break;
+            }
+
+            InputSystem.InputSystem.QueueStateEvent(this, m_ControllerState);
         }
 
         void OnGestureUpdated<T>(Gesture<T> gesture) where T : Gesture<T>
@@ -185,7 +194,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             switch (gesture)
             {
                 case TapGesture tapGesture:
-                    m_ControllerState.tapStartPosition = tapGesture.startPosition;
+                    // Don't set the tapStartPosition since it should only be set when the gesture is successfully finished.
+                    // We don't have another control to indicate tap status, so we have to use the position control
+                    // for both status and position, so we must wait to set until the gesture is finished.
                     break;
                 case DragGesture dragGesture:
                     m_ControllerState.dragStartPosition = dragGesture.startPosition;
@@ -211,15 +222,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                     break;
             }
 
-            InputState.Change(this, m_ControllerState);
+            InputSystem.InputSystem.QueueStateEvent(this, m_ControllerState);
         }
 
         void OnGestureFinished<T>(Gesture<T> gesture) where T : Gesture<T>
         {   
            switch (gesture)
             {
-                 case TapGesture tapGesture:
-                    m_ControllerState.tapStartPosition = Vector2.zero;
+                case TapGesture tapGesture:
+                    m_ControllerState.tapStartPosition = !tapGesture.isCanceled ? tapGesture.startPosition : Vector2.zero;
                     break;
                 case DragGesture dragGesture:
                     m_ControllerState.dragStartPosition = Vector2.zero;
@@ -245,7 +256,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                     break;
             }
 
-            InputState.Change(this, m_ControllerState);
+            InputSystem.InputSystem.QueueStateEvent(this, m_ControllerState);
         }
 
         /// <summary>

@@ -35,7 +35,7 @@ Add a **Touchscreen Gesture Input Loader** to the scene. This will ensure that a
 
 ![Touchscreen Gesture Input Loader component](images/touchscreen-gesture-input-loader.png)
 
-Add an **XR Ray Interactor** component and enable **Enable AR Raycasting** to allow it to ray cast against the AR environment trackables, and also set **Scale Mode** to **Distance Delta**. Add a **Touchscreen Hover Filter** component and assign a reference to it on the XR Ray Interactor in its **Starting Hover Filters** property. This will make that interactor only hover interactables while the user is touching the screen.
+Add an **XR Ray Interactor** component and enable **Enable AR Raycasting** to allow it to ray cast against the AR environment trackables, and also set **Scale Mode** to **Distance Delta**. Add a **Touchscreen Hover Filter** component and assign a reference to it on the XR Ray Interactor in its **Starting Hover Filters** property. This will make that interactor only hover interactables while the user is touching the screen and doing a selecting gesture.
 
 ![Touchscreen Hover Filter component](images/touchscreen-hover-filter.png)
 

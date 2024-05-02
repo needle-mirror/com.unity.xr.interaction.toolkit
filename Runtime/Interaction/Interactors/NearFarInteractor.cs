@@ -622,7 +622,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                         snapVolumes.Add(snapVolume);
                     
                     if (hasTargetFilter)
-                        m_FarTargetToIndexMap.Add(interactable, i);
+                        m_FarTargetToIndexMap.TryAdd(interactable, i);
                 }
             }
 

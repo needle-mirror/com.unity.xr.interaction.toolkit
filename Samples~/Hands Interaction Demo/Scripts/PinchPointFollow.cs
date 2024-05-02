@@ -41,7 +41,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [SerializeField]
         [Tooltip("How fast to match rotation (0 means no rotation smoothing.)")]
         [Range(0f, 32f)]
+#pragma warning disable CS0414 // Field assigned but its value is never used -- Keep to retain serialized value when XR Hands is not installed
         float m_RotationSmoothingSpeed = 12f;
+#pragma warning restore CS0414
 
 #if XR_HANDS_1_2_OR_NEWER
         bool m_HasTargetRotationTransform;

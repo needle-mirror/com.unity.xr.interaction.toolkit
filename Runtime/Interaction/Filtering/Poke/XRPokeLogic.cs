@@ -142,7 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                             Vector3 hoverInteractionPointOffset = (hoverWorldPos - pokableAttachPosition).normalized;
                             meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > 0;
                         }
-                        
+
                         // If we've met the first hover check of starting from the right side, we then check to ensure our velocity delta approach meets our threshold.
                         if (meetsHoverRequirements && interactor is IAttachPointVelocityProvider velocityProvider)
                         {
@@ -411,10 +411,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
         static Bounds BoundsLocalToWorld(Bounds targetBounds, Transform targetTransform, bool rotateBoundsScale = false)
         {
-            Vector3 localScale = targetTransform.localScale;
-            Vector3 adjustedSize = localScale.Multiply(targetBounds.size);
+            Vector3 objectScale = targetTransform.lossyScale;
+            Vector3 adjustedSize = objectScale.Multiply(targetBounds.size);
             Vector3 rotatedSize = rotateBoundsScale ? targetTransform.rotation * adjustedSize : adjustedSize;
-            return new Bounds(targetTransform.position + localScale.Multiply(targetBounds.center), rotatedSize);
+            return new Bounds(targetTransform.position + objectScale.Multiply(targetBounds.center), rotatedSize);
         }
 
         /// <summary>
