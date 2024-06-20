@@ -1,7 +1,7 @@
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 {
     /// <summary>
-    /// Manage the reuse and updating of data for each child <see cref="XRKeyboardKey"/> button. 
+    /// Manage the reuse and updating of data for each child <see cref="XRKeyboardKey"/> button.
     /// </summary>
     public class XRKeyboardLayout : MonoBehaviour
     {
@@ -53,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
 
         /// <summary>
-        /// Updates all child <see cref="XRKeyboardKey"/> buttons with the data from the <see cref="activeKeyMapping"/>. 
+        /// Updates all child <see cref="XRKeyboardKey"/> buttons with the data from the <see cref="activeKeyMapping"/>.
         /// </summary>
         /// <remarks>
         /// This function returns without changing the keys if the number of child <see cref="XRKeyboardKey"/> buttons is less than
@@ -69,9 +69,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             var keys = GetComponentsInChildren<XRKeyboardKey>();
             if (keys.Length < keyMappings.Count)
 
-        	{
-        		Debug.LogWarning("Keyboard layout update failed: There are fewer keys than key mappings in the current config. Ensure there is a correct number of keys and key mappings.", this);
-        		return;
+            {
+                Debug.LogWarning("Keyboard layout update failed: There are fewer keys than key mappings in the current config. Ensure there is a correct number of keys and key mappings.", this);
+                return;
             }
 
             for (var i = 0; i < keyMappings.Count; ++i)

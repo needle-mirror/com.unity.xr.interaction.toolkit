@@ -37,7 +37,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Cached reference to a found component of type <see cref="T"/>.
         /// </summary>
         internal static T componentCache => s_ComponentCache;
+        
+        /// <summary>
+        /// Last frame that <see cref="Find"/> was called.
+        /// </summary>
+        static int s_LastTryFindFrame = -1;
 
+        static bool FindWasPerformedThisFrame() => s_LastTryFindFrame == Time.frameCount;
+        
         /// <summary>
         /// Find or create a new GameObject with component <typeparamref name="T"/>.
         /// </summary>
@@ -82,6 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Does not include inactive GameObjects when finding the component, but if a component was previously created
         /// as a direct result of this class, it will return that component even if the GameObject is now inactive.
         /// </remarks>
+        /// <see cref="FindOrCreateComponent"/>
         public static bool TryFindComponent(out T component)
         {
             if (s_ComponentCache != null)
@@ -95,8 +103,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             return component != null;
         }
 
+        /// <summary>
+        /// Find a component <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="component">When this method returns, contains the found component, or <see langword="null"/> if one could not be found.</param>
+        /// <param name="limitTryFindPerFrame">If <see langword="true"/>, this method will only perform <see cref="Find"/> if it has not already been unsuccessfully called this frame.</param>
+        /// <returns>Returns <see langword="true"/> if the component exists, otherwise returns <see langword="false"/>.</returns>
+        /// <remarks>This function will return a cached component from a previous search regardless if <see cref="limitTryFindPerFrame"/> is <see langword="true"/>.</remarks>
+        internal static bool TryFindComponent(out T component, bool limitTryFindPerFrame)
+        {
+            // If a search for this component has already been unsuccessfully performed this frame, don't search again.
+            if (limitTryFindPerFrame && FindWasPerformedThisFrame() && s_ComponentCache == null)
+            {
+                component = null;
+                return false;
+            }
+            return TryFindComponent(out component);
+        }
+        
         static T Find()
         {
+            s_LastTryFindFrame = Time.frameCount;
+
 #if HAS_FIND_FIRST_OBJECT_BY_TYPE
             // Preferred API
             return Object.FindFirstObjectByType<T>();

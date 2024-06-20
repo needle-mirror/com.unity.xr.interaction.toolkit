@@ -207,17 +207,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <inheritdoc />
         public bool Process(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            if (interactor is XRPokeInteractor pokeInteractor)
+            if (interactor is IPokeStateDataProvider pokeStateDataProvider)
             {
+                var pokeOffset = 0f;
+                if (interactor is XRPokeInteractor pokeInteractor)
+                    pokeOffset = pokeInteractor.pokeInteractionOffset;
+                
                 var pokeTransform = interactable.GetAttachTransform(interactor);
                 return m_PokeLogic.MeetsRequirementsForSelectAction(
-                    pokeInteractor,
+                    pokeStateDataProvider,
                     pokeTransform.position,
                     interactor.GetAttachTransform(interactable).position,
-                    pokeInteractor.pokeInteractionOffset,
+                    pokeOffset,
                     pokeTransform);
             }
-
             return true;
         }
 
@@ -225,10 +228,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         public float Process(IXRInteractor interactor, IXRInteractable interactable, float interactionStrength)
         {
             var pokeAmount = 0f;
-            if (interactor is XRPokeInteractor)
-            {
+            if (interactor is IPokeStateDataProvider)
                 pokeAmount = pokeStateData?.Value.interactionStrength ?? 0f;
-            }
 
             return Mathf.Max(interactionStrength, pokeAmount);
         }

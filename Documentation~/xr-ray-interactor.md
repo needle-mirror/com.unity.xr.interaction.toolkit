@@ -10,6 +10,7 @@ Interactor used for interacting with Interactables at a distance. This is handle
 | **Interaction Layer Mask** | Allows interaction with Interactables whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Handedness** | Represents which hand or controller the interactor is associated with. |
 | **UI Interaction** | Enable to affect Unity UI GameObjects in a way that is similar to a mouse pointer. Requires the XR UI Input Module on the Event System. |
+| **Block Interactions With Screen Space UI** | Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas. |
 | **Block UI on Interactable Selection** | Enabling this option will block UI interaction when selecting interactables. |
 | **Force Grab** | Force grab moves the object to your hand rather than interacting with it at a distance. |
 | **Manipulate Attach Transform** | Allows the user to move the Attach Transform using the thumbstick. |

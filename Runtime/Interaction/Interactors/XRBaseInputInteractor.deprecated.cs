@@ -119,14 +119,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// (Deprecated) (Read Only) Whether or not Unity considers the UI Press controller input pressed.
         /// </summary>
         /// <returns>Returns <see langword="true"/> if active. Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("isUISelectActive has been deprecated in version 3.0.0. Use a serialized XRInputButtonProvider to read button input instead.")]
+        [Obsolete("isUISelectActive has been deprecated in version 3.0.0. Use a serialized XRInputButtonReader to read button input instead. Some derived interactors have a uiPressInput property that can be used instead.")]
         protected virtual bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
 
         /// <summary>
         /// (Deprecated) (Read Only) The current scroll value Unity would apply to the UI.
         /// </summary>
         /// <returns>Returns a Vector2 with scroll strength for each axis. </returns>
-        [Obsolete("uiScrollValue has been deprecated in version 3.0.0. Use a serialized XRInputValueProvider<Vector2> to read scroll input instead.")]
+        [Obsolete("uiScrollValue has been deprecated in version 3.0.0. Use a serialized XRInputValueReader<Vector2> to read scroll input instead. Some derived interactors have a uiScrollInput property that can be used instead.")]
         protected Vector2 uiScrollValue => m_Controller != null ? m_Controller.uiScrollValue : Vector2.zero;
 
         #region Audio Events

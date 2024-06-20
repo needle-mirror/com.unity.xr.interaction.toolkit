@@ -17,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             get => m_Lifetime;
             set => m_Lifetime = value;
         }
-    
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>

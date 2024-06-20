@@ -17,7 +17,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         protected SerializedProperty m_DoubleClickInterval;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRKeyboard.subsetLayout"/>.</summary>
         protected SerializedProperty m_SubsetLayout;
-        
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRKeyboard.onTextSubmitted"/>.</summary>
         protected SerializedProperty m_OnTextSubmit;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRKeyboard.onTextUpdated"/>.</summary>

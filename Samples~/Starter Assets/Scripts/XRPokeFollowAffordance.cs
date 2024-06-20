@@ -122,13 +122,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         Vector3 m_InitialPosition;
         bool m_IsFirstFrame;
 
+        [HideInInspector]
+        [SerializeField]
+        XRPokeFilter m_PokeFilter = null;
+        
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void Awake()
         {
             m_MultiPokeStateDataProvider = GetComponentInParent<IMultiPokeStateDataProvider>();
-            if(m_MultiPokeStateDataProvider == null)
+            if (m_MultiPokeStateDataProvider == null)
                 m_PokeDataProvider = GetComponentInParent<IPokeStateDataProvider>();
         }
 
@@ -141,10 +145,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             {
                 m_InitialPosition = m_PokeFollowTransform.localPosition;
                 m_BindingsGroup.AddBinding(m_TransformTweenableVariable.Subscribe(OnTransformTweenableVariableUpdated));
-                
-                if(m_MultiPokeStateDataProvider != null)
+
+                if (m_MultiPokeStateDataProvider != null)
                     m_BindingsGroup.AddBinding(m_MultiPokeStateDataProvider.GetPokeStateDataForTarget(transform).Subscribe(OnPokeStateDataUpdated));
-                else if(m_PokeDataProvider != null)
+                else if (m_PokeDataProvider != null)
                     m_BindingsGroup.AddBinding(m_PokeDataProvider.pokeStateData.SubscribeAndUpdate(OnPokeStateDataUpdated));
             }
             else
@@ -174,6 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 m_IsFirstFrame = false;
                 return;
             }
+
             m_TransformTweenableVariable.HandleTween(m_SmoothingSpeed > 0f ? Time.deltaTime * m_SmoothingSpeed : 1f);
         }
 
@@ -209,6 +214,75 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 return;
 
             m_PokeFollowTransform.localPosition = m_InitialPosition;
+        }
+
+        void OnDrawGizmos()
+        {
+            if (!TryGetTargetEndPoint(out var endPoint))
+                return;
+            
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, endPoint);
+        }
+
+        bool TryGetTargetEndPoint(out Vector3 endPoint)
+        {
+            if (!m_ClampToMaxDistance || m_PokeFilter == null)
+            {
+                endPoint = Vector3.zero;
+                return false;
+            }
+            
+            Vector3 origin = transform.position;
+            Vector3 direction = ComputeRotatedDepthEvaluationAxis(m_PokeFilter.pokeConfiguration);
+            endPoint = origin + direction.normalized * m_MaxDistance;
+            return true;
+        }
+        
+        Vector3 ComputeRotatedDepthEvaluationAxis(PokeThresholdData pokeThresholdData)
+        {
+            if (pokeThresholdData == null)
+                return Vector3.zero;
+
+            Vector3 rotatedDepthEvaluationAxis = Vector3.zero;
+            switch (pokeThresholdData.pokeDirection)
+            {
+                case PokeAxis.X:
+                case PokeAxis.NegativeX:
+                    rotatedDepthEvaluationAxis = transform.right;
+                    break;
+                case PokeAxis.Y:
+                case PokeAxis.NegativeY:
+                    rotatedDepthEvaluationAxis = transform.up;
+                    break;
+                case PokeAxis.Z:
+                case PokeAxis.NegativeZ:
+                    rotatedDepthEvaluationAxis = transform.forward;
+                    break;
+            }
+
+            switch (pokeThresholdData.pokeDirection)
+            {
+                case PokeAxis.X:
+                case PokeAxis.Y:
+                case PokeAxis.Z:
+                    rotatedDepthEvaluationAxis = -rotatedDepthEvaluationAxis;
+                    break;
+            }
+
+            return rotatedDepthEvaluationAxis;
+        }
+
+        void OnValidate()
+        {
+            if (m_PokeFilter == null)
+            {
+                m_PokeFilter = GetComponentInParent<XRPokeFilter>();
+            }
+            
+            // Visually update the end point to match the target clamped position
+            if (m_PokeFollowTransform != null && TryGetTargetEndPoint(out var endPoint))
+                m_PokeFollowTransform.position = endPoint;
         }
     }
 }

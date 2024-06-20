@@ -258,7 +258,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
         {
             base.Awake();
             if (m_TeleportationProvider == null)
-                ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider);
+                ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider, true);
         }
 
         /// <inheritdoc />
@@ -306,7 +306,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             }
 
             if (m_TeleportationProvider == null && !ComponentLocatorUtility<TeleportationProvider>.TryFindComponent(out m_TeleportationProvider))
+            {
+                Debug.LogWarning("Teleportation Provider was null and one could not be found in the scene: Teleport request failed.", this);
                 return false;
+            }
 
             var teleportRequest = new TeleportRequest
             {

@@ -18,15 +18,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [SerializeField]
         [Tooltip("The SkinnedMeshRenderer to animate.")]
         SkinnedMeshRenderer m_SkinnedMeshRenderer;
-        
+
         [SerializeField]
         [Tooltip("The index of the blend shape to animate.")]
         int m_BlendShapeIndex;
-        
+
         [SerializeField]
         [Tooltip("The minimum blend shape value.")]
         float m_BlendShapeMin;
-        
+
         [SerializeField]
         [Tooltip("The maximum blend shape value.")]
         float m_BlendShapeMax = 100f;
@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 #pragma warning restore CS0618 // Type or member is obsolete
 
         float m_TweenTarget;
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -54,7 +54,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 
             m_HoverInteractable = m_PokeFilter.GetComponent<IXRHoverInteractable>();
             m_InteractionStrengthInteractable = m_PokeFilter.GetComponent<IXRInteractionStrengthInteractable>();
-            
+
             m_BindingsGroup.AddBinding(m_PokeFilter.pokeStateData.Subscribe(data =>
             {
                 var blendShapeValue = Mathf.Lerp(m_BlendShapeMin, m_BlendShapeMax, data.interactionStrength);

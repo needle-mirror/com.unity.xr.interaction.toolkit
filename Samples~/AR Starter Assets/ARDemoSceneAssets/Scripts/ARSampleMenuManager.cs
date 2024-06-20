@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 {
     /// <summary>
     /// Handles dismissing the object menu when clicking out the UI bounds, and showing the
-    /// menu again when the create menu button is clicked after dismissal. Manages object deletion in the AR demo scene, 
+    /// menu again when the create menu button is clicked after dismissal. Manages object deletion in the AR demo scene,
     /// and also handles the toggling between the object creation menu button and the delete button.
     /// </summary>
     public class ARSampleMenuManager : MonoBehaviour

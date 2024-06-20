@@ -7,7 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
     public abstract class KeyFunction : ScriptableObject
     {
         /// <summary>
-        /// Pre-process function when a key is pressed. 
+        /// Pre-process function when a key is pressed.
         /// </summary>
         /// <param name="keyboardContext">The current keyboard associated with <see cref="key"/>.</param>
         /// <param name="key">The key that is being pressed.</param>
@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
 
         /// <summary>
-        /// Returns display icon for this key function based on the context of the key and keyboard. 
+        /// Returns display icon for this key function based on the context of the key and keyboard.
         /// </summary>
         /// <param name="keyboardContext">Current keyboard context.</param>
         /// <param name="key">Current keyboard key.</param>
@@ -57,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         {
             return null;
         }
-        
+
         /// <summary>
         /// Allows this key function to process when a key is refreshing its display.
         /// </summary>

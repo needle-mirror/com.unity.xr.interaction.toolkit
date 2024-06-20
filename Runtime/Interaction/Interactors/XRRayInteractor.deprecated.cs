@@ -179,7 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         /// <inheritdoc />
-        [Obsolete("isUISelectActive has been deprecated in version 3.0.0. Use a serialized XRInputButtonProvider to read button input instead.")]
+        [Obsolete("isUISelectActive has been deprecated in version 3.0.0. Use uiPressInput to read button input instead.")]
         protected override bool isUISelectActive
         {
             get

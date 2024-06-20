@@ -16,6 +16,9 @@ using UnityEngine.XR.Hands;
 #if XR_MANAGEMENT_4_0_OR_NEWER
 using UnityEngine.XR.Management;
 #endif
+#if OPENXR_1_10_OR_NEWER
+using UnityEngine.XR.OpenXR.Features.Interactions;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 {
@@ -417,57 +420,101 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
         void UpdateLeftMode()
         {
-            if (GetLeftHandIsTracked())
-            {
-                SetLeftMode(InputMode.TrackedHand);
-                return;
-            }
-
 #if XR_INPUT_DEVICES_AVAILABLE
-            var controllerDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.LeftHand);
-            if (controllerDevice != null)
+            if (TryGetControllerDevice(InputSystem.CommonUsages.LeftHand, out var controllerDevice))
             {
-                UpdateMode(controllerDevice, SetLeftMode);
+                UpdateLeftMode(controllerDevice);
                 return;
             }
 #endif
 
-            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftController, out var xrInputDevice))
+            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftController, out var device))
             {
-                UpdateMode(xrInputDevice, SetLeftMode);
+                // Swap to controller
+                UpdateMode(device, SetLeftMode);
                 return;
             }
 
-            SetLeftMode(InputMode.None);
+            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftHandInteraction, out device) ||
+                XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftMicrosoftHandInteraction, out device))
+            {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetLeftHandIsTracked())
+                    SetLeftMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(device, SetLeftMode);
+            }
+
+            var mode = GetLeftHandIsTracked() ? InputMode.TrackedHand : InputMode.None;
+            SetLeftMode(mode);
         }
 
         void UpdateRightMode()
         {
-            if (GetRightHandIsTracked())
-            {
-                SetRightMode(InputMode.TrackedHand);
-                return;
-            }
-
 #if XR_INPUT_DEVICES_AVAILABLE
-            var controllerDevice = InputSystem.InputSystem.GetDevice<InputSystem.XR.XRController>(InputSystem.CommonUsages.RightHand);
-            if (controllerDevice != null)
+            if (TryGetControllerDevice(InputSystem.CommonUsages.RightHand, out var controllerDevice))
             {
-                UpdateMode(controllerDevice, SetRightMode);
+                UpdateRightMode(controllerDevice);
                 return;
             }
 #endif
 
-            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightController, out var xrInputDevice))
+            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightController, out var device))
             {
-                UpdateMode(xrInputDevice, SetRightMode);
+                // Swap to controller
+                UpdateMode(device, SetRightMode);
                 return;
             }
 
-            SetRightMode(InputMode.None);
+            if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightHandInteraction, out device) ||
+                XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightMicrosoftHandInteraction, out device))
+            {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetRightHandIsTracked())
+                    SetRightMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(device, SetRightMode);
+            }
+
+            var mode = GetRightHandIsTracked() ? InputMode.TrackedHand : InputMode.None;
+            SetRightMode(mode);
         }
 
 #if XR_INPUT_DEVICES_AVAILABLE
+        void UpdateLeftMode(InputSystem.XR.XRController controllerDevice)
+        {
+            if (IsHandInteractionXRControllerType(controllerDevice))
+            {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetLeftHandIsTracked())
+                    SetLeftMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(controllerDevice, SetLeftMode);
+            }
+            else
+            {
+                // Swap to controller
+                UpdateMode(controllerDevice, SetLeftMode);
+            }
+        }
+
+        void UpdateRightMode(InputSystem.XR.XRController controllerDevice)
+        {
+            if (IsHandInteractionXRControllerType(controllerDevice))
+            {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetRightHandIsTracked())
+                    SetRightMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(controllerDevice, SetRightMode);
+            }
+            else
+            {
+                // Swap to controller
+                UpdateMode(controllerDevice, SetRightMode);
+            }
+        }
+
         void UpdateMode(InputSystem.XR.XRController controllerDevice, Action<InputMode> setModeMethod)
         {
             if (controllerDevice == null)
@@ -476,7 +523,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 return;
             }
 
-            if (controllerDevice.isTracked.isPressed)
+            if (IsTracked(controllerDevice))
             {
                 setModeMethod(InputMode.MotionController);
             }
@@ -497,7 +544,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 return;
             }
 
-            if (controllerDevice.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked)
+            if (IsTracked(controllerDevice))
             {
                 setModeMethod(InputMode.MotionController);
             }
@@ -509,10 +556,116 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             }
         }
 
+#if XR_INPUT_DEVICES_AVAILABLE
+        static bool TryGetControllerDevice(InternedString usage, out InputSystem.XR.XRController controllerDevice)
+        {
+            controllerDevice = null;
+            var lastUpdateTime = -1.0;
+
+            var devices = InputSystem.InputSystem.devices;
+            for (var index = 0; index < devices.Count; ++index)
+            {
+                var device = devices[index] as InputSystem.XR.XRController;
+                if (device == null)
+                    continue;
+
+                if (ShouldIgnoreXRControllerType(device))
+                    continue;
+
+                if (!device.usages.Contains(usage))
+                    continue;
+
+                if (controllerDevice == null || device.lastUpdateTime > lastUpdateTime)
+                {
+                    controllerDevice = device;
+                    lastUpdateTime = device.lastUpdateTime;
+                }
+            }
+
+            return controllerDevice != null;
+        }
+
+        static bool ShouldIgnoreXRControllerType(InputSystem.XR.XRController device)
+        {
+#if OPENXR_1_10_OR_NEWER
+            // Filter out XRController derived devices that should not be treated like controllers
+            // for the purposes of switching input modality.
+            // Ideally, there should be a way to filter out additive features that don't behave like a controller
+            // (in other words, a real Controller Profile or even a Hand Interaction Profile) based on usages.
+            // Thus, the following should not be included in this list since they are valid and handled properly:
+            // - HandInteractionProfile.HandInteraction
+            // - MicrosoftHandInteraction.HoloLensHand
+            if (device is DPadInteraction.DPad ||
+                device is PalmPoseInteraction.PalmPose)
+            {
+                return true;
+            }
+#endif
+
+            return false;
+        }
+
+        static bool IsHandInteractionXRControllerType(InputSystem.XR.XRController device)
+        {
+#if OPENXR_1_10_OR_NEWER
+            if (device is HandInteractionProfile.HandInteraction ||
+                device is MicrosoftHandInteraction.HoloLensHand)
+            {
+                return true;
+            }
+#endif
+
+            return false;
+        }
+#endif
+
+        /// <summary>
+        /// Returns whether the given device is tracked.
+        /// </summary>
+        /// <param name="device">The tracked device to check (usually a controller device).</param>
+        /// <returns>Returns <see langword="true"/> if <see cref="TrackedDevice.isTracked"/> or <see cref="TrackedDevice.trackingState"/>
+        /// has flags Position and Rotation.</returns>
+        static bool IsTracked(TrackedDevice device)
+        {
+            if (device.isTracked.isPressed)
+                return true;
+
+            // If the controller does not report as isTracked but the tracking state reports
+            // at least (Position | Rotation) flags, assume the controller is actually tracked
+            // for the purpose of setting the mode to InputMode.MotionController.
+            // This is a workaround for some WMR controllers devices where isTracked is always false
+            // but its TrackingState = 3 (Position | Rotation).
+            var trackingState = (InputTrackingState)device.trackingState.value;
+            const InputTrackingState positionAndRotation = InputTrackingState.Position | InputTrackingState.Rotation;
+            return (trackingState & positionAndRotation) == positionAndRotation;
+        }
+
+        /// <summary>
+        /// Returns whether the given device is tracked.
+        /// </summary>
+        /// <param name="device">The tracked device to check (usually a controller device).</param>
+        /// <returns>Returns <see langword="true"/> if <see cref="CommonUsages.isTracked"/> or <see cref="CommonUsages.trackingState"/>
+        /// has flags Position and Rotation.</returns>
+        static bool IsTracked(InputDevice device)
+        {
+            if (device.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked)
+                return true;
+
+            // See explanation in above method. Assume the controller is actually tracked
+            // when TrackingState = 3 (Position | Rotation).
+            const InputTrackingState positionAndRotation = InputTrackingState.Position | InputTrackingState.Rotation;
+            return device.TryGetFeatureValue(CommonUsages.trackingState, out var trackingState) &&
+                (trackingState & positionAndRotation) == positionAndRotation;
+        }
+
         void OnDeviceChange(InputSystem.InputDevice device, InputDeviceChange change)
         {
 #if XR_INPUT_DEVICES_AVAILABLE
+            // Filter out any Input System device that isn't an XRController
             if (!(device is InputSystem.XR.XRController controllerDevice))
+                return;
+
+            if (ShouldIgnoreXRControllerType(controllerDevice))
                 return;
 
             if (change == InputDeviceChange.Added ||
@@ -523,15 +676,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 if (!device.added)
                     return;
 
-                // Swap to controller
                 var usages = device.usages;
                 if (usages.Contains(InputSystem.CommonUsages.LeftHand))
                 {
-                    UpdateMode(controllerDevice, SetLeftMode);
+                    UpdateLeftMode(controllerDevice);
                 }
                 else if (usages.Contains(InputSystem.CommonUsages.RightHand))
                 {
-                    UpdateMode(controllerDevice, SetRightMode);
+                    UpdateRightMode(controllerDevice);
                 }
             }
             else if (change == InputDeviceChange.Removed ||
@@ -558,14 +710,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
         void OnDeviceConnected(InputDevice device)
         {
-            // Swap to controller
             var characteristics = device.characteristics;
-            if (characteristics == XRInputTrackingAggregator.Characteristics.leftController)
+            if (characteristics == XRInputTrackingAggregator.Characteristics.leftHandInteraction ||
+                characteristics == XRInputTrackingAggregator.Characteristics.leftMicrosoftHandInteraction)
             {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetLeftHandIsTracked())
+                    SetLeftMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(device, SetLeftMode);
+            }
+            else if (characteristics == XRInputTrackingAggregator.Characteristics.rightHandInteraction ||
+                     characteristics == XRInputTrackingAggregator.Characteristics.rightMicrosoftHandInteraction)
+            {
+                // Swap to controller, but prioritize hand tracking if tracked
+                if (GetRightHandIsTracked())
+                    SetRightMode(InputMode.TrackedHand);
+                else
+                    UpdateMode(device, SetRightMode);
+            }
+            else if (characteristics == XRInputTrackingAggregator.Characteristics.leftController)
+            {
+                // Swap to controller
                 UpdateMode(device, SetLeftMode);
             }
             else if (characteristics == XRInputTrackingAggregator.Characteristics.rightController)
             {
+                // Swap to controller
                 UpdateMode(device, SetRightMode);
             }
         }
@@ -576,12 +747,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
             // Swap to hand tracking if tracked or turn off the controller
             var characteristics = device.characteristics;
-            if (characteristics == XRInputTrackingAggregator.Characteristics.leftController)
+            if (characteristics == XRInputTrackingAggregator.Characteristics.leftController ||
+                characteristics == XRInputTrackingAggregator.Characteristics.leftHandInteraction ||
+                characteristics == XRInputTrackingAggregator.Characteristics.leftMicrosoftHandInteraction)
             {
                 var mode = GetLeftHandIsTracked() ? InputMode.TrackedHand : InputMode.None;
                 SetLeftMode(mode);
             }
-            else if (characteristics == XRInputTrackingAggregator.Characteristics.rightController)
+            else if (characteristics == XRInputTrackingAggregator.Characteristics.rightController ||
+                     characteristics == XRInputTrackingAggregator.Characteristics.rightHandInteraction ||
+                     characteristics == XRInputTrackingAggregator.Characteristics.rightMicrosoftHandInteraction)
             {
                 var mode = GetRightHandIsTracked() ? InputMode.TrackedHand : InputMode.None;
                 SetRightMode(mode);
@@ -631,10 +806,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             switch (hand.handedness)
             {
                 case Handedness.Left:
+                    if (m_LeftInputMode == InputMode.TrackedHand)
+                        break;
+
+                    // If there is a controller profile, use it instead of hand tracking.
+                    // With WMR headsets, when both a controller profile and Hand Tracking Subsystem
+                    // is enabled in OpenXR, the controller devices and the hand devices will both be added.
+                    // To ensure the more appropriate hierarchy is used, the motion controller is prioritized.
+                    // When the XRController is actually a Hand Interaction Profile, we prioritize hand tracking
+                    // for consistency with the other logic in this class.
+                    // On Quest headsets, the controllers are removed/disconnected when switching to hands,
+                    // so we will still swap to hand tracking in that case once hand tracking is acquired
+                    // since the device won't be returned.
+#if XR_INPUT_DEVICES_AVAILABLE
+                    if (TryGetControllerDevice(InputSystem.CommonUsages.LeftHand, out var controllerDevice) &&
+                        !IsHandInteractionXRControllerType(controllerDevice))
+                    {
+                        break;
+                    }
+#endif
+
+                    if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.leftController, out _))
+                        break;
+
                     SetLeftMode(InputMode.TrackedHand);
                     break;
 
                 case Handedness.Right:
+                    if (m_RightInputMode == InputMode.TrackedHand)
+                        break;
+
+#if XR_INPUT_DEVICES_AVAILABLE
+                    if (TryGetControllerDevice(InputSystem.CommonUsages.RightHand, out controllerDevice) &&
+                        !IsHandInteractionXRControllerType(controllerDevice))
+                    {
+                        break;
+                    }
+#endif
+
+                    if (XRInputTrackingAggregator.TryGetDeviceWithExactCharacteristics(XRInputTrackingAggregator.Characteristics.rightController, out _))
+                        break;
+
                     SetRightMode(InputMode.TrackedHand);
                     break;
             }
@@ -727,7 +939,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                     if (!(InputSystem.InputSystem.GetDeviceById(m_MonitoredDevices[index]) is TrackedDevice device))
                         continue;
 
-                    if (!device.isTracked.isPressed)
+                    if (!IsTracked(device))
                         continue;
 
                     // Stop monitoring and invoke event
@@ -834,7 +1046,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 for (var index = 0; index < m_MonitoredDevices.Count; ++index)
                 {
                     var device = m_MonitoredDevices[index];
-                    if (!(device.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked))
+                    if (!IsTracked(device))
                         continue;
 
                     // Stop monitoring and invoke event

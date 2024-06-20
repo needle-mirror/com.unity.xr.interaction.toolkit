@@ -82,7 +82,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_RepositionOutOfViewKeyboardOnOpen;
             set => m_RepositionOutOfViewKeyboardOnOpen = value;
         }
-        
+
         [SerializeField, Tooltip("Threshold for the dot product when determining if the keyboard is out of view and should be repositioned. The lower the threshold, the wider the field of view."), Range(0f, 1f)]
         float m_FacingKeyboardThreshold = 0.15f;
 
@@ -94,7 +94,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_FacingKeyboardThreshold;
             set => m_FacingKeyboardThreshold = value;
         }
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -149,7 +149,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
 
         /// <summary>
-        /// Opens the global keyboard with the option to populate it with existing text. 
+        /// Opens the global keyboard with the option to populate it with existing text.
         /// </summary>
         /// <remarks>This will update the keyboard with <see cref="text"/> as the existing string for the keyboard.</remarks>
         /// <param name="text">The existing text string to populate the keyboard with on open.</param>
@@ -170,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
 
         /// <summary>
-        /// Opens the global keyboard with the option to clear any existing keyboard text. 
+        /// Opens the global keyboard with the option to clear any existing keyboard text.
         /// </summary>
         /// <param name="clearKeyboardText">If true, the keyboard will open with no string populated in the keyboard. If false,
         /// the existing text will be maintained. This is false by default.</param>
@@ -233,7 +233,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 Debug.LogWarning("Camera or keyboard reference is null. Unable to determine if keyboard is out of view.", this);
                 return false;
             }
-            
+
             var dotProduct = Vector3.Dot(m_CameraTransform.forward, (keyboard.transform.position - m_CameraTransform.position).normalized);
             return dotProduct < m_FacingKeyboardThreshold;
         }

@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
+#if BURST_PRESENT
+using Unity.Burst;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -12,6 +16,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     /// Class that encapsulates the logic for evaluating whether an interactable has been poked or not
     /// through enter and exit thresholds.
     /// </summary>
+#if BURST_PRESENT
+    [BurstCompile]
+#endif
     class XRPokeLogic : IDisposable
     {
         /// <summary>
@@ -30,17 +37,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         PokeThresholdData m_PokeThresholdData;
         float m_SelectEntranceVectorDotThreshold;
 
-        readonly Dictionary<object, Vector3> m_LastHoverEnterLocalPosition = new Dictionary<object, Vector3>();
         readonly Dictionary<object, Transform> m_LastHoveredTransform = new Dictionary<object, Transform>();
         readonly Dictionary<object, bool> m_HoldingHoverCheck = new Dictionary<object, bool>();
         readonly Dictionary<Transform, HashSetList<object>> m_HoveredInteractorsOnThisTransform = new Dictionary<Transform, HashSetList<object>>();
         readonly Dictionary<object, float> m_LastInteractorPressDepth = new Dictionary<object, float>();
+        readonly Dictionary<object, bool> m_LastRequirementsMet = new Dictionary<object, bool>();
 
         /// <summary>
         /// Threshold value where the poke interaction is considered to be selecting the interactable.
         /// We normally checked 1% as the activation point, but setting it to 2.5 % makes things feel a bit more responsive.
         /// </summary>
-        const float k_DepthPercentActivationThreshold = 0.025f;//0.05f;
+        const float k_DepthPercentActivationThreshold = 0.025f;
         
         /// <summary>
         /// We require a minimum velocity for poke hover conditions to be met, and avoid the noise of tracking jitter.
@@ -82,7 +89,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </summary>
         public void Dispose()
         {
-            m_LastHoverEnterLocalPosition.Clear();
         }
 
         /// <summary>
@@ -99,92 +105,115 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </returns>
         public bool MeetsRequirementsForSelectAction(object interactor, Vector3 pokableAttachPosition, Vector3 pokerAttachPosition, float pokeInteractionOffset, Transform pokedTransform)
         {
-            if (m_PokeThresholdData == null || pokedTransform == null)
+            if (!IsPokeDataValid(pokedTransform))
                 return false;
 
             Vector3 axisNormal = ComputeRotatedDepthEvaluationAxis(pokedTransform);
+            Vector3 interactionPoint = CalculateInteractionPoint(pokerAttachPosition, axisNormal, pokeInteractionOffset);
 
-            // Move interaction point towards the target, along the interaction normal, by the determined offset.
-            float combinedOffset = pokeInteractionOffset + m_PokeThresholdData.interactionDepthOffset;
-            Vector3 toleranceOffset = axisNormal * combinedOffset;
-            Vector3 interactionPoint = pokerAttachPosition - toleranceOffset;
-
-            Vector3 interactionPointOffset = interactionPoint - pokableAttachPosition;
-            Vector3 axisAlignedInteractionPointOffset = Vector3.Project(interactionPointOffset, axisNormal);
-            float interactionDepth = axisAlignedInteractionPointOffset.magnitude;
-
-
-            float entranceVectorDot = Vector3.Dot(axisNormal, interactionPointOffset.normalized);
-            float entranceVectorDotSign = Mathf.Sign(entranceVectorDot);
+            CalculatePokeParams(interactionPoint, pokableAttachPosition, axisNormal, out float interactionDepth, out float entranceVectorDot);
+            
             bool isOverObject = entranceVectorDot > 0f;
+            float depthPercent = CalculateDepthPercent(interactionDepth, entranceVectorDot, interactionAxisLength);
+
+            bool meetsHoverRequirements = CalculateHoverRequirements(interactor, isOverObject, axisNormal);
             
-            float depthPercent = entranceVectorDotSign * interactionDepth / interactionAxisLength;
-            float clampedDepthPercent = Mathf.Clamp01(depthPercent);
+            float clampedDepthPercent = !meetsHoverRequirements ? 1f : Mathf.Clamp01(depthPercent);
+
+            bool meetsRequirements = CalculateRequirements(ref meetsHoverRequirements, clampedDepthPercent, interactor);
+
+            UpdatePokeStateData(meetsRequirements, meetsHoverRequirements, clampedDepthPercent, interactor, pokerAttachPosition, pokableAttachPosition, axisNormal, pokedTransform);
+
+            return meetsRequirements;
+        }
+        
+        bool IsPokeDataValid(Transform pokedTransform)
+        {
+            return m_PokeThresholdData != null && pokedTransform != null;
+        }
+
+        Vector3 CalculateInteractionPoint(Vector3 pokerAttachPosition, Vector3 axisNormal, float pokeInteractionOffset)
+        {
+            float combinedOffset = pokeInteractionOffset + m_PokeThresholdData.interactionDepthOffset;
+            CalculateInteractionPoint(pokerAttachPosition, axisNormal, combinedOffset, out var interactionPoint);
+            return interactionPoint;
+        }
+        
+        bool CalculateHoverRequirements(object interactor, bool isOverObject, float3 axisNormal)
+        {
+            if (!m_PokeThresholdData.enablePokeAngleThreshold)
+                return true;
             
-            // Compare with hover pose, to ensure interaction started on the right side of the interaction bounds
             bool meetsHoverRequirements = true;
-            if (m_PokeThresholdData.enablePokeAngleThreshold)
-            {
-                // If we previously passed the hover check for this select, then we hold it.
-                // This allows us to hold a button without moving.
-                if (!m_HoldingHoverCheck.ContainsKey(interactor))
-                    m_HoldingHoverCheck[interactor] = false;
-                
-                if (!m_HoldingHoverCheck[interactor])
-                {
-                    if (isOverObject)
-                    {
-                        // Ensure the object's hover started from the right side of the object
-                        if(m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition))
-                        {
-                            // Restore the world space pos of the hover enter point relative to the hovered transform.
-                            var hoverWorldPos = m_LastHoveredTransform[interactor].TransformPoint(hoverLocalPosition);
-                            Vector3 hoverInteractionPointOffset = (hoverWorldPos - pokableAttachPosition).normalized;
-                            meetsHoverRequirements = Vector3.Dot(hoverInteractionPointOffset, axisNormal) > 0;
-                        }
+            if (!m_HoldingHoverCheck.TryGetValue(interactor, out bool holdingHoverCheck) || !holdingHoverCheck)
+                meetsHoverRequirements = CheckVelocity(interactor, isOverObject, axisNormal);
+            return meetsHoverRequirements;
+        }
 
-                        // If we've met the first hover check of starting from the right side, we then check to ensure our velocity delta approach meets our threshold.
-                        if (meetsHoverRequirements && interactor is IAttachPointVelocityProvider velocityProvider)
-                        {
-                            var interactorVelocity = velocityProvider.GetAttachPointVelocity();
-
-                            bool isVelocitySufficient = Vector3.SqrMagnitude(interactorVelocity) > k_SquareVelocityHoverThreshold;
-
-                            // If interactor velocity is sufficiently large, check approach vector
-                            if (isVelocitySufficient)
-                            {
-                                // Start with hover check based on velocity
-                                float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity.normalized, axisNormal);
-                                meetsHoverRequirements = velocityAxisDotProduct > m_SelectEntranceVectorDotThreshold;
-                            }
-                            else
-                            {
-                                meetsHoverRequirements = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        meetsHoverRequirements = false;
-                    }
-                }
-            }
-
-            // Reset depth percent if hover requirements are not met.
-            if (!meetsHoverRequirements)
-            {
-                clampedDepthPercent = 1f;
-            }
+        bool CheckVelocity(object interactor, bool isOverObject, Vector3 axisNormal)
+        {
+            if (!isOverObject)
+                return false;
             
-            // Either depth lines up, or we've moved passed the goal post after passing the hover check
+            if (interactor is not IAttachPointVelocityProvider velocityProvider)
+                return true;
+            
+            var interactorVelocity = velocityProvider.GetAttachPointVelocity();
+            if (!IsVelocitySufficient(interactorVelocity, k_SquareVelocityHoverThreshold))
+                return false;
+            
+            float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity.normalized, axisNormal);
+            return velocityAxisDotProduct > m_SelectEntranceVectorDotThreshold;
+        }
+        
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void CalculatePokeParams(in float3 interactionPoint, in float3 pokableAttachPosition, in float3 axisNormal, out float interactionDepth, out float entranceVectorDot)
+        {
+            var interactionPointOffset = interactionPoint - pokableAttachPosition;
+            var axisAlignedInteractionPointOffset = math.project(interactionPointOffset, axisNormal);
+            interactionDepth = math.length(axisAlignedInteractionPointOffset);
+            entranceVectorDot = math.dot(axisNormal, math.normalizesafe(interactionPointOffset));
+        }
+        
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static void CalculateInteractionPoint(in float3 pokerAttachPosition, in float3 axisNormal, float combinedPokeOffset, out float3 interactionPoint)
+        {
+            float3 toleranceOffset = axisNormal * combinedPokeOffset;
+            interactionPoint = pokerAttachPosition - toleranceOffset;
+        }
+
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        float CalculateDepthPercent(float interactionDepth, float entranceVectorDot, float axisLength)
+        {
+            float entranceVectorDotSign = math.sign(entranceVectorDot);
+            return entranceVectorDotSign * interactionDepth / axisLength;
+        }
+        
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        static bool IsVelocitySufficient(in float3 velocity, float threshold) => math.lengthsq(velocity) > threshold;
+
+        bool CalculateRequirements(ref bool meetsHoverRequirements, float clampedDepthPercent, object interactor)
+        {
             bool meetsRequirements = meetsHoverRequirements && clampedDepthPercent < k_DepthPercentActivationThreshold;
-            
-            // Store holding hover check for this interactor
+            if (m_LastRequirementsMet.TryGetValue(interactor, out bool lastRequirementsMet) && lastRequirementsMet && !meetsRequirements)
+                meetsHoverRequirements = false;
+            return meetsRequirements;
+        }
+
+        void UpdatePokeStateData(bool meetsRequirements, bool meetsHoverRequirements, float clampedDepthPercent, object interactor, Vector3 pokerAttachPosition, Vector3 pokableAttachPosition, Vector3 axisNormal, Transform pokedTransform)
+        {
             m_HoldingHoverCheck[interactor] = meetsHoverRequirements;
-            
+            m_LastRequirementsMet[interactor] = meetsRequirements;
             m_LastInteractorPressDepth[interactor] = clampedDepthPercent;
 
-            // If multiple interactors are poking this transform, we only want to allow the one that is deepest to select.
             if (!meetsRequirements && m_HoveredInteractorsOnThisTransform.TryGetValue(pokedTransform, out var hoveringInteractors))
             {
                 var hoveringInteractorsCount = hoveringInteractors.Count;
@@ -196,22 +225,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                         var hoveringInteractor = hoveringInteractorsList[i];
                         if (hoveringInteractor == interactor)
                             continue;
-                        
-                        // If something else deeper, we don't allow this interactor to broadcast it's press depth.
+
                         var otherInteractorPressDepth = m_LastInteractorPressDepth[hoveringInteractor];
                         if (otherInteractorPressDepth < clampedDepthPercent)
-                            return false;
+                            return;
                     }
                 }
             }
-            
-            // Remove offset from visual callback to better match the actual poke position.
-            var offsetRemoval = depthPercent < 1f && !meetsRequirements ? combinedOffset : 0f;
 
-            // Update poke state data for affordances
-            var axisDepth = meetsRequirements ? 0f : meetsHoverRequirements ? clampedDepthPercent : 1f;
-            var clampedPokeDepth = Mathf.Clamp(axisDepth * interactionAxisLength + offsetRemoval, 0f, interactionAxisLength);
-            
+            var offsetRemoval = clampedDepthPercent < 1f && !meetsRequirements ? m_PokeThresholdData.interactionDepthOffset : 0f;
+            var clampedPokeDepth = Mathf.Clamp(clampedDepthPercent * interactionAxisLength + offsetRemoval, 0f, interactionAxisLength);
+
             m_PokeStateData.Value = new PokeStateData
             {
                 meetsRequirements = meetsRequirements,
@@ -221,8 +245,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 axisNormal = axisNormal,
                 target = pokedTransform,
             };
-
-            return meetsRequirements;
         }
 
         /// <summary>
@@ -308,12 +330,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         public void OnHoverEntered(object interactor, Pose updatedPose, Transform pokedTransform)
         {
             m_LastHoveredTransform[interactor] = pokedTransform;
-            
-            // Store hovered point in local space relative to the poked transform in case the transform moves.
-            m_LastHoverEnterLocalPosition[interactor] = pokedTransform.InverseTransformPoint(updatedPose.position);
-            
             m_LastInteractorPressDepth[interactor] = 1f;
             m_HoldingHoverCheck[interactor] = false;
+            m_LastRequirementsMet[interactor] = false;
 
             if (!m_HoveredInteractorsOnThisTransform.TryGetValue(pokedTransform, out var hoveringInteractors))
             {
@@ -330,9 +349,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <param name="interactor">The XR Interactor associated with the hover exit event interaction.</param>
         public void OnHoverExited(object interactor)
         {
-            m_LastHoverEnterLocalPosition.Remove(interactor);
             m_HoldingHoverCheck[interactor] = false;
             m_LastInteractorPressDepth[interactor] = 1f;
+            m_LastRequirementsMet[interactor] = false;
 
             if (m_LastHoveredTransform.TryGetValue(interactor, out var lastTransform))
             {
@@ -342,7 +361,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 ResetPokeStateData(lastTransform);
                 m_LastHoveredTransform.Remove(interactor);
             }
-            if (m_LastHoverEnterLocalPosition.Count == 0)
+            else if (m_LastHoveredTransform.Count == 0)
             {
                 ResetPokeStateData(m_InitialTransform);
             }

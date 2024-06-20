@@ -110,6 +110,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
         
         [UnityTest]
+        public IEnumerator TestObstructedFarCasting()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+
+            interactor.enableNearCasting = false;
+            interactor.enableFarCasting = true;
+
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isSelected, Is.False);
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            
+            // Create cube to obstruct far interaction
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = interactor.transform.position + interactor.transform.forward * 3.0f;
+            cube.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+            
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            
+            validTargets.Clear();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty);
+        }
+        
+        [UnityTest]
         public IEnumerator TestFarCastingTargetFilterWithMultiColliderInteractable()
         {
             var manager = TestUtilities.CreateInteractionManager();

@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             {
                 m_CurrentlyActive = value;
                 activationGameObject.SetActive(m_CurrentlyActive);
-            } 
+            }
         }
 
         /// <summary>

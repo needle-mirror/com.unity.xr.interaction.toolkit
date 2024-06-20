@@ -236,6 +236,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
+            
+            if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
+                velocityTracker.ResetVelocityTracking();
         }
 
         /// <inheritdoc />
@@ -552,8 +555,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected override void OnHoverEntering(HoverEnterEventArgs args)
         {
             base.OnHoverEntering(args);
-            if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
-                velocityTracker.ResetVelocityTracking();
         }
 
         /// <summary>

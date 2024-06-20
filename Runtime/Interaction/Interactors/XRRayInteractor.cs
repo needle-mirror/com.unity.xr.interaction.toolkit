@@ -539,6 +539,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
+        bool m_BlockInteractionsWithScreenSpaceUI;
+        /// <summary>
+        /// Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas.
+        /// </summary>
+        /// <seealso cref="Canvas.renderMode"/>
+        bool blockInteractionsWithScreenSpaceUI
+        {
+            get => m_BlockInteractionsWithScreenSpaceUI;
+            set => m_BlockInteractionsWithScreenSpaceUI = value;
+        }
+
+        [SerializeField]
         bool m_BlockUIOnInteractableSelection = true;
 
         /// <summary>
@@ -663,7 +675,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         public bool enableARRaycasting
         {
             get => m_EnableARRaycasting;
-            set 
+            set
             {
                 m_EnableARRaycasting = value;
 #if AR_FOUNDATION_PRESENT
@@ -833,7 +845,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         TrackableType m_TrackableType = TrackableType.PlaneWithinPolygon;
 
         /// <summary>
-        /// The <see cref="ARTrackable"/> types that will taken into consideration with the performed <see cref="ARRaycast"/>. 
+        /// The <see cref="ARTrackable"/> types that will taken into consideration with the performed <see cref="ARRaycast"/>.
         /// </summary>
         public TrackableType trackableType
         {
@@ -873,7 +885,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         /// <inheritdoc />
         public float scaleValue { get; protected set; }
-        
+
         /// <summary>
         /// The starting position and direction of any ray casts.
         /// Safe version of <see cref="rayOriginTransform"/>, falls back to this Transform if not set.
@@ -893,7 +905,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// The closest index of the sample endpoint where a 3D, UI or AR hit occurred.
         /// </summary>
-        int closestAnyHitIndex  
+        int closestAnyHitIndex
         {
             get
             {
@@ -925,7 +937,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 {
                     return m_ARRaycastHitEndpointIndex;
                 }
-               
+
                 return 0;
             }
         }
@@ -953,7 +965,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         int m_RaycastHitsCount;
         readonly RaycastHitComparer m_RaycastHitComparer = new RaycastHitComparer();
 
-#if AR_FOUNDATION_PRESENT 
+#if AR_FOUNDATION_PRESENT
         int m_ARRaycastHitEndpointIndex;
         readonly List<ARRaycastHit> m_ARRaycastHits = new List<ARRaycastHit>();
         int m_ARRaycastHitsCount;
@@ -1019,7 +1031,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         RaycastResult m_UIRaycastHit;
         bool m_IsUIHitClosest;
         IXRInteractable m_RaycastInteractable;
-#if AR_FOUNDATION_PRESENT 
+#if AR_FOUNDATION_PRESENT
         ARRaycastHit m_ARRaycastHit;
         bool m_IsARHitClosest;
 #endif
@@ -1075,7 +1087,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
-            
+
 #if AR_FOUNDATION_PRESENT
             if (m_EnableARRaycasting)
                 FindCreateARRaycastManager();
@@ -1163,7 +1175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 Gizmos.DrawLine(uiRaycastResult.worldPosition, uiRaycastResult.worldPosition + uiRaycastResult.worldNormal.normalized * length);
             }
 
-#if AR_FOUNDATION_PRESENT 
+#if AR_FOUNDATION_PRESENT
             if (TryGetCurrentARRaycastHit(out var arRaycastHit))
             {
                 // Draw the normal of the surface at the hit point
@@ -1327,6 +1339,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         public bool IsOverUIGameObject()
         {
             return m_EnableUIInteraction && m_RegisteredUIInteractorCache != null && m_RegisteredUIInteractorCache.IsOverUIGameObject();
+        }
+
+        bool IsOverScreenSpaceCanvas()
+        {
+            if (m_EnableUIInteraction && m_RegisteredUIInteractorCache != null &&
+                m_RegisteredUIInteractorCache.TryGetCurrentUIGameObject(true, out var uiObject))
+            {
+                var canvas = uiObject.GetComponentInParent<Canvas>();
+                var renderMode = canvas.renderMode;
+                return renderMode == RenderMode.ScreenSpaceOverlay || renderMode == RenderMode.ScreenSpaceCamera;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
@@ -1678,7 +1703,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <returns>Returns <see langword="true"/> if a hit occurred, implying the ray cast hit information is valid.
         /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
-        /// If <see cref="occludeARHitsWith2DObjects"/> or <see cref="occludeARHitsWith3DObjects"/> are set to <see langword="true"/> and a 
+        /// If <see cref="occludeARHitsWith2DObjects"/> or <see cref="occludeARHitsWith3DObjects"/> are set to <see langword="true"/> and a
         /// 2D UI or 3D object are closer, the result will be <see langword="false"/> with the default values for both the <paramref name="raycastHit"/>
         /// and <paramref name="raycastEndpointIndex"/>.
         /// </remarks>
@@ -1779,11 +1804,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_RaycastHit = default;
             m_UIRaycastHit = default;
 
-#if AR_FOUNDATION_PRESENT 
+#if AR_FOUNDATION_PRESENT
             m_ARRaycastHit = default;
             m_IsARHitClosest = default;
 
-#endif            
+#endif
             m_IsUIHitClosest = default;
 
             m_RaycastHitOccurred = false;
@@ -1842,7 +1867,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     rayEndPoint = m_UIRaycastHit.worldPosition;
                     rayEndTransform = m_UIRaycastHit.gameObject.transform;
                 }
- #if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT
                 else if (m_IsARHitClosest)
                 {
                     rayEndPoint = arRaycastHitValue.pose.position;
@@ -2260,7 +2285,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 var toPoint = m_SamplePoints[i].position;
 
                 CheckCollidersBetweenPoints(fromPoint, toPoint, origin);
-                if (m_RaycastHitsCount > 0 && !has3DHit) 
+                if (m_RaycastHitsCount > 0 && !has3DHit)
                 {
                     m_RaycastHitEndpointIndex = i;
                     has3DHit = true;
@@ -2275,7 +2300,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 {
                     break;
                 }
-#else 
+#else
                 if (has3DHit)
                 {
                     break;
@@ -2362,7 +2387,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var optimalHits = m_LocalPhysicsScene.Raycast(origin, direction, s_SpherecastScratch, obstructionDistance, layerMask, queryTriggerInteraction);
             if (optimalHits > 0)
             {
-                for (var i = 0; i < optimalHits; ++i) 
+                for (var i = 0; i < optimalHits; ++i)
                 {
                     var hitInfo = s_SpherecastScratch[i];
                     if (hitInfo.distance > obstructionDistance)
@@ -2420,7 +2445,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
                     // Adjust distance by distance from ray center for default sorting
                     BurstPhysicsUtils.GetConecastOffset(origin, hit.point, direction, out var hitToRayDist);
-                    
+
                     // We penalize these off-center hits by a meter + whatever horizontal offset they have
                     hit.distance += currentOffset + 1f + (hitToRayDist);
                     results[hitCounter] = hit;
@@ -2513,13 +2538,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             get
             {
+                if (m_BlockInteractionsWithScreenSpaceUI && !hasSelection && IsOverScreenSpaceCanvas())
+                    return false;
+
                 if (m_HoverToSelect && m_PassedHoverTimeToSelect)
                     return allowSelect;
 
                 return base.isSelectActive;
             }
         }
-        
+
 
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)

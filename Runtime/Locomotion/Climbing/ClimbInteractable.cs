@@ -140,7 +140,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         {
             base.Awake();
             if (m_ClimbProvider == null)
-                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider);
+                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider, true);
         }
 
         /// <inheritdoc />

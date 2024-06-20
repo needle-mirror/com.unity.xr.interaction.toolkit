@@ -567,6 +567,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         // Fallback length of the curve when the renderer becomes unstable. When the line length falls below this, a straight line is drawn instead.
         const float k_CurveFallbackLength = 0.06f;
 
+        // Squared length when even a straight line fallback is unstable. When the squared line length falls below this, disable the line renderer.
+        const float k_DisableSquaredLength = 0.01f * 0.01f;
+
         // We need 3 points on the fallback line, or the line renderer will become unstable if the alpha on the gradient is set to 0 on both ends.
         const int k_FallBackLinePointCount = 3;
 
@@ -1039,7 +1042,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         static bool ComputeFallBackLine(in float3 curveOrigin, in float3 endPoint, float startOffset, float endOffset, ref NativeArray<float3> fallBackTargetPoints)
         {
             var originToEnd = endPoint - curveOrigin;
-            var normalizedDirection = math.normalize(originToEnd);
+
+            // If the distance is too small or zero, the line is not stable enough to draw.
+            // This also avoids a division by zero in the normalize function producing NaN points.
+            var squaredLength = math.lengthsq(originToEnd);
+            if (squaredLength < k_DisableSquaredLength)
+                return false;
+
+            // Normalize the direction vector, equivalent to math.normalize(originToEnd)
+            var normalizedDirection = math.rsqrt(squaredLength) * originToEnd;
 
             // Use linear interpolation between curveOrigin and endPoint to draw a straight line
             float3 startPoint = curveOrigin + (normalizedDirection * startOffset);

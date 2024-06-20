@@ -326,6 +326,10 @@ PrefabInstance:
       propertyPath: m_ControllerCamera
       value: 
       objectReference: {fileID: 2512387469002778331}
+    - target: {fileID: 6605111590819766852, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
+      propertyPath: m_BlockInteractionsWithScreenSpaceUI
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6605111590819766853, guid: 069266f272f67eb43b7e9423a4e669d2, type: 3}
       propertyPath: m_ControllerCamera
       value: 

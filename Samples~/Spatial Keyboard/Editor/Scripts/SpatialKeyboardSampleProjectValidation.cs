@@ -40,7 +40,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 Error = true,
             },
         };
-        
+
         [InitializeOnLoadMethod]
         static void RegisterProjectValidationRules()
         {

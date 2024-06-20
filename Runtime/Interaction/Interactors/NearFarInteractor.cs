@@ -604,10 +604,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             for (int i = 0; i < numTargets; i++)
             {
-                // Add check to prevent multiple valid targets if option is set
-                if (interactionManager.TryGetInteractableForCollider(targets[i], out var interactable, out var snapVolume) &&
-                    // Only add interactables that can be hovered
-                    interactionManager.IsHoverPossible(this, interactable as IXRHoverInteractable))
+                bool hasInteractable = interactionManager.TryGetInteractableForCollider(targets[i], out var interactable, out var snapVolume);
+                bool isSnapVolume = snapVolume != null;
+                
+                // Only add interactables that can be hovered
+                bool isHoverPossible = hasInteractable && interactionManager.IsHoverPossible(this, interactable as IXRHoverInteractable);
+                
+                if (isHoverPossible)
                 {
                     // Mark the first found index
                     if (!foundTarget)
@@ -617,13 +620,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     }
                     
                     interactables.Add(interactable);
-                    
-                    if (snapVolume != null && snapVolume.interactableObject != null)
+
+                    if (isSnapVolume && snapVolume.interactableObject != null)
                         snapVolumes.Add(snapVolume);
                     
                     if (hasTargetFilter)
                         m_FarTargetToIndexMap.TryAdd(interactable, i);
                 }
+
+                // If there isn't a target filter, we want to early out if the first target is not a valid interactable.
+                // If the target we found is a snap volume for something we don't support, we should ignore it and try for the next target.
+                if (!hasTargetFilter && (isHoverPossible || !isSnapVolume))
+                    break;
             }
 
             if (hasTargetFilter)

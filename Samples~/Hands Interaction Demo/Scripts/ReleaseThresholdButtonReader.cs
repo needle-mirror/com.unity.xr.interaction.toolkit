@@ -1,22 +1,23 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 {
     /// <summary>
-    /// Example class that reads a float value from an <see cref="XRInputValueReader"/> and converts it to a bool.
-    /// Useful with hand interaction because the bool select value can be unreliable when the hand is near the tight internal threshold.
+    /// An input button reader based on another <see cref="XRInputButtonReader"/> and holds it true until falling below a lower release threshold.
+    /// Useful with hand interaction because the bool select value can bounce when the hand is near the tight internal threshold,
+    /// so using this will keep the pinch true until moving the fingers much further away than the pinch activation threshold.
     /// </summary>
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_XRInputDeviceButtonReader)]
-    public class ValueDerivedButtonReader : MonoBehaviour, IXRInputButtonReader
+    public class ReleaseThresholdButtonReader : MonoBehaviour, IXRInputButtonReader
     {
         [SerializeField]
-        [Tooltip("The input reader used to reference the float value to convert to a bool.")]
-        XRInputValueReader<float> m_ValueInput = new XRInputValueReader<float>("Value");
+        [Tooltip("The source input that this component reads to create a processed button value.")]
+        XRInputButtonReader m_ValueInput = new XRInputButtonReader("Value");
 
         /// <summary>
-        /// The input reader used to reference the float value to convert to a bool.
+        /// The source input that this component reads to create a processed button value.
         /// </summary>
-        public XRInputValueReader<float> valueInput
+        public XRInputButtonReader valueInput
         {
             get => m_ValueInput;
             set => XRInputReaderUtility.SetInputProperty(ref m_ValueInput, value, this);
@@ -30,6 +31,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// <summary>
         /// The threshold value to use to determine when the button is pressed. Considered pressed equal to or greater than this value.
         /// </summary>
+        /// <remarks>
+        /// This reader will also be considered performed if the source input is performed.
+        /// </remarks>
         public float pressThreshold
         {
             get => m_PressThreshold;
@@ -45,6 +49,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// The threshold value to use to determine when the button is released when it was previously pressed.
         /// Keeps being pressed until falls back to a value of or below this value.
         /// </summary>
+        /// <remarks>
+        /// This reader will still be considered performed if the source input is still performed
+        /// when this threshold is reached.
+        /// </remarks>
         public float releaseThreshold
         {
             get => m_ReleaseThreshold;
@@ -76,12 +84,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// </summary>
         void Update()
         {
+            // Go true when either the press threshold is reached or the bool is already performed.
+            // Only drop back to false when the release threshold is reached and the bool is no longer performed.
             var prevPerformed = m_IsPerformed;
             var pressAmount = m_ValueInput.ReadValue();
 
-            var newValue = pressAmount >= m_PressThreshold;
-            if (!newValue && prevPerformed)
-                newValue = pressAmount > m_ReleaseThreshold;
+            bool newValue;
+            if (prevPerformed)
+                newValue = pressAmount > m_ReleaseThreshold || m_ValueInput.ReadIsPerformed();
+            else
+                newValue = pressAmount >= m_PressThreshold || m_ValueInput.ReadIsPerformed();
 
             m_IsPerformed = newValue;
             m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;

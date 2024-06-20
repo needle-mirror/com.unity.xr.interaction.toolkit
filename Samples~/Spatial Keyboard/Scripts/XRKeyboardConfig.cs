@@ -158,13 +158,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
 
         /// <summary>
-        /// List of each key mapping in this layout. 
+        /// List of each key mapping in this layout.
         /// </summary>
         [SerializeField, Tooltip("List of each key mapping in this layout.")]
         List<KeyMapping> m_KeyMappings;
 
         /// <summary>
-        /// List of each key mapping in this layout. 
+        /// List of each key mapping in this layout.
         /// </summary>
         public List<KeyMapping> keyMappings
         {

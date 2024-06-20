@@ -6,6 +6,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.4] - 2024-06-20
+
+### Added
+- Added support for [Hand Interaction Profile (OpenXR)](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/index.html?subfolder=/manual/features/handinteractionprofile.html) to the XR Input Modality Manager component and added bindings to the `XRI Default Input Actions` asset in the Starter Assets sample.
+- Added interaction layer configuration to `XRInteractorLineVisual` to allow specification of which interactables cause a straight line ray cast to bend to the attach transform on select.
+
+### Changed
+- Changed logic in the XR Input Modality Manager component to accept `Position | Rotation` tracking state flags as sufficient conditions to enable the input modality to work around devices that do not set `isTracked`, such as some Windows Mixed Reality controllers.
+- Changed `XR Origin Hands (XR Rig)` by updating both Near-Far Interactor GameObjects in the hands hierarchy to use different input actions for UI Press and Select inputs.
+  - This was needed since the bindings are now different for those two input actions. The Value Derived Button Reader component was moved from the Near-Far Interactor GameObject to two child GameObjects for better readability to distinguish between Select Input and UI Press Input. It was also replaced with a new Release Threshold Button Reader component to also use the bool actions in the logic for being performed.
+- Changed default value of Press Threshold in `ValueDerivedButtonReader` from 0.85 to 0.8.
+- Changed the Pinch Point Follow component to use the Pinch Pose from the `XRHandSubsystem` (instead of computing the average of the index finger and thumb tip) when the pose is available from the subsystem. Requires XR Hands 1.5.0 or newer.
+- XRPokeFollowAffordance script in Starter Assets sample now updates the poke follow transform to match clamping limits, and displays a yellow debug line to visualize limits.
+- Changed `BaseTeleportationInteractable` and `ClimbInteractable` `Awake` logic to limit expensive `FindObjectOfType` search for `TeleportationProvider` and `ClimbProvider` to once per frame if those `LocomotionProviders` are left null in the inspector.
+- Renamed a prefab asset in Starter Assets sample to reduce the total file path length.
+
+### Fixed
+- Fixed AABB errors caused by the Curve Visual Controller component with the Near-Far Interactor when the line length was near zero. The Line Renderer component will now be disabled when the length is under 0.01 to also avoid unstable line rendering.
+- Fixed "Look rotation viewing vector is zero" errors caused by Pinch Point Follow component when the ray end point is at the same location as the pinch position.
+- Fixed the Pinch Point Follow component to use the XR Origin's up instead of always using global up when computing the rotation.
+- Fixed the Pinch Point Follow component to not write to the Transform rotation when the optional Target Rotation property is not set.
+- Fixed rotation drift that would occur when doing two handed rotation with the `XRGeneralGrabTransformer`. New measures gradually counter drift as it starts to accumulate.
+- Fixed poke behavior when starting a poke from behind and then moving it back forward to poke in the correct direction.
+- Fixed poke filter not working with interactors that are not explicitly the XRPokeInteractor, despite implementing necessary interfaces.
+- Fixed an issue where the Near-Far Interactor would not be properly blocked by non-interactive 3D obstructions during far interactions. ([XRIT-154](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-154))
+- Fixed deprecated messages to use the correct class names for `XRInputButtonReader` and `XRInputValueReader` (instead of `XRInputButtonProvider` and `XRInputValueProvider`).
+- Fixed issue where screen-space UI was no longer being occluded via the `XRRayInteractor` which caused the delete button to no longer work in the `ARDemoScene`. Update the AR Starter Assets sample in your project or update XR Ray Interactor in your AR project to enable Block Interactions With Screen Space UI. ([XRIT-152](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-152))
+
+## [2.6.2] - 2024-06-05
+
+### Fixed
+- Fixed bug fix backport to match version from 3.0.4.
+
+## [2.6.1] - 2024-05-31
+
+### Added
+- Added interaction layer configuration to `XRInteractorLineVisual` to allow specification of which interactables cause a straight line ray cast to bend to the attach transform on select. (Backport from 3.0.4)
+
+### Fixed
+- Fixed missing Scripting API documentation on public enum value. (Backport from 3.0.3)
+- Fixed the AR Starter Assets sample to import the verified version of AR Foundation package instead of the latest compatible version when using the **Fix** button in the Project Validation window on Unity 2021.3. (Backport from 3.0.4)
+- Reverted breaking API change made in version 2.6.0 to `XRBaseGrabTransformer` by no longer making `Start` and `OnDestroy` methods `virtual`.
+
 ## [3.0.3] - 2024-05-02
 
 ### Fixed
@@ -76,8 +119,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed `GrabTransformerRotationAxisLock` by moving the script from the Hands Interaction Demo sample to the Starter Assets sample, renamed to  `RotationAxisLockGrabTransformer`, and updated namespace to match the sample. (Backport from 3.0.2)
   - Changed the Hands Interaction Demo sample `TableHandle` prefab to use the `RotationAxisLockGrabTransformer` component in Starter Assets.
 - Changed `XRDeviceSimulator` to drive AR Foundation's Simulation Camera so that there is no conflict between XR Simulation and XR Device Simulator. Requires AR Foundation 6.0.0 or newer. (Backport from 3.0.2)
-- Changed some APIs used by the `XRPokeInteractor` for enabling the ability to poke UGUI canvases from `internal` to `public` to allow for custom interactor implementations.
 - Changed XR Poke Interactor to reset poke velocity tracking on hover to improve accuracy of poke interactions. (Backport from 3.0.2)
+- Changed some APIs used by the `XRPokeInteractor` for enabling the ability to poke UGUI canvases from `internal` to `public` to allow for custom interactor implementations.
 
 ### Fixed
 - Fixed deprecation warnings when using `Rigidbody.velocity` in Unity 2023.3 or newer. (Backport from 3.0.2)

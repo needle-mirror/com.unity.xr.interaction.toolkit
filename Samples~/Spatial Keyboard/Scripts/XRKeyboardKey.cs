@@ -164,7 +164,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_TextComponent;
             set => m_TextComponent = value;
         }
-        
+
         [SerializeField, Tooltip("Image component used to display icons for key.")]
         Image m_IconComponent;
 
@@ -176,7 +176,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_IconComponent;
             set => m_IconComponent = value;
         }
-        
+
         [SerializeField, Tooltip("Image component used to highlight key indicating an active state.")]
         Image m_HighlightComponent;
 
@@ -188,7 +188,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_HighlightComponent;
             set => m_HighlightComponent = value;
         }
-        
+
         [SerializeField, Tooltip("(Optional) Audio source played when key is pressed.")]
         AudioSource m_AudioSource;
 
@@ -305,7 +305,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 m_Keyboard.TryProcessKeyPress(this);
                 m_Keyboard.PostprocessKeyPress(this);
             }
-            
+
             m_LastClickTime = Time.time;
         }
 

@@ -278,6 +278,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         int m_LastGrabCount;
         Vector3 m_StartHandleBar;
         Vector3 m_StartHandleBarNormalized;
+        Vector3 m_StartHandleBarUp;
         Quaternion m_StartHandleBarLookRotation;
         Quaternion m_InverseStartHandleBarLookRotation;
         Quaternion m_LastHandleBarLocalRotation;
@@ -411,6 +412,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 m_StartHandleBarNormalized = m_StartHandleBar.normalized;
                 
                 m_StartHandleBarLookRotation = Quaternion.LookRotation(m_StartHandleBarNormalized, BurstMathUtility.Orthogonal(m_StartHandleBarNormalized));
+                m_StartHandleBarUp = m_StartHandleBarLookRotation * Vector3.up;
                 m_InverseStartHandleBarLookRotation = Quaternion.Inverse(m_StartHandleBarLookRotation);
                 m_LastHandleBarLocalRotation = m_StartHandleBarLookRotation;
 
@@ -450,10 +452,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 {
                     // Use the fallback axis as the 'up' direction for the LookRotation
                     Vector3 newHandleBarNormalized = newHandleBar.normalized;
-
-                    // Use the last calculated rotation to compute a temporally coherent up vector
-                    Vector3 newUpVector = m_LastHandleBarLocalRotation * Vector3.up;
                     
+                    // Use the last calculated rotation to compute a temporally coherent basline up vector
+                    var baselineUp = m_LastHandleBarLocalRotation * Vector3.up;
+                    
+                    // After enough rotation, the baseline up vector will start to drift away from the original vector, causing undesirable output rotations.
+                    // To prevent this, we interpolate between the baseline up vector and the original up vector based on the dot product between the two, to gradually restore it without causing sudden jumps.
+                    float dot = Vector3.Dot(m_StartHandleBarUp, baselineUp);
+
+                    Vector3 newUpVector = baselineUp;
+                    
+                    // Only apply interpolation if the baseline up vector points in the same direction as the initial up vector.
+                    if (dot > 0f)
+                    {
+                        // Halve and then square the dot product to create a smooth interpolation curve
+                        var halvedDot = dot * 0.5f;
+                        var sqDot = halvedDot * halvedDot;
+                        newUpVector = Vector3.Lerp(baselineUp, m_StartHandleBarUp, sqDot);
+                    }
+                    
+                    // Compute the new handle bar rotation
                     Quaternion newHandleBarLocalRotation = Quaternion.LookRotation(newHandleBarNormalized, newUpVector);
                     
                     // Store the last handle bar rotation for the next frame

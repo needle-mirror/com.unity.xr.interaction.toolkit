@@ -121,5 +121,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             return (m_InputModule != null && TryGetUIModel(out var uiModel) && m_InputModule.IsPointerOverGameObject(uiModel.pointerId));
         }
+
+        /// <summary>
+        /// Use this to get the current UI GameObject that a pointer is hovering over.
+        /// </summary>
+        /// <param name="useAnyPointerId">If <see langword="true"/>, the current GameObject for any pointer will be returned.</param>
+        /// <param name="currentGameObject">Returns the UI element a pointer is hovering over, or <see langword="null"/>.</param>
+        /// <returns>Returns <see langword="true"/> if hovering over a UI element. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="UIInputModule.GetCurrentGameObject(int)"/>
+        public bool TryGetCurrentUIGameObject(bool useAnyPointerId, out GameObject currentGameObject)
+        {
+            if (m_InputModule != null)
+            {
+                if (useAnyPointerId)
+                    currentGameObject = m_InputModule.GetCurrentGameObject(-1);                
+                else if (TryGetUIModel(out var uiModel))
+                    currentGameObject = m_InputModule.GetCurrentGameObject(uiModel.pointerId);
+                else
+                    currentGameObject = null;
+                
+                return currentGameObject != null;
+            }
+
+            currentGameObject = null;
+            return false;
+        }
     }
 }
