@@ -265,7 +265,7 @@ GameObject:
   - component: {fileID: 7403072356416083934}
   - component: {fileID: 7403072356416083935}
   - component: {fileID: 7403072356416083929}
-  - component: {fileID: 7403072356416083928}
+  - component: {fileID: 7185658523818339205}
   - component: {fileID: 820650513654450291}
   m_Layer: 0
   m_Name: TableHandle
@@ -460,10 +460,10 @@ MonoBehaviour:
   m_AttachPointCompatibilityMode: 0
   m_StartingSingleGrabTransformers:
   - {fileID: 7403072356416083929}
-  - {fileID: 7403072356416083928}
+  - {fileID: 7185658523818339205}
   m_StartingMultipleGrabTransformers:
   - {fileID: 7403072356416083929}
-  - {fileID: 7403072356416083928}
+  - {fileID: 7185658523818339205}
   m_AddDefaultGrabTransformers: 0
 --- !u!114 &7403072356416083929
 MonoBehaviour:
@@ -488,7 +488,7 @@ MonoBehaviour:
   m_MinimumScaleRatio: 0.25
   m_MaximumScaleRatio: 2
   m_ScaleMultiplier: 0.25
---- !u!114 &7403072356416083928
+--- !u!114 &7185658523818339205
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -497,7 +497,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7403072356416083904}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24386a87b5e733943809081267792754, type: 3}
+  m_Script: {fileID: 11500000, guid: 4dd2e41114c62b44fbd334ca5b314352, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_PermittedRotationAxis: 2

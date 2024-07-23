@@ -1,4 +1,5 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -57,7 +58,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("Controls whether Unity constrains the object vertically, horizontally, or free to move in all axes.")]
         PlaneTranslationMode m_ObjectPlaneTranslationMode = PlaneTranslationMode.Any;
 
         /// <summary>
@@ -70,8 +70,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             set => m_ObjectPlaneTranslationMode = value;
         }
 
+
         [SerializeField]
-        [Tooltip("Controls whether the interactable will use the orientation of the interactor, or not.")]
+        bool m_EnablePlaneClassificationFilter;
+
+        /// <summary>
+        /// Enabling this will filter interactable manipulation down to only planes that match any of the allowed plane classifications.
+        /// </summary>
+        /// <seealso cref="planeClassificationsList"/>
+        /// <seealso cref="planeClassifications"/>
+        public bool enablePlaneClassificationFilter
+        {
+            get => m_EnablePlaneClassificationFilter;
+            set => m_EnablePlaneClassificationFilter = value;
+        }
+
+#pragma warning disable 618
+        [SerializeField]
+        List<PlaneClassification> m_PlaneClassificationsList;
+
+        /// <summary>
+        /// The classifications a plane needs to match one of to allow interactable manipulation with.
+        /// Only used if <see cref="enablePlaneClassificationFilter"/> is enabled.
+        /// </summary>
+        /// <seealso cref="enablePlaneClassificationFilter"/>
+        public List<PlaneClassification> planeClassificationsList
+        {
+            get => m_PlaneClassificationsList;
+            set => m_PlaneClassificationsList = value;
+        }
+#pragma warning restore 618
+
+#if AR_FOUNDATION_6_0_OR_NEWER || PACKAGE_DOCS_GENERATION
+        [SerializeField]
+        PlaneClassifications m_PlaneClassifications;
+
+        /// <summary>
+        /// The classifications a plane needs to match one of to allow interactable manipulation with.
+        /// Only used if <see cref="enablePlaneClassificationFilter"/> is enabled.
+        /// </summary>
+        /// <remarks>
+        /// Only available with AR Foundation version 6.0 or newer.
+        /// </remarks>
+        /// <seealso cref="enablePlaneClassificationFilter"/>
+        public PlaneClassifications planeClassifications
+        {
+            get => m_PlaneClassifications;
+            set => m_PlaneClassifications = value;
+        }
+#endif
+
+        [SerializeField]
         bool m_UseInteractorOrientation;
 
         /// <summary>
@@ -85,7 +134,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         [Header("Scaling")]
         [SerializeField]
-        [Tooltip("The minimum scale of the object.")]
         float m_MinScale = 0.25f;
 
         /// <summary>
@@ -98,7 +146,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("The maximum scale of the object.")]
         float m_MaxScale = 2f;
 
         /// <summary>
@@ -111,7 +158,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("Sensitivity to movement being translated into scale.")]
         float m_ScaleSensitivity = 0.75f;
 
         /// <summary>
@@ -124,7 +170,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("Amount of over scale allowed after hitting min/max of range.")]
         float m_Elasticity = 0.15f;
 
         /// <summary>
@@ -137,7 +182,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("Whether to enable the elastic break limit when scaling the object beyond range.")]
         bool m_EnableElasticBreakLimit;
 
         /// <summary>
@@ -151,7 +195,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         [SerializeField]
-        [Tooltip("The break limit of the elastic ratio used when scaling the object. Returns to min/max range over time after scaling beyond this limit.")]
         float m_ElasticBreakLimit = 0.5f;
 
         /// <summary>
@@ -199,6 +242,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         {
             FindXROrigin();
             FindCreateARPlaneManager();
+        }
+
+        /// <summary>
+        /// This function is called just before any of the Update methods is called the first time. See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected new void Start()
+        {
+            base.Start();
+
+#if AR_FOUNDATION_6_0_OR_NEWER
+            if (m_PlaneClassificationsList.Count > 0)
+            {
+                Debug.LogWarning("Migrating plane classifications from list to PlaneClassifications enum.", this);
+                MigratePlaneClassifications();
+            }
+#endif
         }
 
         /// <inheritdoc />
@@ -272,7 +331,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             if (arInteractor.TryGetCurrentARRaycastHit(out var firstHit))
             {
                 var plane = m_ARPlaneManager.GetPlane(firstHit.trackableId);
-                if (plane == null || IsPlaneTypeAllowed(m_ObjectPlaneTranslationMode, plane.alignment))
+                if (plane == null || (IsPlaneTypeAllowed(m_ObjectPlaneTranslationMode, plane.alignment) && IsPlaneClassificationAllowed(plane)))
                 {
                     var firstHitPose = firstHit.pose;
 
@@ -297,8 +356,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             return false;
         }
 
-        static bool IsPlaneTypeAllowed(PlaneTranslationMode planeTranslationMode, PlaneAlignment planeAlignment)
+        bool IsPlaneClassificationAllowed(ARPlane plane)
         {
+            if (!m_EnablePlaneClassificationFilter)
+                return true;
+
+#if AR_FOUNDATION_6_0_OR_NEWER
+            if (plane.classifications == PlaneClassifications.None)
+                return m_PlaneClassifications == PlaneClassifications.None;
+
+            return (m_PlaneClassifications & plane.classifications) != 0;
+#else
+            for (int i = 0; i < m_PlaneClassificationsList.Count; ++i)
+            {
+                if (plane.classification == m_PlaneClassificationsList[i])
+                    return true;
+            }
+
+            return false;
+#endif
+        }
+
+        static bool IsPlaneTypeAllowed(PlaneTranslationMode planeTranslationMode, PlaneAlignment planeAlignment)
+        {   
             if (planeTranslationMode == PlaneTranslationMode.Any)
             {
                 return true;
@@ -588,6 +668,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 enabled = false;
             }
         }
+
+#if AR_FOUNDATION_6_0_OR_NEWER
+        internal void MigratePlaneClassifications()
+        {
+#pragma warning disable 618
+            if (m_PlaneClassificationsList.Count > 0)
+            {
+                foreach (var classification in m_PlaneClassificationsList)
+                {
+                    m_PlaneClassifications |= classification.ConvertToPlaneClassifications();
+                }
+
+                m_PlaneClassificationsList.Clear();
+            }
+#pragma warning restore 618
+        }
+#endif
     }
 }
 #endif

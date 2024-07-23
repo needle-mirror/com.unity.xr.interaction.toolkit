@@ -1,6 +1,8 @@
 # Extending the XR Interaction Toolkit
 
-You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the Interaction Manager to provide your own functionality. Additionally, you can use event callbacks to add functionality to the existing components. Below is a diagram showing how existing Interactor and Interactable classes inherit their base classes. 
+You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the XR Interaction Manager to provide your own functionality. Additionally, you can use event callbacks to add functionality to the existing components.
+
+Below is a diagram showing how existing Interactor and Interactable classes inherit their base classes. Note that this is not an exhaustive representation of all classes.
 
 ![class-hierarchy](images/class-hierarchy.svg)
 
@@ -14,7 +16,7 @@ Interactors and Interactables both have various event callbacks that can be used
 
 ## Extending Interactors
 
-You can derive from the `XRBaseInteractor` and/or `XRBaseControllerInteractor` abstract base classes to define your own way of interacting with the world. Unity currently provides Direct (collision) and Ray Interactors, but you can decide how you want the user to choose objects in the world and what they can do with them (though typically you do the latter by deriving from the Base Interactable class).
+You can derive from the `XRBaseInteractor` and/or `XRBaseControllerInteractor` abstract base classes to define your own way of interacting with the world. Unity currently provides different interactors for poke, near, and far interaction, but you can decide how you want the user to choose objects in the world and what they can do with them (though typically you do the latter by deriving from the `XRBaseInteractable` class).
 
 In addition to standard Unity callbacks, you can override the following methods and properties:
 

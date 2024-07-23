@@ -41,17 +41,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.DestroyAllSceneObjects();
         }
 
-        static void DisableDelayProperties(XRGrabInteractable grabInteractable)
-        {
-            grabInteractable.velocityDamping = 1f;
-            grabInteractable.velocityScale = 1f;
-            grabInteractable.angularVelocityDamping = 1f;
-            grabInteractable.angularVelocityScale = 1f;
-            grabInteractable.attachEaseInTime = 0f;
-            var rigidbody = grabInteractable.GetComponent<Rigidbody>();
-            rigidbody.maxAngularVelocity = float.PositiveInfinity;
-        }
-
         static IEnumerator WaitForSteadyState(XRBaseInteractable.MovementType movementType)
         {
             yield return null;
@@ -78,7 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.movementType = movementType;
             grabInteractable.addDefaultGrabTransformers = false;
             grabInteractableGO.AddComponent(grabTransformerType);
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from the transform position (which is also its center).
             var grabInteractableAttach = new GameObject("Grab Interactable Attach").transform;
@@ -187,7 +176,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             rigidbody.isKinematic = true;
             var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
             grabInteractable.movementType = movementType;
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             // Keep the Attach Transform null to use the transform itself (which is also its center).
             var attachOffset = Vector3.zero;
             grabInteractable.attachTransform = null;
@@ -286,7 +275,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.movementType = movementType;
             grabInteractable.addDefaultGrabTransformers = false;
             grabInteractableGO.AddComponent(grabTransformerType);
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from both the transform position and center.
             var grabInteractableAttach = new GameObject("Grab Interactable Attach").transform;
@@ -409,7 +398,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             rigidbody.isKinematic = true;
             var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
             grabInteractable.movementType = movementType;
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from both the transform position and center.
             var grabInteractableAttach = new GameObject("Grab Interactable Attach").transform;
@@ -505,7 +494,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.movementType = movementType;
             grabInteractable.addDefaultGrabTransformers = false;
             grabInteractableGO.AddComponent(grabTransformerType);
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             // Set the Attach Transform to the back upper-right corner of the cube
             // to test an attach transform different from both the transform position and center.
             var grabInteractableAttach = new GameObject("Grab Interactable Attach").transform;
@@ -621,7 +610,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.matchAttachPosition = true;
             grabInteractable.matchAttachRotation = true;
             grabInteractable.snapToColliderVolume = false;
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
 
             Assert.That(grabInteractable.attachPointCompatibilityMode, Is.EqualTo(XRGrabInteractable.AttachPointCompatibilityMode.Default));
 
@@ -1174,7 +1163,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.ClearSingleGrabTransformers();
             grabInteractable.ClearMultipleGrabTransformers();
             grabInteractable.movementType = movementType;
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             grabInteractable.transform.SetPositionAndRotation(new Vector3(1f, 2f, 3f), Quaternion.Euler(15f, 30f, 60f));
 
             Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
@@ -1223,7 +1212,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             grabInteractable.ClearSingleGrabTransformers();
             grabInteractable.ClearMultipleGrabTransformers();
             grabInteractable.movementType = movementType;
-            DisableDelayProperties(grabInteractable);
+            TestUtilities.DisableDelayProperties(grabInteractable);
             grabInteractable.transform.localScale = Vector3.one;
 
             Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));

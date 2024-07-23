@@ -22,6 +22,11 @@
     "versionDefines": [
         {
             "name": "com.unity.inputsystem",
+            "expression": "1.8.0",
+            "define": "INPUT_SYSTEM_1_8_OR_NEWER"
+        },
+        {
+            "name": "com.unity.inputsystem",
             "expression": "1.5.0",
             "define": "INPUT_SYSTEM_1_5_OR_NEWER"
         },
@@ -44,6 +49,21 @@
             "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",
             "define": "AR_FOUNDATION_PRESENT"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
+            "expression": "6.0.0",
+            "define": "AR_FOUNDATION_6_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "UIELEMENTS_MODULE_PRESENT"
+        },
+        {
+            "name": "Unity",
+            "expression": "2022.3",
+            "define": "UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS"
         }
     ],
     "noEngineReferences": false

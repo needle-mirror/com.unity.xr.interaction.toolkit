@@ -159,7 +159,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         // Other buttons are disabled to avoid adding extra noise.
         void UpdateDisableControllerButton(bool active, Image button, Image buttonIcon, Text buttonText)
         {
-            if(active)
+            if (active)
             {
                 var tmpColor = m_MainUIManager.selectedColor;
                 tmpColor.a = 0.5f;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
+using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -14,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="XRPokeFilter"/>
     [AddComponentMenu("XR/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
-    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider
+    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider, IAttachPointVelocityProvider
     {
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
@@ -184,6 +185,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public IReadOnlyBindableVariable<PokeStateData> pokeStateData => m_PokeStateData;
 
+        /// <summary>
+        /// The tracker used to compute the velocity of the attach point.
+        /// This behavior automatically updates this velocity tracker each frame during <see cref="PreprocessInteractor"/>.
+        /// </summary>
+        /// <seealso cref="GetAttachPointVelocity"/>
+        /// <seealso cref="GetAttachPointAngularVelocity"/>
+        protected IAttachPointVelocityTracker attachPointVelocityTracker { get; set; } = new AttachPointVelocityTracker();
+
         GameObject m_HoverDebugSphere;
         MeshRenderer m_HoverDebugRenderer;
 
@@ -205,16 +214,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
         PhysicsScene m_LocalPhysicsScene;
 
         // Used to avoid GC Alloc each frame in UpdateUIModel
-        Func<Vector3> m_PositionGetter;
+        Func<Vector3> m_PositionProvider;
 
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
-            useAttachPointVelocity = true;
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
-            m_PositionGetter = GetPokePosition;
+            m_PositionProvider = GetPokePosition;
         }
 
         /// <inheritdoc />
@@ -251,7 +259,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-                isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
+                if (TryGetXROrigin(out var origin))
+                    attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null), origin);
+                else
+                    attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
+
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
             }
@@ -276,7 +288,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (hasOverlap)
             {
-                
                 int pokeTargetsCount = m_PokeTargets.Count;
                 for (var i = 0; i < pokeTargetsCount; ++i)
                 {
@@ -308,6 +319,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (m_ValidTargets.Count == 0)
                     hasOverlap = false;
             }
+
             currentTarget = hasOverlap ? (IXRSelectInteractable)m_ValidTargets[0] : null;
             pokeFilter = hasOverlap ? s_ValidTargetsScratchMap[currentTarget] : null;
             return hasOverlap;
@@ -315,16 +327,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void ProcessPokeStateData()
         {
-            PokeStateData newPokeStateData = default;
-            if (isInteractingWithUI)
-            {
-                TrackedDeviceGraphicRaycaster.TryGetPokeStateDataForInteractor(this, out newPokeStateData);
-            }
-            else if (m_CurrentPokeFilter != null && m_CurrentPokeFilter is IPokeStateDataProvider pokeStateDataProvider)
-            {
-                newPokeStateData = pokeStateDataProvider.pokeStateData.Value;
-            }
-            m_PokeStateData.Value = newPokeStateData;
+            if (TrackedDeviceGraphicRaycaster.TryGetPokeStateDataForInteractor(this, out var uiData))
+                m_PokeStateData.Value = uiData;
+            else if (m_CurrentPokeFilter is IPokeStateDataProvider pokeStateDataProvider)
+                m_PokeStateData.Value = pokeStateDataProvider.pokeStateData.Value;
+            else
+                m_PokeStateData.Value = default;
         }
 
         /// <inheritdoc />
@@ -489,8 +497,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             model.position = position;
             model.orientation = orientation;
-            model.positionGetter = m_PositionGetter;
-            model.select = TrackedDeviceGraphicRaycaster.HasPokeSelect(this);
+            model.positionProvider = m_PositionProvider;
+            model.select = TrackedDeviceGraphicRaycaster.IsPokeSelectingWithUI(this);
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;
@@ -542,6 +550,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnUIHoverExited(UIHoverEventArgs args)
         {
             m_UIHoverExited?.Invoke(args);
+        }
+
+        /// <inheritdoc />
+        protected override void OnHoverEntering(HoverEnterEventArgs args)
+        {
+            base.OnHoverEntering(args);
+            if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
+                velocityTracker.ResetVelocityTracking();
+        }
+
+        /// <summary>
+        /// Last computed default attach point velocity, based on multi-frame sampling of the pose in world space.
+        /// </summary>
+        /// <returns>Returns the transformed attach point linear velocity.</returns>
+        /// <seealso cref="GetAttachPointAngularVelocity"/>
+        public Vector3 GetAttachPointVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return attachPointVelocityTracker.GetAttachPointVelocity(origin);
+            }
+            return attachPointVelocityTracker.GetAttachPointVelocity();
+        }
+
+        /// <summary>
+        /// Last computed default attach point angular velocity, based on multi-frame sampling of the pose in world space.
+        /// </summary>
+        /// <returns>Returns the transformed attach point angular velocity.</returns>
+        /// <seealso cref="GetAttachPointVelocity"/>
+        public Vector3 GetAttachPointAngularVelocity()
+        {
+            if (TryGetXROrigin(out var origin))
+            {
+                return attachPointVelocityTracker.GetAttachPointAngularVelocity(origin);
+            }
+            return attachPointVelocityTracker.GetAttachPointAngularVelocity();
         }
     }
 }

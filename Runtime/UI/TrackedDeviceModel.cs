@@ -8,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// Defines the type of interaction expected from the interactor when interacting with UI.
     /// </summary>
     /// <seealso cref="TrackedDeviceModel.interactionType"/>
-    internal enum UIInteractionType
+    public enum UIInteractionType
     {
         /// <summary>
         /// The UI interaction is a ray interaction.
@@ -165,9 +165,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// The world starting position of the cast for the tracked device.
         /// </summary>
+        /// <seealso cref="positionProvider"/>
         public Vector3 position
         {
-            get => positionGetter?.Invoke() ?? m_Position;
+            get => m_PositionProvider?.Invoke() ?? m_Position;
             set
             {
                 if (m_Position != value)
@@ -178,11 +179,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        Func<Vector3> m_PositionProvider;
+
         /// <summary>
-        /// Position getter allows for accurate up just in time position querying.
+        /// Overrides the position point used for the world starting position of the cast with a function that returns the position instead.
+        /// This position function allows for accurate just in time position querying.
         /// Necessary for poke interaction with UGUI if the frame of reference is moving rapidly.
         /// </summary>
-        internal Func<Vector3> positionGetter { get; set; }
+        /// <seealso cref="position"/>
+        public Func<Vector3> positionProvider
+        {
+            get => m_PositionProvider;
+            set
+            {
+                if (m_PositionProvider != value)
+                {
+                    m_PositionProvider = value;
+                    changedThisFrame = true;
+                }
+            }
+        }
 
         Quaternion m_Orientation;
 
@@ -281,7 +297,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Only applies with <see cref="UIInteractionType.Poke"/>.
         /// </summary>
         /// <seealso cref="XRPokeInteractor.pokeDepth"/>
-        internal float pokeDepth
+        public float pokeDepth
         {
             get => m_PokeDepth;
             set
@@ -301,7 +317,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// It affects the handling of raycasts in the <see cref="TrackedDeviceGraphicRaycaster"/>.
         /// </summary>
         /// <seealso cref="UIInteractionType"/>
-        internal UIInteractionType interactionType
+        public UIInteractionType interactionType
         {
             get => m_InteractionType;
             set
@@ -323,6 +339,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Tracks whether the current hovered UI elements support scrolling.
         /// </summary>
         public bool isScrollable { get; set; }
+
+        /// <summary>
+        /// Returns a struct representing an invalid pointer id.
+        /// This can be used when returning an instance from a method to represent invalid data.
+        /// </summary>
+        /// <seealso cref="IUIInteractor.TryGetUIModel"/>
+        public static TrackedDeviceModel invalid { get; } = new TrackedDeviceModel(-1);
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="TrackedDeviceModel"/>.
@@ -348,7 +371,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             m_Orientation = Quaternion.identity;
             m_Position = Vector3.zero;
-            positionGetter = null;
+            m_PositionProvider = null;
             changedThisFrame = false;
             m_SelectDown = false;
             selectDelta = ButtonDeltaState.NoChange;
@@ -425,7 +448,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         // this only exists to clean up a warning in the .deprecated.cs file for this type - when removing that file, remove this field
         float m_MaxRaycastDistance;
-
-        internal static TrackedDeviceModel invalid { get; } = new TrackedDeviceModel(-1);
     }
 }

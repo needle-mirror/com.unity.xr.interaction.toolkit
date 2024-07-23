@@ -207,13 +207,15 @@ The package provides a simple implementation of teleportation that also demonstr
 
 The Teleportation Provider inherits from the `LocomotionProvider` abstract class. The Teleportation Provider is responsible for moving the Origin to the desired location on the user's request.
 
-This implementation has two types of teleportation destinations: a Teleportation Area and a Teleportation Anchor. These are discussed in more detail below. In short:
+This implementation has several types of teleportation destinations: a Teleportation Area, a Teleportation Anchor, and a Teleportation Multi-Anchor Volume. These are discussed in more detail below. In short:
 
 - Teleportation Areas allow the user to choose a location on a surface that they wish to teleport to.
 
 - Teleportation Anchors teleport the user to a pre-determined specific position and/or rotation that they specify. Technically, it functions like the Teleportation Area but has the additional anchor functionality.
 
-Both types of teleportation destinations are implemented on top of the XR Interaction system using the `BaseTeleportationInteractable` as the starting point for shared code.
+- Teleportation Multi-Anchor Volumes allow the user to target a volume of space to teleport to one of several anchor locations, based on custom filtering logic.
+
+All types of teleportation destinations are implemented on top of the XR Interaction system using the `BaseTeleportationInteractable` as the starting point for shared code.
 
 The XR Interaction system also provides various line rendering options. For more information, see documentation for the [XR Interactor Line Visual](xr-interactor-line-visual.md) and the [XR Interactor Reticle Visual](xr-interactor-reticle-visual.md).
 
@@ -229,7 +231,7 @@ The **System** field should reference the Locomotion System MonoBehaviour that y
 
 #### Teleportation Area Interactable
 
-The Teleportation Area Interactable is a specialization of the `BaseTeleportInteractable` class. It allows the user to select any location on the surface as their destination.
+The Teleportation Area Interactable is a specialization of the `BaseTeleportationInteractable` class. It allows the user to select any location on the surface as their destination.
 
 The Teleportation Area Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. It can also optionally match the user's rotation to the forward direction of the attach transform of the selecting Interactor. The Teleportation Area Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
 
@@ -256,7 +258,7 @@ The properties on the Teleportation Area Interactable are similar to other Inter
 
 #### Teleportation Anchor Interactable
 
-The Teleportation Anchor is a specialization of the `BaseTeleportInteractable` class that allows the user to teleport to an anchor location by selecting the anchor or an area around it.
+The Teleportation Anchor is a specialization of the `BaseTeleportationInteractable` class that allows the user to teleport to an anchor location by selecting the anchor or an area around it.
 
 The Teleportation Anchor Interactable is intended to be used by the XR Ray Interactor or any of its specializations. It uses the intersection point of the ray and the area's collision volume to determine the location that the user wants to teleport to. It can also optionally match the user's rotation to the forward direction of the attach transform of the selecting Interactor. The Teleportation Anchor Interactable has a specialized implementation of the `GenerateTeleportRequest` method, which generates a teleportation request that is queued with the Teleportation Provider.
 
@@ -267,6 +269,32 @@ The following image shows an example of a portion of the Teleportation Anchor In
 The properties on the **Teleportation Anchor** Interactable are similar to the **Teleportation Area** Interactable. This documentation only covers new elements.
 
 The **Teleport Anchor Transform** field defines the transform that the Origin teleports to when the user teleports to this anchor. It uses both the position and the rotation of the anchor, depending on which **Match Orientation** is selected.
+
+#### Teleportation Multi-Anchor Volume Interactable
+
+The Teleportation Multi-Anchor Volume is a specialization of the `BaseTeleportationInteractable` class that allows the user to teleport to one of several anchor locations by selecting the entire volume.
+
+The volume uses custom filtering logic to choose the best destination anchor. By default it uses whichever anchor is furthest from the user, which is useful for easily getting to either end of a climbable object like a ladder. To change the filtering logic, you can assign any instance of an implementation of the `ITeleportationVolumeAnchorFilter` interface to the volume.
+
+Note that Teleportation Multi-Anchor Volume uses pure transforms to define its anchors. It does not use Teleportation Anchor interactables at all.
+
+The following image shows an example of a portion of the Teleportation Multi-Anchor Volume as it appears in the Inspector:
+
+![teleportation-multi-anchor-volume](images/teleportation-multi-anchor-volume.png)
+
+The properties on the **Teleportation Multi-Anchor Volume** Interactable are similar to the **Teleportation Area** Interactable. This documentation only covers new elements.
+
+| **Property** | **Description** |
+|---|---|
+| **Anchor Transforms** | The transforms that represent the possible teleportation destinations. The volume uses both the position and the rotation of each anchor, depending on which **Match Orientation** is selected. |
+| **Destination Evaluation Settings** | Settings for how this volume evaluates a destination anchor. |
+| &emsp;**Use Asset** | Enable to use a `TeleportVolumeDestinationSettings` object externally defined in a `TeleportVolumeDestinationSettingsDatum` asset that can be assigned using the accompanying field. |
+| &emsp;**Use Value** | Enable to use a `TeleportVolumeDestinationSettings` object which comes with default values editable in the component editor. |
+| &emsp;Enable Destination Evaluation Delay | Whether the volume delays evaluation of the destination anchor until the user has hovered over the volume for a certain amount of time. If the user doesn't hover long enough before triggering teleport, no anchor will be used and so no teleport will occur. |
+| &emsp;Destination Evaluation Delay Time | The amount of time, in seconds, for which the user must hover over the volume before it designates a destination anchor. Only used and displayed when **Enable Destination Evaluation Delay** is enabled. |
+| &emsp;Poll For Destination Change | Whether the volume periodically queries the filter for its calculated destination. If the determined anchor is not the current destination, the volume will initiate re-evaluation of the destination anchor. This is useful if you want the user to be able to change their destination while hovering over the volume. |
+| &emsp;Destination Poll Frequency | The amount of time, in seconds, between queries to the filter for its calculated destination anchor. Only used and displayed when **Poll For Destination Change** is enabled. |
+| &emsp;Destination Filter Object | The anchor filter used to evaluate a teleportation destination (must implement the `ITeleportationVolumeAnchorFilter` interface). If set to **None**, the volume will use the anchor furthest from the user as the destination. |
 
 ### Snap Turn Provider
 

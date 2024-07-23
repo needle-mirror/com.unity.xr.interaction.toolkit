@@ -11,6 +11,8 @@ using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI.BodyUI;
@@ -23,9 +25,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "2.5";
+        const string k_CurrentDocsVersion = "2.6";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_BaseNamespace = "UnityEngine.XR.Interaction.Toolkit.";
+        const string k_LocomotionNamespace = "Locomotion.";
+
+        // Locomotion
+        const string k_ClimbingNamespace = "Climbing.";
+        const string k_TeleportationNamespace = "Teleportation.";
 
         /// <summary>
         /// Current documentation version for XR Interaction Toolkit API and Manual pages.
@@ -243,6 +250,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_ClimbSettingsDatum = k_BaseApi + k_BaseNamespace + nameof(ClimbSettingsDatum) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="ClimbTeleportInteractor"/>.
+        /// </summary>
+        public const string k_ClimbTeleportInteractor = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_ClimbingNamespace + nameof(ClimbTeleportInteractor) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="DeviceBasedContinuousMoveProvider"/>.
         /// </summary>
         public const string k_DeviceBasedContinuousMoveProvider = k_BaseApi + k_BaseNamespace + nameof(DeviceBasedContinuousMoveProvider) + ".html";
@@ -271,6 +283,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRTargetFilter"/>.
         /// </summary>
         public const string k_XRTargetFilter = k_BaseApi + k_BaseNamespace + "Filtering." + nameof(XRTargetFilter) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="FurthestTeleportationAnchorFilter"/>.
+        /// </summary>
+        public const string k_FurthestTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(FurthestTeleportationAnchorFilter) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="GazeTeleportationAnchorFilter"/>.
+        /// </summary>
+        public const string k_GazeTeleportationAnchorFilter = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(GazeTeleportationAnchorFilter) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="GrabMoveProvider"/>.
@@ -318,9 +340,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_TeleportationArea = k_BaseApi + k_BaseNamespace + nameof(TeleportationArea) + ".html";
 
         /// <summary>
+        /// Scripting API URL for <see cref="TeleportationMultiAnchorVolume"/>.
+        /// </summary>
+        public const string k_TeleportationMultiAnchorVolume = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportationMultiAnchorVolume) + ".html";
+
+        /// <summary>
         /// Scripting API URL for <see cref="TeleportationProvider"/>.
         /// </summary>
         public const string k_TeleportationProvider = k_BaseApi + k_BaseNamespace + nameof(TeleportationProvider) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="TeleportVolumeDestinationSettingsDatum"/>.
+        /// </summary>
+        public const string k_TeleportVolumeDestinationSettingsDatum = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TeleportationNamespace + nameof(TeleportVolumeDestinationSettingsDatum) + ".html";
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
         /// <summary>

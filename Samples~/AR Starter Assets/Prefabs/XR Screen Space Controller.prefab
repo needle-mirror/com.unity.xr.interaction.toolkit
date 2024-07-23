@@ -166,6 +166,8 @@ MonoBehaviour:
     m_Reference: {fileID: 4162966010302970412, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   m_ControllerCamera: {fileID: 0}
   m_BlockInteractionsWithScreenSpaceUI: 1
+  m_UseRotationThreshold: 1
+  m_RotationThreshold: 0.02
 --- !u!114 &6605111590819766852
 MonoBehaviour:
   m_ObjectHideFlags: 0

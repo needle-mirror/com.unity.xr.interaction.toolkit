@@ -8,8 +8,8 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 {
     /// <summary>
-    /// A class that follows the pinch point between the thumb and index finger using XR Hand Tracking. 
-    /// It updates its position to the midpoint between the thumb and index tip while optionally adjusting its rotation 
+    /// A class that follows the pinch point between the thumb and index finger using XR Hand Tracking.
+    /// It updates its position to the midpoint between the thumb and index tip while optionally adjusting its rotation
     /// to look at a specified target. The rotation towards the target can also be smoothly interpolated over time.
     /// </summary>
     public class PinchPointFollow : MonoBehaviour
@@ -88,7 +88,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 
             var targetPos = Vector3.Lerp(thumbTipPose.position, indexTipPose.position, 0.5f);
             var filteredTargetPos = m_OneEuroFilterVector3.Filter(targetPos, Time.deltaTime);
-            
+
             // Hand pose data is in local space relative to the xr origin.
             transform.localPosition = filteredTargetPos;
 
@@ -98,7 +98,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 // This allows us to keep orientation consistent when moving the xr origin for locomotion.
                 var targetDir = (m_RayInteractor.rayEndPoint - transform.position).normalized;
                 var targetRot = Quaternion.LookRotation(targetDir);
-                
+
                 // If there aren't any major swings in rotation, follow the target rotation.
                 if (Vector3.Dot(m_TargetRotation.forward, targetDir) > 0.5f)
                     m_QuaternionTweenableVariable.target = targetRot;

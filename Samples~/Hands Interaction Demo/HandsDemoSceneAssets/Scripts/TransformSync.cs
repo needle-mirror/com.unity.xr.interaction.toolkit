@@ -23,7 +23,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         bool m_HasRigidbody;
 
         Transform m_ThisTransform;
-        
+
         readonly Vector3TweenableVariable m_PositionTweenable = new Vector3TweenableVariable();
         readonly QuaternionTweenableVariable m_RotationTweenable = new QuaternionTweenableVariable();
 
@@ -77,11 +77,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         {
             m_PositionTweenable.target = m_ThisTransform.position;
             m_RotationTweenable.target = m_ThisTransform.rotation;
-            
+
             var tweenTarget = m_SmoothFollowSpeed > 0f ? m_SmoothFollowSpeed * Time.deltaTime : 1f;
             m_PositionTweenable.HandleTween(tweenTarget);
             m_RotationTweenable.HandleTween(tweenTarget);
-            
+
             if (!m_HasRigidbody && m_HasTransform)
                 m_TargetTransform.SetPositionAndRotation(m_PositionTweenable.Value, m_RotationTweenable.Value);
         }

@@ -1,4 +1,6 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Utilities;
+﻿using UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -81,6 +83,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
+        [Tooltip("The teleport volume used to assist with movement to a specific destination after ending a climb " +
+            "(optional, may be None). Only used if there is a Climb Teleport Interactor in the scene.")]
+        TeleportationMultiAnchorVolume m_ClimbAssistanceTeleportVolume;
+
+        /// <summary>
+        /// The teleport volume used to assist with movement to a specific destination after ending a climb (optional,
+        /// may be <see langword="null"/>). If there is a <see cref="ClimbTeleportInteractor"/> in the scene that
+        /// references the same <see cref="ClimbProvider"/> as this interactable, it will interact with the volume while
+        /// this interactable is being climbed.
+        /// </summary>
+        public TeleportationMultiAnchorVolume climbAssistanceTeleportVolume
+        {
+            get => m_ClimbAssistanceTeleportVolume;
+            set => m_ClimbAssistanceTeleportVolume = value;
+        }
+
+        [SerializeField]
         [Tooltip("Optional override of locomotion settings specified in the climb provider. " +
                  "Only applies as an override if set to Use Value or if the asset reference is set.")]
         ClimbSettingsDatumProperty m_ClimbSettingsOverride;
@@ -118,7 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             base.Awake();
             if (m_ClimbProvider == null)
-                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider);
+                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider, true);
         }
 
         /// <inheritdoc />

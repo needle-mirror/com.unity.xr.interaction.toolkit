@@ -24,6 +24,7 @@ Interactable that can be climbed while selected.
 | **Climb Transform** | Transform that defines the coordinate space for climb locomotion. Will use this GameObject's Transform by default. |
 | **Filter Interaction By Distance** | Controls whether to apply a distance check when validating hover and select interaction. |
 | **Max Interaction Distance** | The maximum distance that an interactor can be from this interactable to begin hover or select. |
+| **Climb Assistance Teleport Volume** | The [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md) used to assist with movement to a specific destination after ending a climb (optional, may be **None**). Only used if there is a [Climb Teleport Interactor](climb-teleport-interactor.md) in the scene. |
 | **Climb Settings Override** | Optional override of locomotion settings specified in the climb provider. Only applies as an override if set to **Use Value** or if the asset reference is set. |
 | &emsp;**Use Asset** | Enable to use a `ClimbSettings` object externally defined in a `ClimbSettingsDatum` asset that can be assigned using the accompanying field. |
 | &emsp;**Use Value** | Enable to use a `ClimbSettings` object which comes with default values editable in the component editor. |

@@ -25,6 +25,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
         }
 
+        internal static void DisableDelayProperties(XRGrabInteractable grabInteractable)
+        {
+            grabInteractable.velocityDamping = 1f;
+            grabInteractable.velocityScale = 1f;
+            grabInteractable.angularVelocityDamping = 1f;
+            grabInteractable.angularVelocityScale = 1f;
+            grabInteractable.attachEaseInTime = 0f;
+            var rigidbody = grabInteractable.GetComponent<Rigidbody>();
+            rigidbody.maxAngularVelocity = float.PositiveInfinity;
+        }
+        
         internal static BoxCollider CreateGOBoxCollider(GameObject go, bool isTrigger = true)
         {
             BoxCollider collider = go.AddComponent<BoxCollider>();
@@ -97,12 +108,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return xrOrigin;
         }
 
+        internal static TeleportationArea CreateTeleportAreaPlane()
+        {
+            var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            plane.name = "plane";
+            plane.transform.localScale = new Vector3(10f, 1f, 10f);
+            return plane.AddComponent<TeleportationArea>();
+        }
+
         internal static TeleportationAnchor CreateTeleportAnchorPlane()
         {
-            GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.name = "plane";
-            TeleportationAnchor teleAnchor = plane.AddComponent<TeleportationAnchor>();
-            return teleAnchor;
+            return plane.AddComponent<TeleportationAnchor>();
         }
 
         internal static XRRayInteractor CreateRayInteractor()

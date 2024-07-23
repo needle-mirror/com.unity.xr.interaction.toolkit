@@ -187,6 +187,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_BlockInteractionsWithScreenSpaceUI = value;
         }
 
+        [SerializeField]
+        [Tooltip("Enables a rotation threshold that blocks pinch scale gestures when surpassed..")]
+        bool m_UseRotationThreshold = true;
+        /// <summary>
+        /// Enables a rotation threshold that blocks pinch scale gestures when surpassed.
+        /// </summary>
+        /// <seealso cref="rotationThreshold"/>
+        public bool useRotationThreshold
+        {
+            get => m_UseRotationThreshold;
+            set => m_UseRotationThreshold = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The threshold at which a gestures will be interpreted only as rotation and not a pinch scale gesture.")]
+        float m_RotationThreshold = 0.02f;
+
+        /// <summary>
+        /// The threshold at which a gestures will be interpreted only as rotation and not a pinch scale gesture.
+        /// </summary>
+        /// <seealso cref="useRotationThreshold"/>
+        public float rotationThreshold
+        {
+            get => m_RotationThreshold;
+            set => m_RotationThreshold = value;
+        }
+
         /// <summary>
         /// This value is the change in scale based on input from the <see cref="pinchGapDeltaAction"/> pinch gap delta action
         /// with <see cref="Screen.dpi"/> applied as a factor of the value read in. The delta refers to the change from the previous frame.
@@ -320,8 +347,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 controllerState.selectInteractionState.SetFrameState(false, 0f);
             }
-
-            scaleDelta = m_PinchGapDeltaAction.action != null ? m_PinchGapDeltaAction.action.ReadValue<float>() / Screen.dpi : 0f;
+        
+            if (m_UseRotationThreshold && TryGetAbsoluteValue(m_TwistDeltaRotationAction.action, out var absRotationValue) && absRotationValue >= m_RotationThreshold)
+            {
+                scaleDelta = 0f;
+            }
+            else 
+            {
+                scaleDelta = m_PinchGapDeltaAction.action != null ? m_PinchGapDeltaAction.action.ReadValue<float>() / Screen.dpi : 0f;
+            }
         }
 
         bool TryGetCurrentPositionAction(int touchCount, out InputAction action)
@@ -391,6 +425,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             action = null;
+            return false;
+        }
+
+        static bool TryGetAbsoluteValue(InputAction action, out float value)
+        {
+            if (action != null &&
+                action.phase.IsInProgress())
+            {
+                value = Mathf.Abs(action.ReadValue<float>());
+                return true;
+            }
+
+            value = 0f;
             return false;
         }
 

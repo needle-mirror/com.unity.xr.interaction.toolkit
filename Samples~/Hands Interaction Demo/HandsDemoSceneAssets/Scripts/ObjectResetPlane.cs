@@ -33,10 +33,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 if (currentTransform != null)
                 {
                     var position = currentTransform.position;
-                    
+
                     if (m_ObjectRoot != null)
                         position = m_ObjectRoot.InverseTransformPoint(currentTransform.position);
-                    
+
                     m_OriginalPositions.Add(new Pose(position, currentTransform.rotation));
                 }
                 else
@@ -78,7 +78,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                     var rigidBody = currentTransform.GetComponentInChildren<Rigidbody>();
                     if (rigidBody != null)
                     {
+#if UNITY_2023_3_OR_NEWER
+                        rigidBody.linearVelocity = Vector3.zero;
+#else
                         rigidBody.velocity = Vector3.zero;
+#endif
                         rigidBody.angularVelocity = Vector3.zero;
                     }
                 }

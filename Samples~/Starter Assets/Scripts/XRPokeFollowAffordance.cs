@@ -1,4 +1,4 @@
-﻿using Unity.Mathematics;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -120,7 +120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         protected void Awake()
         {
             m_MultiPokeStateDataProvider = GetComponentInParent<IMultiPokeStateDataProvider>();
-            if(m_MultiPokeStateDataProvider == null)
+            if (m_MultiPokeStateDataProvider == null)
                 m_PokeDataProvider = GetComponentInParent<IPokeStateDataProvider>();
         }
 
@@ -133,10 +133,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             {
                 m_InitialPosition = m_PokeFollowTransform.localPosition;
                 m_BindingsGroup.AddBinding(m_TransformTweenableVariable.Subscribe(OnTransformTweenableVariableUpdated));
-                
-                if(m_MultiPokeStateDataProvider != null)
+
+                if (m_MultiPokeStateDataProvider != null)
                     m_BindingsGroup.AddBinding(m_MultiPokeStateDataProvider.GetPokeStateDataForTarget(transform).Subscribe(OnPokeStateDataUpdated));
-                else if(m_PokeDataProvider != null)
+                else if (m_PokeDataProvider != null)
                     m_BindingsGroup.AddBinding(m_PokeDataProvider.pokeStateData.SubscribeAndUpdate(OnPokeStateDataUpdated));
             }
             else

@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.MetaGazeAdapter
 
         [SerializeField, Tooltip("Which eye to use for gaze.")]
         Eye m_Eye;
-        
+
         [SerializeField, Tooltip("Whether to check against confidence threshold to set the EyeGaze input device pose state.")]
         bool m_CheckConfidence;
 
@@ -150,15 +150,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.MetaGazeAdapter
 
             if (!OVRPlugin.GetEyeGazesState(OVRPlugin.Step.Render, -1, ref m_OculusEyeGazesState))
                 return;
-            
+
             var eyeGazeState = m_OculusEyeGazesState.EyeGazes[(int)m_Eye];
 
             if (m_CheckConfidence && eyeGazeState.Confidence < m_ConfidenceThreshold)
                 return;
-            
+
             var isValid = eyeGazeState.IsValid;
             var pose = eyeGazeState.Pose.ToOVRPose();
-            
+
             m_PoseState.isTracked = isValid;
             m_PoseState.trackingState = isValid ? InputTrackingState.Position | InputTrackingState.Rotation : InputTrackingState.None;
             m_PoseState.position = pose.position;
@@ -169,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.MetaGazeAdapter
         {
             if (m_OculusEyeTrackingStarted)
                 return true;
-            
+
             if (!HasEyeTrackingPermission())
             {
 #if UNITY_ANDROID
@@ -230,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.MetaGazeAdapter
             if (!HasEyeTrackingPermission())
                 Permission.RequestUserPermission(k_EyeTrackingPermission, callbacks);
         }
-        
+
         void OnPermissionGranted(string permissionName)
         {
             Debug.Log(permissionName + " permissions granted by the user.", this);
@@ -239,14 +239,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.MetaGazeAdapter
             if (m_OculusEyeTrackingStarted)
                 AddEyeGazeDevice();
         }
-        
+
         void OnPermissionDenied(string permissionName)
         {
             Debug.Log(permissionName + " permissions denied by the user.", this);
             m_OculusEyeTrackingStarted = false;
             RemoveEyeGazeDevice();
         }
-        
+
         void OnPermissionDeniedAndDontAskAgain(string permissionName)
         {
             Debug.Log(permissionName + " permissions denied and don't ask again by the user.", this);

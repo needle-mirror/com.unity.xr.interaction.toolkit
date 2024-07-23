@@ -432,6 +432,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_LineBendRatio;
             set => m_LineBendRatio = Mathf.Clamp(value, k_MinLineBendRatio, k_MaxLineBendRatio);
         }
+        
+        [SerializeField]
+        InteractionLayerMask m_BendingEnabledInteractionLayers = -1;
+
+        /// <summary>
+        /// Interaction layers on which the bending of line visuals towards the interactable attach point are enabled.
+        /// </summary>
+        InteractionLayerMask bendingEnabledInteractionLayers
+        {
+            get => m_BendingEnabledInteractionLayers;
+            set => m_BendingEnabledInteractionLayers = value;
+        }
 
         [SerializeField]
         bool m_OverrideInteractorLineOrigin = true;
@@ -726,9 +738,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Query the raycaster to determine line hit information and determine if hit was valid. Also check for snap volumes.
             m_ValidHit = ExtractHitInformation(ref m_TargetPoints, m_NumTargetPoints, out var targetEndPoint, out var hitSnapVolume);
-
-            var curveRayTowardAttachPoint = hasSelection && hasStraightRayCast;
             
+            // Check if selected interactables are on interaction layers where bending is enabled
+            var bendingEnabledOnInteractionLayer = false;
+            
+            if (hasSelection)
+            {
+                for (int i = 0; i < m_LineRenderableAsSelectInteractor.interactablesSelected.Count; i++)
+                {
+                    bendingEnabledOnInteractionLayer = (bendingEnabledInteractionLayers & m_LineRenderableAsSelectInteractor.interactablesSelected[i].interactionLayers) != 0;
+                    if (bendingEnabledOnInteractionLayer)
+                        break;
+                }
+            }
+
+            // Determine if selected interactable is valid to have the line visuals bend towards the attach point
+            var curveRayTowardAttachPoint = hasSelection && hasStraightRayCast && bendingEnabledOnInteractionLayer;
+
             // If overriding ray origin, the line end point will be decoupled from the raycast hit point, so we bend towards it.
             bool bendForOverride = m_OverrideInteractorLineOrigin && m_ValidHit;
             var curveRayTowardHitPoint = bendForOverride && hasStraightRayCast;

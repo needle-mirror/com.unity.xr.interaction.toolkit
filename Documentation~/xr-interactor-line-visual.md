@@ -28,5 +28,6 @@ Interactor helper object aligns a `LineRenderer` with the Interactor.
 | **Smooth Movement** | Controls whether the rendered segments will be delayed from and smoothly follow the target segments. |
 | **Snap Endpoint if Available** | Enables the ray visuals to snap the end point the line when the ray hits a [XRInteractableSnapVolume](xr-interactable-snap-volume.md). |
 | **Line Bend Ratio** | When line is bent because target end point is out of line with the ray or snap volume is in use, this ratio determines what the bend point is. A value of 1 means the line will not bend. |
+| **Bending Enabled Interaction Layers** | Interaction layers on which the line visuals are allowed to bend towards the attach transform. Snap volumes will still always bend visuals. |
 | **Reticle** | Stores the reticle that appears at the end of the line when it is valid. |
 | **Blocked Reticle** | Stores the reticle that appears at the end of the line when the interactor has a valid target but it selection is blocked. |

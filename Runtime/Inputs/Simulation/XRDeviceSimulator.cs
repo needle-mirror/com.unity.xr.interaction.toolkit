@@ -1,5 +1,10 @@
+#if AR_FOUNDATION_6_0_OR_NEWER && (UNITY_EDITOR || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX)
+#define XR_SIMULATION_AVAILABLE
+#endif
+
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -7,10 +12,19 @@ using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 using UnityEngine.XR.Hands.ProviderImplementation;
+#endif
+
+#if XR_MANAGEMENT_4_0_OR_NEWER
+using UnityEngine.XR.Management;
+#endif
+
+#if XR_SIMULATION_AVAILABLE
+using UnityEngine.XR.Simulation;
 #endif
 
 #if !(ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER))
@@ -1647,6 +1661,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         XRSimulatedHandState m_LeftHandState;
         XRSimulatedHandState m_RightHandState;
 
+#if XR_SIMULATION_AVAILABLE
+        XROrigin m_XROrigin;
+        SimulationCameraPoseProvider m_SimulationCameraPoseProvider;
+        Vector3 m_OriginalCameraOffsetObjectPosition;
+        float m_OriginalCameraYOffset;
+#endif 
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -1754,6 +1775,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             AddDevices();
 
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
+#if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
+            if (XRSimulationLoaderEnabledForEditorPlayMode())
+            {
+                if (m_XROrigin != null || ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin))
+                {   
+                    if (m_XROrigin.CameraYOffset != 0)
+                    {
+                        var offset = new Vector3(0f, m_XROrigin.CameraYOffset, 0f);
+                        m_HMDState.centerEyePosition += offset;
+                        m_LeftControllerState.devicePosition += offset;
+                        m_RightControllerState.devicePosition += offset;
+                        
+                        m_LeftHandState.position += offset;
+                        m_RightHandState.position += offset;
+
+                        m_OriginalCameraYOffset = m_XROrigin.CameraYOffset;
+                        m_XROrigin.CameraYOffset = 0f;
+                    }
+
+                    if (m_XROrigin.CameraFloorOffsetObject != null && m_XROrigin.CameraFloorOffsetObject.transform.position != Vector3.zero)
+                    {
+                        m_OriginalCameraOffsetObjectPosition = m_XROrigin.CameraFloorOffsetObject.transform.position;
+                        m_XROrigin.CameraFloorOffsetObject.transform.position = Vector3.zero;
+                    }
+
+                    Debug.LogWarning("Override XR Simulation Input is enabled and either the XR Origin's Camera Y Offset or the XR Origin's" +
+                        " Camera Floor Offset Object's position is set to a non-zero value. Due to the way XR Simulation applies its transformations," +
+                        " the offsets will be set to zero and the Camera Y Offset will be applied directly to the simulated camera and devices during Play mode.", this);
+                }
+
+                if (m_SimulationCameraPoseProvider != null || ComponentLocatorUtility<SimulationCameraPoseProvider>.TryFindComponent(out m_SimulationCameraPoseProvider))
+                    m_SimulationCameraPoseProvider.enabled = false;
+            }
+#endif
+
             SubscribeKeyboardXTranslateAction();
             SubscribeKeyboardYTranslateAction();
             SubscribeKeyboardZTranslateAction();
@@ -1877,6 +1933,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (m_DeviceSimulatorActionAsset != null)
                 m_DeviceSimulatorActionAsset.Disable();
+
+#if XR_SIMULATION_AVAILABLE
+            if (m_SimulationCameraPoseProvider != null)
+                m_SimulationCameraPoseProvider.enabled = true;
+ 
+            if (m_XROrigin != null)
+            {
+                if (m_OriginalCameraYOffset != 0f)
+                {
+                    var offset = new Vector3(0f, m_OriginalCameraYOffset, 0f);
+                    m_HMDState.centerEyePosition -= offset;
+                    m_LeftControllerState.devicePosition -= offset;
+                    m_RightControllerState.devicePosition -= offset;
+                        
+                    m_LeftHandState.position -= offset;
+                    m_RightHandState.position -= offset;
+                }
+
+                if (m_XROrigin.CameraFloorOffsetObject != null)
+                    m_XROrigin.CameraFloorOffsetObject.transform.position = m_OriginalCameraOffsetObjectPosition;
+
+                m_XROrigin.CameraYOffset = m_OriginalCameraYOffset;
+            }
+#endif
 #endif
         }
 
@@ -1953,6 +2033,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_RightControllerDevice != null && m_RightControllerDevice.added)
             {
                 InputState.Change(m_RightControllerDevice, m_RightControllerState);
+            }
+#endif
+
+#if XR_SIMULATION_AVAILABLE
+            if (m_SimulationCameraPoseProvider != null)
+            {
+                m_SimulationCameraPoseProvider.transform.SetWorldPose(m_CameraTransform.GetWorldPose());
             }
 #endif
         }
@@ -2744,6 +2831,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 #endif
         }
+
+#if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
+        static bool XRSimulationLoaderEnabledForEditorPlayMode()
+        {
+            if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager != null)
+                return XRGeneralSettings.Instance.Manager.activeLoader is SimulationLoader simulationLoader && simulationLoader != null;
+
+            return false;
+        }
+#endif        
 
         /// <summary>
         /// Gets a <see cref="Vector3"/> that can be multiplied component-wise with another <see cref="Vector3"/>

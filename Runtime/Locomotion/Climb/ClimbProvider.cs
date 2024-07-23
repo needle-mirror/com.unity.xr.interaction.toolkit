@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -33,6 +34,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_ClimbSettings;
             set => m_ClimbSettings = value;
         }
+
+        /// <summary>
+        /// The interactable that is currently grabbed and driving movement. This will be <see langword="null"/> if
+        /// there is no active climb.
+        /// </summary>
+        public ClimbInteractable climbAnchorInteractable
+        {
+            get
+            {
+                if (m_GrabbedClimbables.Count > 0)
+                    return m_GrabbedClimbables[m_GrabbedClimbables.Count - 1];
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// The interactor that is currently grabbing and driving movement. This will be <see langword="null"/> if
+        /// there is no active climb.
+        /// </summary>
+        public IXRSelectInteractor climbAnchorInteractor
+        {
+            get
+            {
+                if (m_GrabbingInteractors.Count > 0)
+                    return m_GrabbingInteractors[m_GrabbingInteractors.Count - 1];
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Calls the methods in its invocation list when the provider updates <see cref="climbAnchorInteractable"/>
+        /// and <see cref="climbAnchorInteractor"/>. This can be invoked from either <see cref="StartClimbGrab"/> or
+        /// <see cref="FinishClimbGrab"/>. This is not invoked when climb locomotion ends.
+        /// </summary>
+        public event Action<ClimbProvider> climbAnchorUpdated;
 
         /// <inheritdoc />
         protected override void Awake()
@@ -101,6 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var climbTransform = climbInteractable.climbTransform;
             m_InteractorAnchorWorldPosition = interactor.transform.position;
             m_InteractorAnchorClimbSpacePosition = climbTransform.InverseTransformPoint(m_InteractorAnchorWorldPosition);
+            climbAnchorUpdated?.Invoke(this);
         }
 
         /// <summary>
@@ -123,6 +160,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
                         return;
 
                     locomotionPhase = LocomotionPhase.Moving;
+                }
+                else if (system.RequestExclusiveOperation(this) == RequestResult.Busy)
+                {
+                    // Need to make sure that we still have exclusive access to the XR Origin, since we can lose access
+                    // after the system timeout occurs. If this returns RequestResult.Error, it's not actually a problem -
+                    // it just means that we already have exclusive access.
+                    return;
                 }
 
                 Assert.AreEqual(m_GrabbingInteractors.Count, m_GrabbedClimbables.Count);

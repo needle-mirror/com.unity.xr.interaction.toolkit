@@ -1,6 +1,7 @@
 * [XR Interaction Toolkit](index.md)
-  * [What's new in 2.5](whats-new-2.5.md)
+  * [What's new in 2.6](whats-new-2.6.md)
     * Previous releases
+      * [What's new in 2.5](whats-new-2.5.md)
       * [What's new in 2.4](whats-new-2.4.md)
       * [What's new in 2.3](whats-new-2.3.md)
       * [What's new in 2.2](whats-new-2.2.md)
@@ -22,6 +23,7 @@
   * [Hands Interaction Demo](samples-hands-interaction-demo.md)
   * [AR Starter Assets](samples-ar-starter-assets.md)
   * [XR Device Simulator](samples-xr-device-simulator.md)
+  * [Spatial Keyboard](samples-spatial-keyboard.md)
   * [Meta Gaze Adapter](samples-meta-gaze-adapter.md)
 * Reference
   * [Glossary](glossary.md)

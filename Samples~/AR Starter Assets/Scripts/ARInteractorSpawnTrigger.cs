@@ -1,4 +1,4 @@
-﻿#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -109,6 +109,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             }
         }
 
+        [SerializeField]
+        [Tooltip("When enabled, spawn will not be triggered if an object is currently selected.")]
+        bool m_BlockSpawnWhenInteractorHasSelection = true;
+
+        /// <summary>
+        /// When enabled, spawn will not be triggered if an object is currently selected.
+        /// </summary>
+        public bool blockSpawnWhenInteractorHasSelection
+        {
+            get => m_BlockSpawnWhenInteractorHasSelection;
+            set => m_BlockSpawnWhenInteractorHasSelection = value;
+        }
+
         IARInteractor m_ARInteractor;
         XRBaseControllerInteractor m_ARInteractorAsControllerInteractor;
         bool m_EverHadSelection;
@@ -123,7 +136,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
                 m_ObjectSpawner = FindAnyObjectByType<ObjectSpawner>();
 #else
                 m_ObjectSpawner = FindObjectOfType<ObjectSpawner>();
-#endif    
+#endif
 
             m_ARInteractor = m_ARInteractorObject as IARInteractor;
             m_ARInteractorAsControllerInteractor = m_ARInteractorObject as XRBaseControllerInteractor;
@@ -156,21 +169,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         void Update()
         {
             var attemptSpawn = false;
+            var currentControllerState = m_ARInteractorAsControllerInteractor.xrController.currentControllerState;
+
+            if(m_BlockSpawnWhenInteractorHasSelection)
+            {
+                if (currentControllerState.selectInteractionState.activatedThisFrame)
+                    m_EverHadSelection = m_ARInteractorAsControllerInteractor.hasSelection;
+                else if (currentControllerState.selectInteractionState.active)
+                    m_EverHadSelection |= m_ARInteractorAsControllerInteractor.hasSelection;
+            }
+
             switch (m_SpawnTriggerType)
             {
                 case SpawnTriggerType.SelectAttempt:
-                    var currentControllerState = m_ARInteractorAsControllerInteractor.xrController.currentControllerState;
-                    if (currentControllerState.selectInteractionState.activatedThisFrame)
-                        m_EverHadSelection = m_ARInteractorAsControllerInteractor.hasSelection;
-                    else if (currentControllerState.selectInteractionState.active)
-                        m_EverHadSelection |= m_ARInteractorAsControllerInteractor.hasSelection;
-                    else if (currentControllerState.selectInteractionState.deactivatedThisFrame)
+                    if (currentControllerState.selectInteractionState.deactivatedThisFrame)
                         attemptSpawn = !m_ARInteractorAsControllerInteractor.hasSelection && !m_EverHadSelection;
                     break;
 
                 case SpawnTriggerType.InputAction:
                     if (m_SpawnAction.action.WasPerformedThisFrame())
-                        attemptSpawn = true;
+                        attemptSpawn = !m_ARInteractorAsControllerInteractor.hasSelection && !m_EverHadSelection;
                     break;
             }
 

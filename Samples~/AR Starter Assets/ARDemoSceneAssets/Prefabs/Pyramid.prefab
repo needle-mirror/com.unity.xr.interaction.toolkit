@@ -321,7 +321,7 @@ MonoBehaviour:
   m_MaxScale: 2
   m_ScaleSensitivity: 0.75
   m_Elasticity: 0.15
-  m_EnableElasticBreakLimit: 0
+  m_EnableElasticBreakLimit: 1
   m_ElasticBreakLimit: 0.5
 --- !u!1 &9015814736466519903
 GameObject:

@@ -17,6 +17,7 @@
 - [Climb Interactable](climb-interactable.md)
 - [Teleportation Anchor](teleportation-anchor.md)
 - [Teleportation Area](teleportation-area.md)
+- [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md)
 
 ### AR Interactables
 
@@ -34,6 +35,10 @@
 - [XR Poke Interactor](xr-poke-interactor.md)
 - [XR Ray Interactor](xr-ray-interactor.md)
 - [XR Socket Interactor](xr-socket-interactor.md)
+
+### Locomotion Interactors
+
+- [Climb Teleport Interactor](climb-teleport-interactor.md)
 
 ## Filters
 

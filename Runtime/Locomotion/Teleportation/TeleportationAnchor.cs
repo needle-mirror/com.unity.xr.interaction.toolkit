@@ -5,6 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// specific position and/or rotation.
     /// </summary>
     /// <seealso cref="TeleportationArea"/>
+    /// <seealso cref="TeleportationMultiAnchorVolume"/>
     [AddComponentMenu("XR/Teleportation Anchor", 11)]
     [HelpURL(XRHelpURLConstants.k_TeleportationAnchor)]
     public class TeleportationAnchor : BaseTeleportationInteractable
@@ -58,6 +59,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return m_TeleportAnchorTransform;
         }
 
+        /// <summary>
+        /// Attempts to queue a request to teleport to this anchor. This method can be called from script to initiate teleportation
+        /// manually rather than relying on the interaction system to initiate teleportation. May not succeed in teleporting
+        /// if the anchor Transform is destroyed or there is no <see cref="TeleportationProvider"/>.
+        /// </summary>
+        /// <remarks>
+        /// Due to script execution order of the <seealso cref="TeleportationProvider"/>, depending on when this method is called,
+        /// teleportation of the XR Origin may not occur until the next frame.
+        /// </remarks>
+        // void return type to allow the method to be called from a UnityEvent
+        public void RequestTeleport() => SendTeleportRequest(null);
+
         /// <inheritdoc />
         protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit raycastHit, ref TeleportRequest teleportRequest)
         {
@@ -68,5 +81,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             teleportRequest.destinationRotation = m_TeleportAnchorTransform.rotation;
             return true;
         }
+
+        [ContextMenu("Teleport to anchor", false)]
+        void RequestTeleportFromEditor() => RequestTeleport();
+
+        [ContextMenu("Teleport to anchor", true)]
+        bool RequestTeleportFromEditorValidate() => Application.isPlaying;
     }
 }

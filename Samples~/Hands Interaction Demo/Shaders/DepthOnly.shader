@@ -11,7 +11,7 @@ Shader "Unlit/DepthOnly"
         Pass
         {
             ZWrite On
-         
+
             ColorMask 0
         }
 

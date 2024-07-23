@@ -14,13 +14,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         {
             [SerializeField]
             Sprite m_Sprite;
-            [SerializeField] 
+            [SerializeField]
             Image m_ButtonImage;
-            [SerializeField] 
+            [SerializeField]
             Image m_Icon;
-            [SerializeField] 
+            [SerializeField]
             Text m_BindText;
-            [SerializeField] 
+            [SerializeField]
             Text m_TitleText;
 
             InputAction m_Action;
@@ -39,7 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                 if (icon != null)
                     m_Sprite = icon;
             }
-            
+
             public void UpdateButtonVisuals(bool active, XRDeviceSimulatorUI uiManager)
             {
                 UpdateButtonActive(active);
@@ -68,10 +68,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
 
         [Header("General")]
 
-        [SerializeField] 
+        [SerializeField]
         Image m_HandImage;
 
-        [SerializeField] 
+        [SerializeField]
         Sprite m_HandDefaultSprite;
 
         [SerializeField]
@@ -117,7 +117,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                     var isActiveExpression = m_ActiveExpression == expression;
                     expression.SetButtonColor(isActiveExpression ? m_MainUIManager.selectedColor : m_MainUIManager.buttonColor);
                 }
-                
+
                 m_HandImage.color = m_MainUIManager.deviceColor;
             }
             else
@@ -130,7 +130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                     expression.SetButtonColor(isActiveExpression ? disabledSelectedColor : m_MainUIManager.disabledButtonColor);
                     expression.UpdateButtonActive(isActiveExpression);
                 }
-                
+
                 m_HandImage.color = m_MainUIManager.disabledDeviceColor;
             }
         }
@@ -170,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                 m_ActiveExpression = expression;
             }
         }
-        
+
         void SetExpressionActiveStatus(bool isActive, HandExpressionUI expression)
         {
             expression.SetButtonColor(isActive ? m_MainUIManager.selectedColor : m_MainUIManager.buttonColor);
@@ -179,4 +179,3 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         }
     }
 }
-
