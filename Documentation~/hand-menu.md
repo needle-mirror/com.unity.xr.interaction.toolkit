@@ -1,3 +1,6 @@
+---
+uid: xri-hand-menu
+---
 # Hand Menu
 
 Makes a GameObject follow a tracked hand or motion controller with logic for setting visibility of the menu based on the palm orientation. This can be used, for example, to show a preferences menu when the user is looking at their palm.

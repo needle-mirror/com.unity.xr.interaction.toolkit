@@ -1,85 +1,80 @@
 ---
 uid: xri-general-setup
 ---
-# General setup
 
-This section will walk you through the steps to create an XR Origin camera rig for a head-mounted device and create the basic building blocks of XR interactivity.
+# Project setup
 
-These steps will guide you through setup to use [Input Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) to indirectly read input from one or more controls, which is the recommended path.
+Before you can create interactions with the XR Interaction Toolkit, you must perform some preliminary setup of your Unity project and scenes. This setup includes:
 
-## Import starter assets
+* Satisfy the [Prerequisites](#prerequisites)
+* [Configure project settings](#settings)
+* [Resolve Project Validation issues](#validation)
+* [Set up input](#input)
+* [Set up scene objects](#scene)
 
-See the [Starter Assets](samples-starter-assets.md) sample for steps to import assets to streamline setup of behaviors. That sample contains a default set of input actions and presets which will be used in this guide.
+<a name="prerequisites"></a>
+## Prerequisites
 
-## Create the XR Interaction Manager
+To start using the toolkit, you must first take care of the following prerequisites:
 
-Create the XR Interaction Manager using **GameObject &gt; XR &gt; Interaction Manager**. The component on this GameObject will allow the interactors and interactables in your scenes to interact with each other.
+* [Install the toolkit](xref:xri-installation)
+* Choose a render pipeline: the Universal Render Pipeline (URP) provides the best performance and compatibility. While you can use the High Definition Render Pipeline (HDRP) or the Built-In Render Pipeline, both these options have more limitations on XR platforms. The core interaction toolkit doesn't depend on a particular render pipeline, but some assets in samples provided by the toolkit do use URP-based assets.
+* [Enable XR providers](xref:xr-configure-providers) for the devices that you plan to support.
+* [Import the toolkit Starter Assets](xref:xri-installation#installing-samples) (recommended): The Starter Assets contain Prefabs, presets, and Input Action assets.
 
-## Create the XR Origin camera rig for tracked devices
+Refer to the [XR section](xref:XR) of the Unity manual for more general information about setting up a project for XR. Note that the [Starter Assets](xref:xri-samples-starter-assets) sample contains a preconfigured XR Origin prefab that already contains most of the toolkit components that you need for implementing interactions. Usually, you can save time and effort by using this prefab instead of the more generic XR Origin configurations described in the Unity Manual.
 
-Create the XR Origin camera rig using **GameObject &gt; XR &gt; XR Origin (VR)**. This will also automatically create a new Main Camera GameObject tagged as "MainCamera" as a child of a new Camera Offset GameObject. The GameObject with the Camera is assigned as the value of **Camera GameObject** on XR Origin. If you already had a Camera tagged "MainCamera" in your scene, Unity may warn about there being another Camera tagged "MainCamera" in your scene. You will typically only need one Main Camera, so you should delete the original Camera at this time. For more information about the Main Camera, see [`Camera.main`](https://docs.unity3d.com/ScriptReference/Camera-main.html).
+<a name="settings"></a> 
+## Configure project settings
 
-> [!TIP]
-> If you already have components that are referencing the original Camera GameObject, you may want to keep the original Camera instead. Drag the original Camera in the Hierarchy window to be a child GameObject of Camera Offset then reset the Transform by clicking the **More menu (&#8942;)** in the Inspector window next to Transform and select **Reset**. Then use the **More menu (&#8942;)** to **Copy Component** and **Paste Component As New** to move each additional component from the new Camera GameObject to your old Camera GameObject. Finally delete the new Camera GameObject and update **Camera GameObject** on XR Origin to your Camera.
+The XR Interaction Toolkit has a few settings to consider:
 
-The [XR Origin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/xr-origin.html) component on this GameObject transforms trackable devices like the head-mounted display and controllers to their final position in the Unity scene. This is the GameObject that is moved around the environment to achieve locomotion rather than applying movement directly to the Main Camera itself.
-
-The Camera Offset child GameObject that is created is automatically assigned as the value of **Camera Floor Offset Object** on XR Origin. This GameObject's position is updated automatically by Unity depending on the **Tracking Origin Mode** value on XR Origin.
-
-For this guide, leave the **Tracking Origin Mode** set to **Not Specified**.
-
-> [!NOTE]
-> When the mode is **Device**, the XR runtime will generally report the position of tracked devices relative to a fixed position in space, such as the initial position of the HMD when started. Set the **Camera Y Offset** on XR Origin to the height you want the Main Camera to be above ground when in that mode. When the mode is **Floor**, the XR runtime will generally report the position of tracked devices relative to the player's real floor. Unity will automatically clear the height of the Camera Offset when in this mode since it is not necessary to artificially raise the tracking origin up. Set the mode to **Not Specified** to use the default mode of the XR runtime.
-
-To have the position and rotation of the XR HMD update the Main Camera Transform, a Tracked Pose Driver (Input System) component is added. This component is configured to set the **Position Input** binding to `<XRHMD>/centerEyePosition`, the **Rotation Input** binding to `<XRHMD>/centerEyeRotation`, and the **Tracking State Input** binding to `<XRHMD>/trackingState`.
-
-## Configure Interactor
-
-An Interactor component controls how a GameObject interacts with Interactable components in the scene. There are multiple types of Interactors, one of which is an [XR Ray Interactor](xr-ray-interactor.md), a component that uses [ray casting](https://docs.unity3d.com/ScriptReference/Physics.Raycast.html) in order to find valid Interactable objects in the scene.
-
-To read input from an XR input device, the Interactor has various input properties that allow you to define the source of input. One example is the **Select Input** which allows you to set the input action that triggers selection. Refer to the property table in the documentation for [Interactor components](components.md#interactors) or refer to the tooltips in the Inspector window for more information.
-
-To enable haptic vibration feedback for an interactor, add a [Simple Haptic Feedback](simple-haptic-feedback.md) component to the GameObject to trigger haptics in response to select and hover events. You can then specify intensities and durations of haptic feedback to play back on select and hover events in the Inspector window. That component references a [Haptic Impulse Player](haptic-impulse-player.md) component (which can be shared by different interactors) that is used to actually play the haptics to a device. On the Haptic Impulse Player, set **Haptic Output** to an input action with a binding path to any active control, such as `<XRController>{LeftHand}/*`, in order to identify the device. If you are using OpenXR, you can instead set the binding path to a `haptic` control.
-
-The **UI Interaction** option controls whether this XR Ray Interactor can interact with Unity UI elements in a world space canvas in the scene. See [UI Setup](ui-setup.md) for more information and steps for enabling UI interactivity.
-
-To have the position and rotation of a motion controller update the Transform component, a Tracked Pose Driver (Input System) component should be added. As an example for the left controller, this component should be configured to set the **Position Input** binding to `<XRController>{LeftHand}/devicePosition`, the **Rotation Input** binding to `<XRController>{LeftHand}/deviceRotation`, and the **Tracking State Input** binding to `<XRController>{LeftHand}/trackingState`.
-
-## Enable input actions used for input
-
-Actions must be enabled before they react to input. See [Enabling actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html#enabling-actions) in the Input System documentation for details about this process. Most behaviors in this package have input properties which can either store an Input Action directly, or indirectly by referencing an input action contained in an Input Action Asset. When directly defined actions are used (in other words, the mode is set to **Input Action**), behaviors automatically enable and disable the actions that are directly defined during their own `OnEnable` and `OnDisable` events. This can be useful when doing rapid prototyping. However when indirect action references are used (in other words, the mode is set to **Input Action Reference**), behaviors intentionally don't automatically enable or disable the Input Actions that are indirectly defined to allow the enabled state to be managed externally.
-
-The Input Action Manager component can be used to automatically enable or disable the Actions defined in an Input Action Asset during its own `OnEnable` and `OnDisable` events.
-
-If you created the XR Origin using **GameObject &gt; XR &gt; XR Origin (VR)**, you will already have an Input Action Manager attached to the **XR Origin**, if not, use **GameObject &gt; Create Empty** and rename the GameObject Input Action Manager. Use **Component &gt; Input &gt; Input Action Manager** to add the component to the GameObject you created.
-
-If you have imported the **Starter Assets** sample package, the **XRI Default Input Actions** should already be set in the **Action Assets** configuration for the component. If **Starter Assets** are not available or you are creating this object manually, select **Add (+)** or set **Size** to **1** in the Inspector window to add an element to the **Action Assets** list. Select the element's object picker (circle icon) and choose **XRI Default Input Actions**.
-
-![input-action-manager](images/input-action-manager.png)
-
-If you later create additional Input Action Assets, add them to the **Action Assets** list to enable all its actions also.
-
-> [!NOTE]
-> For Input Actions to read from input devices correctly while running in the Unity Editor, the Game view may need to have focus depending on the current project settings. If you find that your input, such as button presses on the controllers, are not working, ensure the Game view has focus by clicking it with your mouse. See [Background and focus change behavior](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Devices.html#background-and-focus-change-behavior) to learn how to adjust settings to not require focus in the Game view.
-
-<a id="create-grab-interactable"></a>
-## Create an Interactable for the player to grab
-
-Interactable components define how the user can interact with objects in a scene. To create a basic 3D cube that can be grabbed, use **GameObject &gt; XR &gt; Grab Interactable**.
-
-For this example, create a plane for the cube to rest on so it does not fall out of reach. Use **GameObject &gt; 3D Object &gt; Plane**, then click on the Cube and click and drag the Transform gizmo to position it above the Plane GameObject.
-
-In the screenshot below, the GameObject with the XR Grab Interactable supports grabbing, moving, dropping, and throwing with smoothed tracking.
-
-![interactable-setup](images/interactable-setup.png)
+* **XR Device Simulator Settings**: whether to automatically add the device simulator to your scenes when you run them in the Editor. The simulator translates mouse and keyboard input into XR controller input.
+* **Editor Settings**: affects how the properties of some toolkit components appear in the Inspector.
+* **Interaction Layer Settings**: assign labels to the interaction layers. You can use up to 31 interaction layers as a way to control which interactors can operate with which interactables. You must assign a label to a layer before you can use it.
 
 > [!TIP]
-> Interactables added through the **GameObject &gt; XR** menu use a Box Collider to detect interaction, but other types of Collider components such as a convex Mesh Collider can provide better hit detection at the cost of performance.
+> The teleport-related components provided in the Starter Assets assume that layer 31 is named "Teleport."
 
-To configure an existing GameObject to make it an interactable object to allow the user to grab it, select it in your scene and add these components:
-- Add **Component &gt; XR &gt; XR Grab Interactable**
-- Add **Component &gt; Physics &gt; Box Collider**
+Refer to [Settings and validation](xref:xri-settings) for more information.
 
-## Enable an XR provider
+<a name="validation"></a>
+## Resolve Project Validation issues
 
-Open **Edit &gt; Project Settings &gt; XR Plug-in Management**. If you do not yet have the package installed, click **Install XR Plugin Management** in that window. Select one or more of the plug-in providers for the device(s) you wish to target, such as [Oculus](https://docs.unity3d.com/Packages/com.unity.xr.oculus@latest/) or [Open XR](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/). Open XR will require additional configuration, see its package documentation for those steps.
+The XR Interaction Toolkit and other XR packages provide a set of validation rules which verify your project configuration. As part of preparing your project, you should check the **Project Validation** section of your **Project Settings** (under **XR Plug-in Management**) and correct any reported issues.
+
+Refer to [Settings and validation](xref:xri-settings) for more information.
+
+<a name="input"></a>
+## Set up input
+
+The toolkit components use input from controllers and XR tracking systems to trigger interactions and control some modes of locomotion. The [XR Default Input Action asset](xref:xri-samples-starter-assets#input-actions-asset) in the [Starter Assets](xref:xri-samples-starter-assets) defines a standard mapping of these actions to the physical, hardware input control. For example, the default mapping binds **select** to the **Grip** button on a controller and **continuous locomotion** to the thumbsticks. You can use the **XR Default Input Action asset** as-is or adjust its bindings to better suit you project.
+
+The interactor and locomotion prefabs in the [Starter Assets](xref:xri-samples-starter-assets) are already configured to use the **XR Default Input Action asset**. If you don't use the starter assets, you must assign an input source to each interactor and locomotion provider component's input properties. The toolkit provides a number of ways to specify the source of input, including by referencing an input action asset, by binding an input action directly on a component, by implementing a custom objects, and by setting an input value directly. Refer to [Configure input](xref:xri-configure-input-system) for more information.
+
+To use input from the user's hands, you must install the [XR Hands](xref:xrhands-manual) package. Not all XR platforms support hand tracking. 
+
+<a name="scene"></a>
+## Set up scene objects
+
+At a minimum, a scene needs the following:
+
+* [XR Interaction Manager](xref:xri-xr-interaction-manager)
+* [XR Origin](xref:xri-samples-starter-assets#prefabs)
+* At least one [interactor](xref:xri-interactor-components) object (but often you might use a few specialized interactors per hand)
+
+> [!TIP]
+> The [Starter Assets](xref:xri-samples-starter-assets) contains an XR Origin prefab that includes the standard XR Origin, plus all the required toolkit manager components and a full set of interactors. You can drag this prefab to a scene to complete the minimum set up needed before designing the scene's interactions and means of locomotion.
+
+For [3D interactions](xref:xri-3d-interaction), the scene needs interactable objects. For example, you can add an [XR Grab Interactable](xref:xri-xr-grab-interactable) component to a GameObject to let the user pick it up (with a suitable interactor).
+
+For [UI interactions](xref:xri-ui-interaction), the scene needs world-space canvases with an [XR UI Input Module](xref:xri-ui-input-module). You can further customize UI interaction with optional components and specialized interactors. For example, the [XR Poke Interactor](xref:xri-xr-poke-interactor) lets the user push a button with their finger or XR controller.
+
+For [locomotion](xref:xri-locomotion-landing), the scene needs a [Locomotion Mediator](xref:xri-locomotion-mediator), an [XR Body Transformer](xref:xri-xr-body-transformer), and [Locomotion Providers](xref:xri-locomotion-providers). For teleportation and climbing, you must also add [Locomotion interactables](xref:xri-locomotion-interactables) that define where the user can teleport or climb.
+
+<a name="resources"></a>
+## Additional resources
+
+* [Create a basic scene](create-basic-scene.md)
+* [Create a scene with locomotion](create-scene-with-locomotion.md)
+* [Create a basic interaction](create-basic-interaction.md)

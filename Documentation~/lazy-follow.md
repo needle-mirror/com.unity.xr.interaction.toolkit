@@ -1,3 +1,6 @@
+---
+uid: xri-lazy-follow
+---
 # Lazy Follow
 
 Makes the GameObject this component is attached to follow a target with a delay and some other layout options.

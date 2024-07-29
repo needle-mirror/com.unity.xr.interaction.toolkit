@@ -1,3 +1,6 @@
+---
+uid: xri-xr-poke-filter
+---
 # XR Poke Filter
 
 Filter component that allows for basic poke functionality and to define constraints for when the interactable will be selected.

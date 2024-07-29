@@ -1,8 +1,11 @@
-﻿# Two Handed Grab Move Provider
+---
+uid: xri-two-handed-grab-move-provider
+---
+# Two-Handed Grab Move Provider
 
-A Two-Handed Grab Move Provider allows for grab movement with both hands by using two [Grab Move Provider](grab-move-provider.md) components. In addition to performing translation, this provider is able to rotate and scale the Origin counter to hand movements. It uses the vector from the left hand to the right hand to determine yaw rotation and uniform scale.
+A Two-Handed Grab Move Provider allows for grab movement with both hands by using two [Grab Move Provider](grab-move-provider.md) components. In addition to performing translation, this provider is able to rotate and scale the XR Origin counter to hand movements. It uses the vector from the left hand to the right hand to determine yaw rotation and uniform scale.
 
-When a Two-Handed Grab Move Provider is used, either of its Grab Move Providers will only perform locomotion by itself if the other single-handed provider is not trying to perform locomotion. This means that when both grab move inputs are held, the Two Handed Grab Move Provider is the Locomotion Provider performing translation of the Origin.
+When a Two-Handed Grab Move Provider is used, either of its Grab Move Providers will only perform locomotion by itself if the other single-handed provider is not trying to perform locomotion. This means that when both grab move inputs are held, the Two-Handed Grab Move Provider is the Locomotion Provider performing translation of the XR Origin.
 
 ![TwoHandedGrabMoveProvider](images/two-handed-grab-move-provider.png)
 

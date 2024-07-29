@@ -1,3 +1,6 @@
+---
+uid: xri-xr-interactor-reticle-visual
+---
 # XR Interactor Reticle Visual
 
 Interactor helper object that draws a targeting **Reticle Prefab** over a ray casted point in front of the Interactor.

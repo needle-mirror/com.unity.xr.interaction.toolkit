@@ -1,3 +1,6 @@
+---
+uid: xri-simple-audio-feedback
+---
 # Simple Audio Feedback
 
 Component that responds to select and hover events by playing audio clips.

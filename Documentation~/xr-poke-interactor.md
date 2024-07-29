@@ -1,3 +1,6 @@
+---
+uid: xri-xr-poke-interactor
+---
 # XR Poke Interactor
 
 Interactor used for interacting with interactables through poking.

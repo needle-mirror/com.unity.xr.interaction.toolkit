@@ -1,3 +1,6 @@
+---
+uid: xri-haptic-impulse-player
+---
 # Haptic Impulse Player
 
 Component that allows for sending haptic impulses to a device.

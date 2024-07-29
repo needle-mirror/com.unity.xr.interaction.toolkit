@@ -4,9 +4,6 @@ using UnityEditor;
 #endif
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
-#if UNITY_EDITOR
-using UnityEngine.InputSystem.Editor;
-#endif
 using UnityEngine.Scripting;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
@@ -80,6 +77,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             /// no longer actuating in a valid direction, and performs again when re-entering a valid sector
             /// even when not returning to center.
             /// </summary>
+            [InspectorName("Allow Reentry")]
             AllowReentry,
 
             /// <summary>
@@ -87,12 +85,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             /// no longer actuating in a valid direction, and remains so when re-entering a valid sector
             /// without returning to center.
             /// </summary>
+            [InspectorName("Disallow Reentry")]
             DisallowReentry,
 
             /// <summary>
             /// Perform if actuated in a configured valid direction, no matter the initial actuation direction.
             /// Cancels when not actuated in a valid direction.
             /// </summary>
+            [InspectorName("History Independent")]
             HistoryIndependent,
         }
 
@@ -290,47 +290,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             // Will execute the static constructor as a side effect.
         }
     }
-
-#if UNITY_EDITOR
-    class SectorInteractionEditor : InputParameterEditor<SectorInteraction>
-    {
-        readonly GUIContent m_DirectionsLabel = EditorGUIUtility.TrTextContent("Directions",
-            "Sets which cardinal directions to use when determining valid directions to perform the action.");
-        readonly GUIContent m_SweepBehaviorLabel = EditorGUIUtility.TrTextContent("Sweep Behavior",
-            "Determines when the action should perform or cancel when sweeping the stick around the cardinal directions without returning to center.");
-        readonly GUIContent m_PressPointLabel = EditorGUIUtility.TrTextContent("Press Point",
-            "Magnitude threshold that must be crossed by an actuated control for the control to be considered pressed.");
-        readonly GUIContent m_DefaultToggleLabel = EditorGUIUtility.TrTextContent("Default",
-            "If enabled, the default value is used.");
-
-        public override void OnGUI()
-        {
-            target.directions = (SectorInteraction.Directions)EditorGUILayout.EnumFlagsField(m_DirectionsLabel, target.directions);
-
-            target.sweepBehavior = (SectorInteraction.SweepBehavior)EditorGUILayout.EnumPopup(m_SweepBehaviorLabel, target.sweepBehavior);
-
-            var useDefaultValue = target.pressPoint < 0f;
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUI.BeginDisabledGroup(useDefaultValue);
-
-            var newPressPoint = EditorGUILayout.Slider(m_PressPointLabel, target.pressPointOrDefault, 0f, 1f, GUILayout.ExpandWidth(false));
-            if (!useDefaultValue)
-            {
-                target.pressPoint = newPressPoint;
-            }
-
-            EditorGUI.EndDisabledGroup();
-
-            var newUseDefault = GUILayout.Toggle(useDefaultValue, m_DefaultToggleLabel, GUILayout.ExpandWidth(false));
-            if (newUseDefault != useDefaultValue)
-            {
-                target.pressPoint = newUseDefault ? -1f : SectorInteraction.defaultPressPoint;
-            }
-
-            EditorGUILayout.EndHorizontal();
-        }
-    }
-#endif
 }

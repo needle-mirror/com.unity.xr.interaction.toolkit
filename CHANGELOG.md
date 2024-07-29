@@ -1,3 +1,7 @@
+---
+uid: xri-changelog
+---
+
 # Changelog
 All notable changes to this package will be documented in this file.
 
@@ -6,10 +10,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.0.5] - 2024-07-29
+
+### Added
+- Added [XRI 3.0 upgrade guide](xref:xri-upgrade-guide-3-0) documentation.
+- Added dependency guards to the [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample to prevent compile errors if UGUI is missing in Unity 6 or if TextMesh Pro is missing in earlier editor versions.
+- Added project validation rules to the [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample for TextMesh Pro and UGUI.
+- Added `hideKeyboardOnDisable` property to `XRKeyboardDisplay`, which causes the display's observed keyboard to close when the `XRKeyboardDisplay` GameObject is disabled. This property is enabled by default.
+
+### Fixed
+- Fixed Teleportation Area component so it filters out Sphere Cast overlap hits at the start of the sweep so it no longer teleports to (0, 0, 0). Changed so the selection is blocked so the XR Interactor Line Visual uses its blocked style in that case. ([XRIT-138](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-138))
+- Fixed Sector interaction Editor to draw all properties in the Input Actions Editor window in Unity 2022.3 or newer.
+- Fixed regression with `XRSocketInteractor` and `XRSocketGrabTransformer` where an interactable GameObject does not move to the position of the `XRSocketInteractor` when set as the Starting Selected Interactable. ([XRIT-164](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-164))
+
 ## [3.0.4] - 2024-06-20
 
 ### Added
-- Added support for [Hand Interaction Profile (OpenXR)](https://docs.unity3d.com/Packages/com.unity.xr.openxr@latest/index.html?subfolder=/manual/features/handinteractionprofile.html) to the XR Input Modality Manager component and added bindings to the `XRI Default Input Actions` asset in the Starter Assets sample.
+- Added support for [Hand Interaction Profile (OpenXR)](xref:openxr-hand-interaction-profile) to the XR Input Modality Manager component and added bindings to the `XRI Default Input Actions` asset in the Starter Assets sample.
 - Added interaction layer configuration to `XRInteractorLineVisual` to allow specification of which interactables cause a straight line ray cast to bend to the attach transform on select.
 
 ### Changed
@@ -57,8 +74,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [3.0.2] - 2024-05-01
 
 ### Added
-- Added [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample demo scene, scripts, and prefabs.
-- Added [visionOS](../manual/samples-vision-os.html) sample, including a Volume demo scene, and a simple XR Origin Rig specifically configured for Mixed Reality, bounded and unbounded on visionOS.
+- Added [Spatial Keyboard](xref:xri-samples-spatial-keyboard) sample demo scene, scripts, and prefabs.
+- Added [visionOS](xref:xri-samples-vision-os) sample, including a Volume demo scene, and a simple XR Origin Rig specifically configured for Mixed Reality, bounded and unbounded on visionOS.
 
 ### Changed
 - Changed `GrabTransformerRotationAxisLock` by moving the script from the Hands Interaction Demo sample to the Starter Assets sample, renamed to  `RotationAxisLockGrabTransformer`, and updated namespace to match the sample.
@@ -79,14 +96,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation errors on tvOS platform in `TouchscreenGestureInputLoader` and updated warning message when `TouchscreenGestureInputController` is not available on the platform.
 - Fixed an issue where poke filters on nested transforms with different scales would fail to compute a valid poke axis length.
 - Fixed wobble that occurred when pointing objects up or down when using stabilization with the `InteractionAttachController`.
-- Fixed [Extending XR Interaction Toolkit](../manual/extending-xri.html) documentation for namespace changes and class changes in package version 3.0.
+- Fixed [Extending XR Interaction Toolkit](xref:xri-extending-xri) documentation for namespace changes and class changes in package version 3.0.
 - Fixed the error thrown from `NearFarInteractor` when the interactor has a target filter assigned and the interactable being hovered has multiple colliders associated with it.
 - Fixed issue with `InteractionAttachController` where velocity scaled motion would break two-handed interaction from afar.
 
 ## [2.6.0] - 2024-05-01
 
 ### Added
-- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](../manual/teleportation-multi-anchor-volume.md), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`. (Backport from 3.0.0-pre.1)
+- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](xref:xri-teleportation-multi-anchor-volume), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`. (Backport from 3.0.0-pre.1)
   - Added `FurthestTeleportationAnchorFilter`, which is the default filter that chooses the furthest anchor as the destination. Use the menu item **Assets > Create > XR > Locomotion > Furthest Teleportation Anchor Filter** to create an instance of this filter.
   - Added `GazeTeleportationAnchorFilter`, which chooses a destination based on where the user is looking and how far away the anchor is. Use the menu item **Assets > Create > XR > Locomotion > Gaze Teleportation Anchor Filter** to create an instance of this filter.
   - Added menu item **Assets > Create > XR > Locomotion > Teleport Volume Destination Settings**, which creates a Teleport Volume Destination Settings Datum asset.
@@ -109,7 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
 - Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types. (Backport from 3.0.0-pre.2)
 - Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component. (Backport from 3.0.0-pre.2)
-- Added [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample demo scene, scripts, and prefabs. (Backport from 3.0.2)
+- Added [Spatial Keyboard](xref:xri-samples-spatial-keyboard) sample demo scene, scripts, and prefabs. (Backport from 3.0.2)
 
 ### Changed
 - Changed setup of the ladder and elevated teleport area in the `Climb Sample` prefab in the Starter Assets sample so that the objects are set up in a new `Single Floor Ladder` prefab. This prefab also contains a Teleportation Multi-Anchor Volume to allow teleportation to the top or bottom, whichever is furthest from the user. (Backport from 3.0.0-pre.1)
@@ -271,7 +288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 > Some serialized fields used by deprecated code were removed with this version. To avoid potential data loss, especially if you were getting warnings about using deprecated functionality, update your project to the latest 2.x version of this package (for example, 2.5.2) before updating your project to version 3.0.
 
 ### Added
-- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](../manual/teleportation-multi-anchor-volume.md), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`.
+- Added a new type of teleport interactable, [Teleportation Multi-Anchor Volume](xref:xri-teleportation-multi-anchor-volume), that enables teleportation to one of several destination poses chosen by a filter object that implements `ITeleportationVolumeAnchorFilter`.
   - Added `FurthestTeleportationAnchorFilter`, which is the default filter that chooses the furthest anchor as the destination. Use the menu item **Assets > Create > XR > Locomotion > Furthest Teleportation Anchor Filter** to create an instance of this filter.
   - Added `GazeTeleportationAnchorFilter`, which chooses a destination based on where the user is looking and how far away the anchor is. Use the menu item **Assets > Create > XR > Locomotion > Gaze Teleportation Anchor Filter** to create an instance of this filter.
   - Added menu item **Assets > Create > XR > Locomotion > Teleport Volume Destination Settings**, which creates a Teleport Volume Destination Settings Datum asset.
@@ -382,8 +399,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.5.1] - 2023-09-12
 
 ### Changed
-- Split and moved [Samples](../manual/samples.html) documentation into a new area of the [Table of Contents](../manual/TableOfContents.html) to make discovery and navigation easier.
-- Redesigned and improved [Hands Interaction Demo](../manual/samples-hands-interaction-demo.html) sample scene and prefabs.
+- Split and moved [Samples](xref:xri-samples) documentation into a new area of the [Table of Contents](../manual/TableOfContents.html) to make discovery and navigation easier.
+- Redesigned and improved [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample scene and prefabs.
   - Reworked colliders and interactions in sample scene.
   - Added new rim light material made using Shader Graph.
   - Added new blend shape pinch dropper for hand rays.
@@ -406,7 +423,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.5.0] - 2023-08-17
 
 ### Added
-- Added the canvas optimizer to reduce runtime load of UI-heavy scenes. See [UI Setup - Canvas optimizer](../manual/ui-setup.html#canvas-optimizer) in the manual for more details.
+- Added the canvas optimizer to reduce runtime load of UI-heavy scenes. See [UI Setup - Canvas optimizer](xref:xri-ui-setup#canvas-optimizer) in the manual for more details.
 - Added the [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) which allows users to move an `XRGrabInteractable` while constrained to AR Foundation planes. It also has functionality for scaling with touch pinch gestures when the XR Screen Space Controller is used.
 - Added Track Scale and related smoothing options to XR Grab Interactable to allow developers to disable writing to the object's scale when grabbing.
 - Added snap transformations to `XRSocketInteractor` on hover.
@@ -414,9 +431,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added several scripts to the Starter Assets sample for object spawning in AR: `ObjectSpawner`, `ARInteractorSpawnTrigger`, `ARContactSpawnTrigger`, and `DestroySelf`.
 - Added an AR demo scene to the AR Starter Assets that displays a set-up for mobile AR which includes a sliding menu of placeable and interactable objects.
 - Added `GetCurrentGameObject` method to `UIInputModule` to get the UI GameObject currently being hovered by a tracked device or pointer device such as a mouse or touchscreen.
-- Added Cone Cast hit detection type to the [XR Ray Interactor](../manual/xr-ray-interactor.html) to allow users to select small objects at a distance easily.
-- Added ray endpoint stabilization to the [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html).
-- Added [XR Hand Skeleton Poke Displacer](../manual/xr-hand-skeleton-poke-displacer.html) component to allow for displacing the hand skeleton when poking an interactable in order to prevent the hand from phasing through objects while poking them.
+- Added Cone Cast hit detection type to the [XR Ray Interactor](xref:xri-xr-ray-interactor) to allow users to select small objects at a distance easily.
+- Added ray endpoint stabilization to the [XR Transform Stabilizer](xref:xri-xr-transform-stabilizer).
+- Added [XR Hand Skeleton Poke Displacer](xref:xri-xr-hand-skeleton-poke-displacer) component to allow for displacing the hand skeleton when poking an interactable in order to prevent the hand from phasing through objects while poking them.
 - Added one handed scaling support to XR General Grab Transformer to allow grab interactables to be scaled, controlled by enabling Allow One Handed Scaling (which is enabled by default). For motion controller scaling with the XR Ray Interactor, Scale Mode (which is None by default) should be set to Input. For pinch scaling with the XR Ray Interactor, Scale Mode should be set to Distance.
 - Added new Scale Toggle and Scale Delta input actions to the XR Controller (Action-based) which the XR Ray Interactor reads. The `XRRayInteractor` implements the new [`IXRScaleValueProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRScaleValueProvider) by reading the scale delta values from the `ActionBasedController` or `XRScreenSpaceController` so that the `XRGeneralGrbTransformer` can scale using the controller and `ARTransformer` can be used to scale objects with touch pinch gestures.
 
@@ -427,7 +444,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the Ray Interactor prefab in the Starter Assets sample to use cone casting instead of ray casting for the hit detection type.
 - Changed the XR Controller (Action-based) components in the Starter Assets sample to have empty action references instead of empty input actions for consistency and to avoid potential errors during the `ApplyProcessors` method of the current latest version of Input System.
 - Converted math in XR General Grab Transformer to use the Burst compiler and the Mathematics package for performance improvements.
-- Project Validation will automatically open if there are validation errors or missing dependencies to correct when importing [Hands Interaction Demo](../manual/samples-hands-interaction-demo.html) sample package.
+- Project Validation will automatically open if there are validation errors or missing dependencies to correct when importing [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample package.
 - Converted math in XR Grab Interactable related to smoothing operations to use the Burst compiler and the Mathematics package for performance improvements.
 - Changed `XRGrabInteractable` default property values:
   - Changed default value of `smoothPositionAmount` and `smoothRotationAmount` from `5` to `8`.
@@ -508,17 +525,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the `IXRPokeFilter` interface to allow other classes to act as customized poke filters for the `XRPokeInteractor` instead of only supporting the `XRPokeFilter` component.
 - Added XR Interactor Affordance State Provider component which can drive affordance receivers using interactor interactions events.
 - Added Color Gradient Line Renderer Affordance Receiver to pair with an XR Interactor Affordance State Provider on a Ray interactor to improve visual coloring. Has a property to automatically disable coloring of XR Interactor Line Visual.
-- Added [Hand Menu](../manual/hand-menu.html) component, as well as a sample prefab of a working hand menu in the Hands Interaction Demo sample.
+- Added [Hand Menu](xref:xri-hand-menu) component, as well as a sample prefab of a working hand menu in the Hands Interaction Demo sample.
   - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`. 
   - Added gaze activation settings and a reveal/ hide hand menu animation.
-- Added [XR Input Modality Manager](../manual/xr-input-modality-manager.html) component which manages swapping between hand and controller hierarchies in the XR Origin. Updated prefabs in the package samples to make use of this component.
+- Added [XR Input Modality Manager](xref:xri-xr-input-modality-manager) component which manages swapping between hand and controller hierarchies in the XR Origin. Updated prefabs in the package samples to make use of this component.
 - Added ability for XR Interactor Line Visual to curve accurately and track interactable attach points during selection.
 - Added Auto Adjust Line Length property to XR Interactor Line Visual to retract the line end after a delay when the ray interactor doesn't hit any valid targets.
-- Added the [XR Gaze Assistance](../manual/xr-gaze-assistance.html) component to enable split interaction. Eye for aiming and controllers for selection.
+- Added the [XR Gaze Assistance](xref:xri-xr-gaze-assistance) component to enable split interaction. Eye for aiming and controllers for selection.
 - Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
 - Added `Focus State` to interactables. An interactable that is selected is also focused; it remains focused until another interactable is focused instead. Useful for highlighting an object to later perform operations on.
 - Added Visit Each Frame property to XR Controller Recorder to control whether each frame of the input recording must be played back regardless of the time period passed.
-- Added [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
+- Added [XR Transform Stabilizer](xref:xri-xr-transform-stabilizer) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
 - Added Climb Provider, which provides locomotion counter to interactor movement while the user is selecting a Climb Interactable.
   - Added menu item **Assets > Create > XR > Locomotion > Climb Settings**, which creates a Climb Settings Datum asset.
   - Added a Climb Provider instance to `XR Origin Preconfigured` in the Starter Assets sample.
@@ -573,7 +590,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR Grab Interactables interfering with player movement by using `Physics.IgnoreCollision` to prevent collision between the Character Controller and the grabbed object's colliders.
-- Fixed the Input Devices tab in the [XR Interaction Debugger window](../manual/debugger-window.html) so it doesn't rebuild the tree every Editor frame. This allows the input devices to be collapsed. Added additional columns.
+- Fixed the Input Devices tab in the [XR Interaction Debugger window](xref:xri-debugger-window) so it doesn't rebuild the tree every Editor frame. This allows the input devices to be collapsed. Added additional columns.
 - Fixed the teleport ray interactor getting stuck on after a teleport completes when the GameObject with the Action Based Controller Manager component was deactivated.
 - Fixed XR Interactor Line Visual not working with Teleportation Anchor when an XR Interactable Snap Volume is used by no longer skipping the snapping behavior when the ray interactor has a selection. Use the Disable Snap Collider When Selected property of XR Interactable Snap Volume to control that behavior.
 - Fixed bugs in Lazy Follow where threshold mechanics weren't being respected, and reworked class to leverage `SmartFollowVector3TweenableVariable` and `SmartFollowQuaternionTweenableVariable`.
@@ -607,7 +624,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added System Gesture Detector component to the Hands Interaction Demo sample to add system gesture and menu palm pinch gesture events. Added sound upon menu press as an example. Added Aim Flags input actions to the `XRI Default Input Actions` in the Starter Assets sample to support this.
-- Added [Interaction filters](../manual/interaction-filters.html) documentation for `IXRHoverFilter`, `IXRSelectFilter`, `IXRInteractionStrengthFilter`, and the corresponding filter delegates with examples.
+- Added [Interaction filters](xref:xri-interaction-filters) documentation for `IXRHoverFilter`, `IXRSelectFilter`, `IXRInteractionStrengthFilter`, and the corresponding filter delegates with examples.
 
 ### Changed
 - Changed the Poke Gesture Detector component in the Hands Interaction Demo sample to no longer end the poke gesture when hand tracking is lost. This fixes the Ray Interactor line visual reappearing when hand tracking is lost while doing the poke gesture.
@@ -642,7 +659,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an XR Poke Follow Affordance to the `TextButton` prefab in the Starter Assets sample so that the button graphics can move in response to poke.
 - Added Tracking State and Is Tracked input actions to the `XRI Default Input Actions` in the Starter Assets sample.
 - Added Meta Gaze Adapter sample to allow developers to request permission and initialize eye tracking for the Meta Quest Pro.
-- Added [Hands Interaction Demo](../manual/samples-hands-interaction-demo.html) sample to demonstrate interactions with hand tracking.
+- Added [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample to demonstrate interactions with hand tracking.
 - Added poke interaction examples to the `DemoScene` in the Starter Assets sample.
 - Added ability to customize the layer mask and trigger interaction when the XR Poke Interactor performs the physics sphere overlap call.
 - Added documentation regarding behavior when Select Action Trigger is set to State on XR Direct Interactor and XR Ray Interactor.
@@ -679,7 +696,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added new Affordance System. This introduces the XRI Affordance state provider, which connects to an XR Interactable to determine new affordance states, which then power Affordance Receivers to animate tweens using Affordance Theme scriptable Objects. This can be used for audio, ui, material and other kinds of animation tweens, reactive to interaction state changes, all powered by the Job System.
-- Added an option to **Edit** &gt; **Project Settings** &gt; **XR Interaction Toolkit** to automatically instantiate the prefab in the [XR Device Simulator](../manual/samples-xr-device-simulator.html) sample.
+- Added an option to **Edit** &gt; **Project Settings** &gt; **XR Interaction Toolkit** to automatically instantiate the prefab in the [XR Device Simulator](xref:xri-xr-device-simulator-overview) sample.
 - Added XR Interaction Group component, which allows only one member Interactor or Group within the Group to be interacting at a time.
 - Added the option **Disable Visuals When Blocked In Group** to XR Base Interactor, which controls whether to disable the Interactor's visuals when the Interactor is part of an Interaction Group and is unable to interact due to active interaction by another Interactor in the Group. This option is enabled by default.
 - Added an XR Interaction Group to each hand in the `XR Origin Preconfigured` prefab in the `Starter Assets` sample. Each Group prioritizes Direct interaction over Ray interaction.
@@ -734,7 +751,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.2.0] - 2022-09-30
 
 ### Added
-- Added ability for the target position, rotation, and scale of an XR Grab Interactable to be calculated by another component. Developers can derive from [XRBaseGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer) and add those components to the same GameObject as the XR Grab Interactable. The existing logic was moved to [XRSingleGrabFreeTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRSingleGrabFreeTransformer). For more information, see [Grab transformers](../manual/xr-grab-interactable.html#grab-transformers).
+- Added ability for the target position, rotation, and scale of an XR Grab Interactable to be calculated by another component. Developers can derive from [XRBaseGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer) and add those components to the same GameObject as the XR Grab Interactable. The existing logic was moved to [XRSingleGrabFreeTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRSingleGrabFreeTransformer). For more information, see [Grab transformers](xref:xri-xr-grab-interactable#grab-transformers).
 - Added properties `allowHoverAudioWhileSelecting` and `allowHoverHapticsWhileSelecting` to `XRBaseControllerInteractor`, which control whether to allow the Interactor from playing audio and haptics, respectively, in response to a Hover event if the Hovered Interactable is currently Selected by the Interactor.
 - Added property `stopLineAtSelection` to `XRInteractorLineVisual`, which controls whether the line will stop at the attach point of the closest interactable selected by the interactor, if there is one.
 - Added property `treatSelectionAsValidState` to `XRInteractorLineVisual`, which forces the use of valid state visuals while the interactor is selecting an interactable, whether or not the interactor has any valid targets.
@@ -1131,7 +1148,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.0-pre.3] - 2021-03-18
 
 ### Added
-- Added ability for serialized fields added in derived behaviors to automatically appear in the Inspector. Users will no longer need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. See [Extending the XR Interaction Toolkit](../manual/extending-xri.html) in the manual for details about customizing how they are drawn.
+- Added ability for serialized fields added in derived behaviors to automatically appear in the Inspector. Users will no longer need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. See [Extending the XR Interaction Toolkit](xref:xri-extending-xri) in the manual for details about customizing how they are drawn.
 - Added support for `EnhancedTouch` from the Input System for AR gesture classes. This means AR interaction is functional when the Active Input Handling project setting is set to Input System Package (New).
 - Added registration events to `XRBaseInteractable` and `XRBaseInteractor` which work like those in `XRInteractionManager` but for just that object.
 - Added new methods in `ARPlacementInteractable` to divide the logic in `OnEndManipulation` into `TryGetPlacementPose`, `PlaceObject`, and `OnObjectPlaced`.
@@ -1244,7 +1261,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
   }
   ```
-- Changed many custom Editors to also apply to child classes so they inherit the custom layout of the Inspector. If your derived class adds a `SerializeField` or public field, you will need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. See [Extending the XR Interaction Toolkit](../manual/extending-xri.html) in the manual for a code example.
+- Changed many custom Editors to also apply to child classes so they inherit the custom layout of the Inspector. If your derived class adds a `SerializeField` or public field, you will need to create a custom [Editor](https://docs.unity3d.com/ScriptReference/Editor.html) to be able to see those fields in the Inspector. For Interactor and Interactable classes, you will typically only need to override the `DrawProperties` method in `XRBaseInteractorEditor` or `XRBaseInteractableEditor` rather than the entire `OnInspectorGUI`. See [Extending the XR Interaction Toolkit](xref:xri-extending-xri) in the manual for a code example.
 - Changed `XRInteractionManager.SelectCancel` to call `OnSelectExiting` and `OnSelectExited` on both the `XRBaseInteractable` and `XRBaseInteractor` in a similar interleaved order to other interaction state changes and when either is unregistered.
 - Changed order of `XRInteractionManager.UnregisterInteractor` to first cancel the select state before canceling hover state for consistency with the normal update loop which exits select before exiting hover.
 - Changed `XRBaseInteractor.StartManualInteraction` and `XRBaseInteractor.EndManualInteraction` to go through `XRInteractionManager` rather than bypassing constraints and events on the Interactable.

@@ -1,3 +1,6 @@
+---
+uid: xri-xr-transform-stabilizer
+---
 # XR Transform Stabilizer
 
 Provides low-latency stabilization for XR pose inputs, especially useful on rays.

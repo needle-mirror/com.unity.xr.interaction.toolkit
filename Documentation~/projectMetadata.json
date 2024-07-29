@@ -1,0 +1,9 @@
+{
+  "hideGlobalNamespace": true,
+  "memberLayout": "samePage",
+  "xref": [ 
+            "com.unity.xr.hands@1.4", 
+            "com.unity.xr.arfoundation@5.1",
+            "com.unity.xr.openxr" 
+          ]
+}

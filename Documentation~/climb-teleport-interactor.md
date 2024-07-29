@@ -1,4 +1,7 @@
-﻿# Climb Teleport Interactor
+---
+uid: xri-climb-teleport-interactor
+---
+# Climb Teleport Interactor
 
 Interactor that drives climb locomotion assistance via teleportation. This interactor responds to the user grabbing a [Climb Interactable](climb-interactable.md) that references the same [Climb Provider](climb-provider.md) as this interactor.
 

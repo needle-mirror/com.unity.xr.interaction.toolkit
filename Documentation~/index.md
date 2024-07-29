@@ -1,3 +1,6 @@
+---
+uid: xri-index
+---
 # XR Interaction Toolkit
 
 The XR Interaction Toolkit package is a high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.
@@ -51,9 +54,14 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 
 * Mouse inputs don't interact with world space UIs when an XR Plug-in Provider in **Edit &gt; Project Settings &gt; XR Plug-in Management** is enabled and running. For more information, please follow the issue tracker. ([1400186](https://issuetracker.unity3d.com/product/unity/issues/guid/1400186/))
 
-* The Poke Point visual in the Poke Interactor prefab in the Starter Assets sample does not hide with the controller model when the Hide Controller On Select property is enabled on the direct/ray interactor.
+* The Poke Point visual in the Poke Interactor prefab in the Starter Assets sample does not hide with the controller model when the **Hide Controller On Select** property is enabled on the direct/ray interactor.
 
-* The provided Unity Hand shaders and materials in the Hand Interaction Demo sample render only in the left eye when using **Built-in render pipeline and Single-pass instanced render mode** because they are made using Shader Graph. It is recommended to either switch to multi-pass rendering, switch to Universal Render Pipeline, or create a custom shader for hand interaction that does not use Shader Graph.
+* Single-pass instanced rendering is not supported when using Shader Graph shaders on the Built-in Render Pipeline. This affects shaders included in the sample assets, including the Hand Interaction Demo. (A symptom of the issue is that one eye renders incorrectly.) If your project uses the Built-in Render Pipeline, you can avoid the problem by taking one of the following actions:
+
+   * Switch to [multi-pass rendering](xref:SinglePassStereoRendering). (Performance of multi-pass rendering is typically much worse than single-pass.)
+   * Change the sample Materials to use non-Shader Graph shaders.
+   * Update the project to use the Universal Render Pipeline (URP).
+
 
 ### Helpful links
 
@@ -63,28 +71,3 @@ If you have a question after reading the documentation, you can:
 * Search the [issue tracker](https://issuetracker.unity3d.com/product/unity/issues?project=192&status=1&unity_version=&view=newest) for active issues.
 * View our [public roadmap](https://portal.productboard.com/brs5gbymuktquzeomnargn2u) and submit feature requests.
 * Download [example projects](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) that demonstrates functionality.
-
-### Document revision history
-
-|Date|Reason|
-|---|---|
-|**February 21, 2024**|Updated description of AR functionality for new input architecture. Matches package version 3.0.0.|
-|**February 10, 2023**|Updated known limitations and package dependency versions. Matches package version 2.3.0.|
-|**March 4, 2022**|Samples updated and added link to example projects. Matches package version 2.0.1.|
-|**February 10, 2022**|Documentation split into multiple pages, added known limitations, and updated for transition from pre-release to released version 2.0.0.|
-|**November 17, 2021**|Documentation updated due to change in Input System package related to Game view focus, interaction interfaces, and multiple selections. Matches package version 2.0.0-pre.4.|
-|**March 15, 2021**|Documentation updated to reflect change that custom Editor classes are no longer needed to show additional serialized fields. Matches package version 1.0.0-pre.3.|
-|**December 14, 2020**|Documentation updated to reflect change to when registration with Interaction Manager occurs and for changes to event signatures. Matches package version 1.0.0-pre.2.|
-|**October 20, 2020**|Documentation updated. Matches package version 0.10.0.|
-|**January 10, 2020**|Removed private github link.|
-|**December 12, 2019**|Fixed image linking.|
-|**December 4, 2019**|Document revised with documentation team feedback.|
-|**October 3, 2019**|Document update to reflect package naming for release.|
-|**September 4, 2019**|Document revised with updated images and component names.|
-|**August 13, 2019**|Document edits.|
-|**July 31, 2019**|Finalized Locomotion documentation.|
-|**July 18, 2019**|Document revised with Locomotion documentation.|
-|**July 10, 2019**|Document revised with AR interaction documentation.|
-|**June 6, 2019**|Document revised with updated UI module documentation.|
-|**May 30, 2018**|Document revised with commands and updated component names.|
-|**May 1, 2018**|Document created.|

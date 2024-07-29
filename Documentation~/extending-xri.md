@@ -1,3 +1,6 @@
+---
+uid: xri-extending-xri
+---
 # Extending the XR Interaction Toolkit
 
 You can extend the XR Interaction Toolkit system through either [inheritance](https://unity3d.com/learn/tutorials/topics/scripting/inheritance) or composition. Both Interactors and Interactables derive from an abstract base class that you can derive from and use to hook into the XR Interaction Manager to provide your own functionality. Additionally, you can use event callbacks to add functionality to the existing components.

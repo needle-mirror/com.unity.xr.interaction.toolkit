@@ -1,6 +1,9 @@
+---
+uid: xri-xr-body-transformer
+---
 # XR Body Transformer
 
-Interactable component that allows for basic grab functionality. When this behavior is selected (grabbed) by an Interactor, this behavior will follow it around and inherit velocity when released.
+Manages user locomotion via transformation of an XR Origin.
 
 ![XRBodyTransformer component](images/xr-body-transformer.png)
 

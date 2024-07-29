@@ -1,3 +1,6 @@
+---
+uid: xri-xr-tint-interactable-visual
+---
 # XR Tint Interactable Visual
 
 Simple Interactable Visual component that demonstrates hover or selection state with emissive tinting.

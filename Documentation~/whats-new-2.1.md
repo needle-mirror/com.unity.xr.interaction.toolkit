@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-1
+---
 # What's new in version 2.1
 
 Summary of changes in XR Interaction Toolkit package version 2.1:
@@ -20,4 +23,4 @@ This feature wires up to the Main Camera and the locomotion system to provide a 
 ### XR UI Input Module updates
 These updates allow users to customize how XRI interacts with the standard Unity UI (UGUI) system. The user is now able to set each UI Action on the XR UI Input Module to suit their needs, similar to how the Input System UI Input Module allows customization of these input types. Legacy input is also supported by this Input Module. Additionally, the `XRI Default Input Actions` asset in the `Starter Assets` sample package now includes an `XRI UI` Action Map for UI-specific Input Actions. Also included is a Preset asset to quickly map the actions onto the XR UI Input Module component. Check out the [UI setup](ui-setup.md) documentation for more information.
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

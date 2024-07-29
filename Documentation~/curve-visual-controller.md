@@ -1,12 +1,15 @@
-﻿# CurveVisualController
+---
+uid: xri-curve-visual-controller
+---
+# Curve Visual Controller
 
-The `CurveVisualController` class is designed to provide a versatile and configurable controller for a Line Renderer component, based on data provided from an interactor implementing `ICurveInteractionDataProvider` to visually represent it.
+The `CurveVisualController` component is designed to provide a versatile and configurable controller for a Line Renderer component, based on data provided from an interactor implementing `ICurveInteractionDataProvider` to visually represent it.
 
 It uses a configurable origin and direction, along with end point data from the Curve Data Provider, to generate a bezier curve that masks discrepancies between divergent origins, and mask any stabilization applied.
 
 Importantly, the per-state line properties allow for dynamic adjustment of the line's visual properties based on the state of the curve data provider, according to what the `EndPointType` and selection data provide. In practice this allows for animated color, line width and bend properties to be applied to the line renderer, based on the state of the interactor implementing `ICurveInteractionDataProvider`.
 
-This class also has many advanced configuration options, including:
+This component also has many advanced configuration options, including:
 - Support for different line dynamics modes (`Traditional`, `RetractOnHitLoss`, and `ExpandFromHitPoint`).
 - Customizable visual settings, including the number of points for curve creation and maximum curve extension distance.
 - Control over line dynamics, such as retraction delay and duration, extension rate, and expansion rate.

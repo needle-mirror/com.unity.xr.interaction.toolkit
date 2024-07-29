@@ -1,3 +1,6 @@
+---
+uid: xri-teleportation-provider
+---
 # Teleportation Provider
 
 The `TeleportationProvider` is responsible for moving the XR Origin to the desired location on the user's request.

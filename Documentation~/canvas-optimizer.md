@@ -1,3 +1,6 @@
+---
+uid: xri-canvas-optimizer
+---
 # Canvas Optimizer
 
 Keeps track of canvases in a scene and optimizes them by removing unnecessary components in nested canvases and canvases out of view.

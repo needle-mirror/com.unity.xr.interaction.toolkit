@@ -1,4 +1,7 @@
-# XR Device Simulator overview
+---
+uid: xri-xr-device-simulator-overview
+---
+# XR Device Simulator
 
 The XR Device simulator is a runtime utility that is included as part of the Samples add-on in this package. This utility lets you simulate user inputs from plain key presses (be it from a keyboard and mouse combo or a controller) to drive the XR headset and controller devices in the scene.
 
@@ -47,7 +50,7 @@ After adding the `XR Device Simulator` and `XR Interaction Setup` to your scene 
 
 To automatically activate the XR Device Simulator across multiple scenes, go to **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **XR Interaction Toolkit** and enable the **Use XR Device Simulator in scenes** option to automatically instantiate the sample's prefab at runtime.
 
-[!Note]
+> [!NOTE]
 > The XR Device Simulator is primarily designed as an Editor-only testing tool. If you wish to have the XR Device Simulator automatically instantiate the selected prefab on a standalone production build, you will need to either include the prefab in your scene or disable **Instantiate In Editor Only**.
 
 ![xr-device-simulator-automatic](images/xr-device-simulator/xr-device-simulator-automatic.png)

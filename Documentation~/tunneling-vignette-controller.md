@@ -1,3 +1,6 @@
+---
+uid: xri-tunneling-vignette-controller
+---
 # Tunneling Vignette Controller
 
 The `TunnelingVignetteController` component, combined with the [Tunneling Vignette sample assets](samples-starter-assets.md#tunneling-vignette), provide an out-of-the-box tunneling vignette solution as a comfort mode option intended to mitigate motion sickness in VR. To install the sample assets, use the `Package Manager` to import the `Tunneling Vignette` sample under the `XR Interaction Toolkit` package.

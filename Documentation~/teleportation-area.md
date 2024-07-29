@@ -1,3 +1,6 @@
+---
+uid: xri-teleportation-area
+---
 # Teleportation Area
 
 An area is a teleportation destination which teleports the user to their pointed location on a surface.

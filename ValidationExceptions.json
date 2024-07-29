@@ -2,7 +2,7 @@
     "ErrorExceptions": [
         {
             "ValidationTest": "API Updater Configuration Validation",
-            "PackageVersion": "3.0.4"
+            "PackageVersion": "3.0.5"
         }
     ],
     "WarningExceptions": []

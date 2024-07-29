@@ -1,3 +1,6 @@
+---
+uid: xri-xr-input-modality-manager
+---
 # XR Input Modality Manager
 
 Manages swapping between hands and controllers at runtime based on whether hands and controllers are tracked.

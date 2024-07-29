@@ -1,3 +1,6 @@
+---
+uid: xri-samples-hands-interaction-demo
+---
 # Hands Interaction Demo
 
 This sample demonstrates hand tracking interactions with the XR Interaction Toolkit, containing a sample scene and other assets used by the scene.

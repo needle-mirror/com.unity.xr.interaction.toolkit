@@ -1,3 +1,6 @@
+---
+uid: xri-teleportation-anchor
+---
 # Teleportation Anchor
 
 An anchor is a teleportation destination which teleports the user to a pre-determined specific position and/or rotation.

@@ -1,3 +1,6 @@
+---
+uid: xri-components
+---
 # Components
 
 ## Interactables
@@ -27,6 +30,7 @@
 - [XR Direct Interactor](xr-direct-interactor.md)
 - [XR Poke Interactor](xr-poke-interactor.md)
 - [XR Ray Interactor](xr-ray-interactor.md)
+- [XR Gaze Interactor](xr-gaze-interactor.md)
 - [XR Socket Interactor](xr-socket-interactor.md)
 
 ### Locomotion Interactors
@@ -40,6 +44,12 @@
 ### AR interactors (deprecated)
 
 - [AR Gesture Interactor](ar-gesture-interactor.md)
+
+## Input
+
+- [Input Action Manager](input-action-manager.md)
+- [Input Modality Manager](xr-input-modality-manager.md)
+- [XR Transform Stabilizer](xr-transform-stabilizer.md)
 
 ## Filters
 
@@ -82,14 +92,14 @@
 
 ## UI
 
+- [XR UI Input Module](xr-ui-input-module.md)
+- [Tracked Device Graphic Raycaster](tracked-device-graphic-raycaster.md)
 - [Canvas Optimizer](canvas-optimizer.md)
 - [Hand Menu](hand-menu.md)
 - [Lazy Follow](lazy-follow.md)
 
 ## Other components
 
-- [Input Action Manager](input-action-manager.md)
-- [XR Controller Recorder](xr-controller-recorder.md)
 - [XR Device Simulator](xr-device-simulator.md)
 - [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
 - [XR Input Modality Manager](xr-input-modality-manager.md)

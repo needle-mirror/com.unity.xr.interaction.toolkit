@@ -1,3 +1,6 @@
+---
+uid: xri-simple-haptic-feedback
+---
 # Simple Haptic Feedback
 
 Component that responds to select and hover events by playing haptic impulses (in other words, vibrating the controller).

@@ -1,3 +1,4 @@
+#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
 using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -239,3 +240,4 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
     }
 }
+#endif

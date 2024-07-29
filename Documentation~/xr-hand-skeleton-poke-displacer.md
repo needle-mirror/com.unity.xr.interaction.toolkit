@@ -1,3 +1,6 @@
+---
+uid: xri-xr-hand-skeleton-poke-displacer
+---
 # XR Hand Skeleton Poke Displacer
 
 Class used to displace the root pose of a hand skeleton based on a poke interaction to enable freezing the poke pose in place when pressing poke buttons or UI elements. It will help prevent the hand mesh visual from moving through buttons and UI that can be poked.

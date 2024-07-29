@@ -1,3 +1,6 @@
+---
+uid: xri-continuous-turn-provider
+---
 # Continuous Turn Provider
 
 Locomotion provider that allows the user to smoothly rotate their rig continuously over time using a specified input action.

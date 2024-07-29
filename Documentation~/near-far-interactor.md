@@ -1,4 +1,7 @@
-﻿# Near-Far Interactor
+---
+uid: xri-near-far-interactor
+---
+# Near-Far Interactor
 
 Interactor that utilizes both near and far interaction casters, allowing seamless transitions between different
 interaction types, while also using the far interaction caster's data to interact with UGUI.
@@ -13,8 +16,6 @@ To complement this interactor, a visual controller component called `CurveVisual
 This interactor is designed to integrate the functionality of both `XRDirectInteractor` and `XRRayInteractor`, though there are two notable gaps to keep in mind.
 - For mobile AR devices, the ray interactor is still required for raycasting AR data, as this `NearFarInteractor` does not yet support this use case. 
 - The `NearFarInteractor` does not yet support using the joystick to control the attach transform for translation, rotation and scaling, as the `XRRayInteractor` does.
-
-
 
 ## Properties
 

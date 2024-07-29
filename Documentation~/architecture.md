@@ -1,14 +1,15 @@
 ---
 uid: xri-architecture
 ---
-# Architecture
+
+# Interaction overview
 
 This section describes the relationship between the core components of the interaction system and the states that make up the lifecycle of an interaction.
 
 <a id="states"></a>
 ## States
 
-The Interaction system has three common states: Hover, Select, and Activate. These states can mean different things to different objects. Hover and Select are loosely related to the traditional GUI concepts of mouse-over and mouse-down. Activate is specific to XR and is a contextual command.
+The Interaction system has four common states: Hover, Select, Focus, and Activate. These states can mean different things to different objects. Hover, Select, and Focus are loosely related to the traditional GUI concepts of mouse-over, mouse-down, and UI focus. Activate is specific to XR and is entered and exited via a contextual command.
 
 These interaction states always involve both an [Interactor](#interactors) and [Interactable](#interactables), and both are notified upon entering or exiting the state.
 
@@ -16,7 +17,7 @@ These interaction states always involve both an [Interactor](#interactors) and [
 |---|---|
 |**Hover**|If an Interactable is a valid target for the Interactor its state changes to Hover. Hovering on an object signifies an intention to interact with it, but doesn't typically change the behavior of that object, though it might create a visual indicator for this change of state, like how a hovered button changes tint.|
 |**Select**|Selection requires an action such as a button or trigger press from the user to enable the Select state. When an Interactable is in the Select state, Unity considers the selecting Interactor to be interacting with it. For example, Selection can simulate picking up a grabbable object, holding a lever, or preparing to push a door that has focus via hovering.|
-|**Focus**|An Interactable is focused when it is selected. This focus persists until another Interactable is selected or the Interactable explicitly attempts to select nothing. This state is useful for performing actions on an object. For example - gaining focus of an object and then manipulating its color in a menu.|
+|**Focus**|An Interactable is focused when it is selected by an Interactor. This focus persists until another Interactable is selected or the Interactor explicitly attempts to select nothing. This state is useful for performing actions on an object. For example - gaining focus of an object and then manipulating its color in a menu.|
 |**Activate**|Activation is an extra action, typically mapped to a button or trigger that affects the currently selected object. This lets the user further interact with an object they've selected. The Activate action depends on the Interactable. For example, you can use Activate to toggle a grabbable flashlight on/off or shoot a ball launcher. You can hook the component to process Activate into an action without any additional code by hooking an existing callback using the Inspector window under **Interactable Events** and then add to **Activated** via UnityEvents.|
 
 ## Components

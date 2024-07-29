@@ -1,8 +1,11 @@
+---
+uid: xri-xr-device-simulator
+---
 # XR Device Simulator
 
 The XR Device Simulator component which handles mouse and keyboard input from the user and uses it to drive simulated XR controllers and an XR head mounted display (HMD).
 
-This class does not directly manipulate the camera or controllers which are part of the XR Origin, but rather drives them indirectly through simulated input devices.
+This class does not directly manipulate the camera or controllers which are part of the XR Origin, but rather moves them indirectly through simulated input devices.
 
 Use the Package Manager window to install the **XR Device Simulator** sample into your project to get sample mouse and keyboard bindings for Input System actions that this component expects. The sample also includes a prefab of a `GameObject` with this component attached that has references to those sample actions already set. To make use of this simulator, add the prefab to your scene.
 

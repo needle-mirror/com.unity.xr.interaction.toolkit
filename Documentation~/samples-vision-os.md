@@ -1,8 +1,11 @@
+---
+uid: xri-samples-vision-os
+---
 # visionOS Sample
 
 The visionOS sample provides a working demo of core interactors working with visionOS input. While some work has been done to accommodate the discontinuous nature of pose tracking on the platform, the interaction paradigm demonstrated on other platforms is intact here.
 
-Importantly, a simple swap of the XR Origin (XR Rig) prefab and the introduction of a volume camera used in a scene that is already designed around hand tracking should be all that's required to get XRI content to work in a mixed reality (Bounded or Unbounded) context on visionOS.
+Importantly, a simple swap of the XR Origin (XR Rig) prefab and the introduction of a volume camera used in a scene that is already designed around hand tracking should be all that's required to get the XR Interaction Toolkit content to work in a mixed reality (Bounded or Unbounded) context on visionOS.
 
 ## Prerequisites and setup
 
@@ -39,13 +42,13 @@ This sample is installed into the default location for package samples, in the `
 
 ## Demo scene
 
-The `VolumeDemo` scene shows a minimal bounded volume setup designed to demo 3D interaction using XRI. It features two-handed interactions supported on cubes, a floating cylinder, and tapered cylinder. 
+The `VolumeDemo` scene shows a minimal bounded volume setup designed to demo 3D interaction using the XR Interaction Toolkit. It features two-handed interactions supported on cubes, a floating cylinder, and tapered cylinder. 
 
 The cubes and tapered cylinder are set up using velocity tracked mode on the [`XRGrabInteractable`](xr-grab-interactable.md), to showcase how physics interaction is meant to behave. The floating cylinder uses the lower latency instantaneous mode, which ignores physics collisions when evaluating motion.
 
 There is also a reset button in the scene that is meant to demo a tactile poke interactable using an [`XRPokeFollowAffordance`](samples-starter-assets.md#scripts) component to animate the button position as the poke depth changes. When fully pressed it will trigger the reset function on all interactables in the scene with a `Resetable` component on them, to re-initialize them to the original location.
 
-Finally, there is an instance of the [`SpatialPanel_UI`](#spatialpanel_ui) prefab meant to show how common UI components can be interacted with using XRI interaction events.
+Finally, there is an instance of the [`SpatialPanel_UI`](#spatialpanel_ui) prefab meant to show how common UI components can be interacted with using the XR Interaction Toolkit interaction events.
 
 ## Prefabs
 - **Interactables**
@@ -67,10 +70,12 @@ The `Primary Interaction Group`, and its secondary variant, are configured to ha
 
 `XRI_Cube` is a simple grab interactable that supports two-handed interaction by enabling Multiple on Select Mode property from [`XRGrabInteractable`](xr-grab-interactable.md). While `XRGrabInteractable` automatically adds a `GeneralGrabTransformer` component at runtime if needed, the component has been added to the GameObject to allow two-handed scaling by enabling the Allow Two Handed Scaling property on that component.
 
-`SpatialPanel_UI` is a 3D UI panel showing common interaction patterns in UI, implemented using XRI interaction events. This panel should be compatible with projects that use XRI on other supported platforms.
+<a id="spatialpanel_ui"></a>
+
+`SpatialPanel_UI` is a 3D UI panel showing common interaction patterns in UI, implemented using the XR Interaction Toolkit interaction events. This panel should be compatible with projects that use the XR Interaction Toolkit on other supported platforms.
 
 ## Scripts / Input Bridge
-The input bridge folder represents the core of the work done to make XRI interactors compatible with visionOS.
+The input bridge folder represents the core of the work done to make the XR Interaction Toolkit interactors compatible with visionOS.
 
 ### SpatialTouchInputReader
 [XRI 3.0](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/whats-new-3.0.html) introduced [Input Readers](architecture.md#input-readers), which are a core part of managing input events that interactors rely on to correctly handle state transitions. Because interactors poll input from an abstracted Input Reader rather than input actions directly, it is possible to write a custom implementation of input logic that can process input before they're exposed to interactors.
@@ -96,7 +101,7 @@ Note: This caster will only work in bounded and unbounded mixed reality modes, a
 ### PointNearCaster
 Much like the [`VisionOSFarCaster`](#visionosfarcaster) is in charge of handling far casting for the [Near-Far Interactor](near-far-interactor.md), we need to have a near interaction caster that is well suited to the discontinuous input of visionOS.
 
-The `PointNearCaster` functions very similarly to the [`SphereInteractionCaster`](near-far-interactor.md) in XRI, except that instead of sweeping the distance covered between frames for valid targets, a simple overlap sphere check is performed when [`SpatialTouchInputReader`](#spatialtouchinputreader) reports valid positions. 
+The `PointNearCaster` functions very similarly to the [`SphereInteractionCaster`](near-far-interactor.md) in the XR Interaction Toolkit, except that instead of sweeping the distance covered between frames for valid targets, a simple overlap sphere check is performed when [`SpatialTouchInputReader`](#spatialtouchinputreader) reports valid positions. 
 
 While in theory the entity id returned by the [`SpatialTouchInputReader`](#spatialtouchinputreader) during `DirectPinch` input events should be sufficient for near interaction, in practice, visionOS fails to prioritize direct pinch over indirect when the user's hand is directly over objects. For this reason, the sphere overlap check done by this component at the pinch device position takes precedence over the target returned by [`VisionOSFarCaster`](#visionosfarcaster), simply because the Near-Far Interactor prioritizes near interactors over far by default.
 
@@ -106,7 +111,7 @@ Unlike the [Near-Far Interactor](near-far-interactor.md) which allows the valid 
 As a result, the Poke Interactor is ill-suited for discontinuous input and does not support custom entity id target sources. The `PokeInteractorToggler` component simply listens for changes in the [`SpatialTouchInputReader`](#spatialtouchinputreader) and toggles the `XRPokeInteractor` on and off as touch input comes and goes. This ensures that sudden jumps in position of the poke interactor do not cause accidental touches to occur.
 
 ## Scripts / UI
-The following components are ported from PolySpatial samples to leverage XRI interaction events.
+The following components are ported from PolySpatial samples to leverage the XR Interaction Toolkit interaction events.
 
 ### Drop-Down Component
 Simple interactable drop down component that activates a pop-up of `DropDownElement` components.
@@ -131,7 +136,7 @@ See [`SpatialTouchInputReader`](#spatialtouchinputreader) for details on how thi
 
 ## Known limitations
 - Because poke relies on continuous motion to determine interaction, and volumes do not have access to the hand skeleton data, this sample relies on the touch data returned by the spatial pointer API, which can lead to some late starts on poke or incorrect angle threshold calculations in some situations. Work is ongoing to improve the feel of poke with visionOS.
-- At the time of this release, PolySpatial requires that all canvases have a PolySpatial Graphics Raycaster component on them, which is incompatible with the [`TrackedDeviceGraphicsRaycaster`](ui-setup.md#tracked-device-graphics-raycaster) in the XR Interaction Toolkit. Because of this, UGUI interaction is not well supported on visionOS in projects that use XRI. We are investigating ways of improving support for this for future releases of PolySpatial and XRI.
+- At the time of this release, PolySpatial requires that all canvases have a PolySpatial Graphics Raycaster component on them, which is incompatible with the [`TrackedDeviceGraphicsRaycaster`](xref:xri-tracked-device-graphic-raycaster) in the XR Interaction Toolkit. Because of this, Unity UI (uGUI) interaction is not well supported on visionOS in projects that use the XR Interaction Toolkit. We are investigating ways of improving support for this for future releases of PolySpatial and the toolkit.
 
 ## Helpful links
 

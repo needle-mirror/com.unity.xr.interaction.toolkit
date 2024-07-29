@@ -1,3 +1,6 @@
+---
+uid: xri-target-filters
+---
 # Target filters
 
 Target Filters are used to extend the logic of how Interactors prioritize and filter the Interactables that they can interact with.

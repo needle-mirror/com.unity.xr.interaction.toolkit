@@ -1,4 +1,7 @@
-﻿# Teleportation Multi-Anchor Volume
+---
+uid: xri-teleportation-multi-anchor-volume
+---
+# Teleportation Multi-Anchor Volume
 
 An interactable that teleports the user to a specific position and/or rotation defined by one of several anchors. The volume designates a destination anchor upon first hover based on an implementation of `ITeleportationVolumeAnchorFilter`.
 

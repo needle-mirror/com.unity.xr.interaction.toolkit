@@ -1,10 +1,13 @@
+---
+uid: xri-interaction-filters
+---
 # Interaction filters
 
 Interaction filters are used to add additional checks to an Interactor and Interactable interaction after the base class validations are passed. 
 
 The interaction filters also include an implementation of a filter delegate that forwards the filter processing to a delegate. This enables users to add additional filter logic without needing to create new classes.
 
-The current interaction filters supported in XRI  are:
+The current interaction filters supported in the XR Interaction Toolkit  are:
 
 - [Hover filter](#hover-filter)
 - [Select filter](#select-filter)
@@ -117,7 +120,7 @@ public class CustomSelectFilter : MonoBehaviour, IXRSelectFilter
 
 ## Interaction strength filter
 
-[`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) is an interface used to adjust or set the interaction strength between an [`IXRInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor) and [`IXRInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractable).
+[`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) is an interface used to adjust or set the interaction strength between an [`IXRInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor) and [`IXRInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRInteractable).
 
 ### Usage
 

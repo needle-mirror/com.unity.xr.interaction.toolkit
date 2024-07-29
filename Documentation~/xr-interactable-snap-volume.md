@@ -1,3 +1,6 @@
+---
+uid: xri-xr-interactable-snap-volume
+---
 # XR Interactable Snap Volume
 
 Component that enables an [XR Ray Interactor](xr-ray-interactor.md) to visually snap to an associated interactable. This component requires a collider that is a trigger. 

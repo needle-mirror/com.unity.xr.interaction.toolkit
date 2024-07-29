@@ -1,23 +1,13 @@
+---
+uid: xri-ar-interaction
+---
+
 # AR Interaction Overview
 
 This page provides a brief explanation for setting up a scene for mobile touchscreen AR and the related components.
 
 > [!NOTE]
 > AR interaction components are only available in a project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
-
-## Touchscreen gestures
-
-Touchscreen gesture data is surfaced by the `TouchscreenGestureInputController` which translates touch events into gestures such as tap, drag, pinch and twist. This gesture data can be used as bindings for [Input System](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) actions.
-
-The XR Interaction Toolkit package comes with a number of pre-defined gestures, but you can always extend this package by defining your own gestures.
-
-| Gesture | Triggered by input |
-|---|---|
-| **Tap** | User touches the screen | 
-| **Drag** | User drags finger across screen |
-| **Pinch** | User moves two fingers toward or away from each other along a straight line | 
-| **Twist** | User rotates two fingers around a center point | 
-| **Two Finger Drag** | User drags with two fingers |
 
 ## Setting up for Touchscreen AR 
 

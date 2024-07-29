@@ -1,3 +1,6 @@
+---
+uid: xri-xr-ray-interactor
+---
 # XR Ray Interactor
 
 Interactor used for interacting with Interactables at a distance. This is handled via ray casts that update the current set of valid targets for this interactor.

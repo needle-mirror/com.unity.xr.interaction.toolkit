@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-6
+---
 # What's new in version 2.6
 
 Summary of changes in XR Interaction Toolkit package version 2.6:
@@ -30,4 +33,4 @@ Multiple keyboard layouts can be supported for a subset of keys on the keyboard.
 
 Climbing and teleportation has been enhanced to provide teleportation up and down ladders. In addition to simple endpoint-to-endpoint teleportation, [Teleportation multi-anchor volumes](teleportation-multi-anchor-volume.md) have been added. These allow multiple predefined teleport outlets per climbing surface which can be selected based on head or eye gaze (or any other method of determination). For more information about these new additions, please read the [Locomotion](locomotion.md) documentation and check out an example of how these updates are used in the `Demo Scene` of the [Starter Assets](samples-starter-assets.md#demo-scene) sample.
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

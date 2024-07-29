@@ -1,3 +1,6 @@
+---
+uid: xri-interaction-layers
+---
 # Interaction layers
 
 The interaction layers are used as a mechanism for filtering which interactors can act upon which interactables. Interactors and interactables that share at least one interaction layer in their **Interaction Layer Mask** properties are allowed to interact. If an interactor and interactable do not share at least one interaction layer in their Interaction Layer Mask then they are not allowed to interact. Mask comparisons do not consider the Layer set in the GameObject header on either the interactor or interactable, it only considers the Interaction Layer Mask.

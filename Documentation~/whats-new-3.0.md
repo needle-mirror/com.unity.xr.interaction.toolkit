@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-3-0
+---
 # What's new in version 3.0
 
 Summary of changes in XR Interaction Toolkit package version 3.0:
@@ -31,7 +34,7 @@ On top of the locomotion mediator changes, climbing and teleportation has been e
 
 ### Namespace changes
 
-As a part of the move to XRI 3.0, a number of classes, structs, enums, and interfaces have been moved into namespaces that better reflect their use and the organizational structure they reside in. For a full list of namespace changes, please refer to our [changelog](../changelog/CHANGELOG.html).
+As a part of the move to XRI 3.0, a number of classes, structs, enums, and interfaces have been moved into namespaces that better reflect their use and the organizational structure they reside in. For a full list of namespace changes, please refer to our [changelog](xref:xri-changelog).
 
 ## Deprecations
 
@@ -51,4 +54,4 @@ The `LocomotionSystem` has been deprecated and replaced by the `LocomotionMediat
 
 The affordance system has also been deprecated in XRI 3.0. A new feedback system to handle visuals, audio, haptics and more will be coming soon in a future release of XRI.
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

@@ -1,3 +1,6 @@
+---
+uid: xri-samples-starter-assets
+---
 # Starter Assets
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
@@ -26,12 +29,12 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
   * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used
 
+<a name="demo-scene"></a>
 ## Demo Scene
 
 ![demo-scene](images/demo-scene.png)
 
 The Demo Scene in the Starter Assets sample package contains a number of simplified demonstrations for how to configure and use the XR Interaction Toolkit in your own projects. We encourage you to explore these to understand how XRI was designed to be used. For a more comprehensive example, you can download a larger example from the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) repository on GitHub.
-
 
 |**Demo Scene Assets**|**Description**|
 |---|---|
@@ -72,17 +75,18 @@ The Asset contains several Action Maps, separated based on the bound device. Hav
 For a complete example of configuring input actions for each controller, and using control schemes, see the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) project.
 
 ## Presets
+
 |**Preset**|**Description**|
 |---|---|
-|**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](locomotion.md#continuous-move-provider).|
-|**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](locomotion.md#continuous-turn-provider).|
+|**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](xref:xri-continuous-move-provider).|
+|**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](xref:xri-continuous-turn-provider).|
 |**`XRI Default Dynamic Move.preset`**|Preset for [Dynamic Move Provider](#scripts).|
 |**`XRI Default Left Controller Input Action Manager.preset`**|Preset for left hand [ControllerInputActionManager](#scripts).|
-|**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](locomotion.md#grab-move-providers).|
+|**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](xref:xri-grab-move-provider).|
 |**`XRI Default Right Controller Input Action Manager.preset`**|Preset for right hand [ControllerInputActionManager](#scripts).|
-|**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](locomotion.md#grab-move-providers).|
-|**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](locomotion.md#snap-turn-provider).|
-|**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](ui-setup.md#xr-ui-input-module).|
+|**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](xref:xri-grab-move-provider).|
+|**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](xref:xri-snap-turn-provider).|
+|**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](xref:xri-ui-input-module).|
 
 ### Configuring Preset Manager defaults
 
@@ -156,7 +160,7 @@ A scene typically contains the following GameObjects:
     <td><strong>EventSystem</strong></td>
     <td>
       <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html">Event System</a><hr style="margin-top: 7px; margin-bottom: 7px;">
-      <a href="ui-setup.md#xr-ui-input-module">XR UI Input Module</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="xr-ui-input-module.md">XR UI Input Module</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="canvas-optimizer.md">Canvas Optimizer</a>
     </td>
     <td>The XR Poke Interactor and XR Ray Interactor communicate with the XR UI Input Module to enable UI pointer events in world space canvases.</td>

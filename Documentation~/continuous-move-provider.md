@@ -1,3 +1,6 @@
+---
+uid: xri-continuous-move-provider
+---
 # Continuous Move Provider
 
 Locomotion provider that allows the user to smoothly move their rig continuously over time using a specified 2D axis input.

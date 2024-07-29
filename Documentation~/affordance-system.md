@@ -1,7 +1,10 @@
+---
+uid: xri-affordance-system
+---
 # Affordance system
 
 > [!WARNING]
-> The affordance system namespace and classes have been deprecated as of XR Interaction Toolkit 3.0.0. The affordance system will be moved, replaced, and updated with a new interaction feedback system in a future version of XRI.
+> The affordance system namespace and classes have been deprecated as of XR Interaction Toolkit 3.0.0. The affordance system will be moved, replaced, and updated with a new interaction feedback system in a future version of the XR Interaction Toolkit.
 
 The XR Interaction Toolkit package provides an affordance system which enables users to create visual and auditory feedback to [interaction states](architecture.md#states). The general flow of information starts by adding an `Affordance State Provider` to the scene (typically an interactable) and pointing it to the interactable we want to monitor the interaction state of. Once it reads the current interaction state of the interactable, it then fires off a more generalized affordance state event to any subscribers, or affordance receivers. The receivers then act on the state change event and trigger the affordance effect, whether it is a material color change, transform scale, or switching out and playing an audio clip. The receivers get their configuration from a referenced `Affordance Theme` but may also be configured locally on the component itself. We recommend using theme assets to help accelerate your development process and improve consistency across your creations. You can refer to the diagram below to help visualize how everything is connected together.
 

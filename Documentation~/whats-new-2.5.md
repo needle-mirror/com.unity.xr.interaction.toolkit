@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-5
+---
 # What's new in version 2.5
 
 Summary of changes in XR Interaction Toolkit package version 2.5:
@@ -36,4 +39,4 @@ The [Starter Assets](samples-starter-assets.md) and [Hands Interaction Demo](sam
 
 The assets in the [Tunneling Vignette](samples-starter-assets.md#tunneling-vignette) sample have moved into the main [Starter Assets](samples-starter-assets.md) sample. As a part of this move, the asset GUIDs have been regenerated so the old tunneling vignette assets will not conflict with the newly imported assets from the main Starter Assets sample folder. Additionally, if you have previously used the tunneling vignette in your project, you will need to change the reference to the new asset located in `Starter Assets` &gt; `Prefabs` &gt; `TunnelingVignette`.
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

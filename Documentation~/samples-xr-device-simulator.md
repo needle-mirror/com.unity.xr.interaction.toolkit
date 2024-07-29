@@ -1,3 +1,6 @@
+---
+uid: xri-samples-xr-device-simulator
+---
 # XR Device Simulator
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\XR Device Simulator` folder. You can move these Assets to a different location.

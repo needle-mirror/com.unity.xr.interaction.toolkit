@@ -1,3 +1,6 @@
+---
+uid: xri-interactor-events
+---
 # Interactor Events
 
 These are events that can be hooked into in the editor the same way you would respond to a UI button press. These apply to Interactors - objects that can interact with Interactables.

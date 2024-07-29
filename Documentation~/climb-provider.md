@@ -1,3 +1,6 @@
+---
+uid: xri-climb-provider
+---
 # Climb Provider
 
 Locomotion provider that allows the user to climb a [Climb Interactable](climb-interactable.md) by selecting it. Climb locomotion moves the XR Origin counter to movement of the last selecting interactor, with optional movement constraints along each axis of the interactable.

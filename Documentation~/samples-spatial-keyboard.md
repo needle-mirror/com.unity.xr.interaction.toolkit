@@ -1,6 +1,12 @@
+---
+uid: xri-samples-spatial-keyboard
+---
 # Spatial Keyboard
 
 The Spatial Keyboard sample provides base prefabs and scripts to add and customize a virtual keyboard. Currently the keyboard is built to work with input fields as the main use case, but can be expanded or customized to support use cases like buttons or a script based workflow. 
+
+> [!NOTE]
+> The TextMesh Pro TMP Essential Resources should be imported to use this sample. Once TextMesh Pro has been installed, you can install the TMP Essential Resources by going to **Window** &gt; **TextMeshPro** &gt; **Import TMP Essential Resources** and importing all files when prompted.
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Spatial Keyboard` folder. You can move these Assets to a different location.
 
@@ -250,6 +256,7 @@ When this display gains focus via the input field, it opens the keyboard. When t
 |**`Monitor Input Field Character Limit`**|If true, this display will use the character limit of the input field as the character limit for the keyboard.|
 |**`Clear Text on Submit`**|If true, the display will clear after receiving a the text submit event from the keyboard.|
 |**`Clear Text on Open`**|If true, this display will clear when it gains focus and opens the keyboard.|
+|**`Hide Keyboard On Disable`**|If true, this display will close the keyboard it is observing when this GameObject is disabled. If this display is not observing a keyboard when disabled, this will have not effect on open keyboards.|
 
 There are several events this display invokes regarding its state and relationship with the keyboard.
 

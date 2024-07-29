@@ -14,6 +14,17 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "3.0.8",
+            "define": "TEXT_MESH_PRO_PRESENT"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "UGUI_2_0_PRESENT"
+        }
+    ],
     "noEngineReferences": false
 }

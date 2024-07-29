@@ -1,3 +1,6 @@
+---
+uid: xri-xr-direct-interactor
+---
 # XR Direct Interactor
 
 Interactor used for directly interacting with Interactables that are touching. This is handled via trigger volumes that update the current set of valid targets for this interactor. This component must have a collision volume that is set to be a trigger to work.

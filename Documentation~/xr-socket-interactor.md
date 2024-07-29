@@ -1,3 +1,6 @@
+---
+uid: xri-xr-socket-interactor
+---
 # XR Socket Interactor
 
 Interactor used for holding interactables via a socket.

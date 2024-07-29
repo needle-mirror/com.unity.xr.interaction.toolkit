@@ -1,3 +1,6 @@
+---
+uid: xri-climb-interactable
+---
 # Climb Interactable
 
 Interactable that can be climbed while selected.

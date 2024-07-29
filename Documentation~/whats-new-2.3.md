@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-3
+---
 # What's new in version 2.3
 
 Summary of changes in XR Interaction Toolkit package version 2.3:
@@ -30,4 +33,4 @@ The [XR Device Simulator](xr-device-simulator-overview.md) has received a major 
 
 ## Changes and Fixes
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

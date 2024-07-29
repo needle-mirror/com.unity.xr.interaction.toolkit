@@ -1,4 +1,7 @@
-﻿# XR Interaction Group
+---
+uid: xri-xr-interaction-group
+---
+# XR Interaction Group
 
 An Interaction Group is a mediator for Interactors. A Group contains multiple member Interactors, sorted by priority, and only allows one Interactor in the Group to interact (hover or select) at a time. Groups first prioritize continuous selection - so if a member Interactor was interacting the previous frame and can start or continue selection in the current frame, then that Interactor will be chosen for interaction even if a higher priority Interactor tries to interact.
 

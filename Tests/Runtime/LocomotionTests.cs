@@ -28,6 +28,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             MatchOrientation.TargetUp,
         };
 
+        static readonly XRRayInteractor.HitDetectionType[] s_HitDetectionTypes =
+        {
+            XRRayInteractor.HitDetectionType.Raycast,
+            XRRayInteractor.HitDetectionType.SphereCast,
+            XRRayInteractor.HitDetectionType.ConeCast,
+        };
+
         [TearDown]
         public void TearDown()
         {
@@ -291,6 +298,83 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(beforeStepLocomotionInvoked, Is.False);
             Assert.That(transformationApplied, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator TeleportToAreaWithSphereCastOverlapIsBlocked([ValueSource(nameof(s_HitDetectionTypes))] XRRayInteractor.HitDetectionType hitDetectionType)
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var xrOrigin = TestUtilities.CreateXROrigin();
+
+            // Config teleportation on XR Origin
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            var teleProvider = xrOrigin.gameObject.AddComponent<TeleportationProvider>();
+            teleProvider.mediator = mediator;
+
+            // Interactor
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform);
+            interactor.selectActionTrigger = XRBaseInputInteractor.InputTriggerType.State;
+            interactor.lineType = XRRayInteractor.LineType.StraightLine;
+            interactor.hitDetectionType = hitDetectionType;
+            interactor.sphereCastRadius = 1.5f;
+
+            // Create teleportation area
+            var teleArea = TestUtilities.CreateTeleportAreaPlane();
+            teleArea.interactionManager = manager;
+            teleArea.teleportationProvider = teleProvider;
+            teleArea.matchOrientation = MatchOrientation.TargetUp;
+
+            // Pitch the interactor down so that the cast will hit the teleport area
+            interactor.transform.position = Vector3.up;
+            interactor.transform.Rotate(Vector3.right, 45f, Space.Self);
+
+            // Wait for Physics update for hit
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { teleArea }));
+
+            var teleportingInvoked = false;
+            teleArea.teleporting.AddListener(_ => teleportingInvoked = true);
+
+            // Manually drive the select input so teleport is triggered
+            interactor.selectInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
+            interactor.selectInput.QueueManualState(true, 1f);
+            yield return null;
+
+            Assert.That(interactor.isSelectActive, Is.True);
+
+            Assert.That(interactor.TryGetCurrent3DRaycastHit(out var hit, out var hitIndex), Is.True);
+            Assert.That(hitIndex, Is.EqualTo(1));
+
+            if (hitDetectionType == XRRayInteractor.HitDetectionType.SphereCast)
+            {
+                // The interactor's sphere cast overlaps with the teleport area, so the cast does not return a point.
+                Assert.That(hit.distance, Is.EqualTo(0f));
+                Assert.That(hit.point, Is.EqualTo(Vector3.zero));
+            }
+            else
+            {
+                // The interactor is 1 unit above the teleport area aiming down at a 45-degree angle,
+                // so the distance to the teleport area should be sqrt(2) units since each side of the
+                // triangle is 1 unit.
+                Assert.That(hit.distance, Is.EqualTo(Mathf.Sqrt(2f)).Within(1e-5f));
+                Assert.That(hit.point, Is.EqualTo(Vector3.forward).Using(Vector3ComparerWithEqualsOperator.Instance));
+            }
+
+            Assert.That(teleArea.IsSelected(interactor), hitDetectionType != XRRayInteractor.HitDetectionType.SphereCast ? Is.True : Is.False);
+            Assert.That(teleportingInvoked, Is.False);
+
+            interactor.selectInput.QueueManualState(false, 0f);
+            yield return null;
+
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            Assert.That(teleArea.IsSelected(interactor), Is.False);
+            Assert.That(teleportingInvoked, hitDetectionType != XRRayInteractor.HitDetectionType.SphereCast ? Is.True : Is.False);
         }
 
         [UnityTest]

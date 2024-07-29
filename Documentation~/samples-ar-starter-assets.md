@@ -1,3 +1,6 @@
+---
+uid: xri-samples-ar-starter-assets
+---
 # AR Starter Assets
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\AR Starter Assets` folder. You can move these Assets to a different location after importing it.

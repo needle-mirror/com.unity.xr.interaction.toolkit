@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-4
+---
 # What's new in version 2.4
 
 Summary of changes in XR Interaction Toolkit package version 2.4:
@@ -47,4 +50,4 @@ If you are migrating from any 1.x version of the XR Interaction Toolkit, the int
 > [!NOTE]
 > This layer updater was removed with version 3.0.0 of the package.
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).

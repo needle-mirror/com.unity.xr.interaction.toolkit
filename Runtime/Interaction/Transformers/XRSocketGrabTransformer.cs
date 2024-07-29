@@ -107,7 +107,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             if (!hasSocketPose)
                 return;
 
-            if (!IsWithinRadius(targetPose.position, socketTargetPose.position, snappingRadius))
+            // If the interactor is selecting the grab interactable, bypass the radius check
+            var selectInteractor = interactor as IXRSelectInteractor;
+            var interactorIsSelecting = selectInteractor != null && selectInteractor.IsSelecting(grabInteractable);
+
+            if (!interactorIsSelecting && !IsWithinRadius(targetPose.position, socketTargetPose.position, snappingRadius))
                 return;
 
             targetPose = socketTargetPose;
@@ -128,7 +132,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             float targetRadius = isSocketInPlace ? outerRadius : innerRadius;
 
-            if (!IsWithinRadius(targetPose.position, socketTargetPose.position, targetRadius))
+            // If the interactor is selecting the grab interactable, bypass the radius check
+            var selectInteractor = interactor as IXRSelectInteractor;
+            var interactorIsSelecting = selectInteractor != null && selectInteractor.IsSelecting(grabInteractable);
+
+            if (!interactorIsSelecting && !IsWithinRadius(targetPose.position, socketTargetPose.position, targetRadius))
             {
                 localScale = initialScale;
                 return;

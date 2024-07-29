@@ -1,4 +1,7 @@
-﻿# Interaction Attach Controller
+---
+uid: xri-interaction-attach-controller
+---
+# Interaction Attach Controller
 
 This is the default implementation of `IInteractionAttachController` that can be used to control the attach transform for translation and rotation. 
 It is used in conjunction with the `NearFarInteractor` to handle interaction at a distance and stabilization of selected objects, while also implementing logic to pull objects at an accelerated speed towards the user. 

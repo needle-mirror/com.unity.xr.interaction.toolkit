@@ -1,6 +1,12 @@
+---
+uid: xri-xr-interactable-affordance-state-provider
+---
 # XR Interactable Affordance State Provider
 
 State Machine component that derives an interaction affordance state from an associated interactable.
+
+> [!WARNING]
+> The affordance system namespace and classes have been deprecated as of XR Interaction Toolkit 3.0.0. The affordance system will be moved, replaced, and updated with a new interaction feedback system in a future version of the XR Interaction Toolkit.
 
 | **Property** | **Description** |
 |---|---|

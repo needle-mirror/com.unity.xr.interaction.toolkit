@@ -1,3 +1,6 @@
+---
+uid: xri-whats-new-2-2
+---
 # What's new in version 2.2
 
 Summary of changes in XR Interaction Toolkit package version 2.2:
@@ -19,8 +22,8 @@ Added support for teleportation directionality so that users can specify the dir
 > [!NOTE]
 > As of version 3.0.0, Anchor Control has been renamed to Manipulate Attach Transform.
 
-We have also added a new **Grab Move Provider**. This method of locomotion can best be described as grabbing the world itself and pulling yourself through it. Each hand provides the means to translate yourself through the world space, but also included is a **Two Handed Grab Move Provider**, which combines the **Grab Move Provider** on each hand and allows you to rotate and scale yourself in the world. The `XRI Default Input Actions` in the `Starter Assets` have been updated to include the appropriate actions to support this new mode of locomotion. For more information, read the documentation on [Locomotion](locomotion.md#grab-move-providers), the [Grab Move Provider](grab-move-provider.md) and the [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md).
+We have also added a new **Grab Move Provider**. This method of locomotion can best be described as grabbing the world itself and pulling yourself through it. Each hand provides the means to translate yourself through the world space, but also included is a **Two-Handed Grab Move Provider**, which combines the **Grab Move Provider** on each hand and allows you to rotate and scale yourself in the world. The `XRI Default Input Actions` in the `Starter Assets` have been updated to include the appropriate actions to support this new mode of locomotion. For more information, read the documentation on [Locomotion](xref:xri-grab-movement), the [Grab Move Provider](grab-move-provider.md) and the [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md).
 
 ## Changes and Fixes
 
-For a full list of changes and updates in this version, see the [XR Interaction Toolkit package changelog](../changelog/CHANGELOG.html).
+For a full list of changes and updates in this version, refer to the [XR Interaction Toolkit package changelog](xref:xri-changelog).
