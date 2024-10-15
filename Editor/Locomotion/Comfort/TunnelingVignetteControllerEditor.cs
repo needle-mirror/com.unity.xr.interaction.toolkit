@@ -131,7 +131,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
             public static readonly GUIContent previewInEditor = EditorGUIUtility.TrTextContent("Preview In Editor", "(Editor Only) Select which set of vignette parameters to preview. " +
                 "Adding or removing settings in the Locomotion Vignette Providers list will automatically update this preview menu.");
             /// <summary><see cref="GUIContent"/> for when the preview in editor is disabled in Play mode.</summary>
-            public static readonly GUIContent previewInEditorDisabled = EditorGUIUtility.TrTextContent("Preview In Editor (Disabled in Play mode)" );
+            public static readonly GUIContent previewInEditorDisabled = EditorGUIUtility.TrTextContent("Preview In Editor (Disabled in Play mode)");
             /// <summary><see cref="GUIContent"/> for <see cref="TunnelingVignetteController.defaultParameters"/>.</summary>
             public static readonly GUIContent defaultParameters = EditorGUIUtility.TrTextContent("Default Parameters", "The default parameters of this component to drive the tunneling vignette material. " +
                 "These values can be override to create customized tunneling vignette effects.");
@@ -163,7 +163,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
                 "This can be useful for instant changes, such as snap turn and teleportation.");
             /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.easeOutDelayTime"/>.</summary>
             public static readonly GUIContent easeOutDelayTime = EditorGUIUtility.TrTextContent("Ease Out Delay Time", "The delay time (in seconds) before starting to ease out of the tunneling vignette.");
-           /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColor"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColor"/>.</summary>
             public static readonly GUIContent vignetteColor = EditorGUIUtility.TrTextContent("Vignette Color", "The primary color of the visual cut-off area of the vignette.");
             /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColorBlend"/>.</summary>
             public static readonly GUIContent vignetteColorBlend = EditorGUIUtility.TrTextContent("Vignette Color Blend", "The optional color to add color blending to the vignette. " +

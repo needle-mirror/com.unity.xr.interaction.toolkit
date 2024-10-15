@@ -4,7 +4,7 @@ uid: xri-locomotion-components
 
 # Locomotion components
 
-The locomotion components provided by the toolkit. 
+The locomotion components provided by the toolkit.
 
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
@@ -16,5 +16,5 @@ The locomotion components provided by the toolkit.
 | [Locomotion Interactables](locomotion-interactables.md) | The interactable components used for locomotion.|
 
 ## Additional resources
- 
+
 * [Component index](components.md)

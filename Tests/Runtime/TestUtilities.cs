@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var rigidbody = grabInteractable.GetComponent<Rigidbody>();
             rigidbody.maxAngularVelocity = float.PositiveInfinity;
         }
-        
+
         internal static BoxCollider CreateGOBoxCollider(GameObject go, bool isTrigger = true)
         {
             BoxCollider collider = go.AddComponent<BoxCollider>();
@@ -66,17 +66,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRInteractionManager manager = managerGO.AddComponent<XRInteractionManager>();
             return manager;
         }
-        
+
         internal static NearFarInteractor CreateNearFarInteractor()
         {
             GameObject interactorGO = new GameObject("Near-Far Interactor");
-            
+
             NearFarInteractor interactor = interactorGO.AddComponent<NearFarInteractor>();
             var attachController = interactorGO.GetComponent<InteractionAttachController>();
-            
+
             // Distance based velocity scaling is disabled because it is not supported without an XR Origin
             attachController.useDistanceBasedVelocityScaling = false;
-            
+
             return interactor;
         }
 
@@ -121,7 +121,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Add camera offset
             var cameraOffsetGO = new GameObject("CameraOffset");
-            cameraOffsetGO.transform.SetParent(xrOrigin.transform,false);
+            cameraOffsetGO.transform.SetParent(xrOrigin.transform, false);
             xrOrigin.CameraFloorOffsetObject = cameraOffsetGO;
             xrOrigin.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
@@ -238,7 +238,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             snapVolume.snapCollider = boxCollider;
             return snapVolume;
         }
-        
+
         internal static GameObject CreateUICanvas(Camera worldCamera)
         {
             var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
@@ -387,6 +387,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             provider.mediator = mediator;
             return provider;
         }
+
+        internal static GameObject CreateCubeGameObject()
+        {
+            var cube = new GameObject("Cube");
+            CreateGOBoxCollider(cube, false);
+            return cube;
+        }
     }
 
     class MockInteractor : XRBaseInteractor
@@ -525,7 +532,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             results.AddRange(targets);
         }
     }
-    
+
     class MockInversionTargetFilter : IXRTargetFilter
     {
         public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
@@ -546,7 +553,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             results.Clear();
             callbackExecution.Add(TargetFilterCallback.Process);
-            for(int i = targets.Count - 1; i >= 0; i--)
+            for (int i = targets.Count - 1; i >= 0; i--)
             {
                 results.Add(targets[i]);
             }

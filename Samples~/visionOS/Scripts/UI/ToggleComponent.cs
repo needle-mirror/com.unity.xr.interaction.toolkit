@@ -11,14 +11,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         [Header("Toggle References")]
         [SerializeField]
         Transform m_ToggleBubble;
-        
+
         [SerializeField]
         MeshRenderer m_ToggleBackground;
 
         [Header("Toggle Colors")]
         [SerializeField]
         Color m_SelectedColor = new Color(.1254f, .5882f, .9529f);
-        
+
         [SerializeField]
         Color m_UnselectedColor = new Color(.1764f, .1764f, .1764f);
 
@@ -41,13 +41,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         const float k_BubbleOffPosition = 0.17f;
 
         Material m_MaterialInstance;
-        
+
         void Start()
         {
             var bubblePosition = m_ToggleBubble.localPosition;
             m_BubbleOnTargetPosition = new Vector3(k_BubbleOnPosition, bubblePosition.y, bubblePosition.z);
             m_BubbleOffTargetPosition = new Vector3(k_BubbleOffPosition, bubblePosition.y, bubblePosition.z);
-            
+
             m_MaterialInstance = m_ToggleBackground.material;
             SetBubbleColor(m_IsOn ? m_SelectedColor : m_UnselectedColor);
         }
@@ -62,13 +62,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             m_IsAnimating = true;
             m_OnToggleChanged?.Invoke(m_IsOn);
         }
-        
+
         void Update()
         {
             if (!m_IsAnimating)
                 return;
-            
-            var lerpPercentage =  Mathf.Clamp01(Time.time - m_StartLerpTime) / m_TransitionDuration;
+
+            var lerpPercentage = Mathf.Clamp01(Time.time - m_StartLerpTime) / m_TransitionDuration;
 
             m_ToggleBubble.localPosition = Vector3.Lerp(
                 m_IsOn ? m_BubbleOffTargetPosition : m_BubbleOnTargetPosition,

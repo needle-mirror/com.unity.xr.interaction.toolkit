@@ -117,7 +117,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             get => m_UseDistanceBasedVelocityScaling;
             set => m_UseDistanceBasedVelocityScaling = value;
         }
-        
+
         [Space]
         [SerializeField]
         [Tooltip("Whether momentum is used when distance scaling is in effect.")]
@@ -131,12 +131,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             get => m_UseMomentum;
             set => m_UseMomentum = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Decay scalar for momentum. Higher values will cause momentum to decay faster.")]
         [Range(0f, 10f)]
         float m_MomentumDecayScale = 1.25f;
-        
+
         /// <summary>
         /// Decay scalar for momentum. Higher values will cause momentum to decay faster.
         /// </summary>
@@ -145,7 +145,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             get => m_MomentumDecayScale;
             set => m_MomentumDecayScale = Mathf.Clamp(value, 0f, 10f);
         }
-        
+
         [Space]
         [SerializeField]
         [Range(0f, 5f)]
@@ -160,14 +160,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             get => m_ZVelocityRampThreshold;
             set => m_ZVelocityRampThreshold = Mathf.Clamp(value, 0f, 5f);
         }
-        
+
         [SerializeField]
         [Tooltip("Adjusts the object's velocity calculation when moving towards the user. It modifies the distance-based calculation that determines the velocity scalar.")]
         [Range(0f, 2f)]
         float m_PullVelocityBias = 1f;
 
         /// <summary>
-        /// Adjusts the object's velocity calculation when moving towards the user. 
+        /// Adjusts the object's velocity calculation when moving towards the user.
         /// It modifies the distance-based calculation that determines the velocity scalar.
         /// <see cref="minAdditionalVelocityScalar"/>
         /// <see cref="maxAdditionalVelocityScalar"/>
@@ -175,7 +175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         public float pullVelocityBias
         {
             get => m_PullVelocityBias;
-            set => m_PullVelocityBias = Mathf.Clamp(value, 0f, 2f); 
+            set => m_PullVelocityBias = Mathf.Clamp(value, 0f, 2f);
         }
 
         [SerializeField]
@@ -184,7 +184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         float m_PushVelocityBias = 1.25f;
 
         /// <summary>
-        /// Adjusts the object's velocity calculation when moving away from the user. 
+        /// Adjusts the object's velocity calculation when moving away from the user.
         /// It modifies the distance-based calculation that determines the velocity scalar.
         /// <see cref="minAdditionalVelocityScalar"/>
         /// <see cref="maxAdditionalVelocityScalar"/>
@@ -192,7 +192,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         public float pushVelocityBias
         {
             get => m_PushVelocityBias;
-            set => m_PushVelocityBias = Mathf.Clamp(value, 0f, 2f); 
+            set => m_PushVelocityBias = Mathf.Clamp(value, 0f, 2f);
         }
 
         [SerializeField]
@@ -241,14 +241,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         Vector3 m_StartLocalOffset;
         Vector3 m_NormStartOffset;
         Vector3 m_NormTargetLocalOffset;
-        
+
         float m_Pivot;
         float m_Momentum;
 
         bool m_WasVelocityScalingBlocked;
         bool m_HasSelectInteractor;
         IXRSelectInteractor m_SelectInteractor;
-        
+
         bool m_HasXROrigin;
         XROrigin m_XROrigin;
         Transform m_AnchorParent;
@@ -373,13 +373,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             m_AnchorChild.position = targetWorldPosition;
 
             Vector3 delta = targetWorldPosition - m_AnchorParent.position;
-            
+
             // Evaluate local start offset parameters
             m_StartLocalOffset = m_AnchorParent.InverseTransformDirection(delta);
             m_StartOffsetLength = m_StartLocalOffset.magnitude;
             // Equivalent to m_StartLocalOffset.normalized but avoids second sqrt operation.
             m_NormStartOffset = m_StartOffsetLength > Vector3.kEpsilon ? m_StartLocalOffset / m_StartOffsetLength : Vector3.zero;
-            
+
             var upVector = m_HasXROrigin ? m_XROrigin.Origin.transform.up : Vector3.up;
             bool deltaOrthogonalToUp = Vector3.Angle(delta.normalized, upVector) > 45f;
 
@@ -387,7 +387,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             // If the offset is too great, we use the unmodified offset.
             var selectedWorldOffset = deltaOrthogonalToUp ? Vector3.ProjectOnPlane(delta, upVector) : delta;
             m_NormTargetLocalOffset = m_AnchorParent.InverseTransformDirection(selectedWorldOffset).normalized;
-            
+
             m_LastLocalTargetPosition = m_AnchorChild.localPosition;
 
             if (m_HasXROrigin)
@@ -510,7 +510,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 return false;
 
             bool shouldBlock = false;
-            
+
             // Disable distance-based velocity scaling when target object is selected by multiple interactors
             if (m_SelectInteractor.hasSelection)
             {
@@ -522,7 +522,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             // If we start blocking velocity scaling, we need to sync the offset to prevent sudden jumps
             if (shouldBlock && !m_WasVelocityScalingBlocked)
                 SyncOffset();
-            
+
             m_WasVelocityScalingBlocked = shouldBlock;
             return shouldBlock;
         }
@@ -550,7 +550,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 normStartLocalOffset, float startOffsetLength, in float3 normTargetLocalOffset, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar, float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool useMomentum, float momentumDecayScale, ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)        
+        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 normStartLocalOffset, float startOffsetLength, in float3 normTargetLocalOffset, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar, float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool useMomentum, float momentumDecayScale, ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)
         {
             // Calculate the Bezier scale factor
             float distanceAdjustedMinVelocityScalar = minAdditionalVelocityScalar * pivot;
@@ -558,15 +558,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
             // Determine how far away the offset currently is
             float offsetMagnitude = math.length(currentLocalOffset);
-            
+
             // Project the local velocity on the start offset direction in local space to ensure that we only scale motion along that axis
             var projectedVelocityLocal = math.project(velocityLocal, normTargetLocalOffset);
-            
+
             // Determine if the object is moving towards or away from the user
             var velocitySign = math.sign(math.dot(math.normalize(projectedVelocityLocal), normStartLocalOffset));
             bool isMovingAway = velocitySign > 0f;
-            
-            // We determine forward and back motion by using the signed magnitude of projected local velocity. 
+
+            // We determine forward and back motion by using the signed magnitude of projected local velocity.
             var zMotionLocalSpace = math.length(projectedVelocityLocal) * velocitySign;
 
             // We use a ratio against a pivot to get some sense of motion relative to distance from the user
@@ -584,7 +584,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             // If movement changes direction and the change is above a threshold tolerance, reset momentum
             if (useMomentum)
             {
-                const float tolerance = 0.001f; 
+                const float tolerance = 0.001f;
                 float absMomentum = math.abs(momentum);
                 float absMovement = math.abs(movement);
 

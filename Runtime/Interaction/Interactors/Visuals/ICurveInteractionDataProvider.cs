@@ -1,4 +1,4 @@
-﻿using Unity.Collections;
+using Unity.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 {
@@ -39,27 +39,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// Indicates if the data provider is active. If <see langword="false"/>, the data in the other fields may be stale.
         /// </summary>
         bool isActive { get; }
-        
+
         /// <summary>
-        /// Indicates if the data provider has a valid selection. 
+        /// Indicates if the data provider has a valid selection.
         /// </summary>
         bool hasValidSelect { get; }
-        
+
         /// <summary>
         /// The transform used to determine the origin of the curve.
         /// </summary>
         Transform curveOrigin { get; }
-        
+
         /// <summary>
         /// The curve sample points used to determine interaction results.
         /// </summary>
         NativeArray<Vector3> samplePoints { get; }
-        
+
         /// <summary>
         /// Sample point at the last index of <see cref="samplePoints"/>.
         /// </summary>
         Vector3 lastSamplePoint { get; }
-        
+
         /// <summary>
         /// Attempts to determine the end point of the curve. The end point can be set to either an attach point or the end of a raycast hit.
         /// </summary>

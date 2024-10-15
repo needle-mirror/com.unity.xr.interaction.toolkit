@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -83,10 +83,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsSelecting"/> contains any interactors.
+        /// </remarks>
         /// <example>
         /// <code>interactorsSelecting.Count > 0</code>
         /// </example>
-        /// </remarks>
         /// <seealso cref="interactorsSelecting"/>
         /// <seealso cref="IXRSelectInteractor.hasSelection"/>
         bool isSelected { get; }
@@ -190,7 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <param name="interactable">The interactable to operate on.</param>
         /// <returns>Returns the oldest interactor currently selecting this interactable.</returns>
         /// <remarks>
-        /// Equivalent to <code>interactorsSelecting.Count > 0 ? interactorsSelecting[0] : null</code>
+        /// Equivalent to <c>interactorsSelecting.Count > 0 ? interactorsSelecting[0] : null</c>
         /// </remarks>
         /// <seealso cref="IXRSelectInteractable.interactorsSelecting"/>
         public static IXRSelectInteractor GetOldestInteractorSelecting(this IXRSelectInteractable interactable) =>

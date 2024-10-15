@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this interactor.
     /// </summary>
     [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.")]
-    public class ARPlacementInteractable {}
+    public class ARPlacementInteractable { }
 }
 
 #else

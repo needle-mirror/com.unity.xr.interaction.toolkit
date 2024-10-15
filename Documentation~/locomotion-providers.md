@@ -4,7 +4,7 @@ uid: xri-locomotion-providers
 
 # Locomotion Providers overview
 
-Locomotion Providers implement different types of locomotion. 
+Locomotion Providers implement different types of locomotion.
 
 The toolkit supplies [multiple Locomotion Providers](locomotion-providers-landing.md), which implement the `LocomotionProvider` abstract class.
 
@@ -23,4 +23,3 @@ Upon completion of the locomotion, use `TryEndLocomotion` to have the Locomotion
 The `LocomotionProvider` abstract class also providers two events:
 * `locomotionStarted` is invoked once the provider successfully enters the `LocomotionState.Moving` state.
 * `locomotionEnded` is invoked once the provider successfully enters the `LocomotionState.Ended` state.
-

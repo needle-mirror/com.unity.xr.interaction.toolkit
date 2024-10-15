@@ -1,4 +1,4 @@
-﻿using UnityEngine.Assertions;
+using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Transformers
@@ -53,14 +53,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// <seealso cref="RegistrationMode"/>
         /// <remarks>
         /// This can be overridden in derived classes.
-        /// <br />
+        /// </remarks>
         /// <example>
-        /// If you want your derived class to register as a Multiple Grab Transformer:
+        /// <para>If you want your derived class to register as a Multiple Grab Transformer:</para>
         /// <code>
         /// protected override RegisterMode registrationMode => RegisterMode.Multiple;
         /// </code>
         /// </example>
-        /// </remarks>
         protected virtual RegistrationMode registrationMode => RegistrationMode.Single;
 
         /// <summary>

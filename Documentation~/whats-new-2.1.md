@@ -5,7 +5,7 @@ uid: xri-whats-new-2-1
 
 Summary of changes in XR Interaction Toolkit package version 2.1:
 
-With the XR Interaction Toolkit version 2.1 comes a few new highly-requested features and updates. The main features in this release include Dynamic Attachment for XR Grab Interactables, Intention Filtering, and Comfort Mode Vignette components and sample. 
+With the XR Interaction Toolkit version 2.1 comes a few new highly-requested features and updates. The main features in this release include Dynamic Attachment for XR Grab Interactables, Intention Filtering, and Comfort Mode Vignette components and sample.
 
 ## Added
 

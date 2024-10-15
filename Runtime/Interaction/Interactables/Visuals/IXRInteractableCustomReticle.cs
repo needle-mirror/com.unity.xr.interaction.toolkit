@@ -1,4 +1,4 @@
-﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals

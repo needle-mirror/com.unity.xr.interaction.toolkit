@@ -4,7 +4,7 @@ uid: xri-filter-components
 
 # Filter components
 
-The filter components provided by the toolkit. 
+The filter components provided by the toolkit.
 
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
@@ -12,6 +12,6 @@ The filter components provided by the toolkit.
 | [XR Target filter](target-filters.md) | Prioritizes the targets of an interactor according to configurable evaluators. |
 
 ## Additional resources
- 
+
 * [Interaction filters](interaction-filters.md)
 * [Component index](components.md)

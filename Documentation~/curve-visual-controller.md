@@ -16,7 +16,7 @@ This component also has many advanced configuration options, including:
 - Advanced curve adjustments, including mid-point computation for complex curves and snapping options to attach points or snap volumes.
 - Comprehensive color settings, including the ability to change and blend the color gradient based on different states (e.g., hit detection).
 - End-point type-specific line configuration, allowing for customized line properties depending on the type of interaction detected (e.g., UI hit, non-UI hit).
-- Material settings to swap line renderer's material based whether the data provider reports an empty hit, to enable the use of a material that doesn't write to depth and avoid z-fighting. 
+- Material settings to swap line renderer's material based whether the data provider reports an empty hit, to enable the use of a material that doesn't write to depth and avoid z-fighting.
 - Use of Unity's Burst compiler when possible to accelerate the computation of the complex curve mathematics.
 
 | **Property**                            | **Description** |

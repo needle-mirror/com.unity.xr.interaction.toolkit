@@ -1,4 +1,4 @@
-﻿using UnityEditor.XR.Interaction.Toolkit.Interactables;
+using UnityEditor.XR.Interaction.Toolkit.Interactables;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;

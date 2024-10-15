@@ -306,10 +306,10 @@ MonoBehaviour:
     m_Disabled: 0
   - m_Character: \s
     m_DisplayCharacter: shift
-    m_DisplayIcon: {fileID: 21300000, guid: acf80862a3f4c634394d450c760a8785, type: 3}
+    m_DisplayIcon: {fileID: 373736265, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_ShiftCharacter: \s
     m_ShiftDisplayCharacter: shift
-    m_ShiftDisplayIcon: {fileID: 21300000, guid: acf80862a3f4c634394d450c760a8785, type: 3}
+    m_ShiftDisplayIcon: {fileID: 373736265, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_OverrideDefaultKeyFunction: 1
     m_KeyFunction: {fileID: 11400000, guid: fd75c3033834cc447bf5886f0424c0b9, type: 2}
     m_KeyCode: 304
@@ -386,20 +386,20 @@ MonoBehaviour:
     m_Disabled: 0
   - m_Character: \h
     m_DisplayCharacter: Hide
-    m_DisplayIcon: {fileID: 21300000, guid: c79d61212a86f46498cf3acc9f5a3df9, type: 3}
+    m_DisplayIcon: {fileID: 1163011659, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_ShiftCharacter: \h
     m_ShiftDisplayCharacter: Hide
-    m_ShiftDisplayIcon: {fileID: 21300000, guid: c79d61212a86f46498cf3acc9f5a3df9, type: 3}
+    m_ShiftDisplayIcon: {fileID: 1163011659, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_OverrideDefaultKeyFunction: 1
     m_KeyFunction: {fileID: 11400000, guid: fafb46c355cbf0c4ab314558d216a90f, type: 2}
     m_KeyCode: 0
     m_Disabled: 0
   - m_Character: \e
     m_DisplayCharacter: 
-    m_DisplayIcon: {fileID: 21300000, guid: 1ba3355ce4a17124f9f3b0da441ac021, type: 3}
+    m_DisplayIcon: {fileID: 1365469357, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_ShiftCharacter: \e
     m_ShiftDisplayCharacter: 
-    m_ShiftDisplayIcon: {fileID: 21300000, guid: 1ba3355ce4a17124f9f3b0da441ac021, type: 3}
+    m_ShiftDisplayIcon: {fileID: 1365469357, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
     m_OverrideDefaultKeyFunction: 1
     m_KeyFunction: {fileID: 11400000, guid: abe6f1e7debe4b842a92014211d944fb, type: 2}
     m_KeyCode: 0

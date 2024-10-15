@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -11,7 +11,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
         [Obsolete("m_InteractionLayerMask property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_InteractionLayers instead.", true)]
         protected SerializedProperty m_InteractionLayerMask;
-     
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
         [Obsolete("m_OnHoverEntered property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_HoverEntered instead.", true)]
         protected SerializedProperty m_OnHoverEntered;
@@ -58,7 +58,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
             [Obsolete("onSelectExited property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent onSelectExited = EditorGUIUtility.TrTextContent("(Deprecated) On Select Exited");
-            
+
             /// <summary>The help box message when deprecated Interactor Events are being used.</summary>
             [Obsolete("deprecatedEventsInUse property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent deprecatedEventsInUse = EditorGUIUtility.TrTextContent("Some deprecated Interactor Events are being used. These deprecated events will be removed in a future version. Please convert these to use the newer events, and update script method signatures for Dynamic listeners.");

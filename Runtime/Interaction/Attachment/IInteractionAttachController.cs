@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Attachment
+namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
     /// <summary>
     /// Enum representing the stabilization mode for the anchor.
@@ -21,10 +21,10 @@
         /// </summary>
         Always,
     }
-    
+
     /// <summary>
     /// Interface defining the control and behavior of an interaction anchor.
-    /// It includes methods for creating and updating anchors, managing motion stabilization, 
+    /// It includes methods for creating and updating anchors, managing motion stabilization,
     /// and applying position and rotation offsets.
     /// </summary>
     public interface IInteractionAttachController
@@ -35,17 +35,17 @@
         /// <param name="updateTransform">Whether to update the transform's position and rotation.</param>
         /// <returns>The transform used as the anchor.</returns>
         Transform GetOrCreateAnchorTransform(bool updateTransform = false);
-        
+
         /// <summary>
         /// The transform that the anchor will follow.
         /// </summary>
         Transform transformToFollow { get; set; }
-        
+
         /// <summary>
         /// The mode determining how motion stabilization is applied.
         /// </summary>
         MotionStabilizationMode motionStabilizationMode { get; set; }
-        
+
         /// <summary>
         /// Indicates whether the anchor currently has an offset applied.
         /// </summary>

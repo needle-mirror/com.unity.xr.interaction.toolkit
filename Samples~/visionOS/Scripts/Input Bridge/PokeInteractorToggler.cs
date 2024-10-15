@@ -12,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
     {
         [SerializeField]
         XRPokeInteractor m_PokeInteractor;
-        
+
         [SerializeField]
         SpatialTouchInputReader m_SpatialTouchInputReader;
 

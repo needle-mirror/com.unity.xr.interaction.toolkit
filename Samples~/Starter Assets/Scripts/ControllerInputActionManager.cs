@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [SerializeField]
         [Tooltip("Near-Far Interactor used for distant/ray manipulation. Use this or Ray Interactor, not both.")]
         NearFarInteractor m_NearFarInteractor;
-        
+
         [SerializeField]
         [Tooltip("The interactor used for teleportation.")]
         XRRayInteractor m_TeleportInteractor;
@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [SerializeField]
         [Tooltip("If true, continuous turn will be enabled. If false, snap turn will be enabled. Note: If smooth motion is enabled and enable strafe is enabled on the continuous move provider, turn will be overriden in favor of strafe.")]
         bool m_SmoothTurnEnabled;
-        
+
         [SerializeField]
         [Tooltip("With the Near-Far Interactor, if true, teleport will be enabled during near interaction. If false, teleport will be disabled during near interaction.")]
         bool m_NearFarEnableTeleportDuringNearInteraction = true;
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         bool m_HoveringScrollableUI;
 
         readonly HashSet<InputAction> m_LocomotionUsers = new HashSet<InputAction>();
-        readonly BindingsGroup m_BindingsGroup = new BindingsGroup(); 
+        readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
 
         void SetupInteractorEvents()
         {
@@ -143,7 +143,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 m_NearFarInteractor.uiHoverExited.AddListener(OnUIHoverExited);
                 m_BindingsGroup.AddBinding(m_NearFarInteractor.selectionRegion.Subscribe(OnNearFarSelectionRegionChanged));
             }
-            
+
             if (m_RayInteractor != null)
             {
                 m_RayInteractor.selectEntered.AddListener(OnRaySelectEntered);
@@ -192,13 +192,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         void TeardownInteractorEvents()
         {
             m_BindingsGroup.Clear();
-            
+
             if (m_NearFarInteractor != null)
             {
                 m_NearFarInteractor.uiHoverEntered.RemoveListener(OnUIHoverEntered);
                 m_NearFarInteractor.uiHoverExited.RemoveListener(OnUIHoverExited);
             }
-            
+
             if (m_RayInteractor != null)
             {
                 m_RayInteractor.selectEntered.RemoveListener(OnRaySelectEntered);
@@ -256,7 +256,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
             if (m_NearFarInteractor != null && m_NearFarInteractor.selectionRegion.Value != NearFarInteractor.Region.Near)
                 m_NearFarInteractor.gameObject.SetActive(false);
-    
+
             m_RayInteractorChanged?.Invoke(m_TeleportInteractor);
         }
 
@@ -270,13 +270,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
             if (m_RayInteractor != null)
                 m_RayInteractor.gameObject.SetActive(true);
-            
+
             if (m_NearFarInteractor != null)
                 m_NearFarInteractor.gameObject.SetActive(true);
 
             m_RayInteractorChanged?.Invoke(m_RayInteractor);
         }
-        
+
         void OnNearFarSelectionRegionChanged(NearFarInteractor.Region selectionRegion)
         {
             if (selectionRegion == NearFarInteractor.Region.Far ||

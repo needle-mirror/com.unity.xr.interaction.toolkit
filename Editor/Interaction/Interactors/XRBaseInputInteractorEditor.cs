@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -21,7 +21,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         protected SerializedProperty m_AllowHoveredActivate;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInputInteractor.targetPriorityMode"/>.</summary>
         protected SerializedProperty m_TargetPriorityMode;
-        
+
         /// <summary>
         /// Determines if deprecated properties should be shown.
         /// </summary>

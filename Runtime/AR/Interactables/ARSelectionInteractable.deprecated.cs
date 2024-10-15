@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="SelectionManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Controls the selection of an object via a Tap gesture.
     /// </summary>
     [Obsolete("ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.")]
-    public class ARSelectionInteractable {}
+    public class ARSelectionInteractable { }
 }
 
 #else
@@ -53,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </remarks>
         [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.", true)]
         public override bool IsSelectableBy(XRBaseInteractor interactor) => default;
-        
+
         [SerializeField, Tooltip("The visualization GameObject that will become active when the object is selected.")]
         GameObject m_SelectionVisualization;
         /// <summary>

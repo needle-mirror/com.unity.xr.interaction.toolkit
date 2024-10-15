@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 
@@ -84,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         [Obsolete("GetLinePoints with ref int parameter has been deprecated. Use signature with out int parameter instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool GetLinePoints(ref Vector3[] linePoints, ref int numPoints, int _ = default)
-            // ReSharper restore RedundantAssignment
+        // ReSharper restore RedundantAssignment
         {
             return default;
         }
@@ -104,7 +104,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         [Obsolete("TryGetHitInfo with ref parameters has been deprecated. Use signature with out parameters instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool TryGetHitInfo(ref Vector3 position, ref Vector3 normal, ref int positionInLine, ref bool isValidTarget, int _ = default)
-            // ReSharper restore RedundantAssignment
+        // ReSharper restore RedundantAssignment
         {
             return default;
         }
@@ -119,7 +119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             raycastHit = default;
             return default;
         }
-        
+
         /// <summary>
         /// (Deprecated) Sets how Attach Transform rotation is controlled.
         /// </summary>

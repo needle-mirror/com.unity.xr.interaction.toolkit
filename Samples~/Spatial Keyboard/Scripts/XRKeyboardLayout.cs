@@ -34,6 +34,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
         }
 
+        XRKeyboardKey [] m_Keys;
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        void Awake()
+        {
+            m_Keys = GetComponentsInChildren<XRKeyboardKey>();
+        }
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -67,9 +77,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 
             var keyMappings = m_ActiveKeyMapping.keyMappings;
 
-            var keys = GetComponentsInChildren<XRKeyboardKey>();
-            if (keys.Length < keyMappings.Count)
+            if (m_Keys == null || m_Keys.Length == 0)
+                m_Keys = GetComponentsInChildren<XRKeyboardKey>();
 
+
+            if (m_Keys.Length < keyMappings.Count)
             {
                 Debug.LogWarning("Keyboard layout update failed: There are fewer keys than key mappings in the current config. Ensure there is a correct number of keys and key mappings.", this);
                 return;
@@ -78,7 +90,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             for (var i = 0; i < keyMappings.Count; ++i)
             {
                 var mapping = keyMappings[i];
-                var key = keys[i];
+                var key = m_Keys[i];
 
                 key.character = mapping.character;
                 key.displayCharacter = mapping.displayCharacter;

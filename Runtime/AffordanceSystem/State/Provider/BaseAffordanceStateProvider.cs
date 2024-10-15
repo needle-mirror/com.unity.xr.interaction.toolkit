@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.XR.CoreUtils.Bindings;

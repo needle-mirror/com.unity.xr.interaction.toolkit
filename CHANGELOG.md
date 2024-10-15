@@ -9,6 +9,39 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.0.6] - 2024-10-15
+
+### Added
+- Added cone casting support to `XRRayInteractor` for Projectile, Bezier Curve, and lines with multiple segments.
+- Added `Live Cone Cast Debug Visuals` option for `CurveInteractionCaster` and `XRRayInteractor` to display a more detailed cone cast debug visual.
+  - Note, this is only displayed in the Editor during Play mode when the GameObject is selected in the hierarchy.
+- Added math caching for `CurveInteractionCaster` and `XRRayInteractor` cone cast angle and cone cast radius to improve performance.
+- Added `OnDrawGizmosSelected` debug visuals to `CurveInteractionCaster` for raycast, cone cast, and sphere cast.
+- Added `KeyboardOptimizer` script to the Spatial Keyboard sample. This script will update the keyboard canvas hierarchy to batch the canvas elements properly at runtime.
+- Added `KeyboardBatchFollow` script to the Spatial Keyboard sample to update the position of a list of transforms to a specific transform at runtime.
+- Added project validation rule to the Starter Assets sample to suggest upgrading Input System to 1.11.0 or newer when project-wide actions are used to avoid potential errors when custom types are used in the asset. ([XRIT-157](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-157))
+
+### Changed
+- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance calculation to take into account full distance from the cast origin when there are multiple ray points.
+- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance comparison in `PerformRaycast` from less than to less than or equal to.
+- Changed `CurveInteractionCaster` and `XRRayInteractor` hit distance calculation to take into account full distance from the cast origin when using multiple target curve segments.
+- Changed `Teleport Interactor` prefab in the Starter Assets sample to enable Hit Closest Only to improve hitting on overlapping teleportation areas and teleportation anchors.
+- Changed the Poke Interactor prefab by aligning the tip of the poke visual to the poke point.
+- Changed the `XRPokeFollowAffordance` script to only affect the local z-axis if a canvas element.
+- Changed the prefabs in the Spatial Keyboard sample to improve performance by supporting batching. Added `KeyboardOptimizer` component to `XRI Keyboard` and `KeyboardBatchFollow` component in `XRI Keyboard Key` prefab.
+- Changed project validation scripts to report a warning instead of error if specific package samples are out of date.
+- Updated many assets in the sample packages to help fit within file name length constraints on some operating systems.
+
+### Fixed
+- Fixed Material Pipeline Handler for the Spatial Keyboard sample materials.
+- Fixed a small issue with `MaterialPipelineHandler` where corrupt assets could lead to a null reference exception.
+- Fixed an issue where UI sub canvases were getting blocked by parent canvas items and not allowing interaction. ([XRIT-99](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-99))
+- Fixed `NearFarInteractor` and `XRRayInteractor` to still process hits in the case where the 2D and 3D hits are the same GameObject.
+- Fixed issue with `XRRayInteractor` hover not working properly when a `TrackedDevicePhysicsRaycaster` is added to the scene. ([XRIT-97](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-97))
+- Fixed `CurveInteractionCaster` not working properly with more than 1 target curve segments.
+- Fixed `SimpleAudioFeedback` and `SimpleHapticFeedback` so it does not replace the serialized `AudioSource` or `HapticImpulsePlayer` component reference during `Awake` when not null.
+- Fixed an issue where Interactors that were subscribed to hover events were not getting Exit events when the UI object being hovered is disabled or destroyed in the scene.
+- Fixed the pointer ID system in the `XRUIInputModule` to reuse pointer IDs. This fixes an issue with the pointer limit in UI Toolkit. ([XRIT-184](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-184))
 
 ## [3.0.5] - 2024-07-29
 
@@ -331,7 +364,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Replaced the now deprecated `LocomotionPhase` with `LocomotionState`.
   - Deprecated several members of `LocomotionProvider` and added new members in their place for communicating with the Locomotion Mediator and providing information for state changes. Deprecated members include: `beginLocomotion`, `endLocomotion`, `CanBeginLocomotion`, `BeginLocomotion`, and `EndLocomotion`.
   - Changed timing of when Locomotion Providers apply transformations to the XR Origin. Now in each Provider's `Update`, rather than applying the transformation immediately the Provider queues its transformation into the XR Body Transformer. Transformations are applied in queue order in the XR Body Transformer's `Update`, which occurs later in the same frame.
-  - Changed timing of when `ContinuousMoveProvider`, `ConstrainedMoveProvider`, and `ContinuousTurnProvider` invoke locomotion events, for consistency with other providers. Now these providers invoke `locomotionStarted` when the start of move input occurs (e.g. thumbstick is moved from rest state) and `locomotionEnded` when the end of move input occurs (e.g. thumbstick is released). 
+  - Changed timing of when `ContinuousMoveProvider`, `ConstrainedMoveProvider`, and `ContinuousTurnProvider` invoke locomotion events, for consistency with other providers. Now these providers invoke `locomotionStarted` when the start of move input occurs (e.g. thumbstick is moved from rest state) and `locomotionEnded` when the end of move input occurs (e.g. thumbstick is released).
 - Changed the move speed in the `XR Origin (XR Rig)` prefab in the Starter Assets sample from `1` to `2.5`.
 - Changed default value of [`UIInputModule.trackedDeviceDragThresholdMultiplier`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule.trackedDeviceDragThresholdMultiplier) from `1.4` to `2` and updated the preset in the Starter Assets sample to match.
 - Changed `XRControllerRecorder.GetControllerState` so it only returns a valid value when playing or recording. Also changed so the `out` param is returned `null` instead of allocating when the method returns `false`.
@@ -526,7 +559,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR Interactor Affordance State Provider component which can drive affordance receivers using interactor interactions events.
 - Added Color Gradient Line Renderer Affordance Receiver to pair with an XR Interactor Affordance State Provider on a Ray interactor to improve visual coloring. Has a property to automatically disable coloring of XR Interactor Line Visual.
 - Added [Hand Menu](xref:xri-hand-menu) component, as well as a sample prefab of a working hand menu in the Hands Interaction Demo sample.
-  - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`. 
+  - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`.
   - Added gaze activation settings and a reveal/ hide hand menu animation.
 - Added [XR Input Modality Manager](xref:xri-xr-input-modality-manager) component which manages swapping between hand and controller hierarchies in the XR Origin. Updated prefabs in the package samples to make use of this component.
 - Added ability for XR Interactor Line Visual to curve accurately and track interactable attach points during selection.
@@ -535,7 +568,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
 - Added `Focus State` to interactables. An interactable that is selected is also focused; it remains focused until another interactable is focused instead. Useful for highlighting an object to later perform operations on.
 - Added Visit Each Frame property to XR Controller Recorder to control whether each frame of the input recording must be played back regardless of the time period passed.
-- Added [XR Transform Stabilizer](xref:xri-xr-transform-stabilizer) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
+- Added [XR Transform Stabilizer](xref:xri-xr-transform-stabilizer) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users.
 - Added Climb Provider, which provides locomotion counter to interactor movement while the user is selecting a Climb Interactable.
   - Added menu item **Assets > Create > XR > Locomotion > Climb Settings**, which creates a Climb Settings Datum asset.
   - Added a Climb Provider instance to `XR Origin Preconfigured` in the Starter Assets sample.
@@ -640,7 +673,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Hands Interaction Demo sample to wait to activate the controller GameObjects until they are reconnected instead of each time hand tracking is lost. Also fixed the controllers appearing at the origin if they have never been tracked.
 - Fixed the Hands Interaction Demo sample so it disables the hand interactors while doing a system gesture (such as a user looking at their open palm at eye level).
 - Fixed warning about a self-intersecting polygon in the `Frame.fbx` model in the Hands Interaction Demo sample.
-- Fixed warning in Hands Interaction Demo sample about obsolete API usage coming from the hands subsystem. 
+- Fixed warning in Hands Interaction Demo sample about obsolete API usage coming from the hands subsystem.
 - Fixed `XRSimulatedController` and `XRSimulatedHMD` to have identifying characteristics information in the `capabilities` field of their corresponding `InputDeviceDescription`. ([XRIT-50](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-50))
 - Fixed an issue in the `XRController` class where the `inputDevice` property was not reinitialized when the `controllerNode` property was changed. ([XRIT-52](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-52))
 - UGUI ray interactions are now correctly blocked when interaction groups block ray interactions and the ray is hidden.

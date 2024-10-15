@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="TranslationManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If not selected, the object will be selected when the drag gesture starts.
     /// </summary>
     [Obsolete("ARTranslationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
-    public class ARTranslationInteractable {}
+    public class ARTranslationInteractable { }
 }
 
 #else

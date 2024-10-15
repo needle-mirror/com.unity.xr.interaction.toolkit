@@ -108,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_MenuHandedness;
             set => m_MenuHandedness = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Determines the up direction of the menu when the hand menu is looking at the camera.")]
         UpDirection m_HandMenuUpDirection = UpDirection.TransformUp;
@@ -122,7 +122,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_HandMenuUpDirection;
             set => m_HandMenuUpDirection = value;
         }
-        
+
         [Header("Palm anchor")]
         [SerializeField]
         [Tooltip("Anchor associated with the left palm pose for the hand.")]
@@ -206,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         [SerializeField]
         [Tooltip("If true, menu will hide when gaze to menu origin's divergence angle is above the threshold. In other words, the menu will only show if looking roughly in it's direction.")]
         bool m_HideMenuWhenGazeDiverges = true;
-        
+
         /// <summary>
         /// If true, menu will hide when gaze to menu origin's divergence angle is above the threshold. In other words, the menu will only show if looking roughly in it's direction.
         /// </summary>
@@ -215,7 +215,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_HideMenuWhenGazeDiverges;
             set => m_HideMenuWhenGazeDiverges = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Only show menu if gaze to menu origin's divergence angle is below this value.")]
         float m_MenuVisibleGazeAngleDivergenceThreshold = 35f;
@@ -242,9 +242,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 #pragma warning restore CS0618 // Type or member is obsolete
 
         readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
-        
+
         Transform m_CameraTransform;
-        
+
         bool m_WasMenuHiddenLastFrame = true;
 
         MenuHandedness m_LastHandThatMetRequirements = MenuHandedness.Left;
@@ -253,7 +253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         [SerializeField]
         [Tooltip("Should the menu animate when it is revealed or hidden.")]
         bool m_AnimateMenuHideAndReveal = true;
-        
+
         /// <summary>
         /// Duration of the reveal/hide animation in seconds.
         /// </summary>
@@ -262,7 +262,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_AnimateMenuHideAndReveal;
             set => m_AnimateMenuHideAndReveal = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Duration of the reveal/hide animation in seconds.")]
         float m_RevealHideAnimationDuration = 0.15f;
@@ -275,12 +275,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_RevealHideAnimationDuration;
             set => m_RevealHideAnimationDuration = value;
         }
-        
+
         [Header("Selection Behavior")]
         [SerializeField]
         [Tooltip("Should the menu hide when a selection is made with the hand for which the menu is anchored to.")]
         bool m_HideMenuOnSelect = true;
-        
+
         /// <summary>
         /// Should the menu hide when a selection is made with the hand for which the menu is anchored to.
         /// </summary>
@@ -289,7 +289,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_HideMenuOnSelect;
             set => m_HideMenuOnSelect = value;
         }
-        
+
         [SerializeField]
         [Tooltip("XR Interaction Manager used to determine if a hand is selecting. Will find one if None. Used for Hide Menu On Select.")]
         XRInteractionManager m_InteractionManager;
@@ -304,9 +304,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             get => m_InteractionManager;
             set => m_InteractionManager = value;
         }
-        
+
         [Header("Follow presets")]
-        
+
         [SerializeField]
         FollowPresetDatumProperty m_HandTrackingFollowPreset;
 
@@ -323,7 +323,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         Transform m_LastValidCameraTransform = null;
         Transform m_LastValidPalmAnchor = null;
         Transform m_LastValidPalmAnchorOffset = null;
-        
+
         Vector3 m_InitialMenuLocalScale = Vector3.one;
         readonly BindableVariable<bool> m_MenuVisibleBindableVariable = new BindableVariable<bool>(false);
         float m_LastValidTrackingTime = 0f;
@@ -336,11 +336,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_HandAnchorSmartFollow.minDistanceAllowed = m_MinFollowDistance;
             m_HandAnchorSmartFollow.maxDistanceAllowed = m_MaxFollowDistance;
             m_HandAnchorSmartFollow.minToMaxDelaySeconds = m_MinToMaxDelaySeconds;
-            
+
             // Initialize anchors
             m_RightOffsetRoot = new GameObject("Right Offset Root").transform;
             m_RightOffsetRoot.transform.SetParent(m_RightPalmAnchor);
-            
+
             m_LeftOffsetRoot = new GameObject("Left Offset Root").transform;
             m_LeftOffsetRoot.transform.SetParent(m_LeftPalmAnchor);
         }
@@ -380,7 +380,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_InitialMenuLocalScale = m_HandMenuUIGameObject.transform.localScale;
             m_MenuScaleTweenable.Value = m_InitialMenuLocalScale;
             m_BindingsGroup.AddBinding(m_MenuScaleTweenable.Subscribe(value => m_HandMenuUIGameObject.transform.localScale = value));
-            
+
             m_BindingsGroup.AddBinding(XRInputModalityManager.currentInputMode.SubscribeAndUpdate(OnInputModeChanged));
 
             m_MenuVisibleBindableVariable.Value = false;
@@ -422,7 +422,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         {
             m_HandAnchorSmartFollow.Dispose();
         }
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -433,7 +433,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_HandAnchorSmartFollow.minToMaxDelaySeconds = m_MinToMaxDelaySeconds;
             m_MenuVisibilityDotThreshold = AngleToDot(m_MenuVisibleGazeAngleDivergenceThreshold);
         }
-        
+
         /// <summary>
         /// This method is called when the input mode changes in the XRInputModalityManager.
         /// It updates the current preset and applies it to the left and right offset roots
@@ -460,9 +460,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 StopCoroutine(m_HideCoroutine);
                 m_HideCoroutine = null;
             }
-            
+
             m_HandMenuUIGameObject.SetActive(true);
-            if(m_AnimateMenuHideAndReveal && m_ShowCoroutine == null)
+            if (m_AnimateMenuHideAndReveal && m_ShowCoroutine == null)
                 m_ShowCoroutine = StartCoroutine(m_MenuScaleTweenable.PlaySequence(m_MenuScaleTweenable.Value, m_InitialMenuLocalScale, m_RevealHideAnimationDuration, OnMenuVisible));
             else
                 OnMenuVisible();
@@ -481,8 +481,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 StopCoroutine(m_ShowCoroutine);
                 m_ShowCoroutine = null;
             }
-            
-            if(m_AnimateMenuHideAndReveal && m_HideCoroutine == null)
+
+            if (m_AnimateMenuHideAndReveal && m_HideCoroutine == null)
                 m_HideCoroutine = StartCoroutine(m_MenuScaleTweenable.PlaySequence(m_MenuScaleTweenable.Value, Vector3.zero, m_RevealHideAnimationDuration, OnMenuHidden));
             else
                 OnMenuHidden();
@@ -505,10 +505,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 m_MenuVisibleBindableVariable.Value = false;
                 return;
             }
-            
+
             bool showMenu = false;
             var currentPresent = GetCurrentPreset();
-            if(TryGetTrackedAnchors(m_MenuHandedness, currentPresent, out var targetHandedness, out var cameraTransform, out var palmAnchor, out var palmAnchorOffset))
+            if (TryGetTrackedAnchors(m_MenuHandedness, currentPresent, out var targetHandedness, out var cameraTransform, out var palmAnchor, out var palmAnchorOffset))
             {
                 m_LastValidCameraTransform = cameraTransform;
                 m_LastValidPalmAnchor = palmAnchor;
@@ -516,21 +516,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 m_LastValidTrackingTime = Time.unscaledTime;
                 showMenu = true;
             }
-            
+
             // If trying to hide menu, but game object is still visible, we want to continue tracking during animation.
             if (!showMenu)
             {
                 var timeSinceLastValidTracking = Time.unscaledTime - m_LastValidTrackingTime;
-                
+
                 // If within hide delay period, keep menu visible.
                 if (timeSinceLastValidTracking > currentPresent.hideDelaySeconds)
                     m_MenuVisibleBindableVariable.Value = false;
-                
+
                 // If any associated transforms are invalid - return.
-                if(m_LastValidCameraTransform == null || m_LastValidPalmAnchor == null || m_LastValidPalmAnchorOffset == null)
+                if (m_LastValidCameraTransform == null || m_LastValidPalmAnchor == null || m_LastValidPalmAnchorOffset == null)
                     return;
             }
-            
+
             var gazeToObject = (m_LastValidPalmAnchorOffset.position - m_LastValidCameraTransform.position).normalized;
             if (showMenu)
             {
@@ -545,18 +545,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             // Stop tracking if menu is not visible
             bool menuVisible = m_HandMenuUIGameObject.activeSelf;
-            if(!menuVisible)
+            if (!menuVisible)
                 return;
 
             var targetPos = m_LastValidPalmAnchorOffset.position;
             var targetRot = m_LastValidPalmAnchorOffset.rotation;
-            
+
             // Check if head gaze is looking at palm
             if (targetHandedness == MenuHandedness.Left || targetHandedness == MenuHandedness.Right)
             {
                 var referenceAxis = currentPresent.GetReferenceAxisForTrackingAnchor(m_LastValidPalmAnchor, targetHandedness == MenuHandedness.Right);
                 var objectToGaze = -gazeToObject;
-                
+
                 // Gaze aligned with reference axis
                 if (currentPresent.snapToGaze && Vector3.Dot(referenceAxis, objectToGaze) > currentPresent.snapToGazeDotThreshold)
                 {
@@ -572,9 +572,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             if (m_WasMenuHiddenLastFrame || !currentPresent.allowSmoothing)
             {
                 m_HandAnchorSmartFollow.HandleTween(1f);
-                
+
                 // If we allow smoothing, do not snap rotation as it looks jarring
-                if(currentPresent.allowSmoothing) 
+                if (currentPresent.allowSmoothing)
                     m_RotTweenFollow.HandleTween(Time.deltaTime * currentPresent.followLowerSmoothingValue);
                 else
                     m_RotTweenFollow.HandleTween(1f);
@@ -610,7 +610,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             var leftMeetsRequirements = !isLeftSelecting && PalmMeetsRequirements(cameraTransform, m_LeftPalmAnchor, false, currentPreset);
             var rightMeetsRequirements = !isRightSelecting && PalmMeetsRequirements(cameraTransform, m_RightPalmAnchor, true, currentPreset);
-            
+
             if (!leftMeetsRequirements && !rightMeetsRequirements)
             {
                 return false;
@@ -675,7 +675,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             return false;
         }
-        
+
         bool TryGetInteractionManager(out XRInteractionManager manager)
         {
             if (m_InteractionManager != null)
@@ -739,13 +739,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             var palmAnchorUp = currentPresent.GetReferenceAxisForTrackingAnchor(palmAnchor, isRightHand);
             var referenceUpDirection = GetReferenceUpDirection(cameraTransform);
-            
+
             // With hand tracking, palm faces the world up direction when the hand is lying down flat.
             // With controllers, we typically look for the right vector on the left controller, and the left vector on the right controller to fill this role.
             // Check if palm is looking at the camera and whether the palm is flipped over towards the sky
-            bool meetsPalmFacingUserThreshold = !currentPresent.requirePalmFacingUser || Vector3.Dot(palmAnchorUp, -cameraTransform.forward) > currentPresent.palmFacingUserDotThreshold; 
+            bool meetsPalmFacingUserThreshold = !currentPresent.requirePalmFacingUser || Vector3.Dot(palmAnchorUp, -cameraTransform.forward) > currentPresent.palmFacingUserDotThreshold;
             bool meetsPalmFacingUpThreshold = !currentPresent.requirePalmFacingUp || Vector3.Dot(palmAnchorUp, referenceUpDirection) > currentPresent.palmFacingUpDotThreshold;
-            
+
             return meetsPalmFacingUserThreshold && meetsPalmFacingUpThreshold;
         }
 
@@ -765,7 +765,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             cameraTransform = m_CameraTransform;
             return true;
         }
-        
+
         static float AngleToDot(float angleDeg)
         {
             return Mathf.Cos(Mathf.Deg2Rad * angleDeg);

@@ -4,12 +4,12 @@ uid: xri-configure-input-system
 
 # Configure input
 
-Every toolkit component that responds to input provides a set of [input reader](xref:xri-input-readers) properties that define the actions the component can take. These actions include things like selecting an object, scrolling a UI component, teleporting to a designated spot, and turning right or left. To allow a user to perform one of these actions, you must define which physical input, such as a button press, thumbstick deflection, or eye glance, triggers which actions. 
+Every toolkit component that responds to input provides a set of [input reader](xref:xri-input-readers) properties that define the actions the component can take. These actions include things like selecting an object, scrolling a UI component, teleporting to a designated spot, and turning right or left. To allow a user to perform one of these actions, you must define which physical input, such as a button press, thumbstick deflection, or eye glance, triggers which actions.
 
 The XR Interaction Toolkit provides several options for handling input:
 
 * **Input Action assets**: you can bind the actions defined by the toolkit components to physical input in an Input Action asset. These assets collect actions, bindings, and maps in one place and allow you to reuse the same input configuration for multiple components.
-* **Input Actions without an asset**: you can bind a physical input to an individual action directly on a component without referencing a separate asset. 
+* **Input Actions without an asset**: you can bind a physical input to an individual action directly on a component without referencing a separate asset.
 * **Custom input**: you can provide custom input logic in two ways:
 
     * You can create an object that implements [IXRInputValueReader](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.Readers.IXRInputValueReader`1) interface and reference that object from one of a component’s input properties.
@@ -39,8 +39,8 @@ To configure an input property:
    2. Depending on the mode chosen, set the property values. For example, if you use the **Input Action Reference** mode along with the default input action assets:
 
       1. Click the object picker icon in the property's input action reference field (which will be named according to the specific input property).
-      2. Find the specific action that you want to use for this component's input. The names in the default input action asset correspond to the type of interaction or locomotion controlled by each property. You can use the search field in the object picker dialog to narrow the choices shown in the list. 
-      
+      2. Find the specific action that you want to use for this component's input. The names in the default input action asset correspond to the type of interaction or locomotion controlled by each property. You can use the search field in the object picker dialog to narrow the choices shown in the list.
+
       For example, when setting a **Select Input** property, search for the term "Select":
 
       ![](images/input-asset-search.png)
@@ -52,7 +52,7 @@ For more information about component input properties refer to [Input readers](x
 <a name="enable-input-actions"></a>
 ## Enable input actions used for input
 
-Actions must be enabled before they react to input. Refer to [Enabling actions](xref:input-system-actions#enabling-actions) in the Input System documentation for details about this process. 
+Actions must be enabled before they react to input. Refer to [Enabling actions](xref:input-system-actions#enabling-actions) in the Input System documentation for details about this process.
 
 When you use Input Action assets, you must make sure that the actions they contain are enabled at runtime. You can do this in a couple of ways, depending on the complexity of your project:
 
@@ -64,7 +64,7 @@ When you use Input Action assets, you must make sure that the actions they conta
 
    ![input-action-manager](images/input-action-manager.png)
 
-Actions defined in a **Project-wide Actions** asset are always enabled. Actions defined in assets assigned to an **Input Action Manager** component can be enabled or disabled depending on context. Whenever an **Input Action Manager** component is enabled or disabled, it also enables or disables the actions defined in any associated Input Action assets. 
+Actions defined in a **Project-wide Actions** asset are always enabled. Actions defined in assets assigned to an **Input Action Manager** component can be enabled or disabled depending on context. Whenever an **Input Action Manager** component is enabled or disabled, it also enables or disables the actions defined in any associated Input Action assets.
 
 > [!NOTE]
 > Any actions you define directly in an input reader property of a component are automatically enabled and disabled by the component itself when the mode is set to **Input Action**.

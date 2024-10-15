@@ -5,9 +5,10 @@ using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
+using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 
-namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets
+namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets.Editor
 {
     /// <summary>
     /// Unity Editor class which registers Project Validation rules for the AR Starter Assets sample,
@@ -18,6 +19,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets
         const string k_SampleDisplayName = "AR Starter Assets";
         const string k_Category = "XR Interaction Toolkit";
         const string k_StarterAssetsSampleName = "Starter Assets";
+        const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_ARFPackageName = "com.unity.xr.arfoundation";
         const string k_ARFPackageMinVersionString = "4.2.8";
         const float k_TimeOutInSeconds = 3f;
@@ -86,18 +88,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets
             },
             new BuildValidationRule
             {
-                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit (com.unity.xr.interaction.toolkit) package must be imported or updated to use this sample.",
+                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample. {GetImportSampleVersionMessage(k_Category, k_StarterAssetsSampleName, PackageVersionUtility.GetPackageVersion(k_XRIPackageName))}",
                 Category = k_Category,
-                CheckPredicate = () => TryFindSample("com.unity.xr.interaction.toolkit", string.Empty, k_StarterAssetsSampleName, out var sample) && sample.isImported,
+                CheckPredicate = () => ProjectValidationUtility.SampleImportMeetsMinimumVersion(k_Category, k_StarterAssetsSampleName, PackageVersionUtility.GetPackageVersion(k_XRIPackageName)),
                 FixIt = () =>
                 {
-                    if (TryFindSample("com.unity.xr.interaction.toolkit", string.Empty, k_StarterAssetsSampleName, out var sample))
+                    if (TryFindSample(k_XRIPackageName, string.Empty, k_StarterAssetsSampleName, out var sample))
                     {
                         sample.Import(Sample.ImportOptions.OverridePreviousImports);
                     }
                 },
                 FixItAutomatic = true,
-                Error = true,
+                Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_StarterAssetsSampleName),
             },
         };
 
@@ -139,6 +141,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets
         static string ToString(string packageName, string packageVersion)
         {
             return string.IsNullOrEmpty(packageVersion) ? packageName : $"{packageName}@{packageVersion}";
+        }
+
+        static string GetImportSampleVersionMessage(string packageFolderName, string sampleDisplayName, PackageVersion version)
+        {
+            if (ProjectValidationUtility.SampleImportMeetsMinimumVersion(packageFolderName, sampleDisplayName, version) || !ProjectValidationUtility.HasSampleImported(packageFolderName, sampleDisplayName))
+                return string.Empty;
+
+            return $"An older version of {sampleDisplayName} has been found. This may cause errors.";
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -82,22 +82,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             {
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
-                {
-                    if (scaleMode == SocketScaleMode.None)
                     {
-                        UpdateTargetWithoutScale(grabInteractable, socketInteractor, socketSnappingRadius, ref targetPose);
-                    }
-                    else
-                    {
-                        float3 initialScale = m_InitialScale[grabInteractable];
-                        float3 initialBounds = m_InteractableBoundsSize[grabInteractable];
-                        float3 targetScale = ComputeSocketTargetScale(grabInteractable, initialScale);
+                        if (scaleMode == SocketScaleMode.None)
+                        {
+                            UpdateTargetWithoutScale(grabInteractable, socketInteractor, socketSnappingRadius, ref targetPose);
+                        }
+                        else
+                        {
+                            float3 initialScale = m_InitialScale[grabInteractable];
+                            float3 initialBounds = m_InteractableBoundsSize[grabInteractable];
+                            float3 targetScale = ComputeSocketTargetScale(grabInteractable, initialScale);
 
-                        UpdateTargetWithScale(grabInteractable, socketInteractor, socketSnappingRadius, initialScale, initialBounds, targetScale, ref targetPose, ref localScale);
-                    }
+                            UpdateTargetWithScale(grabInteractable, socketInteractor, socketSnappingRadius, initialScale, initialBounds, targetScale, ref targetPose, ref localScale);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
         }
 
@@ -197,19 +197,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             switch (scaleMode)
             {
                 case SocketScaleMode.Fixed:
-                {
-                    BurstMathUtility.Scale(initialInteractableScale, fixedScale, out var result);
-                    return result;
-                }
+                    {
+                        BurstMathUtility.Scale(initialInteractableScale, fixedScale, out var result);
+                        return result;
+                    }
 
                 case SocketScaleMode.StretchedToFitSize:
-                {
-                    if (!m_InteractableBoundsSize.TryGetValue(interactable, out var interactableBounds))
-                        return initialInteractableScale;
+                    {
+                        if (!m_InteractableBoundsSize.TryGetValue(interactable, out var interactableBounds))
+                            return initialInteractableScale;
 
-                    CalculateScaleToFit(interactableBounds, targetBoundsSize, initialInteractableScale, Mathf.Epsilon, out var newScale);
-                    return newScale;
-                }
+                        CalculateScaleToFit(interactableBounds, targetBoundsSize, initialInteractableScale, Mathf.Epsilon, out var newScale);
+                        return newScale;
+                    }
 
                 case SocketScaleMode.None:
                 default:

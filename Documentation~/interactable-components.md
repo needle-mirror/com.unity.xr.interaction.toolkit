@@ -4,7 +4,7 @@ uid: xri-interactable-components
 
 # Interactable components
 
-The interactable components provided by the toolkit. 
+The interactable components provided by the toolkit.
 
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
@@ -20,6 +20,6 @@ Helper components that modify interactable object visuals or behavior.
 
 ## Additional resources
 
-* [Climb Interactable](climb-interactable.md) 
+* [Climb Interactable](climb-interactable.md)
 * [AR Interactables](ar-interactable-components.md)
 * [Component index](components.md)

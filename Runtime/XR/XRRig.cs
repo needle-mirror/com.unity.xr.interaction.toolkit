@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             throw new NotSupportedException(k_ObsoleteMessage);
         }
 
-                /// <summary>
+        /// <summary>
         /// (Deprecated) The "Rig" <see cref="GameObject"/> is used to refer to the base of the XR Rig, by default it is this <see cref="GameObject"/>.
         /// This is the <see cref="GameObject"/> that will be manipulated via locomotion.
         /// </summary>

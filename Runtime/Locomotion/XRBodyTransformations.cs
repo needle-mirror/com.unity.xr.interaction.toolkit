@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion

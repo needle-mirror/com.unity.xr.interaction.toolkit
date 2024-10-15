@@ -69,7 +69,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
         /// if the anchor Transform is destroyed or there is no <see cref="TeleportationProvider"/>.
         /// </summary>
         /// <remarks>
-        /// Due to script execution order of the <seealso cref="TeleportationProvider"/>, depending on when this method is called,
+        /// Due to script execution order of the <see cref="TeleportationProvider"/>, depending on when this method is called,
         /// teleportation of the XR Origin may not occur until the next frame.
         /// </remarks>
         // void return type to allow the method to be called from a UnityEvent

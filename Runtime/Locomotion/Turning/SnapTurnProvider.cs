@@ -54,10 +54,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         }
 
         [SerializeField]
-        [Tooltip("Controls whether to enable 180° snap turns.")]
+        [Tooltip("Controls whether to enable 180Â° snap turns.")]
         bool m_EnableTurnAround = true;
         /// <summary>
-        /// Controls whether to enable 180° snap turns.
+        /// Controls whether to enable 180Â° snap turns.
         /// </summary>
         /// <seealso cref="enableTurnLeftRight"/>
         public bool enableTurnAround

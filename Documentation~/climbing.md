@@ -19,4 +19,3 @@ The package provides a [Climb Provider](climb-provider.md) component. This is th
 ## Climb Interactable
 
 The package provides a [Climb Interactable](climb-interactable.md) component that implements the `XRBaseInteractable` abstract class. This component allows you to make an object climbable by using the selection interaction to drive movement. You can optionally restrict movement so that the user is unable to move along certain local axes of the object.
-

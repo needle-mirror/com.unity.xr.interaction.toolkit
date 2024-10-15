@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using Unity.Collections;
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
         /// </summary>
         /// <param name="numTargetPoints">The number of points to generate for the curve.</param>
         /// <param name="curveRatio">The ratio of the curve length to use as the distance from the midpoint to the control point.</param>
-        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param> 
+        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param>
         /// <param name="endOffset">Fixed offset to omit from the end of the curve.</param>
         /// <param name="curveOrigin">The starting point of the curve segment.</param>
         /// <param name="curveDirection">The normalized forward direction vector of the curve segment.</param>
@@ -166,7 +166,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
         /// Generates a cubic Bezier curve from a given curve segment and a curve ratio.
         /// </summary>
         /// <param name="numTargetPoints">The number of points to generate for the curve.</param>
-        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param> 
+        /// <param name="startOffset">Fixed offset to omit from the start of the curve.</param>
         /// <param name="endOffset">Fixed offset to omit from the end of the curve.</param>
         /// <param name="curveOrigin">The starting point of the curve segment.</param>
         /// <param name="midPoint">The midpoint the cubic bezier curve.</param>

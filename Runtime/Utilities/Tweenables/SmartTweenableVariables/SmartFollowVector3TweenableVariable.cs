@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
         public bool SetTargetWithinThreshold(float3 newTarget)
         {
             bool isWithinThreshold = IsNewTargetWithinThreshold(newTarget);
-            if(isWithinThreshold)
+            if (isWithinThreshold)
                 target = newTarget;
             return isWithinThreshold;
         }
@@ -124,7 +124,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
             ComputeNewTweenTarget(currentValue, currentTarget, m_SqrMaxDistanceAllowed, deltaTime, lowerSpeed, upperSpeed, out float newTweenTarget);
             HandleTween(newTweenTarget);
         }
-        
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
@@ -141,7 +141,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
 #endif
         static bool IsNewTargetWithinThreshold(in float3 currentValue, in float3 targetValue, float minDistanceAllowed, float maxDistanceAllowed, float timeSinceLastUpdate, float minToMaxDelaySeconds)
         {
-            var newSqrTargetOffset = math.distancesq(currentValue,targetValue);
+            var newSqrTargetOffset = math.distancesq(currentValue, targetValue);
 
             // Widen tolerance zone over time
             var allowedTargetDistanceOffset = math.lerp(minDistanceAllowed, maxDistanceAllowed, math.clamp(timeSinceLastUpdate / minToMaxDelaySeconds, 0f, 1f));

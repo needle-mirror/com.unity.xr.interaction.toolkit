@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters

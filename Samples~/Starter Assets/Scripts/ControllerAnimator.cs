@@ -17,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         [SerializeField]
         XRInputValueReader<Vector2> m_StickInput = new XRInputValueReader<Vector2>("Thumbstick");
-        
+
         [Header("Trigger")]
         [SerializeField]
         Transform m_TriggerTransform;
@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
         [SerializeField]
         Vector2 m_GripRightRange = new Vector2(-0.0125f, -0.011f);
-        
+
         [SerializeField]
         XRInputValueReader<float> m_GripInput = new XRInputValueReader<float>("Grip");
 
@@ -46,7 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 Debug.LogWarning($"Controller Animator component missing references on {gameObject.name}", this);
                 return;
             }
-            
+
             m_StickInput?.EnableDirectActionIfModeUsed();
             m_TriggerInput?.EnableDirectActionIfModeUsed();
             m_GripInput?.EnableDirectActionIfModeUsed();
@@ -72,7 +72,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 var triggerVal = m_TriggerInput.ReadValue();
                 m_TriggerTransform.localRotation = Quaternion.Euler(Mathf.Lerp(m_TriggerXAxisRotationRange.x, m_TriggerXAxisRotationRange.y, triggerVal), 0f, 0f);
             }
-            
+
             if (m_GripInput != null)
             {
                 var gripVal = m_GripInput.ReadValue();

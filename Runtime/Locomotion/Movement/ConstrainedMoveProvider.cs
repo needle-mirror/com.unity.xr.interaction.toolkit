@@ -1,4 +1,4 @@
-﻿using UnityEngine.Assertions;
+using UnityEngine.Assertions;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement

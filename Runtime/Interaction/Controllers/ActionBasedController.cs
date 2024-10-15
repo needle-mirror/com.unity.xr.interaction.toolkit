@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
@@ -69,7 +69,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_IsTrackedAction;
             set => SetInputActionProperty(ref m_IsTrackedAction, value);
         }
-        
+
         [SerializeField]
         InputActionProperty m_TrackingStateAction = new InputActionProperty(new InputAction("Tracking State", expectedControlType: "Integer"));
         /// <summary>
@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_SelectAction;
             set => SetInputActionProperty(ref m_SelectAction, value);
         }
-        
+
         [SerializeField]
         InputActionProperty m_SelectActionValue = new InputActionProperty(new InputAction("Select Value", expectedControlType: "Axis"));
         /// <summary>
@@ -127,7 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_ActivateAction;
             set => SetInputActionProperty(ref m_ActivateAction, value);
         }
-        
+
         [SerializeField]
         InputActionProperty m_ActivateActionValue = new InputActionProperty(new InputAction("Activate Value", expectedControlType: "Axis"));
         /// <summary>
@@ -157,7 +157,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_UIPressAction;
             set => SetInputActionProperty(ref m_UIPressAction, value);
         }
-        
+
         [SerializeField]
         InputActionProperty m_UIPressActionValue = new InputActionProperty(new InputAction("UI Press Value", expectedControlType: "Axis"));
         /// <summary>

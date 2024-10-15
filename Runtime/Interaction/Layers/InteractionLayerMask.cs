@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -8,11 +8,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [Serializable]
     public struct InteractionLayerMask : ISerializationCallbackReceiver
     {
-        [SerializeField] 
+        [SerializeField]
         uint m_Bits;
-        
+
         int m_Mask;
-        
+
         /// <summary>
         /// Implicitly converts an InteractionLayerMask to an integer.
         /// </summary>
@@ -22,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             return mask.m_Mask;
         }
-        
+
         /// <summary>
         /// Implicitly converts an integer to an InteractionLayerMask.
         /// </summary>
@@ -35,11 +35,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
             mask.m_Bits = (uint)intVal;
             return mask;
         }
-        
+
         /// <summary>
         /// Converts an interaction layer mask value to an integer value.
         /// </summary>
-        /// <returns>Returns the integer value equivalent to this Interaction Layer Mask.</returns>
+        /// <value>The integer value equivalent to this Interaction Layer Mask.</value>
         public int value
         {
             get => m_Mask;

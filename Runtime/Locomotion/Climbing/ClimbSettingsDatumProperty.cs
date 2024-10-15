@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -12,12 +12,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class ClimbSettingsDatumProperty : DatumProperty<ClimbSettings, ClimbSettingsDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{ClimbSettings, ClimbSettingsDatum}"/>
         public ClimbSettingsDatumProperty(ClimbSettings value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{ClimbSettings, ClimbSettingsDatum}"/>
         public ClimbSettingsDatumProperty(ClimbSettingsDatum datum) : base(datum)
         {
         }

@@ -1,5 +1,0 @@
-{
-  "displayName": "Legacy XR Input Readers",
-  "description": "This sample provides ScriptableObjects to assist with migration from the older device-based controller input to be used with the new input readers introduced with version 3.0.0.",
-  "path": "Samples~/Legacy XR Input Readers"
-}

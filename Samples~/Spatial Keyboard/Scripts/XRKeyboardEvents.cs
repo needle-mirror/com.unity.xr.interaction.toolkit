@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 {
-    #region EventArgs
+#region EventArgs
 
     /// <summary>
     /// Event data associated with a keyboard event.
@@ -77,9 +77,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         public bool capsLockValue { get; set; }
     }
 
-    #endregion
+#endregion
 
-    #region Events
+#region Events
 
     /// <summary>
     /// <see cref="UnityEvent"/> that Unity invokes on a keyboard.
@@ -130,6 +130,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
     {
     }
 
-    #endregion
+#endregion
 }
 #endif

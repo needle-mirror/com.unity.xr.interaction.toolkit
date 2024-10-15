@@ -47,8 +47,8 @@ MonoBehaviour:
       animationStateStartValue: 0
       animationStateEndValue: 0
     - stateName: idle
-      animationStateStartValue: 5
-      animationStateEndValue: 5
+      animationStateStartValue: 10
+      animationStateEndValue: 10
     - stateName: hovered
       animationStateStartValue: 15
       animationStateEndValue: 15

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -60,7 +60,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary><see cref="GUIContent"/> for the Tracking header label.</summary>
             public static readonly GUIContent trackingHeader = EditorGUIUtility.TrTextContent("Tracking");
-            /// <summary><see cref="GUIContent"/> for the Tracking header label.</summary>
+            /// <summary><see cref="GUIContent"/> for the Input header label.</summary>
             public static readonly GUIContent inputHeader = EditorGUIUtility.TrTextContent("Input");
             /// <summary><see cref="GUIContent"/> for the Model header label.</summary>
             public static readonly GUIContent modelHeader = EditorGUIUtility.TrTextContent("Model");

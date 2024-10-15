@@ -9,18 +9,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
     /// <summary>
     /// Represents the parameters to control the tunneling vignette material and customize its effects.
     /// </summary>
-    /// <remarks>
-    /// <seealso cref="TunnelingVignetteController"/>,
-    /// <seealso cref="ITunnelingVignetteProvider"/>,
+    /// <seealso cref="TunnelingVignetteController"/>
+    /// <seealso cref="ITunnelingVignetteProvider"/>
     /// <seealso cref="LocomotionVignetteProvider"/>
-    /// </remarks>
     [Serializable]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public sealed class VignetteParameters
     {
         [SerializeField]
         [Range(0f, Defaults.apertureSizeMax)]
-        float m_ApertureSize  = Defaults.apertureSizeDefault;
+        float m_ApertureSize = Defaults.apertureSizeDefault;
 
         /// <summary>
         /// The diameter of the inner transparent circle of the tunneling vignette.
@@ -475,7 +473,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
                 }
             }
 
-            m_ProviderRecords.Add(new ProviderRecord(provider) {easeState = EaseState.EasingIn});
+            m_ProviderRecords.Add(new ProviderRecord(provider) { easeState = EaseState.EasingIn });
         }
 
         /// <summary>
@@ -590,39 +588,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
                 switch (record.easeState)
                 {
                     case EaseState.NotEasing:
-                    {
-                        record.dynamicApertureSize = apertureSizeMax;
-                        record.dynamicEaseOutDelayTime = 0f;
-                        record.easeInLockEnded = false;
+                        {
+                            record.dynamicApertureSize = apertureSizeMax;
+                            record.dynamicEaseOutDelayTime = 0f;
+                            record.easeInLockEnded = false;
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case EaseState.EasingIn:
-                    {
-                        var desiredEaseInTime = Mathf.Max(parameters.easeInTime, 0f);
-                        var desiredEaseInSize = parameters.apertureSize;
-                        record.easeInLockEnded = false;
-
-                        if (desiredEaseInTime > 0f && currentSize > desiredEaseInSize)
-                        {
-                            var updatedSize = currentSize + (desiredEaseInSize - apertureSizeMax) / desiredEaseInTime * Time.unscaledDeltaTime;
-                            record.dynamicApertureSize = updatedSize < desiredEaseInSize ? desiredEaseInSize : updatedSize;
-                        }
-                        else
-                        {
-                            record.dynamicApertureSize = desiredEaseInSize;
-                        }
-
-                        break;
-                    }
-
-                    case EaseState.EasingInHoldBeforeEasingOut:
-                    {
-                        if (!record.easeInLockEnded)
                         {
                             var desiredEaseInTime = Mathf.Max(parameters.easeInTime, 0f);
                             var desiredEaseInSize = parameters.apertureSize;
+                            record.easeInLockEnded = false;
 
                             if (desiredEaseInTime > 0f && currentSize > desiredEaseInSize)
                             {
@@ -631,76 +609,96 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
                             }
                             else
                             {
-                                record.easeInLockEnded = true;
-                                if (parameters.easeOutDelayTime > 0f &&
-                                    record.dynamicEaseOutDelayTime < parameters.easeOutDelayTime)
+                                record.dynamicApertureSize = desiredEaseInSize;
+                            }
+
+                            break;
+                        }
+
+                    case EaseState.EasingInHoldBeforeEasingOut:
+                        {
+                            if (!record.easeInLockEnded)
+                            {
+                                var desiredEaseInTime = Mathf.Max(parameters.easeInTime, 0f);
+                                var desiredEaseInSize = parameters.apertureSize;
+
+                                if (desiredEaseInTime > 0f && currentSize > desiredEaseInSize)
+                                {
+                                    var updatedSize = currentSize + (desiredEaseInSize - apertureSizeMax) / desiredEaseInTime * Time.unscaledDeltaTime;
+                                    record.dynamicApertureSize = updatedSize < desiredEaseInSize ? desiredEaseInSize : updatedSize;
+                                }
+                                else
+                                {
+                                    record.easeInLockEnded = true;
+                                    if (parameters.easeOutDelayTime > 0f &&
+                                        record.dynamicEaseOutDelayTime < parameters.easeOutDelayTime)
+                                    {
+                                        record.easeState = EaseState.EasingOutDelay;
+                                        goto case EaseState.EasingOutDelay;
+                                    }
+
+                                    record.easeState = EaseState.EasingOut;
+                                    goto case EaseState.EasingOut;
+                                }
+                            }
+                            else
+                            {
+                                if (parameters.easeOutDelayTime > 0f)
                                 {
                                     record.easeState = EaseState.EasingOutDelay;
                                     goto case EaseState.EasingOutDelay;
                                 }
 
+                                record.easeState = EaseState.EasingOutDelay;
+                                goto case EaseState.EasingOut;
+                            }
+
+                            break;
+                        }
+
+                    case EaseState.EasingOutDelay:
+                        {
+                            var currentDelayTime = record.dynamicEaseOutDelayTime;
+                            var desiredEaseOutDelayTime = Mathf.Max(parameters.easeOutDelayTime, 0f);
+
+                            if (desiredEaseOutDelayTime > 0f && currentDelayTime < desiredEaseOutDelayTime)
+                            {
+                                currentDelayTime += Time.unscaledDeltaTime;
+
+                                record.dynamicEaseOutDelayTime = currentDelayTime > desiredEaseOutDelayTime
+                                    ? desiredEaseOutDelayTime
+                                    : currentDelayTime;
+                            }
+
+                            if (record.dynamicEaseOutDelayTime >= desiredEaseOutDelayTime)
+                            {
                                 record.easeState = EaseState.EasingOut;
                                 goto case EaseState.EasingOut;
                             }
+
+                            break;
                         }
-                        else
-                        {
-                            if (parameters.easeOutDelayTime > 0f)
-                            {
-                                record.easeState = EaseState.EasingOutDelay;
-                                goto case EaseState.EasingOutDelay;
-                            }
-
-                            record.easeState = EaseState.EasingOutDelay;
-                            goto case EaseState.EasingOut;
-                        }
-
-                        break;
-                    }
-
-                    case EaseState.EasingOutDelay:
-                    {
-                        var currentDelayTime = record.dynamicEaseOutDelayTime;
-                        var desiredEaseOutDelayTime = Mathf.Max(parameters.easeOutDelayTime, 0f);
-
-                        if (desiredEaseOutDelayTime > 0f && currentDelayTime < desiredEaseOutDelayTime)
-                        {
-                            currentDelayTime += Time.unscaledDeltaTime;
-
-                            record.dynamicEaseOutDelayTime = currentDelayTime > desiredEaseOutDelayTime
-                                ? desiredEaseOutDelayTime
-                                : currentDelayTime;
-                        }
-
-                        if (record.dynamicEaseOutDelayTime >= desiredEaseOutDelayTime)
-                        {
-                            record.easeState = EaseState.EasingOut;
-                            goto case EaseState.EasingOut;
-                        }
-
-                        break;
-                    }
 
                     case EaseState.EasingOut:
-                    {
-                        var desiredEaseOutTime = Mathf.Max(parameters.easeOutTime, 0f);
-                        var startSize = parameters.apertureSize;
-
-                        if (desiredEaseOutTime > 0f && currentSize < apertureSizeMax)
                         {
-                            var updatedSize = currentSize + (apertureSizeMax - startSize) / desiredEaseOutTime * Time.unscaledDeltaTime;
-                            record.dynamicApertureSize = updatedSize > apertureSizeMax ? apertureSizeMax : updatedSize;
-                        }
-                        else
-                        {
-                            record.dynamicApertureSize = apertureSizeMax;
-                        }
+                            var desiredEaseOutTime = Mathf.Max(parameters.easeOutTime, 0f);
+                            var startSize = parameters.apertureSize;
 
-                        if (record.dynamicApertureSize >= apertureSizeMax)
-                            record.easeState = EaseState.NotEasing;
+                            if (desiredEaseOutTime > 0f && currentSize < apertureSizeMax)
+                            {
+                                var updatedSize = currentSize + (apertureSizeMax - startSize) / desiredEaseOutTime * Time.unscaledDeltaTime;
+                                record.dynamicApertureSize = updatedSize > apertureSizeMax ? apertureSizeMax : updatedSize;
+                            }
+                            else
+                            {
+                                record.dynamicApertureSize = apertureSizeMax;
+                            }
 
-                        break;
-                    }
+                            if (record.dynamicApertureSize >= apertureSizeMax)
+                                record.easeState = EaseState.NotEasing;
+
+                            break;
+                        }
 
                     default:
                         Assert.IsTrue(false, $"Unhandled {nameof(EaseState)}={record.easeState}");

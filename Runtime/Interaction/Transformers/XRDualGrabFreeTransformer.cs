@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -97,11 +97,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             {
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
-                {
-                    UpdateTarget(grabInteractable, ref targetPose);
+                    {
+                        UpdateTarget(grabInteractable, ref targetPose);
 
-                    break;
-                }
+                        break;
+                    }
             }
         }
 

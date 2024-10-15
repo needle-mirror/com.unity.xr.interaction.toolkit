@@ -17,7 +17,7 @@ The topic in this section describe the components used to create interactions wi
 | [Affordances](affordance-components.md)             | The affordance components provided by the toolkit.|
 
 ## Additional resources
- 
+
 * [Locomotion](xref:xri-locomotion-components)
 * [UI interaction](xref:xri-ui-interaction)
 * [Component index](xref:xri-components)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initializes the attribute specifying whether to allow or disallow multiple selection mode.
         /// </summary>
-        /// <param name="allowMultiple"></param>
+        /// <param name="allowMultiple">Specifies whether to allow the mode to enable multiple objects to be selected.</param>
         public CanSelectMultipleAttribute(bool allowMultiple = true)
         {
             this.allowMultiple = allowMultiple;

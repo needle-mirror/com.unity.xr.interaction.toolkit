@@ -24,7 +24,7 @@ To start using the toolkit, you must first take care of the following prerequisi
 
 Refer to the [XR section](xref:XR) of the Unity manual for more general information about setting up a project for XR. Note that the [Starter Assets](xref:xri-samples-starter-assets) sample contains a preconfigured XR Origin prefab that already contains most of the toolkit components that you need for implementing interactions. Usually, you can save time and effort by using this prefab instead of the more generic XR Origin configurations described in the Unity Manual.
 
-<a name="settings"></a> 
+<a name="settings"></a>
 ## Configure project settings
 
 The XR Interaction Toolkit has a few settings to consider:
@@ -52,7 +52,7 @@ The toolkit components use input from controllers and XR tracking systems to tri
 
 The interactor and locomotion prefabs in the [Starter Assets](xref:xri-samples-starter-assets) are already configured to use the **XR Default Input Action asset**. If you don't use the starter assets, you must assign an input source to each interactor and locomotion provider component's input properties. The toolkit provides a number of ways to specify the source of input, including by referencing an input action asset, by binding an input action directly on a component, by implementing a custom objects, and by setting an input value directly. Refer to [Configure input](xref:xri-configure-input-system) for more information.
 
-To use input from the user's hands, you must install the [XR Hands](xref:xrhands-manual) package. Not all XR platforms support hand tracking. 
+To use input from the user's hands, you must install the [XR Hands](xref:xrhands-manual) package. Not all XR platforms support hand tracking.
 
 <a name="scene"></a>
 ## Set up scene objects

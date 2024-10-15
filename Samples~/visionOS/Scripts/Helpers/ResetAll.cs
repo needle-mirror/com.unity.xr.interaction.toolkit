@@ -12,7 +12,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
     {
         List<Resetable> m_Resetables = new List<Resetable>();
         XRBaseInteractable m_Interactable;
-        
+
         void Awake()
         {
             m_Resetables.AddRange(FindObjectsOfType<Resetable>());

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme;

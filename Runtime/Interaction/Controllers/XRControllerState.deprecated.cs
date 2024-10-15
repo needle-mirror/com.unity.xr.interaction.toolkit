@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
 using UnityEngine.SpatialTracking;
 #endif

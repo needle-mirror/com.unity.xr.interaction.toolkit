@@ -46,7 +46,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         sealed class RaycastHitComparer : IComparer<RaycastHitData>
         {
             public int Compare(RaycastHitData a, RaycastHitData b)
-                => b.graphic.depth.CompareTo(a.graphic.depth);
+            {
+                var canvasSort = b.graphic.canvas.sortingOrder.CompareTo(a.graphic.canvas.sortingOrder);
+                return (canvasSort == 0) ? b.graphic.depth.CompareTo(a.graphic.depth) : canvasSort;
+            }
         }
 
         [SerializeField]
@@ -180,7 +183,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static readonly Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>> s_PokeHoverRaycasters = new Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>>();
 
         /// <summary>
-        /// Checks if poke interactor is interacting with any raycaster in the scene. 
+        /// Checks if poke interactor is interacting with any raycaster in the scene.
         /// </summary>
         /// <param name="interactor">Poke ui interactor to check.</param>
         /// <returns>True if any poke interactor is hovering or selecting a graphic in the scene.</returns>
@@ -197,15 +200,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Removes interactor from poke data and calls OnHoverExited on the <see cref="XRPokeLogic"/>.
+        /// This will not end poke interactions for other TrackedDeviceGraphicsRaycasters in the scene.
         /// </summary>
         /// <param name="interactor">Interactor to end the poke interaction.</param>
         void EndPokeInteraction(IUIInteractor interactor)
         {
             if (interactor == null)
                 return;
-            
+
             m_PokeLogic.OnHoverExited(interactor);
-            s_InteractorRaycasters.Remove(interactor);
+            if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null && raycaster == this)
+                s_InteractorRaycasters.Remove(interactor);
+
             s_PokeHoverRaycasters[this].Remove(interactor);
         }
 
@@ -238,7 +244,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         Dictionary<Transform, BindableVariable<PokeStateData>> pokeStateDataDictionary { get; } = new Dictionary<Transform, BindableVariable<PokeStateData>>();
 
         BindingsGroup m_BindingsGroup = new BindingsGroup();
-        
+
         /// <summary>
         /// Gets the <see cref="PokeStateData"/> as a <see cref="IReadOnlyBindableVariable{TValue}"/> for the target transform.
         /// </summary>
@@ -258,7 +264,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> meets requirements for poke with any <see cref="TrackedDeviceGraphicRaycaster"/>.</returns>
         internal static bool HasPokeSelect(IUIInteractor interactor)
         {
-            return s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null;
+            return interactor != null && s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null;
         }
 
         PhysicsScene m_LocalPhysicsScene;
@@ -301,7 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             base.OnDisable();
 
-            // Clean up any existing data of interactors hovering or selecting this disabled TrackedDeviceGraphicRaycaster 
+            // Clean up any existing data of interactors hovering or selecting this disabled TrackedDeviceGraphicRaycaster
             using (HashSetPool<IUIInteractor>.Get(out var interactorHashSet))
             {
                 foreach (var kvp in s_InteractorRaycasters)
@@ -392,15 +398,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (interactor != null && interactor.TryGetUIModel(out var uiModel) && uiModel.interactionType == UIInteractionType.Poke)
             {
-                // First we see if the interactor is selecting on anything else, then check if they are part of the same root canvas, otherwise skip processing.
-                // If they share the same root canvas, we do a sorting check to see if we cancel out of the poke or bubble the highest sorted raycaster to the top of the list.
-                // Notes for future readers: In the case of a dropdown, a Blocker will be created with order 29999 and Dropdown with 30000, prioritizing dropdown selection.
-                if (s_InteractorRaycasters.TryGetValue(interactor, out var graphicRaycaster) && graphicRaycaster != null && graphicRaycaster != this &&
-                    (graphicRaycaster.canvas.rootCanvas != canvas.rootCanvas || (graphicRaycaster.canvas.rootCanvas == canvas.rootCanvas && graphicRaycaster.canvas.sortingOrder >= canvas.sortingOrder)))
-                {
-                    return;
-                }
-
                 // Check if poke is blocked for this frame. Unlike rays, updates for poke ui interaction are isolated from the poke interactor.
                 if (PerformSpherecast(uiModel.position, uiModel.pokeDepth, layerMask, currentEventCamera, resultAppendList) && resultAppendList.Count > 0)
                 {
@@ -409,14 +406,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var hitTransform = firstHit.gameObject.transform;
 
                     m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
-                    
+
                     // Check if not already hovering interactor
                     if (!s_PokeHoverRaycasters[this].Contains(interactor))
                     {
                         s_PokeHoverRaycasters[this].Add(interactor);
                         m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
                     }
-                    
+
                     if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
                         s_InteractorRaycasters[interactor] = this;
@@ -434,11 +431,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             else
             {
                 var rayPoints = eventData.rayPoints;
+                float existingHitLength = 0f;
                 for (var i = 1; i < rayPoints.Count; i++)
                 {
                     var from = rayPoints[i - 1];
                     var to = rayPoints[i];
-                    if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList))
+                    if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList, ref existingHitLength))
                     {
                         eventData.rayHitIndex = i;
                         break;
@@ -465,7 +463,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return ProcessSortedHitsResults(ray, float.PositiveInfinity, false, m_RaycastResultsCache, resultAppendList);
         }
 
-        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
+        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList, ref float existingHitLength)
         {
             var hitSomething = false;
 
@@ -480,7 +478,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (hitCount > 0)
                 {
                     var hit = FindClosestHit(m_OcclusionHits3D, hitCount);
-                    hitDistance = hit.distance;
+                    hitDistance = existingHitLength + hit.distance;
                     hitSomething = true;
                 }
             }
@@ -519,7 +517,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     validHit = Vector3.Dot(forward, goDirection) > 0;
                 }
 
-                validHit &= hitData.distance < hitDistance;
+                validHit &= hitData.distance <= hitDistance;
 
                 if (validHit)
                 {
@@ -627,7 +625,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return false;
 
             if (((1 << graphic.gameObject.layer) & layerMask) == 0)
-                return  false;
+                return false;
 
             return true;
         }

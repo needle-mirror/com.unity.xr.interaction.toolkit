@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -98,8 +98,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
         protected override void PreprocessTween()
         {
             base.PreprocessTween();
-            
-            // We have to update the state from the previous job before getting the new value from which to start the next tween. 
+
+            // We have to update the state from the previous job before getting the new value from which to start the next tween.
             UpdateStateFromCompletedJob();
         }
 
@@ -155,7 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
             {
                 m_JobOutputStore = new NativeArray<T>(1, Allocator.Persistent);
                 m_OutputInitialized = true;
-                
+
                 // Register to auto dispose.
                 DisposableManagerSingleton.RegisterDisposable(this);
             }
@@ -174,7 +174,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
         {
             if (!m_OutputInitialized || !m_HasJobPending)
                 return false;
-            
+
             m_LastJobHandle.Complete();
             m_LastJobHandle = default;
             m_HasJobPending = false;

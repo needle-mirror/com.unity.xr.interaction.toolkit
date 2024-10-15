@@ -73,9 +73,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         protected override void DrawProperties()
         {
             base.DrawProperties();
-            
+
             EditorGUILayout.Space();
-            
+
             DrawGazeConfiguration();
         }
 

@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 {
     /// <summary>
     /// Base for a scriptable object that can perform movement of an <see cref="XRMovableBody"/> that is constrained

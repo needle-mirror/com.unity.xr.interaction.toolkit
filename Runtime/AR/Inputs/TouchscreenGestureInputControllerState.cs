@@ -127,7 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         [InputControl(usage = "twoFingerDragDelta", offset = 100)]
         [FieldOffset(100)]
         public Vector2 twoFingerDragDelta;
-        
+
         /// <summary>
         /// The number of fingers on the touchscreen.
         /// </summary>

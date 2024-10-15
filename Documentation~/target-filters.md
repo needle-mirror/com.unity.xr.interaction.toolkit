@@ -23,7 +23,7 @@ Add the component `XRTargetFilter` to a GameObject and link it to the `Starting 
 
 ![xr-target-filter-setup](images/xr-target-filter-setup.png)
 
-A single `XRTargetFilter` can be linked to multiple different Interactors. 
+A single `XRTargetFilter` can be linked to multiple different Interactors.
 
 ### Evaluator
 
@@ -63,7 +63,7 @@ All the Evaluators weighted scores for a given Interactable are multiplied toget
 
 ### Evaluators list order
 
-For each Interactable candidate for interaction in the current frame, the Evaluators list is processed in order to calculate the Interactable's final score. 
+For each Interactable candidate for interaction in the current frame, the Evaluators list is processed in order to calculate the Interactable's final score.
 
 > [!TIP]
 > You might want to keep Evaluators that can exclude Interactables first in the list (the ones that can have a `0` or negative weighted score) since they will stop the current Interactable process and save some unnecessary processing.

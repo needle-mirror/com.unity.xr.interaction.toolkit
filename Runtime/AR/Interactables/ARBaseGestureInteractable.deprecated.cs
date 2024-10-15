@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="Manipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -31,7 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Base class that manipulates an object via a gesture.
     /// </summary>
     [Obsolete("ARBaseGestureInteractable has been deprecated.")]
-    public class ARBaseGestureInteractable {}
+    public class ARBaseGestureInteractable { }
 }
 
 #else
@@ -69,7 +69,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             get => m_ARSessionOrigin;
             set => m_ARSessionOrigin = value;
-        }        
+        }
 
         [SerializeField]
         XROrigin m_XROrigin;

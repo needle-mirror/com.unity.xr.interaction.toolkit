@@ -37,7 +37,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         const string k_LineMaterial = "Default-Line.mat";
         const string k_UILayerName = "UI";
-        
+
         [MenuItem("GameObject/XR/Near-Far Interactor", false, 10), UsedImplicitly]
         public static void CreateNearFarInteractor(MenuCommand menuCommand)
         {
@@ -61,7 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform()));
         }
-        
+
         [MenuItem("GameObject/XR/Gaze Interactor", false, 10), UsedImplicitly]
         public static void CreateGazeInteractor(MenuCommand menuCommand)
         {
@@ -106,7 +106,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var rigidbody = grabInteractableGO.GetComponent<Rigidbody>();
             // Enable interpolation on the Rigidbody to smooth movement
             rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            
+
             Finalize(grabInteractableGO);
         }
 
@@ -272,7 +272,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             return interactionManager.gameObject;
         }
-        
+
         static GameObject CreateNearFarInteractor(Transform parent, string name = "Near-Far Interactor")
         {
             var nearFarInteractableGO = CreateAndPlaceGameObject(name, parent,
@@ -281,13 +281,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 typeof(SphereInteractionCaster),
                 typeof(CurveInteractionCaster));
             var interactor = nearFarInteractableGO.GetComponent<NearFarInteractor>();
-            
+
             var attachController = nearFarInteractableGO.GetComponent<InteractionAttachController>();
             interactor.interactionAttachController = attachController;
-            
+
             var nearCaster = nearFarInteractableGO.GetComponent<SphereInteractionCaster>();
             interactor.nearInteractionCaster = nearCaster;
-            
+
             var farCaster = nearFarInteractableGO.GetComponent<CurveInteractionCaster>();
             interactor.farInteractionCaster = farCaster;
 
@@ -295,7 +295,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 typeof(LineRenderer),
                 typeof(CurveVisualController),
                 typeof(SortingGroup));
-            
+
             var lineRenderer = lineVisualGO.GetComponent<LineRenderer>();
             SetupLineRenderer(lineRenderer);
 

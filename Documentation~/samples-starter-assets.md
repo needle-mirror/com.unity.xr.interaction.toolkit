@@ -14,13 +14,19 @@ This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html
 
 |**Asset**|**Description**|
 |---|---|
+|**`AffordanceThemes\`**|Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers).|
+|**`Animations\`**|Animations used as part of the demo scene climb station.|
 |**`DemoSceneAssets\`**|Asset folder containing assets only used for the `DemoScene`.|
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
+|**`Filters\`**|Interaction filters used for gaze-based teleportation assistance.|
+|**`Materials\`**|General-use materials used for non-demo scene prefabs.|
 |**`Models\`**|General-use models, such as left and right controllers.|
 |**`Prefabs\`**|XRI prefabs for use in any project.<br />See [Prefabs](#prefabs) below.|
 |**`Presets\`**|Preset configurations for many of the most common XRI components.<br />See [Presets](#presets) below.|
 |**`Scripts\`**|General-use scripts that can accelerate development when using XRI.<br />See [Scripts](#scripts) below.|
-|**`Tunneling Vignette\`**|Folder containing a prefab and shaders required to use the provided tunneling vignette comfort mode option.<br />See [Tunneling vignette](#tunneling-vignette) below.|
+|**`Shaders\`**|Shaders designed to be used with affordance themes for better visual interaction.|
+|**`Textures\`**|Textures used with the general-purpose materials.|
+|**`TunnelingVignette\`**|Folder containing a prefab and shaders required to use the provided tunneling vignette comfort mode option.<br />See [Tunneling vignette](#tunneling-vignette) below.|
 |**`DemoScene`**|Scene that illustrates a basic setup using the package.<br />See [Demo Scene](#demo-scene) below.|
 |**`XRI Default Input Actions.inputactions`**|Asset that contains actions with typical bindings for use in XR experiences.<br />See [Input Actions Asset](#input-actions-asset) below.|
 
@@ -40,6 +46,7 @@ The Demo Scene in the Starter Assets sample package contains a number of simplif
 |---|---|
 |**`AffordanceThemes\`**|Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the demo scene.|
 |**`Audio\`**|Simple sound effects used in the demo scene.|
+|**`Materials\`**|Materials used for interactables in the demo scene.|
 |**`Models\`**|Simple shapes used as part of the example prefabs.|
 |**`Prefabs\`**|Asset folder containing prefabs to streamline adding an XR Origin camera rig and interactable prefabs showcased in the `DemoScene`.|
 |**`Prefabs\Climb\`**|Folder containing additional prefabs used to construct the `Climb Sample` used in the `DemoScene`.|
@@ -81,9 +88,9 @@ For a complete example of configuring input actions for each controller, and usi
 |**`XRI Default Continuous Move.preset`**|Preset for [Continuous Move Provider](xref:xri-continuous-move-provider).|
 |**`XRI Default Continuous Turn.preset`**|Preset for [Continuous Turn Provider](xref:xri-continuous-turn-provider).|
 |**`XRI Default Dynamic Move.preset`**|Preset for [Dynamic Move Provider](#scripts).|
-|**`XRI Default Left Controller Input Action Manager.preset`**|Preset for left hand [ControllerInputActionManager](#scripts).|
+|**`XRI Default Left Controller InputActionManager.preset`**|Preset for left hand [ControllerInputActionManager](#scripts).|
 |**`XRI Default Left Grab Move.preset`**|Preset for left hand [Grab Move Provider](xref:xri-grab-move-provider).|
-|**`XRI Default Right Controller Input Action Manager.preset`**|Preset for right hand [ControllerInputActionManager](#scripts).|
+|**`XRI Default Right Controller InputActionManager.preset`**|Preset for right hand [ControllerInputActionManager](#scripts).|
 |**`XRI Default Right Grab Move.preset`**|Preset for right hand [Grab Move Provider](xref:xri-grab-move-provider).|
 |**`XRI Default Snap Turn.preset`**|Preset for [Snap Turn Provider](xref:xri-snap-turn-provider).|
 |**`XRI Default XR UI Input Module.preset`**|Preset for [XR UI Input Module](xref:xri-ui-input-module).|

@@ -120,10 +120,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         /// <inheritdoc />
         public IXRInteractor activeInteractor { get; private set; }
-        
+
         /// <inheritdoc />
         public IXRInteractor focusInteractor { get; private set; }
-        
+
         /// <inheritdoc />
         public IXRFocusInteractable focusInteractable { get; private set; }
 
@@ -1090,7 +1090,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             using (XRInteractionManager.s_GetValidTargetsMarker.Auto())
                 m_RegisteredInteractionManager.GetValidTargets(interactor, m_ValidTargets);
-            
+
             var selectInteractor = interactor as IXRSelectInteractor;
             var hoverInteractor = interactor as IXRHoverInteractor;
 

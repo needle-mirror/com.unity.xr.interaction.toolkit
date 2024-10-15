@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -438,7 +438,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         void UpdatePlaybackTime(double playbackTime)
         {
-            if (!m_Recording || m_Recording == null || m_Recording.frames.Count == 0 || m_LastFrameIdx >= m_Recording.frames.Count  )
+            if (!m_Recording || m_Recording == null || m_Recording.frames.Count == 0 || m_LastFrameIdx >= m_Recording.frames.Count)
                 return;
 
             // Look for next frame in order (binary search would be faster but we are only searching from last cached frame index)

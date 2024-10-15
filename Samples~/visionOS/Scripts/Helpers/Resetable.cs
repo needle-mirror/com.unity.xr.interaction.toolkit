@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         void Awake()
         {
             m_Transform = transform;
-            
+
             // Capture initial transform
             m_InitialPosition = m_Transform.position;
             m_InitialRotation = m_Transform.rotation;
@@ -29,13 +29,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             // Reset transform
             m_Transform.SetPositionAndRotation(m_InitialPosition, m_InitialRotation);
             m_Transform.localScale = m_InitialScale;
-            
+
             // Reset Rigidbody velocities if exists
             if (m_Rigidbody != null)
             {
                 m_Rigidbody.MovePosition(m_InitialPosition);
                 m_Rigidbody.MoveRotation(m_InitialRotation);
-                if(!m_Rigidbody.isKinematic)
+                if (!m_Rigidbody.isKinematic)
                     return;
                 m_Rigidbody.velocity = Vector3.zero;
                 m_Rigidbody.angularVelocity = Vector3.zero;

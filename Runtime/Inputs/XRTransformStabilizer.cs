@@ -41,8 +41,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         Object m_AimTargetObject;
 
         /// <summary>
-        /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable. 
-        /// When stabilizing rotation, it uses whatever value is most optimal - either the last rotation (minimizing rotation), 
+        /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.
+        /// When stabilizing rotation, it uses whatever value is most optimal - either the last rotation (minimizing rotation),
         /// or the rotation that keeps the endpoint in place.
         /// </summary>
         public IXRRayProvider aimTarget
@@ -117,6 +117,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             if (m_AimTarget == null)
                 m_AimTarget = m_AimTargetObject as IXRRayProvider;
 
+            if (m_Target == null)
+                return;
+
             if (m_UseLocalSpace)
                 m_ThisTransform.SetLocalPose(m_Target.GetLocalPose());
             else
@@ -128,6 +131,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         protected void Update()
         {
+            if (m_AimTarget == null || m_Target == null)
+                return;
+
             ApplyStabilization(ref m_ThisTransform, m_Target, m_AimTarget, m_PositionStabilization, m_AngleStabilization, Time.deltaTime, m_UseLocalSpace);
         }
 
@@ -141,7 +147,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
         /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Defaults to false.</param>
         /// <remarks>
-        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform.
         /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
         /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
         /// </remarks>
@@ -164,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
         /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Defaults to false.</param>
         /// <remarks>
-        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform.
         /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
         /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
         /// </remarks>
@@ -187,7 +193,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// <param name="deltaTime">The time interval to use for stabilization calculations.</param>
         /// <param name="useLocalSpace">Whether to use local space for position and rotation calculations. Ignored if <paramref name="aimTarget"/> is not null as it only provides world space data. Defaults to false.</param>
         /// <remarks>
-        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform. 
+        /// This method adjusts the position and rotation of <paramref name="toStabilize"/> Transform to make it gradually align with the <paramref name="target"/> Transform.
         /// If <paramref name="aimTarget"/> is provided, it also considers the endpoint of the ray for more precise rotation stabilization.
         /// The <paramref name="positionStabilization"/> and <paramref name="angleStabilization"/> parameters control the speed of stabilization.
         /// If <paramref name="useLocalSpace"/> is true, the method operates in the local space of the <paramref name="toStabilize"/> Transform.
@@ -200,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 // Ignoring argument and forcing world space since the target endpoint is in world space
                 ApplyStabilization(ref toStabilize, target, aimTarget.rayEndPoint, positionStabilization, angleStabilization, deltaTime, false);
         }
-        
+
         static void ProcessStabilization(Pose currentPose, Pose targetPose, Vector3 targetEndpoint, float positionStabilization, float angleStabilization, float deltaTime, float localScale, Transform toStabilize, bool useLocalSpace)
         {
             var currentPosition = (float3)currentPose.position;
@@ -227,7 +233,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             else
                 toStabilize.SetWorldPose(resultPose);
         }
-        
+
         static void ProcessStabilizationWithoutAimTarget(Pose currentPose, Pose targetPose, float positionStabilization, float angleStabilization, float deltaTime, float localScale, Transform toStabilize, bool useLocalSpace)
         {
             var currentPosition = (float3)currentPose.position;
@@ -245,7 +251,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             else
                 toStabilize.SetWorldPose(resultPose);
         }
-        
+
         static void CalculatePoses(Transform toStabilize, Transform target, bool useLocalSpace, out Pose currentPose, out Pose targetPose)
         {
             currentPose = useLocalSpace ? toStabilize.GetLocalPose() : toStabilize.GetWorldPose();

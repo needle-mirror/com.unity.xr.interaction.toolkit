@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -111,6 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 pressedGameObject = null;
                 pressedGameObjectRaw = null;
                 draggedGameObject = null;
+                pointerTarget = null;
 
                 if (hoverTargets == null)
                     hoverTargets = new List<GameObject>();
@@ -313,6 +315,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// Interactor that is tracking and updating the state of this model.
+        /// </summary>
+        internal IUIInteractor interactor { get; set; }
+
+        /// <summary>
+        /// Updates the internal select state of the model. This is required for poke interactions
+        /// due to the frame timing when performing sphere casts against the <see cref="TrackedDeviceGraphicRaycaster"/>.
+        /// Only applies with <see cref="UIInteractionType.Poke"/>.
+        /// </summary>
+        /// <seealso cref="select"/>
+        internal void UpdatePokeSelectState()
+        {
+            if (m_InteractionType == UIInteractionType.Poke)
+                select = TrackedDeviceGraphicRaycaster.HasPokeSelect(interactor);
+        }
+
+        /// <summary>
         /// Tracks the current selectable UI element being hovered
         /// </summary>
         public GameObject selectableObject { get; set; }
@@ -417,7 +436,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             currentRaycast = eventData.pointerCurrentRaycast;
             currentRaycastEndpointIndex = eventData.rayHitIndex;
         }
-        
+
         internal static TrackedDeviceModel invalid { get; } = new TrackedDeviceModel(-1);
     }
 }

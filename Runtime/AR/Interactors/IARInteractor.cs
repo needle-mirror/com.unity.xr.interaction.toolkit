@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Enables raycasts against AR environment trackables.
         /// </summary>
         bool enableARRaycasting { get;}
-        
+
         /// <summary>
         /// Enables occlusion of AR raycast hits by 3D objects.
         /// </summary>

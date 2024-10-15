@@ -306,10 +306,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return TryGetInputActionReference(out var reference) ? ReadValue(reference.action) : default;
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    return objectReference?.ReadValue() ?? default;
-                }
+                    {
+                        var objectReference = GetObjectReference();
+                        return objectReference?.ReadValue() ?? default;
+                    }
 
                 case InputSourceMode.ManualValue:
                     return m_ManualValue;
@@ -345,14 +345,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return false;
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    if (objectReference != null)
-                        return objectReference.TryReadValue(out value);
+                    {
+                        var objectReference = GetObjectReference();
+                        if (objectReference != null)
+                            return objectReference.TryReadValue(out value);
 
-                    value = default;
-                    return false;
-                }
+                        value = default;
+                        return false;
+                    }
 
                 case InputSourceMode.ManualValue:
                     value = m_ManualValue;

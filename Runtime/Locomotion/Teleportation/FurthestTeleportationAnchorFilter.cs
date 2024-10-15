@@ -1,4 +1,4 @@
-﻿using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation

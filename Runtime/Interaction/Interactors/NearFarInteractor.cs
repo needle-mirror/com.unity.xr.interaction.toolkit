@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.EventSystems;
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         [SerializeField]
         bool m_SortNearTargetsAfterTargetFilter;
-        
+
         /// <summary>
         /// If true, the interactor will sort the near caster's valid targets after the <see cref="XRBaseInteractor.targetFilter"/> has been applied.
         /// Generally, the target filter also takes care of sorting, so this option should only be used if the target filter does not sort.
@@ -356,9 +356,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected override void OnDisable()
         {
             base.OnDisable();
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
 
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
             InitializeInteractor();
         }
 
@@ -414,19 +413,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             base.PreprocessInteractor(updatePhase);
-            
+
             if (updatePhase != XRInteractionUpdateOrder.UpdatePhase.Dynamic)
                 return;
 
             InitializeInteractor();
             UpdateAnchor();
-            
+
             var newSelectionRegion = DetermineSelectionRegion();
             EvaluateNearInteraction();
             EvaluateFarInteraction(newSelectionRegion);
             UpdateSelectionRegion(newSelectionRegion);
         }
-        
+
         void InitializeInteractor()
         {
             m_InternalValidTargets.Clear();
@@ -446,18 +445,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             return interactionAttachController.hasOffset ? Region.Far : Region.Near;
         }
-        
+
         void UpdateSelectionRegion(Region newSelectionRegion)
         {
             m_ReleasedNearInteractionThisFrame = false;
             m_SelectionRegion.Value = newSelectionRegion;
         }
-        
+
         void EvaluateNearInteraction()
         {
             if (!m_EnableNearCasting || hasSelection || !nearInteractionCaster.TryGetColliderTargets(interactionManager, m_TargetColliders))
                 return;
-            
+
             int registerValidTargets = RegisterNearValidTargets(m_TargetColliders, m_InternalValidTargets);
 
             if (registerValidTargets > 0)
@@ -480,7 +479,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             bool shouldUpdateFarCast = m_EnableFarCasting || newSelectionRegion == Region.Far;
             if (!shouldUpdateFarCast || m_ValidTargetCastSource == Region.Near)
                 return;
-            
+
             var farCaster = farInteractionCaster;
             bool has3dHit = farCaster.TryGetColliderTargets(interactionManager, m_TargetColliders, m_FarRayCastHits);
             bool has2dHit = TryGetCurrentUIRaycastResult(out var uiHit);
@@ -489,15 +488,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (!m_HasValidRayHit)
                 return;
-            
+
             m_ValidTargetCastSource = Region.Far;
             var farCasterOrigin = farCaster.samplePoints[0];
-                    
+            var same2d3dHit = false;
+
+            // Check if 3D hit and 2D hit are the same GameObject
+            if (has3dHit && has2dHit)
+            {
+                var raycast3dHit = m_FarRayCastHits[0];
+                same2d3dHit = raycast3dHit.collider != null && uiHit.gameObject == raycast3dHit.collider.gameObject;
+            }
+
+            // Do some smarter priority checks here if it has 3D and 2D
             float uiHitSqDistance = has2dHit ? (uiHit.worldPosition - farCasterOrigin).sqrMagnitude : float.MaxValue;
             float collisionHitSqDistance = has3dHit ? (m_FarRayCastHits[0].point - farCasterOrigin).sqrMagnitude : float.MaxValue;
 
-            bool shouldProcess2dHit = has2dHit && (!has3dHit || uiHitSqDistance < collisionHitSqDistance);
-            bool shouldProcess3dHit = has3dHit && (!has2dHit || collisionHitSqDistance < uiHitSqDistance);
+            bool shouldProcess2dHit = has2dHit && (same2d3dHit || !has3dHit || uiHitSqDistance < collisionHitSqDistance);
+            bool shouldProcess3dHit = has3dHit && (same2d3dHit || !has2dHit || collisionHitSqDistance < uiHitSqDistance);
 
             if (shouldProcess3dHit)
                 Process3dHit(farCasterOrigin, has2dHit, uiHitSqDistance, ref shouldProcess2dHit);
@@ -505,7 +513,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (shouldProcess2dHit)
                 Process2dHit(uiHit);
         }
-        
+
         void Process3dHit(in Vector3 farCasterOrigin, bool has2dHit, float uiHitSqDistance, ref bool shouldProcess2dHit)
         {
             if (!hasSelection)
@@ -516,7 +524,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     m_RayEndPoint = effectiveHit.point;
                     m_ValidHitNormal = effectiveHit.normal;
                     m_RayEndTransform = effectiveHit.transform;
-                    
+
                     if (has2dHit && registeredIndex > 0)
                         shouldProcess2dHit = uiHitSqDistance < (m_RayEndPoint - farCasterOrigin).sqrMagnitude;
                 }
@@ -550,7 +558,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         /// <summary>
         /// Gets the selected interactor distance evaluator strategy used to sort valid interactable targets discovered by the near interaction caster.
-        /// The selected sorting strategy can have non-trivial performance implications as the computation will scale according to the quantity of valid targets and the strategy used. 
+        /// The selected sorting strategy can have non-trivial performance implications as the computation will scale according to the quantity of valid targets and the strategy used.
         /// </summary>
         /// <param name="strategy">Strategy to apply.</param>
         /// <returns><see cref="IInteractorDistanceEvaluator"/> instance associated with <see cref="NearCasterSortingStrategy"/> parameter.</returns>
@@ -581,7 +589,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     interactables.Add(interactable);
                 }
             }
-            
+
             if (targetFilter != null)
             {
                 m_PreFilteredTargets.Clear();
@@ -598,7 +606,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             int numTargets = targets.Count;
             bool foundTarget = false;
             bool hasTargetFilter = targetFilter != null;
-            
+
             if (hasTargetFilter)
                 m_FarTargetToIndexMap.Clear();
 
@@ -606,10 +614,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 bool hasInteractable = interactionManager.TryGetInteractableForCollider(targets[i], out var interactable, out var snapVolume);
                 bool isSnapVolume = snapVolume != null;
-                
+
                 // Only add interactables that can be hovered
                 bool isHoverPossible = hasInteractable && interactionManager.IsHoverPossible(this, interactable as IXRHoverInteractable);
-                
+
                 if (isHoverPossible)
                 {
                     // Mark the first found index
@@ -618,12 +626,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                         firstRegisteredIndex = i;
                         foundTarget = true;
                     }
-                    
+
                     interactables.Add(interactable);
 
                     if (isSnapVolume && snapVolume.interactableObject != null)
                         snapVolumes.Add(snapVolume);
-                    
+
                     if (hasTargetFilter)
                         m_FarTargetToIndexMap.TryAdd(interactable, i);
                 }
@@ -747,8 +755,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             if (!isActiveAndEnabled ||
                 !m_EnableFarCasting ||
-                !m_EnableUIInteraction || 
-                uiModelUpdater == null || 
+                !m_EnableUIInteraction ||
+                uiModelUpdater == null ||
                 m_ValidTargetCastSource == Region.Near ||
                 // If selecting interactables, don't update UI model.
                 (m_BlockUIOnInteractableSelection && hasSelection) ||
@@ -757,7 +765,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 model.Reset(false);
                 return;
             }
-            
+
             if (!uiModelUpdater.UpdateUIModel(ref model, isUiSelectInputActive, uiScrollInputValue))
                 model.Reset(false);
         }
@@ -770,7 +778,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 model = TrackedDeviceModel.invalid;
                 return false;
             }
-
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 

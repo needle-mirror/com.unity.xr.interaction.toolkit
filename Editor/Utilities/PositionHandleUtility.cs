@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Utilities.Internal
@@ -85,23 +85,23 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities.Internal
             {
                 case EventType.Layout:
                 case EventType.MouseMove:
-                {
-                    var direction = rotation * Vector3.forward;
-                    var linePos = position + direction * size;
-                    HandleUtility.AddControl(controlId, HandleUtility.DistanceToLine(position, linePos));
-                    break;
-                }
+                    {
+                        var direction = rotation * Vector3.forward;
+                        var linePos = position + direction * size;
+                        HandleUtility.AddControl(controlId, HandleUtility.DistanceToLine(position, linePos));
+                        break;
+                    }
                 case EventType.Repaint:
-                {
-                    var direction = rotation * Vector3.forward;
-                    var linePos = position + direction * size;
+                    {
+                        var direction = rotation * Vector3.forward;
+                        var linePos = position + direction * size;
 #if UNITY_2020_3_OR_NEWER
                     Handles.DrawLine(position, linePos, Handles.lineThickness);
 #else
-                    Handles.DrawLine(position, linePos);
+                        Handles.DrawLine(position, linePos);
 #endif
-                    break;
-                }
+                        break;
+                    }
             }
         }
 

@@ -41,7 +41,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         public event Action<GameObject, PointerEventData> pointerClick;
 
-        #if UNITY_2021_1_OR_NEWER || PACKAGE_DOCS_GENERATION
+#if UNITY_2021_1_OR_NEWER || PACKAGE_DOCS_GENERATION
         /// <summary>
         /// This occurs while a UI pointer is moving over elements.
         /// </summary>
@@ -51,7 +51,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Only invoked in Unity 2021.1 and newer.
         /// </remarks>
         public event Action<GameObject, PointerEventData> pointerMove;
-        #endif
+#endif
 
         /// <summary>
         /// This occurs when a potential drag occurs on an element.

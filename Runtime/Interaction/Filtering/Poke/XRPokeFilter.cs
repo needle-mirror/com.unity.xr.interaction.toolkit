@@ -212,7 +212,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 var pokeOffset = 0f;
                 if (interactor is XRPokeInteractor pokeInteractor)
                     pokeOffset = pokeInteractor.pokeInteractionOffset;
-                
+
                 var pokeTransform = interactable.GetAttachTransform(interactor);
                 return m_PokeLogic.MeetsRequirementsForSelectAction(
                     pokeStateDataProvider,

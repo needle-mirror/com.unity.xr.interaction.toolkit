@@ -12,7 +12,7 @@ To find these settings in the Unity Editor:
 2. Expand the **XR Plug-in Management** area.
 
    > [!NOTE]
-   > If the **XR Plug-in Management** settings page states that it needs to be installed, you must do so before you can access the toolkit settings. 
+   > If the **XR Plug-in Management** settings page states that it needs to be installed, you must do so before you can access the toolkit settings.
 
 3. Select **XR Interaction Toolkit** for settings.
 4. Select **Project Validation** to view the validation checks. The XR Interaction Toolkit validation checks are listed among the checks for other XR packages. Refer to [Project Validation](xref:xr-core-utils-project-validation) for general information about XR project validation.
@@ -23,7 +23,7 @@ The XR Interaction Toolkit provides a few settings that modify Editor and runtim
 
 ### XR Device Simulator Settings
 
-These settings control the [XR Simulator](xref:xri-xr-device-simulator-overview), which you can install from the Package Manager window. 
+These settings control the [XR Simulator](xref:xri-xr-device-simulator-overview), which you can install from the Package Manager window.
 
 * **Use XR Device Simulator in scenes**
 
@@ -65,7 +65,7 @@ By convention, layer 31 should be named, "Teleport", when you use teleportation 
 
 The **Project Validation** page shows the status of specific checks that the XR Interaction Toolkit and other XR packages run to help you avoid configuration problems in your project. (By default, passing  checks are not shown, only those with recommended or required fixes.)
 
-When a straightforward fix is available, you can correct a validation issue by clicking the **Fix** or **Fix All** buttons. This makes the changes necessary to resolve the issue in your project configuration, which could be a settings change or installing another package or package sample. In other cases, you can click the **Edit** button to make the project configuration changes yourself. 
+When a straightforward fix is available, you can correct a validation issue by clicking the **Fix** or **Fix All** buttons. This makes the changes necessary to resolve the issue in your project configuration, which could be a settings change or installing another package or package sample. In other cases, you can click the **Edit** button to make the project configuration changes yourself.
 
 The validation checks for the toolkit include:
 
@@ -83,7 +83,7 @@ The validation checks for the toolkit include:
 * Starter Assets: _Interaction Layer 31 should be set to 'Teleport' for teleportation locomotion._
 
    By convention, the teleportation assets use layer 31 and expect it to be named, "Teleport". To fix this issue, you can assign the name in the [XR Interaction Toolkit settings](#interaction-layers). You can also ignore the warning if you don't implement teleportation or you want to use a different layer. If you use a different layer, you might have to adjust the **Interaction Layer Mask** property of any **Interactors** used to trigger teleportation.
-   
+
 * AR Starter Assets: _Starter Assets sample from XR Interaction Toolkit package must be imported or update to use this sample._
 
    The AR-specific assets depend on the general-purpose Starter Assets. To fix this warning, [import the Starter Assets sample](xref:xri-installation#installing-samples).

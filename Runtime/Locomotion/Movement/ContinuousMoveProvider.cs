@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             var input = ReadInput();
             var translationInWorldSpace = ComputeDesiredMove(input);
-            
+
             if (input != Vector2.zero || m_VerticalVelocity != Vector3.zero)
                 MoveRig(translationInWorldSpace);
 

@@ -125,7 +125,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
             }
 
-            const string searchFilter = "\"" + k_XRDeviceSimulatorName +"\"";
+            const string searchFilter = "\"" + k_XRDeviceSimulatorName + "\"";
             var foundXRDeviceSimulatorAsset = false;
             foreach (var guid in AssetDatabase.FindAssets(searchFilter))
             {

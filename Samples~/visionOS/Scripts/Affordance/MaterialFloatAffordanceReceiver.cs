@@ -12,10 +12,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
     {
         [SerializeField]
         Renderer m_Renderer;
-        
+
         [SerializeField]
         string m_MaterialPropertyName;
-        
+
         Material m_MaterialInstance;
         int m_MaterialPropertyID;
 

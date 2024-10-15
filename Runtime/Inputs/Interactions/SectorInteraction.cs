@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -35,7 +35,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             /// Do not include any direction, e.g. the center deadzone region of a thumbstick.
             /// The action will never perform.
             /// </summary>
-            None  = 0,
+            None = 0,
 
             /// <summary>
             /// Include North direction, e.g. forward on a thumbstick.
@@ -50,12 +50,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
             /// <summary>
             /// Include East direction, e.g. right on a thumbstick.
             /// </summary>
-            East  = 1 << 2,
+            East = 1 << 2,
 
             /// <summary>
             /// Include West direction, e.g. left on a thumbstick.
             /// </summary>
-            West  = 1 << 3,
+            West = 1 << 3,
         }
 
         /// <summary>

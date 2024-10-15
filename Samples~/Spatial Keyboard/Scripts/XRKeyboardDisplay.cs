@@ -120,10 +120,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_ClearTextOnOpen;
             set => m_ClearTextOnOpen = value;
         }
-        
+
         [SerializeField, Tooltip("If true, this display will close the keyboard it is observing when this GameObject is disabled.")]
         public bool m_HideKeyboardOnDisable = true;
-        
+
         /// <summary>
         /// If true, this display will close the keyboard it is observing when this GameObject is disabled.
         /// </summary>
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             get => m_HideKeyboardOnDisable;
             set => m_HideKeyboardOnDisable = value;
         }
-        
+
         [SerializeField, Tooltip("The event that is called when this display receives a text submitted event from the keyboard. Invoked with the keyboard text as a parameter.")]
         UnityEvent<string> m_OnTextSubmitted = new UnityEvent<string>();
 
@@ -224,8 +224,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         {
             if (m_InputField != null)
                 m_InputField.onSelect.RemoveListener(OnInputFieldGainedFocus);
-            
-            // Close the keyboard this display is observing 
+
+            // Close the keyboard this display is observing
             var isObservingKeyboard = m_ActiveKeyboard != null && m_ActiveKeyboard.gameObject.activeInHierarchy && m_IsActivelyObservingKeyboard;
             if (m_HideKeyboardOnDisable && isObservingKeyboard && m_ActiveKeyboard.isOpen)
                 m_ActiveKeyboard.Close();

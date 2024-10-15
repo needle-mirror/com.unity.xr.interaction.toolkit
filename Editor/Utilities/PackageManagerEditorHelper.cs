@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
@@ -69,7 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                 {
                     EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent($"Installation error: {m_AddRequest.Error.errorCode}: {m_AddRequest.Error.message}"), EditorStyles.miniLabel);
                 }
-                else if(!m_AddRequest.IsCompleted)
+                else if (!m_AddRequest.IsCompleted)
                 {
                     EditorGUILayout.LabelField(Contents.installationInProgress, EditorStyles.miniLabel);
                 }

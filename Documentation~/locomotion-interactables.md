@@ -4,7 +4,7 @@ uid: xri-locomotion-interactables
 
 # Locomotion interactables
 
-The interactable components related to locomotion. 
+The interactable components related to locomotion.
 
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
@@ -14,5 +14,5 @@ The interactable components related to locomotion.
 | [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md) | A selection volume that teleports the user to one of a set of associated anchor transforms. Can be used with the **Climb Interactable** and the [Climb Teleport Interactor](climb-teleport-interactor.md) to combine teleportation and climbing locomotion modes. |
 
 ## Additional resources
- 
+
 * [Component index](components.md)

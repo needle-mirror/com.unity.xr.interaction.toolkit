@@ -79,11 +79,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             public IUIInteractor interactor;
             public TrackedDeviceModel model;
+            internal bool deactivating;
+            internal bool active;
 
             public RegisteredInteractor(IUIInteractor interactor, int deviceIndex)
             {
                 this.interactor = interactor;
-                model = new TrackedDeviceModel(deviceIndex);
+                model = new TrackedDeviceModel(deviceIndex)
+                {
+                    interactor = interactor,
+                };
+                active = true;
+                deactivating = false;
             }
         }
 
@@ -104,7 +111,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Represents which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.
         /// </summary>
-        /// /// <seealso cref="activeInputMode"/>
+        /// <seealso cref="activeInputMode"/>
         public enum ActiveInputMode
         {
             /// <summary>
@@ -421,7 +428,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_CancelButton = value;
         }
 
-        int m_RollingPointerId;
+        // Initialize to 1 so mouse always uses pointer ID of 0
+        int m_RollingPointerId = 1;
+        Stack<int> m_DeletedPointerIds = new Stack<int>();
         bool m_UseBuiltInInputSystemActions;
 
         MouseModel m_MouseState;
@@ -448,7 +457,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #elif ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
             m_ActiveInputMode = ActiveInputMode.InputSystemActions;
 #endif
-            m_MouseState = new MouseModel(m_RollingPointerId++);
+            m_MouseState = new MouseModel(0);
+
             m_NavigationState = new NavigationModel();
 
             m_UseBuiltInInputSystemActions = m_EnableBuiltinActionsAsFallback && !InputActionReferencesAreSet();
@@ -477,13 +487,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="interactor">The <see cref="IUIInteractor"/> to use.</param>
         public void RegisterInteractor(IUIInteractor interactor)
         {
+            if (interactor == null)
+                return;
+
             for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractors[i].interactor == interactor)
+                var registeredInteractor = m_RegisteredInteractors[i];
+                if (registeredInteractor.interactor == interactor)
+                {
+                    // If it was previously disabled by deactivation, reactivate
+                    if (!registeredInteractor.active)
+                    {
+                        registeredInteractor.active = true;
+                        registeredInteractor.deactivating = false;
+                        registeredInteractor.model.Reset(true);
+                        m_RegisteredInteractors[i] = registeredInteractor;
+                    }
                     return;
+                }
             }
 
-            m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, m_RollingPointerId++));
+            if (!m_DeletedPointerIds.TryPop(out var newId))
+                newId = m_RollingPointerId++;
+
+            m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, newId));
         }
 
         /// <summary>
@@ -493,13 +520,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="interactor">The <see cref="IUIInteractor"/> to stop using.</param>
         public void UnregisterInteractor(IUIInteractor interactor)
         {
+            if (interactor == null)
+                return;
+
             for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractors[i].interactor == interactor)
+                var registeredInteractor = m_RegisteredInteractors[i];
+                if (registeredInteractor.interactor == interactor)
                 {
-                    var registeredInteractor = m_RegisteredInteractors[i];
-                    registeredInteractor.interactor = null;
-                    m_RegisteredInteractors[i] = registeredInteractor;
+                    if (registeredInteractor.active)
+                    {
+                        registeredInteractor.deactivating = true;
+                        registeredInteractor.active = false;
+                        m_RegisteredInteractors[i] = registeredInteractor;
+                    }
                     return;
                 }
             }
@@ -516,7 +550,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             for (var i = 0; i < m_RegisteredInteractors.Count; i++)
             {
-                if (m_RegisteredInteractors[i].model.pointerId == pointerId)
+                if (m_RegisteredInteractors[i].model.pointerId == pointerId && m_RegisteredInteractors[i].active)
                 {
                     return m_RegisteredInteractors[i].interactor;
                 }
@@ -556,19 +590,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var oldTarget = registeredInteractor.model.implementationData.pointerTarget;
 
                     // If device is removed, we send a default state to unclick any UI
-                    if (registeredInteractor.interactor == null)
+                    var isDestroyedUnityObject = registeredInteractor.interactor is Object unityObject && unityObject == null;
+                    if (isDestroyedUnityObject || registeredInteractor.deactivating)
                     {
                         registeredInteractor.model.Reset(false);
                         ProcessTrackedDevice(ref registeredInteractor.model, true);
                         RemovePointerEventData(registeredInteractor.model.pointerId);
-                        m_RegisteredInteractors.RemoveAt(i--);
+                        if (isDestroyedUnityObject)
+                        {
+                            m_DeletedPointerIds.Push(registeredInteractor.model.pointerId);
+                            m_RegisteredInteractors.RemoveAt(i--);
+                            continue;
+                        }
+                        else
+                        {
+                            registeredInteractor.deactivating = false;
+                            registeredInteractor.model.Reset(true);
+                            m_RegisteredInteractors[i] = registeredInteractor;
+                        }
+                    }
+                    else if (!registeredInteractor.active)
+                    {
+                        continue;
                     }
                     else
                     {
                         registeredInteractor.interactor.UpdateUIModel(ref registeredInteractor.model);
                         ProcessTrackedDevice(ref registeredInteractor.model);
+
+                        // Some poke logic happens during the Raycast call in ProcessTrackedDevice
+                        // and requires an additional update to the select field of the UI Model
+                        registeredInteractor.model.UpdatePokeSelectState();
                         m_RegisteredInteractors[i] = registeredInteractor;
                     }
+
                     // If hover target changed, send event
                     var newTarget = registeredInteractor.model.implementationData.pointerTarget;
                     if (oldTarget != newTarget)
@@ -585,11 +640,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                                     hoverInteractor.OnUIHoverExited(args);
                                 }
 
-                                if (newTarget != null)
+                                if (newTarget != null && newTarget.activeInHierarchy)
                                 {
                                     args.uiObject = newTarget;
                                     hoverInteractor.OnUIHoverEntered(args);
                                 }
+                            }
+                        }
+                    }
+
+                    // In the case where the target is disabled while being hovered, this
+                    // will fire the appropriate event to any listeners as well as reset the
+                    // current model to prevent stale data from causing unwanted behavior
+                    if ((oldTarget != null && !oldTarget.activeInHierarchy) || (oldTarget is not null && oldTarget == null))
+                    {
+                        using (m_UIHoverEventArgs.Get(out var args))
+                        {
+                            if (oldTarget == newTarget)
+                            {
+                                registeredInteractor.model.Reset(true);
+                                m_RegisteredInteractors[i] = registeredInteractor;
+                            }
+
+                            var interactor = registeredInteractor.interactor;
+                            if (interactor != null && interactor is IUIHoverInteractor hoverInteractor)
+                            {
+                                args.interactorObject = interactor;
+                                args.uiObject = oldTarget;
+                                args.deviceModel = registeredInteractor.model;
+                                hoverInteractor.OnUIHoverExited(args);
                             }
                         }
                     }
@@ -698,7 +777,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         // No Empty slots, add one
                         registeredTouchIndex = m_RegisteredTouches.Count;
-                        m_RegisteredTouches.Add(new RegisteredTouch(touch, m_RollingPointerId++));
+
+                        if (!m_DeletedPointerIds.TryPop(out var newId))
+                            newId = m_RollingPointerId++;
+
+                        m_RegisteredTouches.Add(new RegisteredTouch(touch, newId));
                     }
                 }
 

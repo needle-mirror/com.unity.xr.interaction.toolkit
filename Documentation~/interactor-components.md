@@ -4,7 +4,7 @@ uid: xri-interactor-components
 
 # Interactor components
 
-The interactor components provided by the toolkit. 
+The interactor components provided by the toolkit.
 
 
 | **Topic**             | **Description**         |

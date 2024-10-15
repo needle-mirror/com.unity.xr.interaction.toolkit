@@ -9,7 +9,7 @@ This page provides a brief explanation for setting up a scene for mobile touchsc
 > [!NOTE]
 > AR interaction components are only available in a project that also includes the [AR Foundation](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) package. You can install the AR Foundation package via the [Package Manager](https://docs.unity3d.com/Manual/upm-ui-install.html).
 
-## Setting up for Touchscreen AR 
+## Setting up for Touchscreen AR
 
 > [!NOTE]
 > The [AR Starter Assets](samples-ar-starter-assets.md) sample contains an already configured input action map which can be used in place of creating one from scratch.

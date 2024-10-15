@@ -287,7 +287,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
         /// If <see langword="null"/>, the teleport request will be generated without a raycast hit.</param>
         /// <returns>Returns <see langword="true"/> if successfully queued. Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
-        /// Due to script execution order of the <seealso cref="TeleportationProvider"/>, depending on when this method is called,
+        /// Due to script execution order of the <see cref="TeleportationProvider"/>, depending on when this method is called,
         /// teleportation of the XR Origin may not occur until the next frame.
         /// </remarks>
         protected bool SendTeleportRequest(IXRInteractor interactor)

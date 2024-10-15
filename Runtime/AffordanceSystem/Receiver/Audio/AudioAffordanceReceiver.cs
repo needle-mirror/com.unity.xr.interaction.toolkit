@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
 
                 bool lastStateIsSelect = m_LastAffordanceStateIndex == AffordanceStateShortcuts.selected;
                 bool lastStateIsActivate = m_LastAffordanceStateIndex == AffordanceStateShortcuts.activated;
-                
+
                 bool selectToActivate = newStateIsActivate && lastStateIsSelect;
                 bool activateToSelect = newStateIsSelect && lastStateIsActivate;
                 bool hoverToSelect = newStateIsHover && lastStateIsSelect;
@@ -162,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                         PlayAudioClip(exitData.stateExited);
                     }
                 }
-                
+
                 // Do not play select enter if coming from activated state because it is a modifier state.
                 // Likewise, do not play hover enter if coming from selected state because it is a modifier state.
                 if (!activateToSelect && !selectToHover)
@@ -178,7 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio
                         XRLoggingUtils.LogError($"Missing theme data for affordance state index {newIndex} \"{stateName}\" with {this}.", this);
                     }
                 }
-                
+
                 m_LastAffordanceStateIndex = newIndex;
             }
         }

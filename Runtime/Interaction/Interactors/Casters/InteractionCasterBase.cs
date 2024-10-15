@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -8,12 +8,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
 {
     /// <summary>
     /// Provides an abstract base for interaction casters used by <see cref="NearFarInteractor"/>.
-    /// This class serves as the foundation for casting interactions, managing initialization, 
-    /// and providing the fundamental mechanics for casting. It implements the <see cref="IInteractionCaster"/> interface. 
+    /// This class serves as the foundation for casting interactions, managing initialization,
+    /// and providing the fundamental mechanics for casting. It implements the <see cref="IInteractionCaster"/> interface.
     /// </summary>
     /// <remarks>
-    /// The class maintains a state to track whether it has been initialized and allows for setting 
-    /// and getting the origin of casting. It also requires implementation of an abstract method 
+    /// The class maintains a state to track whether it has been initialized and allows for setting
+    /// and getting the origin of casting. It also requires implementation of an abstract method
     /// to try and get collider targets based on an <see cref="XRInteractionManager"/>.
     /// </remarks>
     public abstract class InteractionCasterBase : MonoBehaviour, IInteractionCaster
@@ -31,15 +31,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             get => m_CastOrigin;
             set => m_CastOrigin = value;
         }
-        
+
         /// <inheritdoc />
         public Transform effectiveCastOrigin => !m_EnableStabilization || !m_InitializedStabilizationOrigin ? castOrigin : m_StabilizationAnchor;
-        
+
         [Header("Stabilization Parameters")]
         [SerializeField]
-        [Tooltip("Determines whether to stabilize the cast origin")]
+        [Tooltip("Determines whether to stabilize the cast origin.")]
         bool m_EnableStabilization;
-        
+
         /// <summary>
         /// Determines whether to stabilize the cast origin.
         /// </summary>
@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             get => m_EnableStabilization;
             set => m_EnableStabilization = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Factor for stabilizing position. Larger values increase the range of stabilization, making the effect more pronounced over a greater distance.")]
         float m_PositionStabilization = 0.25f;
@@ -88,7 +88,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             get => m_AimTargetObjectRef.Get(m_AimTargetObject);
             set => m_AimTargetObjectRef.Set(ref m_AimTargetObject, value);
         }
-        
+
         readonly UnityObjectReferenceCache<IXRRayProvider, Object> m_AimTargetObjectRef = new UnityObjectReferenceCache<IXRRayProvider, Object>();
 
         bool m_InitializedStabilizationOrigin;
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         {
             if (!m_EnableStabilization)
                 return;
-            
+
             float deltaTime = Time.unscaledTime - m_LastStabilizationUpdateTime;
             m_LastStabilizationUpdateTime = Time.unscaledTime;
 
@@ -162,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             if (!m_EnableStabilization || m_InitializedStabilizationOrigin)
                 return true;
 
-            if (m_StabilizationAnchor == null )
+            if (m_StabilizationAnchor == null)
             {
                 if (!ComponentLocatorUtility<XROrigin>.TryFindComponent(out var xrOrigin))
                 {
@@ -170,12 +170,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
                     m_EnableStabilization = false;
                     return false;
                 }
-                
+
                 // Capture hand name
                 string handName = "";
                 if (TryGetComponent(out IXRInteractor interactor))
                     handName = interactor.handedness.ToString();
-                    
+
                 m_StabilizationAnchor = new GameObject($"[{handName} {GetType().Name}] Stabilization Cast Origin").transform;
                 m_StabilizationAnchor.SetParent(xrOrigin.Origin.transform, false);
                 m_StabilizationAnchor.localPosition = Vector3.zero;

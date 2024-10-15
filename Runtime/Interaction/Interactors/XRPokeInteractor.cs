@@ -208,7 +208,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         readonly Collider[] m_OverlapSphereHits = new Collider[25];
         readonly List<PokeCollision> m_PokeTargets = new List<PokeCollision>();
         readonly List<IXRSelectFilter> m_InteractableSelectFilters = new List<IXRSelectFilter>();
-        
+
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
         static readonly Dictionary<IXRInteractable, IXRPokeFilter> s_ValidTargetsScratchMap = new Dictionary<IXRInteractable, IXRPokeFilter>();
 
@@ -236,7 +236,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (m_EnableUIInteraction)
                 m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
-            
+
             if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
                 velocityTracker.ResetVelocityTracking();
         }
@@ -245,10 +245,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected override void OnDisable()
         {
             base.OnDisable();
-            SetDebugObjectVisibility(false);
 
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache.UnregisterFromXRUIInputModule();
+            SetDebugObjectVisibility(false);
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
         }
 
         /// <inheritdoc />
@@ -282,7 +281,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             int sphereOverlapCount = EvaluateSphereOverlap();
             bool hasOverlap = sphereOverlapCount > 0;
-            
+
             m_ValidTargets.Clear();
             s_ValidTargetsScratchMap.Clear();
 
@@ -297,11 +296,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     m_ValidTargets.Add(m_PokeTargets[i].interactable);
                     s_ValidTargetsScratchMap.Add(m_PokeTargets[i].interactable, m_PokeTargets[i].filter);
                 }
-                
+
                 // Sort before target filter
                 if (m_ValidTargets.Count > 1)
                     SortingHelpers.SortByDistanceToInteractor(this, m_ValidTargets, SortingHelpers.squareDistanceAttachPointEvaluator);
-                
+
                 var filter = targetFilter;
                 if (filter != null && filter.canProcess)
                 {
@@ -311,7 +310,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     m_ValidTargets.Clear();
                     m_ValidTargets.AddRange(s_Results);
                 }
-                
+
                 if (m_ValidTargets.Count == 0)
                     hasOverlap = false;
             }
@@ -342,7 +341,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (!isActiveAndEnabled)
                 return;
 
-            if(m_ValidTargets.Count > 0)
+            if (m_ValidTargets.Count > 0)
                 targets.Add(m_ValidTargets[0]);
         }
 
@@ -497,10 +496,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             model.position = position;
             model.orientation = orientation;
             model.positionGetter = m_PositionGetter;
-            model.select = TrackedDeviceGraphicRaycaster.HasPokeSelect(this);
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;
+            model.UpdatePokeSelectState();
 
             var raycastPoints = model.raycastPoints;
             raycastPoints.Clear();
@@ -516,6 +515,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <inheritdoc />
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
+            if (m_RegisteredUIInteractorCache == null)
+            {
+                model = TrackedDeviceModel.invalid;
+                return false;
+            }
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 

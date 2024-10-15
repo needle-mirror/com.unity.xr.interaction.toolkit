@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
     [Obsolete("ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.")]
-    public class ARGestureInteractor {}
+    public class ARGestureInteractor { }
 }
 
 #else
@@ -66,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     [Obsolete("ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.")]
     public class ARGestureInteractor : XRBaseInteractor
     {
-        #pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
+#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         [SerializeField]
         ARSessionOrigin m_ARSessionOrigin;
 #pragma warning restore CS0618
@@ -103,11 +103,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (s_Instance == null)
                 {
-#if UNITY_2023_1_OR_NEWER                    
+#if UNITY_2023_1_OR_NEWER
                     s_Instance = FindAnyObjectByType<ARGestureInteractor>();
 #else
                     s_Instance = FindObjectOfType<ARGestureInteractor>();
-#endif                        
+#endif
                     if (s_Instance == null)
                     {
                         Debug.LogError("No instance of ARGestureInteractor exists in the scene.");
@@ -150,7 +150,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         [Obsolete("TwistGestureRecognizer has been deprecated. Use twistGestureRecognizer instead. (UnityUpgradable) -> twistGestureRecognizer")]
         public TwistGestureRecognizer TwistGestureRecognizer => twistGestureRecognizer;
 #pragma warning restore IDE1006
-        
+
         [SerializeField]
         XROrigin m_XROrigin;
 

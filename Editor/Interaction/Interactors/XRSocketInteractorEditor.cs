@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -52,7 +52,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRSocketInteractor.recycleDelayTime"/>.</summary>
             public static readonly GUIContent recycleDelayTime = EditorGUIUtility.TrTextContent("Recycle Delay Time", "Amount of time the socket will refuse hovers after an object is removed. This property does nothing if Hover Socket Snapping is enabled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRSocketInteractor.hoverSocketSnapping"/>.</summary>
-            public static readonly GUIContent hoverSocketSnapping =  EditorGUIUtility.TrTextContent("Hover Socket Snapping", "Determines if the interactable should snap to the socket's attach transform when hovering. Note this will cause z-fighting with the hover mesh visuals, not recommended to use both options at the same time. If enabled, hover recycle delay functionality is disabled.");
+            public static readonly GUIContent hoverSocketSnapping = EditorGUIUtility.TrTextContent("Hover Socket Snapping", "Determines if the interactable should snap to the socket's attach transform when hovering. Note this will cause z-fighting with the hover mesh visuals, not recommended to use both options at the same time. If enabled, hover recycle delay functionality is disabled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRSocketInteractor.socketSnappingRadius"/>.</summary>
             public static readonly GUIContent socketSnappingRadius = EditorGUIUtility.TrTextContent("Socket Snapping Radius", "When socket snapping is enabled, this is the radius within which the interactable will snap to the socket's attach transform while hovering.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRSocketInteractor.socketScaleMode"/>.</summary>
@@ -98,7 +98,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
                     EditorGUILayout.PropertyField(m_InteractableHoverScale, Contents.interactableHoverScale);
                 }
             }
-            
+
             EditorGUILayout.PropertyField(m_HoverSocketSnapping, Contents.hoverSocketSnapping);
             if (m_HoverSocketSnapping.boolValue)
             {
@@ -107,7 +107,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
                     EditorGUILayout.PropertyField(m_SocketSnappingRadius, Contents.socketSnappingRadius);
                 }
             }
-            
+
             EditorGUILayout.PropertyField(m_SocketScaleMode, Contents.socketScaleMode);
             var scaleModeValue = m_SocketScaleMode.intValue;
             if (scaleModeValue != (int)SocketScaleMode.None)

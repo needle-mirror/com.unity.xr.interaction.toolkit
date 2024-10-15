@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {

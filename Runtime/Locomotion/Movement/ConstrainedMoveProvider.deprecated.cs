@@ -2,10 +2,6 @@ using System;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 {
-    /// <summary>
-    /// Base class for a locomotion provider that allows for constrained movement with a <see cref="CharacterController"/>.
-    /// </summary>
-    /// <seealso cref="LocomotionProvider"/>
     public abstract partial class ConstrainedMoveProvider
     {
         /// <summary>

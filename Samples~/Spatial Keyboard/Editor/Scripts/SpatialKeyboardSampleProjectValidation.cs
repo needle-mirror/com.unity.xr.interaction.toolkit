@@ -6,12 +6,13 @@ using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
+using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 #if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
 using TMPro;
 #endif
 
-namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
+namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
 {
     /// <summary>
     /// Unity Editor class which registers Project Validation rules for the Spatial Keyboard sample,
@@ -29,19 +30,19 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 #else
         const string k_UIPackageName = "com.unity.textmeshpro";
 #endif
-        
+
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
-        
+
         static AddRequest s_UIPackageAddRequest;
 
         static readonly List<BuildValidationRule> s_BuildValidationRules = new List<BuildValidationRule>
         {
             new BuildValidationRule
             {
-                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample.",
+                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample. {GetImportSampleVersionMessage(k_Category, k_StarterAssetsSampleName, PackageVersionUtility.GetPackageVersion(k_XRIPackageName))}",
                 Category = k_Category,
-                CheckPredicate = () => TryFindSample(k_XRIPackageName, string.Empty, k_StarterAssetsSampleName, out var sample) && sample.isImported,
+                CheckPredicate = () => ProjectValidationUtility.SampleImportMeetsMinimumVersion(k_Category, k_StarterAssetsSampleName, PackageVersionUtility.GetPackageVersion(k_XRIPackageName)),
                 FixIt = () =>
                 {
                     if (TryFindSample(k_XRIPackageName, string.Empty, k_StarterAssetsSampleName, out var sample))
@@ -50,7 +51,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                     }
                 },
                 FixItAutomatic = true,
-                Error = true,
+                Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_StarterAssetsSampleName),
             },
 
             new BuildValidationRule
@@ -174,6 +175,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         static string ToString(string packageName, string packageVersion)
         {
             return string.IsNullOrEmpty(packageVersion) ? packageName : $"{packageName}@{packageVersion}";
+        }
+
+        static string GetImportSampleVersionMessage(string packageFolderName, string sampleDisplayName, PackageVersion version)
+        {
+            if (ProjectValidationUtility.SampleImportMeetsMinimumVersion(packageFolderName, sampleDisplayName, version) || !ProjectValidationUtility.HasSampleImported(packageFolderName, sampleDisplayName))
+                return string.Empty;
+
+            return $"An older version of {sampleDisplayName} has been found. This may cause errors.";
         }
     }
 }

@@ -1411,7 +1411,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         }
 
         /// <summary>
-        /// Adds the default <seealso cref="XRGeneralGrabTransformer"/> (if the Single or Multiple Grab Transformers lists are empty)
+        /// Adds the default <see cref="XRGeneralGrabTransformer"/> (if the Single or Multiple Grab Transformers lists are empty)
         /// to the list of transformers used when there is a single interactor selecting this object.
         /// </summary>
         /// <seealso cref="addDefaultGrabTransformers"/>
@@ -1511,7 +1511,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             var easePercent = currentAttachEaseTime / attachEaseInTime;
             targetPose.position = math.lerp(targetPose.position, rawTargetPose.position, easePercent);
             targetPose.rotation = math.slerp(targetPose.rotation, rawTargetPose.rotation, easePercent);
-            targetLocalScale =  math.lerp(targetLocalScale, rawTargetLocalScale, easePercent);
+            targetLocalScale = math.lerp(targetLocalScale, rawTargetLocalScale, easePercent);
             currentAttachEaseTime += deltaTime;
         }
 

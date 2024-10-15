@@ -3,7 +3,7 @@ uid: xri-xr-gaze-interactor
 ---
 # XR Gaze Interactor
 
-Interactor used for interacting with Interactables via gaze. This is handled via ray casts that update the current set of valid targets for this interactor. This interactor will only interact with `XRBaseInteractable` (XRI implementations [XR Simple Interactable](xr-simple-interactable.md) and [XR Grab Interactable](xr-grab-interactable.md)) that have enabled **Allow Gaze Interaction**. This interactor also supports a **Gaze Assistance** feature that can be enabled on an interactable. Interactables have additional properties that allow you to specify how gaze functionality effects each Interactable on an individual level. 
+Interactor used for interacting with Interactables via gaze. This is handled via ray casts that update the current set of valid targets for this interactor. This interactor will only interact with `XRBaseInteractable` (XRI implementations [XR Simple Interactable](xr-simple-interactable.md) and [XR Grab Interactable](xr-grab-interactable.md)) that have enabled **Allow Gaze Interaction**. This interactor also supports a **Gaze Assistance** feature that can be enabled on an interactable. Interactables have additional properties that allow you to specify how gaze functionality effects each Interactable on an individual level.
 
 ![XRGazeInteractor component](images/xr-gaze-interactor.png)
 

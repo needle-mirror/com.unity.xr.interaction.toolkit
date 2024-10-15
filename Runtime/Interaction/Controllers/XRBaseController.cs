@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors

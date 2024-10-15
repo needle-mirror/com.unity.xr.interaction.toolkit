@@ -12,8 +12,8 @@ The XR Interaction Toolkit package comes with a number of pre-defined gestures, 
 
 | Gesture | Triggered by input |
 |---|---|
-| **Tap** | User touches the screen | 
+| **Tap** | User touches the screen |
 | **Drag** | User drags finger across screen |
-| **Pinch** | User moves two fingers toward or away from each other along a straight line | 
-| **Twist** | User rotates two fingers around a center point | 
+| **Pinch** | User moves two fingers toward or away from each other along a straight line |
+| **Twist** | User rotates two fingers around a center point |
 | **Two Finger Drag** | User drags with two fingers |

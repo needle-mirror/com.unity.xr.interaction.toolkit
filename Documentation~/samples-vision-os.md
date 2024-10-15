@@ -42,7 +42,7 @@ This sample is installed into the default location for package samples, in the `
 
 ## Demo scene
 
-The `VolumeDemo` scene shows a minimal bounded volume setup designed to demo 3D interaction using the XR Interaction Toolkit. It features two-handed interactions supported on cubes, a floating cylinder, and tapered cylinder. 
+The `VolumeDemo` scene shows a minimal bounded volume setup designed to demo 3D interaction using the XR Interaction Toolkit. It features two-handed interactions supported on cubes, a floating cylinder, and tapered cylinder.
 
 The cubes and tapered cylinder are set up using velocity tracked mode on the [`XRGrabInteractable`](xr-grab-interactable.md), to showcase how physics interaction is meant to behave. The floating cylinder uses the lower latency instantaneous mode, which ignores physics collisions when evaluating motion.
 
@@ -101,7 +101,7 @@ Note: This caster will only work in bounded and unbounded mixed reality modes, a
 ### PointNearCaster
 Much like the [`VisionOSFarCaster`](#visionosfarcaster) is in charge of handling far casting for the [Near-Far Interactor](near-far-interactor.md), we need to have a near interaction caster that is well suited to the discontinuous input of visionOS.
 
-The `PointNearCaster` functions very similarly to the [`SphereInteractionCaster`](near-far-interactor.md) in the XR Interaction Toolkit, except that instead of sweeping the distance covered between frames for valid targets, a simple overlap sphere check is performed when [`SpatialTouchInputReader`](#spatialtouchinputreader) reports valid positions. 
+The `PointNearCaster` functions very similarly to the [`SphereInteractionCaster`](near-far-interactor.md) in the XR Interaction Toolkit, except that instead of sweeping the distance covered between frames for valid targets, a simple overlap sphere check is performed when [`SpatialTouchInputReader`](#spatialtouchinputreader) reports valid positions.
 
 While in theory the entity id returned by the [`SpatialTouchInputReader`](#spatialtouchinputreader) during `DirectPinch` input events should be sufficient for near interaction, in practice, visionOS fails to prioritize direct pinch over indirect when the user's hand is directly over objects. For this reason, the sphere overlap check done by this component at the pinch device position takes precedence over the target returned by [`VisionOSFarCaster`](#visionosfarcaster), simply because the Near-Far Interactor prioritizes near interactors over far by default.
 

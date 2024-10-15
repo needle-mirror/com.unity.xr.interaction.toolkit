@@ -297,7 +297,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             m_ScaleValueProvider = interactor as IXRScaleValueProvider;
             m_HasScaleValueProvider = m_ScaleValueProvider != null;
-            
+
             InitializeCurrentScaleRatio(localScale);
             m_ElasticBreakLimitReached = false;
 
@@ -378,7 +378,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         }
 
         static bool IsPlaneTypeAllowed(PlaneTranslationMode planeTranslationMode, PlaneAlignment planeAlignment)
-        {   
+        {
             if (planeTranslationMode == PlaneTranslationMode.Any)
             {
                 return true;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine;
@@ -161,7 +161,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             public static readonly GUIContent timeToAutoDeselectGaze = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds that the interactable will remain selected by a gaze Interactor before being automatically deselected if Auto Deselect is enabled on the Interactor .");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeAssistance"/>.</summary>
             public static readonly GUIContent allowGazeAssistance = EditorGUIUtility.TrTextContent("Allow Gaze Assistance", "Enables gaze assistance, which allows a gaze Interactor to place a snap volume at this interactable for ray Interactors to snap to.");
-            
+
             /// <summary>The Interactable filters foldout.</summary>
             public static readonly GUIContent interactableFilters = EditorGUIUtility.TrTextContent("Interactable Filters", "Add filters to extend this interactable without needing to create a derived behavior.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.startingSelectFilters"/>.</summary>
@@ -199,7 +199,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             m_AllowGazeAssistance = serializedObject.FindProperty("m_AllowGazeAssistance");
             m_OverrideTimeToAutoDeselectGaze = serializedObject.FindProperty("m_OverrideTimeToAutoDeselectGaze");
             m_TimeToAutoDeselectGaze = serializedObject.FindProperty("m_TimeToAutoDeselectGaze");
-            
+
             m_FirstHoverEntered = serializedObject.FindProperty("m_FirstHoverEntered");
             m_LastHoverExited = serializedObject.FindProperty("m_LastHoverExited");
             m_HoverEntered = serializedObject.FindProperty("m_HoverEntered");
@@ -218,7 +218,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             var selectAttribute = (CanSelectMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanSelectMultipleAttribute));
             selectMultipleAllowed = selectAttribute?.allowMultiple ?? true;
 
-            var focusAttribute = (CanFocusMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanFocusMultipleAttribute)); 
+            var focusAttribute = (CanFocusMultipleAttribute)Attribute.GetCustomAttribute(target.GetType(), typeof(CanFocusMultipleAttribute));
             focusMultipleAllowed = focusAttribute?.allowMultiple ?? true;
 
             m_GazeConfigurationExpanded = SessionState.GetBool(k_GazeConfigurationExpandedKey, false);
@@ -363,12 +363,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
                             }
                         }
                     }
-                        
+
                     EditorGUILayout.PropertyField(m_AllowGazeAssistance, BaseContents.allowGazeAssistance);
                 }
             }
         }
-        
+
         /// <summary>
         /// Draw the property fields related to selection configuration.
         /// </summary>

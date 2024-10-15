@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
 {
     /// <summary>
-    /// Affordance state theme data structure for for Vector2 affordances. 
+    /// Affordance state theme data structure for for Vector2 affordances.
     /// </summary>
     [Serializable]
     [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]

@@ -421,10 +421,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return TryGetInputActionReferencePerformed(out var reference) && IsPerformed(reference.action);
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    return objectReference?.ReadIsPerformed() ?? false;
-                }
+                    {
+                        var objectReference = GetObjectReference();
+                        return objectReference?.ReadIsPerformed() ?? false;
+                    }
 
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();
@@ -456,10 +456,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return TryGetInputActionReferencePerformed(out var reference) && WasPerformedThisFrame(reference.action);
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    return objectReference?.ReadWasPerformedThisFrame() ?? false;
-                }
+                    {
+                        var objectReference = GetObjectReference();
+                        return objectReference?.ReadWasPerformedThisFrame() ?? false;
+                    }
 
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();
@@ -491,10 +491,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return TryGetInputActionReferencePerformed(out var reference) && WasCompletedThisFrame(reference.action);
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    return objectReference?.ReadWasCompletedThisFrame() ?? false;
-                }
+                    {
+                        var objectReference = GetObjectReference();
+                        return objectReference?.ReadWasCompletedThisFrame() ?? false;
+                    }
 
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();
@@ -526,10 +526,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return TryGetInputActionReferenceValue(out var reference) ? ReadValueToFloat(reference.action) : default;
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    return objectReference?.ReadValue() ?? default;
-                }
+                    {
+                        var objectReference = GetObjectReference();
+                        return objectReference?.ReadValue() ?? default;
+                    }
 
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();
@@ -566,14 +566,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
                     return false;
 
                 case InputSourceMode.ObjectReference:
-                {
-                    var objectReference = GetObjectReference();
-                    if (objectReference != null)
-                        return objectReference.TryReadValue(out value);
+                    {
+                        var objectReference = GetObjectReference();
+                        if (objectReference != null)
+                            return objectReference.TryReadValue(out value);
 
-                    value = default;
-                    return false;
-                }
+                        value = default;
+                        return false;
+                    }
 
                 case InputSourceMode.ManualValue:
                     RefreshManualIfNeeded();

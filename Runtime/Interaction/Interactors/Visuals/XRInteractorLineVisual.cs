@@ -800,7 +800,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                     {
                         var lineDelta = m_FollowTightness * Time.deltaTime;
                         lineDirection = Vector3.Lerp(m_PreviousLineDirection, lineDirection, lineDelta);
-                        lineOrigin = Vector3.Lerp( m_PreviousRenderPoints[0], lineOrigin, lineDelta);
+                        lineOrigin = Vector3.Lerp(m_PreviousRenderPoints[0], lineOrigin, lineDelta);
                     }
                     m_PreviousLineDirection = lineDirection;
                 }
@@ -1264,7 +1264,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 
             if (TryFindLineRenderer())
             {
-                m_LineRenderer.widthMultiplier =  Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
+                m_LineRenderer.widthMultiplier = Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
                 m_LineRenderer.widthCurve = m_WidthCurve;
                 m_SnapCurve = true;
             }

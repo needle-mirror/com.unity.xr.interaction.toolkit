@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
@@ -125,7 +125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [HideInInspector]
         [SerializeField]
         XRPokeFilter m_PokeFilter = null;
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -182,9 +182,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             m_TransformTweenableVariable.HandleTween(m_SmoothingSpeed > 0f ? Time.deltaTime * m_SmoothingSpeed : 1f);
         }
 
-        void OnTransformTweenableVariableUpdated(float3 position)
+        protected virtual void OnTransformTweenableVariableUpdated(float3 position)
         {
-            m_PokeFollowTransform.localPosition = position;
+            // UI Anchors can cause this to not work correctly, so we check if it's a RectTransform and set the localPosition Z only
+            if (m_PokeFollowTransform is RectTransform)
+            {
+                var targetPosition = m_PokeFollowTransform.localPosition;
+                targetPosition.z = position.z;
+                m_PokeFollowTransform.localPosition = targetPosition;
+            }
+            else
+            {
+                m_PokeFollowTransform.localPosition = position;
+            }
         }
 
         void OnPokeStateDataUpdated(PokeStateData data)
@@ -220,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         {
             if (!TryGetTargetEndPoint(out var endPoint))
                 return;
-            
+
             Gizmos.color = Color.yellow;
             Gizmos.DrawLine(transform.position, endPoint);
         }
@@ -232,13 +242,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 endPoint = Vector3.zero;
                 return false;
             }
-            
+
             Vector3 origin = transform.position;
             Vector3 direction = ComputeRotatedDepthEvaluationAxis(m_PokeFilter.pokeConfiguration);
             endPoint = origin + direction.normalized * m_MaxDistance;
             return true;
         }
-        
+
         Vector3 ComputeRotatedDepthEvaluationAxis(PokeThresholdData pokeThresholdData)
         {
             if (pokeThresholdData == null)
@@ -279,7 +289,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
             {
                 m_PokeFilter = GetComponentInParent<XRPokeFilter>();
             }
-            
+
             // Visually update the end point to match the target clamped position
             if (m_PokeFollowTransform != null && TryGetTargetEndPoint(out var endPoint))
                 m_PokeFollowTransform.position = endPoint;

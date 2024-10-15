@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             get => m_PhysicsTriggerInteraction;
             set => m_PhysicsTriggerInteraction = value;
         }
-        
+
         bool hasActiveTouch => m_HasTouchReader && m_SpatialTouchInputReader.hasActiveTouch.Value;
 
         bool m_HasTouchReader;

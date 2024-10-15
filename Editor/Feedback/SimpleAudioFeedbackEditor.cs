@@ -9,6 +9,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
     [CustomEditor(typeof(SimpleAudioFeedback), true), CanEditMultipleObjects]
     public class SimpleAudioFeedbackEditor : BaseInteractionEditor
     {
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleAudioFeedback.SetInteractorSource"/>.</summary>
         protected SerializedProperty m_InteractorSourceObject;
         protected SerializedProperty m_AudioSource;
 
@@ -33,6 +34,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         /// </summary>
         protected static class Contents
         {
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleAudioFeedback.SetInteractorSource"/>.</summary>
             public static readonly GUIContent interactorSourceObject = EditorGUIUtility.TrTextContent("Interactor Source", "The interactor component to listen to for its interaction events.");
             public static readonly GUIContent audioSource = EditorGUIUtility.TrTextContent("Audio Source", "The Audio Source component to use to play audio clips.");
 
@@ -51,8 +53,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
             public static readonly GUIContent hoverCanceledClip = EditorGUIUtility.TrTextContent("Hover Canceled Clip", "The audio clip to play when the interactor stops hovering over an interactable due to being canceled.");
 
             public static readonly GUIContent allowHoverAudioWhileSelecting = EditorGUIUtility.TrTextContent("Allow Hover Audio While Selecting", "Whether to allow hover audio to play while the interactor is selecting an interactable.");
-
+            /// <summary><see cref="GUIContent"/> for the Select header label.</summary>
             public static readonly GUIContent selectHeader = EditorGUIUtility.TrTextContent("Select");
+            /// <summary><see cref="GUIContent"/> for the Hover header label.</summary>
             public static readonly GUIContent hoverHeader = EditorGUIUtility.TrTextContent("Hover");
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,7 +21,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 const float topMargin = 10f;
                 const float leftMargin = 10f;
-                
+
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(leftMargin);
                 GUILayout.BeginVertical();
@@ -55,7 +55,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// The path to display this settings provider in the Project Settings window.
         /// </summary>
         internal const string k_SettingsPath = "Project/XR Plug-in Management/XR Interaction Toolkit";
-        
+
         Editor m_InteractionLayerSettingsEditor;
         Editor m_XRInteractionEditorSettingsEditor;
         Editor m_XRDeviceSimulatorSettingsEditor;
@@ -119,7 +119,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
             base.OnActivate(searchContext, rootElement);
-            
+
             m_InteractionLayerSettingsEditor = Editor.CreateEditor(InteractionLayerSettings.Instance);
             m_XRInteractionEditorSettingsEditor = Editor.CreateEditor(XRInteractionEditorSettings.Instance);
             m_XRDeviceSimulatorSettingsEditor = Editor.CreateEditor(XRDeviceSimulatorSettings.Instance);
@@ -129,10 +129,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
         public override void OnDeactivate()
         {
             base.OnDeactivate();
-            
+
             if (m_InteractionLayerSettingsEditor != null)
                 Object.DestroyImmediate(m_InteractionLayerSettingsEditor);
-            
+
             if (m_XRInteractionEditorSettingsEditor != null)
                 Object.DestroyImmediate(m_XRInteractionEditorSettingsEditor);
 

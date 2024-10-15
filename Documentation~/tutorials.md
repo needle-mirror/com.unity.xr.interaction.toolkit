@@ -15,7 +15,7 @@ The XR Interaction Toolkit provides a variety of tutorials.
 
 Unity Learn tutorials:
 
-* [VR Development](https://learn.unity.com/pathway/vr-development) 
+* [VR Development](https://learn.unity.com/pathway/vr-development)
 * [Locomotion and Teleportation in the XR Interaction Toolkit](https://learn.unity.com/tutorial/locomotion-and-teleportation-in-the-xr-interaction-toolkit)
 * [Setting up a VR-Enabled Project with Unity and the XR Interaction Toolkit](https://learn.unity.com/tutorial/setting-up-a-vr-enabled-project-with-unity-and-the-xr-interaction-toolkit)
 * [Customizing Interactables in XR Interaction Toolkit](https://learn.unity.com/tutorial/customizing-interactables-in-xr-interaction-toolkit#)
@@ -28,4 +28,4 @@ Unity Learn tutorials:
 * [VR Beginner: The Escape Room](https://learn.unity.com/project/vr-beginner-the-escape-room)
 
 > [!NOTE]
-> Some or all of these tutorials might have been created with an earlier version of the XR Interaction Toolkit. 
+> Some or all of these tutorials might have been created with an earlier version of the XR Interaction Toolkit.

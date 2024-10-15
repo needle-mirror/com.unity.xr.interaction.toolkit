@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// We normally checked 1% as the activation point, but setting it to 2.5 % makes things feel a bit more responsive.
         /// </summary>
         const float k_DepthPercentActivationThreshold = 0.025f;
-        
+
         /// <summary>
         /// We require a minimum velocity for poke hover conditions to be met, and avoid the noise of tracking jitter.
         /// </summary>
@@ -68,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             m_SelectEntranceVectorDotThreshold = pokeThresholdData.GetSelectEntranceVectorDotThreshold();
 
             if (collider != null)
-            {             
+            {
                 interactionAxisLength = ComputeInteractionAxisLength(ComputeBounds(collider));
             }
             ResetPokeStateData(m_InitialTransform);
@@ -112,12 +112,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             Vector3 interactionPoint = CalculateInteractionPoint(pokerAttachPosition, axisNormal, pokeInteractionOffset);
 
             CalculatePokeParams(interactionPoint, pokableAttachPosition, axisNormal, out float interactionDepth, out float entranceVectorDot);
-            
+
             bool isOverObject = entranceVectorDot > 0f;
             float depthPercent = CalculateDepthPercent(interactionDepth, entranceVectorDot, interactionAxisLength);
 
             bool meetsHoverRequirements = CalculateHoverRequirements(interactor, isOverObject, axisNormal);
-            
+
             float clampedDepthPercent = !meetsHoverRequirements ? 1f : Mathf.Clamp01(depthPercent);
 
             bool meetsRequirements = CalculateRequirements(ref meetsHoverRequirements, clampedDepthPercent, interactor);
@@ -126,7 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
             return meetsRequirements;
         }
-        
+
         bool IsPokeDataValid(Transform pokedTransform)
         {
             return m_PokeThresholdData != null && pokedTransform != null;
@@ -138,12 +138,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             CalculateInteractionPoint(pokerAttachPosition, axisNormal, combinedOffset, out var interactionPoint);
             return interactionPoint;
         }
-        
+
         bool CalculateHoverRequirements(object interactor, bool isOverObject, float3 axisNormal)
         {
             if (!m_PokeThresholdData.enablePokeAngleThreshold)
                 return true;
-            
+
             bool meetsHoverRequirements = true;
             if (!m_HoldingHoverCheck.TryGetValue(interactor, out bool holdingHoverCheck) || !holdingHoverCheck)
                 meetsHoverRequirements = CheckVelocity(interactor, isOverObject, axisNormal);
@@ -154,18 +154,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         {
             if (!isOverObject)
                 return false;
-            
+
             if (interactor is not IAttachPointVelocityProvider velocityProvider)
                 return true;
-            
+
             var interactorVelocity = velocityProvider.GetAttachPointVelocity();
             if (!IsVelocitySufficient(interactorVelocity, k_SquareVelocityHoverThreshold))
                 return false;
-            
+
             float velocityAxisDotProduct = Vector3.Dot(-interactorVelocity.normalized, axisNormal);
             return velocityAxisDotProduct > m_SelectEntranceVectorDotThreshold;
         }
-        
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
@@ -176,7 +176,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             interactionDepth = math.length(axisAlignedInteractionPointOffset);
             entranceVectorDot = math.dot(axisNormal, math.normalizesafe(interactionPointOffset));
         }
-        
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
@@ -194,7 +194,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             float entranceVectorDotSign = math.sign(entranceVectorDot);
             return entranceVectorDotSign * interactionDepth / axisLength;
         }
-        
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
@@ -357,7 +357,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             {
                 if (m_HoveredInteractorsOnThisTransform.TryGetValue(lastTransform, out var hoveringInteractors))
                     hoveringInteractors.Remove(interactor);
-                
+
                 ResetPokeStateData(lastTransform);
                 m_LastHoveredTransform.Remove(interactor);
             }

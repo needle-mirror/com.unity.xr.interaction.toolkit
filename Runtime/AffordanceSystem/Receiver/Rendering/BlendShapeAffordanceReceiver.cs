@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;

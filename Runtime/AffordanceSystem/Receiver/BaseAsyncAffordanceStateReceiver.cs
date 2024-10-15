@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         protected virtual void OnDestroy()
         {
             m_LastJobHandle.Complete();
-            
+
             if (m_JobOutputStore.IsCreated)
                 m_JobOutputStore.Dispose();
 
@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         public JobHandle HandleTween(float tweenTarget)
         {
             CaptureInitialValue();
-            
+
             var stateData = currentAffordanceStateData.Value;
 
             // Grab affordance theme data matching the target state index.
@@ -55,14 +55,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
 
             var originValue = themeData.animationStateStartValue;
             var targetValue = themeData.animationStateEndValue;
-            
+
             // Idle state and we want to replace idle state with initial
             if (replaceIdleStateValueWithInitialValue && stateData.stateIndex == AffordanceStateShortcuts.idle)
             {
                 originValue = initialValue;
                 targetValue = initialValue;
             }
-            
+
             var jobData = new TweenJobData<T>
             {
                 initialValue = this.initialValue,

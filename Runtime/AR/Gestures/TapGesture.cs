@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="TapGesture.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -125,7 +125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                                 targetObject = interactableObject;
                         }
 #pragma warning restore 618
-                    }                    
+                    }
                 }
             }
         }

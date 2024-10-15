@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils.Datums.Editor;
+using Unity.XR.CoreUtils.Datums.Editor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing;

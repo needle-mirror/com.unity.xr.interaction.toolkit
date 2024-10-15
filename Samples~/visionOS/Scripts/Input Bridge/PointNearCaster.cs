@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         [SerializeField]
         [Tooltip("Radius of the sphere cast.")]
         float m_CastRadius = 0.025f;
-        
+
         /// <summary>
         /// Radius of the sphere cast.
         /// </summary>
@@ -57,12 +57,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         /// <inheritdoc />
         protected override bool InitializeCaster()
         {
-            if(!isActiveAndEnabled)
+            if (!isActiveAndEnabled)
                 return false;
-            
+
             if (!isInitialized)
                 m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
-            
+
             isInitialized = true;
             return isInitialized;
         }

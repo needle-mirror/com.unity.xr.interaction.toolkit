@@ -23,21 +23,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         [SerializeField]
         bool m_SelectActivatedInFirstFrame;
-        
+
         /// <summary>
         /// Whether the activate interaction was activated in the first frame.
         /// Used to proper deserialize the first frame.
         /// </summary>
         [SerializeField]
         bool m_ActivateActivatedInFirstFrame;
-        
+
         /// <summary>
         /// Whether the UI press interaction was activated in the first frame.
         /// Used to proper deserialize the first frame.
         /// </summary>
         [SerializeField]
         bool m_FirstUIPressActivatedInFirstFrame;
-        
+
         [SerializeField]
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
         List<XRControllerState> m_Frames = new List<XRControllerState>();
@@ -99,18 +99,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Adds a recording of a frame.
         /// Duplicates the supplied <paramref name="state"/> object and adds the copy as a frame recording.
         /// </summary>
-        /// <param name="state">The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <param name="state">The <see cref="XRControllerState"/> to be recorded.</param>
         /// <seealso cref="AddRecordingFrameNonAlloc"/>
         public void AddRecordingFrame(XRControllerState state)
         {
             frames.Add(new XRControllerState(state));
         }
-        
+
         /// <summary>
         /// Adds a recording of a frame.
         /// Adds the supplied <paramref name="state"/> object as a frame recording; does not allocate new memory.
         /// </summary>
-        /// <param name="state">The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <param name="state">The <see cref="XRControllerState"/> to be recorded.</param>
         /// <seealso cref="AddRecordingFrame(XRControllerState)"/>
         public void AddRecordingFrameNonAlloc(XRControllerState state)
         {

@@ -54,7 +54,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
 #endif
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.m_UseInteractorOrientation"/>.</summary>
             public static readonly GUIContent useInteractorOrientation = EditorGUIUtility.TrTextContent("Use Interactor Orientation", "Controls whether the interactable will use the orientation of the interactor, or not.");
-            
+
             //Scaling Properties
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.minScale"/>.</summary>
             public static readonly GUIContent minScale = EditorGUIUtility.TrTextContent("Min Scale", "The minimum scale of the object.");

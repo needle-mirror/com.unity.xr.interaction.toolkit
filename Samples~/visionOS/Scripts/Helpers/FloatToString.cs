@@ -8,11 +8,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
     public class FloatToString : MonoBehaviour
     {
         [SerializeField]
-        float m_Value = 0.5f; 
-        
+        float m_Value = 0.5f;
+
         [SerializeField]
         StringUnityEvent m_OnStringValueChanged;
-        
+
         public float value
         {
             get => m_Value;

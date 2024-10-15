@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     }
 
     /// <summary>
-    /// Affordance state theme data structure for for Color affordances. 
+    /// Affordance state theme data structure for for Color affordances.
     /// </summary>
     [Serializable]
     [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
@@ -65,7 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
         /// <summary>
         /// Makes this theme's settings match the settings of another theme.
         /// </summary>
-        /// <param name="other">The <seealso cref="ColorAffordanceTheme"/> to deep copy values from. It will not be modified.</param>
+        /// <param name="other">The <see cref="ColorAffordanceTheme"/> to deep copy values from. It will not be modified.</param>
         public override void CopyFrom(BaseAffordanceTheme<Color> other)
         {
             base.CopyFrom(other);

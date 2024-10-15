@@ -4,7 +4,7 @@ uid: xri-examples
 
 # XR Interaction Toolkit examples
 
-For a more comprehensive example, you can download a larger example from the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) repository on GitHub. 
+For a more comprehensive example, you can download a larger example from the [XR Interaction Toolkit Examples](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) repository on GitHub.
 
 ![](images/Station-01-LocomotionSettings.jpg)
 

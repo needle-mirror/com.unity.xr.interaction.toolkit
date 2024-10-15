@@ -52,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         LayerMask m_PhysicsLayerMask = 1; // Default
 
         /// <summary>
-        /// Physics layer mask used for limiting direct interactor overlaps when using the <seealso cref="improveAccuracyWithSphereCollider"/> option.
+        /// Physics layer mask used for limiting direct interactor overlaps when using the <see cref="improveAccuracyWithSphereCollider"/> option.
         /// </summary>
         public LayerMask physicsLayerMask
         {
@@ -64,7 +64,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
-        /// Determines whether the direct interactor sphere overlap will hit triggers when using the <seealso cref="improveAccuracyWithSphereCollider"/> option.
+        /// Determines whether the direct interactor sphere overlap will hit triggers when using the <see cref="improveAccuracyWithSphereCollider"/> option.
         /// </summary>
         public QueryTriggerInteraction physicsTriggerInteraction
         {

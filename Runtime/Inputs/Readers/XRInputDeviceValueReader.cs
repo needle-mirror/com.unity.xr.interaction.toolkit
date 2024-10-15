@@ -17,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         private protected InputDeviceCharacteristics m_Characteristics;
 
         /// <summary>
-        /// Characteristics of the input device to read from. Controllers are either:
+        /// <para>Characteristics of the input device to read from. Controllers are either: </para>
         /// <para><see cref="InputDeviceCharacteristics.HeldInHand"/> | <see cref="InputDeviceCharacteristics.TrackedDevice"/> | <see cref="InputDeviceCharacteristics.Controller"/> | <see cref="InputDeviceCharacteristics.Left"/> or</para>
         /// <para><see cref="InputDeviceCharacteristics.HeldInHand"/> | <see cref="InputDeviceCharacteristics.TrackedDevice"/> | <see cref="InputDeviceCharacteristics.Controller"/> | <see cref="InputDeviceCharacteristics.Right"/>.</para>
         /// </summary>

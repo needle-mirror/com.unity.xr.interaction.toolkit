@@ -75,14 +75,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             };
             columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column
             {
-                width = 240f, 
-                minWidth = 80f, 
+                width = 240f,
+                minWidth = 80f,
                 headerContent = EditorGUIUtility.TrTextContent("Layer Mask")
             };
             columns[(int)ColumnId.LayerMaskList] = new MultiColumnHeaderState.Column
             {
-                width = 120f, 
-                minWidth = 80f, 
+                width = 120f,
+                minWidth = 80f,
                 headerContent = EditorGUIUtility.TrTextContent("Layer Mask List")
             };
             columns[(int)ColumnId.HoverActive] = new MultiColumnHeaderState.Column
@@ -117,7 +117,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         XRInteractorsTreeView(List<XRInteractionManager> managers, TreeViewState state, MultiColumnHeader header)
             : base(state, header)
         {
-            foreach(var manager in managers)
+            foreach (var manager in managers)
                 AddManager(manager);
             showBorder = false;
             rowHeight = k_RowHeight;

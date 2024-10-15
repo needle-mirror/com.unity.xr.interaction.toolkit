@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -20,6 +20,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         protected SerializedProperty m_SphereCastRadius;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
         protected SerializedProperty m_ConeCastAngle;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.liveConeCastDebugVisuals"/>.</summary>
+        SerializedProperty m_LiveConeCastDebugVisuals;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastMask"/>.</summary>
         protected SerializedProperty m_RaycastMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -119,7 +121,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        protected static class Contents
+        protected static partial class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.maxRaycastDistance"/>.</summary>
             public static readonly GUIContent maxRaycastDistance = EditorGUIUtility.TrTextContent("Max Raycast Distance", "Max distance of ray cast. Increase this value will let you reach further.");
@@ -127,6 +129,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent sphereCastRadius = EditorGUIUtility.TrTextContent("Sphere Cast Radius", "Radius of this Interactor's ray, used for sphere casting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
             public static readonly GUIContent coneCastAngle = EditorGUIUtility.TrTextContent("Cone Cast Angle", "Angle in degrees of the interactor's selection cone, used for cone casting.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.liveConeCastDebugVisuals"/>.</summary>
+            internal static readonly GUIContent liveConeCastDebugVisuals = EditorGUIUtility.TrTextContent("Live Conecast Debug Visuals", "If enabled, more detailed cone cast gizmos will be displayed in the editor. Only displayed in Play mode when GameObject is selected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -211,16 +215,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
             /// <summary><see cref="GUIContent"/> for the header label of UI events.</summary>
             public static readonly GUIContent uiEventsHeader = EditorGUIUtility.TrTextContent("UI", "Called when this Interactor begins hovering over UI (Entered), or ends hovering (Exited).");
-      
+
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableARRaycasting"/>.</summary>
             public static readonly GUIContent enableARRaycasting = EditorGUIUtility.TrTextContent("Enable AR Raycasting", "Allow raycasts against the AR environment trackables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith3DObjects"/>.</summary>
             public static readonly GUIContent occludeARHitsWith3DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 3D Objects", "If enabled, AR Raycasts will be occluded by 3D objects.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.occludeARHitsWith2DObjects"/>.</summary>
             public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If enabled, AR Raycasts will be occluded by 2D world space objects.");
-
-            /// <summary>The help box message when the hit detection type is cone cast but the line type is not straight line.</summary>
-            public static readonly GUIContent coneCastRequiresStraightLineWarning = EditorGUIUtility.TrTextContent("Cone Cast requires Straight Line.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.manipulateAttachTransform"/>.</summary>
             [Obsolete("allowAnchorControl has been renamed in version 3.0.0. Use manipulateAttachTransform instead.")]
@@ -244,6 +245,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_HitDetectionType = serializedObject.FindProperty("m_HitDetectionType");
             m_SphereCastRadius = serializedObject.FindProperty("m_SphereCastRadius");
             m_ConeCastAngle = serializedObject.FindProperty("m_ConeCastAngle");
+            m_LiveConeCastDebugVisuals = serializedObject.FindProperty("m_LiveConeCastDebugVisuals");
             m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
             m_RaycastSnapVolumeInteraction = serializedObject.FindProperty("m_RaycastSnapVolumeInteraction");
@@ -290,7 +292,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_ScaleDistanceDeltaInput = serializedObject.FindProperty("m_ScaleDistanceDeltaInput");
 
             m_UIHoverEntered = serializedObject.FindProperty("m_UIHoverEntered");
-            m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");      
+            m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");
             m_EnableARRaycasting = serializedObject.FindProperty("m_EnableARRaycasting");
             m_OccludeARHitsWith3DObjects = serializedObject.FindProperty("m_OccludeARHitsWith3DObjects");
             m_OccludeARHitsWith2DObjects = serializedObject.FindProperty("m_OccludeARHitsWith2DObjects");
@@ -328,7 +330,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
 #if AR_FOUNDATION_PRESENT
             EditorGUILayout.Space();
-            
+
             DrawARConfiguration();
 #endif
 
@@ -417,14 +419,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         {
             EditorGUILayout.PropertyField(m_LineType, Contents.lineType);
 
-            if (!m_LineType.hasMultipleDifferentValues &&
-                !m_HitDetectionType.hasMultipleDifferentValues &&
-                m_LineType.intValue != (int)XRRayInteractor.LineType.StraightLine &&
-                m_HitDetectionType.intValue == (int)XRRayInteractor.HitDetectionType.ConeCast)
-            {
-                EditorGUILayout.HelpBox(Contents.coneCastRequiresStraightLineWarning.text, MessageType.Warning);
-            }
-
             using (new EditorGUI.IndentLevelScope())
             {
                 switch (m_LineType.intValue)
@@ -460,23 +454,24 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             switch (m_HitDetectionType.intValue)
             {
                 case (int)XRRayInteractor.HitDetectionType.SphereCast:
-                {
-                    using (new EditorGUI.IndentLevelScope())
                     {
-                        EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
-                    }
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case (int)XRRayInteractor.HitDetectionType.ConeCast:
-                {
-                    using (new EditorGUI.IndentLevelScope())
                     {
-                        EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
-                    }
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
+                            EditorGUILayout.PropertyField(m_LiveConeCastDebugVisuals, Contents.liveConeCastDebugVisuals);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
             EditorGUILayout.PropertyField(m_HitClosestOnly, Contents.hitClosestOnly);
             EditorGUILayout.PropertyField(m_BlendVisualLinePoints, Contents.blendVisualLinePoints);

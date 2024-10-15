@@ -66,7 +66,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var minColDistanceSqr = float.MaxValue;
             Collider closestCollider = null;
             var hasCollider = false;
-            
+
             foreach (var col in interactable.colliders)
             {
                 if (col == null || !col.gameObject.activeInHierarchy || !col.enabled || (col.isTrigger && !allowTriggerColliders))

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -524,10 +524,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             }
 
             // Selection has come and gone - resulting in a focus of the grab interactable
-            Assert.That(group.focusInteractable, Is.EqualTo( interactable ));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
             Assert.That(interactable.isFocused, Is.EqualTo(true));
             Assert.That(interactable2.isFocused, Is.EqualTo(false));
-            
+
             controllerRecorder.isPlaying = false;
             Object.Destroy(controllerRecorder);
             yield return null;

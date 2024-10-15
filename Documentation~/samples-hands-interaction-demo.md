@@ -232,7 +232,7 @@ The above error will happen if you have not imported the **Starter Assets** from
 
 ![sample-hands-project-validation-xri.png](images/sample-hands-project-validation-xri.png)
 
-If you are unable to run the sample scene correctly, you may not have imported the **XR Hands** package correctly. Checking the **Project Validation** in XR Plug-in Management will reveal what might be missing. Clicking **Fix** will import the main package. 
+If you are unable to run the sample scene correctly, you may not have imported the **XR Hands** package correctly. Checking the **Project Validation** in XR Plug-in Management will reveal what might be missing. Clicking **Fix** will import the main package.
 
 ![sample-hands-project-validation.png](images/sample-hands-project-validation.png)
 

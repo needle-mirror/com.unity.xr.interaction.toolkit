@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -69,7 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
         public XRTargetFiltersTreeView(List<XRTargetFilter> enabledFilters, TreeViewState state, MultiColumnHeader multiColumnHeader) : base(state, multiColumnHeader)
         {
-            foreach(var filter in enabledFilters)
+            foreach (var filter in enabledFilters)
                 AddFilter(filter);
             showBorder = false;
             rowHeight = k_RowHeight;

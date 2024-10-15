@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         IndirectPinch = 2,
         DirectPinch = 4,
     }
-    
+
     /// <summary>
     /// Input reader that binds to visionOS touch input, and implements an input queue to ensure only one input state change occurs per frame.
     /// </summary>
@@ -70,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         /// True if a touch event is currently active and input was not ended or cancelled.
         /// </summary>
         public IReadOnlyBindableVariable<bool> hasActiveTouch => m_HasActiveTouch;
-        
+
         readonly BindableVariable<bool> m_HasActiveTouch = new BindableVariable<bool>();
 
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
@@ -81,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
 
 #if POLYSPATIAL_1_1_OR_NEWER
         readonly Vector3 m_HiddenPosition = new Vector3(0f, -100f, 0f);
-        
+
         SpatialPointerInput m_SpatialPointerInput;
         bool m_InputEnabled;
         float m_TimeSinceLastTouch;
@@ -97,7 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             m_SpatialPointerInput ??= new SpatialPointerInput();
             if (m_SpatialPointerInput == null)
                 return;
-            
+
             m_SpatialPointerInput.Enable();
 
             if (m_IsPrimaryTouch)
@@ -113,13 +113,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             m_InputEnabled = true;
 #endif
         }
-        
+
         void OnDisable()
         {
 #if POLYSPATIAL_1_1_OR_NEWER
             m_SpatialPointerStateQueue.Clear();
             ExitInput();
-            
+
             if (!m_InputEnabled)
                 return;
 
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
                 m_SpatialPointerInput.Touch.SecondaryTouch.performed -= OnTouchPerformed;
                 m_SpatialPointerInput.Touch.SecondaryTouch.canceled -= OnTouchPerformed;
             }
-                
+
             m_SpatialPointerInput.Disable();
             m_InputEnabled = false;
 #endif
@@ -143,7 +143,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         {
 #if POLYSPATIAL_1_1_OR_NEWER
             bool hasTouch = m_SpatialPointerStateQueue.Count > 0;
-            
+
             // Check if input has timed out
             if (!hasTouch && m_IsPerformed && m_ReleaseTimeOutDelay > 0)
             {
@@ -151,7 +151,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
                 if (m_TimeSinceLastTouch > m_ReleaseTimeOutDelay)
                     ExitInput();
             }
-            
+
             while (m_SpatialPointerStateQueue.Count > 0)
             {
                 var state = m_SpatialPointerStateQueue.Dequeue();
@@ -164,10 +164,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
                     }
                     continue;
                 }
-                
+
                 m_TimeSinceLastTouch = 0f;
                 bool isPhaseActive = state.phase.IsActive();
-                
+
                 // If phase is active and the input is already active, empty the queue with latest transform state
                 if (m_IsPerformed && isPhaseActive)
                 {
@@ -204,7 +204,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             var device = context.ReadValue<SpatialPointerState>();
             m_SpatialPointerStateQueue.Enqueue(device);
         }
-        
+
         void ExitInput()
         {
             UpdateIsPerformed(false);
@@ -216,7 +216,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             transform.SetPositionAndRotation(m_HiddenPosition, Quaternion.identity);
             m_HasActiveTouch.Value = false;
         }
-        
+
         void UpdateIsPerformed(bool inputActive)
         {
             bool wasPerformedLastFrame = m_IsPerformed;
@@ -230,7 +230,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             // Update transform
             Vector3 targetPosition = touchState.Kind == SpatialPointerKind.Touch ? touchState.interactionPosition : touchState.inputDevicePosition;
             transform.SetPositionAndRotation(targetPosition, touchState.inputDeviceRotation);
-            
+
             // Update last state
             m_LastSpatialPointerState = touchState;
             m_HasActiveTouch.Value = touchState.phase.IsActive();
@@ -248,7 +248,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         }
 
         bool IsSpatialPointerKindSupported(SpatialPointerKind pointerKind) => IsSupportedPointerKind(MapPointerKind(pointerKind));
-        
+
         bool IsSupportedPointerKind(SupportedPointerKind pointerKind) => (m_SupportedPointerKind & pointerKind) != 0;
 #endif
 

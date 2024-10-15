@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using Unity.Mathematics;
@@ -143,7 +143,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Performs a single bounce-out interpolation between two Vector3 values. 
+        /// Performs a single bounce-out interpolation between two Vector3 values.
         /// The interpolation creates a bounce effect towards the end.
         /// </summary>
         /// <param name="start">Starting Vector3 value.</param>
@@ -158,7 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Performs a single bounce-out interpolation between two float3 values. 
+        /// Performs a single bounce-out interpolation between two float3 values.
         /// The interpolation creates a bounce effect towards the end.
         /// </summary>
         /// <param name="start">Starting float3 value.</param>
@@ -175,7 +175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Performs a single bounce-out interpolation between two float values. 
+        /// Performs a single bounce-out interpolation between two float values.
         /// The interpolation creates a bounce effect towards the end.
         /// </summary>
         /// <param name="start">Starting float value.</param>

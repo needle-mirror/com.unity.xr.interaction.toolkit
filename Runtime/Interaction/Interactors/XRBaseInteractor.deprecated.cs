@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -49,7 +49,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// (Deprecated) Defines whether interactions are enabled or not.
         /// </summary>
-        /// <remarks>
         /// <example>
         /// <c>enableInteractions = value;</c> is a convenience property for:
         /// <code>
@@ -57,6 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// allowSelect = value;
         /// </code>
         /// </example>
+        /// <remarks>
         /// <c>enableInteractions</c> has been deprecated. Use <see cref="allowHover"/> and <see cref="allowSelect"/> instead.
         /// </remarks>
         [Obsolete(k_EnableInteractionsDeprecated, true)]

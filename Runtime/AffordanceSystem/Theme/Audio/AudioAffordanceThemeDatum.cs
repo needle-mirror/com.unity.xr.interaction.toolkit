@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils.Datums;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
@@ -65,10 +65,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
         /// It checks if the number of entries in the list is correct and adds missing states using the idle state data, if necessary.
         /// </summary>
         /// <remarks>
-        /// The method first checks if the <c>m_List</c> object is <see langword="null"/>, and if so, it returns immediately. 
+        /// The method first checks if the <c>m_List</c> object is <see langword="null"/>, and if so, it returns immediately.
         /// If the <c>m_List</c> object is not <see langword="null"/>, it calculates the discrepancy between the built-in state count and the count of list items.
-        /// If this discrepancy is greater than zero, meaning there are missing entries, it then creates a new state copy from the existing idle state data in the list. 
-        /// It uses this idle state copy to fill the missing entries. 
+        /// If this discrepancy is greater than zero, meaning there are missing entries, it then creates a new state copy from the existing idle state data in the list.
+        /// It uses this idle state copy to fill the missing entries.
         /// Lastly, it updates the state names for the built-in state elements of the list, in order, with the appropriate state names.
         /// </remarks>
         internal void ValidateTheme()
@@ -87,7 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
                     idleState = new AudioAffordanceThemeData { stateName = nameof(AffordanceStateShortcuts.idle) };
                 else
                     idleState = m_List[AffordanceStateShortcuts.idle];
-                
+
                 // Add missing states with the data found in the idle state
                 while (listDiscrepancy-- > 0)
                 {
@@ -99,12 +99,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
                         stateExited = idleState.stateExited,
                     };
                     m_List.Add(idleStateCopy);
-                    
+
                     // Update state name
                     var currentIndex = (byte)(m_List.Count - 1);
                     var stateName = AffordanceStateShortcuts.GetNameForIndex(currentIndex);
                     m_List[currentIndex].stateName = stateName;
-                    
+
                     Debug.LogWarning($"Found missing state {currentIndex} \"{stateName}\" in your affordance theme. Adding missing state with idle state data.");
                 }
             }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Interactors
@@ -29,7 +29,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="NearFarInteractor.farInteractionCaster"/>.</summary>
         protected SerializedProperty m_FarInteractionCaster;
-        
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="NearFarInteractor.farAttachMode"/>.</summary>
         protected SerializedProperty m_FarAttachMode;
 

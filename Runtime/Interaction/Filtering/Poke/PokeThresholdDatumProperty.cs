@@ -10,12 +10,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     [Serializable]
     public class PokeThresholdDatumProperty : DatumProperty<PokeThresholdData, PokeThresholdDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{PokeThresholdData, PokeThresholdDatum}"/>
         public PokeThresholdDatumProperty(PokeThresholdData value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{PokeThresholdData, PokeThresholdDatum}"/>
         public PokeThresholdDatumProperty(PokeThresholdDatum datum) : base(datum)
         {
         }

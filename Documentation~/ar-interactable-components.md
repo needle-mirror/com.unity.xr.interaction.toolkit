@@ -4,7 +4,7 @@ uid: xri-ar-interactable-components
 
 # AR interactable components
 
-The AR interactable components provided by the toolkit. 
+The AR interactable components provided by the toolkit.
 
 > [!NOTE]
 > These AR interactable components have been deprecated in favor of newer cross-platform AR architecture that is compatible with Mixed Reality devices. Refer to [AR interaction](xref:xri-ar-interaction) for more information.
@@ -19,5 +19,5 @@ The AR interactable components provided by the toolkit.
 | [AR Translation Interactable](ar-translation-interactable.md) | Manipulates the position of an object via a drag gesture. |
 
 ## Additional resources
- 
+
 * [Component index](components.md)

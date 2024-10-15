@@ -12,13 +12,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         [Header("Dropdown Component Config")]
         [SerializeField]
         GameObject m_RootGameObject;
-        
+
         [SerializeField]
         TMP_Text m_CurrentSelectionText;
-        
+
         [SerializeField]
         List<DropDownElement> m_DropDownElements = new List<DropDownElement>();
-        
+
         bool m_ShowingExpandedContent;
 
         /// <inheritdoc />

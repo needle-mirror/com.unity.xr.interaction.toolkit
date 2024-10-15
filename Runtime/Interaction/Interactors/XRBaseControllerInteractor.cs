@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// When multiple interactors select an interactable at the same time and that interactable's
             /// <see cref="InteractableSelectMode"/> is set to <see cref="InteractableSelectMode.Single"/>, you may
             /// experience undesired behavior of selection repeatedly passing between the interactors and the select
-            /// interaction events firing each frame. State Change is the recommended and default option. 
+            /// interaction events firing each frame. State Change is the recommended and default option.
             /// </remarks>
             /// <seealso cref="InteractionState.active"/>
             /// <seealso cref="InteractableSelectMode"/>
@@ -436,7 +436,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticSelectEnterIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Select Entered.
@@ -446,7 +446,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public float hapticSelectEnterIntensity
         {
             get => m_HapticSelectEnterIntensity;
-            set => m_HapticSelectEnterIntensity= value;
+            set => m_HapticSelectEnterIntensity = value;
         }
 
         [SerializeField]
@@ -476,7 +476,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticSelectExitIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Select Exited.
@@ -486,7 +486,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public float hapticSelectExitIntensity
         {
             get => m_HapticSelectExitIntensity;
-            set => m_HapticSelectExitIntensity= value;
+            set => m_HapticSelectExitIntensity = value;
         }
 
         [SerializeField]
@@ -516,7 +516,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticSelectCancelIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Select Canceled.
@@ -526,7 +526,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public float hapticSelectCancelIntensity
         {
             get => m_HapticSelectCancelIntensity;
-            set => m_HapticSelectCancelIntensity= value;
+            set => m_HapticSelectCancelIntensity = value;
         }
 
         [SerializeField]
@@ -556,7 +556,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticHoverEnterIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Hover Entered.
@@ -596,7 +596,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticHoverExitIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Hover Exited.
@@ -636,7 +636,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        [Range(0,1)]
+        [Range(0, 1)]
         float m_HapticHoverCancelIntensity;
         /// <summary>
         /// The Haptics intensity Unity plays on Hover Canceled.
@@ -646,7 +646,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public float hapticHoverCancelIntensity
         {
             get => m_HapticHoverCancelIntensity;
-            set => m_HapticHoverCancelIntensity= value;
+            set => m_HapticHoverCancelIntensity = value;
         }
 
         [SerializeField]

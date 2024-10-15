@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 #if BURST_PRESENT
 using Unity.Burst;
@@ -62,6 +62,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Reusable list of optimal raycast hits, for lookup during sphere casting.
         /// </summary>
         static readonly HashSet<Collider> s_OptimalHits = new HashSet<Collider>();
+
+        /// <summary>
+        /// List containing cone cast debug information including the position of the sphere casts and the radius.
+        /// </summary>
+        readonly List<Tuple<Vector3, float>> m_ConeCastDebugInfo = new List<Tuple<Vector3, float>>();
 
         /// <summary>
         /// Compares ray cast hits by distance, to sort in ascending order.
@@ -397,6 +402,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             get => m_ConeCastAngle;
             set => m_ConeCastAngle = value;
+        }
+
+        float m_CachedConeCastAngle;
+        float m_CachedConeCastRadius;
+
+        float coneCastAngleRadius
+        {
+            get
+            {
+                if (!Mathf.Approximately(m_CachedConeCastAngle, m_ConeCastAngle))
+                {
+                    m_CachedConeCastAngle = m_ConeCastAngle;
+                    m_CachedConeCastRadius = math.tan(math.radians(m_CachedConeCastAngle) * 0.5f);
+                }
+
+                return m_CachedConeCastRadius;
+            }
+        }
+
+        [SerializeField]
+        bool m_LiveConeCastDebugVisuals;
+
+        /// <summary>
+        /// If enabled, more detailed cone cast gizmos will be displayed in the editor.
+        /// </summary>
+        internal bool liveConeCastDebugVisuals
+        {
+            get => m_LiveConeCastDebugVisuals;
+            set => m_LiveConeCastDebugVisuals = value;
         }
 
         [SerializeField]
@@ -1078,6 +1112,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_EnableARRaycasting)
                 FindCreateARRaycastManager();
 #endif
+
+            if (!Application.isEditor)
+                m_LiveConeCastDebugVisuals = false;
         }
 
         /// <inheritdoc />
@@ -1101,9 +1138,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             // Clear lines
             m_SamplePoints?.Clear();
-
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
         }
 
         /// <summary>
@@ -1126,31 +1161,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                         break;
 
                     case HitDetectionType.SphereCast:
-                    {
-                        var gizmoUp = transformData.up * m_SphereCastRadius;
-                        var gizmoSide = transformData.right * m_SphereCastRadius;
-                        Gizmos.DrawWireSphere(gizmoStart, m_SphereCastRadius);
-                        Gizmos.DrawLine(gizmoStart + gizmoSide, gizmoEnd + gizmoSide);
-                        Gizmos.DrawLine(gizmoStart - gizmoSide, gizmoEnd - gizmoSide);
-                        Gizmos.DrawLine(gizmoStart + gizmoUp, gizmoEnd + gizmoUp);
-                        Gizmos.DrawLine(gizmoStart - gizmoUp, gizmoEnd - gizmoUp);
-                        Gizmos.DrawWireSphere(gizmoEnd, m_SphereCastRadius);
-                        break;
-                    }
+                        {
+                            var gizmoUp = transformData.up * m_SphereCastRadius;
+                            var gizmoSide = transformData.right * m_SphereCastRadius;
+                            Gizmos.DrawWireSphere(gizmoStart, m_SphereCastRadius);
+                            Gizmos.DrawLine(gizmoStart + gizmoSide, gizmoEnd + gizmoSide);
+                            Gizmos.DrawLine(gizmoStart - gizmoSide, gizmoEnd - gizmoSide);
+                            Gizmos.DrawLine(gizmoStart + gizmoUp, gizmoEnd + gizmoUp);
+                            Gizmos.DrawLine(gizmoStart - gizmoUp, gizmoEnd - gizmoUp);
+                            Gizmos.DrawWireSphere(gizmoEnd, m_SphereCastRadius);
+                            break;
+                        }
 
                     case HitDetectionType.ConeCast:
-                    {
-                        var coneRadius = Mathf.Tan(m_ConeCastAngle * Mathf.Deg2Rad * 0.5f) * m_MaxRaycastDistance;
-                        var gizmoUp = transformData.up * coneRadius;
-                        var gizmoSide = transformData.right * coneRadius;
-                        Gizmos.DrawLine(gizmoStart, gizmoEnd);
-                        Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoSide);
-                        Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoSide);
-                        Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoUp);
-                        Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoUp);
-                        Gizmos.DrawWireSphere(gizmoEnd, coneRadius);
-                        break;
-                    }
+                        {
+                            var coneRadius = Mathf.Tan(m_ConeCastAngle * Mathf.Deg2Rad * 0.5f) * m_MaxRaycastDistance;
+                            var gizmoUp = transformData.up * coneRadius;
+                            var gizmoSide = transformData.right * coneRadius;
+                            Gizmos.DrawLine(gizmoStart, gizmoEnd);
+                            Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoSide);
+                            Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoSide);
+                            Gizmos.DrawLine(gizmoStart, gizmoEnd + gizmoUp);
+                            Gizmos.DrawLine(gizmoStart, gizmoEnd - gizmoUp);
+                            Gizmos.DrawWireSphere(gizmoEnd, coneRadius);
+                            break;
+                        }
                 }
             }
 
@@ -1213,6 +1248,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 case LineType.BezierCurve:
                     DrawQuadraticBezierGizmo(m_ControlPoints[0], m_ControlPoints[1], m_ControlPoints[2]);
                     break;
+            }
+
+            if (m_LiveConeCastDebugVisuals)
+            {
+                const float numDisplaySpheresInConeCast = 4f;
+                for (var i = 0; i < m_ConeCastDebugInfo.Count; i += 2)
+                {
+                    Gizmos.color = Color.yellow;
+                    for (var j = 0f; j <= numDisplaySpheresInConeCast; ++j)
+                    {
+                        var percent = j / numDisplaySpheresInConeCast;
+                        var lerpVector = m_ConeCastDebugInfo[i].Item1 + percent * (m_ConeCastDebugInfo[i + 1].Item1 - m_ConeCastDebugInfo[i].Item1);
+                        Gizmos.DrawWireSphere(lerpVector, m_ConeCastDebugInfo[i].Item2);
+                    }
+                }
             }
         }
 
@@ -1833,7 +1883,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 // Determine if the UI hit is closer than the 3D hit.
                 // The ray cast segments are sourced from a polygonal chain of endpoints.
                 // Within each segment, this Interactor could have hit either a 3D object or a UI object.
-                // The distance is just from the segment start position, not from the origin of the whole curve.
+                // The distance is from the origin of the whole curve.
                 m_IsUIHitClosest = m_UIRaycastHitEndpointIndex > 0 && (m_UIRaycastHitEndpointIndex < hitIndex || (m_UIRaycastHitEndpointIndex == hitIndex && raycastResultValue.distance <= distance));
 
                 m_RaycastHitOccurred = true;
@@ -2136,8 +2186,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 {
                     var raycastHit = m_RaycastHits[i];
 
+                    // Check if UI raycast GameObject is the same as the ray interactor raycast hit GameObject
+                    // If the GameObjects are the same, we will not break due to UI hits in case the GameObject is an interactable
+                    var uniqueUIRaycastGameObject = uiRaycastResult.gameObject != raycastHit.collider.gameObject;
+
                     // A hit on UI should block Interactables behind it from being a valid target
-                    if (hasUIHit && uiHitIndex > 0 && (uiHitIndex < m_RaycastHitEndpointIndex || (uiHitIndex == m_RaycastHitEndpointIndex && uiRaycastResult.distance <= raycastHit.distance)))
+                    if (hasUIHit && uniqueUIRaycastGameObject && uiHitIndex > 0 && (uiHitIndex < m_RaycastHitEndpointIndex || (uiHitIndex == m_RaycastHitEndpointIndex && uiRaycastResult.distance <= raycastHit.distance)))
                         break;
 
                     // A hit on geometry not associated with Interactables should block Interactables behind it from being a valid target
@@ -2225,41 +2279,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     samplePoints.Add(samplePoint);
                     break;
                 case LineType.ProjectileCurve:
-                {
-                    var initialPosition = (float3)lineOrigin;
-                    CalculateProjectileParameters(initialPosition, lineDirection, out var initialVelocity, out var constantAcceleration, out var flightTime);
-
-                    var interval = flightTime / (count - 1);
-                    for (var i = 1; i < count; ++i)
                     {
-                        var time = i * interval;
-                        CurveUtility.SampleProjectilePoint(initialPosition, initialVelocity, constantAcceleration, time, out var position);
-                        samplePoint.position = position;
-                        samplePoint.parameter = time;
-                        samplePoints.Add(samplePoint);
+                        var initialPosition = (float3)lineOrigin;
+                        CalculateProjectileParameters(initialPosition, lineDirection, out var initialVelocity, out var constantAcceleration, out var flightTime);
+
+                        var interval = flightTime / (count - 1);
+                        for (var i = 1; i < count; ++i)
+                        {
+                            var time = i * interval;
+                            CurveUtility.SampleProjectilePoint(initialPosition, initialVelocity, constantAcceleration, time, out var position);
+                            samplePoint.position = position;
+                            samplePoint.parameter = time;
+                            samplePoints.Add(samplePoint);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case LineType.BezierCurve:
-                {
-                    // Update control points for Bezier curve
-                    UpdateBezierControlPoints(lineOrigin, lineDirection, referenceUp);
-                    var p0 = m_ControlPoints[0];
-                    var p1 = m_ControlPoints[1];
-                    var p2 = m_ControlPoints[2];
-
-                    var interval = 1f / (count - 1);
-                    for (var i = 1; i < count; ++i)
                     {
-                        // Parametric parameter t where 0 ≤ t ≤ 1
-                        var percent = i * interval;
-                        CurveUtility.SampleQuadraticBezierPoint(p0, p1, p2, percent, out var position);
-                        samplePoint.position = position;
-                        samplePoint.parameter = percent;
-                        samplePoints.Add(samplePoint);
+                        // Update control points for Bezier curve
+                        UpdateBezierControlPoints(lineOrigin, lineDirection, referenceUp);
+                        var p0 = m_ControlPoints[0];
+                        var p1 = m_ControlPoints[1];
+                        var p2 = m_ControlPoints[2];
+
+                        var interval = 1f / (count - 1);
+                        for (var i = 1; i < count; ++i)
+                        {
+                            // Parametric parameter t where 0 ≤ t ≤ 1
+                            var percent = i * interval;
+                            CurveUtility.SampleQuadraticBezierPoint(p0, p1, p2, percent, out var position);
+                            samplePoint.position = position;
+                            samplePoint.parameter = percent;
+                            samplePoints.Add(samplePoint);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
         }
 
@@ -2270,6 +2324,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             m_RaycastHitsCount = 0;
             m_RaycastHitEndpointIndex = 0;
+            m_ConeCastDebugInfo.Clear();
+            float totalCastLength = 0f;
 
             bool has3DHit = false;
 #if AR_FOUNDATION_PRESENT
@@ -2287,6 +2343,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 CheckCollidersBetweenPoints(fromPoint, toPoint, origin);
                 if (m_RaycastHitsCount > 0 && !has3DHit)
                 {
+                    for (var j = 0; j < m_RaycastHitsCount; ++j)
+                    {
+                        m_RaycastHits[j].distance += totalCastLength;
+                    }
+
                     m_RaycastHitEndpointIndex = i;
                     has3DHit = true;
                 }
@@ -2333,11 +2394,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     break;
 
                 case HitDetectionType.ConeCast:
-                    if (m_LineType == LineType.StraightLine)
-                    {
-                        m_RaycastHitsCount = FilteredConecast(from, m_ConeCastAngle, direction, origin,
-                            m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
-                    }
+                    m_RaycastHitsCount = FilteredConecast(from, direction, origin,
+                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
                     break;
             }
 
@@ -2374,17 +2432,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 #endif
         }
 
-        int FilteredConecast(in Vector3 from, float coneCastAngleDegrees, in Vector3 direction, in Vector3 origin,
-            RaycastHit[] results, float maxDistance = Mathf.Infinity, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal)
+        /// <summary>
+        /// Performs a conecast using raycasts for optimal hits in conjunction with a tapered spherecast.
+        /// </summary>
+        /// <param name="from">The starting point for this segment of the conecast.</param>
+        /// <param name="direction">The direction of the conecast.</param>
+        /// <param name="origin">The root origin of the entire conecast.</param>
+        /// <param name="results">List of valid <see cref="RaycastHit"/> information.</param>
+        /// <param name="maxDistance">The maximum distance of this segment of the conecast.</param>
+        /// <param name="layerMask">The layer mask to filter the conecast.</param>
+        /// <param name="queryTriggerInteraction">Specifies whether this conecast should hit triggers.</param>
+        /// <returns>Returns the number of valid hits in this conecast.</returns>
+        int FilteredConecast(in Vector3 from, in Vector3 direction, in Vector3 origin, RaycastHit[] results, float maxDistance = Mathf.Infinity, int layerMask = Physics.DefaultRaycastLayers, QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal)
         {
             s_OptimalHits.Clear();
-
-            // Set up all the sphere casts
             var obstructionDistance = math.min(maxDistance, 1000f);
+            var hitCounter = 0;
 
             // Raycast looking for obstructions and any optimal targets
-            var hitCounter = 0;
-            var optimalHits = m_LocalPhysicsScene.Raycast(origin, direction, s_SpherecastScratch, obstructionDistance, layerMask, queryTriggerInteraction);
+            var optimalHits = m_LocalPhysicsScene.Raycast(from, direction, s_SpherecastScratch, maxDistance, layerMask, queryTriggerInteraction);
             if (optimalHits > 0)
             {
                 for (var i = 0; i < optimalHits; ++i)
@@ -2397,7 +2463,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     if (!interactionManager.TryGetInteractableForCollider(hitInfo.collider, out _))
                     {
                         obstructionDistance = math.min(hitInfo.distance, obstructionDistance);
-
                         // Since we are rejecting anything past the obstruction, we push its distance back to allow for objects in the periphery to be selected first
                         hitInfo.distance += 1.5f;
                     }
@@ -2407,26 +2472,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     hitCounter++;
                 }
             }
-
             // Now do a series of sphere casts that increase in size.
             // We don't process obstructions here
             // We don't do ultra-fine cone rejection instead add horizontal distance to the spherecast depth
-            var angleRadius = math.tan(math.radians(coneCastAngleDegrees) * 0.5f);
-            var currentOffset = (origin - from).magnitude;
-            while (currentOffset < obstructionDistance)
+            var distanceOriginToStartSegment = (origin - from).magnitude;
+            var currentSegmentCastMax = obstructionDistance;
+            var currentSegmentCastDistance = 0f;
+
+            while (currentSegmentCastDistance < obstructionDistance && !Mathf.Approximately(currentSegmentCastDistance, obstructionDistance))
             {
-                BurstPhysicsUtils.GetConecastParameters(angleRadius, currentOffset, obstructionDistance, direction, out var originOffset, out var endRadius, out var castMax);
+                var currentOffsetFromOrigin = distanceOriginToStartSegment + currentSegmentCastDistance;
+
+                BurstPhysicsUtils.GetMultiSegmentConecastParameters(coneCastAngleRadius, currentSegmentCastDistance, currentOffsetFromOrigin, currentSegmentCastMax, direction, out var originRadiusOffset, out var endRadius, out var sphereCastDistance);
+
+                if (m_LiveConeCastDebugVisuals)
+                {
+                    m_ConeCastDebugInfo.Add(new Tuple<Vector3, float>(from + originRadiusOffset, endRadius));
+                    m_ConeCastDebugInfo.Add(new Tuple<Vector3, float>(from + originRadiusOffset + (sphereCastDistance * direction), endRadius));
+                }
 
                 // Spherecast
-                var initialResults = m_LocalPhysicsScene.SphereCast(origin + originOffset, endRadius, direction, s_SpherecastScratch, castMax, layerMask, queryTriggerInteraction);
+                var initialResults = m_LocalPhysicsScene.SphereCast(from + originRadiusOffset, endRadius, direction, s_SpherecastScratch, sphereCastDistance, layerMask, queryTriggerInteraction);
 
-                // Go through each result
                 for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
                 {
                     var hit = s_SpherecastScratch[i];
+                    var totalHitDistance = currentSegmentCastDistance + hit.distance;
 
                     // Range check
-                    if (hit.distance > obstructionDistance)
+                    if (totalHitDistance > obstructionDistance)
                         continue;
 
                     // If it's an optimal hit, then skip it
@@ -2437,21 +2511,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     if (!interactionManager.TryGetInteractableForCollider(hit.collider, out _))
                         continue;
 
-                    if (Mathf.Approximately(hit.distance, 0f) && hit.point == Vector3.zero)
-                    {
+                    if (Mathf.Approximately(hit.distance, 0f) && BurstMathUtility.FastVectorEquals(hit.point, Vector3.zero))
                         // Sphere cast can return hits where point is (0, 0, 0) in error.
                         continue;
-                    }
 
                     // Adjust distance by distance from ray center for default sorting
-                    BurstPhysicsUtils.GetConecastOffset(origin, hit.point, direction, out var hitToRayDist);
+                    BurstPhysicsUtils.GetConecastOffset(from, hit.point, direction, out var hitToRayDist);
 
                     // We penalize these off-center hits by a meter + whatever horizontal offset they have
-                    hit.distance += currentOffset + 1f + (hitToRayDist);
+                    // this should be distance from segment start + penalty
+                    hit.distance += currentSegmentCastDistance + 1f + (hitToRayDist);
                     results[hitCounter] = hit;
                     hitCounter++;
                 }
-                currentOffset += castMax;
+
+                currentSegmentCastDistance += sphereCastDistance;
             }
 
             s_OptimalHits.Clear();

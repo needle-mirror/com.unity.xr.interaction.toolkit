@@ -37,14 +37,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Cached reference to a found component of type <see cref="T"/>.
         /// </summary>
         internal static T componentCache => s_ComponentCache;
-        
+
         /// <summary>
         /// Last frame that <see cref="Find"/> was called.
         /// </summary>
         static int s_LastTryFindFrame = -1;
 
         static bool FindWasPerformedThisFrame() => s_LastTryFindFrame == Time.frameCount;
-        
+
         /// <summary>
         /// Find or create a new GameObject with component <typeparamref name="T"/>.
         /// </summary>
@@ -120,7 +120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             }
             return TryFindComponent(out component);
         }
-        
+
         static T Find()
         {
             s_LastTryFindFrame = Time.frameCount;

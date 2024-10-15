@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 {
@@ -59,14 +59,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// In other words, this will be called when the selection count changes from <c>0</c> to <c>1</c>
         /// and whenever it subsequently changes while still above <c>0</c>.
         /// This method is called by Unity right before <see cref="Process"/> if the selection count changed.
-        /// <br />
+        /// </remarks>
         /// <example>
-        /// To get the number of Interactors selecting the Interactable in your implementation method:
+        /// <para>To get the number of Interactors selecting the Interactable in your implementation method:</para>
         /// <code>
         /// grabInteractable.interactorsSelecting.Count
         /// </code>
         /// </example>
-        /// </remarks>
         void OnGrabCountChanged(XRGrabInteractable grabInteractable, Pose targetPose, Vector3 localScale);
 
         /// <summary>
@@ -81,15 +80,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// When there is more than one linked grab transformer that can process, the updated value of each <see langword="ref"/> parameter
         /// is passed to each in series according to its order in the list. You can utilize this by, for example,
         /// having the first grab transformer compute the target pose, and the second compute just the scale.
-        /// <br />
+        /// </remarks>
         /// <example>
-        /// If your transformer requires the use of two or more selections, you should first check
-        /// for that condition in your implementation method:
+        /// <para>If your transformer requires the use of two or more selections, you should first check
+        /// for that condition in your implementation method:</para>
         /// <code>
         /// if (grabInteractable.interactorsSelecting.Count &lt; 2) return;
         /// </code>
         /// </example>
-        /// </remarks>
         /// <seealso cref="XRGrabInteractable.ProcessInteractable"/>
         /// <seealso cref="XRInteractionUpdateOrder.UpdatePhase"/>
         void Process(XRGrabInteractable grabInteractable, XRInteractionUpdateOrder.UpdatePhase updatePhase, ref Pose targetPose, ref Vector3 localScale);

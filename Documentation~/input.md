@@ -13,7 +13,7 @@ User input forms the basis of any interaction. Topics in this section discuss ho
 | [AR gestures](ar-gestures.md)                 | Describes the touch screen gestures that are available as input. |
 | [Input components](input-components.md)       | Toolkit components related to input. |
 | [Feedback components](feedback-components.md) | Toolkit components providing haptic and audio feedback. |
- 
+
 ## Additional resources
 
 * [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8)

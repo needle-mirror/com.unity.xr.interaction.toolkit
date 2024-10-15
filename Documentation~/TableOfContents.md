@@ -1,5 +1,5 @@
 * [XR Interaction Toolkit](index.md)
-* [What's new in 3.0](whats-new-3.0.md) 
+* [What's new in 3.0](whats-new-3.0.md)
   * [XRI 3.0 upgrade guide](upgrade-guide-3.0.md)
   * Previous releases
     * [What's new in 2.6](whats-new-2.6.md)
@@ -7,7 +7,7 @@
     * [What's new in 2.4](whats-new-2.4.md)
     * [What's new in 2.3](whats-new-2.3.md)
     * [What's new in 2.2](whats-new-2.2.md)
-    * [What's new in 2.1](whats-new-2.1.md)  
+    * [What's new in 2.1](whats-new-2.1.md)
 * [Interaction overview](interaction-overview.md)
 * [Get started](get-started.md)
   * [Installation](installation.md)

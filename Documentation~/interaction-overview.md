@@ -7,7 +7,7 @@ uid: xri-overview
 Interactions in a scene are based on two key elements:
 
 * **Interactors**: elements in the scene directly controlled by the user, typically through XR controller hardware, hand tracking, or touch screens on mobile AR devices. Interactors initiate interactions with interactable objects.
-* **Interactables**: the objects in a scene that the user can interact with. Interactable objects have states that indicate how they are being interacted with. 
+* **Interactables**: the objects in a scene that the user can interact with. Interactable objects have states that indicate how they are being interacted with.
 
 Every frame, the active interactors identify which interactable objects they can interact with. These interactable objects enter the hover state and dispatch hover entered events, which you can use to provide feedback to the user that interaction is possible. The user can then initiate selection of an interactable, the next phase of an interaction. For example, the user might press a specific button on a controller to select a "hovered" object. When selected an interactable object enters the selected state and dispatches select entered events. What happens next, depends on the type of interactor and interactable and how you have configured the interaction. A grabbable object might be picked up by the user. A UI ScrollView might pan with movement of the user's finger.
 

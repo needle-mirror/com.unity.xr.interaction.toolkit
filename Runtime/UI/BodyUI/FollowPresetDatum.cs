@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 {
     /// <summary>
-    /// Represents the reference axis relative to the tracking anchor used to compare up and camera facing direction. 
+    /// Represents the reference axis relative to the tracking anchor used to compare up and camera facing direction.
     /// </summary>
     public enum FollowReferenceAxis
     {
@@ -207,7 +207,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         /// </summary>
         /// <param name="trackingRoot">Tracking root transform.</param>
         /// <param name="isRightHand">Whether this is for the user's right hand or not.</param>
-        /// <returns></returns>
+        /// <returns>Returns a <see cref="Vector3"/> representing the reference axis relative to the specified tracking root.</returns>
         public Vector3 GetReferenceAxisForTrackingAnchor(Transform trackingRoot, bool isRightHand)
         {
             return trackingRoot.TransformDirection(GetLocalAxis(isRightHand));
@@ -250,12 +250,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
     [Serializable]
     public class FollowPresetDatumProperty : DatumProperty<FollowPreset, FollowPresetDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{FollowPreset, FollowPresetDatum}"/>
         public FollowPresetDatumProperty(FollowPreset value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{FollowPreset, FollowPresetDatum}"/>
         public FollowPresetDatumProperty(FollowPresetDatum datum) : base(datum)
         {
         }

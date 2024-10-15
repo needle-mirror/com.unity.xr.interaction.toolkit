@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering;
@@ -26,19 +26,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         [Obsolete("k_XRLegacyGrabTransformer is now deprecated since XRLegacyGrabTransformer was deprecated.", true)]
         public const string k_XRLegacyGrabTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRLegacyGrabTransformer) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="LocomotionSystem"/>.
         /// </summary>
         [Obsolete("k_LocomotionSystem has been deprecated in version 3.0.0.")]
         public const string k_LocomotionSystem = k_BaseApi + k_BaseNamespace + nameof(LocomotionSystem) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRController"/>.
         /// </summary>
         [Obsolete("k_XRController has been deprecated in version 3.0.0.")]
         public const string k_XRController = k_BaseApi + k_BaseNamespace + nameof(XRController) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRScreenSpaceController"/>.
         /// </summary>
@@ -63,7 +63,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Obsolete("k_DeviceBasedSnapTurnProvider has been deprecated in version 3.0.0.")]
         public const string k_DeviceBasedSnapTurnProvider = k_BaseApi + k_BaseNamespace + nameof(DeviceBasedSnapTurnProvider) + ".html";
 
-                /// <summary>
+        /// <summary>
         /// Scripting API URL for <see cref="ActionBasedContinuousMoveProvider"/>.
         /// </summary>
         [Obsolete("k_ActionBasedContinuousMoveProvider has been deprecated in version 3.0.0.")]
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_ColorGradientLineRendererAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(ColorGradientLineRendererAffordanceReceiver) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="ColorMaterialPropertyAffordanceReceiver"/>.
         /// </summary>
@@ -180,13 +180,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="ImageColorAffordanceReceiver"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_ImageColorAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.UI." + nameof(ImageColorAffordanceReceiver) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="UniformTransformScaleAffordanceReceiver"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_UniformTransformScaleAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Transformation." + nameof(UniformTransformScaleAffordanceReceiver) + ".html";
 
         /// <summary>
@@ -198,49 +198,49 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="MaterialPropertyBlockHelper"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_MaterialPropertyBlockHelper = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Rendering." + nameof(MaterialPropertyBlockHelper) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractableAffordanceStateProvider"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_XRInteractableAffordanceStateProvider = k_BaseApi + k_BaseNamespace + "AffordanceSystem.State." + nameof(XRInteractableAffordanceStateProvider) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractorAffordanceStateProvider"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_XRInteractorAffordanceStateProvider = k_BaseApi + k_BaseNamespace + "AffordanceSystem.State." + nameof(XRInteractorAffordanceStateProvider) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="AudioAffordanceThemeDatum"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_AudioAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Audio." + nameof(AudioAffordanceThemeDatum) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="ColorAffordanceThemeDatum"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_ColorAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(ColorAffordanceThemeDatum) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="FloatAffordanceThemeDatum"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_FloatAffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(FloatAffordanceThemeDatum) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="Vector2AffordanceThemeDatum"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_Vector2AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector2AffordanceThemeDatum) + ".html";
 
         /// <summary>
         /// Scripting API URL for <see cref="Vector3AffordanceThemeDatum"/>.
         /// </summary>
-        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")] 
+        [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_Vector3AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector3AffordanceThemeDatum) + ".html";
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
         public const string k_Vector4AffordanceThemeDatum = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Theme.Primitives." + nameof(Vector4AffordanceThemeDatum) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="ARAnnotationInteractable"/>.
         /// </summary>
@@ -288,9 +288,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Scripting API URL for <see cref="ARTranslationInteractable"/>.
         /// </summary>
-        [Obsolete("ARTranslationInteractable is marked for deprecation and will be removed in a future version.")]        
+        [Obsolete("ARTranslationInteractable is marked for deprecation and will be removed in a future version.")]
         public const string k_ARTranslationInteractable = k_BaseApi + k_BaseNamespace + "AR." + nameof(ARTranslationInteractable) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="CharacterControllerDriver"/>.
         /// </summary>

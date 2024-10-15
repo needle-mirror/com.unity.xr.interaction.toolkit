@@ -1,4 +1,4 @@
-﻿#if ENABLE_VR || UNITY_GAMECORE || PACKAGE_DOCS_GENERATION
+#if ENABLE_VR || UNITY_GAMECORE || PACKAGE_DOCS_GENERATION
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.Scripting;
 

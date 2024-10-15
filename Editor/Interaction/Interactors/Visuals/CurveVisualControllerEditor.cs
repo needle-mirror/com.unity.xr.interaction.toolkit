@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
@@ -159,34 +159,63 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
         /// </summary>
         protected static class Contents
         {
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.lineRenderer"/>.</summary>
             public static readonly GUIContent lineRenderer = EditorGUIUtility.TrTextContent("Line Renderer", "Line renderer to control.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.curveInteractionDataProvider"/>.</summary>
             public static readonly GUIContent curveVisualObject = EditorGUIUtility.TrTextContent("Curve Visual Object", "Curve data source used to generate the visual curve.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.overrideLineOrigin"/>.</summary>
             public static readonly GUIContent overrideLineOrigin = EditorGUIUtility.TrTextContent("Override Line Origin", "Indicates whether to override the line origin with a custom transform.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.lineOriginTransform"/>.</summary>
             public static readonly GUIContent lineOriginTransform = EditorGUIUtility.TrTextContent("Line Origin Transform", "The transform that determines the origin position and direction of the line when overriding.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.visualPointCount"/>.</summary>
             public static readonly GUIContent visualPointCount = EditorGUIUtility.TrTextContent("Visual Point Count", "Number of points used to create the visual curve.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.maxVisualCurveDistance"/>.</summary>
             public static readonly GUIContent maxVisualCurveDistance = EditorGUIUtility.TrTextContent("Max Visual Curve Distance", "Maximum distance the visual curve can extend.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.restingVisualLineLength"/>.</summary>
             public static readonly GUIContent restingVisualLineLength = EditorGUIUtility.TrTextContent("Resting Visual Line Length", "Default length of the line when not extended or retracted.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.lineDynamicsMode"/>.</summary>
             public static readonly GUIContent lineDynamicsMode = EditorGUIUtility.TrTextContent("Line Dynamics Mode", "Specifies the dynamics mode of the line.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.retractDelay"/>.</summary>
             public static readonly GUIContent retractDelay = EditorGUIUtility.TrTextContent("Retract Delay", "Delay before the line starts retracting after extending.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.retractDuration"/>.</summary>
             public static readonly GUIContent retractDuration = EditorGUIUtility.TrTextContent("Retract Duration", "Duration it takes for the line to fully retract.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.extendLineToEmptyHit"/>.</summary>
             public static readonly GUIContent extendLineToEmptyHit = EditorGUIUtility.TrTextContent("Extend Line To Empty Hit", "Determines if the line should extend out to empty hits, if not, length will be maintained.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.extensionRate"/>.</summary>
             public static readonly GUIContent extensionRate = EditorGUIUtility.TrTextContent("Extension Rate", "Rate at which the line extends to meet hit point. Set to 0 for instant extension.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.endPointExpansionRate"/>.</summary>
             public static readonly GUIContent endPointExpansionRate = EditorGUIUtility.TrTextContent("End Point Expansion Rate", "Rate at which the end point expands and retracts to and from the end point.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.computeMidPointWithComplexCurves"/>.</summary>
             public static readonly GUIContent computeMidPointWithComplexCurves = EditorGUIUtility.TrTextContent("Compute Mid Point With Complex Curves", "Determines if the mid-point is computed for curves with more than 1 segment. Overwrites any line bend ratio settings when active.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.snapToSelectedAttachIfAvailable"/>.</summary>
             public static readonly GUIContent snapToSelectedAttachIfAvailable = EditorGUIUtility.TrTextContent("Snap To Selected Attach If Available", "Snaps the line to a selected attachment point if available.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.snapToSnapVolumeIfAvailable"/>.</summary>
             public static readonly GUIContent snapToSnapVolumeIfAvailable = EditorGUIUtility.TrTextContent("Snap To Snap Volume If Available", "Snaps the line to a snap volume if available.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.curveStartOffset"/>.</summary>
             public static readonly GUIContent curveStartOffset = EditorGUIUtility.TrTextContent("Curve Start Offset", "Offset at the start of the curve to avoid overlap with the origin.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.curveEndOffset"/>.</summary>
             public static readonly GUIContent curveEndOffset = EditorGUIUtility.TrTextContent("Curve End Offset", "Offset at the end of the curve in meters to avoid overlap with the target.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.customizeLinePropertiesForState"/>.</summary>
             public static readonly GUIContent customizeLinePropertiesForState = EditorGUIUtility.TrTextContent("Customize Line Properties For State", "Indicates whether to customize line properties for different endpoint type states.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.linePropertyAnimationSpeed"/>.</summary>
             public static readonly GUIContent linePropertyAnimationSpeed = EditorGUIUtility.TrTextContent("Line Property Animation Speed", "Speed at which the line width changes when transitioning between states.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.noValidHitProperties"/>.</summary>
             public static readonly GUIContent noValidHitProperties = EditorGUIUtility.TrTextContent("No Valid Hit Properties", "Line properties when no hit is detected or when over an object that cannot be interacted with.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.uiHitProperties"/>.</summary>
             public static readonly GUIContent uiHitProperties = EditorGUIUtility.TrTextContent("UI Hit Properties", "Line properties when a valid UI hit is detected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.uiPressHitProperties"/>.</summary>
             public static readonly GUIContent uiPressHitProperties = EditorGUIUtility.TrTextContent("UI Press Hit Properties", "Line properties when a valid UI press is detected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.selectHitProperties"/>.</summary>
             public static readonly GUIContent selectHitProperties = EditorGUIUtility.TrTextContent("Select Hit Properties", "Line properties when a valid selection is detected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.hoverHitProperties"/>.</summary>
             public static readonly GUIContent hoverHitProperties = EditorGUIUtility.TrTextContent("Hover Hit Properties", "Line properties when a valid non-UI hit is detected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.renderLineInWorldSpace"/>.</summary>
             public static readonly GUIContent renderLineInWorldSpace = EditorGUIUtility.TrTextContent("Render Line In World Space", "If true the line will be rendered in world space, otherwise it will be rendered in local space. Set this to false in the event that high speed locomotion causes some visual artifacts with the line renderer.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.swapMaterials"/>.</summary>
             public static readonly GUIContent swapMaterials = EditorGUIUtility.TrTextContent("Swap Materials", "Indicates whether to swap the Line Renderer component's material for different states.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.baseLineMaterial"/>.</summary>
             public static readonly GUIContent baseLineMaterial = EditorGUIUtility.TrTextContent("Base Line Material", "Material to use in all cases other than when over 3D geometry that is not a valid interactable target.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.emptyHitMaterial"/>.</summary>
             public static readonly GUIContent emptyHitMaterial = EditorGUIUtility.TrTextContent("Empty Hit Material", "Material to use when over 3D geometry that is not a valid interactable target.");
         }
 
@@ -283,7 +312,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the object reference properties in the custom inspector.
-        /// This includes fields like Line Renderer, Curve Visual Object, Override Line Origin, 
+        /// This includes fields like Line Renderer, Curve Visual Object, Override Line Origin,
         /// and Line Origin Transform.
         /// </summary>
         protected virtual void DrawObjectReferences()
@@ -303,7 +332,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the visual settings section of the custom inspector.
-        /// This includes settings related to visual point count, maximum visual curve distance, 
+        /// This includes settings related to visual point count, maximum visual curve distance,
         /// and resting visual line length.
         /// </summary>
         protected virtual void DrawVisualSettings()
@@ -316,7 +345,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the line dynamics section in the custom inspector.
-        /// This includes settings for dynamics mode, retract delay, line retract duration, 
+        /// This includes settings for dynamics mode, retract delay, line retract duration,
         /// end point expansion rate, and extension rate.
         /// </summary>
         protected virtual void DrawLineDynamics()
@@ -348,7 +377,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the curve adjustments section in the custom inspector.
-        /// This includes settings for line bend ratio, midpoint computation with complex curves, 
+        /// This includes settings for line bend ratio, midpoint computation with complex curves,
         /// snapping options, and curve start/end offsets.
         /// </summary>
         protected virtual void DrawCurveAdjustments()
@@ -388,7 +417,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the material settings section in the custom inspector.
-        /// This includes options for swapping materials and settings for normal line material 
+        /// This includes options for swapping materials and settings for normal line material
         /// and empty hit material.
         /// </summary>
         protected virtual void DrawMaterialSettings()

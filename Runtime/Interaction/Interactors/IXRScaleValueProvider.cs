@@ -12,13 +12,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     public enum ScaleMode
     {
         /// <summary>
-        /// No scale mode is active or supported. 
+        /// No scale mode is active or supported.
         /// Use this when a controller does not support scaling or when scaling is not needed.
         /// </summary>
         None,
-        
+
         /// <summary>
-        /// Scale over time mode: The scale is resized over time and represented by input in range of -1 to 1. 
+        /// Scale over time mode: The scale is resized over time and represented by input in range of -1 to 1.
         /// This mode is typically used with a thumbstick input on a controller.
         /// </summary>
         ScaleOverTime,
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         [Obsolete("Input has been renamed in version 3.0.0. Use ScaleOverTime instead. (UnityUpgradable) -> ScaleOverTime")]
         Input = ScaleOverTime,
-    
+
         /// <summary>
         /// Distance scale mode: The scale is based on the delta distance between 2 physical (or virtual) inputs, such as
         /// the pinch gap between fingers where the distance is calculated based on the screen DPI, and delta from the previous frame.
@@ -47,8 +47,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// Defines an interface for scale value providers.
     /// </summary>
     /// <remarks>
-    /// Implementations of this interface provide a mechanism to get a scale value (a change in scale) 
-    /// from an input control, such as a gesture or controller stick movement. The provided scale value is in the 
+    /// Implementations of this interface provide a mechanism to get a scale value (a change in scale)
+    /// from an input control, such as a gesture or controller stick movement. The provided scale value is in the
     /// mode supported by the upstream controller.
     /// </remarks>
     /// <seealso cref="XRRayInteractor"/>

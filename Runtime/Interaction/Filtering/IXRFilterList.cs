@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
@@ -7,7 +7,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     /// A list of items.
     /// </summary>
     /// <typeparam name="T">The type of the items in this list.</typeparam>
-    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")] 
+    [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRFilterList<T>
     {
         /// <summary>

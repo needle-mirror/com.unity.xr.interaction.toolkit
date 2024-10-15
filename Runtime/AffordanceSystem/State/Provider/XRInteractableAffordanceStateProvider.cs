@@ -464,9 +464,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             if (m_IgnoreSelectEvents || m_SelectClickAnimationMode != SelectClickAnimationMode.SelectExited || m_ClickAnimationDuration < Mathf.Epsilon)
             {
                 // If Select animation is playing and we are exiting, we need to wait for the animation to finish before refreshing state
-                if(m_SelectedClickAnimation != null)
+                if (m_SelectedClickAnimation != null)
                     return;
-                
+
                 RefreshState();
                 return;
             }
@@ -528,7 +528,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
                 // If activate animation is playing and we are exiting, we need to wait for the animation to finish before refreshing state
                 if (m_ActivatedClickAnimation != null)
                     return;
-                
+
                 RefreshState();
                 return;
             }
@@ -544,7 +544,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         protected virtual void OnLargestInteractionStrengthChanged(float value)
         {
             // If currently executing animation, do not update interaction strength state.
-            if(m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
+            if (m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
                 return;
 
             RefreshState();
@@ -583,7 +583,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             StopCoroutine(m_SelectedClickAnimation);
             m_SelectedClickAnimation = null;
         }
-        
+
         void StopAllClickAnimations()
         {
             StopActivatedCoroutine();

@@ -372,7 +372,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         Transform m_XROriginTransform;
         bool m_HasXROrigin;
         bool m_FailedToFindXROrigin;
-        
+
         /// <summary>
         /// Attempts to locate and return the XR Origin reference frame for the interactor.
         /// </summary>
@@ -565,7 +565,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         /// <param name="interactable">Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactor is currently hovering the Interactable.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactablesHovered"/> contains <paramref name="interactable"/>.
         /// </remarks>
@@ -578,7 +578,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         /// <param name="interactable">Interactable to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactor is currently selecting the Interactable.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactablesSelected"/> contains <paramref name="interactable"/>.
         /// </remarks>

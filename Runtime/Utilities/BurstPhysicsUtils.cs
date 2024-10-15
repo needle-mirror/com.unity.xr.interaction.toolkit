@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using Unity.Mathematics;
@@ -50,6 +50,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             castMax = math.clamp(offset, 0.125f, maxOffset);
             radius = angleRadius * (offset + castMax);
             originOffset = direction * (offset - radius);
+        }
+
+        /// <summary>
+        /// Computes conecast parameters given the angle radius, offset, and direction. This function supports conecasts comprised of multiple segments to support both straight and curved lines.
+        /// </summary>
+        /// <param name="angleRadius">How wide the cone should be at a given distance.</param>
+        /// <param name="segmentOffset">How far from the starting point of this segment this conecast will be starting from.</param>
+        /// <param name="offsetFromOrigin">How far from the origin (segment point 0) this conecast will be starting from.</param>
+        /// <param name="maxOffset">The maximum distance this conecast will be allowed to travel relative to the segment. This is typically the segment length.</param>
+        /// <param name="direction">The direction the conecast is traveling.</param>
+        /// <param name="originOffset">How much to offset the origin of the conecast to account for the radius.</param>
+        /// <param name="radius">The target radius at the end of this segment.</param>
+        /// <param name="castMax">The distance this conecast should travel, taking sphere size into account.</param>
+#if BURST_PRESENT
+        [BurstCompile]
+#endif
+        internal static void GetMultiSegmentConecastParameters(float angleRadius, float segmentOffset, float offsetFromOrigin, float maxOffset, in Vector3 direction, out Vector3 originOffset, out float radius, out float castMax)
+        {
+            castMax = math.clamp(segmentOffset, 0.125f, maxOffset);
+
+            // If the segment offset cast max will be greater than the total segment length, set the target cast distance to the remaining length of the segment.
+            if (segmentOffset + castMax > maxOffset)
+                castMax = math.clamp(maxOffset - segmentOffset, 0.125f, castMax);
+
+            radius = angleRadius * (offsetFromOrigin + castMax);
+            originOffset = direction * (segmentOffset - radius);
         }
 
         /// <summary>

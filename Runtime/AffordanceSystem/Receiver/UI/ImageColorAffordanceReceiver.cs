@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.UI
 {
     /// <summary>
-    /// Affordance receiver applying a color theme to a UGUI Image component 
+    /// Affordance receiver applying a color theme to a UGUI Image component
     /// </summary>
     [AddComponentMenu("Affordance System/Receiver/UI/Image Color Affordance Receiver", 12)]
     [HelpURL(XRHelpURLConstants.k_ImageColorAffordanceReceiver)]
@@ -53,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.UI
 
         bool m_HasImage = false;
         bool m_HasCanvasGroup = false;
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>

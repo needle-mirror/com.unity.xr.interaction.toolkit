@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums.Editor;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
 

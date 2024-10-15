@@ -837,7 +837,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <param name="interactor">Interactor to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactable is currently being hovered by the Interactor.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsHovering"/> contains <paramref name="interactor"/>.
         /// </remarks>
@@ -849,7 +849,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <param name="interactor">Interactor to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactable is currently being selected by the Interactor.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsSelecting"/> contains <paramref name="interactor"/>.
         /// </remarks>
@@ -861,7 +861,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <param name="interactor">Interactor to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactable is currently being hovered by the Interactor.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsHovering"/> contains <paramref name="interactor"/>.
         /// </remarks>
@@ -874,7 +874,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <param name="interactor">Interactor to check.</param>
         /// <returns>Returns <see langword="true"/> if this Interactable is currently being selected by the Interactor.
-        /// Otherwise, returns <seealso langword="false"/>.</returns>
+        /// Otherwise, returns <see langword="false"/>.</returns>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsSelecting"/> contains <paramref name="interactor"/>.
         /// </remarks>

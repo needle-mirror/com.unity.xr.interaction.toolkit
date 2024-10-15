@@ -18,9 +18,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <param name="property">The <see langword="ref"/> to the field.</param>
         /// <param name="value">The new value being set.</param>
         /// <param name="behavior">The behavior with the property being set.</param>
-        /// <remarks>
         /// <example>
-        /// This example demonstrates code of a MonoBehaviour that uses an input property:
+        /// <para>This example demonstrates code of a MonoBehaviour that uses an input property:</para>
         /// <code>
         /// [SerializeField]
         /// XRInputHapticImpulseProvider m_HapticOutput = new XRInputHapticImpulseProvider("Haptic");
@@ -42,7 +41,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// }
         /// </code>
         /// </example>
-        /// </remarks>
         public static void SetInputProperty(ref XRInputHapticImpulseProvider property, XRInputHapticImpulseProvider value, Behaviour behavior)
         {
             if (value == null)
@@ -67,9 +65,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <param name="property">The <see langword="ref"/> to the field.</param>
         /// <param name="value">The new value being set.</param>
         /// <param name="behavior">The behavior with the property being set.</param>
-        /// <remarks>
         /// <example>
-        /// This example demonstrates code of a MonoBehaviour that uses an input property:
+        /// <para>This example demonstrates code of a MonoBehaviour that uses an input property:</para>
         /// <code>
         /// [SerializeField]
         /// XRInputButtonReader m_GrabMoveInput = new XRInputButtonReader("Grab Move");
@@ -91,7 +88,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// }
         /// </code>
         /// </example>
-        /// </remarks>
         public static void SetInputProperty(ref XRInputButtonReader property, XRInputButtonReader value, Behaviour behavior)
         {
             if (value == null)
@@ -117,9 +113,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <param name="value">The new value being set.</param>
         /// <param name="behavior">The behavior with the property being set.</param>
         /// <typeparam name="TValue">Type of the value read by the property, such as <see cref="Vector2"/> or <see langword="float"/>.</typeparam>
-        /// <remarks>
         /// <example>
-        /// This example demonstrates code of a MonoBehaviour that uses an input property:
+        /// <para>This example demonstrates code of a MonoBehaviour that uses an input property:</para>
         /// <code>
         /// [SerializeField]
         /// XRInputValueReader&lt;Vector2&gt; m_LeftHandMoveInput = new XRInputValueReader&lt;Vector2&gt;("Left Hand Move");
@@ -141,7 +136,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// }
         /// </code>
         /// </example>
-        /// </remarks>
         public static void SetInputProperty<TValue>(ref XRInputValueReader<TValue> property, XRInputValueReader<TValue> value, Behaviour behavior) where TValue : struct
         {
             if (value == null)

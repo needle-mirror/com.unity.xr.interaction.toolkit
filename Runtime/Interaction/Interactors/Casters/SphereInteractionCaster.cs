@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
@@ -45,7 +45,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         [SerializeField]
         [Tooltip("Radius of the sphere cast.")]
         float m_CastRadius = 0.1f;
-        
+
         /// <summary>
         /// Radius of the sphere cast.
         /// </summary>
@@ -81,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         {
             if (!base.TryGetColliderTargets(interactionManager, targets))
                 return false;
-            
+
             Vector3 interactorPosition = effectiveCastOrigin.position;
             Vector3 overlapStart = m_LastSphereCastOrigin;
             Vector3 interFrameEnd = interactorPosition;
@@ -115,7 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                     targets.Add(m_OverlapSphereHits[i].collider);
-                
+
                 hasHit = numberOfOverlaps > 0;
             }
 

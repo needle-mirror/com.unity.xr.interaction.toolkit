@@ -1,4 +1,4 @@
-﻿#if AR_FOUNDATION_PRESENT
+#if AR_FOUNDATION_PRESENT
 using UnityEngine.EventSystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;

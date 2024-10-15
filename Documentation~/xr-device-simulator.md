@@ -113,7 +113,7 @@ Each simulated XR HMD or XR Controller must be manipulated before controls/value
   - Manipulate the HMD
     - You can use mouse input (moving and scroll wheel delta) to either **Translate** or **Rotate** manipulated device(s) (see `R`).
 * T [Toggle]
-  - Toggle to manipulate the left-hand controller only  
+  - Toggle to manipulate the left-hand controller only
     - You can use mouse input (moving and scroll wheel delta) to either **Translate** or **Rotate** manipulated device(s) (see `R`) and use controls associated to that controller.
 * Left Shift [Hold]
   - Hold to temporary manipulate the left-hand controller (can be used while manipulating the right-hand controller simultaneously)

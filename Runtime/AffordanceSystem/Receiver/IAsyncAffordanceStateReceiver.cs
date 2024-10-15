@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Jobs;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver

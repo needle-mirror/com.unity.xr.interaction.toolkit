@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditorInternal;
@@ -376,9 +376,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
                     }
                 }
             }
-            
+
             EditorGUILayout.PropertyField(m_TrackScale, Contents.trackScale);
-            
+
             if (m_TrackScale.boolValue)
             {
                 using (new EditorGUI.IndentLevelScope())
@@ -537,6 +537,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         /// <summary>
         /// Callback registered to be triggered whenever a new set of property modifications is created.
         /// </summary>
+        /// <param name="modifications">Array of property modifications to undo.</param>
+        /// <returns>Returns modified array of property modifications.</returns>
         /// <seealso cref="Undo.postprocessModifications"/>
         protected virtual UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {

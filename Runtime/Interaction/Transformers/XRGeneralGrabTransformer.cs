@@ -144,7 +144,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         [SerializeField]
         [Tooltip("Allow one handed scaling using the scale value provider if available.")]
         bool m_AllowOneHandedScaling = true;
-        
+
         /// <summary>
         /// Allow one handed scaling using the scale value provider if available.
         /// </summary>
@@ -153,7 +153,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             get => m_AllowOneHandedScaling;
             set => m_AllowOneHandedScaling = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Allow scaling when using multi-grab interaction.")]
         bool m_AllowTwoHandedScaling;
@@ -166,12 +166,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             get => m_AllowTwoHandedScaling;
             set => m_AllowTwoHandedScaling = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Scaling speed over time for one handed scaling based on the scale value provider.")]
         [Range(0f, 32f)]
         float m_OneHandedScaleSpeed = 0.5f;
-        
+
         /// <summary>
         /// Scaling speed over time for one handed scaling based on the <see cref="IXRScaleValueProvider"/>
         /// </summary>
@@ -294,10 +294,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         ConstrainedAxisDisplacementMode m_ConstrainedAxisDisplacementModeOnGrab;
         ManipulationAxes m_PermittedDisplacementAxesOnGrab;
-        
+
         IXRScaleValueProvider m_ScaleValueProvider;
         bool m_HasScaleValueProvider;
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -315,10 +315,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             {
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
-                {
-                    UpdateTarget(grabInteractable, ref targetPose, ref localScale);
-                    break;
-                }
+                    {
+                        UpdateTarget(grabInteractable, ref targetPose, ref localScale);
+                        break;
+                    }
             }
         }
 
@@ -391,7 +391,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             var newGrabCount = grabInteractable.interactorsSelecting.Count;
             if (newGrabCount == 1)
             {
-                // If the initial grab interactor changes, or we reduce the grab count, we need to recompute initial grab parameters. 
+                // If the initial grab interactor changes, or we reduce the grab count, we need to recompute initial grab parameters.
                 var interactor0 = grabInteractable.interactorsSelecting[0];
                 if (interactor0 != m_OriginalInteractor || newGrabCount < m_LastGrabCount)
                 {
@@ -410,7 +410,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
                 m_StartHandleBar = interactor0Transform.InverseTransformPoint(grabAttachTransform1.position);
                 m_StartHandleBarNormalized = m_StartHandleBar.normalized;
-                
+
                 m_StartHandleBarLookRotation = Quaternion.LookRotation(m_StartHandleBarNormalized, BurstMathUtility.Orthogonal(m_StartHandleBarNormalized));
                 m_StartHandleBarUp = m_StartHandleBarLookRotation * Vector3.up;
                 m_InverseStartHandleBarLookRotation = Quaternion.Inverse(m_StartHandleBarLookRotation);
@@ -452,16 +452,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 {
                     // Use the fallback axis as the 'up' direction for the LookRotation
                     Vector3 newHandleBarNormalized = newHandleBar.normalized;
-                    
+
                     // Use the last calculated rotation to compute a temporally coherent basline up vector
                     var baselineUp = m_LastHandleBarLocalRotation * Vector3.up;
-                    
+
                     // After enough rotation, the baseline up vector will start to drift away from the original vector, causing undesirable output rotations.
                     // To prevent this, we interpolate between the baseline up vector and the original up vector based on the dot product between the two, to gradually restore it without causing sudden jumps.
                     float dot = Vector3.Dot(m_StartHandleBarUp, baselineUp);
 
                     Vector3 newUpVector = baselineUp;
-                    
+
                     // Only apply interpolation if the baseline up vector points in the same direction as the initial up vector.
                     if (dot > 0f)
                     {
@@ -470,10 +470,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                         var sqDot = halvedDot * halvedDot;
                         newUpVector = Vector3.Lerp(baselineUp, m_StartHandleBarUp, sqDot);
                     }
-                    
+
                     // Compute the new handle bar rotation
                     Quaternion newHandleBarLocalRotation = Quaternion.LookRotation(newHandleBarNormalized, newUpVector);
-                    
+
                     // Store the last handle bar rotation for the next frame
                     m_LastHandleBarLocalRotation = newHandleBarLocalRotation;
 
@@ -514,8 +514,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                     m_LastTwoHandedUp = up;
 
                     var twoHandedRotation = Quaternion.LookRotation(forward, up);
-                    
-                    // Given that this rotation method doesn't really consider the first interactor's start rotation, we have to remove the offset pose computed on grab. 
+
+                    // Given that this rotation method doesn't really consider the first interactor's start rotation, we have to remove the offset pose computed on grab.
                     newRotation = twoHandedRotation * Quaternion.Inverse(m_OffsetPose.rotation);
                 }
                 else
@@ -541,7 +541,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             m_ObjectLocalGrabPoint = Quaternion.Inverse(objectPose.rotation) * (grabCentroid - objectPose.position);
             m_ObjectLocalGrabPoint = m_ObjectLocalGrabPoint.Divide(objectScale);
         }
-        
+
 
 #if BURST_PRESENT
         [BurstCompile]
@@ -561,10 +561,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             adjustedInteractorToGrab = math.mul(interactorRotation, adjustedInteractorToGrab);
             var rotatedScaledGrabToObject = math.mul(objectRotation, scaledGrabToObject);
-            
+
             newPosition = adjustedInteractorToGrab - rotatedScaledGrabToObject + newTargetPosition;
         }
-        
+
         static float3 Scale(float3 a, float3 b) => new float3(a.x * b.x, a.y * b.y, a.z * b.z);
 
         Quaternion ComputeNewObjectRotation(in Quaternion interactorRotation, bool trackRotation)
@@ -585,7 +585,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             if (!hasX && !hasY && !hasZ)
                 return originalObjectPose.position;
-        
+
             AdjustPositionForPermittedAxesBurst(targetPosition, originalObjectPose, axisDisplacementMode, hasX, hasY, hasZ, out Vector3 adjustedTargetPosition);
             return adjustedTargetPosition;
         }
@@ -602,10 +602,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             float3 right = new float3(1f, 0f, 0f);
             float3 up = new float3(0f, 1f, 0f);
             float3 forward = new float3(0f, 0f, 1f);
-            
+
             float3 translationVector = targetPosition - originalObjectPose.position;
             float3 sumTranslationVector = float3.zero;
-            float3 originalObjectPosition = originalObjectPose.position; 
+            float3 originalObjectPosition = originalObjectPose.position;
             quaternion objectRotation = originalObjectPose.rotation;
 
             if (axisDisplacementMode == ConstrainedAxisDisplacementMode.WorldAxisRelative)
@@ -628,13 +628,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                     float3 rotatedRight = math.mul(objectRotation, right);
                     xComponent = math.project(translationVector, rotatedRight);
                 }
-                
+
                 if (hasY)
                 {
                     float3 rotatedUp = math.mul(objectRotation, up);
                     yComponent = math.project(translationVector, rotatedUp);
                 }
-                
+
                 if (hasZ)
                 {
                     float3 rotatedForward = math.mul(objectRotation, forward);
@@ -679,7 +679,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             adjustedTargetPosition = originalObjectPosition + sumTranslationVector;
         }
-        
+
         Vector3 ComputeNewScale(in XRGrabInteractable grabInteractable, in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool trackScale)
         {
             var interactorsCount = grabInteractable.interactorsSelecting.Count;
@@ -688,7 +688,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 var scaleInput = m_ScaleValueProvider.scaleValue;
                 if (Mathf.Approximately(scaleInput, 0f))
                     return currentScale;
-                
+
                 ComputeNewOneHandedScale(currentScale, m_InitialScaleProportions, m_ClampScaling, m_MinimumScale, m_MaximumScale, scaleInput, Time.deltaTime, m_OneHandedScaleSpeed, out var newOneHandedScale);
                 return newOneHandedScale;
             }
@@ -740,7 +740,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewTwoHandedScale(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale,  out Vector3 newScale)
+        static void ComputeNewTwoHandedScale(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale, out Vector3 newScale)
         {
             newScale = currentScale;
 
@@ -786,17 +786,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         void UpdateTarget(XRGrabInteractable grabInteractable, ref Pose targetPose, ref Vector3 localScale)
         {
-            ComputeAdjustedInteractorPose(grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out  Quaternion adjustedInteractorRotation);
+            ComputeAdjustedInteractorPose(grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out Quaternion adjustedInteractorRotation);
 
             localScale = ComputeNewScale(grabInteractable, m_ScaleAtGrabStart, localScale, m_StartHandleBar, newHandleBar, grabInteractable.trackScale);
 
             targetPose.rotation = ComputeNewObjectRotation(adjustedInteractorRotation, grabInteractable.trackRotation);
 
-            ComputeNewObjectPosition(adjustedInteractorPosition,  adjustedInteractorRotation, 
-                targetPose.rotation, localScale, grabInteractable.trackRotation, 
+            ComputeNewObjectPosition(adjustedInteractorPosition, adjustedInteractorRotation,
+                targetPose.rotation, localScale, grabInteractable.trackRotation,
                 m_OffsetPose.position, m_ObjectLocalGrabPoint, m_InteractorLocalGrabPoint,
                 out Vector3 targetObjectPosition);
-            
+
             targetPose.position = AdjustPositionForPermittedAxes(targetObjectPosition, m_OriginalObjectPose, m_PermittedDisplacementAxesOnGrab, m_ConstrainedAxisDisplacementModeOnGrab);
         }
     }

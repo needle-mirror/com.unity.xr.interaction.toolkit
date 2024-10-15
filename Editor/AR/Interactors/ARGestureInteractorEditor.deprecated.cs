@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.XR.Interaction.Toolkit.Interactors;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.AR;
@@ -34,7 +34,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "The layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="ARGestureInteractor.raycastTriggerInteraction"/>.</summary>
             public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "The type of interaction with trigger colliders via ray cast.");
-            
+
             /// <summary>The help box message when AR Session Origin is used.</summary>
             public static readonly GUIContent arSessionOriginDeprecated = EditorGUIUtility.TrTextContent("AR Session Origin has been deprecated. Use the XR Origin component instead.");
         }

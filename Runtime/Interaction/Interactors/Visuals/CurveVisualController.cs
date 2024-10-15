@@ -929,7 +929,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         }
 
         /// <summary>
-        /// Updates the target line length based on various factors such as hit status, line retraction behavior, 
+        /// Updates the target line length based on various factors such as hit status, line retraction behavior,
         /// and distance constraints. Uses quadratic Bezier interpolation for non-linear adjustment of line length.
         /// </summary>
         float UpdateTargetDistance(EndPointType endPointType, float validHitDistance, float minLength, float maxLength, bool retractOnHitLoss, float retractionDelay, float retractionDuration, float curveExtensionRate)
@@ -950,7 +950,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 // Ensure minimum length is returned and length is not zero
                 m_LengthToLastHit = Mathf.Max(m_LengthToLastHit, minLength);
 
-                // If current line length is longer than new target length, snap down to new target length 
+                // If current line length is longer than new target length, snap down to new target length
                 if (m_LineLength > m_LengthToLastHit)
                 {
                     m_LineLength = m_LengthToLastHit;
@@ -960,7 +960,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 
             float timeSinceLastHit = currentTime - m_LastHitTime;
 
-            // Retract line if time since last hit exceeds retraction delay 
+            // Retract line if time since last hit exceeds retraction delay
             if (retractOnHitLoss && timeSinceLastHit > retractionDelay)
             {
                 float lineRetractionTimeElapsed = (timeSinceLastHit - retractionDelay);

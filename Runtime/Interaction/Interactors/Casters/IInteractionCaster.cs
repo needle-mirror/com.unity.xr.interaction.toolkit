@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
 {
@@ -13,15 +13,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         /// Indicates whether the caster has been initialized.
         /// </summary>
         bool isInitialized { get; }
-        
+
         /// <summary>
         /// Source of origin and direction used when updating sample points.
         /// </summary>
         Transform castOrigin { get; set; }
-        
+
         /// <summary>
         /// Gets the effective cast origin, which may be different than the <see cref="castOrigin"/>.
-        /// The caster may use a different transform, such as one that is stabilized, to conduct the cast. 
+        /// The caster may use a different transform, such as one that is stabilized, to conduct the cast.
         /// </summary>
         Transform effectiveCastOrigin { get; }
 

@@ -4,7 +4,7 @@ uid: xri-ui-components
 
 # UI components
 
-The UI components provided by the toolkit. 
+The UI components provided by the toolkit.
 
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
@@ -15,5 +15,5 @@ The UI components provided by the toolkit.
 | [Canvas Optimizer](canvas-optimizer.md) |Keeps track of canvases in a scene and optimizes them by removing unnecessary components in nested canvases and canvases out of view. |
 
 ## Additional resources
- 
+
 * [Component index](components.md)

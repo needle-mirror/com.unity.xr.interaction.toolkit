@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -454,7 +454,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.position, Is.EqualTo(new Vector3(1f, -0.5f, -0.5f)).Using(Vector3ComparerWithEqualsOperator.Instance));
             Assert.That(rigidbody.rotation, Is.EqualTo(expectedRotation).Using(QuaternionEqualityComparer.Instance));
         }
-        
+
         [UnityTest]
         public IEnumerator TrackRotationDisabledObjectMovesAndRotatesToExpectedPositionAndOrientation([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType, [ValueSource(nameof(s_GrabTransformers))] Type grabTransformerType)
         {

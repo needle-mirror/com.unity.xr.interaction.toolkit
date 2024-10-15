@@ -9,39 +9,58 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
     [CustomEditor(typeof(SimpleHapticFeedback), true), CanEditMultipleObjects]
     public class SimpleHapticFeedbackEditor : BaseInteractionEditor
     {
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.SetInteractorSource"/>.</summary>
         protected SerializedProperty m_InteractorSourceObject;
         protected SerializedProperty m_HapticImpulsePlayer;
 
         protected SerializedProperty m_PlaySelectEntered;
         protected SerializedProperty m_SelectEnteredData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredDataFrequency;
         protected SerializedProperty m_PlaySelectExited;
         protected SerializedProperty m_SelectExitedData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedDataFrequency;
         protected SerializedProperty m_PlaySelectCanceled;
         protected SerializedProperty m_SelectCanceledData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledDataFrequency;
 
         protected SerializedProperty m_PlayHoverEntered;
         protected SerializedProperty m_HoverEnteredData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredDataFrequency;
         protected SerializedProperty m_PlayHoverExited;
         protected SerializedProperty m_HoverExitedData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedDataFrequency;
         protected SerializedProperty m_PlayHoverCanceled;
         protected SerializedProperty m_HoverCanceledData;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledDataAmplitude;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.duration"/> for <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledDataDuration;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledDataFrequency;
 
         protected SerializedProperty m_AllowHoverHapticsWhileSelecting;
@@ -51,6 +70,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         /// </summary>
         protected static class Contents
         {
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.SetInteractorSource"/>.</summary>
             public static readonly GUIContent interactorSourceObject = EditorGUIUtility.TrTextContent("Interactor Source", "The interactor component to listen to for its interaction events.");
             public static readonly GUIContent hapticImpulsePlayer = EditorGUIUtility.TrTextContent("Haptic Impulse Player", "The Haptic Impulse Player component to use to play haptic impulses.");
 
@@ -70,11 +90,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
 
             public static readonly GUIContent allowHoverHapticsWhileSelecting = EditorGUIUtility.TrTextContent("Allow Hover Haptics While Selecting", "Whether to allow hover haptics to play while the interactor is selecting an interactable.");
 
+            /// <summary><see cref="GUIContent"/> for <see cref="HapticImpulseData.amplitude"/>.</summary>
             public static readonly GUIContent amplitude = EditorGUIUtility.TrTextContent("Amplitude", "The desired motor amplitude.");
+            /// <summary><see cref="GUIContent"/> for <see cref="HapticImpulseData.duration"/>.</summary>
             public static readonly GUIContent duration = EditorGUIUtility.TrTextContent("Duration", "The desired duration of the impulse in seconds.");
+            /// <summary><see cref="GUIContent"/> for <see cref="HapticImpulseData.frequency"/>.</summary>
             public static readonly GUIContent frequency = EditorGUIUtility.TrTextContent("Frequency", "The desired frequency of the impulse in Hz. The default value of 0 means to use the default frequency of the device.");
 
+            /// <summary><see cref="GUIContent"/> for the Select header label.</summary>
             public static readonly GUIContent selectHeader = EditorGUIUtility.TrTextContent("Select");
+            /// <summary><see cref="GUIContent"/> for the Hover header label.</summary>
             public static readonly GUIContent hoverHeader = EditorGUIUtility.TrTextContent("Hover");
         }
 

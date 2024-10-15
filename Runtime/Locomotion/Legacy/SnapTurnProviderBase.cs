@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
@@ -199,7 +199,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // in the case where the input is released before the delay timeout happens.
             if (Math.Abs(amount) > 0f)
                 m_CurrentTurnAmount = amount;
-            
+
             // Wait for configured Delay Time
             if (m_DelayTime > 0f && Time.time - m_DelayStartTime < m_DelayTime)
                 return;

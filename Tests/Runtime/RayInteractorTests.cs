@@ -62,11 +62,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
         }
-        
+
         [UnityTest]
         public IEnumerator RayInteractorValidTargetsListEmptyWhenInteractorDisabled()
         {
-            // This tests that the ray interactor will return an empty list of valid 
+            // This tests that the ray interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled and
             // will correctly add the target back into the list upon enabling the interactor
             var manager = TestUtilities.CreateInteractionManager();
@@ -84,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
-            
+
             // Disable interactor GameObject
             interactor.gameObject.SetActive(false);
 
@@ -92,7 +92,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Enable interactor GameObject
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
@@ -109,7 +109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Enable interactor component
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
@@ -123,7 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator RayInteractorValidTargetsRemainEmptyWhenInteractorEnabledWithNoRayHit()
         {
-            // This tests that the ray interactor will return an empty list of valid 
+            // This tests that the ray interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled
             // while it has a valid target and the valid targets will remain empty
             // when the interactor is enabled again facing away from the interactable.
@@ -142,7 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
-            
+
             // Disable interactor GameObject
             interactor.gameObject.SetActive(false);
 
@@ -150,8 +150,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
-            // Face interactor away from valid target and enable interactor GameObject 
+
+            // Face interactor away from valid target and enable interactor GameObject
             interactor.transform.forward = Vector3.back;
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
@@ -161,12 +161,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Face interactor towards the valid target
             interactor.transform.forward = Vector3.forward;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
@@ -178,13 +178,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
-            // Face interactor away from valid target and enable interactor 
+
+            // Face interactor away from valid target and enable interactor
             interactor.transform.forward = Vector3.back;
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
@@ -194,7 +194,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.forward = Vector3.forward;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
@@ -553,7 +553,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor.interactablesSelected, Is.Empty);
 
             interactor.StartManualInteraction((IXRSelectInteractable)interactable);
-            
+
             yield return new WaitForFixedUpdate();
             yield return null;
 
@@ -1003,7 +1003,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             snapVolume.interactable = interactable;
             snapVolume.snapToCollider = interactable.colliders[0];
             snapVolume.transform.position = interactable.transform.position;
-            
+
             var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
             {
                 recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,

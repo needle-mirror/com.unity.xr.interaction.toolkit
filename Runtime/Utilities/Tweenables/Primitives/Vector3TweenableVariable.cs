@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;

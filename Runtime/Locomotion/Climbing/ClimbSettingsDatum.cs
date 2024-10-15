@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils.Datums;
+using Unity.XR.CoreUtils.Datums;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
@@ -11,6 +11,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public class ClimbSettingsDatum : Datum<ClimbSettings>
     {
-        
+
     }
 }

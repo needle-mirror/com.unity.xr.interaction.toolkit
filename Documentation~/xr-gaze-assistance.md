@@ -5,7 +5,7 @@ uid: xri-xr-gaze-assistance
 
 Allow specified ray interactors to fallback to eye-gaze when they are off screen or pointing off screen. This component enables split interaction functionality to allow the user to aim with eye gaze and select with a controller.
 
-The component also enables aim assistance to help thrown objects move toward the interactable object at which the user is looking. On being thrown, a GrabInteractable object receives a velocity boost aiming it toward the target. (If the user is not looking at the target, the object is directed at the endpoint of the gaze ray.) 
+The component also enables aim assistance to help thrown objects move toward the interactable object at which the user is looking. On being thrown, a GrabInteractable object receives a velocity boost aiming it toward the target. (If the user is not looking at the target, the object is directed at the endpoint of the gaze ray.)
 
 To use gaze assistance, add an **XR Gaze Assitance** component to a GameObject in the scene. (The component is already present on the root GameObject of the **XR Origin (XR Rig)** prefab included in the [Starter assets](xref:xri-samples-starter-assets).) You must set the **Gaze Interactor** property or the component deactivates itself at runtime.
 
@@ -29,4 +29,4 @@ The **Aim Assist** properties are used by any [XR Grab Interactable](xref:xri-xr
 | **Aim Assist Max Speed Percent** | The maximum boost a projectile can receive from aim assistance, as a multiple of the original speed. A value of 0.25 would mean that the added boost would be no more than one-quarter of the object's original speed. A value of 10 would mean that the boost could be up to ten times the original speed.|
 
 > [!TIP]
-> To provide your own aim assist algorithm, create a component that implements the [IXRAimAssist](xref:UnityEngine.XR.Interaction.Toolkit.Gaze.IXRAimAssist) interface. Place this component on the same GameObject as the interactor object that throws the object. (A grab interactable finds the closest `IXRAimAssist` object on or above the interactor's parent GameObject.) 
+> To provide your own aim assist algorithm, create a component that implements the [IXRAimAssist](xref:UnityEngine.XR.Interaction.Toolkit.Gaze.IXRAimAssist) interface. Place this component on the same GameObject as the interactor object that throws the object. (A grab interactable finds the closest `IXRAimAssist` object on or above the interactor's parent GameObject.)

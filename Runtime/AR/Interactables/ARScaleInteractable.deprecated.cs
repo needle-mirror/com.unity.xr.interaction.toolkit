@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="ScaleManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// of the object.
     /// </summary>
     [Obsolete("ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
-    public class ARScaleInteractable {}
+    public class ARScaleInteractable { }
 }
 
 #else

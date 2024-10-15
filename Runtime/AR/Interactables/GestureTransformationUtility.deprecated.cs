@@ -137,7 +137,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             return true;
         }
 
-        #region Deprecated ARSessionOrigin overloads
+#region Deprecated ARSessionOrigin overloads
 
 #pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
         static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARRaycastManager raycastManager) =>
@@ -195,7 +195,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 #pragma warning restore CS0618
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Cast a ray from a point in screen space against trackables, i.e., detected features such as planes.

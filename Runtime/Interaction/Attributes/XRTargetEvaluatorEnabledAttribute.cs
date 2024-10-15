@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Filtering
+namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
     /// <summary>
     /// Attribute used to mark the <c>m_Enabled</c> serialized field of XR Target Evaluators to allow its

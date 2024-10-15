@@ -259,7 +259,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Feedback
             if (m_PlaySelectEntered || m_PlaySelectExited || m_PlaySelectCanceled ||
                 m_PlayHoverEntered || m_PlayHoverExited || m_PlayHoverCanceled)
             {
-                CreateHapticImpulsePlayer();
+                if (m_HapticImpulsePlayer == null)
+                    CreateHapticImpulsePlayer();
             }
         }
 

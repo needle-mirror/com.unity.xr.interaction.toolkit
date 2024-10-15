@@ -71,7 +71,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             var percentage = localPosition.x / m_BoxColliderSizeX + 0.5f;
             SetFillPercentage(percentage);
         }
-        
+
         void UpdateSliderAmtDelta(Vector3 currentInteractorPos)
         {
             var currentLocalPos = transform.InverseTransformPoint(currentInteractorPos);
@@ -85,7 +85,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         {
             return outputMin + ((value - inputMin) / (inputMax - inputMin) * (outputMax - outputMin));
         }
-        
+
         void SetFillPercentage(float percentage)
         {
             m_Percentage = Mathf.Clamp01(percentage);

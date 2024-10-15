@@ -213,7 +213,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// Static bindable variable used to track the current input mode.
         /// </summary>
         public static IReadOnlyBindableVariable<InputMode> currentInputMode => s_CurrentInputMode;
-        
+
         static BindableEnum<InputMode> s_CurrentInputMode = new BindableEnum<InputMode>(InputMode.None);
 
         InputMode m_LeftInputMode;

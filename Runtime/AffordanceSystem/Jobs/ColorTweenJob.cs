@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using System;
@@ -18,12 +18,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
     {
         /// <inheritdoc/>
         public TweenJobData<Color> jobData { get; set; }
-        
+
         /// <summary>
         /// Color BlendMode enum represented as a byte
         /// </summary>
         public byte colorBlendMode { get; set; }
-  
+
         /// <summary>
         /// Value between 0-1 used when determining how much to apply the blend processing.
         /// </summary>
@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
             var outputData = jobData.outputData;
             outputData[0] = Lerp(jobData.tweenStartValue, processedTargetValue, jobData.tweenAmount);
         }
-        
+
         Color ProcessTargetAffordanceValue(Color initialValue, Color newValue)
         {
             Color blendedColor = newValue;
@@ -67,7 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
         /// <inheritdoc/>
         public Color Lerp(Color from, Color to, float t)
         {
-            if (IsNearlyEqual(from, to) )
+            if (IsNearlyEqual(from, to))
             {
                 return to;
             }

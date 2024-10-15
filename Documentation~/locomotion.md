@@ -19,7 +19,7 @@ This documentation outlines how to use and extend these components.
 
 ## Architecture
 
-The main components of the locomotion architecture are the [Locomotion Mediator](#locomotion-mediator), the various [Locomotion Providers](locomotion-providers.md), the [XR Body Transformer](#xr-body-transformer), and the [Body Transformations](#ixrbodytransformation) which are applied to the XR Body Transformer by the Locomotion Providers. 
+The main components of the locomotion architecture are the [Locomotion Mediator](#locomotion-mediator), the various [Locomotion Providers](locomotion-providers.md), the [XR Body Transformer](#xr-body-transformer), and the [Body Transformations](#ixrbodytransformation) which are applied to the XR Body Transformer by the Locomotion Providers.
 
 Locomotion Providers contain a reference to the Locomotion Mediator, and the Locomotion Mediator in turn provides the Locomotion Providers with access to the XR Body Transformer. The Locomotion Mediator also maintains the [Locomotion State](#locomotion-state) for the Locomotion Providers making transformation requests.
 
@@ -33,7 +33,7 @@ The overall flow of a Locomotion request is as follows:
 2. The Locomotion Provider requests to try to prepare or start locomotion from the Locomotion Mediator.
 2. The Locomotion Mediator checks to see if the locomotion request is possible at the current time.
 3. Upon success, the Locomotion Mediator updates the Locomotion Provider with the necessary XR Body Transformer.
-4. The Locomotion Provider tries and queues the desired transformation with the XR Body Transformer. 
+4. The Locomotion Provider tries and queues the desired transformation with the XR Body Transformer.
 5. The XR Body Transformer adds the transformation to the queue based on the priority of the transformation.
 6. On `Update`, the XR Body Transformer applies each transformation that is queued.
 
@@ -52,7 +52,7 @@ Additionally, the XR Movable body utilizes a Body Position Evaluator, which dete
 
 The [Locomotion Mediator](locomotion-mediator.md) component is a key part of locomotion, mediating transformation requests from Locomotion Providers, giving Locomotion Providers access to the XR Body Transformer, and managing the Locomotion State of the Locomotion Providers.
 
-The Locomotion Mediator gets the XR Body Transformer component on `Awake` to prepare for Locomotion Provider requests. 
+The Locomotion Mediator gets the XR Body Transformer component on `Awake` to prepare for Locomotion Provider requests.
 
 When Locomotion Providers call `LocomotionMediator.TryPrepareLocomotion`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `LocomotionState.Preparing` in the data map. Once the provider is in `LocomotionState.Preparing` the Locomotion Mediator will transition the provider to `LocomotionState.Moving` during the next `LocomotionMediator.Update` where `LocomotionProvider.canStartMoving` is true.
 
@@ -73,7 +73,7 @@ Locomotion State is a replacement for the deprecated Locomotion Phase. It repres
 
 ### XR Body Transformer
 
-The [XR Body Transformer](xr-body-transformer.md) component manages user locomotion via transformations of an XR Origin. 
+The [XR Body Transformer](xr-body-transformer.md) component manages user locomotion via transformations of an XR Origin.
 
 Locomotion Providers that have gained access to the XR Body Transformer via the Locomotion Mediator can call `XRBodyTransformer.QueueTransformation(IXRBodyTransformation)` to queue the transformation to be applied next `Update`. Transformations are applied sequentially based on ascending priority and transformations with the same priority are applied in the order they were queued. Each transformation is removed from the queue after it is applied.
 

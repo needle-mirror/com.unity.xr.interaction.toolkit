@@ -332,12 +332,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRSingleGrabFreeTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabFreeTransformer = k_BaseApi + k_BaseNamespace + k_TransformersNamespace + nameof(XRSingleGrabFreeTransformer) + k_HtmlFileSuffix;
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRSingleGrabOffsetPreserveTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabOffsetPreserveTransformer = k_BaseApi + k_BaseNamespace + k_TransformersNamespace + nameof(k_XRSingleGrabOffsetPreserveTransformer) + k_HtmlFileSuffix;
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRSocketGrabTransformer"/>.
         /// </summary>
@@ -357,7 +357,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="HandMenu"/>.
         /// </summary>
         public const string k_HandMenu = k_BaseApi + k_BaseNamespace + k_UINamespace + k_BodyUINamespace + nameof(HandMenu) + k_HtmlFileSuffix;
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="FollowPresetDatum"/>.
         /// </summary>

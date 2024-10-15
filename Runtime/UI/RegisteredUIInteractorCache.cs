@@ -1,4 +1,4 @@
-﻿using UnityEngine.EventSystems;
+using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         XRUIInputModule m_RegisteredInputModule;
         readonly IUIInteractor m_UiInteractor;
         readonly XRBaseInteractor m_BaseInteractor;
-        
+
         /// <summary>
         /// Initializes and returns an instance of <see cref="RegisteredUIInteractorCache"/>.
         /// </summary>
@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_UiInteractor = uiInteractor;
             m_BaseInteractor = uiInteractor as XRBaseInteractor;
         }
-        
+
         /// <summary>
         /// Register with or unregister from the Input Module (if necessary).
         /// </summary>
@@ -37,7 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (!Application.isPlaying || (m_BaseInteractor != null && !m_BaseInteractor.isActiveAndEnabled))
                 return;
-            
+
             if (enabled)
                 RegisterWithXRUIInputModule();
             else
@@ -73,7 +73,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             m_RegisteredInputModule = null;
         }
-        
+
         void FindOrCreateXRUIInputModule()
         {
             var eventSystem = EventSystem.current;
@@ -134,12 +134,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (m_InputModule != null)
             {
                 if (useAnyPointerId)
-                    currentGameObject = m_InputModule.GetCurrentGameObject(-1);                
+                    currentGameObject = m_InputModule.GetCurrentGameObject(-1);
                 else if (TryGetUIModel(out var uiModel))
                     currentGameObject = m_InputModule.GetCurrentGameObject(uiModel.pointerId);
                 else
                     currentGameObject = null;
-                
+
                 return currentGameObject != null;
             }
 
