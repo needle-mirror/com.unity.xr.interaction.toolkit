@@ -399,6 +399,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_DisposableManagerSingleton = k_BaseApi + k_BaseNamespace + k_UtilitiesNamespace + nameof(DisposableManagerSingleton) + k_HtmlFileSuffix;
 
         /// <summary>
+        /// Scripting API URL for <see cref="XRDebugLineVisualizer"/>.
+        /// </summary>
+        public const string k_XRDebugLineVisualizer = k_BaseApi + k_BaseNamespace + k_UtilitiesNamespace + nameof(XRDebugLineVisualizer) + k_HtmlFileSuffix;
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRControllerRecorder"/>.
         /// </summary>
         public const string k_XRControllerRecorder = k_BaseApi + k_BaseNamespace + nameof(XRControllerRecorder) + k_HtmlFileSuffix;

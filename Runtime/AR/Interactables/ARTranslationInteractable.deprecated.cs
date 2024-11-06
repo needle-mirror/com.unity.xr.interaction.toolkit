@@ -21,6 +21,7 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
+using Unity.XR.CoreUtils;
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
@@ -178,8 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             desiredPose.position = transform.parent.TransformPoint(desiredLocalPosition);
 
             var anchor = new GameObject("PlacementAnchor").transform;
-            anchor.position = m_LastPlacement.placementPosition;
-            anchor.rotation = m_LastPlacement.placementRotation;
+            anchor.SetWorldPose(new Pose(m_LastPlacement.placementPosition, m_LastPlacement.placementRotation));
             transform.parent = anchor;
 
             Destroy(oldAnchor);

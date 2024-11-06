@@ -131,8 +131,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         protected void Update()
         {
-            if (m_AimTarget == null || m_Target == null)
+            if (m_Target == null)
                 return;
+
+            // If the interface field is sourced from the UnityEngine Object field and the Object has been destroyed,
+            // clear the reference to avoid calling methods on the destroyed Object.
+            if (m_AimTarget != null && m_AimTargetObject == null && ReferenceEquals(m_AimTarget, m_AimTargetObject))
+            {
+                Debug.LogWarning("The reference assigned to Aim Target Object has been destroyed, clearing property on XR Transform Stabilizer.", this);
+                aimTarget = null;
+            }
 
             ApplyStabilization(ref m_ThisTransform, m_Target, m_AimTarget, m_PositionStabilization, m_AngleStabilization, Time.deltaTime, m_UseLocalSpace);
         }

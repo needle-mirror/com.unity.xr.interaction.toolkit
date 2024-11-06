@@ -1,3 +1,4 @@
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.Assertions;
@@ -548,8 +549,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             if (!menuVisible)
                 return;
 
-            var targetPos = m_LastValidPalmAnchorOffset.position;
-            var targetRot = m_LastValidPalmAnchorOffset.rotation;
+            var palmAnchorOffsetPose = m_LastValidPalmAnchorOffset.GetWorldPose();
+            var targetPos = palmAnchorOffsetPose.position;
+            var targetRot = palmAnchorOffsetPose.rotation;
 
             // Check if head gaze is looking at palm
             if (targetHandedness == MenuHandedness.Left || targetHandedness == MenuHandedness.Right)

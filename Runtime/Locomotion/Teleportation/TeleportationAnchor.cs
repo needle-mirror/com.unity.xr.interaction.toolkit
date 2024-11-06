@@ -1,3 +1,4 @@
+using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -81,8 +82,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             if (m_TeleportAnchorTransform == null)
                 return false;
 
-            teleportRequest.destinationPosition = m_TeleportAnchorTransform.position;
-            teleportRequest.destinationRotation = m_TeleportAnchorTransform.rotation;
+            var pose = m_TeleportAnchorTransform.GetWorldPose();
+            teleportRequest.destinationPosition = pose.position;
+            teleportRequest.destinationRotation = pose.rotation;
             return true;
         }
 

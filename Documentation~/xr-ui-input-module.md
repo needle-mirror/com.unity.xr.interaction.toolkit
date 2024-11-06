@@ -15,3 +15,10 @@ An **XR UI Input Module** works in concert with the [Near-Far Interactor](near-f
 > If you have an existing Canvas or Event System, you will likely have a **Standalone Input Module** or **Input System UI Input Module** component which will prevent proper input processing. Remove it by clicking the **More menu (&#8942;)** and selecting **Remove Component**. Other UI Input Modules are not compatible with the **XR UI Input Module** and may cause undesired or unexpected behavior. Therefore, only use a single Input Module to handle UI interactions.
 
 ![ui-event-system-setup](images/ui-event-system-setup.png)
+
+## UI Toolkit support
+
+> [!WARNING]
+> The `XRUIInputModule` does not yet fully support [UI Toolkit](https://docs.unity3d.com/Manual/UIElements.html).
+
+When using UI Toolkit, typically it will install an event listener in the form of the `PanelEventHandler` component which intercepts events from the `XRUIInputModule`. However, the `XRUIInputModule` currently does not support sending UI Toolkit events from the Event System on behalf of the XRUIInputModule. Instead, [`EventSystem.SetUITookitEventSystemOverride`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.EventSystem.html#UnityEngine_EventSystems_EventSystem_SetUITookitEventSystemOverride_UnityEngine_EventSystems_EventSystem_System_Boolean_System_Boolean_) can be called to bypass this default mechanism when it becomes the current/activated Input Module by the `EventSystem`. This is set up in a convenient option in the UI called **Bypass UI Toolkit Events**.

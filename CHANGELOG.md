@@ -9,6 +9,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.0.7] - 2024-11-06
+
+### Added
+- Added an extra gizmo to the XR Body Transformer to show locomotion collision constraints for the Character Controller. ([XRIT-181](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-181))
+- Added an optional bypass for UI Toolkit events that may cause incorrect events to get sent to UI Toolkit elements such as scroll views. For more information see the manual page for [XRUIInputModule](xref:xri-ui-input-module). ([XRIT-203](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-203))
+
+### Changed
+- Changed scripts to use Transform methods for getting or setting both position and rotation in a single method call to improve performance.
+
+### Fixed
+- Fixed regression introduced with version [3.0.6](#306---2024-10-15) so the XR Transform Stabilizer component allows empty Aim Target Object references. This fixes the Gaze Interactor ray to update correctly in the XR Origin (XR Rig) prefab.
+- Fixed issues with the near far interactor's attach controller where lateral motion would erroneously trigger z-motion, and z-motion would only trigger when moving the control parallel to the ground. ([XRIT-195](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-195))
+- Fixed issue with `CurveInteractionCaster` and `XRRayInteractor` cone casting where trigger colliders would incorrectly block interactables. Conecasting now filters out trigger while it processes targets instead of after the raycast targets were identified.
+
 ## [3.0.6] - 2024-10-15
 
 ### Added

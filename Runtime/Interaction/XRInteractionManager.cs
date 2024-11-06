@@ -178,7 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Used as additional select validations for this manager.
         /// </summary>
         /// <remarks>
-        /// While processing select filters, all changes to this list don't have an immediate effect. Theses changes are
+        /// While processing select filters, all changes to this list don't have an immediate effect. These changes are
         /// buffered and applied when the processing is finished.
         /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
         /// </remarks>

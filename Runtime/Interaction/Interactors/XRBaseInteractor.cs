@@ -343,7 +343,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Used as additional select validations for this Interactor.
         /// </summary>
         /// <remarks>
-        /// While processing select filters, all changes to this list don't have an immediate effect. Theses changes are
+        /// While processing select filters, all changes to this list don't have an immediate effect. These changes are
         /// buffered and applied when the processing is finished.
         /// Calling <see cref="IXRFilterList{T}.MoveTo"/> in this list will throw an exception when this list is being processed.
         /// </remarks>
@@ -639,8 +639,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 m_AttachTransform = new GameObject($"[{gameObject.name}] Attach").transform;
                 m_AttachTransform.SetParent(transform, false);
-                m_AttachTransform.localPosition = Vector3.zero;
-                m_AttachTransform.localRotation = Quaternion.identity;
+                m_AttachTransform.SetLocalPose(Pose.identity);
             }
         }
 

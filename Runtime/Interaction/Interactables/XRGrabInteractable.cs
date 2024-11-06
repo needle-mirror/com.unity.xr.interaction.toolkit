@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.Profiling;
+using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
@@ -1097,8 +1098,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
         void InitializeTargetPoseAndScale(Transform thisTransform)
         {
-            m_TargetPose.position = thisTransform.position;
-            m_TargetPose.rotation = thisTransform.rotation;
+            m_TargetPose = thisTransform.GetWorldPose();
             m_TargetLocalScale = thisTransform.localScale;
         }
 
@@ -1560,7 +1560,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
             {
                 if (m_TrackPosition && m_TrackRotation)
-                    transform.SetPositionAndRotation(m_TargetPose.position, m_TargetPose.rotation);
+                    transform.SetWorldPose(m_TargetPose);
                 else if (m_TrackPosition)
                     transform.position = m_TargetPose.position;
                 else if (m_TrackRotation)
@@ -1799,19 +1799,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // keeps the position and rotation seen in the Inspector tidier by exactly matching instead of potentially having small
             // floating point offsets.
             if (staticAttachTransform == transform)
-            {
-                dynamicAttachTransform.localPosition = Vector3.zero;
-                dynamicAttachTransform.localRotation = Quaternion.identity;
-            }
+                dynamicAttachTransform.SetLocalPose(Pose.identity);
             else if (staticAttachTransform.parent == transform)
-            {
-                dynamicAttachTransform.localPosition = staticAttachTransform.localPosition;
-                dynamicAttachTransform.localRotation = staticAttachTransform.localRotation;
-            }
+                dynamicAttachTransform.SetLocalPose(staticAttachTransform.GetLocalPose());
             else
-            {
-                dynamicAttachTransform.SetPositionAndRotation(staticAttachTransform.position, staticAttachTransform.rotation);
-            }
+                dynamicAttachTransform.SetWorldPose(staticAttachTransform.GetWorldPose());
         }
 
         void ReleaseDynamicAttachTransform(IXRSelectInteractor interactor)
@@ -1901,22 +1893,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             // Copy the pose of the interactor's attach transform
             var interactorAttachTransform = interactor.GetAttachTransform(this);
-            var position = interactorAttachTransform.position;
-            var rotation = interactorAttachTransform.rotation;
+            var attachPose = interactorAttachTransform.GetWorldPose();
 
             // Optionally constrain the position to within the Collider(s) of this Interactable
             if (matchPosition && ShouldSnapToColliderVolume(interactor) &&
-                XRInteractableUtility.TryGetClosestPointOnCollider(this, position, out var distanceInfo))
+                XRInteractableUtility.TryGetClosestPointOnCollider(this, attachPose.position, out var distanceInfo))
             {
-                position = distanceInfo.point;
+                attachPose.position = distanceInfo.point;
             }
 
             if (matchPosition && matchRotation)
-                dynamicAttachTransform.SetPositionAndRotation(position, rotation);
+                dynamicAttachTransform.SetWorldPose(attachPose);
             else if (matchPosition)
-                dynamicAttachTransform.position = position;
+                dynamicAttachTransform.position = attachPose.position;
             else
-                dynamicAttachTransform.rotation = rotation;
+                dynamicAttachTransform.rotation = attachPose.rotation;
         }
 
         /// <summary>
@@ -2204,8 +2195,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         static Transform OnCreatePooledItem()
         {
             var item = new GameObject().transform;
-            item.localPosition = Vector3.zero;
-            item.localRotation = Quaternion.identity;
+            item.SetLocalPose(Pose.identity);
             item.localScale = Vector3.one;
 
             return item;

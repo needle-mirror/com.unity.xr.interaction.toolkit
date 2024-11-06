@@ -22,6 +22,7 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
+using Unity.XR.CoreUtils;
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
@@ -197,8 +198,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             // Create anchor to track reference point and set it as the parent of placementObject.
             var anchor = new GameObject("PlacementAnchor").transform;
-            anchor.position = pose.position;
-            anchor.rotation = pose.rotation;
+            anchor.SetWorldPose(pose);
             placementObject.transform.parent = anchor;
 
             // Use Trackables object in scene to use as parent

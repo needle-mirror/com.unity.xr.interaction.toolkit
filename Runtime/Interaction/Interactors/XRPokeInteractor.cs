@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
@@ -487,14 +488,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             }
 
             var pokeInteractionTransform = GetAttachTransform(null);
-            var position = pokeInteractionTransform.position;
-            var orientation = pokeInteractionTransform.rotation;
-            Vector3 startPoint = position;
-            Vector3 penetrationDirection = orientation * Vector3.forward;
+            var pokePose = pokeInteractionTransform.GetWorldPose();
+            Vector3 startPoint = pokePose.position;
+            Vector3 penetrationDirection = pokePose.rotation * Vector3.forward;
             Vector3 endPoint = startPoint + (penetrationDirection * m_PokeDepth);
 
-            model.position = position;
-            model.orientation = orientation;
+            model.position = pokePose.position;
+            model.orientation = pokePose.rotation;
             model.positionGetter = m_PositionGetter;
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;

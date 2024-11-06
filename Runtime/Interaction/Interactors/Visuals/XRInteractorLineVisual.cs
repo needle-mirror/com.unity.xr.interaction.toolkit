@@ -912,9 +912,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 Ray? rayOriginOverride = null;
                 if (m_OverrideInteractorLineOrigin && m_LineOriginTransform != null)
                 {
-                    var lineOrigin = m_LineOriginTransform.position;
-                    var lineDirection = m_LineOriginTransform.forward;
-                    rayOriginOverride = new Ray(lineOrigin, lineDirection);
+                    var linePose = m_LineOriginTransform.GetWorldPose();
+                    rayOriginOverride = new Ray(linePose.position, linePose.forward);
                 }
 
                 return m_AdvancedLineRenderable.GetLinePoints(ref linePoints, out numPoints, rayOriginOverride);
@@ -1029,8 +1028,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         {
             if (m_OverrideInteractorLineOrigin && m_LineOriginTransform != null)
             {
-                lineOrigin = m_LineOriginTransform.position;
-                lineDirection = m_LineOriginTransform.forward;
+                var linePose = m_LineOriginTransform.GetWorldPose();
+                lineOrigin = linePose.position;
+                lineDirection = linePose.forward;
             }
             else
             {
@@ -1221,7 +1221,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 
             if (m_ReticleToUse != null)
             {
-                m_ReticleToUse.transform.position = m_ReticlePos;
                 if (m_HasHoverInteractor && m_LineRenderableAsHoverInteractor.GetOldestInteractableHovered() is IXRReticleDirectionProvider reticleDirectionProvider)
                 {
                     reticleDirectionProvider.GetReticleDirection(m_LineRenderableAsHoverInteractor, m_ReticleNormal, out var reticleUp, out var reticleForward);
@@ -1231,11 +1230,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                     else
                         BurstMathUtility.LookRotationWithForwardProjectedOnPlane(m_ReticleToUse.transform.forward, reticleUp, out lookRotation);
 
-                    m_ReticleToUse.transform.rotation = lookRotation;
+                    m_ReticleToUse.transform.SetWorldPose(new Pose(m_ReticlePos, lookRotation));
                 }
                 else
                 {
-                    m_ReticleToUse.transform.forward = -m_ReticleNormal;
+                    m_ReticleToUse.transform.SetWorldPose(new Pose(m_ReticlePos, Quaternion.LookRotation(-m_ReticleNormal)));
                 }
 
                 m_ReticleToUse.SetActive(true);

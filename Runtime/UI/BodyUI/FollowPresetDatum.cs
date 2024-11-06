@@ -1,4 +1,5 @@
 using System;
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
@@ -174,15 +175,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         /// Applies this preset to the specified tracking offsets for the left and right local positions and rotations.
         /// Also recomputes dot product thresholds.
         /// </summary>
-        /// <param name="leftTrackingOffset">The transform object that represents the left tracking offset.</param>
-        /// <param name="rightTrackingOffset">The transform object that represents the right tracking offset.</param>
+        /// <param name="leftTrackingOffset">The Transform object that represents the left tracking offset.</param>
+        /// <param name="rightTrackingOffset">The Transform object that represents the right tracking offset.</param>
         public void ApplyPreset(Transform leftTrackingOffset, Transform rightTrackingOffset)
         {
-            leftTrackingOffset.transform.localPosition = leftHandLocalPosition;
-            leftTrackingOffset.transform.localRotation = Quaternion.Euler(leftHandLocalRotation);
-
-            rightTrackingOffset.transform.localPosition = rightHandLocalPosition;
-            rightTrackingOffset.transform.localRotation = Quaternion.Euler(rightHandLocalRotation);
+            leftTrackingOffset.SetLocalPose(new Pose(leftHandLocalPosition, Quaternion.Euler(leftHandLocalRotation)));
+            rightTrackingOffset.SetLocalPose(new Pose(rightHandLocalPosition, Quaternion.Euler(rightHandLocalRotation)));
             ComputeDotProductThresholds();
         }
 
@@ -205,7 +203,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         /// Gets the reference axis relative to the specified tracking root.
         /// Adjusts the return value depending on whether or not this is for the user's right hand.
         /// </summary>
-        /// <param name="trackingRoot">Tracking root transform.</param>
+        /// <param name="trackingRoot">Tracking root Transform.</param>
         /// <param name="isRightHand">Whether this is for the user's right hand or not.</param>
         /// <returns>Returns a <see cref="Vector3"/> representing the reference axis relative to the specified tracking root.</returns>
         public Vector3 GetReferenceAxisForTrackingAnchor(Transform trackingRoot, bool isRightHand)

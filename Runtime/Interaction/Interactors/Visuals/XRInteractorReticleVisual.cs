@@ -326,17 +326,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         {
             if (m_ReticleInstance != null)
             {
-                m_ReticleInstance.transform.position = m_TargetEndPoint;
-
-                // Attempt to align reticle's Z axis with the XR Origin's up vector.
+                // Attempt to align reticle's z-axis with the XR Origin's up vector.
                 var relativeUpVector = (m_XROrigin != null && m_XROrigin.Origin != null) ? m_XROrigin.Origin.transform.up : Vector3.up;
 
                 if (m_AlignPrefabWithSurfaceNormal && m_HasRaycastHit)
                 {
                     var vectorToProject = relativeUpVector;
 
-                    // If surface normal is directly up indicating a horizontal surface, align the reticle's Z axis with
-                    // the direction of the interactor's raycast direction. Multiple by dot product to flip reticle when
+                    // If surface normal is directly up indicating a horizontal surface, align the reticle's z-axis with
+                    // the direction of the interactor's raycast direction. Multiply by dot product to flip reticle when
                     // on the underside of a horizontal surface.
                     var targetNormalProjectedVectorDotProduct = Vector3.Dot(m_TargetEndNormal, vectorToProject);
                     if (Mathf.Approximately(Mathf.Abs(targetNormalProjectedVectorDotProduct), 1f))
@@ -345,11 +343,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                     // Calculate the projected forward vector on the target normal
                     var forwardVector = Vector3.ProjectOnPlane(vectorToProject, m_TargetEndNormal);
                     if (forwardVector != Vector3.zero)
-                        m_ReticleInstance.transform.rotation = Quaternion.LookRotation(forwardVector, m_TargetEndNormal);
+                        m_ReticleInstance.transform.SetWorldPose(new Pose(m_TargetEndPoint, Quaternion.LookRotation(forwardVector, m_TargetEndNormal)));
+                    else
+                        m_ReticleInstance.transform.position = m_TargetEndPoint;
                 }
                 else
                 {
-                    m_ReticleInstance.transform.rotation = Quaternion.LookRotation(relativeUpVector, (m_Interactor.attachTransform.position - m_TargetEndPoint).normalized);
+                    m_ReticleInstance.transform.SetWorldPose(new Pose(m_TargetEndPoint,
+                        Quaternion.LookRotation(relativeUpVector, (m_Interactor.attachTransform.position - m_TargetEndPoint).normalized)));
                 }
 
                 var scaleFactor = m_PrefabScalingFactor;

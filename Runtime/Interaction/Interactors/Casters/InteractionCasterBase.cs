@@ -178,8 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
 
                 m_StabilizationAnchor = new GameObject($"[{handName} {GetType().Name}] Stabilization Cast Origin").transform;
                 m_StabilizationAnchor.SetParent(xrOrigin.Origin.transform, false);
-                m_StabilizationAnchor.localPosition = Vector3.zero;
-                m_StabilizationAnchor.localRotation = Quaternion.identity;
+                m_StabilizationAnchor.SetLocalPose(Pose.identity);
                 m_InitializedStabilizationOrigin = true;
             }
             return m_InitializedStabilizationOrigin;

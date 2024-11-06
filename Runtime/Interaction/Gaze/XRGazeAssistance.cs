@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
@@ -133,11 +134,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Gaze
                     return;
 
                 if (fallback)
-                {
-                    var gazePosition = gazeTransform.position;
-                    var gazeRotation = gazeTransform.rotation;
-                    m_FallbackRayOrigin.SetPositionAndRotation(gazePosition, gazeRotation);
-                }
+                    m_FallbackRayOrigin.SetWorldPose(gazeTransform.GetWorldPose());
             }
 
             /// <summary>
@@ -150,22 +147,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Gaze
 
                 if (m_HasLineVisual && fallback)
                 {
-                    Vector3 position;
-                    Quaternion rotation;
+                    Pose visualPose;
                     // The pose for the line visual is copied from the original.
                     // The rotation uses the gaze direction when it is a teleport projectile since it feels better.
                     if (m_OriginalOverrideVisualLineOrigin && m_OriginalVisualLineOrigin != null)
                     {
-                        position = m_OriginalVisualLineOrigin.position;
-                        rotation = !m_TeleportRay ? m_OriginalVisualLineOrigin.rotation : m_FallbackRayOrigin.rotation;
+                        visualPose = m_TeleportRay
+                            ? new Pose(m_OriginalVisualLineOrigin.position, m_FallbackRayOrigin.rotation)
+                            : m_OriginalVisualLineOrigin.GetWorldPose();
                     }
                     else
                     {
-                        position = m_OriginalRayOrigin.position;
-                        rotation = !m_TeleportRay ? m_OriginalRayOrigin.rotation : m_FallbackRayOrigin.rotation;
+                        visualPose = m_TeleportRay
+                            ? new Pose(m_OriginalRayOrigin.position, m_FallbackRayOrigin.rotation)
+                            : m_OriginalRayOrigin.GetWorldPose();
                     }
 
-                    m_FallbackVisualLineOrigin.SetPositionAndRotation(position, rotation);
+                    m_FallbackVisualLineOrigin.SetWorldPose(visualPose);
                 }
             }
 
@@ -223,17 +221,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Gaze
 
                 if (fallback)
                 {
-                    var gazePosition = gazeTransform.position;
-                    var gazeRotation = gazeTransform.rotation;
+                    var gazePose = gazeTransform.GetWorldPose();
 
                     if (!m_TeleportRay && m_SelectInteractor.isSelectActive && m_SelectInteractor.hasSelection)
                     {
                         // Lerp the fallback ray to the original ray
-                        var anchorDistance = (m_FallbackAttach.position - gazePosition).magnitude;
+                        var anchorDistance = (m_FallbackAttach.position - gazePose.position).magnitude;
                         var distancePercent = Mathf.Clamp01(anchorDistance / k_MinAttachDistance);
+                        var originalRayOriginPose = m_OriginalRayOrigin.GetWorldPose();
                         m_FallbackRayOrigin.SetPositionAndRotation(
-                            Vector3.Lerp(m_OriginalRayOrigin.position, gazePosition, distancePercent),
-                            Quaternion.Lerp(m_OriginalRayOrigin.rotation, gazeRotation, distancePercent));
+                            Vector3.Lerp(originalRayOriginPose.position, gazePose.position, distancePercent),
+                            Quaternion.Lerp(originalRayOriginPose.rotation, gazePose.rotation, distancePercent));
 
                         if (m_HasLineVisual)
                             m_LineVisual.enabled = true;

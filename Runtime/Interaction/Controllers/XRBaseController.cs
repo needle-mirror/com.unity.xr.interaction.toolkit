@@ -1,4 +1,5 @@
 using System;
+using Unity.XR.CoreUtils;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
@@ -341,8 +342,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_ModelParent = new GameObject($"[{gameObject.name}] Model Parent").transform;
                 m_ModelParent.SetParent(transform, false);
-                m_ModelParent.localPosition = Vector3.zero;
-                m_ModelParent.localRotation = Quaternion.identity;
+                m_ModelParent.SetLocalPose(Pose.identity);
             }
         }
 
@@ -483,15 +483,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender ||
                 updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
             {
-                if ((controllerState.inputTrackingState & InputTrackingState.Position) != 0)
-                {
+                var hasPosition = (controllerState.inputTrackingState & InputTrackingState.Position) != 0;
+                var hasRotation = (controllerState.inputTrackingState & InputTrackingState.Rotation) != 0;
+                if (hasPosition && hasRotation)
+                    transform.SetLocalPose(new Pose(controllerState.position, controllerState.rotation));
+                else if (hasPosition)
                     transform.localPosition = controllerState.position;
-                }
-
-                if ((controllerState.inputTrackingState & InputTrackingState.Rotation) != 0)
-                {
+                else if (hasRotation)
                     transform.localRotation = controllerState.rotation;
-                }
             }
         }
 

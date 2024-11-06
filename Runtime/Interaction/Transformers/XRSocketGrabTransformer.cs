@@ -163,25 +163,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         bool RegisterInteractableScale(IXRInteractable targetInteractable, Vector3 scale)
         {
-            if (m_InitialScale.ContainsKey(targetInteractable))
+            if (!m_InitialScale.TryAdd(targetInteractable, scale))
                 return false;
-
-            m_InitialScale[targetInteractable] = scale;
 
             var targetTransform = targetInteractable.transform;
 
             // Capture position and rotation
-            var currentPosition = targetTransform.position;
-            var currentRotation = targetTransform.rotation;
+            var currentPose = targetTransform.GetWorldPose();
 
             // Revert to identity to capture accurate bounds size
-            targetTransform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            targetTransform.SetWorldPose(Pose.identity);
 
             // Capture Bounds
             m_InteractableBoundsSize[targetInteractable] = BoundsUtils.GetBounds(targetInteractable.transform).size;
 
             // Revert to original position and rotation
-            targetTransform.SetPositionAndRotation(currentPosition, currentRotation);
+            targetTransform.SetWorldPose(currentPose);
 
             return true;
         }

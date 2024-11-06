@@ -631,19 +631,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             // Calculate offset to the interactable transform from the attach transform.
             var thisAttachTransform = grabInteractable.GetAttachTransform(interactor);
             var attachPosition = thisAttachTransform.position;
-            var objectTransform = grabInteractable.transform;
-            var objectPosition = objectTransform.position;
+            var objectPose = grabInteractable.transform.GetWorldPose();
 
-            m_AttachOffset = objectPosition - attachPosition;
-            m_LocalAttachOffset = Quaternion.Inverse(objectTransform.rotation) * m_AttachOffset;
+            m_AttachOffset = objectPose.position - attachPosition;
+            m_LocalAttachOffset = Quaternion.Inverse(objectPose.rotation) * m_AttachOffset;
         }
 
         void CalculatePlacementOffset(XRGrabInteractable grabInteractable)
         {
-            var objectTransform = grabInteractable.transform;
+            var objectPose = grabInteractable.transform.GetWorldPose();
 
-            m_PlacementOffset = objectTransform.position - m_DesiredPosition;
-            m_LocalPlacementOffset = Quaternion.Inverse(objectTransform.rotation) * m_PlacementOffset;
+            m_PlacementOffset = objectPose.position - m_DesiredPosition;
+            m_LocalPlacementOffset = Quaternion.Inverse(objectPose.rotation) * m_PlacementOffset;
         }
 
         void FindXROrigin()

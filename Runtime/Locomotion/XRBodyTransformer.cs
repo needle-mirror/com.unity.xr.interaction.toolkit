@@ -244,5 +244,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 
             m_TransformationsQueue.AddAfter(node, orderedTransformation);
         }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        internal void OnDrawGizmosSelected()
+        {
+            if (m_UseCharacterControllerIfExists && m_ConstrainedBodyManipulator != null &&
+                m_ConstrainedBodyManipulator is CharacterControllerBodyManipulator characterControllerManipulator &&
+                characterControllerManipulator.characterController != null)
+            {
+                var characterController = characterControllerManipulator.characterController;
+                var center = characterController.center + characterController.transform.position + (Vector3.up * ((characterController.stepOffset - characterController.skinWidth) * 0.5f));
+                var height = characterController.height + characterController.stepOffset + characterController.skinWidth;
+                var radius = characterController.radius + characterController.skinWidth;
+
+                GizmoHelpers.DrawCapsule(center, height, radius, Vector3.up, new Color(1.0f, 0.92f, 0.016f, 0.5f));
+            }
+        }
     }
 }

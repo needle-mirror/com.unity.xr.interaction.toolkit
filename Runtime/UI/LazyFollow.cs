@@ -363,12 +363,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     m_Target = mainCamera.transform;
             }
 
-            var thisTransform = transform;
-            var currentPosition = followInLocalSpace ? thisTransform.localPosition : thisTransform.position;
-            var currentRotation = followInLocalSpace ? thisTransform.localRotation : thisTransform.rotation;
+            var currentPose = followInLocalSpace ? transform.GetLocalPose() : transform.GetWorldPose();
 
-            m_Vector3TweenableVariable.target = currentPosition;
-            m_QuaternionTweenableVariable.target = currentRotation;
+            m_Vector3TweenableVariable.target = currentPose.position;
+            m_QuaternionTweenableVariable.target = currentPose.rotation;
 
             m_BindingsGroup.AddBinding(m_Vector3TweenableVariable.SubscribeAndUpdate(UpdatePosition));
             m_BindingsGroup.AddBinding(m_QuaternionTweenableVariable.SubscribeAndUpdate(UpdateRotation));

@@ -90,6 +90,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_TrackedScrollDeltaMultiplier = value;
         }
 
+        [SerializeField, Tooltip("Disables sending events from Event System to UI Toolkit on behalf of this Input Module.")]
+        bool m_BypassUIToolkitEvents;
+
+        /// <summary>
+        /// Disables sending events from Event System to UI Toolkit on behalf of this Input Module.
+        /// </summary>
+        bool bypassUIToolkitEvents
+        {
+            get => m_BypassUIToolkitEvents;
+            set => m_BypassUIToolkitEvents = value;
+        }
 
         Camera m_UICamera;
 
@@ -190,6 +201,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public override void ActivateModule()
         {
             base.ActivateModule();
+
+            // This is required for mouse/pointer events to work with UI Toolkit
+            if (bypassUIToolkitEvents)
+                EventSystem.SetUITookitEventSystemOverride(eventSystem, false, false);
 
             // Select firstSelectedGameObject if nothing is selected ATM.
             var toSelect = eventSystem.currentSelectedGameObject;

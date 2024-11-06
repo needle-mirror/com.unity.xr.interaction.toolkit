@@ -432,8 +432,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             {
                 newHandleBar = m_StartHandleBar;
                 var attachTransform = grabInteractable.interactorsSelecting[0].GetAttachTransform(grabInteractable);
-                adjustedInteractorPosition = attachTransform.position;
-                adjustedInteractorRotation = attachTransform.rotation;
+                var attachTransformPose = attachTransform.GetWorldPose();
+                adjustedInteractorPosition = attachTransformPose.position;
+                adjustedInteractorRotation = attachTransformPose.rotation;
                 return;
             }
 

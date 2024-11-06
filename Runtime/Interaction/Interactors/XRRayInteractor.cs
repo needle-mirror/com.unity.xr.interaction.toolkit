@@ -1336,19 +1336,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             // Keep the position value seen in the Inspector tidier
             if (attachTransform == null)
-            {
-                m_RayOriginTransform.localPosition = Vector3.zero;
-                m_RayOriginTransform.localRotation = Quaternion.identity;
-            }
+                m_RayOriginTransform.SetLocalPose(Pose.identity);
             else if (attachTransform.parent == transform)
-            {
-                m_RayOriginTransform.localPosition = attachTransform.localPosition;
-                m_RayOriginTransform.localRotation = attachTransform.localRotation;
-            }
+                m_RayOriginTransform.SetLocalPose(attachTransform.GetLocalPose());
             else
-            {
-                m_RayOriginTransform.SetPositionAndRotation(attachTransform.position, attachTransform.rotation);
-            }
+                m_RayOriginTransform.SetWorldPose(attachTransform.GetWorldPose());
         }
 
         /// <inheritdoc />
@@ -1647,8 +1639,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 scrollDelta = m_UIScrollInput.ReadValue();
             }
 
-            model.position = originTransform.position;
-            model.orientation = originTransform.rotation;
+            var originPose = originTransform.GetWorldPose();
+            model.position = originPose.position;
+            model.orientation = originPose.rotation;
             model.select = select;
             model.scrollDelta = scrollDelta;
             model.raycastLayerMask = m_RaycastMask;
@@ -2401,19 +2394,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (m_RaycastHitsCount > 0)
             {
-                var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
-                    (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
-
-                if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
-                {
-                    // Filter out Snap Volume trigger collider hits
-                    m_RaycastHitsCount = FilterTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount, snapVolume => snapVolume != null);
-                }
-                else if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide && !baseQueryHitsTriggers)
-                {
-                    // Filter out trigger collider hits that are not Snap Volume snap colliders
-                    m_RaycastHitsCount = FilterTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount, snapVolume => snapVolume == null);
-                }
+                if (m_HitDetectionType != HitDetectionType.ConeCast)
+                    m_RaycastHitsCount = FilterOutTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount);
 
                 // Sort all the hits by distance along the curve since the results of the 3D ray cast are not ordered.
                 // Sorting is done after filtering above for performance.
@@ -2453,6 +2435,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var optimalHits = m_LocalPhysicsScene.Raycast(from, direction, s_SpherecastScratch, maxDistance, layerMask, queryTriggerInteraction);
             if (optimalHits > 0)
             {
+                optimalHits = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, optimalHits);
+
                 for (var i = 0; i < optimalHits; ++i)
                 {
                     var hitInfo = s_SpherecastScratch[i];
@@ -2472,6 +2456,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     hitCounter++;
                 }
             }
+
             // Now do a series of sphere casts that increase in size.
             // We don't process obstructions here
             // We don't do ultra-fine cone rejection instead add horizontal distance to the spherecast depth
@@ -2493,36 +2478,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
                 // Spherecast
                 var initialResults = m_LocalPhysicsScene.SphereCast(from + originRadiusOffset, endRadius, direction, s_SpherecastScratch, sphereCastDistance, layerMask, queryTriggerInteraction);
-
-                for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
+                if (initialResults > 0)
                 {
-                    var hit = s_SpherecastScratch[i];
-                    var totalHitDistance = currentSegmentCastDistance + hit.distance;
+                    initialResults = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, initialResults);
 
-                    // Range check
-                    if (totalHitDistance > obstructionDistance)
-                        continue;
+                    for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
+                    {
+                        var hit = s_SpherecastScratch[i];
+                        var totalHitDistance = currentSegmentCastDistance + hit.distance;
 
-                    // If it's an optimal hit, then skip it
-                    if (s_OptimalHits.Contains(hit.collider))
-                        continue;
+                        // Range check
+                        if (totalHitDistance > obstructionDistance)
+                            continue;
 
-                    // It must have an interactable
-                    if (!interactionManager.TryGetInteractableForCollider(hit.collider, out _))
-                        continue;
+                        // If it's an optimal hit, then skip it
+                        if (s_OptimalHits.Contains(hit.collider))
+                            continue;
 
-                    if (Mathf.Approximately(hit.distance, 0f) && BurstMathUtility.FastVectorEquals(hit.point, Vector3.zero))
-                        // Sphere cast can return hits where point is (0, 0, 0) in error.
-                        continue;
+                        // It must have an interactable
+                        if (!interactionManager.TryGetInteractableForCollider(hit.collider, out _))
+                            continue;
 
-                    // Adjust distance by distance from ray center for default sorting
-                    BurstPhysicsUtils.GetConecastOffset(from, hit.point, direction, out var hitToRayDist);
+                        if (Mathf.Approximately(hit.distance, 0f) && BurstMathUtility.FastVectorEquals(hit.point, Vector3.zero))
+                            // Sphere cast can return hits where point is (0, 0, 0) in error.
+                            continue;
 
-                    // We penalize these off-center hits by a meter + whatever horizontal offset they have
-                    // this should be distance from segment start + penalty
-                    hit.distance += currentSegmentCastDistance + 1f + (hitToRayDist);
-                    results[hitCounter] = hit;
-                    hitCounter++;
+                        // Adjust distance by distance from ray center for default sorting
+                        BurstPhysicsUtils.GetConecastOffset(from, hit.point, direction, out var hitToRayDist);
+
+                        // We penalize these off-center hits by a meter + whatever horizontal offset they have
+                        // this should be distance from segment start + penalty
+                        hit.distance += currentSegmentCastDistance + 1f + (hitToRayDist);
+                        results[hitCounter] = hit;
+                        hitCounter++;
+                    }
                 }
 
                 currentSegmentCastDistance += sphereCastDistance;
@@ -2531,6 +2520,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             s_OptimalHits.Clear();
             Array.Clear(s_SpherecastScratch, 0, k_MaxSpherecastHits);
             return hitCounter;
+        }
+
+        /// <summary>
+        /// Filters out trigger colliders based on caster trigger collider settings.
+        /// </summary>
+        /// <param name="manager">The XR interaction manager used to help filter colliders.</param>
+        /// <param name="raycastHits">Array to store the results of the raycast hits.</param>
+        /// <param name="raycastHitCount">Number of existing raycast hits.</param>
+        /// <returns>Returns the number of raycast hits after filtering out trigger colliders.</returns>
+        int FilterOutTriggerColliders(XRInteractionManager manager, RaycastHit[] raycastHits, int raycastHitCount)
+        {
+            var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
+                (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
+
+            if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
+            {
+                // Filter out Snap Volume trigger collider hits
+                raycastHitCount = FilterTriggerColliders(manager, raycastHits, raycastHitCount, snapVolume => snapVolume != null);
+            }
+            else if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide && !baseQueryHitsTriggers)
+            {
+                // Filter out trigger collider hits that are not Snap Volume snap colliders
+                raycastHitCount = FilterTriggerColliders(manager, raycastHits, raycastHitCount, snapVolume => snapVolume == null);
+            }
+
+            return raycastHitCount;
         }
 
         static int FilterTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count, Func<XRInteractableSnapVolume, bool> removeRule)
@@ -2775,8 +2790,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         void RestoreAttachTransform()
         {
             var pose = GetLocalAttachPoseOnSelect(firstInteractableSelected);
-            attachTransform.localPosition = pose.position;
-            attachTransform.localRotation = pose.rotation;
+            attachTransform.SetLocalPose(pose);
         }
 
 #if AR_FOUNDATION_PRESENT

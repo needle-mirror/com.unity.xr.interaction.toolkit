@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -235,8 +236,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             if (destinationAnchor == null)
                 return false;
 
-            teleportRequest.destinationPosition = destinationAnchor.position;
-            teleportRequest.destinationRotation = destinationAnchor.rotation;
+            var pose = destinationAnchor.GetWorldPose();
+            teleportRequest.destinationPosition = pose.position;
+            teleportRequest.destinationRotation = pose.rotation;
             ClearDestinationAnchor();
             return true;
         }
