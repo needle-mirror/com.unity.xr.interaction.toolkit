@@ -9,6 +9,44 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+<!-- Unreleased -->
+## [3.1.0-pre.1] - 2024-12-12
+
+### Added
+- Added the ability to trigger a 180° degree snap turn around on the Continuous Turn Provider directly instead of having to use a partially enabled Snap Turn Provider. Added properties to enable or disable left-right turning and turn around in the `ContinuousTurnProvider` to match the `SnapTurnProvider` options.
+- Added support for anchor manipulation from controller thumbstick input to the Near-Far Interactor GameObject. The Interaction Attach Controller now has additional properties when Use Manipulation Input is enabled for allowing rotation (horizontal and vertical) and translation along the selection line.
+- Added custom Inspector window for the Interaction Attach Controller.
+- Added `GravityProvider` to handle gravity instead of being applied with the move and grab providers.
+- Added `JumpProvider` to handle simple jumping functionality. This implements the added `IGravityController` interface.
+- Added ability to control whether gravity begins to apply or stays paused when releasing with the `ClimbProvider`.
+- Added a `SimulatedDeviceLifecycleManager` component that handles all the simulated devices, and works in tandem with simulator classes such as `XRDeviceSimulator`.
+- Added a `SimulatedHandExpressionManager` component that handles the simulated hand expressions, and works in tandem with simulator classes such as `XRDeviceSimulator`.
+- Added the new `XR Interaction Simulator` which provides a simplified interface for simulating XR interaction in the editor.
+- Added public properties that wrap serialized fields in some behaviors and their corresponding Editor classes (`CurveInteractionCaster`, `XRInteractorLineVisual`, `XRRayInteractor`, and `UIInputModule`).
+
+### Changed
+- Changed the `XRI Default Input Actions` in the Starter Assets sample to include a Jump Input Action.
+- Changed the XR Origin (XR Rig) prefab in the Starter Assets sample to include the `JumpProvider` and `GravityProvider` by default.
+- Changed some APIs used by the `XRPokeInteractor` for enabling the ability to poke UGUI canvases from `internal` to `public` to allow for custom interactor implementations. (Forward port from 2.6.0)
+- Changed Snap Turn Provider turn around behavior to only trigger once per turn around action. Repeat turns while the thumbstick is pushed in a direction will thus only apply to left or right.
+- Changed the XR Origin (XR Rig) prefab in the Starter Assets sample to enable turn around on the Continuous Turn Provider so that functionality is enabled by default if Smooth Turn Enabled is true on the Controller Input Action Manager.
+- Changed the Near-Far Interactor prefab in the Starter Assets sample to enable anchor manipulation (Translate and Horizontal Rotation).
+- Changed `ContinuousMoveProvider` to implement the `IGravityController` interface.
+- Changed `ContinuousMoveProvider` to handle falling movement differently than grounded movement.
+- Changed `ClimbProvider` to implement the `IGravityController` interface.
+- Changed `ClimbProvider` to zero out gravity accumulation while climbing by implementing the added `IGravityController` interface.
+- Changed `ClimbProvider` to no longer force unconstrained movement through collisions (see `forceUnconstrained` in `XROriginMovement`).
+- Changed scripts to improve performance of processing interaction strength (tagged `XRI.ProcessInteractionStrength` in Profiler).
+- Changed some internal methods to be public or protected (`AttachPointVelocityTracker.ResetVelocityTracking`, `CurveInteractionCaster.OnDrawGizmosSelected`, and `XRBodyTransformer.OnDrawGizmosSelected`).
+- Changed `com.unity.xr.core-utils` dependency from 2.2.3 to 2.4.0.
+
+### Deprecated
+- Deprecated `useGravity` from `ContinuousMoveProvider` and the abstract `ConstrainedMoveProvider` (`GrabMoveProvider` and `TwoHandedGrabMoveProvider`). This functionality has been replaced with the Gravity Provider component and its `useGravity` property.
+- Deprecated some nested types in `XRDeviceSimulator` and replaced them with either nested or unnested types within the `UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation` namespace.
+
+### Fixed
+- Fixed `BaseAffordanceStateProvider` so it passes the previous `AffordanceStateData` to custom affordance state receivers.
+
 ## [3.0.7] - 2024-11-06
 
 ### Added

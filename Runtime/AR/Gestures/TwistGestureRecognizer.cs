@@ -62,7 +62,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Twist gesture.</returns>
-        internal TwistGesture CreateGesture(Touch touch1, Touch touch2)
+        TwistGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new TwistGesture(this, touch1, touch2);
         }
@@ -78,7 +78,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Twist gesture.</returns>
-        internal TwistGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+        TwistGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
             return new TwistGesture(this, touch1, touch2);
         }

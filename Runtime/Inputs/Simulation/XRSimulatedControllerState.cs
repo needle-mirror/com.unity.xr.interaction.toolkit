@@ -188,6 +188,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
+        /// Toggles the button mask for the given <paramref name="button"/>.
+        /// </summary>
+        /// <param name="button">Button whose state to toggle.</param>
+        /// <returns>The same <see cref="XRSimulatedControllerState"/> with the change applied.</returns>
+        /// <seealso cref="buttons"/>
+        public XRSimulatedControllerState ToggleButton(ControllerButton button)
+        {
+            var bit = 1 << (int)button;
+            buttons ^= (ushort)bit;
+            return this;
+        }
+
+        /// <summary>
         /// Gets whether the button mask has the given <paramref name="button"/> set.
         /// </summary>
         /// <param name="button">Button whose state is queried.</param>

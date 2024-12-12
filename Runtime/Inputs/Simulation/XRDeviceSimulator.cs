@@ -3,27 +3,19 @@
 #endif
 
 using System;
-using System.Collections.Generic;
-using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.Layouts;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
-using UnityEngine.XR.Hands.ProviderImplementation;
-#endif
-
-#if XR_MANAGEMENT_4_0_OR_NEWER
-using UnityEngine.XR.Management;
 #endif
 
 #if XR_SIMULATION_AVAILABLE
+using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Simulation;
 #endif
 
@@ -63,16 +55,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [AddComponentMenu("XR/Debug/XR Device Simulator", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_DeviceSimulator)]
     [HelpURL(XRHelpURLConstants.k_XRDeviceSimulator)]
-    public class XRDeviceSimulator : MonoBehaviour
+    public partial class XRDeviceSimulator : MonoBehaviour
     {
-        /// <summary>
-        /// The maximum angle the XR Camera can have around the X axis.
-        /// </summary>
-        const float k_CameraMaxXAngle = 80f;
-
-        static readonly Vector3 s_LeftDeviceDefaultInitialPosition = new Vector3(-0.1f, -0.05f, 0.3f);
-        static readonly Vector3 s_RightDeviceDefaultInitialPosition = new Vector3(0.1f, -0.05f, 0.3f);
-
         /// <summary>
         /// The coordinate space in which to operate.
         /// </summary>
@@ -154,23 +138,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
-        /// The device mode of the left and right device.
-        /// </summary>
-        /// <seealso cref="deviceMode"/>
-        public enum DeviceMode
-        {
-            /// <summary>
-            /// Motion controller mode.
-            /// </summary>
-            Controller,
-
-            /// <summary>
-            /// Tracked hand mode.
-            /// </summary>
-            Hand,
-        }
-
-        /// <summary>
         /// The target device control(s) to update from input.
         /// </summary>
         /// <remarks>
@@ -202,112 +169,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             Secondary2DAxis = 1 << 2,
         }
 
-        /// <summary>
-        /// A hand expression that can be simulated by performing an input action.
-        /// </summary>
-        [Serializable]
-        public class SimulatedHandExpression : ISerializationCallbackReceiver
-        {
-            [SerializeField]
-            [Tooltip("The unique name for the hand expression.")]
-            [Delayed]
-            string m_Name;
-
-            /// <summary>
-            /// The name of the hand expression to simulate when the input action is performed.
-            /// </summary>
-            public string name => m_ExpressionName.ToString();
-
-            [SerializeField]
-            [Tooltip("The input action to trigger the hand expression.")]
-            InputActionReference m_ToggleAction;
-
-            /// <summary>
-            /// The input action reference to trigger this simulated hand expression.
-            /// </summary>
-            public InputActionReference toggleAction => m_ToggleAction;
-
-            [SerializeField]
-            [Tooltip("The captured hand expression to simulate when the input action is performed.")]
-            HandExpressionCapture m_Capture;
-
-            /// <summary>
-            /// The captured expression to simulate when the input action is performed.
-            /// </summary>
-            internal HandExpressionCapture capture
-            {
-                get => m_Capture;
-                set => m_Capture = value;
-            }
-
-            HandExpressionName m_ExpressionName;
-
-            /// <summary>
-            /// The name of the hand expression to simulate when the input action is performed.
-            /// Use this for a faster name identifier than comparing by <see cref="string"/> name.
-            /// </summary>
-            internal HandExpressionName expressionName
-            {
-                get => m_ExpressionName;
-                set => m_ExpressionName = value;
-            }
-
-            /// <summary>
-            /// Sprite icon for the simulated hand expression.
-            /// </summary>
-            public Sprite icon => m_Capture.icon;
-
-            Action<SimulatedHandExpression, InputAction.CallbackContext> m_Performed;
-
-            /// <summary>
-            /// Event that is called when the input action for the simulated hand expression is performed.
-            /// </summary>
-            /// <remarks>
-            /// Wraps the performed action of the <see cref="toggleAction"/> in order to add a reference
-            /// to this class in the callback method signature.
-            /// </remarks>
-            public event Action<SimulatedHandExpression, InputAction.CallbackContext> performed
-            {
-                add
-                {
-                    m_Performed += value;
-                    if (!m_Subscribed)
-                    {
-                        m_Subscribed = true;
-                        m_ToggleAction.action.performed += OnActionPerformed;
-                    }
-                }
-                remove
-                {
-                    m_Performed -= value;
-                    if (m_Performed == null)
-                    {
-                        m_Subscribed = false;
-                        m_ToggleAction.action.performed -= OnActionPerformed;
-                    }
-                }
-            }
-
-            bool m_Subscribed;
-
-            /// <inheritdoc/>
-            void ISerializationCallbackReceiver.OnBeforeSerialize()
-            {
-                m_Name = m_ExpressionName.ToString();
-            }
-
-            /// <inheritdoc/>
-            void ISerializationCallbackReceiver.OnAfterDeserialize()
-            {
-                m_ExpressionName = new HandExpressionName(m_Name);
-            }
-
-            void OnActionPerformed(InputAction.CallbackContext context)
-            {
-                m_Performed?.Invoke(this, context);
-            }
-        }
-
         [SerializeField]
         [Tooltip("Input Action asset containing controls for the simulator itself. Unity will automatically enable and disable it with this component.")]
         InputActionAsset m_DeviceSimulatorActionAsset;
@@ -331,6 +192,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_ControllerActionAsset;
             set => m_ControllerActionAsset = value;
         }
+
+        #region Device Simulator Actions
 
         [SerializeField]
         [Tooltip("The Input System Action used to translate in the x-axis (left/right) while held. Must be a Value Axis Control.")]
@@ -846,6 +709,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
+        #endregion
+
+        #region Controller Actions
+
         [SerializeField]
         [Tooltip("The Input System Action used to control the value of one or more 2D Axis controls on the manipulated controller device(s). Must be a Value Vector2 Control.")]
         InputActionReference m_Axis2DAction;
@@ -1096,6 +963,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
+        #endregion
+
         [SerializeField]
         [Tooltip("Input Action asset containing controls for the simulated hands. Unity will automatically enable and disable it as needed.")]
         InputActionAsset m_HandActionAsset;
@@ -1107,19 +976,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_HandActionAsset;
             set => m_HandActionAsset = value;
         }
-
-        [SerializeField]
-        [Tooltip("The resting hand expression to use when no other hand expression is active.")]
-        HandExpressionCapture m_RestingHandExpressionCapture;
-
-        [SerializeField]
-        [Tooltip("The list of hand expressions to simulate.")]
-        List<SimulatedHandExpression> m_SimulatedHandExpressions = new List<SimulatedHandExpression>();
-
-        /// <summary>
-        /// The list of simulated hand expressions for the device simulator.
-        /// </summary>
-        public List<SimulatedHandExpression> simulatedHandExpressions => m_SimulatedHandExpressions;
 
         [SerializeField]
         [Tooltip("The Transform that contains the Camera. This is usually the \"Head\" of XR Origins. Automatically set to the first enabled camera tagged MainCamera if unset.")]
@@ -1164,6 +1020,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_MouseTranslateSpace;
             set => m_MouseTranslateSpace = value;
         }
+
+        #region Sensitivity
 
         [SerializeField]
         [Tooltip("Speed of translation in the x-axis (left/right) when triggered by keyboard input.")]
@@ -1331,6 +1189,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_MouseYRotateInvert = value;
         }
 
+        #endregion
+
         [SerializeField]
         [Tooltip("The desired cursor lock mode to toggle to from None (either Locked or Confined).")]
         CursorLockMode m_DesiredCursorLockMode = CursorLockMode.Locked;
@@ -1346,32 +1206,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
-        [Tooltip("Whether or not to remove other XR HMD devices in this session so that they don't conflict with the XR Device Simulator.")]
-        bool m_RemoveOtherHMDDevices = true;
-        /// <summary>
-        /// This boolean value indicates whether or not we remove other <see cref="XRHMD"/> devices in this session so that they don't conflict with the <see cref="XRDeviceSimulator"/>.
-        /// A <see langword="true"/> value (default) means we remove all other <see cref="XRHMD"/> devices except the <see cref="XRSimulatedHMD"/> generated by the <see cref="XRDeviceSimulator"/>.
-        /// A <see langword="false"/> value means we do not remove any other <see cref="XRHMD"/> devices.
-        /// </summary>
-        public bool removeOtherHMDDevices
-        {
-            get => m_RemoveOtherHMDDevices;
-            set => m_RemoveOtherHMDDevices = value;
-        }
-
-        [SerializeField]
-        [Tooltip("Whether to create a simulated Hand Tracking Subsystem and provider on startup. Requires the XR Hands package.")]
-        bool m_HandTrackingCapability = true;
-        /// <summary>
-        /// Whether to create a simulated Hand Tracking Subsystem and provider on startup. Requires the XR Hands package.
-        /// </summary>
-        public bool handTrackingCapability
-        {
-            get => m_HandTrackingCapability;
-            set => m_HandTrackingCapability = value;
-        }
-
-        [SerializeField]
         [Tooltip("The optional Device Simulator UI prefab to use along with the XR Device Simulator.")]
         GameObject m_DeviceSimulatorUI;
         /// <summary>
@@ -1382,6 +1216,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_DeviceSimulatorUI;
             set => m_DeviceSimulatorUI = value;
         }
+
+        #region Analog Configuration
 
         [SerializeField, Range(0f, 1f)]
         [Tooltip("The amount of the simulated grip on the controller when the Grip control is pressed.")]
@@ -1408,6 +1244,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_TriggerAmount;
             set => m_TriggerAmount = value;
         }
+
+        #endregion
+
+        #region Tracking State
 
         [SerializeField]
         [Tooltip("Whether the HMD should report the pose as fully tracked or unavailable/inferred.")]
@@ -1505,6 +1345,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_RightHandIsTracked = value;
         }
 
+        #endregion
+
         /// <summary>
         /// The transformation mode in which the mouse should operate.
         /// </summary>
@@ -1545,22 +1387,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Whether the simulator is manipulating the Left Controller.
         /// </summary>
-        public bool manipulatingLeftController => m_DeviceMode == DeviceMode.Controller && manipulatingLeftDevice;
+        public bool manipulatingLeftController => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller && manipulatingLeftDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Controller.
         /// </summary>
-        public bool manipulatingRightController => m_DeviceMode == DeviceMode.Controller && manipulatingRightDevice;
+        public bool manipulatingRightController => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller && manipulatingRightDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the Left Hand.
         /// </summary>
-        public bool manipulatingLeftHand => m_DeviceMode == DeviceMode.Hand && manipulatingLeftDevice;
+        public bool manipulatingLeftHand => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand && manipulatingLeftDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Hand.
         /// </summary>
-        public bool manipulatingRightHand => m_DeviceMode == DeviceMode.Hand && manipulatingRightDevice;
+        public bool manipulatingRightHand => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand && manipulatingRightDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the HMD, Left Controller, and Right Controller as if the whole player was turning their torso,
@@ -1580,17 +1422,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_TargetedDeviceInput;
             set => m_TargetedDeviceInput = value;
         }
-
-        DeviceMode m_DeviceMode = DeviceMode.Controller;
-
-        /// <summary>
-        /// Whether the simulator is in controller mode or tracked hand mode.
-        /// </summary>
-        /// <seealso cref="DeviceMode"/>
-        public DeviceMode deviceMode => m_DeviceMode;
-
-        bool m_DeviceModeDirty;
-        bool m_StartedDeviceModeChange;
 
         (Transform transform, Camera camera) m_CachedCamera;
 
@@ -1645,17 +1476,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         XRSimulatedHMDState m_HMDState;
         XRSimulatedControllerState m_LeftControllerState;
         XRSimulatedControllerState m_RightControllerState;
-
-        XRSimulatedHMD m_HMDDevice;
-        XRSimulatedController m_LeftControllerDevice;
-        XRSimulatedController m_RightControllerDevice;
-
-        bool m_OnInputDeviceChangeSubscribed;
-#endif
-
-#if XR_HANDS_1_1_OR_NEWER
-        XRHandProviderUtility.SubsystemUpdater m_SubsystemUpdater;
-        XRDeviceSimulatorHandsSubsystem m_SimHandSubsystem;
 #endif
 
         XRSimulatedHandState m_LeftHandState;
@@ -1667,6 +1487,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         Vector3 m_OriginalCameraOffsetObjectPosition;
         float m_OriginalCameraYOffset;
 #endif
+        SimulatedDeviceLifecycleManager m_DeviceLifecycleManager;
+        SimulatedHandExpressionManager m_HandExpressionManager;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -1683,6 +1505,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 Destroy(gameObject);
                 return;
             }
+
+            m_DeviceLifecycleManager = XRSimulatorUtility.FindCreateSimulatedDeviceLifecycleManager(gameObject);
+            m_HandExpressionManager = XRSimulatorUtility.FindCreateSimulatedHandExpressionManager(gameObject);
 
             if (m_DeviceSimulatorActionAsset == null)
             {
@@ -1709,18 +1534,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     Debug.LogWarning($"No Controller Action Asset has been defined for the XR Device Simulator, using a default one: {m_ControllerActionAsset.name}", m_ControllerActionAsset);
             }
 
-            if (m_HandActionAsset == null && m_SimulatedHandExpressions.Count > 0)
+            if (m_HandActionAsset == null)
             {
-                if (m_SimulatedHandExpressions[0].toggleAction != null)
-                    m_HandActionAsset = m_SimulatedHandExpressions[0].toggleAction.asset;
+#pragma warning disable CS0618 // Type or member is obsolete -- Old prefab configurations should continue to work
+                if (m_SimulatedHandExpressions.Count > 0)
+                {
+                    if (m_SimulatedHandExpressions[0].toggleAction != null)
+                        m_HandActionAsset = m_SimulatedHandExpressions[0].toggleAction.asset;
+                }
+#pragma warning restore CS0618
+                else if (m_HandExpressionManager.simulatedHandExpressions.Count > 0)
+                {
+                    if (m_HandExpressionManager.simulatedHandExpressions[0].toggleInput.inputActionReferencePerformed != null)
+                        m_HandActionAsset = m_HandExpressionManager.simulatedHandExpressions[0].toggleInput.inputActionReferencePerformed.asset;
+                }
 
                 if (m_HandActionAsset == null)
                     Debug.LogError("No Hand Action Asset has been defined, please assign one for the XR Device Simulator to work.", this);
                 else
                     Debug.LogWarning($"No Hand Action Asset has been defined for the XR Device Simulator, using a default one: {m_HandActionAsset.name}", m_HandActionAsset);
             }
-
-            InitializeHandSubsystem();
 
 #if ENABLE_VR || UNITY_GAMECORE
             m_HMDState.Reset();
@@ -1730,10 +1563,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_RightHandState.Reset();
 
             // Adding offset to the controller/hand when starting simulation to move them away from the Camera position
-            m_LeftControllerState.devicePosition = s_LeftDeviceDefaultInitialPosition;
-            m_RightControllerState.devicePosition = s_RightDeviceDefaultInitialPosition;
-            m_LeftHandState.position = s_LeftDeviceDefaultInitialPosition;
-            m_RightHandState.position = s_RightDeviceDefaultInitialPosition;
+            m_LeftControllerState.devicePosition = XRSimulatorUtility.leftDeviceDefaultInitialPosition;
+            m_RightControllerState.devicePosition = XRSimulatorUtility.rightDeviceDefaultInitialPosition;
+            m_LeftHandState.position = XRSimulatorUtility.leftDeviceDefaultInitialPosition;
+            m_RightHandState.position = XRSimulatorUtility.rightDeviceDefaultInitialPosition;
 
             if (m_DeviceSimulatorUI != null)
                 Instantiate(m_DeviceSimulatorUI, transform);
@@ -1747,36 +1580,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnEnable()
         {
-#if ENABLE_VR || UNITY_GAMECORE
-
-#if XR_HANDS_1_1_OR_NEWER
-            m_SimHandSubsystem?.Start();
-            m_SubsystemUpdater?.Start();
-#endif
-
-            if (m_RemoveOtherHMDDevices)
-            {
-                // Operate on a copy of the devices array since we are removing from it
-                foreach (var device in InputSystem.InputSystem.devices.ToArray())
-                {
-                    if (device is XRHMD && !(device is XRSimulatedHMD))
-                    {
-                        InputSystem.InputSystem.RemoveDevice(device);
-                    }
-                }
-
-                InputSystem.InputSystem.onDeviceChange += OnInputDeviceChange;
-                m_OnInputDeviceChangeSubscribed = true;
-            }
-#endif
-
-            FindCameraTransform();
-
-            AddDevices();
+            XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform);
 
 #if ENABLE_VR || UNITY_GAMECORE
 #if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
-            if (XRSimulationLoaderEnabledForEditorPlayMode())
+            if (XRSimulatorUtility.XRSimulationLoaderEnabledForEditorPlayMode())
             {
                 if (m_XROrigin != null || ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin))
                 {
@@ -1850,7 +1658,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             SubscribeSecondaryTouchAction();
 
 #if XR_HANDS_1_1_OR_NEWER
-            SubscribeHandExpressionActions();
+#pragma warning disable CS0618 // Type or member is obsolete
+            SubscribeHandExpressionActionsDeprecated();
+#pragma warning restore CS0618
 
             if (m_HandActionAsset != null)
                 m_HandActionAsset.Enable();
@@ -1868,16 +1678,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnDisable()
         {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (m_OnInputDeviceChangeSubscribed)
-            {
-                InputSystem.InputSystem.onDeviceChange -= OnInputDeviceChange;
-                m_OnInputDeviceChangeSubscribed = false;
-            }
-#endif
-
-            RemoveDevices();
-
 #if ENABLE_VR || UNITY_GAMECORE
             UnsubscribeKeyboardXTranslateAction();
             UnsubscribeKeyboardYTranslateAction();
@@ -1919,10 +1719,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             UnsubscribeSecondaryTouchAction();
 
 #if XR_HANDS_1_1_OR_NEWER
-            UnsubscribeHandExpressionActions();
-
-            m_SubsystemUpdater?.Stop();
-            m_SimHandSubsystem?.Stop();
+#pragma warning disable CS0618 // Type or member is obsolete
+            UnsubscribeHandExpressionActionsDeprecated();
+#pragma warning restore CS0618
 
             if (m_HandActionAsset != null)
                 m_HandActionAsset.Disable();
@@ -1960,14 +1759,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
         }
 
-        void OnDestroy()
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void Start()
         {
-#if XR_HANDS_1_1_OR_NEWER
-            m_SimHandSubsystem?.Destroy();
-            m_SubsystemUpdater?.Destroy();
-            m_SimHandSubsystem = null;
-            m_SubsystemUpdater = null;
-#endif
+#pragma warning disable CS0618 // Type or member is obsolete -- Old prefab configurations should continue to work
+            InitializeHandExpressions();
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -1977,154 +1776,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             ProcessPoseInput();
             ProcessControlInput();
+            ProcessHandExpressionInput();
 
-#if XR_HANDS_1_1_OR_NEWER
-            if (m_DeviceModeDirty)
-            {
-                switch (m_DeviceMode)
-                {
-                    // Changing from hands to controllers over multiple frames.
-                    // Step 1: Simulate hand tracking lost
-                    // Step 2: Add controller input devices.
-                    case DeviceMode.Controller when !m_StartedDeviceModeChange:
-                        // Step 1
-                        m_SimHandSubsystem?.SetUpdateHandsAllowed(false);
-                        m_StartedDeviceModeChange = true;
-                        break;
-                    case DeviceMode.Controller:
-                        // Step 2
-                        AddControllerDevices();
-                        m_DeviceModeDirty = false;
-                        m_StartedDeviceModeChange = false;
-                        break;
-                    // Changing from controllers to hands over multiple frames.
-                    // Step 1: Remove controller devices.
-                    // Step 2: Simulate hand tracking reacquired.
-                    case DeviceMode.Hand when !m_StartedDeviceModeChange:
-                        // Step 1
-                        RemoveControllerDevices();
-                        m_StartedDeviceModeChange = true;
-                        break;
-                    case DeviceMode.Hand:
-                    {
-                        // Step 2
-                        m_SimHandSubsystem?.SetUpdateHandsAllowed(true);
-                        m_DeviceModeDirty = false;
-                        m_StartedDeviceModeChange = false;
-                        break;
-                    }
-                }
-            }
-#endif
-
-            ApplyHandState();
+            m_DeviceLifecycleManager.ApplyHandState(m_LeftHandState, m_RightHandState);
 
 #if ENABLE_VR || UNITY_GAMECORE
-            if (m_HMDDevice != null && m_HMDDevice.added)
-            {
-                InputState.Change(m_HMDDevice, m_HMDState);
-            }
-
-            if (m_LeftControllerDevice != null && m_LeftControllerDevice.added)
-            {
-                InputState.Change(m_LeftControllerDevice, m_LeftControllerState);
-            }
-
-            if (m_RightControllerDevice != null && m_RightControllerDevice.added)
-            {
-                InputState.Change(m_RightControllerDevice, m_RightControllerState);
-            }
+            m_DeviceLifecycleManager.ApplyHMDState(m_HMDState);
+            m_DeviceLifecycleManager.ApplyControllerState(m_LeftControllerState, m_RightControllerState);
 #endif
 
 #if XR_SIMULATION_AVAILABLE
             if (m_SimulationCameraPoseProvider != null)
-            {
                 m_SimulationCameraPoseProvider.transform.SetWorldPose(m_CameraTransform.GetWorldPose());
-            }
 #endif
-        }
-
-        void InitializeHandSubsystem()
-        {
-#if XR_HANDS_1_1_OR_NEWER
-            if (!m_HandTrackingCapability)
-                return;
-
-            if (m_RestingHandExpressionCapture == null)
-                return;
-
-            if (m_RemoveOtherHMDDevices)
-            {
-                var currentHandSubsystems = new List<XRHandSubsystem>();
-                SubsystemManager.GetSubsystems(currentHandSubsystems);
-                foreach (var handSubsystem in currentHandSubsystems)
-                {
-                    if (handSubsystem.running)
-                        handSubsystem.Stop();
-                }
-            }
-
-            var descriptors = new List<XRHandSubsystemDescriptor>();
-            SubsystemManager.GetSubsystemDescriptors(descriptors);
-            for (var i = 0; i < descriptors.Count; ++i)
-            {
-                var descriptor = descriptors[i];
-                if (descriptor.id == XRDeviceSimulatorHandsProvider.id)
-                {
-                    m_SimHandSubsystem = descriptor.Create() as XRDeviceSimulatorHandsSubsystem;
-                    break;
-                }
-            }
-
-            if (m_SimHandSubsystem == null)
-            {
-                Debug.LogError("Couldn't find Device Simulator hands subsystem.", this);
-                return;
-            }
-
-            // Pass the hand expression captures to the simulated hand subsystem
-            m_SimHandSubsystem.SetCapturedExpression(HandExpressionName.Default, m_RestingHandExpressionCapture);
-            for (var index = 0; index < m_SimulatedHandExpressions.Count; ++index)
-            {
-                var simulatedExpression = m_SimulatedHandExpressions[index];
-
-                if (simulatedExpression.capture != null)
-                    m_SimHandSubsystem.SetCapturedExpression(simulatedExpression.expressionName, simulatedExpression.capture);
-                else
-                    Debug.LogError($"Missing Capture reference for Simulated Hand Expression: {simulatedExpression.expressionName}", this);
-            }
-
-            m_SimHandSubsystem.SetUpdateHandsAllowed(false);
-
-            m_SubsystemUpdater = new XRHandProviderUtility.SubsystemUpdater(m_SimHandSubsystem);
-#endif
-        }
-
-        /// <summary>
-        /// Finds and sets <see cref="cameraTransform"/> if necessary.
-        /// </summary>
-        /// <returns>Returns <see langword="true"/> if the camera reference is valid. Otherwise, returns <see langword="false"/>.</returns>
-        bool FindCameraTransform()
-        {
-            // Sync the cache tuple if necessary
-            if (m_CachedCamera.transform != m_CameraTransform)
-                m_CachedCamera = (m_CameraTransform, m_CameraTransform != null ? m_CameraTransform.GetComponent<Camera>() : null);
-
-            // Camera.main returns the first active and enabled main camera, so if the cached one
-            // is no longer enabled, find the new main camera. This is to support, for example,
-            // toggling between different XROrigin rigs each with their own main camera.
-            if (m_CachedCamera.transform == null ||
-                (m_CachedCamera.camera != null && !m_CachedCamera.camera.isActiveAndEnabled))
-            {
-                var mainCamera = Camera.main;
-                if (mainCamera == null)
-                    return false;
-
-                m_CameraTransform = mainCamera.transform;
-                m_CachedCamera = (m_CameraTransform, m_CameraTransform.GetComponent<Camera>());
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -2137,6 +1801,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // Set tracked states
             m_LeftControllerState.isTracked = m_LeftControllerIsTracked;
             m_RightControllerState.isTracked = m_RightControllerIsTracked;
+            m_LeftHandState.isTracked = m_LeftHandIsTracked;
+            m_RightHandState.isTracked = m_RightHandIsTracked;
             m_HMDState.isTracked = m_HMDIsTracked;
             m_LeftControllerState.trackingState = (int)m_LeftControllerTrackingState;
             m_RightControllerState.trackingState = (int)m_RightControllerTrackingState;
@@ -2145,7 +1811,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_TargetedDeviceInput == TargetedDevices.None)
                 return;
 
-            if (!FindCameraTransform())
+            if (!XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform))
                 return;
 
             var cameraParent = m_CameraTransform.parent;
@@ -2158,23 +1824,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // Time delay as a workaround to avoid large mouse deltas on the first frame.
             if (m_TargetedDeviceInput == TargetedDevices.FPS && Time.time > 1f)
             {
-                // Keyboard translation
-                var scaledKeyboardTranslateInput = new Vector3(
-                    m_KeyboardXTranslateInput * m_KeyboardXTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime,
-                    m_KeyboardYTranslateInput * m_KeyboardYTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime,
-                    m_KeyboardZTranslateInput * m_KeyboardZTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime);
-
-                var forward = m_CameraTransform.forward;
-                var cameraParentUp = cameraParentRotation * Vector3.up;
-                if (Mathf.Approximately(Mathf.Abs(Vector3.Dot(forward, cameraParentUp)), 1f))
-                {
-                    forward = -cameraTransform.up;
-                }
-
-                var forwardProjected = Vector3.ProjectOnPlane(forward, cameraParentUp);
-                var forwardRotation = Quaternion.LookRotation(forwardProjected, cameraParentUp);
-                var translationInWorldSpace = forwardRotation * scaledKeyboardTranslateInput;
-                var translationInDeviceSpace = inverseCameraParentRotation * translationInWorldSpace;
+                var xTranslateInput = m_KeyboardXTranslateInput * m_KeyboardXTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime;
+                var yTranslateInput = m_KeyboardYTranslateInput * m_KeyboardYTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime;
+                var zTranslateInput = m_KeyboardZTranslateInput * m_KeyboardZTranslateSpeed * m_KeyboardBodyTranslateMultiplier * Time.deltaTime;
+                var translationInDeviceSpace = XRSimulatorUtility.GetTranslationInDeviceSpace(xTranslateInput, yTranslateInput, zTranslateInput,
+                    m_CameraTransform, cameraParentRotation, inverseCameraParentRotation);
 
                 // Modify both controllers and hands in FPS mode no matter the device mode of the simulator
                 // because we want to keep the devices in front. If we only updated one set, switching the mode
@@ -2204,7 +1858,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 m_CenterEyeEuler += anglesDelta;
                 // Avoid awkward pitch angles
-                m_CenterEyeEuler.x = Mathf.Clamp(m_CenterEyeEuler.x, -k_CameraMaxXAngle, k_CameraMaxXAngle);
+                m_CenterEyeEuler.x = Mathf.Clamp(m_CenterEyeEuler.x, -XRSimulatorUtility.cameraMaxXAngle, XRSimulatorUtility.cameraMaxXAngle);
                 m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
                 m_HMDState.deviceRotation = m_HMDState.centerEyeRotation;
 
@@ -2236,8 +1890,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     // Controllers
                     // We reset both position and rotation in this FPS mode, so axis constraint is ignored
-                    m_LeftControllerState.devicePosition = s_LeftDeviceDefaultInitialPosition;
-                    m_RightControllerState.devicePosition = s_RightDeviceDefaultInitialPosition;
+                    m_LeftControllerState.devicePosition = XRSimulatorUtility.leftDeviceDefaultInitialPosition;
+                    m_RightControllerState.devicePosition = XRSimulatorUtility.rightDeviceDefaultInitialPosition;
 
                     m_LeftControllerEuler = Vector3.zero;
                     m_LeftControllerState.deviceRotation = Quaternion.Euler(m_LeftControllerEuler);
@@ -2246,8 +1900,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     m_RightControllerState.deviceRotation = Quaternion.Euler(m_RightControllerEuler);
 
                     // Hands
-                    m_LeftHandState.position = s_LeftDeviceDefaultInitialPosition;
-                    m_RightHandState.position = s_RightDeviceDefaultInitialPosition;
+                    m_LeftHandState.position = XRSimulatorUtility.leftDeviceDefaultInitialPosition;
+                    m_RightHandState.position = XRSimulatorUtility.rightDeviceDefaultInitialPosition;
 
                     m_LeftHandState.euler = Vector3.zero;
                     m_LeftHandState.rotation = Quaternion.Euler(m_LeftHandState.euler);
@@ -2268,7 +1922,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if ((axis2DTargets & Axis2DTargets.Position) != 0)
             {
                 // Determine frame of reference
-                GetAxes(m_KeyboardTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
+                XRSimulatorUtility.GetAxes((Simulation.Space) m_KeyboardTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
 
                 // Keyboard translation
                 var deltaPosition =
@@ -2278,31 +1932,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 if (manipulatingLeftController)
                 {
-                    var deltaRotation = GetDeltaRotation(m_KeyboardTranslateSpace, m_LeftControllerState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_KeyboardTranslateSpace, m_LeftControllerState, inverseCameraParentRotation);
                     m_LeftControllerState.devicePosition += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingRightController)
                 {
-                    var deltaRotation = GetDeltaRotation(m_KeyboardTranslateSpace, m_RightControllerState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_KeyboardTranslateSpace, m_RightControllerState, inverseCameraParentRotation);
                     m_RightControllerState.devicePosition += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingLeftHand)
                 {
-                    var deltaRotation = GetDeltaRotation(m_KeyboardTranslateSpace, m_LeftHandState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_KeyboardTranslateSpace, m_LeftHandState, inverseCameraParentRotation);
                     m_LeftHandState.position += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingRightHand)
                 {
-                    var deltaRotation = GetDeltaRotation(m_KeyboardTranslateSpace, m_RightHandState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_KeyboardTranslateSpace, m_RightHandState, inverseCameraParentRotation);
                     m_RightHandState.position += deltaRotation * deltaPosition;
                 }
 
                 if (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD))
                 {
-                    var deltaRotation = GetDeltaRotation(m_KeyboardTranslateSpace, m_HMDState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_KeyboardTranslateSpace, m_HMDState, inverseCameraParentRotation);
                     m_HMDState.centerEyePosition += deltaRotation * deltaPosition;
                     m_HMDState.devicePosition = m_HMDState.centerEyePosition;
                 }
@@ -2312,7 +1966,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 (mouseTransformationMode == TransformationMode.Rotate || m_RotateModeOverrideInput) && negateMode)
             {
                 // Determine frame of reference
-                GetAxes(m_MouseTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
+                XRSimulatorUtility.GetAxes((Simulation.Space) m_MouseTranslateSpace, m_CameraTransform, out var right, out var up, out var forward);
 
                 // Mouse translation
                 var scaledMouseDeltaInput =
@@ -2339,31 +1993,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 if (manipulatingLeftController)
                 {
-                    var deltaRotation = GetDeltaRotation(m_MouseTranslateSpace, m_LeftControllerState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_MouseTranslateSpace, m_LeftControllerState, inverseCameraParentRotation);
                     m_LeftControllerState.devicePosition += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingRightController)
                 {
-                    var deltaRotation = GetDeltaRotation(m_MouseTranslateSpace, m_RightControllerState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_MouseTranslateSpace, m_RightControllerState, inverseCameraParentRotation);
                     m_RightControllerState.devicePosition += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingLeftHand)
                 {
-                    var deltaRotation = GetDeltaRotation(m_MouseTranslateSpace, m_LeftHandState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_MouseTranslateSpace, m_LeftHandState, inverseCameraParentRotation);
                     m_LeftHandState.position += deltaRotation * deltaPosition;
                 }
 
                 if (manipulatingRightHand)
                 {
-                    var deltaRotation = GetDeltaRotation(mouseTranslateSpace, m_RightHandState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) mouseTranslateSpace, m_RightHandState, inverseCameraParentRotation);
                     m_RightHandState.position += deltaRotation * deltaPosition;
                 }
 
                 if (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD))
                 {
-                    var deltaRotation = GetDeltaRotation(m_MouseTranslateSpace, m_HMDState, inverseCameraParentRotation);
+                    var deltaRotation = XRSimulatorUtility.GetDeltaRotation((Simulation.Space) m_MouseTranslateSpace, m_HMDState, inverseCameraParentRotation);
                     m_HMDState.centerEyePosition += deltaRotation * deltaPosition;
                     m_HMDState.devicePosition = m_HMDState.centerEyePosition;
                 }
@@ -2535,7 +2189,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void ProcessControlInput()
         {
 #if ENABLE_VR || UNITY_GAMECORE
-            if (m_DeviceMode != DeviceMode.Controller)
+            if (m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Controller)
                 return;
 
             ProcessAxis2DControlInput();
@@ -2552,39 +2206,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
         }
 
-        void ApplyHandState()
+        void ProcessHandExpressionInput()
         {
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_DeviceMode != DeviceMode.Hand)
+            if (m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Hand)
                 return;
 
-            if (m_SimHandSubsystem == null)
-                return;
-
-            m_SimHandSubsystem.SetIsTracked(Handedness.Left, m_LeftHandIsTracked);
-            m_SimHandSubsystem.SetIsTracked(Handedness.Right, m_RightHandIsTracked);
-
-            m_SimHandSubsystem.SetHandExpression(Handedness.Left, m_LeftHandState.expressionName);
-            m_SimHandSubsystem.SetRootHandPose(Handedness.Left, new Pose(m_LeftHandState.position, m_LeftHandState.rotation));
-
-            m_SimHandSubsystem.SetHandExpression(Handedness.Right, m_RightHandState.expressionName);
-            m_SimHandSubsystem.SetRootHandPose(Handedness.Right, new Pose(m_RightHandState.position, m_RightHandState.rotation));
+            for (var index = 0; index < m_HandExpressionManager.simulatedHandExpressions.Count; ++index)
+            {
+                var simulatedExpression = m_HandExpressionManager.simulatedHandExpressions[index];
+                if (simulatedExpression.toggleInput.ReadWasPerformedThisFrame())
+                    ToggleHandExpression(simulatedExpression);
+            }
 #endif
         }
 
-        void ToggleHandExpression(SimulatedHandExpression simulatedExpression)
+        void ToggleHandExpression(Simulation.SimulatedHandExpression simulatedExpression)
         {
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_SimHandSubsystem == null)
+            if (m_DeviceLifecycleManager == null || m_DeviceLifecycleManager.simHandSubsystem == null)
                 return;
 
-            // When toggling off, change back to the default resting hand. Otherwise, change to the expression pressed.
             if (manipulatingLeftHand)
             {
+                // When toggling off, change back to the default resting hand. Otherwise, change to the expression pressed.
                 m_LeftHandState.expressionName = m_LeftHandState.expressionName == simulatedExpression.expressionName
                     ? HandExpressionName.Default
                     : simulatedExpression.expressionName;
-                m_SimHandSubsystem.SetHandExpression(Handedness.Left, m_LeftHandState.expressionName);
+                m_DeviceLifecycleManager.simHandSubsystem.SetHandExpression(Handedness.Left, m_LeftHandState.expressionName);
             }
 
             if (manipulatingRightHand)
@@ -2592,7 +2241,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_RightHandState.expressionName = m_RightHandState.expressionName == simulatedExpression.expressionName
                     ? HandExpressionName.Default
                     : simulatedExpression.expressionName;
-                m_SimHandSubsystem.SetHandExpression(Handedness.Right, m_RightHandState.expressionName);
+                m_DeviceLifecycleManager.simHandSubsystem.SetHandExpression(Handedness.Right, m_RightHandState.expressionName);
             }
 #endif
         }
@@ -2704,143 +2353,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
 
         /// <summary>
-        /// Add simulated XR devices to the Input System.
-        /// </summary>
-        protected virtual void AddDevices()
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            // Simulated HMD
-            if (m_HMDDevice == null)
-            {
-                var descHMD = new InputDeviceDescription
-                {
-                    product = nameof(XRSimulatedHMD),
-                    capabilities = new XRDeviceDescriptor
-                    {
-                        characteristics = XRInputTrackingAggregator.Characteristics.hmd,
-                    }.ToJson(),
-                };
-
-                m_HMDDevice = InputSystem.InputSystem.AddDevice(descHMD) as XRSimulatedHMD;
-                if (m_HMDDevice == null)
-                    Debug.LogError($"Failed to create {nameof(XRSimulatedHMD)}.", this);
-            }
-            else
-            {
-                InputSystem.InputSystem.AddDevice(m_HMDDevice);
-            }
-
-            if (m_DeviceMode == DeviceMode.Controller)
-                AddControllerDevices();
-#endif
-        }
-
-        void AddControllerDevices()
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (m_LeftControllerDevice == null)
-            {
-                var descLeftHand = new InputDeviceDescription
-                {
-                    product = nameof(XRSimulatedController),
-                    capabilities = new XRDeviceDescriptor
-                    {
-                        deviceName = $"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.LeftHand}",
-                        characteristics = XRInputTrackingAggregator.Characteristics.leftController,
-                    }.ToJson(),
-                };
-
-                m_LeftControllerDevice = InputSystem.InputSystem.AddDevice(descLeftHand) as XRSimulatedController;
-                if (m_LeftControllerDevice != null)
-                    InputSystem.InputSystem.SetDeviceUsage(m_LeftControllerDevice, InputSystem.CommonUsages.LeftHand);
-                else
-                    Debug.LogError($"Failed to create {nameof(XRSimulatedController)} for {InputSystem.CommonUsages.LeftHand}.", this);
-            }
-            else
-            {
-                InputSystem.InputSystem.AddDevice(m_LeftControllerDevice);
-            }
-
-            if (m_RightControllerDevice == null)
-            {
-                var descRightHand = new InputDeviceDescription
-                {
-                    product = nameof(XRSimulatedController),
-                    capabilities = new XRDeviceDescriptor
-                    {
-                        deviceName = $"{nameof(XRSimulatedController)} - {InputSystem.CommonUsages.RightHand}",
-                        characteristics = XRInputTrackingAggregator.Characteristics.rightController,
-                    }.ToJson(),
-                };
-
-                m_RightControllerDevice = InputSystem.InputSystem.AddDevice(descRightHand) as XRSimulatedController;
-                if (m_RightControllerDevice != null)
-                    InputSystem.InputSystem.SetDeviceUsage(m_RightControllerDevice, InputSystem.CommonUsages.RightHand);
-                else
-                    Debug.LogError($"Failed to create {nameof(XRSimulatedController)} for {InputSystem.CommonUsages.RightHand}.", this);
-            }
-            else
-            {
-                InputSystem.InputSystem.AddDevice(m_RightControllerDevice);
-            }
-#endif
-        }
-
-        /// <summary>
-        /// Remove simulated XR devices from the Input System.
-        /// </summary>
-        protected virtual void RemoveDevices()
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (m_HMDDevice != null && m_HMDDevice.added)
-                InputSystem.InputSystem.RemoveDevice(m_HMDDevice);
-
-            RemoveControllerDevices();
-#endif
-        }
-
-        void RemoveControllerDevices()
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (m_LeftControllerDevice != null && m_LeftControllerDevice.added)
-            {
-                InputSystem.InputSystem.RemoveDevice(m_LeftControllerDevice);
-            }
-
-            if (m_RightControllerDevice != null && m_RightControllerDevice.added)
-            {
-                InputSystem.InputSystem.RemoveDevice(m_RightControllerDevice);
-            }
-#endif
-        }
-
-        void OnInputDeviceChange(InputSystem.InputDevice device, InputDeviceChange change)
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (!m_RemoveOtherHMDDevices)
-                return;
-
-            switch (change)
-            {
-                case InputDeviceChange.Added:
-                    if (device is XRHMD && !(device is XRSimulatedHMD))
-                        InputSystem.InputSystem.RemoveDevice(device);
-                    break;
-            }
-#endif
-        }
-
-#if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
-        static bool XRSimulationLoaderEnabledForEditorPlayMode()
-        {
-            if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager != null)
-                return XRGeneralSettings.Instance.Manager.activeLoader is SimulationLoader simulationLoader && simulationLoader != null;
-
-            return false;
-        }
-#endif
-
-        /// <summary>
         /// Gets a <see cref="Vector3"/> that can be multiplied component-wise with another <see cref="Vector3"/>
         /// to reset components of the <see cref="Vector3"/>, based on axis constraint inputs.
         /// </summary>
@@ -2854,101 +2366,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             return m_XConstraintInput || m_YConstraintInput || m_ZConstraintInput
                 ? new Vector3(m_XConstraintInput ? 0f : 1f, m_YConstraintInput ? 0f : 1f, m_ZConstraintInput ? 0f : 1f)
                 : Vector3.zero;
-        }
-
-#if ENABLE_VR || UNITY_GAMECORE
-        static void GetAxes(Space translateSpace, Transform cameraTransform, out Vector3 right, out Vector3 up, out Vector3 forward)
-        {
-            if (cameraTransform == null)
-                throw new ArgumentNullException(nameof(cameraTransform));
-
-            switch (translateSpace)
-            {
-                case Space.Local:
-                    // Makes the assumption that the Camera and the Controllers are siblings
-                    // (meaning they share a parent GameObject).
-                    var cameraParent = cameraTransform.parent;
-                    if (cameraParent != null)
-                    {
-                        right = cameraParent.TransformDirection(Vector3.right);
-                        up = cameraParent.TransformDirection(Vector3.up);
-                        forward = cameraParent.TransformDirection(Vector3.forward);
-                    }
-                    else
-                    {
-                        right = Vector3.right;
-                        up = Vector3.up;
-                        forward = Vector3.forward;
-                    }
-
-                    break;
-                case Space.Parent:
-                    right = Vector3.right;
-                    up = Vector3.up;
-                    forward = Vector3.forward;
-                    break;
-                case Space.Screen:
-                    right = cameraTransform.TransformDirection(Vector3.right);
-                    up = cameraTransform.TransformDirection(Vector3.up);
-                    forward = cameraTransform.TransformDirection(Vector3.forward);
-                    break;
-                default:
-                    right = Vector3.right;
-                    up = Vector3.up;
-                    forward = Vector3.forward;
-                    Assert.IsTrue(false, $"Unhandled {nameof(translateSpace)}={translateSpace}.");
-                    return;
-            }
-        }
-
-        static Quaternion GetDeltaRotation(Space translateSpace, in XRSimulatedControllerState state, in Quaternion inverseCameraParentRotation)
-            => GetDeltaRotation(translateSpace, state.deviceRotation, inverseCameraParentRotation);
-
-        static Quaternion GetDeltaRotation(Space translateSpace, in XRSimulatedHandState state, in Quaternion inverseCameraParentRotation)
-            => GetDeltaRotation(translateSpace, state.rotation, inverseCameraParentRotation);
-
-        static Quaternion GetDeltaRotation(Space translateSpace, in XRSimulatedHMDState state, in Quaternion inverseCameraParentRotation)
-            => GetDeltaRotation(translateSpace, state.centerEyeRotation, inverseCameraParentRotation);
-
-        static Quaternion GetDeltaRotation(Space translateSpace, Quaternion rotation, in Quaternion inverseCameraParentRotation)
-        {
-            switch (translateSpace)
-            {
-                case Space.Local:
-                    return rotation * inverseCameraParentRotation;
-                case Space.Parent:
-                    return Quaternion.identity;
-                case Space.Screen:
-                    return inverseCameraParentRotation;
-                default:
-                    Assert.IsTrue(false, $"Unhandled {nameof(translateSpace)}={translateSpace}.");
-                    return Quaternion.identity;
-            }
-        }
-#endif
-
-        static void Subscribe(InputActionReference reference, Action<InputAction.CallbackContext> performed = null, Action<InputAction.CallbackContext> canceled = null)
-        {
-            var action = GetInputAction(reference);
-            if (action != null)
-            {
-                if (performed != null)
-                    action.performed += performed;
-                if (canceled != null)
-                    action.canceled += canceled;
-            }
-        }
-
-        static void Unsubscribe(InputActionReference reference, Action<InputAction.CallbackContext> performed = null, Action<InputAction.CallbackContext> canceled = null)
-        {
-            var action = GetInputAction(reference);
-            if (action != null)
-            {
-                if (performed != null)
-                    action.performed -= performed;
-                if (canceled != null)
-                    action.canceled -= canceled;
-            }
         }
 
         /// <summary>
@@ -2985,156 +2402,123 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
-        static DeviceMode Negate(DeviceMode mode)
-        {
-            switch (mode)
-            {
-                case DeviceMode.Controller:
-                    return DeviceMode.Hand;
-                case DeviceMode.Hand:
-                    return DeviceMode.Controller;
-                default:
-                    Assert.IsTrue(false, $"Unhandled {nameof(mode)}={mode}.");
-                    return DeviceMode.Controller;
-            }
-        }
+        #region Subscribe/Unsubscribe Callback Setup
 
-        void SubscribeKeyboardXTranslateAction() => Subscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
-        void UnsubscribeKeyboardXTranslateAction() => Unsubscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
+        void SubscribeKeyboardXTranslateAction() => XRSimulatorUtility.Subscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
+        void UnsubscribeKeyboardXTranslateAction() => XRSimulatorUtility.Unsubscribe(m_KeyboardXTranslateAction, OnKeyboardXTranslatePerformed, OnKeyboardXTranslateCanceled);
 
-        void SubscribeKeyboardYTranslateAction() => Subscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
-        void UnsubscribeKeyboardYTranslateAction() => Unsubscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
+        void SubscribeKeyboardYTranslateAction() => XRSimulatorUtility.Subscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
+        void UnsubscribeKeyboardYTranslateAction() => XRSimulatorUtility.Unsubscribe(m_KeyboardYTranslateAction, OnKeyboardYTranslatePerformed, OnKeyboardYTranslateCanceled);
 
-        void SubscribeKeyboardZTranslateAction() => Subscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
-        void UnsubscribeKeyboardZTranslateAction() => Unsubscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
+        void SubscribeKeyboardZTranslateAction() => XRSimulatorUtility.Subscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
+        void UnsubscribeKeyboardZTranslateAction() => XRSimulatorUtility.Unsubscribe(m_KeyboardZTranslateAction, OnKeyboardZTranslatePerformed, OnKeyboardZTranslateCanceled);
 
-        void SubscribeManipulateLeftAction() => Subscribe(m_ManipulateLeftAction, OnManipulateLeftPerformed, OnManipulateLeftCanceled);
-        void UnsubscribeManipulateLeftAction() => Unsubscribe(m_ManipulateLeftAction, OnManipulateLeftPerformed, OnManipulateLeftCanceled);
+        void SubscribeManipulateLeftAction() => XRSimulatorUtility.Subscribe(m_ManipulateLeftAction, OnManipulateLeftPerformed, OnManipulateLeftCanceled);
+        void UnsubscribeManipulateLeftAction() => XRSimulatorUtility.Unsubscribe(m_ManipulateLeftAction, OnManipulateLeftPerformed, OnManipulateLeftCanceled);
 
-        void SubscribeManipulateRightAction() => Subscribe(m_ManipulateRightAction, OnManipulateRightPerformed, OnManipulateRightCanceled);
-        void UnsubscribeManipulateRightAction() => Unsubscribe(m_ManipulateRightAction, OnManipulateRightPerformed, OnManipulateRightCanceled);
+        void SubscribeManipulateRightAction() => XRSimulatorUtility.Subscribe(m_ManipulateRightAction, OnManipulateRightPerformed, OnManipulateRightCanceled);
+        void UnsubscribeManipulateRightAction() => XRSimulatorUtility.Unsubscribe(m_ManipulateRightAction, OnManipulateRightPerformed, OnManipulateRightCanceled);
 
-        void SubscribeToggleManipulateLeftAction() => Subscribe(m_ToggleManipulateLeftAction, OnToggleManipulateLeftPerformed);
-        void UnsubscribeToggleManipulateLeftAction() => Unsubscribe(m_ToggleManipulateLeftAction, OnToggleManipulateLeftPerformed);
+        void SubscribeToggleManipulateLeftAction() => XRSimulatorUtility.Subscribe(m_ToggleManipulateLeftAction, OnToggleManipulateLeftPerformed);
+        void UnsubscribeToggleManipulateLeftAction() => XRSimulatorUtility.Unsubscribe(m_ToggleManipulateLeftAction, OnToggleManipulateLeftPerformed);
 
-        void SubscribeToggleManipulateRightAction() => Subscribe(m_ToggleManipulateRightAction, OnToggleManipulateRightPerformed);
-        void UnsubscribeToggleManipulateRightAction() => Unsubscribe(m_ToggleManipulateRightAction, OnToggleManipulateRightPerformed);
+        void SubscribeToggleManipulateRightAction() => XRSimulatorUtility.Subscribe(m_ToggleManipulateRightAction, OnToggleManipulateRightPerformed);
+        void UnsubscribeToggleManipulateRightAction() => XRSimulatorUtility.Unsubscribe(m_ToggleManipulateRightAction, OnToggleManipulateRightPerformed);
 
-        void SubscribeToggleManipulateBodyAction() => Subscribe(m_ToggleManipulateBodyAction, OnToggleManipulateBodyPerformed);
-        void UnsubscribeToggleManipulateBodyAction() => Unsubscribe(m_ToggleManipulateBodyAction, OnToggleManipulateBodyPerformed);
+        void SubscribeToggleManipulateBodyAction() => XRSimulatorUtility.Subscribe(m_ToggleManipulateBodyAction, OnToggleManipulateBodyPerformed);
+        void UnsubscribeToggleManipulateBodyAction() => XRSimulatorUtility.Unsubscribe(m_ToggleManipulateBodyAction, OnToggleManipulateBodyPerformed);
 
-        void SubscribeManipulateHeadAction() => Subscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed, OnManipulateHeadCanceled);
-        void UnsubscribeManipulateHeadAction() => Unsubscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed, OnManipulateHeadCanceled);
+        void SubscribeManipulateHeadAction() => XRSimulatorUtility.Subscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed, OnManipulateHeadCanceled);
+        void UnsubscribeManipulateHeadAction() => XRSimulatorUtility.Unsubscribe(m_ManipulateHeadAction, OnManipulateHeadPerformed, OnManipulateHeadCanceled);
 
-        void SubscribeHandControllerModeAction() => Subscribe(m_HandControllerModeAction, OnHandControllerModePerformed);
-        void UnsubscribeHandControllerModeAction() => Unsubscribe(m_HandControllerModeAction, OnHandControllerModePerformed);
+        void SubscribeHandControllerModeAction() => XRSimulatorUtility.Subscribe(m_HandControllerModeAction, OnHandControllerModePerformed);
+        void UnsubscribeHandControllerModeAction() => XRSimulatorUtility.Unsubscribe(m_HandControllerModeAction, OnHandControllerModePerformed);
 
-        void SubscribeCycleDevicesAction() => Subscribe(m_CycleDevicesAction, OnCycleDevicesPerformed);
-        void UnsubscribeCycleDevicesAction() => Unsubscribe(m_CycleDevicesAction, OnCycleDevicesPerformed);
+        void SubscribeCycleDevicesAction() => XRSimulatorUtility.Subscribe(m_CycleDevicesAction, OnCycleDevicesPerformed);
+        void UnsubscribeCycleDevicesAction() => XRSimulatorUtility.Unsubscribe(m_CycleDevicesAction, OnCycleDevicesPerformed);
 
-        void SubscribeStopManipulationAction() => Subscribe(m_StopManipulationAction, OnStopManipulationPerformed);
-        void UnsubscribeStopManipulationAction() => Unsubscribe(m_StopManipulationAction, OnStopManipulationPerformed);
+        void SubscribeStopManipulationAction() => XRSimulatorUtility.Subscribe(m_StopManipulationAction, OnStopManipulationPerformed);
+        void UnsubscribeStopManipulationAction() => XRSimulatorUtility.Unsubscribe(m_StopManipulationAction, OnStopManipulationPerformed);
 
-        void SubscribeMouseDeltaAction() => Subscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
-        void UnsubscribeMouseDeltaAction() => Unsubscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
+        void SubscribeMouseDeltaAction() => XRSimulatorUtility.Subscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
+        void UnsubscribeMouseDeltaAction() => XRSimulatorUtility.Unsubscribe(m_MouseDeltaAction, OnMouseDeltaPerformed, OnMouseDeltaCanceled);
 
-        void SubscribeMouseScrollAction() => Subscribe(m_MouseScrollAction, OnMouseScrollPerformed, OnMouseScrollCanceled);
-        void UnsubscribeMouseScrollAction() => Unsubscribe(m_MouseScrollAction, OnMouseScrollPerformed, OnMouseScrollCanceled);
+        void SubscribeMouseScrollAction() => XRSimulatorUtility.Subscribe(m_MouseScrollAction, OnMouseScrollPerformed, OnMouseScrollCanceled);
+        void UnsubscribeMouseScrollAction() => XRSimulatorUtility.Unsubscribe(m_MouseScrollAction, OnMouseScrollPerformed, OnMouseScrollCanceled);
 
-        void SubscribeRotateModeOverrideAction() => Subscribe(m_RotateModeOverrideAction, OnRotateModeOverridePerformed, OnRotateModeOverrideCanceled);
-        void UnsubscribeRotateModeOverrideAction() => Unsubscribe(m_RotateModeOverrideAction, OnRotateModeOverridePerformed, OnRotateModeOverrideCanceled);
+        void SubscribeRotateModeOverrideAction() => XRSimulatorUtility.Subscribe(m_RotateModeOverrideAction, OnRotateModeOverridePerformed, OnRotateModeOverrideCanceled);
+        void UnsubscribeRotateModeOverrideAction() => XRSimulatorUtility.Unsubscribe(m_RotateModeOverrideAction, OnRotateModeOverridePerformed, OnRotateModeOverrideCanceled);
 
-        void SubscribeToggleMouseTransformationModeAction() => Subscribe(m_ToggleMouseTransformationModeAction, OnToggleMouseTransformationModePerformed);
-        void UnsubscribeToggleMouseTransformationModeAction() => Unsubscribe(m_ToggleMouseTransformationModeAction, OnToggleMouseTransformationModePerformed);
+        void SubscribeToggleMouseTransformationModeAction() => XRSimulatorUtility.Subscribe(m_ToggleMouseTransformationModeAction, OnToggleMouseTransformationModePerformed);
+        void UnsubscribeToggleMouseTransformationModeAction() => XRSimulatorUtility.Unsubscribe(m_ToggleMouseTransformationModeAction, OnToggleMouseTransformationModePerformed);
 
-        void SubscribeNegateModeAction() => Subscribe(m_NegateModeAction, OnNegateModePerformed, OnNegateModeCanceled);
-        void UnsubscribeNegateModeAction() => Unsubscribe(m_NegateModeAction, OnNegateModePerformed, OnNegateModeCanceled);
+        void SubscribeNegateModeAction() => XRSimulatorUtility.Subscribe(m_NegateModeAction, OnNegateModePerformed, OnNegateModeCanceled);
+        void UnsubscribeNegateModeAction() => XRSimulatorUtility.Unsubscribe(m_NegateModeAction, OnNegateModePerformed, OnNegateModeCanceled);
 
-        void SubscribeXConstraintAction() => Subscribe(m_XConstraintAction, OnXConstraintPerformed, OnXConstraintCanceled);
-        void UnsubscribeXConstraintAction() => Unsubscribe(m_XConstraintAction, OnXConstraintPerformed, OnXConstraintCanceled);
+        void SubscribeXConstraintAction() => XRSimulatorUtility.Subscribe(m_XConstraintAction, OnXConstraintPerformed, OnXConstraintCanceled);
+        void UnsubscribeXConstraintAction() => XRSimulatorUtility.Unsubscribe(m_XConstraintAction, OnXConstraintPerformed, OnXConstraintCanceled);
 
-        void SubscribeYConstraintAction() => Subscribe(m_YConstraintAction, OnYConstraintPerformed, OnYConstraintCanceled);
-        void UnsubscribeYConstraintAction() => Unsubscribe(m_YConstraintAction, OnYConstraintPerformed, OnYConstraintCanceled);
+        void SubscribeYConstraintAction() => XRSimulatorUtility.Subscribe(m_YConstraintAction, OnYConstraintPerformed, OnYConstraintCanceled);
+        void UnsubscribeYConstraintAction() => XRSimulatorUtility.Unsubscribe(m_YConstraintAction, OnYConstraintPerformed, OnYConstraintCanceled);
 
-        void SubscribeZConstraintAction() => Subscribe(m_ZConstraintAction, OnZConstraintPerformed, OnZConstraintCanceled);
-        void UnsubscribeZConstraintAction() => Unsubscribe(m_ZConstraintAction, OnZConstraintPerformed, OnZConstraintCanceled);
+        void SubscribeZConstraintAction() => XRSimulatorUtility.Subscribe(m_ZConstraintAction, OnZConstraintPerformed, OnZConstraintCanceled);
+        void UnsubscribeZConstraintAction() => XRSimulatorUtility.Unsubscribe(m_ZConstraintAction, OnZConstraintPerformed, OnZConstraintCanceled);
 
-        void SubscribeResetAction() => Subscribe(m_ResetAction, OnResetPerformed, OnResetCanceled);
-        void UnsubscribeResetAction() => Unsubscribe(m_ResetAction, OnResetPerformed, OnResetCanceled);
+        void SubscribeResetAction() => XRSimulatorUtility.Subscribe(m_ResetAction, OnResetPerformed, OnResetCanceled);
+        void UnsubscribeResetAction() => XRSimulatorUtility.Unsubscribe(m_ResetAction, OnResetPerformed, OnResetCanceled);
 
-        void SubscribeToggleCursorLockAction() => Subscribe(m_ToggleCursorLockAction, OnToggleCursorLockPerformed);
-        void UnsubscribeToggleCursorLockAction() => Unsubscribe(m_ToggleCursorLockAction, OnToggleCursorLockPerformed);
+        void SubscribeToggleCursorLockAction() => XRSimulatorUtility.Subscribe(m_ToggleCursorLockAction, OnToggleCursorLockPerformed);
+        void UnsubscribeToggleCursorLockAction() => XRSimulatorUtility.Unsubscribe(m_ToggleCursorLockAction, OnToggleCursorLockPerformed);
 
-        void SubscribeToggleDevicePositionTargetAction() => Subscribe(m_ToggleDevicePositionTargetAction, OnToggleDevicePositionTargetPerformed);
-        void UnsubscribeToggleDevicePositionTargetAction() => Unsubscribe(m_ToggleDevicePositionTargetAction, OnToggleDevicePositionTargetPerformed);
+        void SubscribeToggleDevicePositionTargetAction() => XRSimulatorUtility.Subscribe(m_ToggleDevicePositionTargetAction, OnToggleDevicePositionTargetPerformed);
+        void UnsubscribeToggleDevicePositionTargetAction() => XRSimulatorUtility.Unsubscribe(m_ToggleDevicePositionTargetAction, OnToggleDevicePositionTargetPerformed);
 
-        void SubscribeTogglePrimary2DAxisTargetAction() => Subscribe(m_TogglePrimary2DAxisTargetAction, OnTogglePrimary2DAxisTargetPerformed);
-        void UnsubscribeTogglePrimary2DAxisTargetAction() => Unsubscribe(m_TogglePrimary2DAxisTargetAction, OnTogglePrimary2DAxisTargetPerformed);
+        void SubscribeTogglePrimary2DAxisTargetAction() => XRSimulatorUtility.Subscribe(m_TogglePrimary2DAxisTargetAction, OnTogglePrimary2DAxisTargetPerformed);
+        void UnsubscribeTogglePrimary2DAxisTargetAction() => XRSimulatorUtility.Unsubscribe(m_TogglePrimary2DAxisTargetAction, OnTogglePrimary2DAxisTargetPerformed);
 
-        void SubscribeToggleSecondary2DAxisTargetAction() => Subscribe(m_ToggleSecondary2DAxisTargetAction, OnToggleSecondary2DAxisTargetPerformed);
-        void UnsubscribeToggleSecondary2DAxisTargetAction() => Unsubscribe(m_ToggleSecondary2DAxisTargetAction, OnToggleSecondary2DAxisTargetPerformed);
+        void SubscribeToggleSecondary2DAxisTargetAction() => XRSimulatorUtility.Subscribe(m_ToggleSecondary2DAxisTargetAction, OnToggleSecondary2DAxisTargetPerformed);
+        void UnsubscribeToggleSecondary2DAxisTargetAction() => XRSimulatorUtility.Unsubscribe(m_ToggleSecondary2DAxisTargetAction, OnToggleSecondary2DAxisTargetPerformed);
 
-        void SubscribeAxis2DAction() => Subscribe(m_Axis2DAction, OnAxis2DPerformed, OnAxis2DCanceled);
-        void UnsubscribeAxis2DAction() => Unsubscribe(m_Axis2DAction, OnAxis2DPerformed, OnAxis2DCanceled);
+        void SubscribeAxis2DAction() => XRSimulatorUtility.Subscribe(m_Axis2DAction, OnAxis2DPerformed, OnAxis2DCanceled);
+        void UnsubscribeAxis2DAction() => XRSimulatorUtility.Unsubscribe(m_Axis2DAction, OnAxis2DPerformed, OnAxis2DCanceled);
 
-        void SubscribeRestingHandAxis2DAction() => Subscribe(m_RestingHandAxis2DAction, OnRestingHandAxis2DPerformed, OnRestingHandAxis2DCanceled);
-        void UnsubscribeRestingHandAxis2DAction() => Unsubscribe(m_RestingHandAxis2DAction, OnRestingHandAxis2DPerformed, OnRestingHandAxis2DCanceled);
+        void SubscribeRestingHandAxis2DAction() => XRSimulatorUtility.Subscribe(m_RestingHandAxis2DAction, OnRestingHandAxis2DPerformed, OnRestingHandAxis2DCanceled);
+        void UnsubscribeRestingHandAxis2DAction() => XRSimulatorUtility.Unsubscribe(m_RestingHandAxis2DAction, OnRestingHandAxis2DPerformed, OnRestingHandAxis2DCanceled);
 
-        void SubscribeGripAction() => Subscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
-        void UnsubscribeGripAction() => Unsubscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
+        void SubscribeGripAction() => XRSimulatorUtility.Subscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
+        void UnsubscribeGripAction() => XRSimulatorUtility.Unsubscribe(m_GripAction, OnGripPerformed, OnGripCanceled);
 
-        void SubscribeTriggerAction() => Subscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
-        void UnsubscribeTriggerAction() => Unsubscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
+        void SubscribeTriggerAction() => XRSimulatorUtility.Subscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
+        void UnsubscribeTriggerAction() => XRSimulatorUtility.Unsubscribe(m_TriggerAction, OnTriggerPerformed, OnTriggerCanceled);
 
-        void SubscribePrimaryButtonAction() => Subscribe(m_PrimaryButtonAction, OnPrimaryButtonPerformed, OnPrimaryButtonCanceled);
-        void UnsubscribePrimaryButtonAction() => Unsubscribe(m_PrimaryButtonAction, OnPrimaryButtonPerformed, OnPrimaryButtonCanceled);
+        void SubscribePrimaryButtonAction() => XRSimulatorUtility.Subscribe(m_PrimaryButtonAction, OnPrimaryButtonPerformed, OnPrimaryButtonCanceled);
+        void UnsubscribePrimaryButtonAction() => XRSimulatorUtility.Unsubscribe(m_PrimaryButtonAction, OnPrimaryButtonPerformed, OnPrimaryButtonCanceled);
 
-        void SubscribeSecondaryButtonAction() => Subscribe(m_SecondaryButtonAction, OnSecondaryButtonPerformed, OnSecondaryButtonCanceled);
-        void UnsubscribeSecondaryButtonAction() => Unsubscribe(m_SecondaryButtonAction, OnSecondaryButtonPerformed, OnSecondaryButtonCanceled);
+        void SubscribeSecondaryButtonAction() => XRSimulatorUtility.Subscribe(m_SecondaryButtonAction, OnSecondaryButtonPerformed, OnSecondaryButtonCanceled);
+        void UnsubscribeSecondaryButtonAction() => XRSimulatorUtility.Unsubscribe(m_SecondaryButtonAction, OnSecondaryButtonPerformed, OnSecondaryButtonCanceled);
 
-        void SubscribeMenuAction() => Subscribe(m_MenuAction, OnMenuPerformed, OnMenuCanceled);
-        void UnsubscribeMenuAction() => Unsubscribe(m_MenuAction, OnMenuPerformed, OnMenuCanceled);
+        void SubscribeMenuAction() => XRSimulatorUtility.Subscribe(m_MenuAction, OnMenuPerformed, OnMenuCanceled);
+        void UnsubscribeMenuAction() => XRSimulatorUtility.Unsubscribe(m_MenuAction, OnMenuPerformed, OnMenuCanceled);
 
-        void SubscribePrimary2DAxisClickAction() => Subscribe(m_Primary2DAxisClickAction, OnPrimary2DAxisClickPerformed, OnPrimary2DAxisClickCanceled);
-        void UnsubscribePrimary2DAxisClickAction() => Unsubscribe(m_Primary2DAxisClickAction, OnPrimary2DAxisClickPerformed, OnPrimary2DAxisClickCanceled);
+        void SubscribePrimary2DAxisClickAction() => XRSimulatorUtility.Subscribe(m_Primary2DAxisClickAction, OnPrimary2DAxisClickPerformed, OnPrimary2DAxisClickCanceled);
+        void UnsubscribePrimary2DAxisClickAction() => XRSimulatorUtility.Unsubscribe(m_Primary2DAxisClickAction, OnPrimary2DAxisClickPerformed, OnPrimary2DAxisClickCanceled);
 
-        void SubscribeSecondary2DAxisClickAction() => Subscribe(m_Secondary2DAxisClickAction, OnSecondary2DAxisClickPerformed, OnSecondary2DAxisClickCanceled);
-        void UnsubscribeSecondary2DAxisClickAction() => Unsubscribe(m_Secondary2DAxisClickAction, OnSecondary2DAxisClickPerformed, OnSecondary2DAxisClickCanceled);
+        void SubscribeSecondary2DAxisClickAction() => XRSimulatorUtility.Subscribe(m_Secondary2DAxisClickAction, OnSecondary2DAxisClickPerformed, OnSecondary2DAxisClickCanceled);
+        void UnsubscribeSecondary2DAxisClickAction() => XRSimulatorUtility.Unsubscribe(m_Secondary2DAxisClickAction, OnSecondary2DAxisClickPerformed, OnSecondary2DAxisClickCanceled);
 
-        void SubscribePrimary2DAxisTouchAction() => Subscribe(m_Primary2DAxisTouchAction, OnPrimary2DAxisTouchPerformed, OnPrimary2DAxisTouchCanceled);
-        void UnsubscribePrimary2DAxisTouchAction() => Unsubscribe(m_Primary2DAxisTouchAction, OnPrimary2DAxisTouchPerformed, OnPrimary2DAxisTouchCanceled);
+        void SubscribePrimary2DAxisTouchAction() => XRSimulatorUtility.Subscribe(m_Primary2DAxisTouchAction, OnPrimary2DAxisTouchPerformed, OnPrimary2DAxisTouchCanceled);
+        void UnsubscribePrimary2DAxisTouchAction() => XRSimulatorUtility.Unsubscribe(m_Primary2DAxisTouchAction, OnPrimary2DAxisTouchPerformed, OnPrimary2DAxisTouchCanceled);
 
-        void SubscribeSecondary2DAxisTouchAction() => Subscribe(m_Secondary2DAxisTouchAction, OnSecondary2DAxisTouchPerformed, OnSecondary2DAxisTouchCanceled);
-        void UnsubscribeSecondary2DAxisTouchAction() => Unsubscribe(m_Secondary2DAxisTouchAction, OnSecondary2DAxisTouchPerformed, OnSecondary2DAxisTouchCanceled);
+        void SubscribeSecondary2DAxisTouchAction() => XRSimulatorUtility.Subscribe(m_Secondary2DAxisTouchAction, OnSecondary2DAxisTouchPerformed, OnSecondary2DAxisTouchCanceled);
+        void UnsubscribeSecondary2DAxisTouchAction() => XRSimulatorUtility.Unsubscribe(m_Secondary2DAxisTouchAction, OnSecondary2DAxisTouchPerformed, OnSecondary2DAxisTouchCanceled);
 
-        void SubscribePrimaryTouchAction() => Subscribe(m_PrimaryTouchAction, OnPrimaryTouchPerformed, OnPrimaryTouchCanceled);
-        void UnsubscribePrimaryTouchAction() => Unsubscribe(m_PrimaryTouchAction, OnPrimaryTouchPerformed, OnPrimaryTouchCanceled);
+        void SubscribePrimaryTouchAction() => XRSimulatorUtility.Subscribe(m_PrimaryTouchAction, OnPrimaryTouchPerformed, OnPrimaryTouchCanceled);
+        void UnsubscribePrimaryTouchAction() => XRSimulatorUtility.Unsubscribe(m_PrimaryTouchAction, OnPrimaryTouchPerformed, OnPrimaryTouchCanceled);
 
-        void SubscribeSecondaryTouchAction() => Subscribe(m_SecondaryTouchAction, OnSecondaryTouchPerformed, OnSecondaryTouchCanceled);
-        void UnsubscribeSecondaryTouchAction() => Unsubscribe(m_SecondaryTouchAction, OnSecondaryTouchPerformed, OnSecondaryTouchCanceled);
+        void SubscribeSecondaryTouchAction() => XRSimulatorUtility.Subscribe(m_SecondaryTouchAction, OnSecondaryTouchPerformed, OnSecondaryTouchCanceled);
+        void UnsubscribeSecondaryTouchAction() => XRSimulatorUtility.Unsubscribe(m_SecondaryTouchAction, OnSecondaryTouchPerformed, OnSecondaryTouchCanceled);
 
-#if XR_HANDS_1_1_OR_NEWER
-        void SubscribeHandExpressionActions()
-        {
-            foreach (var simulatedExpression in m_SimulatedHandExpressions)
-            {
-                simulatedExpression.performed += OnHandExpressionPerformed;
-            }
-        }
-
-        void UnsubscribeHandExpressionActions()
-        {
-            foreach (var simulatedExpression in m_SimulatedHandExpressions)
-            {
-                simulatedExpression.performed -= OnHandExpressionPerformed;
-            }
-        }
-
-        void OnHandExpressionPerformed(SimulatedHandExpression simulatedExpression, InputAction.CallbackContext context)
-        {
-            ToggleHandExpression(simulatedExpression);
-        }
-#endif
+        #endregion
 
         void OnKeyboardXTranslatePerformed(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = context.ReadValue<float>();
         void OnKeyboardXTranslateCanceled(InputAction.CallbackContext context) => m_KeyboardXTranslateInput = 0f;
@@ -3172,15 +2556,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnHandControllerModePerformed(InputAction.CallbackContext context)
         {
-#if XR_HANDS_1_1_OR_NEWER
-            // Fully changing between controller and hand mode takes multiple frames.
-            // Don't allow changing the mode again before it has finished.
-            if (m_DeviceModeDirty)
-                return;
-
-            m_DeviceMode = Negate(m_DeviceMode);
-            m_DeviceModeDirty = true;
-#endif
+            if (m_DeviceLifecycleManager != null)
+                m_DeviceLifecycleManager.SwitchDeviceMode();
         }
 
         void OnCycleDevicesPerformed(InputAction.CallbackContext context)
@@ -3270,39 +2647,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnSecondaryTouchPerformed(InputAction.CallbackContext context) => m_SecondaryTouchInput = true;
         void OnSecondaryTouchCanceled(InputAction.CallbackContext context) => m_SecondaryTouchInput = false;
-
-        static InputAction GetInputAction(InputActionReference actionReference)
-        {
-#pragma warning disable IDE0031 // Use null propagation -- Do not use for UnityEngine.Object types
-            return actionReference != null ? actionReference.action : null;
-#pragma warning restore IDE0031
-        }
-
-        internal static unsafe bool TryExecuteCommand(InputDeviceCommand* commandPtr, out long result)
-        {
-            // This is a utility method called by XRSimulatedHMD and XRSimulatedController
-            // since both devices share the same command handling.
-            // This replicates the logic in XRToISXDevice::IOCTL (XRInputToISX.cpp).
-            var type = commandPtr->type;
-            if (type == RequestSyncCommand.Type)
-            {
-                // The state is maintained by XRDeviceSimulator, so no need for any change
-                // when focus is regained. Returning success instructs Input System to not
-                // reset the device.
-                result = InputDeviceCommand.GenericSuccess;
-                return true;
-            }
-
-            if (type == QueryCanRunInBackground.Type)
-            {
-                ((QueryCanRunInBackground*)commandPtr)->canRunInBackground = true;
-                result = InputDeviceCommand.GenericSuccess;
-                return true;
-            }
-
-            result = default;
-            return false;
-        }
     }
 
     /// <summary>

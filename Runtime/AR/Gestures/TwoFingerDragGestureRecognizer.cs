@@ -68,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Two Finger Drag gesture.</returns>
-        internal TwoFingerDragGesture CreateGesture(Touch touch1, Touch touch2)
+        TwoFingerDragGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new TwoFingerDragGesture(this, touch1, touch2);
         }
@@ -84,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Two Finger Drag gesture.</returns>
-        internal TwoFingerDragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+        TwoFingerDragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
             return new TwoFingerDragGesture(this, touch1, touch2);
         }

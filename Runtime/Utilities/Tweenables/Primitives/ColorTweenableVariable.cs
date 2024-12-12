@@ -12,24 +12,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
     [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class ColorTweenableVariable : TweenableVariableAsyncBase<Color>
     {
-        /// <summary>
-        /// Blend mode used by the color affordance receiver when applying the new color.
-        /// </summary>
-        ColorBlendMode colorBlendMode { get; set; } = ColorBlendMode.Solid;
-
-        /// <summary>
-        /// Value between 0 and 1 used to compute color blend modes.
-        /// </summary>
-        float colorBlendAmount { get; set; } = 1f;
-
         /// <inheritdoc />
         protected override JobHandle ScheduleTweenJob(ref TweenJobData<Color> jobData)
         {
             var job = new ColorTweenJob
             {
                 jobData = jobData,
-                colorBlendAmount = colorBlendAmount,
-                colorBlendMode = (byte)colorBlendMode
+                colorBlendAmount = 1f,
+                colorBlendMode = (byte)ColorBlendMode.Solid,
             };
             return job.Schedule();
         }

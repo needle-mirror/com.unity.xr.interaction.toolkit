@@ -30,6 +30,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         }
 
         [SerializeField]
+        [Tooltip("Controls whether to enable left & right continuous turns.")]
+        bool m_EnableTurnLeftRight = true;
+        /// <summary>
+        /// Controls whether to enable left and right continuous turns.
+        /// </summary>
+        public bool enableTurnLeftRight
+        {
+            get => m_EnableTurnLeftRight;
+            set => m_EnableTurnLeftRight = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Controls whether to enable 180° snap turns on the South direction.")]
+        bool m_EnableTurnAround;
+        /// <summary>
+        /// Controls whether to enable 180° snap turns on the South direction.
+        /// </summary>
+        public bool enableTurnAround
+        {
+            get => m_EnableTurnAround;
+            set => m_EnableTurnAround = value;
+        }
+
+        [SerializeField]
         [Tooltip("Reads input data from the left hand controller. Input Action must be a Value action type (Vector 2).")]
         XRInputValueReader<Vector2> m_LeftHandTurnInput = new XRInputValueReader<Vector2>("Left Hand Turn");
 
@@ -61,6 +85,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         public XRBodyYawRotation transformation { get; set; } = new XRBodyYawRotation();
 
         bool m_IsTurningXROrigin;
+        bool m_TurnAroundActivated;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -96,6 +121,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
 
             if (!m_IsTurningXROrigin)
                 TryEndLocomotion();
+
+            if (input == Vector2.zero)
+                m_TurnAroundActivated = false;
         }
 
         Vector2 ReadInput()
@@ -113,18 +141,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         /// <returns>Returns the turn amount in degrees for the given <paramref name="input"/> vector.</returns>
         protected virtual float GetTurnAmount(Vector2 input)
         {
-            if (input == Vector2.zero)
-                return 0f;
-
             var cardinal = CardinalUtility.GetNearestCardinal(input);
             switch (cardinal)
             {
                 case Cardinal.North:
+                    break;
                 case Cardinal.South:
+                    if (m_EnableTurnAround && !m_TurnAroundActivated)
+                        return 180f;
                     break;
                 case Cardinal.East:
                 case Cardinal.West:
-                    return input.magnitude * (Mathf.Sign(input.x) * m_TurnSpeed * Time.deltaTime);
+                    if (m_EnableTurnLeftRight)
+                        return input.magnitude * (Mathf.Sign(input.x) * m_TurnSpeed * Time.deltaTime);
+                    break;
                 default:
                     Assert.IsTrue(false, $"Unhandled {nameof(Cardinal)}={cardinal}");
                     break;
@@ -141,6 +171,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         {
             if (Mathf.Approximately(turnAmount, 0f))
                 return;
+
+            if (Mathf.Approximately(turnAmount, 180f))
+                m_TurnAroundActivated = true;
 
             TryStartLocomotionImmediately();
 

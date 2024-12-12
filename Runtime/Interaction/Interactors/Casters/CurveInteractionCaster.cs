@@ -229,7 +229,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         /// <summary>
         /// If enabled, more detailed cone cast gizmos will be displayed in the editor.
         /// </summary>
-        internal bool liveConeCastDebugVisuals
+        public bool liveConeCastDebugVisuals
         {
             get => m_LiveConeCastDebugVisuals;
             set => m_LiveConeCastDebugVisuals = value;
@@ -698,7 +698,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        internal virtual void OnDrawGizmosSelected()
+        protected virtual void OnDrawGizmosSelected()
         {
             var transformData = castOrigin != null ? castOrigin : transform;
             var gizmoStart = transformData.position;

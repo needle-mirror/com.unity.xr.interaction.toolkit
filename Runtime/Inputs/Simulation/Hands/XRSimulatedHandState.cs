@@ -5,6 +5,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         public Vector3 position { get; set; }
         public Quaternion rotation { get; set; }
         public Vector3 euler { get; set; }
+        public bool isTracked { get; set; }
         public HandExpressionName expressionName { get; set; }
 
         /// <summary>
@@ -15,6 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
             position = default;
             rotation = Quaternion.identity;
             euler = default;
+            isTracked = false;
             expressionName = HandExpressionName.Default;
         }
     }

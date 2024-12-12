@@ -248,7 +248,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        internal void OnDrawGizmosSelected()
+        protected virtual void OnDrawGizmosSelected()
         {
             if (m_UseCharacterControllerIfExists && m_ConstrainedBodyManipulator != null &&
                 m_ConstrainedBodyManipulator is CharacterControllerBodyManipulator characterControllerManipulator &&

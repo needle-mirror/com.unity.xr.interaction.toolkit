@@ -75,8 +75,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_KeyboardTranslateSpace;
         SerializedProperty m_MouseTranslateSpace;
         SerializedProperty m_DesiredCursorLockMode;
-        SerializedProperty m_RemoveOtherHMDDevices;
-        SerializedProperty m_HandTrackingCapability;
         SerializedProperty m_DeviceSimulatorUI;
 
         // Sensitivity
@@ -176,8 +174,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_KeyboardTranslateSpace = serializedObject.FindProperty("m_KeyboardTranslateSpace");
             m_MouseTranslateSpace = serializedObject.FindProperty("m_MouseTranslateSpace");
             m_DesiredCursorLockMode = serializedObject.FindProperty("m_DesiredCursorLockMode");
-            m_RemoveOtherHMDDevices = serializedObject.FindProperty("m_RemoveOtherHMDDevices");
-            m_HandTrackingCapability = serializedObject.FindProperty("m_HandTrackingCapability");
             m_DeviceSimulatorUI = serializedObject.FindProperty("m_DeviceSimulatorUI");
 
             m_KeyboardXTranslateSpeed = serializedObject.FindProperty("m_KeyboardXTranslateSpeed");
@@ -216,6 +212,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         /// <inheritdoc />
         protected override void DrawInspector()
         {
+            DrawScript();
             DrawGlobalActions();
             EditorGUILayout.Space();
             DrawControllerActions();
@@ -331,9 +328,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_HandActionAsset);
+
+                // Skip showing the deprecated properties if they have already been cleared.
+                // This allows users who have not yet upgraded the package sample to see and configure the deprecated properties
+                // on the old version of the prefab.
+                if (m_RestingHandExpressionCapture.objectReferenceValue == null && m_SimulatedHandExpressions.arraySize == 0)
+                    return;
+
                 using (var check = new EditorGUI.ChangeCheckScope())
                 {
-                    m_HandActionsExpanded = EditorGUILayout.Foldout(m_HandActionsExpanded, "Hand Actions", true);
+                    m_HandActionsExpanded = EditorGUILayout.Foldout(m_HandActionsExpanded, "Hand Actions (Deprecated)", true);
                     if (check.changed)
                         SessionState.SetBool(k_HandActionsExpandedKey, m_HandActionsExpanded);
                 }
@@ -343,6 +347,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
                 using (new EditorGUI.IndentLevelScope())
                 {
+                    EditorGUILayout.HelpBox("(Deprecated) Use the Simulated Hand Expression Manager component instead of these properties. Update the XR Device Simulator sample in Package Manager or clear these values to remove warning.", MessageType.Warning);
                     EditorGUILayout.PropertyField(m_RestingHandExpressionCapture);
                     EditorGUILayout.PropertyField(m_SimulatedHandExpressions);
                 }
@@ -371,8 +376,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_KeyboardTranslateSpace);
                 EditorGUILayout.PropertyField(m_MouseTranslateSpace);
                 EditorGUILayout.PropertyField(m_DesiredCursorLockMode);
-                EditorGUILayout.PropertyField(m_RemoveOtherHMDDevices);
-                EditorGUILayout.PropertyField(m_HandTrackingCapability);
                 EditorGUILayout.PropertyField(m_DeviceSimulatorUI);
             }
         }

@@ -140,7 +140,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         protected bool RemoveFromBufferedRemove(T item) => m_BufferedRemove != null && m_BufferedRemove.Remove(item);
 
         /// <summary>
-        /// Removes all items from the <see cref="m_BufferedRemove"/> and returns tis list to the pool (<see cref="s_BufferedListPool"/>).
+        /// Removes all items from the <see cref="m_BufferedRemove"/> and returns this list to the pool (<see cref="s_BufferedListPool"/>).
         /// </summary>
         protected void ClearBufferedRemove()
         {
@@ -167,7 +167,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// It short circuits the check when there are no pending changes to unregister, which is usually the case.
         /// </summary>
         /// <param name="item">The item to query.</param>
-        /// <returns>Returns <see langword="true"/> if registered</returns>
+        /// <returns>Returns <see langword="true"/> if registered.</returns>
         /// <remarks>
         /// This includes pending changes that have not yet been pushed to <see cref="registeredSnapshot"/>.
         /// Use this method instead of <see cref="IsRegistered"/> when iterating over <see cref="registeredSnapshot"/>
@@ -267,18 +267,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     }
 
     /// <inheritdoc />
-    class RegistrationList<T> : BaseRegistrationList<T>
+    sealed class RegistrationList<T> : BaseRegistrationList<T>
     {
         readonly HashSet<T> m_UnorderedBufferedAdd = new HashSet<T>();
         readonly HashSet<T> m_UnorderedBufferedRemove = new HashSet<T>();
         readonly HashSet<T> m_UnorderedRegisteredSnapshot = new HashSet<T>();
         readonly HashSet<T> m_UnorderedRegisteredItems = new HashSet<T>();
 
+        /// <summary>
+        /// Equivalent to <c>m_UnorderedBufferedRemove.Count == 0</c>.
+        /// </summary>
+        /// <remarks>
+        /// This profiled slightly faster than checking the count directly, and is used by
+        /// <see cref="IsStillRegistered"/> which is called during each loop iteration for every registered item.
+        /// </remarks>
+        bool m_BufferedRemoveEmpty = true;
+
         /// <inheritdoc />
         public override bool IsRegistered(T item) => m_UnorderedRegisteredItems.Contains(item);
 
         /// <inheritdoc />
-        public override bool IsStillRegistered(T item) => m_UnorderedBufferedRemove.Count == 0 || !m_UnorderedBufferedRemove.Contains(item);
+        public override bool IsStillRegistered(T item) => m_BufferedRemoveEmpty || !m_UnorderedBufferedRemove.Contains(item);
 
         /// <inheritdoc />
         public override bool Register(T item)
@@ -287,9 +296,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 return false;
 
             var snapshotContainsItem = m_UnorderedRegisteredSnapshot.Contains(item);
-            if ((m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Remove(item)) || !snapshotContainsItem)
+            if ((!m_BufferedRemoveEmpty && m_UnorderedBufferedRemove.Remove(item)) || !snapshotContainsItem)
             {
                 RemoveFromBufferedRemove(item);
+                m_BufferedRemoveEmpty = m_UnorderedBufferedRemove.Count == 0;
                 m_UnorderedRegisteredItems.Add(item);
                 if (!snapshotContainsItem)
                 {
@@ -306,7 +316,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <inheritdoc />
         public override bool Unregister(T item)
         {
-            if (m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Contains(item))
+            if (!m_BufferedRemoveEmpty && m_UnorderedBufferedRemove.Contains(item))
                 return false;
 
             if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item))
@@ -320,6 +330,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             {
                 AddToBufferedRemove(item);
                 m_UnorderedBufferedRemove.Add(item);
+                m_BufferedRemoveEmpty = false;
                 m_UnorderedRegisteredItems.Remove(item);
                 return true;
             }
@@ -333,7 +344,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             // This method is called multiple times each frame,
             // so additional explicit Count checks are done for
             // performance.
-            if (bufferedRemoveCount > 0)
+            if (!m_BufferedRemoveEmpty)
             {
                 foreach (var item in m_BufferedRemove)
                 {
@@ -343,6 +354,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                 ClearBufferedRemove();
                 m_UnorderedBufferedRemove.Clear();
+                m_BufferedRemoveEmpty = true;
             }
 
             if (bufferedAddCount > 0)
@@ -371,7 +383,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             EnsureCapacity(results, flushedCount);
             foreach (var item in registeredSnapshot)
             {
-                if (m_UnorderedBufferedRemove.Count > 0 && m_UnorderedBufferedRemove.Contains(item))
+                if (!m_BufferedRemoveEmpty && m_UnorderedBufferedRemove.Contains(item))
                     continue;
 
                 results.Add(item);

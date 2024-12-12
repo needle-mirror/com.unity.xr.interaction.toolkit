@@ -14,10 +14,12 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI.BodyUI;
@@ -30,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "3.0";
+        const string k_CurrentDocsVersion = "3.1";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_HtmlFileSuffix = ".html";
 
@@ -55,6 +57,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         const string k_VisualsNamespace = "Visuals.";
 
         // Locomotion
+        const string k_JumpNamespace = "Jump.";
+        const string k_GravityNamespace = "Gravity.";
         const string k_ClimbingNamespace = "Climbing.";
         const string k_MovementNamespace = "Movement.";
         const string k_TeleportationNamespace = "Teleportation.";
@@ -222,9 +226,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRInputDeviceVector3ValueReader = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_ReadersNamespace + nameof(XRInputDeviceVector3ValueReader) + k_HtmlFileSuffix;
 
         /// <summary>
+        /// Scripting API URL for <see cref="SimulatedDeviceLifecycleManager"/>.
+        /// </summary>
+        public const string k_SimulatedDeviceLifecycleManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedDeviceLifecycleManager) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="SimulatedHandExpressionManager"/>.
+        /// </summary>
+        public const string k_SimulatedHandExpressionManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedHandExpressionManager) + k_HtmlFileSuffix;
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRDeviceSimulator"/>.
         /// </summary>
         public const string k_XRDeviceSimulator = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(XRDeviceSimulator) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRInteractionSimulator"/>.
+        /// </summary>
+        public const string k_XRInteractionSimulator = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(XRInteractionSimulator) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRHandSkeletonPokeDisplacer"/>.
@@ -265,6 +284,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="CharacterControllerBodyManipulator"/>.
         /// </summary>
         public const string k_CharacterControllerBodyManipulator = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + nameof(CharacterControllerBodyManipulator) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="GravityProvider"/>.
+        /// </summary>
+        public const string k_GravityProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_GravityNamespace + nameof(GravityProvider) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="JumpProvider"/>.
+        /// </summary>
+        public const string k_JumpProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_JumpNamespace + nameof(JumpProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="LocomotionMediator"/>.

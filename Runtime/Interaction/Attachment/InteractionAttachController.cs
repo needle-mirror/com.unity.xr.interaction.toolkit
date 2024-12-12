@@ -1,10 +1,11 @@
+using System;
 #if BURST_PRESENT
 using Unity.Burst;
 #endif
-using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -22,8 +23,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
     [HelpURL(XRHelpURLConstants.k_InteractionAttachController)]
     public class InteractionAttachController : MonoBehaviour, IInteractionAttachController
     {
+        /// <summary>
+        /// Mode for what the x-axis (left/right) of the manipulation input does when controlling the anchor.
+        /// </summary>
+        /// <seealso cref="manipulationXAxisMode"/>
+        public enum ManipulationXAxisMode
+        {
+            /// <summary>
+            /// Do not manipulate the anchor with x-axis input.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// Horizontal rotation (yaw) of the anchor over time.
+            /// </summary>
+            HorizontalRotation,
+        }
+
+        /// <summary>
+        /// Mode for what the y-axis (up/down) of the manipulation input does when controlling the anchor.
+        /// </summary>
+        /// <seealso cref="manipulationYAxisMode"/>
+        public enum ManipulationYAxisMode
+        {
+            /// <summary>
+            /// Do not manipulate the anchor with y-axis input.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// Vertical rotation (pitch) of the anchor over time.
+            /// </summary>
+            VerticalRotation,
+
+            /// <summary>
+            /// Translate the anchor closer or further away over time.
+            /// </summary>
+            Translate,
+        }
+
         [SerializeField]
-        [Tooltip("The transform that this anchor should follow.")]
         Transform m_TransformToFollow;
 
         /// <summary>
@@ -35,9 +74,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             set => m_TransformToFollow = value;
         }
 
-        [Header("Stabilization Parameters")]
         [SerializeField]
-        [Tooltip("The stabilization mode for the motion of the anchor. Determines how the anchor's position and rotation are stabilized relative to the followed transform.")]
         MotionStabilizationMode m_MotionStabilizationMode = MotionStabilizationMode.WithPositionOffset;
 
         /// <summary>
@@ -50,7 +87,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Factor for stabilizing position. Larger values increase the range of stabilization, making the effect more pronounced over a greater distance.")]
         float m_PositionStabilization = 0.25f;
 
         /// <summary>
@@ -63,7 +99,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Factor for stabilizing angle. Larger values increase the range of stabilization, making the effect more pronounced over a greater angle.")]
         float m_AngleStabilization = 20f;
 
         /// <summary>
@@ -75,9 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             set => m_AngleStabilization = value;
         }
 
-        [Header("Smoothing Settings")]
         [SerializeField]
-        [Tooltip("If true offset will be smoothed over time in XR Origin space.")]
         bool m_SmoothOffset;
 
         /// <summary>
@@ -91,7 +124,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Smoothing speed for the offset anchor child.")]
         [Range(1f, 30f)]
         float m_SmoothingSpeed = 10f;
 
@@ -104,9 +136,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             set => m_SmoothingSpeed = Mathf.Clamp(value, 1f, 30f);
         }
 
-        [Header("Anchor Movement Parameters")]
         [SerializeField]
-        [Tooltip("Whether to use distance-based velocity scaling for anchor movement.")]
         bool m_UseDistanceBasedVelocityScaling = true;
 
         /// <summary>
@@ -118,9 +148,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             set => m_UseDistanceBasedVelocityScaling = value;
         }
 
-        [Space]
         [SerializeField]
-        [Tooltip("Whether momentum is used when distance scaling is in effect.")]
         bool m_UseMomentum = true;
 
         /// <summary>
@@ -133,12 +161,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Decay scalar for momentum. Higher values will cause momentum to decay faster.")]
         [Range(0f, 10f)]
         float m_MomentumDecayScale = 1.25f;
 
         /// <summary>
-        /// Decay scalar for momentum. Higher values will cause momentum to decay faster.
+        /// Decay scalar for momentum when triggered with push/pull gesture. Higher values will cause momentum to decay faster.
         /// </summary>
         public float momentumDecayScale
         {
@@ -146,10 +173,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             set => m_MomentumDecayScale = Mathf.Clamp(value, 0f, 10f);
         }
 
-        [Space]
+        [SerializeField]
+        [Range(0f, 10f)]
+        float m_MomentumDecayScaleFromInput = 5.5f;
+
+        /// <summary>
+        /// Decay scalar for momentum when triggered with manipulation input. Higher values will cause momentum to decay faster.
+        /// </summary>
+        public float momentumDecayScaleFromInput
+        {
+            get => m_MomentumDecayScaleFromInput;
+            set => m_MomentumDecayScaleFromInput = Mathf.Clamp(value, 0f, 10f);
+        }
+
         [SerializeField]
         [Range(0f, 5f)]
-        [Tooltip("Scales anchor velocity from 0 to 1 based on z-velocity's deviation below a threshold. 0 means no scaling.")]
         float m_ZVelocityRampThreshold = 0.3f;
 
         /// <summary>
@@ -162,7 +200,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Adjusts the object's velocity calculation when moving towards the user. It modifies the distance-based calculation that determines the velocity scalar.")]
         [Range(0f, 2f)]
         float m_PullVelocityBias = 1f;
 
@@ -179,7 +216,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Adjusts the object's velocity calculation when moving away from the user. It modifies the distance-based calculation that determines the velocity scalar.")]
         [Range(0f, 2f)]
         float m_PushVelocityBias = 1.25f;
 
@@ -196,13 +232,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Minimum additional velocity scaling factor for movement, interpolated by a quad bezier curve.")]
         [Range(0f, 2f)]
         float m_MinAdditionalVelocityScalar = 0.05f;
 
         /// <summary>
         /// Minimum additional velocity scaling factor for movement, interpolated by a quad bezier curve.
         /// </summary>
+        /// <seealso cref="maxAdditionalVelocityScalar"/>
         public float minAdditionalVelocityScalar
         {
             get => m_MinAdditionalVelocityScalar;
@@ -210,28 +246,130 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         [SerializeField]
-        [Tooltip("Maximum additional velocity scaling factor for movement, interpolated by a quad bezier curve.")]
         [Range(0, 5f)]
         float m_MaxAdditionalVelocityScalar = 1.5f;
 
         /// <summary>
         /// Maximum additional velocity scaling factor for movement, interpolated by a quad bezier curve.
         /// </summary>
+        /// <seealso cref="minAdditionalVelocityScalar"/>
         public float maxAdditionalVelocityScalar
         {
             get => m_MaxAdditionalVelocityScalar;
             set => m_MaxAdditionalVelocityScalar = Mathf.Clamp(value, 0f, 5f);
         }
 
-        [Header("Debug Configuration")]
+        [SerializeField]
+        bool m_UseManipulationInput;
 
-        [SerializeField, Tooltip("Enable debug lines for the attach transform offset and velocity vector.")]
+        /// <summary>
+        /// Whether to use input-based manipulation for anchor movement.
+        /// </summary>
+        public bool useManipulationInput
+        {
+            get => m_UseManipulationInput;
+            set => m_UseManipulationInput = value;
+        }
+
+        [SerializeField]
+        XRInputValueReader<Vector2> m_ManipulationInput = new XRInputValueReader<Vector2>("Manipulation");
+
+        /// <summary>
+        /// Input to use for rotating or translating the attach point closer or further away.
+        /// This effectively rotates or moves the selected grab interactable along the ray.
+        /// </summary>
+        public XRInputValueReader<Vector2> manipulationInput
+        {
+            get => m_ManipulationInput;
+            set => XRInputReaderUtility.SetInputProperty(ref m_ManipulationInput, value, this);
+        }
+
+        [SerializeField]
+        ManipulationXAxisMode m_ManipulationXAxisMode = ManipulationXAxisMode.HorizontalRotation;
+
+        /// <summary>
+        /// Mode for what the x-axis (left/right) of the manipulation input does when controlling the anchor.
+        /// </summary>
+        /// <seealso cref="ManipulationXAxisMode"/>
+        public ManipulationXAxisMode manipulationXAxisMode
+        {
+            get => m_ManipulationXAxisMode;
+            set => m_ManipulationXAxisMode = value;
+        }
+
+        [SerializeField]
+        ManipulationYAxisMode m_ManipulationYAxisMode = ManipulationYAxisMode.Translate;
+
+        /// <summary>
+        /// Mode for what the y-axis (up/down) of the manipulation input does when controlling the anchor.
+        /// </summary>
+        /// <seealso cref="ManipulationYAxisMode"/>
+        public ManipulationYAxisMode manipulationYAxisMode
+        {
+            get => m_ManipulationYAxisMode;
+            set => m_ManipulationYAxisMode = value;
+        }
+
+        [SerializeField]
+        bool m_CombineManipulationAxes;
+
+        /// <summary>
+        /// Whether to allow simultaneous vertical and horizontal rotation or simultaneous translation and horizontal rotation.
+        /// Disable to allow only one axis of manipulation input at a time based on which axis is most actuated.
+        /// </summary>
+        public bool combineManipulationAxes
+        {
+            get => m_CombineManipulationAxes;
+            set => m_CombineManipulationAxes = value;
+        }
+
+        [SerializeField]
+        float m_ManipulationTranslateSpeed = 1f;
+
+        /// <summary>
+        /// Speed at which the anchor is translated when using manipulation input.
+        /// </summary>
+        /// <seealso cref="manipulationInput"/>
+        public float manipulationTranslateSpeed
+        {
+            get => m_ManipulationTranslateSpeed;
+            set => m_ManipulationTranslateSpeed = value;
+        }
+
+        [SerializeField]
+        float m_ManipulationRotateSpeed = 180f;
+
+        /// <summary>
+        /// Speed at which the anchor is rotated when using manipulation input.
+        /// </summary>
+        /// <seealso cref="manipulationInput"/>
+        public float manipulationRotateSpeed
+        {
+            get => m_ManipulationRotateSpeed;
+            set => m_ManipulationRotateSpeed = value;
+        }
+
+        [SerializeField]
+        Transform m_ManipulationRotateReferenceFrame;
+
+        /// <summary>
+        /// The optional reference frame to define the rotation axes when the anchor is rotated when using manipulation input.
+        /// When not set, vertical rotation (pitch) is around the local x-axis and horizontal rotation (yaw) is around the local y-axis
+        /// of the anchor.
+        /// </summary>
+        public Transform manipulationRotateReferenceFrame
+        {
+            get => m_ManipulationRotateReferenceFrame;
+            set => m_ManipulationRotateReferenceFrame = value;
+        }
+
+        [SerializeField]
         bool m_EnableDebugLines;
 
         /// <summary>
         /// Enable debug lines for the attach transform offset and velocity vector.
         /// </summary>
-        bool enableDebugLines
+        public bool enableDebugLines
         {
             get => m_EnableDebugLines;
             set => m_EnableDebugLines = value;
@@ -251,13 +389,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         bool m_FirstMovementFrame;
         bool m_HasOffset;
 
-        float m_StartOffsetLength;
+        float m_StartLocalOffsetLength;
         Vector3 m_StartLocalOffset;
-        Vector3 m_NormStartOffset;
-        Vector3 m_NormTargetLocalOffset;
+        Vector3 m_StartLocalOffsetNormalized;
+        Vector3 m_TargetLocalOffsetNormalized;
 
         float m_Pivot;
         float m_Momentum;
+        bool m_MomentumDecayFromInput;
 
         bool m_WasVelocityScalingBlocked;
         bool m_HasSelectInteractor;
@@ -268,8 +407,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         Transform m_AnchorParent;
         Transform m_AnchorChild;
 
-        Vector3 m_LastLocalTargetPosition;
-        Vector3 m_LastChildOriginSpacePosition;
+        Vector3 m_LastTargetLocalPosition;
+        Vector3 m_LastTargetOriginSpacePosition;
 
         readonly AttachPointVelocityTracker m_VelocityTracker = new AttachPointVelocityTracker();
 
@@ -324,6 +463,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
             m_HasSelectInteractor = TryGetComponent(out m_SelectInteractor);
 
+            if (m_AnchorParent != null)
+                m_AnchorParent.gameObject.SetActive(true);
+
+            m_ManipulationInput.EnableDirectActionIfModeUsed();
+
 #if UNITY_EDITOR
             if (enableDebugLines && m_Visualizer == null)
                 m_Visualizer = gameObject.AddComponent<XRDebugLineVisualizer>();
@@ -336,9 +480,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// </summary>
         protected virtual void OnDisable()
         {
+            if (m_AnchorParent != null)
+                m_AnchorParent.gameObject.SetActive(false);
+
+            m_ManipulationInput.DisableDirectActionIfModeUsed();
         }
 
-        void SyncAnchor()
+        /// <summary>
+        /// Update the parent anchor pose to match the transform to follow.
+        /// </summary>
+        void SyncAnchorParent()
         {
             if (m_TransformToFollow == null)
                 m_TransformToFollow = transform;
@@ -372,7 +523,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             }
 
             if (updateTransform)
-                SyncAnchor();
+                SyncAnchorParent();
 
             return m_AnchorChild;
         }
@@ -380,16 +531,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// <inheritdoc />
         void IInteractionAttachController.MoveTo(Vector3 targetWorldPosition)
         {
-            SyncAnchor();
-            MoveToPositionWorldPosition(targetWorldPosition);
+            SyncAnchorParent();
+            MoveToPosition(targetWorldPosition);
         }
 
+        /// <summary>
+        /// Reapply the anchor child's position to update dependent offset fields.
+        /// </summary>
         void SyncOffset()
         {
-            MoveToPositionWorldPosition(m_AnchorChild.position);
+            MoveToPosition(m_AnchorChild.position);
         }
 
-        void MoveToPositionWorldPosition(Vector3 targetWorldPosition)
+        void MoveToPosition(Vector3 targetWorldPosition)
         {
             // Set the anchor child's position to the target world position
             m_AnchorChild.position = targetWorldPosition;
@@ -401,25 +555,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             // Convert the world space delta to local space of the parent anchor
             m_StartLocalOffset = m_AnchorParent.InverseTransformDirection(delta);
             // Calculate the magnitude of the start offset
-            m_StartOffsetLength = m_StartLocalOffset.magnitude;
+            m_StartLocalOffsetLength = m_StartLocalOffset.magnitude;
 
             // Normalize the start offset (avoiding a second sqrt operation for efficiency)
-            m_NormStartOffset = m_StartOffsetLength > Vector3.kEpsilon ? m_StartLocalOffset / m_StartOffsetLength : Vector3.zero;
+            m_StartLocalOffsetNormalized = m_StartLocalOffsetLength > Vector3.kEpsilon ? m_StartLocalOffset / m_StartLocalOffsetLength : Vector3.zero;
             // Set the normalized target offset to match the start offset initially
-            m_NormTargetLocalOffset = m_NormStartOffset;
+            m_TargetLocalOffsetNormalized = m_StartLocalOffsetNormalized;
 
             // Store the current local position of the anchor child
-            m_LastLocalTargetPosition = m_AnchorChild.localPosition;
+            m_LastTargetLocalPosition = m_AnchorChild.localPosition;
 
             // If XR Origin is available, store the anchor child's position in origin space
             if (m_HasXROrigin)
-                m_LastChildOriginSpacePosition = m_XROrigin.Origin.transform.InverseTransformPoint(m_AnchorChild.position);
+                m_LastTargetOriginSpacePosition = m_XROrigin.Origin.transform.InverseTransformPoint(m_AnchorChild.position);
 
             // Set the pivot to the initial offset length
-            m_Pivot = m_StartOffsetLength;
+            m_Pivot = m_StartLocalOffsetLength;
 
             // Flag that an offset exists if the start offset length is greater than zero
-            m_HasOffset = m_StartOffsetLength > 0f;
+            m_HasOffset = m_StartLocalOffsetLength > 0f;
             m_Momentum = 0f;
             m_FirstMovementFrame = true;
             m_WasVelocityScalingBlocked = false;
@@ -429,8 +583,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// <inheritdoc />
         void IInteractionAttachController.ApplyLocalPositionOffset(Vector3 offset)
         {
-            SyncAnchor();
-            MoveToPositionWorldPosition(m_AnchorChild.position + m_AnchorParent.TransformDirection(offset));
+            SyncAnchorParent();
+            MoveToPosition(m_AnchorChild.position + m_AnchorParent.TransformDirection(offset));
         }
 
         /// <inheritdoc />
@@ -447,7 +601,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             m_WasVelocityScalingBlocked = false;
             m_Momentum = 0f;
             m_AnchorChild.SetLocalPose(Pose.identity);
-            SyncAnchor();
+            SyncAnchorParent();
         }
 
         /// <inheritdoc />
@@ -460,20 +614,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             var originUp = originTransform.up;
 
             // Check if we skip stabilization
-            if (motionStabilizationMode == MotionStabilizationMode.Never || (motionStabilizationMode == MotionStabilizationMode.WithPositionOffset && !m_HasOffset))
-                SyncAnchor();
+            if (m_MotionStabilizationMode == MotionStabilizationMode.Never ||
+                (m_MotionStabilizationMode == MotionStabilizationMode.WithPositionOffset && !m_HasOffset))
+            {
+                SyncAnchorParent();
+            }
             else
             {
-                if (!hasOffset)
+                if (!m_HasOffset)
                 {
-                    XRTransformStabilizer.ApplyStabilization(ref m_AnchorParent, m_TransformToFollow, positionStabilization, angleStabilization, deltaTime);
+                    XRTransformStabilizer.ApplyStabilization(ref m_AnchorParent, m_TransformToFollow,
+                        m_PositionStabilization, m_AngleStabilization, deltaTime);
                 }
                 else
                 {
                     float childAnchorOffsetMagnitude = m_AnchorChild.localPosition.z;
-                    float stabilizationMultiplier = (1f + childAnchorOffsetMagnitude);
-                    float adjustedPositionStabilization = stabilizationMultiplier * positionStabilization;
-                    float adjustedAngleStabilization = stabilizationMultiplier * angleStabilization;
+                    float stabilizationMultiplier = 1f + childAnchorOffsetMagnitude;
+                    float adjustedPositionStabilization = stabilizationMultiplier * m_PositionStabilization;
+                    float adjustedAngleStabilization = stabilizationMultiplier * m_AngleStabilization;
 
                     var anchorParentWorldPos = m_AnchorParent.position;
                     var worldOffset = m_AnchorChild.position - anchorParentWorldPos;
@@ -481,28 +639,49 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                     var targetWorldOffset = isWorldOffsetOrthogonalToUp ? Vector3.ProjectOnPlane(worldOffset, originUp) : worldOffset;
                     var stabilizationTarget = anchorParentWorldPos + targetWorldOffset;
 
-                    XRTransformStabilizer.ApplyStabilization(ref m_AnchorParent, m_TransformToFollow, stabilizationTarget, adjustedPositionStabilization, adjustedAngleStabilization, deltaTime);
+                    XRTransformStabilizer.ApplyStabilization(ref m_AnchorParent, m_TransformToFollow,
+                        stabilizationTarget, adjustedPositionStabilization, adjustedAngleStabilization, deltaTime);
                 }
+            }
+
+            if (!m_HasOffset)
+            {
+                attachUpdated?.Invoke();
+                return;
             }
 
             // Track attach point velocity
             if (m_UseDistanceBasedVelocityScaling)
-                m_VelocityTracker.UpdateAttachPointVelocityData(transformToFollow, originTransform);
+                m_VelocityTracker.UpdateAttachPointVelocityData(m_TransformToFollow, originTransform);
 
-            if (!hasOffset)
+            // Position
+            if ((m_UseDistanceBasedVelocityScaling || m_UseManipulationInput) && !UpdateVelocityScalingBlock())
+                DoPositionUpdate(deltaTime);
+            else
+                UpdatePosition(m_StartLocalOffset, deltaTime);
+
+            // Rotation
+            var allowVerticalRotation = m_ManipulationYAxisMode == ManipulationYAxisMode.VerticalRotation;
+            var allowHorizontalRotation = m_ManipulationXAxisMode == ManipulationXAxisMode.HorizontalRotation;
+            if (m_UseManipulationInput && (allowVerticalRotation || allowHorizontalRotation) && m_ManipulationInput.TryReadValue(out var input))
             {
-                attachUpdated?.Invoke();
-                return;
+                input = FilterManipulationInput(input);
+
+                var factor = m_ManipulationRotateSpeed * deltaTime;
+                var xDegrees = allowVerticalRotation ? input.y * factor : 0f;
+                var yDegrees = allowHorizontalRotation ? input.x * factor : 0f;
+                var referenceFrameRotation = m_ManipulationRotateReferenceFrame != null
+                    ? m_ManipulationRotateReferenceFrame.rotation
+                    : m_AnchorParent.rotation;
+                m_AnchorChild.rotation = referenceFrameRotation * Quaternion.Euler(xDegrees, yDegrees, 0f) * Quaternion.Inverse(referenceFrameRotation) * m_AnchorChild.rotation;
             }
 
-            if (!m_UseDistanceBasedVelocityScaling || UpdateVelocityScalingBlock())
-            {
-                UpdatePosition(m_LastChildOriginSpacePosition, m_StartLocalOffset, deltaTime);
-                attachUpdated?.Invoke();
-                return;
-            }
+            attachUpdated?.Invoke();
+        }
 
-            float3 currentLocalOffset = m_SmoothOffset ? m_LastLocalTargetPosition : m_AnchorChild.localPosition;
+        void DoPositionUpdate(float deltaTime)
+        {
+            float3 currentLocalOffset = m_SmoothOffset ? m_LastTargetLocalPosition : m_AnchorChild.localPosition;
             float3 velocityLocal;
             Vector3 velocityWorld = Vector3.zero;
 
@@ -511,26 +690,52 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
                 velocityLocal = float3.zero;
                 m_FirstMovementFrame = false;
             }
-            else
+            else if (m_UseDistanceBasedVelocityScaling)
             {
+                var originTransform = m_XROrigin.Origin.transform;
                 velocityWorld = m_VelocityTracker.GetAttachPointVelocity(originTransform);
                 velocityLocal = m_AnchorParent.InverseTransformDirection(velocityWorld);
             }
+            else
+            {
+                velocityLocal = float3.zero;
+            }
 
-            ComputeAmplifiedOffset(velocityLocal, m_NormStartOffset, m_StartOffsetLength, m_NormTargetLocalOffset, currentLocalOffset, m_MinAdditionalVelocityScalar, m_MaxAdditionalVelocityScalar, m_PushVelocityBias, m_PullVelocityBias, m_ZVelocityRampThreshold, m_UseMomentum, m_MomentumDecayScale, ref m_Momentum, ref m_Pivot, deltaTime, out var newOffset);
+            var applyMomentum = m_UseMomentum;
+            if (m_UseManipulationInput && m_ManipulationYAxisMode == ManipulationYAxisMode.Translate && m_ManipulationInput.TryReadValue(out var input))
+            {
+                input = FilterManipulationInput(input);
+
+                var amount = input.y * m_ManipulationTranslateSpeed;
+                velocityLocal += new float3(m_TargetLocalOffsetNormalized.x, m_TargetLocalOffsetNormalized.y, m_TargetLocalOffsetNormalized.z) * amount;
+                // Don't apply momentum while manipulation input is active, it should wait to apply
+                // once the input is stopped (assuming momentum is enabled at all).
+                applyMomentum = false;
+
+                // Decay momentum by different amount when triggered with manipulation input
+                m_MomentumDecayFromInput = true;
+            }
+
+            var decayScale = m_MomentumDecayFromInput ? m_MomentumDecayScaleFromInput : m_MomentumDecayScale;
+            ComputeAmplifiedOffset(velocityLocal, m_StartLocalOffsetNormalized, m_StartLocalOffsetLength,
+                m_TargetLocalOffsetNormalized, currentLocalOffset, m_MinAdditionalVelocityScalar, m_MaxAdditionalVelocityScalar,
+                m_PushVelocityBias, m_PullVelocityBias, m_ZVelocityRampThreshold, m_UseMomentum, applyMomentum, decayScale,
+                ref m_Momentum, ref m_Pivot, deltaTime, out var newOffset);
+
+            // If momentum is below a threshold, we stop decaying it with the alternate factor
+            if (math.abs(m_Momentum) < 0.001f)
+                m_MomentumDecayFromInput = false;
 
 #if UNITY_EDITOR
-            UpdateDebugLines(velocityWorld, m_NormStartOffset, m_NormTargetLocalOffset, newOffset);
+            UpdateDebugLines(velocityWorld, m_StartLocalOffsetNormalized, m_TargetLocalOffsetNormalized, newOffset);
 #endif
 
             // Check if the new offset's z-value is less than zero in local space to reset the offset
-            var newOffsetDot = math.dot(math.normalize(newOffset), m_NormStartOffset);
+            var newOffsetDot = math.dot(math.normalize(newOffset), m_StartLocalOffsetNormalized);
             if (newOffsetDot < 0.05f)
                 ResetOffset();
             else
-                UpdatePosition(m_LastChildOriginSpacePosition, newOffset, deltaTime);
-
-            attachUpdated?.Invoke();
+                UpdatePosition(newOffset, deltaTime);
         }
 
         bool UpdateVelocityScalingBlock()
@@ -556,39 +761,43 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             return shouldBlock;
         }
 
-        void UpdatePosition(Vector3 lastOriginSpacePosition, Vector3 targetLocalPosition, float deltaTime)
+        void UpdatePosition(Vector3 targetLocalPosition, float deltaTime)
         {
             if (!m_SmoothOffset || !m_HasXROrigin)
             {
                 m_AnchorChild.localPosition = targetLocalPosition;
-                m_LastLocalTargetPosition = targetLocalPosition;
+                m_LastTargetLocalPosition = targetLocalPosition;
                 return;
             }
 
-            var previousWorldPosition = m_XROrigin.Origin.transform.TransformPoint(lastOriginSpacePosition);
+            var originTransform = m_XROrigin.Origin.transform;
+
+            var previousWorldPosition = originTransform.TransformPoint(m_LastTargetOriginSpacePosition);
             var newTargetWorldPosition = m_AnchorParent.TransformPoint(targetLocalPosition);
 
             var newWorldPosition = BurstLerpUtility.BezierLerp(previousWorldPosition, newTargetWorldPosition, m_SmoothingSpeed * deltaTime);
 
             m_AnchorChild.position = newWorldPosition;
-            m_LastChildOriginSpacePosition = m_XROrigin.Origin.transform.InverseTransformPoint(newWorldPosition);
-
-            m_LastLocalTargetPosition = targetLocalPosition;
+            m_LastTargetOriginSpacePosition = originTransform.InverseTransformPoint(newWorldPosition);
+            m_LastTargetLocalPosition = targetLocalPosition;
         }
 
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 normStartLocalOffset, float startOffsetLength, in float3 normTargetLocalOffset, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar, float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool useMomentum, float momentumDecayScale, ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)
+        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 startLocalOffsetNormalized, float startLocalOffsetLength,
+            in float3 targetLocalOffsetNormalized, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar,
+            float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool calculateMomentum, bool applyMomentum, float momentumDecayScale,
+            ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)
         {
             // Calculate the dot product between normalized velocity and target offset
-            float dotProduct = math.dot(math.normalize(velocityLocal), normTargetLocalOffset);
+            float dotProduct = math.dot(math.normalize(velocityLocal), targetLocalOffsetNormalized);
 
             // Calculate projected velocity
             float3 projectedVelocityLocal;
             if (math.abs(dotProduct) > 0.866f) // cos(30°) ≈ 0.866
             {
-                projectedVelocityLocal = math.project(velocityLocal, normTargetLocalOffset);
+                projectedVelocityLocal = math.project(velocityLocal, targetLocalOffsetNormalized);
             }
             else
             {
@@ -603,7 +812,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             float offsetMagnitude = math.length(currentLocalOffset);
 
             // Determine if the object is moving towards or away from the user
-            var velocitySign = math.sign(math.dot(math.normalize(projectedVelocityLocal), normStartLocalOffset));
+            var velocitySign = math.sign(math.dot(math.normalize(projectedVelocityLocal), startLocalOffsetNormalized));
             bool isMovingAway = velocitySign > 0f;
 
             // We determine forward and back motion by using the signed magnitude of projected local velocity.
@@ -616,17 +825,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 
             // If below ramp threshold, we do not amplify motion
             float rampAmount = zVelocityRampThreshold > 0f ? math.clamp(math.abs(zMotionLocalSpace) / zVelocityRampThreshold, 0f, 1f) : 1f;
-            bool isAboveRampThreshold = !(rampAmount < 1f);
 
             // Movement magnitude collated from velocity and momentum along the motion axis, scaled by the delta time for the frame
             float movement = zMotionLocalSpace * rampAmount * (1f + movementScale) * deltaTime;
 
-            // If movement changes direction and the change is above a threshold tolerance, reset momentum
-            if (useMomentum)
+            if (calculateMomentum)
             {
+                // If movement changes direction and the change is above a threshold tolerance, reset momentum
                 const float momentumTolerance = 0.001f;
                 float absMomentum = math.abs(momentum);
                 float absMovement = math.abs(movement);
+                bool isAboveRampThreshold = rampAmount >= 1f;
 
                 // Check for significant direction change
                 bool significantDirectionChange =
@@ -660,14 +869,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             }
 
             // Compute new offset by scaling original offset with motion and momentum
-            float newOffsetMagnitude = offsetMagnitude + movement + momentum;
-            newOffset = normStartLocalOffset * newOffsetMagnitude;
+            float newOffsetMagnitude = offsetMagnitude + movement;
+            if (applyMomentum)
+                newOffsetMagnitude += momentum;
+
+            newOffset = startLocalOffsetNormalized * newOffsetMagnitude;
 
             // Update pivot
-            if (newOffsetMagnitude > startOffsetLength)
+            if (newOffsetMagnitude > startLocalOffsetLength)
                 pivot = newOffsetMagnitude;
             else
-                pivot = math.lerp(pivot, (startOffsetLength + newOffsetMagnitude) / 2f, deltaTime * movementScale);
+                pivot = math.lerp(pivot, (startLocalOffsetLength + newOffsetMagnitude) / 2f, deltaTime * movementScale);
+        }
+
+        Vector2 FilterManipulationInput(in Vector2 input)
+        {
+            // When an axis is not configured for translation or rotation, we allow the entire half circle of input
+            // to drive the axis rather than limiting to a quarter circle to allow the greatest precision of control.
+            // The callers only use a single axis of input at a time, so we can just return the input as-is.
+            if (m_CombineManipulationAxes || m_ManipulationXAxisMode == ManipulationXAxisMode.None || m_ManipulationYAxisMode == ManipulationYAxisMode.None)
+                return input;
+
+            // Bias towards the y-axis when equal to match the same bias as the Sector interaction (see CardinalUtility).
+            return Mathf.Abs(input.y) >= Mathf.Abs(input.x)
+                ? new Vector2(0f, input.y)
+                : new Vector2(input.x, 0f);
         }
 
 #if UNITY_EDITOR

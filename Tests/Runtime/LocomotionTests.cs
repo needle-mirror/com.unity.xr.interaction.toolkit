@@ -7,6 +7,8 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 
@@ -799,6 +801,49 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(xrOrigin.transform.rotation.eulerAngles, Is.EqualTo(new Vector3(0f, 180f, 0f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator Jump()
+        {
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.xrOrigin = xrOrigin;
+
+            var gravityProvider = xrOrigin.gameObject.AddComponent<GravityProvider>();
+            gravityProvider.mediator = mediator;
+
+            var jumpProvider = xrOrigin.gameObject.AddComponent<JumpProvider>();
+            jumpProvider.mediator = mediator;
+            jumpProvider.unlimitedInAirJumps = true;
+
+            var initialHeight = xrOrigin.Origin.transform.position.y;
+
+            jumpProvider.Jump();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(xrOrigin.Origin.transform.position.y, Is.GreaterThan(initialHeight));
+        }
+
+        [UnityTest]
+        public IEnumerator Gravity()
+        {
+            var xrOrigin = TestUtilities.CreateXROrigin();
+
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.xrOrigin = xrOrigin;
+
+            var gravityProvider = xrOrigin.gameObject.AddComponent<GravityProvider>();
+            gravityProvider.mediator = mediator;
+
+            var initialHeight = xrOrigin.Origin.transform.position.y;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(xrOrigin.Origin.transform.position.y, Is.LessThan(initialHeight));
         }
     }
 }

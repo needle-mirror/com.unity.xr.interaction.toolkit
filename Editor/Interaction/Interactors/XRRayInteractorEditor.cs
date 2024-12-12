@@ -21,7 +21,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
         protected SerializedProperty m_ConeCastAngle;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.liveConeCastDebugVisuals"/>.</summary>
-        SerializedProperty m_LiveConeCastDebugVisuals;
+        protected SerializedProperty m_LiveConeCastDebugVisuals;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastMask"/>.</summary>
         protected SerializedProperty m_RaycastMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -41,7 +41,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
         protected SerializedProperty m_EnableUIInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.blockInteractionsWithScreenSpaceUI"/>.</summary>
-        SerializedProperty m_BlockInteractionsWithScreenSpaceUI;
+        protected SerializedProperty m_BlockInteractionsWithScreenSpaceUI;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.blockUIOnInteractableSelection"/>.</summary>
         protected SerializedProperty m_BlockUIOnInteractableSelection;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>
@@ -130,7 +130,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.coneCastAngle"/>.</summary>
             public static readonly GUIContent coneCastAngle = EditorGUIUtility.TrTextContent("Cone Cast Angle", "Angle in degrees of the interactor's selection cone, used for cone casting.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.liveConeCastDebugVisuals"/>.</summary>
-            internal static readonly GUIContent liveConeCastDebugVisuals = EditorGUIUtility.TrTextContent("Live Conecast Debug Visuals", "If enabled, more detailed cone cast gizmos will be displayed in the editor. Only displayed in Play mode when GameObject is selected.");
+            public static readonly GUIContent liveConeCastDebugVisuals = EditorGUIUtility.TrTextContent("Live Conecast Debug Visuals", "If enabled, more detailed cone cast gizmos will be displayed in the editor. Only displayed in Play mode when GameObject is selected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
@@ -149,8 +149,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent timeToAutoDeselect = EditorGUIUtility.TrTextContent("Time To Auto Deselect", "Number of seconds for which this Interactor will select an Interactable before the Interactable is automatically deselected.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("UI Interaction", "Enable to affect Unity UI GameObjects in a way that is similar to a mouse pointer. Requires the XR UI Input Module on the Event System.");
-            /// <summary>Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas.</summary>
-            internal static readonly GUIContent blockInteractionsWithScreenSpaceUI = EditorGUIUtility.TrTextContent("Block Interactions With Screen Space UI", "Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blockInteractionsWithScreenSpaceUI"/>.</summary>
+            public static readonly GUIContent blockInteractionsWithScreenSpaceUI = EditorGUIUtility.TrTextContent("Block Interactions With Screen Space UI", "Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.blockUIOnInteractableSelection"/>.</summary>
             public static readonly GUIContent blockUIOnInteractableSelection = EditorGUIUtility.TrTextContent("Block UI on Interactable Selection", "Enabling this option will block UI interaction when selecting interactables.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rayOriginTransform"/>.</summary>

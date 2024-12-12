@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
 {
@@ -15,15 +17,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
     [AddComponentMenu("XR/Locomotion/Climb Provider", 11)]
     [HelpURL(XRHelpURLConstants.k_ClimbProvider)]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
-    public class ClimbProvider : LocomotionProvider
+    public class ClimbProvider : LocomotionProvider, IGravityController
     {
-        // These are parallel lists, where each interactor and its grabbed interactable share the same index in each list.
-        // The last item in each list represents the most recent selection, which is the only one that actually drives movement.
-        readonly List<IXRSelectInteractor> m_GrabbingInteractors = new List<IXRSelectInteractor>();
-        readonly List<ClimbInteractable> m_GrabbedClimbables = new List<ClimbInteractable>();
+        [SerializeField]
+        [Tooltip("List of providers to disable while climb locomotion is active. If empty, no providers will be disabled by this component while climbing.")]
+        List<LocomotionProvider> m_ProvidersToDisable = new List<LocomotionProvider>();
 
-        Vector3 m_InteractorAnchorWorldPosition;
-        Vector3 m_InteractorAnchorClimbSpacePosition;
+        /// <summary>
+        /// List of providers to disable while climb locomotion is active. If empty, no providers will be disabled by this component while climbing.
+        /// </summary>
+        public List<LocomotionProvider> providersToDisable
+        {
+            get => m_ProvidersToDisable;
+            set => m_ProvidersToDisable = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Whether to allow falling when climb locomotion ends. Disable to pause gravity when releasing, keeping the user from falling.")]
+        bool m_EnableGravityOnClimbEnd = true;
+
+        /// <summary>
+        /// Whether to allow falling when climb locomotion ends. Disable to pause gravity when releasing, keeping the user from falling.
+        /// </summary>
+        public bool enableGravityOnClimbEnd
+        {
+            get => m_EnableGravityOnClimbEnd;
+            set => m_EnableGravityOnClimbEnd = value;
+        }
 
         [SerializeField]
         [Tooltip("Climb locomotion settings. Can be overridden by the Climb Interactable used for locomotion.")]
@@ -69,7 +89,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         /// <summary>
         /// The transformation that is used by this component to apply climb movement.
         /// </summary>
-        public XROriginMovement transformation { get; set; } = new XROriginMovement { forceUnconstrained = true };
+        public XROriginMovement transformation { get; set; } = new XROriginMovement();
+
+        /// <inheritdoc />
+        public bool canProcess => isActiveAndEnabled;
+
+        /// <inheritdoc />
+        public bool gravityPaused { get; protected set; }
 
         /// <summary>
         /// Calls the methods in its invocation list when the provider updates <see cref="climbAnchorInteractable"/>
@@ -78,12 +104,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         /// </summary>
         public event Action<ClimbProvider> climbAnchorUpdated;
 
+        /// <summary>
+        /// The gravity provider that this component uses to apply gravity when climb locomotion is not active.
+        /// </summary>
+        GravityProvider m_GravityProvider;
+
+        // These are parallel lists, where each interactor and its grabbed interactable share the same index in each list.
+        // The last item in each list represents the most recent selection, which is the only one that actually drives movement.
+        readonly List<IXRSelectInteractor> m_GrabbingInteractors = new List<IXRSelectInteractor>();
+        readonly List<ClimbInteractable> m_GrabbedClimbables = new List<ClimbInteractable>();
+
+        Vector3 m_InteractorAnchorWorldPosition;
+        Vector3 m_InteractorAnchorClimbSpacePosition;
+
+        List<LocomotionProvider> m_EnabledProvidersToDisable = new List<LocomotionProvider>();
+
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
             if (m_ClimbSettings == null || m_ClimbSettings.Value == null)
                 m_ClimbSettings = new ClimbSettingsDatumProperty(new ClimbSettings());
+
+            ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void Update()
+        {
+            if (!isLocomotionActive)
+                return;
+
+            // Use the most recent interaction to drive movement
+            if (m_GrabbingInteractors.Count > 0)
+            {
+                if (locomotionState == LocomotionState.Preparing)
+                    TryStartLocomotionImmediately();
+
+                Assert.AreEqual(m_GrabbingInteractors.Count, m_GrabbedClimbables.Count);
+
+                var lastIndex = m_GrabbingInteractors.Count - 1;
+                var currentInteractor = m_GrabbingInteractors[lastIndex];
+                var currentClimbInteractable = m_GrabbedClimbables[lastIndex];
+                if (currentInteractor == null || currentClimbInteractable == null)
+                {
+                    FinishLocomotion();
+                    return;
+                }
+
+                StepClimbMovement(currentClimbInteractable, currentInteractor);
+            }
+            else
+            {
+                FinishLocomotion();
+            }
         }
 
         /// <summary>
@@ -106,8 +182,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             m_GrabbingInteractors.Add(interactor);
             m_GrabbedClimbables.Add(climbInteractable);
             UpdateClimbAnchor(climbInteractable, interactor);
-
             TryPrepareLocomotion();
+
+            TryLockGravity(GravityOverride.ForcedOff);
+
+            foreach (var provider in m_ProvidersToDisable)
+            {
+                if (provider == null)
+                    continue;
+
+                if (provider.enabled)
+                {
+                    provider.enabled = false;
+                    m_EnabledProvidersToDisable.Add(provider);
+                }
+            }
         }
 
         /// <summary>
@@ -145,39 +234,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             m_InteractorAnchorWorldPosition = interactor.transform.position;
             m_InteractorAnchorClimbSpacePosition = climbTransform.InverseTransformPoint(m_InteractorAnchorWorldPosition);
             climbAnchorUpdated?.Invoke(this);
-        }
-
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void Update()
-        {
-            if (!isLocomotionActive)
-                return;
-
-            // Use the most recent interaction to drive movement
-            if (m_GrabbingInteractors.Count > 0)
-            {
-                if (locomotionState == LocomotionState.Preparing)
-                    TryStartLocomotionImmediately();
-
-                Assert.AreEqual(m_GrabbingInteractors.Count, m_GrabbedClimbables.Count);
-
-                var lastIndex = m_GrabbingInteractors.Count - 1;
-                var currentInteractor = m_GrabbingInteractors[lastIndex];
-                var currentClimbInteractable = m_GrabbedClimbables[lastIndex];
-                if (currentInteractor == null || currentClimbInteractable == null)
-                {
-                    FinishLocomotion();
-                    return;
-                }
-
-                StepClimbMovement(currentClimbInteractable, currentInteractor);
-            }
-            else
-            {
-                FinishLocomotion();
-            }
         }
 
         void StepClimbMovement(ClimbInteractable currentClimbInteractable, IXRSelectInteractor currentInteractor)
@@ -222,6 +278,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             TryEndLocomotion();
             m_GrabbingInteractors.Clear();
             m_GrabbedClimbables.Clear();
+
+            RemoveGravityLock();
+
+            gravityPaused = !m_EnableGravityOnClimbEnd;
+
+            foreach (var provider in m_EnabledProvidersToDisable)
+            {
+                if (provider == null)
+                    continue;
+
+                provider.enabled = true;
+            }
+            m_EnabledProvidersToDisable.Clear();
         }
 
         ClimbSettings GetActiveClimbSettings(ClimbInteractable climbInteractable)
@@ -230,6 +299,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
                 return climbInteractable.climbSettingsOverride;
 
             return m_ClimbSettings;
+        }
+
+        /// <inheritdoc/>
+        public bool TryLockGravity(GravityOverride gravityOverride)
+        {
+            if (m_GravityProvider != null)
+                return m_GravityProvider.TryLockGravity(this, gravityOverride);
+
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public void RemoveGravityLock()
+        {
+            if (m_GravityProvider != null)
+                m_GravityProvider.UnlockGravity(this);
+        }
+
+        /// <inheritdoc />
+        void IGravityController.OnGroundedChanged(bool isGrounded) => OnGroundedChanged(isGrounded);
+
+        /// <inheritdoc />
+        void IGravityController.OnGravityLockChanged(GravityOverride gravityOverride) => OnGravityLockChanged(gravityOverride);
+
+        /// <summary>
+        /// Called from <see cref="GravityProvider"/> when the grounded state changes.
+        /// </summary>
+        /// <param name="isGrounded">Whether the player is on the ground.</param>
+        /// <remarks> This is used to prevent players teleporting to the ground while climbing resulting in gravity failing to unpause.</remarks>
+        /// <seealso cref="GravityProvider.onGroundedChanged"/>
+        protected virtual void OnGroundedChanged(bool isGrounded)
+        {
+            gravityPaused = false;
+        }
+
+        /// <summary>
+        /// Called from <see cref="GravityProvider.TryLockGravity"/> when gravity lock is changed.
+        /// </summary>
+        /// <param name="gravityOverride">The <see cref="GravityOverride"/> to apply.</param>
+        /// <seealso cref="GravityProvider.onGravityLockChanged"/>
+        protected virtual void OnGravityLockChanged(GravityOverride gravityOverride)
+        {
+            if (gravityOverride == GravityOverride.ForcedOn)
+                gravityPaused = false;
         }
     }
 }

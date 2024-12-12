@@ -185,7 +185,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// <summary>
         /// Resets the velocity tracking data.
         /// </summary>
-        internal void ResetVelocityTracking()
+        public void ResetVelocityTracking()
         {
             m_PositionTimeBuffer.Clear();
             m_RotationTimeBuffer.Clear();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.Profiling;
+using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Scripting.APIUpdating;
@@ -476,7 +477,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         public List<IXRHoverInteractor> interactorsHovering => (List<IXRHoverInteractor>)m_InteractorsHovering.AsList();
 
         /// <inheritdoc />
-        public bool isHovered => m_InteractorsHovering.Count > 0;
+        public bool isHovered { get; private set; }
 
         readonly HashSetList<IXRSelectInteractor> m_InteractorsSelecting = new HashSetList<IXRSelectInteractor>();
 
@@ -487,7 +488,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         public IXRSelectInteractor firstInteractorSelecting { get; private set; }
 
         /// <inheritdoc />
-        public bool isSelected => m_InteractorsSelecting.Count > 0;
+        public bool isSelected { get; private set; }
 
         readonly HashSetList<IXRInteractionGroup> m_InteractionGroupsFocusing = new HashSetList<IXRInteractionGroup>();
 
@@ -498,7 +499,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         public IXRInteractionGroup firstInteractionGroupFocusing { get; private set; }
 
         /// <inheritdoc />
-        public bool isFocused => m_InteractionGroupsFocusing.Count > 0;
+        public bool isFocused { get; private set; }
 
         /// <inheritdoc />
         public bool canFocus => m_FocusMode != InteractableFocusMode.None;
@@ -612,6 +613,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <inheritdoc />
         public IReadOnlyBindableVariable<float> largestInteractionStrength => m_LargestInteractionStrength;
 
+        bool m_ClearedLargestInteractionStrength;
+
         readonly Dictionary<IXRSelectInteractor, Pose> m_AttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
 
         readonly Dictionary<IXRSelectInteractor, Pose> m_LocalAttachPoseOnSelect = new Dictionary<IXRSelectInteractor, Pose>();
@@ -633,6 +636,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         XRInteractionManager m_RegisteredInteractionManager;
 
         static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength.Interactables");
+        static readonly ProfilerMarker s_ProcessInteractionStrengthEventMarker = new ProfilerMarker("XRI.ProcessInteractionStrength.InteractablesEvent");
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -842,7 +846,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// In other words, returns whether <see cref="interactorsHovering"/> contains <paramref name="interactor"/>.
         /// </remarks>
         /// <seealso cref="interactorsHovering"/>
-        public bool IsHovered(IXRHoverInteractor interactor) => m_InteractorsHovering.Contains(interactor);
+        public bool IsHovered(IXRHoverInteractor interactor) => isHovered && m_InteractorsHovering.Contains(interactor);
 
         /// <summary>
         /// Determines whether this Interactable is currently being selected by the Interactor.
@@ -854,7 +858,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// In other words, returns whether <see cref="interactorsSelecting"/> contains <paramref name="interactor"/>.
         /// </remarks>
         /// <seealso cref="interactorsSelecting"/>
-        public bool IsSelected(IXRSelectInteractor interactor) => m_InteractorsSelecting.Contains(interactor);
+        public bool IsSelected(IXRSelectInteractor interactor) => isSelected && m_InteractorsSelecting.Contains(interactor);
 
         /// <summary>
         /// Determines whether this Interactable is currently being hovered by the Interactor.
@@ -983,10 +987,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             var thisAttachTransform = GetAttachTransform(interactor);
             if (thisAttachTransform != null)
             {
-                m_AttachPoseOnSelect[interactor] =
-                    new Pose(thisAttachTransform.position, thisAttachTransform.rotation);
-                m_LocalAttachPoseOnSelect[interactor] =
-                    new Pose(thisAttachTransform.localPosition, thisAttachTransform.localRotation);
+                m_AttachPoseOnSelect[interactor] = thisAttachTransform.GetWorldPose();
+                m_LocalAttachPoseOnSelect[interactor] = thisAttachTransform.GetLocalPose();
             }
             else
             {
@@ -1116,6 +1118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             var added = m_InteractorsHovering.Add(args.interactorObject);
             Debug.Assert(added, "An Interactable received a Hover Enter event for an Interactor that was already hovering over it.", this);
+            isHovered = true;
 
             if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
                 m_VariableSelectInteractors.Add(variableSelectInteractor);
@@ -1156,12 +1159,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             var removed = m_InteractorsHovering.Remove(args.interactorObject);
             Debug.Assert(removed, "An Interactable received a Hover Exit event for an Interactor that was not hovering over it.", this);
+            if (m_InteractorsHovering.Count == 0)
+                isHovered = false;
 
-            if (m_VariableSelectInteractors.Count > 0 &&
-                args.interactorObject is XRBaseInputInteractor variableSelectInteractor &&
-                !IsSelected(variableSelectInteractor))
+            if (!IsSelected(args.interactorObject))
             {
-                m_VariableSelectInteractors.Remove(variableSelectInteractor);
+                if (m_InteractionStrengths.Count > 0)
+                    m_InteractionStrengths.Remove(args.interactorObject);
+
+                if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
+                    m_VariableSelectInteractors.Remove(variableSelectInteractor);
             }
         }
 
@@ -1177,7 +1184,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="OnHoverEntered(HoverEnterEventArgs)"/>
         protected virtual void OnHoverExited(HoverExitEventArgs args)
         {
-            if (m_InteractorsHovering.Count == 0)
+            if (!isHovered)
                 m_LastHoverExited?.Invoke(args);
 
             m_HoverExited?.Invoke(args);
@@ -1197,6 +1204,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             var added = m_InteractorsSelecting.Add(args.interactorObject);
             Debug.Assert(added, "An Interactable received a Select Enter event for an Interactor that was already selecting it.", this);
+            isSelected = true;
 
             if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
                 m_VariableSelectInteractors.Add(variableSelectInteractor);
@@ -1239,12 +1247,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             var removed = m_InteractorsSelecting.Remove(args.interactorObject);
             Debug.Assert(removed, "An Interactable received a Select Exit event for an Interactor that was not selecting it.", this);
+            if (m_InteractorsSelecting.Count == 0)
+                isSelected = false;
 
-            if (m_VariableSelectInteractors.Count > 0 &&
-                args.interactorObject is XRBaseInputInteractor variableSelectInteractor &&
-                !IsHovered(variableSelectInteractor))
+            if (!IsHovered(args.interactorObject))
             {
-                m_VariableSelectInteractors.Remove(variableSelectInteractor);
+                if (m_InteractionStrengths.Count > 0)
+                    m_InteractionStrengths.Remove(args.interactorObject);
+
+                if (args.interactorObject is XRBaseInputInteractor variableSelectInteractor)
+                    m_VariableSelectInteractors.Remove(variableSelectInteractor);
             }
         }
 
@@ -1260,13 +1272,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="OnSelectEntered(SelectEnterEventArgs)"/>
         protected virtual void OnSelectExited(SelectExitEventArgs args)
         {
-            if (m_InteractorsSelecting.Count == 0)
+            if (!isSelected)
                 m_LastSelectExited?.Invoke(args);
 
             m_SelectExited?.Invoke(args);
 
             // The dictionaries are pruned so that they don't infinitely grow in size as selections are made.
-            if (m_InteractorsSelecting.Count == 0)
+            if (!isSelected)
             {
                 firstInteractorSelecting = null;
                 m_AttachPoseOnSelect.Clear();
@@ -1288,6 +1300,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             var added = m_InteractionGroupsFocusing.Add(args.interactionGroup);
             Debug.Assert(added, "An Interactable received a Focus Enter event for an Interaction group that was already focusing it.", this);
+            isFocused = true;
 
             if (m_InteractionGroupsFocusing.Count == 1)
                 firstInteractionGroupFocusing = args.interactionGroup;
@@ -1325,6 +1338,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             var removed = m_InteractionGroupsFocusing.Remove(args.interactionGroup);
             Debug.Assert(removed, "An Interactable received a Focus Exit event for an Interaction group that did not have focus of it.", this);
+            if (m_InteractionGroupsFocusing.Count == 0)
+                isFocused = false;
         }
 
         /// <summary>
@@ -1339,12 +1354,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="OnFocusEntered(FocusEnterEventArgs)"/>
         protected virtual void OnFocusExited(FocusExitEventArgs args)
         {
-            if (m_InteractionGroupsFocusing.Count == 0)
+            if (!isFocused)
                 m_LastFocusExited?.Invoke(args);
 
             m_FocusExited?.Invoke(args);
 
-            if (m_InteractionGroupsFocusing.Count == 0)
+            if (!isFocused)
                 firstInteractionGroupFocusing = null;
         }
 
@@ -1388,61 +1403,93 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             using (s_ProcessInteractionStrengthMarker.Auto())
             {
-                m_InteractionStrengths.Clear();
+                if (!isSelected && !isHovered)
+                {
+                    // Optimize to avoid float equality check in Value setter if the value has already been cleared
+                    // due to being not selected or hovered.
+                    if (m_ClearedLargestInteractionStrength)
+                        return;
+
+                    m_LargestInteractionStrength.Value = 0f;
+                    m_ClearedLargestInteractionStrength = true;
+
+                    return;
+                }
+
+                m_ClearedLargestInteractionStrength = false;
+
+                var hasFilters = m_InteractionStrengthFilters.registeredSnapshot.Count > 0;
 
                 // Select is checked before Hover to allow process to only be called once per interactor hovering and selecting
                 // using the largest initial interaction strength.
-                for (int i = 0, count = m_InteractorsSelecting.Count; i < count; ++i)
+                if (isSelected)
                 {
-                    var interactor = m_InteractorsSelecting[i];
-                    if (interactor is XRBaseInputInteractor)
-                        continue;
+                    for (int i = 0, count = m_InteractorsSelecting.Count; i < count; ++i)
+                    {
+                        var interactor = m_InteractorsSelecting[i];
+                        if (interactor is XRBaseInputInteractor)
+                            continue;
 
-                    var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthSelect);
-                    m_InteractionStrengths[interactor] = interactionStrength;
+                        var interactionStrength = hasFilters
+                            ? ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthSelect)
+                            : k_InteractionStrengthSelect;
 
-                    maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                        m_InteractionStrengths[interactor] = interactionStrength;
+                        maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                    }
                 }
 
-                for (int i = 0, count = m_InteractorsHovering.Count; i < count; ++i)
+                if (isHovered)
                 {
-                    var interactor = m_InteractorsHovering[i];
-                    if (interactor is XRBaseInputInteractor || IsSelected(interactor))
-                        continue;
+                    for (int i = 0, count = m_InteractorsHovering.Count; i < count; ++i)
+                    {
+                        var interactor = m_InteractorsHovering[i];
+                        if (interactor is XRBaseInputInteractor || IsSelected(interactor))
+                            continue;
 
-                    var interactionStrength = ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthHover);
-                    m_InteractionStrengths[interactor] = interactionStrength;
+                        var interactionStrength = hasFilters
+                            ? ProcessInteractionStrengthFilters(interactor, k_InteractionStrengthHover)
+                            : k_InteractionStrengthHover;
 
-                    maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                        m_InteractionStrengths[interactor] = interactionStrength;
+                        maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
+                    }
                 }
 
                 for (int i = 0, count = m_VariableSelectInteractors.Count; i < count; ++i)
                 {
                     var interactor = m_VariableSelectInteractors[i];
 
-                    // Use the Select input value as the initial interaction strength.
-                    // For interactors that use motion controller input, this is typically the analog trigger or grip press amount.
-                    // Fall back to the default values for selected and hovered interactors in the case when the interactor
-                    // is misconfigured and is missing the input wrapper or component reference.
-                    float interactionStrength;
-#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
-                    if (!interactor.forceDeprecatedInput)
-                        interactionStrength = interactor.selectInput.ReadValue();
-                    else if (interactor.xrController != null)
-                        interactionStrength = interactor.xrController.selectInteractionState.value;
-#pragma warning restore CS0618
-                    else
-                        interactionStrength = IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover;
+                    var interactionStrength = hasFilters
+                        ? ProcessInteractionStrengthFilters(interactor, ReadInteractionStrength(interactor))
+                        : ReadInteractionStrength(interactor);
 
-                    interactionStrength = ProcessInteractionStrengthFilters(interactor, interactionStrength);
                     m_InteractionStrengths[interactor] = interactionStrength;
-
                     maxInteractionStrength = Mathf.Max(maxInteractionStrength, interactionStrength);
                 }
             }
 
-            // This is done outside of the ProfilerMarker since it could trigger user callbacks
-            m_LargestInteractionStrength.Value = maxInteractionStrength;
+            using (s_ProcessInteractionStrengthEventMarker.Auto())
+            {
+                m_LargestInteractionStrength.Value = maxInteractionStrength;
+            }
+        }
+
+        float ReadInteractionStrength(XRBaseInputInteractor interactor)
+        {
+            // Use the Select input value as the initial interaction strength.
+            // For interactors that use motion controller input, this is typically the analog trigger or grip press amount.
+            // Fall back to the default values for selected and hovered interactors in the case when the interactor
+            // is misconfigured and is missing the input wrapper or component reference.
+#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
+            if (!interactor.forceDeprecatedInput)
+                return interactor.selectInput.ReadValue();
+
+            if (interactor.xrController != null)
+                return interactor.xrController.selectInteractionState.value;
+#pragma warning restore CS0618
+
+            return IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover;
         }
 
         /// <summary>

@@ -96,7 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Disables sending events from Event System to UI Toolkit on behalf of this Input Module.
         /// </summary>
-        bool bypassUIToolkitEvents
+        public bool bypassUIToolkitEvents
         {
             get => m_BypassUIToolkitEvents;
             set => m_BypassUIToolkitEvents = value;
@@ -332,7 +332,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// It also updates the internal data of the <see cref="MouseModel"/>.
         /// </summary>
         /// <param name="mouseState">The mouse state you want to forward into the UI Event System.</param>
-        internal void ProcessMouseState(ref MouseModel mouseState)
+        private protected void ProcessMouseState(ref MouseModel mouseState)
         {
             if (!mouseState.changedThisFrame)
                 return;
@@ -614,7 +614,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        internal void ProcessTouch(ref TouchModel touchState)
+        private protected void ProcessTouch(ref TouchModel touchState)
         {
             if (!touchState.changedThisFrame)
                 return;
@@ -636,7 +636,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             touchState.OnFrameFinished();
         }
 
-        internal void ProcessTrackedDevice(ref TrackedDeviceModel deviceState, bool force = false)
+        private protected void ProcessTrackedDevice(ref TrackedDeviceModel deviceState, bool force = false)
         {
             if (!deviceState.changedThisFrame && !force)
                 return;
@@ -738,7 +738,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// It also updates the internal data of the NavigationModel.
         /// </summary>
         /// <param name="navigationState">The navigation state you want to forward into the UI Event System</param>
-        internal void ProcessNavigationState(ref NavigationModel navigationState)
+        private protected void ProcessNavigationState(ref NavigationModel navigationState)
         {
             var usedSelectionChange = SendUpdateEventToSelectedObject();
 
@@ -829,7 +829,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             navigationState.OnFrameFinished();
         }
 
-        internal void RemovePointerEventData(int pointerId)
+        /// <summary>
+        /// Remove the <see cref="PointerEventData"/> associated with the given ID.
+        /// </summary>
+        /// <param name="pointerId">ID of the XR device pointer, mouse pointer or touch registered with the UIInputModule.
+        /// Meaning this should correspond to either <see cref="PointerEventData"/>.<c>pointerId</c> or <see cref="TrackedDeviceEventData"/>.<c>pointerId</c>.
+        /// </param>
+        private protected void RemovePointerEventData(int pointerId)
         {
             if (!m_TrackedDeviceEventByPointerId.Remove(pointerId))
                 m_PointerEventByPointerId.Remove(pointerId);

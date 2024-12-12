@@ -444,7 +444,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// Interaction layers on which the bending of line visuals towards the interactable attach point are enabled.
         /// </summary>
-        InteractionLayerMask bendingEnabledInteractionLayers
+        public InteractionLayerMask bendingEnabledInteractionLayers
         {
             get => m_BendingEnabledInteractionLayers;
             set => m_BendingEnabledInteractionLayers = value;
@@ -456,7 +456,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// A boolean value that controls whether to use a different <see cref="Transform"/> as the starting position and direction of the line.
         /// Set to <see langword="true"/> to use the line origin specified by <see cref="lineOriginTransform"/>.
-        /// Set to <see langword="false"/> to use the the line origin specified by the interactor.
+        /// Set to <see langword="false"/> to use the line origin specified by the interactor.
         /// </summary>
         /// <seealso cref="lineOriginTransform"/>
         /// <seealso cref="IAdvancedLineRenderable.GetLinePoints(ref NativeArray{Vector3},out int,Ray?)"/>

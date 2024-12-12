@@ -427,7 +427,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// If enabled, more detailed cone cast gizmos will be displayed in the editor.
         /// </summary>
-        internal bool liveConeCastDebugVisuals
+        public bool liveConeCastDebugVisuals
         {
             get => m_LiveConeCastDebugVisuals;
             set => m_LiveConeCastDebugVisuals = value;
@@ -578,7 +578,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Enable this to make the XR Ray Interactor ignore interactions when occluded by a screen space canvas.
         /// </summary>
         /// <seealso cref="Canvas.renderMode"/>
-        bool blockInteractionsWithScreenSpaceUI
+        public bool blockInteractionsWithScreenSpaceUI
         {
             get => m_BlockInteractionsWithScreenSpaceUI;
             set => m_BlockInteractionsWithScreenSpaceUI = value;

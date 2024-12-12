@@ -118,6 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         float m_CurrentTurnAmount;
         float m_TimeStarted;
         float m_DelayStartTime;
+        bool m_TurnAroundActivated;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -171,6 +172,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
                 if (Mathf.Approximately(amount, 0f))
                     TryEndLocomotion();
             }
+
+            if (input == Vector2.zero)
+                m_TurnAroundActivated = false;
         }
 
         Vector2 ReadInput()
@@ -197,7 +201,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
                 case Cardinal.North:
                     break;
                 case Cardinal.South:
-                    if (m_EnableTurnAround)
+                    if (m_EnableTurnAround && !m_TurnAroundActivated)
                         return 180f;
                     break;
                 case Cardinal.East:
@@ -224,6 +228,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         {
             if (m_TimeStarted > 0f)
                 return;
+
+            if (Mathf.Approximately(amount, 180f))
+                m_TurnAroundActivated = true;
 
             if (locomotionState == LocomotionState.Idle)
             {

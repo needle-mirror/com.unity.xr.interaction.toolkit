@@ -58,7 +58,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
             /// <summary><see cref="GUIContent"/> for <see cref="ConstrainedMoveProvider.enableFreeZMovement"/>.</summary>
             public static readonly GUIContent enableFreeZMovement = EditorGUIUtility.TrTextContent("Enable Free Z Movement", "Controls whether to enable unconstrained movement along the z-axis.");
             /// <summary><see cref="GUIContent"/> for <see cref="ConstrainedMoveProvider.useGravity"/>.</summary>
-            public static readonly GUIContent useGravity = EditorGUIUtility.TrTextContent("Use Gravity", "Controls whether gravity applies to constrained axes when a Character Controller is used.");
+            public static readonly GUIContent useGravity = EditorGUIUtility.TrTextContent("Use Gravity", "Controls whether gravity applies to constrained axes when a Character Controller is used. Ignored when a Gravity Provider component is found in the scene.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GrabMoveProvider.controllerTransform"/>.</summary>
             public static readonly GUIContent controllerTransform = EditorGUIUtility.TrTextContent("Controller Transform", "The controller Transform that will drive grab movement with its local position. Will use this GameObject's Transform if not set.");

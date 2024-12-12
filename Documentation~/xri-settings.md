@@ -21,19 +21,19 @@ To find these settings in the Unity Editor:
 
 The XR Interaction Toolkit provides a few settings that modify Editor and runtime behavior.
 
-### XR Device Simulator Settings
+### Interaction Simulator Settings
 
-These settings control the [XR Simulator](xref:xri-xr-device-simulator-overview), which you can install from the Package Manager window.
+These settings control the [Simulator](xref:xri-xr-device-simulator-overview), which you can install from the Package Manager window with the [XR Device Simulator](xref:xri-samples-xr-device-simulator) sample.
 
-* **Use XR Device Simulator in scenes**
+* **Use XR Interaction Simulator in scenes**
 
-   The XR device simulator prefab is instantiated automatically by Unity when you enter Play mode.
+   The simulator prefab is instantiated automatically by Unity when you enter Play mode.
 
 * **Instantiate in Editor Only**
 
    When enabled, the simulator prefab is only added in the Editor. Disable to add the prefab to Standalone (desktop) builds, too. (The simulator prefab is never added to XR platform builds automatically.)
 
-* **XR Device Simulator prefab**
+* **XR Interaction Simulator prefab**
 
    The simulator prefab. You can change this reference if you have a customized prefab you would rather use.
 

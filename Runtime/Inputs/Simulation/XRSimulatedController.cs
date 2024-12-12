@@ -127,7 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <inheritdoc />
         protected override unsafe long ExecuteCommand(InputDeviceCommand* commandPtr)
         {
-            return XRDeviceSimulator.TryExecuteCommand(commandPtr, out var result)
+            return XRSimulatorUtility.TryExecuteCommand(commandPtr, out var result)
                 ? result
                 : base.ExecuteCommand(commandPtr);
         }

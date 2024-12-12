@@ -185,9 +185,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Checks if poke interactor is interacting with any raycaster in the scene.
         /// </summary>
-        /// <param name="interactor">Poke ui interactor to check.</param>
-        /// <returns>True if any poke interactor is hovering or selecting a graphic in the scene.</returns>
-        internal static bool IsPokeInteractingWithUI(IUIInteractor interactor)
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
+        /// <returns>Returns <see langword="true"/> if the poke interactor is hovering or selecting any graphic in the scene.</returns>
+        public static bool IsPokeInteractingWithUI(IUIInteractor interactor)
         {
             foreach (var pokeUIInteractorSet in s_PokeHoverRaycasters.Values)
             {
@@ -218,10 +218,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Attempts to get the <see cref="PokeStateData"/> for the provided <see cref="IUIInteractor"/>.
         /// </summary>
-        /// <param name="interactor">The <see cref="IUIInteractor"/> to check.</param>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
         /// <param name="data">The <see cref="PokeStateData"/> associated with the <see cref="IUIInteractor"/> if it is found.</param>
-        /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> is found and its associated <see cref="PokeStateData"/> is retrieved successfully, otherwise returns <see langword="false"/>.</returns>
-        internal static bool TryGetPokeStateDataForInteractor(IUIInteractor interactor, out PokeStateData data)
+        /// <returns>Returns <see langword="true"/> if the poke interactor is hovering or selecting any graphic in the scene
+        /// and thus its associated <see cref="PokeStateData"/> is retrieved successfully, otherwise returns <see langword="false"/>.</returns>
+        /// <seealso cref="IsPokeInteractingWithUI"/>
+        public static bool TryGetPokeStateDataForInteractor(IUIInteractor interactor, out PokeStateData data)
         {
             foreach (var kvp in s_PokeHoverRaycasters)
             {
@@ -258,11 +260,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// This method is used to determine if the <see cref="IUIInteractor"/> has a currently active selection using poke.
+        /// This method is used to determine if the poke interactor has met the requirements for selecting.
+        /// This can be treated like the equivalent of left mouse down for a mouse.
         /// </summary>
         /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
         /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> meets requirements for poke with any <see cref="TrackedDeviceGraphicRaycaster"/>.</returns>
-        internal static bool HasPokeSelect(IUIInteractor interactor)
+        public static bool IsPokeSelectingWithUI(IUIInteractor interactor)
         {
             return interactor != null && s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null;
         }

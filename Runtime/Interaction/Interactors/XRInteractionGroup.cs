@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
@@ -1124,9 +1125,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 using (XRInteractionManager.s_EvaluateValidSelectionsMarker.Auto())
                     m_RegisteredInteractionManager.InteractorSelectValidTargets(selectInteractor, m_ValidTargets);
 
-                // Alternatively check if the base interactor is interacting with UGUI
-                // TODO move this api call to IUIInteractor for XRI 3.0
-                if (selectInteractor.hasSelection || (interactor is XRBaseInteractor baseInteractor && baseInteractor.isInteractingWithUI))
+                // Alternatively check if the interactor is poke interacting with UGUI
+                if (selectInteractor.hasSelection || (interactor is IUIInteractor uiInteractor && TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(uiInteractor)))
                     performedInteraction = true;
             }
 

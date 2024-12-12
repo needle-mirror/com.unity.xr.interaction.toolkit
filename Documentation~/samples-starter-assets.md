@@ -194,7 +194,7 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
   <tr>
     <td colspan="5"><strong>XR Origin (XR Rig)</strong></td>
     <td>
-      <a href="https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/xr-origin.html">XR Origin</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.4/manual/xr-origin.html">XR Origin</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="https://docs.unity3d.com/Manual/class-CharacterController.html">Character Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="input-action-manager.md">Input Action Manager</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="xr-input-modality-manager.md">XR Input Modality Manager</a><hr style="margin-top: 7px; margin-bottom: 7px;">

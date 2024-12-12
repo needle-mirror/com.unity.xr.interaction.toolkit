@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.0.7",
+  "version": "3.1.0-pre.1",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -15,7 +15,7 @@
     "com.unity.inputsystem": "1.8.1",
     "com.unity.mathematics": "1.2.6",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.core-utils": "2.2.3",
+    "com.unity.xr.core-utils": "2.4.0",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
@@ -59,15 +59,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added an extra gizmo to the XR Body Transformer to show locomotion collision constraints for the Character Controller. ([XRIT-181](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-181))\n- Added an optional bypass for UI Toolkit events that may cause incorrect events to get sent to UI Toolkit elements such as scroll views. For more information see the manual page for [XRUIInputModule](xref:xri-ui-input-module). ([XRIT-203](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-203))\n\n### Changed\n- Changed scripts to use Transform methods for getting or setting both position and rotation in a single method call to improve performance.\n\n### Fixed\n- Fixed regression introduced with version [3.0.6](#306---2024-10-15) so the XR Transform Stabilizer component allows empty Aim Target Object references. This fixes the Gaze Interactor ray to update correctly in the XR Origin (XR Rig) prefab.\n- Fixed issues with the near far interactor's attach controller where lateral motion would erroneously trigger z-motion, and z-motion would only trigger when moving the control parallel to the ground. ([XRIT-195](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-195))\n- Fixed issue with `CurveInteractionCaster` and `XRRayInteractor` cone casting where trigger colliders would incorrectly block interactables. Conecasting now filters out trigger while it processes targets instead of after the raycast targets were identified."
+    "changelog": "### Added\n- Added the ability to trigger a 180° degree snap turn around on the Continuous Turn Provider directly instead of having to use a partially enabled Snap Turn Provider. Added properties to enable or disable left-right turning and turn around in the `ContinuousTurnProvider` to match the `SnapTurnProvider` options.\n- Added support for anchor manipulation from controller thumbstick input to the Near-Far Interactor GameObject. The Interaction Attach Controller now has additional properties when Use Manipulation Input is enabled for allowing rotation (horizontal and vertical) and translation along the selection line.\n- Added custom Inspector window for the Interaction Attach Controller.\n- Added `GravityProvider` to handle gravity instead of being applied with the move and grab providers.\n- Added `JumpProvider` to handle simple jumping functionality. This implements the added `IGravityController` interface.\n- Added ability to control whether gravity begins to apply or stays paused when releasing with the `ClimbProvider`.\n- Added a `SimulatedDeviceLifecycleManager` component that handles all the simulated devices, and works in tandem with simulator classes such as `XRDeviceSimulator`.\n- Added a `SimulatedHandExpressionManager` component that handles the simulated hand expressions, and works in tandem with simulator classes such as `XRDeviceSimulator`.\n- Added the new `XR Interaction Simulator` which provides a simplified interface for simulating XR interaction in the editor.\n- Added public properties that wrap serialized fields in some behaviors and their corresponding Editor classes (`CurveInteractionCaster`, `XRInteractorLineVisual`, `XRRayInteractor`, and `UIInputModule`).\n\n### Changed\n- Changed the `XRI Default Input Actions` in the Starter Assets sample to include a Jump Input Action.\n- Changed the XR Origin (XR Rig) prefab in the Starter Assets sample to include the `JumpProvider` and `GravityProvider` by default.\n- Changed some APIs used by the `XRPokeInteractor` for enabling the ability to poke UGUI canvases from `internal` to `public` to allow for custom interactor implementations. (Forward port from 2.6.0)\n- Changed Snap Turn Provider turn around behavior to only trigger once per turn around action. Repeat turns while the thumbstick is pushed in a direction will thus only apply to left or right.\n- Changed the XR Origin (XR Rig) prefab in the Starter Assets sample to enable turn around on the Continuous Turn Provider so that functionality is enabled by default if Smooth Turn Enabled is true on the Controller Input Action Manager.\n- Changed the Near-Far Interactor prefab in the Starter Assets sample to enable anchor manipulation (Translate and Horizontal Rotation).\n- Changed `ContinuousMoveProvider` to implement the `IGravityController` interface.\n- Changed `ContinuousMoveProvider` to handle falling movement differently than grounded movement.\n- Changed `ClimbProvider` to implement the `IGravityController` interface.\n- Changed `ClimbProvider` to zero out gravity accumulation while climbing by implementing the added `IGravityController` interface.\n- Changed `ClimbProvider` to no longer force unconstrained movement through collisions (see `forceUnconstrained` in `XROriginMovement`).\n- Changed scripts to improve performance of processing interaction strength (tagged `XRI.ProcessInteractionStrength` in Profiler).\n- Changed some internal methods to be public or protected (`AttachPointVelocityTracker.ResetVelocityTracking`, `CurveInteractionCaster.OnDrawGizmosSelected`, and `XRBodyTransformer.OnDrawGizmosSelected`).\n- Changed `com.unity.xr.core-utils` dependency from 2.2.3 to 2.4.0.\n\n### Deprecated\n- Deprecated `useGravity` from `ContinuousMoveProvider` and the abstract `ConstrainedMoveProvider` (`GrabMoveProvider` and `TwoHandedGrabMoveProvider`). This functionality has been replaced with the Gravity Provider component and its `useGravity` property.\n- Deprecated some nested types in `XRDeviceSimulator` and replaced them with either nested or unnested types within the `UnityEngine.XR.Interaction.Toolkit.Inputs.Simula"
   },
   "upmCi": {
-    "footprint": "28085fff1f09249887a5e60f92e7577a83043172"
+    "footprint": "ac6a82cb49413d551b144d6d66e178c6986cb66f"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.1/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "3bd5819a6093e6f58286181f1bb7f177d60aa8b6"
+    "revision": "018d52d82b1db7c523ce1ea956acd0ce84d7de57"
   }
 }

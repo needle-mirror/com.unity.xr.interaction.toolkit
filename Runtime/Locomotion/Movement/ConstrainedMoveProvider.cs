@@ -1,5 +1,7 @@
 using UnityEngine.Assertions;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 {
@@ -46,18 +48,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             set => m_EnableFreeZMovement = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls whether gravity applies to constrained axes when a Character Controller is used.")]
-        bool m_UseGravity = true;
-        /// <summary>
-        /// Controls whether gravity applies to constrained axes when a <see cref="CharacterController"/> is used.
-        /// </summary>
-        public bool useGravity
-        {
-            get => m_UseGravity;
-            set => m_UseGravity = value;
-        }
-
         /// <summary>
         /// The transformation that is used by this component to apply translation movement.
         /// </summary>
@@ -66,7 +56,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         CharacterController m_CharacterController;
         bool m_AttemptedGetCharacterController;
         bool m_IsMovingXROrigin;
-        Vector3 m_GravityDrivenVelocity;
+
+        GravityProvider m_GravityProvider;
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            if (ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider))
+            {
+#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
+                if (!m_UseGravity)
+                    MigrateUseGravityToGravityProvider();
+#pragma warning restore CS0618
+            }
+        }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -126,10 +130,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             if (!m_EnableFreeZMovement)
                 motion.z = 0f;
 
-            if (m_CharacterController != null && m_CharacterController.enabled)
+            // Step vertical velocity from gravity, but only if gravity is not being controlled by Gravity Provider
+            if (m_GravityProvider == null && m_CharacterController != null && m_CharacterController.enabled)
             {
-                // Step vertical velocity from gravity
-                if (m_CharacterController.isGrounded || !m_UseGravity)
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (!m_UseGravity || m_CharacterController.isGrounded)
                 {
                     m_GravityDrivenVelocity = Vector3.zero;
                 }
@@ -145,10 +150,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
                 }
 
                 motion += m_GravityDrivenVelocity * Time.deltaTime;
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             TryStartLocomotionImmediately();
-
             if (locomotionState != LocomotionState.Moving)
                 return;
 

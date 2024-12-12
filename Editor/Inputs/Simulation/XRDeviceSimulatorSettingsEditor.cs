@@ -12,9 +12,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
     {
         const string k_PackageName = "com.unity.xr.interaction.toolkit";
         const string k_PackageDisplayName = "XR Interaction Toolkit";
-        const string k_XRDeviceSimulatorName = "XR Device Simulator";
-        const string k_ImportSampleTitle = "Importing " + k_XRDeviceSimulatorName + " sample.";
-        const string k_ImportSampleMessage = "The " + k_XRDeviceSimulatorName + " sample is going to be imported from the " + k_PackageDisplayName + " package, press \"Ok\" to continue.";
+        const string k_SampleDisplayName = "XR Device Simulator";
+        const string k_ImportSampleTitle = "Importing " + k_SampleDisplayName + " sample.";
+        const string k_ImportSampleMessage = "The " + k_SampleDisplayName + " sample is going to be imported from the " + k_PackageDisplayName + " package, press \"Ok\" to continue.";
+
+        const string k_XRInteractionSimulatorPrefabName = "XR Interaction Simulator";
+        const string k_XRDeviceSimulatorPrefabName = "XR Device Simulator";
 
         const float k_LabelsWidth = 270f;
 
@@ -22,6 +25,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_AutomaticallyInstantiateSimulatorPrefab;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateInEditorOnly"/>.</summary>
         SerializedProperty m_AutomaticallyInstantiateInEditorOnly;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.useClassic"/>.</summary>
+        SerializedProperty m_UseClassic;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
         SerializedProperty m_SimulatorPrefab;
 
@@ -32,8 +37,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateSimulatorPrefab"/>.</summary>
             public static readonly GUIContent automaticallyInstantiateSimulatorPrefab =
-                EditorGUIUtility.TrTextContent("Use XR Device Simulator in scenes",
-                    "When enabled, the XR Device Simulator will be automatically created on play mode in your scenes.");
+                EditorGUIUtility.TrTextContent("Use XR Interaction Simulator in scenes",
+                    "When enabled, the XR Interaction Simulator will be automatically created on play mode in your scenes.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateInEditorOnly"/>.</summary>
             public static readonly GUIContent automaticallyInstantiateInEditorOnly =
@@ -41,16 +46,21 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                     "Enable to only automatically create the simulator prefab when running inside the Unity Editor." +
                     " Disable to allow the simulator prefab to also be created in standalone builds.");
 
+            /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.useClassic"/>. </summary>
+            public static readonly GUIContent useClassic =
+                EditorGUIUtility.TrTextContent("Use Classic XR Device Simulator", "Enable to automatically use the legacy XR Device Simulator prefab instead.");
+
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
             public static readonly GUIContent simulatorPrefab =
-                EditorGUIUtility.TrTextContent("XR Device Simulator prefab",
-                    "Reference to the XR Device Simulator prefab that will be instantiated at runtime.");
+                EditorGUIUtility.TrTextContent("XR Interaction Simulator prefab",
+                    "Reference to the XR Interaction Simulator prefab that will be instantiated at runtime.");
         }
 
         void OnEnable()
         {
             m_AutomaticallyInstantiateSimulatorPrefab = serializedObject.FindProperty("m_AutomaticallyInstantiateSimulatorPrefab");
             m_AutomaticallyInstantiateInEditorOnly = serializedObject.FindProperty("m_AutomaticallyInstantiateInEditorOnly");
+            m_UseClassic = serializedObject.FindProperty("m_UseClassic");
             m_SimulatorPrefab = serializedObject.FindProperty("m_SimulatorPrefab");
         }
 
@@ -68,6 +78,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 using (new EditorGUI.DisabledScope(!m_AutomaticallyInstantiateSimulatorPrefab.boolValue))
                 {
                     EditorGUILayout.PropertyField(m_AutomaticallyInstantiateInEditorOnly, Contents.automaticallyInstantiateInEditorOnly);
+                    EditorGUILayout.PropertyField(m_UseClassic, Contents.useClassic);
                     EditorGUILayout.PropertyField(m_SimulatorPrefab, Contents.simulatorPrefab);
                 }
 
@@ -76,7 +87,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 if (check.changed)
                 {
                     if (m_AutomaticallyInstantiateSimulatorPrefab.boolValue)
-                        LoadXRDeviceSimulatorSampleAsset();
+                    {
+                        if (m_UseClassic.boolValue)
+                            LoadXRDeviceSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName);
+                        else
+                            LoadXRDeviceSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName);
+                    }
                     else
                         m_SimulatorPrefab.objectReferenceValue = null;
 
@@ -86,12 +102,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
-        void LoadXRDeviceSimulatorSampleAsset()
+        void LoadXRDeviceSimulatorSampleAsset<T>(string simulatorPrefabName)
         {
             var packageSamples = Sample.FindByPackage(k_PackageName, string.Empty);
             if (packageSamples == null)
             {
-                Debug.LogError($"Couldn't find samples of the {k_PackageName} package for importing the {k_XRDeviceSimulatorName} sample; aborting.", this);
+                Debug.LogError($"Couldn't find samples of the {k_PackageName} package for importing the {k_SampleDisplayName} sample; aborting.", this);
                 return;
             }
 
@@ -99,7 +115,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             foreach (var packageSample in packageSamples)
             {
-                if (packageSample.displayName != k_XRDeviceSimulatorName)
+                if (packageSample.displayName != k_SampleDisplayName)
                     continue;
 
                 if (!packageSample.isImported)
@@ -121,17 +137,17 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (!foundXRDeviceSimulatorSample)
             {
-                Debug.LogError($"Couldn't find {k_XRDeviceSimulatorName} sample in the {k_PackageDisplayName} package; aborting.", this);
+                Debug.LogError($"Couldn't find {k_SampleDisplayName} sample in the {k_PackageDisplayName} package; aborting.", this);
                 return;
             }
 
-            const string searchFilter = "\"" + k_XRDeviceSimulatorName + "\"";
+            var searchFilter = "\"" + simulatorPrefabName + "\"";
             var foundXRDeviceSimulatorAsset = false;
             foreach (var guid in AssetDatabase.FindAssets(searchFilter))
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(guid);
                 var simulatorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-                if (simulatorPrefab != null && simulatorPrefab.TryGetComponent<XRDeviceSimulator>(out _))
+                if (simulatorPrefab != null && simulatorPrefab.TryGetComponent<T>(out _))
                 {
                     m_SimulatorPrefab.objectReferenceValue = simulatorPrefab;
                     foundXRDeviceSimulatorAsset = true;
@@ -140,7 +156,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (!foundXRDeviceSimulatorAsset)
             {
-                Debug.LogError($"Couldn't find the {k_XRDeviceSimulatorName} prefab; has the asset been renamed?", this);
+                Debug.LogError($"Couldn't find the {simulatorPrefabName} prefab; has the asset been renamed?", this);
             }
         }
     }

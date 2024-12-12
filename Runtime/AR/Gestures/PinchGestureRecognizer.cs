@@ -68,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Pinch gesture.</returns>
-        internal PinchGesture CreateGesture(Touch touch1, Touch touch2)
+        PinchGesture CreateGesture(Touch touch1, Touch touch2)
         {
             return new PinchGesture(this, touch1, touch2);
         }
@@ -84,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="touch1">The first touch that started this gesture.</param>
         /// <param name="touch2">The second touch that started this gesture.</param>
         /// <returns>The created Pinch gesture.</returns>
-        internal PinchGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
+        PinchGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2)
         {
             return new PinchGesture(this, touch1, touch2);
         }

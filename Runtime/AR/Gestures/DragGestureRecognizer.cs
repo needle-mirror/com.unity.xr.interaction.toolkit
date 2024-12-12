@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="touch">The touch that started this gesture.</param>
         /// <returns>Returns the created Drag gesture.</returns>
-        internal DragGesture CreateGesture(Touch touch)
+        DragGesture CreateGesture(Touch touch)
         {
             return new DragGesture(this, touch);
         }
@@ -76,7 +76,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="touch">The touch that started this gesture.</param>
         /// <returns>Returns the created Drag gesture.</returns>
-        internal DragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
+        DragGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
         {
             return new DragGesture(this, touch);
         }

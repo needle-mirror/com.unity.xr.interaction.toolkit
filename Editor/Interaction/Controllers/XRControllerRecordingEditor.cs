@@ -13,13 +13,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected const string k_ValueFormat = "0.#";
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_SelectActivatedInFirstFrame</c>.</summary>
-        SerializedProperty m_SelectActivatedInFirstFrame;
+        protected SerializedProperty m_SelectActivatedInFirstFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_ActivateActivatedInFirstFrame</c>.</summary>
-        SerializedProperty m_ActivateActivatedInFirstFrame;
+        protected SerializedProperty m_ActivateActivatedInFirstFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> <see cref="XRControllerRecording"/><c>.m_FirstUIPressActivatedInFirstFrame</c>.</summary>
-        SerializedProperty m_FirstUIPressActivatedInFirstFrame;
+        protected SerializedProperty m_FirstUIPressActivatedInFirstFrame;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRControllerRecording.frames"/>.</summary>
-        SerializedProperty m_Frames;
+        protected SerializedProperty m_Frames;
 
         XRControllerRecording m_ControllerRecording;
 

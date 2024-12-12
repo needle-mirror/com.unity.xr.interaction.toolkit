@@ -50,7 +50,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineBendRatio"/>.</summary>
         protected SerializedProperty m_LineBendRatio;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.bendingEnabledInteractionLayers"/>.</summary>
-        SerializedProperty m_BendingEnabledInteractionLayers;
+        protected SerializedProperty m_BendingEnabledInteractionLayers;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.overrideInteractorLineOrigin"/>.</summary>
         protected SerializedProperty m_OverrideInteractorLineOrigin;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractorLineVisual.lineOriginTransform"/>.</summary>
@@ -117,7 +117,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineBendRatio"/>.</summary>
             public static readonly GUIContent lineBendRatio = EditorGUIUtility.TrTextContent("Line Bend Ratio", "When line is bent because target end point is out of line with the ray or snap volume is in use, this ratio determines what the bend point is. A value of 1 means the line will not bend.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.bendingEnabledInteractionLayers"/>.</summary>
-            internal static readonly GUIContent bendingEnabledInteractionLayers = EditorGUIUtility.TrTextContent("Bending Enabled Interaction Layers", "Interaction layers on which the line visuals are allowed to bend towards the attach transform. Snap volumes will still always bend visuals.");
+            public static readonly GUIContent bendingEnabledInteractionLayers = EditorGUIUtility.TrTextContent("Bending Enabled Interaction Layers", "Interaction layers on which the line visuals are allowed to bend towards the attach transform. Snap volumes will still always bend visuals.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.overrideInteractorLineOrigin"/>.</summary>
             public static readonly GUIContent overrideInteractorLineOrigin = EditorGUIUtility.TrTextContent("Override Line Origin", "Controls whether to use a different Transform as the starting position and direction of the line.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRInteractorLineVisual.lineOriginTransform"/>.</summary>

@@ -7,6 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
@@ -42,6 +43,21 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_ControllerRecorder = -30000;
 
         /// <summary>
+        /// Order when instances of type <see cref="SimulatedDeviceLifecycleManager"/> are updated.
+        /// </summary>
+        public const int k_SimulatedDeviceLifecycleManager = -29995; // Before XRDeviceSimulator
+
+        /// <summary>
+        /// Order when instances of type <see cref="SimulatedHandExpressionManager"/> are updated.
+        /// </summary>
+        public const int k_SimulatedHandExpressionManager = -29994; // Before XRDeviceSimulator
+
+        /// <summary>
+        /// Order when instances of type <see cref="XRInteractionSimulator"/> are updated.
+        /// </summary>
+        public const int k_InteractionSimulator = -29991; // Before XRBaseController
+
+        /// <summary>
         /// Order when instances of type <see cref="XRDeviceSimulator"/> are updated.
         /// </summary>
         public const int k_DeviceSimulator = -29991; // Before XRBaseController
@@ -70,6 +86,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Order when instances of type <see cref="TwoHandedGrabMoveProvider"/> are updated.
         /// </summary>
         public const int k_TwoHandedGrabMoveProviders = -209; // After GrabMoveProvider
+
+        /// <summary>
+        /// Order when instances of type <see cref="GravityProvider"/> are updated.
+        /// </summary>
+        public const int k_GravityProvider = -207; // Between LocomotionProviders and XRBodyTransformer
 
         /// <summary>
         /// Order when instances of type <see cref="XRBodyTransformer"/> are updated.

@@ -4,7 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 {
     /// <summary>
-    /// Configuration class for XR Device Simulator which
+    /// Configuration class for Interaction Simulator which
     /// stores settings related to automatic instantiation.
     /// </summary>
     [ScriptableSettingsPath(ProjectPath.k_XRInteractionSettingsFolder)]
@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_AutomaticallyInstantiateSimulatorPrefab;
 
         /// <summary>
-        /// Setting this value to <see langword="true"/> will tell the <see cref="XRDeviceSimulatorLoader"/> to look for and automatically
+        /// Setting this value to <see langword="true"/> will tell the <see cref="XRInteractionSimulatorLoader"/> to look for and automatically
         /// add the <see cref="simulatorPrefab"/> to the current scene if it does not already exist.
         /// </summary>
         internal bool automaticallyInstantiateSimulatorPrefab
@@ -31,7 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// preventing it from automatically appearing in standalone builds. Disable to allow the simulator to be created in standalone builds.
         /// </summary>
         /// <remarks>
-        /// Setting this value to <see langword="true"/> will limit the <see cref="XRDeviceSimulatorLoader"/> to
+        /// Setting this value to <see langword="true"/> will limit the <see cref="XRInteractionSimulatorLoader"/> to
         /// only automatically instantiate the <see cref="simulatorPrefab"/> if the application is running inside the Unity Editor.
         /// This property is only used if <see cref="automaticallyInstantiateSimulatorPrefab"/> is enabled.
         /// </remarks>
@@ -39,6 +39,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             get => m_AutomaticallyInstantiateInEditorOnly;
             set => m_AutomaticallyInstantiateInEditorOnly = value;
+        }
+
+        [SerializeField]
+        bool m_UseClassic;
+
+        /// <summary>
+        /// Enable this to automatically use the legacy <see cref="XRDeviceSimulator"/> prefab. Disable to return to the default behavior of automatically using of the <see cref="XRInteractionSimulator"/> prefab instead.
+        /// </summary>
+        internal bool useClassic
+        {
+            get => m_UseClassic;
+            set => m_UseClassic = value;
         }
 
         [SerializeField]

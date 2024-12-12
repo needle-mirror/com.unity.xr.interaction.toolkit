@@ -217,7 +217,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         PhysicsScene m_LocalPhysicsScene;
 
         // Used to avoid GC Alloc each frame in UpdateUIModel
-        Func<Vector3> m_PositionGetter;
+        Func<Vector3> m_PositionProvider;
 
         /// <inheritdoc />
         protected override void Awake()
@@ -225,7 +225,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.Awake();
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_RegisteredUIInteractorCache = new RegisteredUIInteractorCache(this);
-            m_PositionGetter = GetPokePosition;
+            m_PositionProvider = GetPokePosition;
         }
 
         /// <inheritdoc />
@@ -263,7 +263,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 else
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
 
-                isInteractingWithUI = TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(this);
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
             }
@@ -315,6 +314,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 if (m_ValidTargets.Count == 0)
                     hasOverlap = false;
             }
+
             currentTarget = hasOverlap ? (IXRSelectInteractable)m_ValidTargets[0] : null;
             pokeFilter = hasOverlap ? s_ValidTargetsScratchMap[currentTarget] : null;
             return hasOverlap;
@@ -322,16 +322,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         void ProcessPokeStateData()
         {
-            PokeStateData newPokeStateData = default;
-            if (isInteractingWithUI)
-            {
-                TrackedDeviceGraphicRaycaster.TryGetPokeStateDataForInteractor(this, out newPokeStateData);
-            }
-            else if (m_CurrentPokeFilter != null && m_CurrentPokeFilter is IPokeStateDataProvider pokeStateDataProvider)
-            {
-                newPokeStateData = pokeStateDataProvider.pokeStateData.Value;
-            }
-            m_PokeStateData.Value = newPokeStateData;
+            if (TrackedDeviceGraphicRaycaster.TryGetPokeStateDataForInteractor(this, out var uiData))
+                m_PokeStateData.Value = uiData;
+            else if (m_CurrentPokeFilter is IPokeStateDataProvider pokeStateDataProvider)
+                m_PokeStateData.Value = pokeStateDataProvider.pokeStateData.Value;
+            else
+                m_PokeStateData.Value = default;
         }
 
         /// <inheritdoc />
@@ -495,7 +491,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             model.position = pokePose.position;
             model.orientation = pokePose.rotation;
-            model.positionGetter = m_PositionGetter;
+            model.positionProvider = m_PositionProvider;
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;

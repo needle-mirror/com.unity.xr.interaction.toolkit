@@ -35,7 +35,7 @@ The XR Interaction Toolkit package has several dependencies which are automatica
 * [Input System (com.unity.inputsystem)](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/index.html)
 * [Mathematics (com.unity.mathematics)](https://docs.unity3d.com/Packages/com.unity.mathematics@1.2/manual/index.html)
 * [Unity UI (com.unity.ugui)](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/index.html)
-* [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.2/manual/index.html)
+* [XR Core Utilities (com.unity.xr.core-utils)](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@2.4/manual/index.html)
 * Built-in modules
   * [Audio](https://docs.unity3d.com/Manual/com.unity.modules.audio.html)
   * [IMGUI](https://docs.unity3d.com/Manual/com.unity.modules.imgui.html)

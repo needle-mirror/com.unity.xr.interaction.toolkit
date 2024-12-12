@@ -67,7 +67,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="touch">The touch that started this gesture.</param>
         /// <returns>The created Tap gesture.</returns>
-        internal TapGesture CreateGesture(Touch touch)
+        TapGesture CreateGesture(Touch touch)
         {
             return new TapGesture(this, touch);
         }
@@ -82,7 +82,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="touch">The touch that started this gesture.</param>
         /// <returns>The created Tap gesture.</returns>
-        internal TapGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
+        TapGesture CreateEnhancedGesture(InputSystem.EnhancedTouch.Touch touch)
         {
             return new TapGesture(this, touch);
         }

@@ -79,6 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         float m_CurrentTurnAmount;
         float m_TimeStarted;
         float m_DelayStartTime;
+        bool m_TurnAroundActivated;
 
         /// <inheritdoc />
         protected override void Awake()
@@ -134,6 +135,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (Mathf.Approximately(amount, 0f))
                     locomotionPhase = LocomotionPhase.Done;
             }
+
+            if (input == Vector2.zero)
+                m_TurnAroundActivated = false;
         }
 
         /// <summary>
@@ -158,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 case Cardinal.North:
                     break;
                 case Cardinal.South:
-                    if (m_EnableTurnAround)
+                    if (m_EnableTurnAround && !m_TurnAroundActivated)
                         return 180f;
                     break;
                 case Cardinal.East:
@@ -188,6 +192,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (!CanBeginLocomotion())
                 return;
+
+            if (Mathf.Approximately(amount, 180f))
+                m_TurnAroundActivated = true;
 
             if (locomotionPhase == LocomotionPhase.Idle)
             {

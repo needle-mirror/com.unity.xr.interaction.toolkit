@@ -40,7 +40,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         internal static class Contents
         {
-            public static readonly GUIContent deviceSimulatorSettingsTitle = new GUIContent("XR Device Simulator Settings");
+            public static readonly GUIContent interactionSimulatorSettingsTitle = new GUIContent("Interaction Simulator Settings");
             public static readonly GUIContent interactionLayerSettingsTitle = new GUIContent("Interaction Layer Settings");
             public static readonly GUIContent editorSettingsTitle = new GUIContent("Editor Settings");
 
@@ -110,7 +110,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             if (m_InteractionLayerSettingsEditor != null)
             {
-                GUILayout.Label(Contents.deviceSimulatorSettingsTitle, Contents.sectionTitleStyle);
+                GUILayout.Label(Contents.interactionSimulatorSettingsTitle, Contents.sectionTitleStyle);
                 m_XRDeviceSimulatorSettingsEditor.OnInspectorGUI();
             }
         }

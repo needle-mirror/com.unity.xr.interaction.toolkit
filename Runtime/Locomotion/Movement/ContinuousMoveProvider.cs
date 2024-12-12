@@ -1,6 +1,7 @@
-using System;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 {
@@ -12,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
     /// <seealso cref="ContinuousTurnProvider"/>
     [AddComponentMenu("XR/Locomotion/Continuous Move Provider", 11)]
     [HelpURL(XRHelpURLConstants.k_ContinuousMoveProvider)]
-    public class ContinuousMoveProvider : LocomotionProvider
+    public partial class ContinuousMoveProvider : LocomotionProvider, IGravityController
     {
         [SerializeField]
         [Tooltip("The speed, in units per second, to move forward.")]
@@ -24,6 +25,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         {
             get => m_MoveSpeed;
             set => m_MoveSpeed = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Determines how much control the player has while in the air (0 = no control, 1 = full control).")]
+        float m_InAirControlModifier = 0.5f;
+        /// <summary>
+        /// Determines how much control the player has while in the air (0 = no control, 1 = full control).
+        /// </summary>
+        public float inAirControlModifier
+        {
+            get => m_InAirControlModifier;
+            set => m_InAirControlModifier = value;
         }
 
         [SerializeField]
@@ -42,25 +55,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         [Tooltip("Controls whether to enable flying (unconstrained movement). This overrides the use of gravity.")]
         bool m_EnableFly;
         /// <summary>
-        /// Controls whether to enable flying (unconstrained movement). This overrides <see cref="useGravity"/>.
+        /// Controls whether to enable flying (unconstrained movement). This overrides the use of gravity.
         /// </summary>
         public bool enableFly
         {
             get => m_EnableFly;
             set => m_EnableFly = value;
-        }
-
-        [SerializeField]
-        [Tooltip("Controls whether gravity affects this provider when a Character Controller is used and flying is disabled.")]
-        bool m_UseGravity = true;
-        /// <summary>
-        /// Controls whether gravity affects this provider when a <see cref="CharacterController"/> is used.
-        /// This only applies when <see cref="enableFly"/> is <see langword="false"/>.
-        /// </summary>
-        public bool useGravity
-        {
-            get => m_UseGravity;
-            set => m_UseGravity = value;
         }
 
         [SerializeField]
@@ -106,13 +106,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             set => XRInputReaderUtility.SetInputProperty(ref m_RightHandMoveInput, value, this);
         }
 
+        /// <inheritdoc />
+        public bool canProcess => isActiveAndEnabled;
+
+        /// <inheritdoc />
+        public bool gravityPaused => m_EnableFly;
+
+        GravityProvider m_GravityProvider;
+
         CharacterController m_CharacterController;
 
         bool m_AttemptedGetCharacterController;
 
         bool m_IsMovingXROrigin;
 
-        Vector3 m_VerticalVelocity;
+        Vector3 m_GravityDrivenVelocity;
+        Vector3 m_InAirVelocity;
+
+        /// <inheritdoc />
+        protected override void Awake()
+        {
+            base.Awake();
+            if (ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider))
+            {
+#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
+                if (!m_UseGravity)
+                    MigrateUseGravityToGravityProvider();
+#pragma warning restore CS0618
+            }
+        }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -122,6 +144,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_LeftHandMoveInput.EnableDirectActionIfModeUsed();
             m_RightHandMoveInput.EnableDirectActionIfModeUsed();
+
+            m_GravityDrivenVelocity = Vector3.zero;
+            m_InAirVelocity = Vector3.zero;
         }
 
         /// <summary>
@@ -131,6 +156,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         {
             m_LeftHandMoveInput.DisableDirectActionIfModeUsed();
             m_RightHandMoveInput.DisableDirectActionIfModeUsed();
+        }
+
+        /// <inheritdoc />
+        protected override void OnLocomotionStarting()
+        {
+            base.OnLocomotionStarting();
+
+            TryLockGravity(m_EnableFly ? GravityOverride.ForcedOff : GravityOverride.ForcedOn);
+        }
+
+        /// <inheritdoc />
+        protected override void OnLocomotionEnding()
+        {
+            base.OnLocomotionEnding();
+
+            RemoveGravityLock();
         }
 
         /// <summary>
@@ -147,15 +188,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             var input = ReadInput();
             var translationInWorldSpace = ComputeDesiredMove(input);
 
-            if (input != Vector2.zero || m_VerticalVelocity != Vector3.zero)
+            if (input != Vector2.zero || m_GravityDrivenVelocity != Vector3.zero || m_InAirVelocity != Vector3.zero)
                 MoveRig(translationInWorldSpace);
 
             if (!m_IsMovingXROrigin)
                 TryEndLocomotion();
         }
 
-
-        /// <inheritdoc />
         Vector2 ReadInput()
         {
             var leftHandValue = m_LeftHandMoveInput.ReadValue();
@@ -171,7 +210,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         /// <returns>Returns the translation amount in world space to move the rig.</returns>
         protected virtual Vector3 ComputeDesiredMove(Vector2 input)
         {
-            if (input == Vector2.zero)
+            if (input == Vector2.zero && m_InAirVelocity == Vector3.zero)
                 return Vector3.zero;
 
             var xrOrigin = mediator.xrOrigin;
@@ -183,12 +222,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             // while still allowing for analog input to move slower (which would be lost if simply normalizing).
             var inputMove = Vector3.ClampMagnitude(new Vector3(m_EnableStrafe ? input.x : 0f, 0f, input.y), 1f);
 
+            var deltaTime = Time.deltaTime;
+
+            // Check if the user is not in the air, and update the input velocity accordingly.
+            // If the user is in the air, update the input velocity with the inAirControlModifier.
+            if (m_GravityProvider == null || m_GravityProvider.isGrounded)
+                m_InAirVelocity = inputMove;
+            else
+                m_InAirVelocity += deltaTime * m_InAirControlModifier * 10 * (inputMove - m_InAirVelocity);
+
             // Determine frame of reference for what the input direction is relative to
             var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;
             var inputForwardInWorldSpace = forwardSourceTransform.forward;
 
             var originTransform = xrOrigin.Origin.transform;
-            var speedFactor = m_MoveSpeed * Time.deltaTime * originTransform.localScale.x; // Adjust speed with user scale
+            var speedFactor = m_MoveSpeed * deltaTime * originTransform.localScale.x; // Adjust speed with user scale
 
             // If flying, just compute move directly from input and forward source
             if (m_EnableFly)
@@ -213,7 +261,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             var inputForwardProjectedInWorldSpace = Vector3.ProjectOnPlane(inputForwardInWorldSpace, originUp);
             var forwardRotation = Quaternion.FromToRotation(originTransform.forward, inputForwardProjectedInWorldSpace);
 
-            var translationInRigSpace = forwardRotation * inputMove * speedFactor;
+            var translationInRigSpace = forwardRotation * m_InAirVelocity * speedFactor;
             var translationInWorldSpace = originTransform.TransformDirection(translationInRigSpace);
 
             return translationInWorldSpace;
@@ -234,23 +282,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             var motion = translationInWorldSpace;
 
-            if (m_CharacterController != null && m_CharacterController.enabled)
+            // Step vertical velocity from gravity, but only if gravity is not being controlled by Gravity Provider
+            if (m_GravityProvider == null && m_CharacterController != null && m_CharacterController.enabled)
             {
-                // Step vertical velocity from gravity
+#pragma warning disable CS0618 // Type or member is obsolete
                 if (m_CharacterController.isGrounded || !m_UseGravity || m_EnableFly)
-                {
-                    m_VerticalVelocity = Vector3.zero;
-                }
+                    m_GravityDrivenVelocity = Vector3.zero;
                 else
-                {
-                    m_VerticalVelocity += Physics.gravity * Time.deltaTime;
-                }
+                    m_GravityDrivenVelocity += Physics.gravity * Time.deltaTime;
 
-                motion += m_VerticalVelocity * Time.deltaTime;
+                motion += m_GravityDrivenVelocity * Time.deltaTime;
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             TryStartLocomotionImmediately();
-
             if (locomotionState != LocomotionState.Moving)
                 return;
 
@@ -276,6 +321,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
                 m_AttemptedGetCharacterController = true;
             }
+        }
+
+
+        /// <inheritdoc/>
+        public bool TryLockGravity(GravityOverride gravityOverride)
+        {
+            if (m_GravityProvider != null)
+                return m_GravityProvider.TryLockGravity(this, gravityOverride);
+
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public void RemoveGravityLock()
+        {
+            if (m_GravityProvider != null)
+                m_GravityProvider.UnlockGravity(this);
+        }
+
+        /// <inheritdoc />
+        void IGravityController.OnGroundedChanged(bool isGrounded) => OnGroundedChanged(isGrounded);
+
+        /// <inheritdoc />
+        void IGravityController.OnGravityLockChanged(GravityOverride gravityOverride) => OnGravityLockChanged(gravityOverride);
+
+        /// <summary>
+        /// Called from <see cref="GravityProvider"/> when the grounded state changes.
+        /// </summary>
+        /// <param name="isGrounded">Whether the player is on the ground.</param>
+        /// <seealso cref="GravityProvider.onGroundedChanged"/>
+        protected virtual void OnGroundedChanged(bool isGrounded)
+        {
+        }
+
+        /// <summary>
+        /// Called from <see cref="GravityProvider.TryLockGravity"/> when gravity lock is changed.
+        /// </summary>
+        /// <param name="gravityOverride">The <see cref="GravityOverride"/> to apply.</param>
+        /// <seealso cref="GravityProvider.onGravityLockChanged"/>
+        protected virtual void OnGravityLockChanged(GravityOverride gravityOverride)
+        {
         }
     }
 }
