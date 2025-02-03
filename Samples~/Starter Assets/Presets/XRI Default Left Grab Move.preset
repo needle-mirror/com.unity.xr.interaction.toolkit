@@ -45,12 +45,12 @@ Preset:
     value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
-    propertyPath: m_UseGravity
-    value: 1
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
     propertyPath: m_GravityApplicationMode
     value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_UseGravity
+    value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_ControllerTransform
@@ -158,6 +158,10 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_GrabMoveInput.m_ManualQueueWasPerformedThisFrame
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_GrabMoveInput.m_ManualQueueWasCompletedThisFrame
     value: 0
     objectReference: {fileID: 0}
   - target: {fileID: 0}

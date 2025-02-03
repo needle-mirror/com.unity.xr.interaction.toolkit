@@ -4,6 +4,7 @@ using Unity.Burst;
 #endif
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
@@ -41,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
     /// <seealso cref="CurveVisualController.hoverHitProperties"/>
     /// <seealso cref="CurveVisualController.selectHitProperties"/>
     [Serializable]
-    public class LineProperties
+    public partial class LineProperties
     {
         const float k_DefaultLineWidth = 0.005f;
 
@@ -87,17 +88,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             set => m_AdjustWidth = value;
         }
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("m_StarWidth")]
         [Tooltip("Width of the line at the start.")]
-        float m_StarWidth = k_DefaultLineWidth;
+        float m_StartWidth = k_DefaultLineWidth;
 
         /// <summary>
         /// Width of the line at the start.
         /// </summary>
-        public float starWidth
+        public float startWidth
         {
-            get => m_StarWidth;
-            set => m_StarWidth = value;
+            get => m_StartWidth;
+            set => m_StartWidth = value;
         }
 
         [SerializeField]
@@ -207,11 +208,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         public LineRenderer lineRenderer
         {
             get => m_LineRenderer;
-            set
-            {
-                m_LineRenderer = value;
-                m_LineRenderer.useWorldSpace = false;
-            }
+            set => m_LineRenderer = value;
         }
 
         [SerializeField]
@@ -520,12 +517,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         public bool renderLineInWorldSpace
         {
             get => m_RenderLineInWorldSpace;
-            set
-            {
-                m_RenderLineInWorldSpace = value;
-                if (m_LineRenderer != null)
-                    m_LineRenderer.useWorldSpace = value;
-            }
+            set => m_RenderLineInWorldSpace = value;
         }
 
         [SerializeField]
@@ -619,7 +611,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 return;
             }
 
-            m_LineRenderer.useWorldSpace = m_RenderLineInWorldSpace;
             m_ParentTransform = transform.parent;
 
             m_FallBackSamplePoints = new NativeArray<Vector3>(k_FallBackLinePointCount, Allocator.Persistent);
@@ -766,6 +757,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             bool shouldDrawCurve = forceStraightLineFallback || bendRatio < 1f;
             bool curveGenerated = false;
 
+            m_LineRenderer.useWorldSpace = m_RenderLineInWorldSpace;
             Vector3 origin = m_RenderLineInWorldSpace ? worldOrigin : m_ParentTransform.InverseTransformPoint(worldOrigin);
             Vector3 endPoint = m_RenderLineInWorldSpace ? worldEndPoint : m_ParentTransform.InverseTransformPoint(worldEndPoint);
 
@@ -896,11 +888,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             if (!TryGetLineProperties(endPointType, out var properties) || !properties.adjustWidth)
                 return;
 
-            if (Mathf.Approximately(m_LastLineStartWidth, properties.starWidth) &&
+            if (Mathf.Approximately(m_LastLineStartWidth, properties.startWidth) &&
                 Mathf.Approximately(m_LastLineEndWidth, properties.endWidth))
                 return;
 
-            var targetStartWidth = properties.starWidth;
+            var targetStartWidth = properties.startWidth;
 
             var endWidthScaleFactor = properties.endWidthScaleDistanceFactor > 0f ? (1f + properties.endWidthScaleDistanceFactor * targetDistance / maxVisualCurveDistance) : 1f;
             var targetEndWidth = properties.endWidth * endWidthScaleFactor;
@@ -1063,7 +1055,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             endPoint = worldOrigin + direction * validHitDistance;
         }
 
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         static bool ComputeFallBackLine(in float3 curveOrigin, in float3 endPoint, float startOffset, float endOffset, ref NativeArray<float3> fallBackTargetPoints)

@@ -12,6 +12,7 @@ Button {
     border-right-width: 1px;
     border-bottom-width: 1px;
     border-left-width: 1px;
+    translate: 0 0 20px;
 }
 
 Button.unity-button--with-icon {
@@ -115,6 +116,10 @@ DropdownField:hover .unity-base-popup-field__input {
     align-self: center;
 }
 
+Toggle {
+    translate: 0 0 20px;
+}
+
 Toggle #unity-checkmark {
     background-image: none;
     background-color: rgb(46, 46, 46);
@@ -162,7 +167,7 @@ Toggle:hover #unity-checkmark {
 }
 
 Toggle.IconToggle:checked #unity-checkmark {
-    background-image: url("project://database/Assets/Samples/XR%20Interaction%20Toolkit/3.3.0-pre.2/Starter%20Assets/DemoAssets/Sprites/Checkmark.png?fileID=2800000&guid=db3e7b7c8db355e499429545071a0321&type=3#Checkmark");
+    background-image: url("project://?fileID=2800000&guid=db3e7b7c8db355e499429545071a0321&type=3#Checkmark");
     background-size: 50% 50%;
 }
 

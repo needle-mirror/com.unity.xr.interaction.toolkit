@@ -137,34 +137,55 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         /// </summary>
         protected virtual void Awake()
         {
+            // Backwards compatibility to find the LocomotionSystem.
+            // Only done in Awake instead of also in OnEnable to avoid the cost for finding a deprecated component
+            // every time the component is enabled since it is expected for this component to not be present in the scene.
 #pragma warning disable CS0618 // Type or member is obsolete
             if (m_System == null)
             {
                 m_System = GetComponentInParent<LocomotionSystem>();
                 if (m_System == null)
-                {
                     ComponentLocatorUtility<LocomotionSystem>.TryFindComponent(out m_System);
-                }
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 
-            if (m_Mediator == null)
-            {
-                m_Mediator = GetComponentInParent<LocomotionMediator>();
-                if (m_Mediator == null)
-                {
-                    ComponentLocatorUtility<LocomotionMediator>.TryFindComponent(out m_Mediator);
-                }
-            }
+            FindDependencies();
 
+            locomotionProviders.Add(this);
+            locomotionProvidersChanged?.Invoke(this);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnEnable()
+        {
+            FindDependencies();
+
+#pragma warning disable CS0618 // Type or member is obsolete
             if (m_Mediator == null && m_System == null)
             {
                 Debug.LogError("Locomotion Provider requires a Locomotion Mediator or Locomotion System (legacy) in the scene.", this);
                 enabled = false;
             }
 #pragma warning restore CS0618 // Type or member is obsolete
+        }
 
-            locomotionProviders.Add(this);
-            locomotionProvidersChanged?.Invoke(this);
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDisable()
+        {
+        }
+
+        void FindDependencies()
+        {
+            if (m_Mediator == null)
+            {
+                m_Mediator = GetComponentInParent<LocomotionMediator>();
+                if (m_Mediator == null)
+                    ComponentLocatorUtility<LocomotionMediator>.TryFindComponent(out m_Mediator);
+            }
         }
 
         /// <summary>

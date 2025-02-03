@@ -77,9 +77,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         }
 
         [Test]
-#if UNITY_2021_3_9 || UNITY_2021_3_10
-        [Ignore("This test fails due to regression in 2021.3.9f1 and 2021.3.10f1.")]
-#endif
         public void UndoRedoCreateRayInteractor_WorksWithNoErrors()
         {
             var parentTransform = new GameObject().transform;

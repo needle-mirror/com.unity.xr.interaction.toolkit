@@ -26,13 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6598815579406187037}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6598815579406187026
 MonoBehaviour:
@@ -174,6 +174,7 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: 95c319715e9d2644da8ae09af8ccfee6, type: 2}
+    m_IsQuickAction: 0
   - m_Name: Pinch
     m_ToggleInput:
       m_InputSourceMode: 2
@@ -206,6 +207,7 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: d6e15a52475c2564ca7d2977fdece24a, type: 2}
+    m_IsQuickAction: 0
   - m_Name: Grab
     m_ToggleInput:
       m_InputSourceMode: 2
@@ -238,6 +240,7 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: 3861c298d39c60c44b16920421444875, type: 2}
+    m_IsQuickAction: 0
   - m_Name: Thumb
     m_ToggleInput:
       m_InputSourceMode: 2
@@ -270,6 +273,7 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: 9d8c9c84da35a7c4c89efd57343c1df8, type: 2}
+    m_IsQuickAction: 0
   - m_Name: Open
     m_ToggleInput:
       m_InputSourceMode: 2
@@ -302,6 +306,7 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: 05293ab353dc8a747a36ed129311686d, type: 2}
+    m_IsQuickAction: 0
   - m_Name: Fist
     m_ToggleInput:
       m_InputSourceMode: 2
@@ -334,4 +339,5 @@ MonoBehaviour:
       m_ManualQueueValue: 0
       m_ManualQueueTargetFrame: 0
     m_Capture: {fileID: 11400000, guid: 2a7c8ca0feac7cc44a5c225164ef311d, type: 2}
+    m_IsQuickAction: 0
   m_RestingHandExpressionCapture: {fileID: 11400000, guid: 5be099e6e6012c244bb41881b6c0ea07, type: 2}

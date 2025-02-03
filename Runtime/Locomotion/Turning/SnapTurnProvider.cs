@@ -120,21 +120,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning
         float m_DelayStartTime;
         bool m_TurnAroundActivated;
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_LeftHandTurnInput.EnableDirectActionIfModeUsed();
             m_RightHandTurnInput.EnableDirectActionIfModeUsed();
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
             m_LeftHandTurnInput.DisableDirectActionIfModeUsed();
             m_RightHandTurnInput.DisableDirectActionIfModeUsed();
         }

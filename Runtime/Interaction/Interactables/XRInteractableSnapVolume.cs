@@ -206,8 +206,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             if (m_SnapCollider == null)
                 m_SnapCollider = FindSnapCollider(gameObject);
-
-            ValidateSnapCollider();
         }
 
         /// <summary>
@@ -215,6 +213,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         protected virtual void OnEnable()
         {
+            if (m_SnapCollider == null)
+                m_SnapCollider = FindSnapCollider(gameObject);
+
+            ValidateSnapCollider();
+
             if (m_InteractionManager != null)
                 RegisterWithInteractionManager(m_InteractionManager);
             else
@@ -222,7 +225,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 // This is an optimization to not search for the manager if both manager modes are Manual
                 // since it won't create one and will just add to the waitlist during the callback anyway.
                 var runtimeSettings = XRInteractionRuntimeSettings.Instance;
-                if (runtimeSettings.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+                if (runtimeSettings.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
                     runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.Manual)
                 {
                     XRInteractionManager.RegisterWithWaitlist(this);
@@ -268,7 +271,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (m_InteractionManager != manager && m_InteractionManager != null)
                 return;
 
-            if (XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+            if (XRInteractionRuntimeSettings.Instance.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
                 m_InteractionManager == null)
             {
                 XRInteractionManager.RegisterWithWaitlist(this);

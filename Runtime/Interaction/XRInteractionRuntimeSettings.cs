@@ -1,6 +1,7 @@
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -32,10 +33,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Determines whether multiple instances of the manager component are allowed to exist
+        /// or will instead be automatically destroyed to enforce a single active and enabled component instance.
+        /// </summary>
+        /// <seealso cref="XRInteractionRuntimeSettings.interactionManagerSingletonMode"/>
+        public enum ManagerSingletonMode
+        {
+            /// <summary>
+            /// Allow multiple instances of the manager component.
+            /// You can use this mode to allow multiple different sets of interaction components to be managed by different
+            /// interaction managers.
+            /// This is the default mode.
+            /// </summary>
+            AllowMultiple,
+
+            /// <summary>
+            /// Enforce that only a single manager component can be active and enabled at one time.
+            /// You can use this mode to help prevent a potentially undesirable situation where interaction components
+            /// cannot interact with each other due to being unintentionally registered to different manager components.
+            /// </summary>
+            EnforceSingle,
+        }
+
+        /// <summary>
         /// Determines whether interaction components are automatically registered with a manager component
         /// when the manager reference is not set or the manager is destroyed.
         /// </summary>
-        /// <seealso cref="managerRegistrationMode"/>
+        /// <seealso cref="XRInteractionRuntimeSettings.interactionManagerRegistrationMode"/>
         public enum ManagerRegistrationMode
         {
             /// <summary>
@@ -90,6 +114,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets the setting for controlling whether the manager component is automatically created.
         /// </summary>
+        /// <remarks>
+        /// This applies to both the XR Interaction Manager component and the XR UI Input Module component.
+        /// </remarks>
         /// <seealso cref="ManagerCreationMode"/>
         public ManagerCreationMode managerCreationMode
         {
@@ -97,17 +124,31 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => m_ManagerCreationMode = value;
         }
 
-        [SerializeField]
-        ManagerRegistrationMode m_ManagerRegistrationMode;
+        [SerializeField, FormerlySerializedAs("m_ManagerSingletonMode")]
+        ManagerSingletonMode m_InteractionManagerSingletonMode;
 
         /// <summary>
-        /// Gets the setting for controlling whether the manager component is automatically found.
+        /// Gets the setting for controlling whether multiple instances of the XR Interaction Manager component are allowed to exist
+        /// or will instead be automatically destroyed to enforce a single component instance.
+        /// </summary>
+        /// <seealso cref="ManagerSingletonMode"/>
+        public ManagerSingletonMode interactionManagerSingletonMode
+        {
+            get => m_InteractionManagerSingletonMode;
+            set => m_InteractionManagerSingletonMode = value;
+        }
+
+        [SerializeField, FormerlySerializedAs("m_ManagerRegistrationMode")]
+        ManagerRegistrationMode m_InteractionManagerRegistrationMode;
+
+        /// <summary>
+        /// Gets the setting for controlling whether the XR Interaction Manager component is automatically found.
         /// </summary>
         /// <seealso cref="ManagerRegistrationMode"/>
-        public ManagerRegistrationMode managerRegistrationMode
+        public ManagerRegistrationMode interactionManagerRegistrationMode
         {
-            get => m_ManagerRegistrationMode;
-            set => m_ManagerRegistrationMode = value;
+            get => m_InteractionManagerRegistrationMode;
+            set => m_InteractionManagerRegistrationMode = value;
         }
     }
 }

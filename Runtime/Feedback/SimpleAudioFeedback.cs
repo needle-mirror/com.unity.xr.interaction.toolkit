@@ -7,7 +7,8 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 namespace UnityEngine.XR.Interaction.Toolkit.Feedback
 {
     /// <summary>
-    /// Component that responds to select and hover events by playing audio clips.
+    /// Customize audio feedback settings to play sound effects during interaction events.
+    /// Use this component to provide audio feedback when a user selects or hovers over an object.
     /// </summary>
     /// <seealso cref="SimpleHapticFeedback"/>
     [AddComponentMenu("XR/Feedback/Simple Audio Feedback", 11)]

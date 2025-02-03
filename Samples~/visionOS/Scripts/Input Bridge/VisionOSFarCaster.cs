@@ -69,8 +69,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             m_EmptySamplePoints = new NativeArray<Vector3>(1, Allocator.Persistent);
         }
 
-        void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
             UpdateSamplePoints(Vector3.zero, Vector3.zero);
         }
 
@@ -135,15 +137,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             return false;
         }
 
+#if POLYSPATIAL_1_1_OR_NEWER
         bool IsColliderValid(Collider targetCollider)
         {
             bool layerMatch = (m_PhysicsLayerMask & (1 << targetCollider.gameObject.layer)) != 0;
             bool shouldIgnoreFromTrigger = m_PhysicsTriggerInteraction == QueryTriggerInteraction.Ignore && targetCollider.isTrigger;
             return layerMatch && !shouldIgnoreFromTrigger;
         }
+#endif
 
         void UpdateSamplePoints(Vector3 hitPoint, Vector3 rayOrigin)
         {
+            if (m_SamplePoints == null || m_SamplePoints.Length < 2)
+                return;
+
             m_SamplePoints[0] = rayOrigin;
             m_SamplePoints[1] = hitPoint;
         }

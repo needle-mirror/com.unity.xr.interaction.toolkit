@@ -26,7 +26,7 @@ Finally, its possible to simulate all of your interactions with the [XR Interact
 
 This version of the XR Interaction Toolkit is compatible with the following versions of the Unity Editor:
 
-* 2021.3 and later
+* 2022.3 and later
 
 ### Dependencies
 

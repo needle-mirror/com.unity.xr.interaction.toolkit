@@ -54,8 +54,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Feedback
     }
 
     /// <summary>
-    /// Component that responds to select and hover events by playing haptic impulses
-    /// (in other words, vibrating the controller).
+    /// Play haptic impulses (vibrations) on the controller in response to specific interaction events.
+    /// Use this component to provide tactile feedback when a user selects or hovers over an object.
     /// </summary>
     /// <seealso cref="SimpleAudioFeedback"/>
     [AddComponentMenu("XR/Feedback/Simple Haptic Feedback", 11)]

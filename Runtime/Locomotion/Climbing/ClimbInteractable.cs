@@ -144,6 +144,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         }
 
         /// <inheritdoc />
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (m_ClimbProvider == null)
+                ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider, true);
+        }
+
+        /// <inheritdoc />
         public override bool IsHoverableBy(IXRHoverInteractor interactor)
         {
             return base.IsHoverableBy(interactor) && (!m_FilterInteractionByDistance ||

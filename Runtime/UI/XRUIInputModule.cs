@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
+using UnityEngine.Pool;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -431,8 +432,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         PointerModel m_PointerState;
         NavigationModel m_NavigationState;
 
-        internal const float kPixelPerLine = 20f;
-
 #if !XRI_LEGACY_INPUT_DISABLED
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
 #endif
@@ -704,18 +703,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (m_EnableTouchInput && Touchscreen.current != null)
                 {
                     m_PointerState.position = Touchscreen.current.position.ReadValue();
-#if UNITY_2022_3_OR_NEWER
                     m_PointerState.displayIndex = Touchscreen.current.displayIndex.ReadValue();
-#endif
                 }
 
                 if (m_EnableMouseInput && Mouse.current != null)
                 {
                     m_PointerState.position = Mouse.current.position.ReadValue();
-#if UNITY_2022_3_OR_NEWER
                     m_PointerState.displayIndex = Mouse.current.displayIndex.ReadValue();
-#endif
-                    m_PointerState.scrollDelta = Mouse.current.scroll.ReadValue() * (1 / kPixelPerLine);
+                    m_PointerState.scrollDelta = ScrollUtility.GetNormalized(Mouse.current.scroll.ReadValue()) * nonTrackedScrollDeltaMultiplier;
                     m_PointerState.leftButtonPressed = Mouse.current.leftButton.isPressed;
                     m_PointerState.rightButtonPressed = Mouse.current.rightButton.isPressed;
                     m_PointerState.middleButtonPressed = Mouse.current.middleButton.isPressed;
@@ -744,12 +739,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (IsActionEnabled(m_PointAction))
                 {
                     m_PointerState.position = m_PointAction.action.ReadValue<Vector2>();
-#if UNITY_2022_3_OR_NEWER
                     m_PointerState.displayIndex = GetDisplayIndexFor(m_PointAction.action.activeControl);
-#endif
                 }
                 if (IsActionEnabled(m_ScrollWheelAction))
-                    m_PointerState.scrollDelta = m_ScrollWheelAction.action.ReadValue<Vector2>() * (1 / kPixelPerLine);
+                    m_PointerState.scrollDelta = ScrollUtility.GetNormalized(m_ScrollWheelAction.action.ReadValue<Vector2>()) * nonTrackedScrollDeltaMultiplier;
                 if (IsActionEnabled(m_LeftClickAction))
                     m_PointerState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
                 if (IsActionEnabled(m_RightClickAction))
@@ -925,7 +918,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 inputAction.action?.Enable();
         }
 
-#if UNITY_2022_3_OR_NEWER
         int GetDisplayIndexFor(InputControl control)
         {
             var displayIndex = 0;
@@ -936,6 +928,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
             return displayIndex;
         }
-#endif
     }
 }

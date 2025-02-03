@@ -48,7 +48,7 @@ uid: xri-components
 ## Input
 
 - [Input Action Manager](input-action-manager.md)
-- [Input Modality Manager](xr-input-modality-manager.md)
+- [XR Input Modality Manager](xr-input-modality-manager.md)
 - [XR Transform Stabilizer](xr-transform-stabilizer.md)
 
 ## Filters
@@ -104,7 +104,6 @@ uid: xri-components
 
 - [XR Device Simulator](xr-device-simulator.md)
 - [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
-- [XR Input Modality Manager](xr-input-modality-manager.md)
 - [XR Interactable Snap Volume](xr-interactable-snap-volume.md)
 - [XR Interaction Group](xr-interaction-group.md)
 - [XR Interaction Manager](xr-interaction-manager.md)

@@ -3,21 +3,57 @@ uid: xri-xr-input-modality-manager
 ---
 # XR Input Modality Manager
 
-Manages swapping between hands and controllers at runtime based on whether hands and controllers are tracked.
+Automatically change between hand tracking and motion controllers at runtime based on which input method is currently tracked.
 
-If hands begin tracking, this component will switch to the hand group of interactors. If the player wakes the motion controllers by grabbing them, this component will switch to the motion controller group of interactors. Additionally, if a controller has never been tracked, this component will wait to activate that GameObject until it is tracked.
+This component manages the transition between different input groups:
 
-Some of the properties and events requires the [XR Hands package](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) to be installed in your project.
+* Hand tracking: If hands begin tracking, the component activates the hand interactor GameObjects.
 
-![XRInputModalityManager component](images/xr-input-modality-manager.png)
+* Motion controllers: If the player wakes the controllers (by grabbing them, for example), the component switches to the motion controller interactor GameObjects.
+
+The properties and events related to hand tracking require the [XR Hands package](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) to be installed in your project.
+
+![XRInputModalityManager component](images/xr-input-modality-manager.png)<br/>*The XR Input Modality Manager showing all properties.*
+
+## XR Input Modality Manager properties
+
+The XR Input Modality Manager contains the following properties:
+
+### Hand Tracking
+
+The **Hand Tracking** section contains the following properties:
 
 | **Property** | **Description** |
 |---|---|
-| **Left Hand** | GameObject representing the left hand group of interactors. Will toggle on when using hand tracking and off when using motion controllers. |
-| **Right Hand** | GameObject representing the right hand group of interactors. Will toggle on when using hand tracking and off when using motion controllers. |
-| **Left Controller** | GameObject representing the left motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking. |
-| **Right Controller** | GameObject representing the left motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking. |
-| **Tracked Hand Mode Started** | Calls the methods in its invocation list when hand tracking mode is started. This event does not fire again for the other hand if the first already started this mode. |
-| **Tracked Hand Mode Ended** | Calls the methods in its invocation list when both hands have stopped hand tracking mode. |
-| **Motion Controller Mode Started** | Calls the methods in its invocation list when motion controller mode is started. This event does not fire again for the other hand if the first already started this mode. |
-| **Motion Controller Mode Ended** | Calls the methods in its invocation list when both hands have stopped motion controller mode. |
+| **Left Hand** | Set to the parent GameObject of the left hand group of interactors. The component enables this object during hand tracking and disables it when motion controllers are active. |
+| **Right Hand** | Set to the parent GameObject of the right hand group of interactors. The component enables this object during hand tracking and disables it when motion controllers are active. |
+
+### Motion Controllers
+
+> [!NOTE]
+> This component only activates a controller's GameObject once the system begins tracking that specific controller.
+
+The **Motion Controllers** section contains the following properties:
+
+|**Property**| **Description**|
+|---|---|
+| **Left Controller** | Set to the parent GameObject of the left motion controller group of interactors. The component enables this object when using motion controllers and disables it during hand tracking. |
+| **Right Controller** | Set to the parent GameObject of the right motion controller group of interactors. The component enables this object when using motion controllers and disables it during hand tracking. |
+
+### Events
+
+Use events to trigger custom logic when the input method changes.
+
+The **Events** section contains the following properties:
+
+| **Property** | **Description** |
+|---|---|
+| **Tracked Hand Mode Started** | Triggers when hand tracking begins. This event fires only when the first hand begins tracking. It doesn't fire again if the second hand enters tracking while the mode is already active. |
+| **Tracked Hand Mode Ended** | Triggers when both hands stop tracking. |
+| **Motion Controller Mode Started** | Triggers when motion controller input begins. This event fires only when the first controller begins tracking. It doesn't fire again if the second controller activates while the mode is already active. |
+| **Motion Controller Mode Ended** | Triggers when both controllers stop tracking. |
+
+## Additional resources
+
+* [`XRInputModalityManager` class](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager)
+* [Component index](xref:xri-components)

@@ -473,7 +473,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 // This is an optimization to not search for the manager if both manager modes are Manual
                 // since it won't create one and will just add to the waitlist during the callback anyway.
                 var runtimeSettings = XRInteractionRuntimeSettings.Instance;
-                if (runtimeSettings.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+                if (runtimeSettings.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
                     runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.Manual)
                 {
                     XRInteractionManager.RegisterWithWaitlist(this);
@@ -556,7 +556,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_InteractionManager != manager && m_InteractionManager != null)
                 return;
 
-            if (XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+            if (XRInteractionRuntimeSettings.Instance.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
                 m_InteractionManager == null)
             {
                 XRInteractionManager.RegisterWithWaitlist(this);

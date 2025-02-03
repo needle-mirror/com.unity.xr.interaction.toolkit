@@ -376,10 +376,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // making sure to not clash with an existing instance ID.
             if (!s_GeneratedUniqueIds.TryGetValue(obj, out var id))
             {
+#if UNITY_6000_4_OR_NEWER
+                do
+                {
+                    id = Random.Range(int.MinValue, int.MaxValue);
+                } while (EditorUtility.EntityIdToObject((EntityId)id) != null);
+#else
                 do
                 {
                     id = Random.Range(int.MinValue, int.MaxValue);
                 } while (EditorUtility.InstanceIDToObject(id) != null);
+#endif
 
                 s_GeneratedUniqueIds.Add(obj, id);
             }

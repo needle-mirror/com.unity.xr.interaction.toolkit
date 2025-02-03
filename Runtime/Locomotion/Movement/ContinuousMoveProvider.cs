@@ -28,10 +28,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         }
 
         [SerializeField]
-        [Tooltip("Determines how much control the player has while in the air (0 = no control, 1 = full control).")]
+        [Tooltip("Determines how much control the player has while falling in the air (0 = no control, 1 = full control).")]
         float m_InAirControlModifier = 0.5f;
         /// <summary>
-        /// Determines how much control the player has while in the air (0 = no control, 1 = full control).
+        /// Determines how much control the player has while falling in the air (0 = no control, 1 = full control).
         /// </summary>
         public float inAirControlModifier
         {
@@ -106,13 +106,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             set => XRInputReaderUtility.SetInputProperty(ref m_RightHandMoveInput, value, this);
         }
 
+        GravityProvider m_GravityProvider;
+
+        /// <summary>
+        /// The gravity provider that this component uses to apply and query gravity.
+        /// If one is not provided, this provider will attempt to locate one at startup.
+        /// </summary>
+        public GravityProvider gravityProvider
+        {
+            get => m_GravityProvider;
+            set => m_GravityProvider = value;
+        }
+
         /// <inheritdoc />
         public bool canProcess => isActiveAndEnabled;
 
         /// <inheritdoc />
         public bool gravityPaused => m_EnableFly;
-
-        GravityProvider m_GravityProvider;
 
         CharacterController m_CharacterController;
 
@@ -127,20 +137,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         protected override void Awake()
         {
             base.Awake();
-            if (ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider))
-            {
-#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
-                if (!m_UseGravity)
-                    MigrateUseGravityToGravityProvider();
-#pragma warning restore CS0618
-            }
+            ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
+            if (m_GravityProvider == null)
+                ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_LeftHandMoveInput.EnableDirectActionIfModeUsed();
             m_RightHandMoveInput.EnableDirectActionIfModeUsed();
@@ -149,13 +156,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             m_InAirVelocity = Vector3.zero;
         }
 
+        /// <inheritdoc />
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            m_LeftHandMoveInput.DisableDirectActionIfModeUsed();
+            m_RightHandMoveInput.DisableDirectActionIfModeUsed();
+        }
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        protected void OnDisable()
+        protected void Start()
         {
-            m_LeftHandMoveInput.DisableDirectActionIfModeUsed();
-            m_RightHandMoveInput.DisableDirectActionIfModeUsed();
+            if (m_GravityProvider != null)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
+                if (!m_UseGravity)
+                    MigrateUseGravityToGravityProvider();
+#pragma warning restore CS0618
+            }
         }
 
         /// <inheritdoc />
@@ -233,10 +253,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             // Check if the user is not in the air, and update the input velocity accordingly.
             // If the user is in the air, update the input velocity with the inAirControlModifier.
-            if (m_GravityProvider == null || !m_GravityProvider.enabled || !m_GravityProvider.useGravity || m_GravityProvider.isGrounded)
+            // Since fly movement does not use the smoothed input value from air control, use the input vector
+            // to allow the locomotion state to end immediately when input ends.
+            if (m_EnableFly || m_InAirControlModifier >= 1f || m_GravityProvider == null || !m_GravityProvider.enabled || !m_GravityProvider.useGravity || m_GravityProvider.isGrounded)
                 m_InAirVelocity = inputMove;
             else
+            {
                 m_InAirVelocity += deltaTime * m_InAirControlModifier * 10 * (inputMove - m_InAirVelocity);
+
+                // Snap the smoothed air velocity to Vector3.zero when small enough.
+                // This helps to avoid staying in the Moving state for an excessively long time
+                // as the velocity approaches zero, which could cause the comfort vignette to stay on
+                // long after the thumbstick input stops.
+                if (m_InAirVelocity.sqrMagnitude <= 1e-4f)
+                    m_InAirVelocity = Vector3.zero;
+            }
 
             // Determine frame of reference for what the input direction is relative to
             var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;

@@ -82,7 +82,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static readonly Dictionary<IXRInteractor, VisualElement> s_InteractorElements = new();
 
         /// <summary>
-        /// Dictionary to store the initial Z depth values of manipulated VisualElements
+        /// Dictionary to store the initial z-depth values of manipulated VisualElements
         /// </summary>
         static readonly Dictionary<uint, float> s_InitialZDepth = new Dictionary<uint, float>();
 #endif
@@ -95,9 +95,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public static int Register(IXRInteractor interactor)
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning($"There was an attempt to register an interactor {interactor} in edit mode. Registration is only allowed during play mode.");
+                return k_InvalidIndex;
+            }
+
             if (s_RegisteredInteractors.TryGetValue(interactor, out var registeredInteractor))
             {
-                Debug.LogWarning($"interactor {interactor} is already registered with XR UI Toolkit Handler.");
+                Debug.LogWarning($"This interactor {interactor} is already registered with XR UI Toolkit Handler at index {registeredInteractor.index}.");
                 return registeredInteractor.index;
             }
 
@@ -115,7 +121,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (availableIndex == k_InvalidIndex)
             {
-                Debug.LogError("No available indices for pointer registration.");
+                Debug.LogError($"No available indices for interactor registration. {count}/{k_MaxInteractors} slots used. " +
+                               "This may indicate a registration leak. Check for missing Unregister calls or edit-mode registrations.");
+
+                // Log currently registered interactors
+                foreach (var kvp in s_RegisteredInteractors)
+                {
+                    Debug.LogError($"  - Slot {kvp.Value.index}: {kvp.Key}");
+                }
+
                 return k_InvalidIndex;
             }
 
@@ -139,9 +153,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public static void Unregister(IXRInteractor interactor)
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
+            // Allow unregister to be performed in both playmode and edit mode in order to clean up spurious registrations
             if (!s_RegisteredInteractors.TryGetValue(interactor, out var info))
                 return;
 
+            // Clean up all associated state
             s_LastWasDown.Remove(info.index);
             s_WasReset.Remove(info.index);
             s_UsedIndices[info.index] = false;
@@ -347,34 +363,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
 #if UITOOLKIT_WORLDSPACE_ENABLED || PACKAGE_DOCS_GENERATION
         /// <summary>
-        /// Sets the Z depth for a VisualElement associated with a specific interactor.
+        /// Sets the z-depth for a VisualElement associated with a specific interactor.
         /// </summary>
-        /// <param name="ve">The VisualElement to set the Z depth for.</param>
+        /// <param name="ve">The VisualElement to set the z-depth for.</param>
         /// <param name="interactor">The interactor that's manipulating this element.</param>
-        /// <param name="z">The new Z depth value.</param>
+        /// <param name="remainingPokePercentage">The remaining percentages of poke interaction on a scale of 1 (not started) to 0 (complete).</param>
         /// <returns>The new Z value after setting the depth.</returns>
-        public static float SetZDepthForInteractor(VisualElement ve, IXRInteractor interactor, float z)
+        public static float SetZDepthForInteractor(VisualElement ve, IXRInteractor interactor, float remainingPokePercentage)
         {
+            // If new element is being tracked, reset the z-depth before updating reference
+            if (s_InteractorElements.TryGetValue(interactor, out var element) && element != null && element.controlid != ve.controlid)
+                ClearZDepthForInteractor(interactor);
+
             // Track which interactor is working with this element
             s_InteractorElements[interactor] = ve;
 
-            // Store original Z position if not already stored
-            var translateVal = ve.style.translate.value;
-            if (!s_InitialZDepth.TryAdd(ve.controlid, translateVal.z))
-                s_InitialZDepth[ve.controlid] = translateVal.z;
+            // Use resolvedStyle to capture the true rendered initial z-depth value. VisualElement.style translate is 0 on initial call.
+            var resolvedStyleTranslateValue = ve.resolvedStyle.translate;
+            s_InitialZDepth.TryAdd(ve.controlid, resolvedStyleTranslateValue.z);
+
+            // Calculate new Z position based on poke strength and initial depth
+            var newZPosition = s_InitialZDepth[ve.controlid] * remainingPokePercentage; // Calculates new z position from the initial depth (no poke) to 0 (poke complete)
 
             // Apply the new Z position
-            ve.style.translate = new Translate(translateVal.x.value, translateVal.y.value, z);
-            return z;
+            ve.style.translate = new Translate(resolvedStyleTranslateValue.x, resolvedStyleTranslateValue.y, newZPosition);
+            return newZPosition;
         }
 #endif
 
 #if UITOOLKIT_WORLDSPACE_ENABLED || PACKAGE_DOCS_GENERATION
         /// <summary>
-        /// Resets the Z depth for a VisualElement to its original value.
+        /// Resets the z-depth for a VisualElement to its original value.
         /// </summary>
         /// <param name="ve">The VisualElement to reset.</param>
-        /// <returns>The original Z depth value.</returns>
+        /// <returns>The original z-depth value.</returns>
         static float ResetDepth(VisualElement ve)
         {
             var translateVal = ve.style.translate.value;
@@ -396,7 +418,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
 #if UITOOLKIT_WORLDSPACE_ENABLED || PACKAGE_DOCS_GENERATION
         /// <summary>
-        /// Clears Z depth for all VisualElements associated with the specified interactor,
+        /// Clears z-depth for all VisualElements associated with the specified interactor,
         /// resetting them to their original depths.
         /// </summary>
         /// <param name="interactor">The interactor whose UI element depths should be reset.</param>

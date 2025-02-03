@@ -166,7 +166,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
             }
             else
             {
-                EditorGUI.LabelField(position, Contents.unusedLabelText, EditorStyles.miniLabel);
+                EditorGUI.LabelField(position, Contents.unusedLabelText, EditorStyles.label);
             }
 
             // Set indent back to what it was

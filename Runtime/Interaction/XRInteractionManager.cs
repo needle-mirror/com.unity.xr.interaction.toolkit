@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-#if UNITY_EDITOR && !UNITY_2021_3_OR_NEWER
-using System.Text;
-#endif
 using Unity.Profiling;
 using Unity.XR.CoreUtils.Collections;
-#if UNITY_EDITOR && UNITY_2021_3_OR_NEWER
+#if UNITY_EDITOR
 using UnityEditor.Search;
-#elif UNITY_EDITOR && !UNITY_2021_3_OR_NEWER
-using UnityEditor.Experimental.SceneManagement;
 #endif
+using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -18,7 +14,6 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 #endif
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
@@ -45,6 +40,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_XRInteractionManager)]
     public partial class XRInteractionManager : MonoBehaviour
     {
+        /// <summary>
+        /// The object will not be destroyed by Destroy or DestroyImmediate.
+        /// Internal only enum value of <see cref="HideFlags"/>, see unity/Runtime/BaseClasses/BaseObject.h.
+        /// </summary>
+        const HideFlags k_DontAllowDestruction = (HideFlags)64;
+
         /// <summary>
         /// Registers a new Interaction Group to a waitlist to be processed by the manager component once a default manager is available.
         /// This can be used to register the component argument to a manager when it does not have a reference to a particular manager.
@@ -331,6 +332,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="FocusEnter"/>
         public bool logInteractionPreventedWarnings { get; set; } = true;
 
+        bool m_DestroySelf;
         bool m_Destroyed;
 
         /// <summary>
@@ -492,38 +494,47 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 ComponentLocatorUtility<XRInteractionManager>.SetComponentCache(this);
 
             // If this is the new default manager, claim any waitlist items.
-            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
-                RegisterWaitlistItems();
-
-            if (activeInteractionManagers.Count > 1)
+            var runtimeSettings = XRInteractionRuntimeSettings.Instance;
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this)
             {
-                var numActiveAndEnabled = 0;
-                foreach (var manager in activeInteractionManagers)
+                if (runtimeSettings.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+                    RegisterWaitlistItems();
+
+                // When the mode is set to a singleton manager, move the default manager into the DontDestroyOnLoad scene
+                // to avoid other manager instances from needing to be created if the scene with this manager was unloaded.
+                // The goal is to avoid components needing to replace their reference to the manager, and marking this
+                // to not be destroyed upon unloading the scene reduces the chances of needing to create a new one later
+                // and replacing references. If this behavior is undesired, the mode should instead be set to Allow Multiple.
+                if (runtimeSettings.interactionManagerSingletonMode == XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle)
                 {
-                    if (manager.isActiveAndEnabled)
-                        numActiveAndEnabled++;
-                }
-
-                if (numActiveAndEnabled > 0)
-                {
-                    var message = "There are multiple active and enabled XR Interaction Manager components in the loaded scenes." +
-                        " This is supported, but may not be intended since interactors and interactables are not able to interact with those registered to a different manager.";
-#if UNITY_EDITOR
-                    message += " You can use the <b>Window</b> > <b>Analysis</b> > <b>XR Interaction Debugger</b> window to verify the interactors and interactables registered with each.";
-
-                    if (ComponentLocatorUtility<XRInteractionManager>.componentCache != null)
-                    {
-                        message += " The default manager that interactors and interactables automatically register with when None is: " +
-                            GetHierarchyPath(ComponentLocatorUtility<XRInteractionManager>.componentCache.gameObject);
-                    }
-#endif
-
-                    Debug.LogWarning(message, this);
+                    // Note that for DontDestroyOnLoad to succeed, the component must be on a root GameObject.
+                    // This avoids the error message: `DontDestroyOnLoad only works for root GameObjects or components on root GameObjects.`
+                    if (transform.parent == null)
+                        DontDestroyOnLoad(this);
+                    else
+                        Debug.LogWarning("Could not move the default XR Interaction Manager into the DontDestroyOnLoad scene since it is not added to a root GameObject." +
+                            " This means that the manager may be unexpectedly destroyed if another scene load replaces this one which would require a new manager to be created for interaction to function.", this);
                 }
             }
+            else if (runtimeSettings.interactionManagerSingletonMode == XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle)
+            {
+                Debug.LogWarning($"Another instance of XR Interaction Manager already exists ({ComponentLocatorUtility<XRInteractionManager>.componentCache}), marking for destroying {this}." +
+                    " If you want to enable multiple XR Interaction Manager components simultaneously, change <b>Manager Singleton Mode</b> to <b>Allow Multiple</b> in <b>Edit</b> > <b>Project Settings</b> > <b>XR Plug-in Management</b> > <b>XR Interaction Toolkit</b>.", this);
+                m_DestroySelf = true;
+            }
+
+            if (runtimeSettings.interactionManagerSingletonMode == XRInteractionRuntimeSettings.ManagerSingletonMode.AllowMultiple)
+                WarnMultipleActiveAndEnabledManagers();
 
             Application.onBeforeRender += OnBeforeRender;
             activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Enable);
+
+            // Check if the component is allowed to be destroyed at this time.
+            // This can occur when adding the XR Interaction Manager to a GameObject through the Component menu.
+            // This avoids the error message: `Destroying object "{name}" is not allowed at this time.`
+            // Otherwise, we will destroy this component during the first Update where allowed.
+            if (m_DestroySelf && (hideFlags & k_DontAllowDestruction) == 0)
+                Destroy(this);
         }
 
         /// <summary>
@@ -556,7 +567,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     foreach (var manager in activeInteractionManagers)
                     {
-                        if (!manager.m_Destroyed && manager.isActiveAndEnabled)
+                        if (!manager.m_Destroyed && !manager.m_DestroySelf && manager.isActiveAndEnabled)
                         {
                             newDefaultManager = manager;
                             break;
@@ -590,8 +601,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // If there is a new default manager that is already enabled, transfer the items that were registered to this destroyed manager.
             // Otherwise, the next manager to become enabled will become the new default and claim any waitlist items at that time.
-            if (newDefaultManager != null && newDefaultManager.isActiveAndEnabled && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            if (newDefaultManager != null && newDefaultManager.isActiveAndEnabled &&
+                XRInteractionRuntimeSettings.Instance.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            {
                 newDefaultManager.RegisterWaitlistItems();
+            }
 
             activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Destroy);
         }
@@ -618,9 +632,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             ClearPriorityForSelectionMap();
 
+            if (m_DestroySelf && (hideFlags & k_DontAllowDestruction) == 0)
+            {
+                Destroy(this);
+                return;
+            }
+
             // If this is the new default manager, claim any waitlist items.
-            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this &&
+                XRInteractionRuntimeSettings.Instance.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            {
                 RegisterWaitlistItems();
+            }
 
             FlushRegistration();
 
@@ -2936,6 +2959,41 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
+        /// Log a warning if there are multiple active and enabled managers.
+        /// </summary>
+        void WarnMultipleActiveAndEnabledManagers()
+        {
+            if (activeInteractionManagers.Count > 1)
+            {
+                var numActiveAndEnabled = 0;
+                foreach (var manager in activeInteractionManagers)
+                {
+                    if (manager.isActiveAndEnabled)
+                        numActiveAndEnabled++;
+                }
+
+                if (numActiveAndEnabled > 0)
+                {
+                    var message = "There are multiple active and enabled XR Interaction Manager components in the loaded scenes." +
+                        " This is supported, but may not be intended since interactors and interactables are not able to interact with those registered to a different manager.";
+#if UNITY_EDITOR
+                    message += " You can use the <b>Window</b> > <b>Analysis</b> > <b>XR Interaction Debugger</b> window to verify the interactors and interactables registered with each.";
+
+                    if (ComponentLocatorUtility<XRInteractionManager>.componentCache != null)
+                    {
+                        message += " The default manager that interactors and interactables automatically register with when None is: " +
+                            SearchUtils.GetHierarchyPath(ComponentLocatorUtility<XRInteractionManager>.componentCache.gameObject);
+                    }
+
+                    message += " You can also adjust settings related to the runtime behavior of the manager in <b>Edit</b> > <b>Project Settings</b> > <b>XR Plug-in Management</b> > <b>XR Interaction Toolkit</b>.";
+#endif
+
+                    Debug.LogWarning(message, this);
+                }
+            }
+        }
+
+        /// <summary>
         /// Register all waitlist items, which were registered items to another manager when that manager was destroyed
         /// or enabled items which did not have a manager reference set.
         /// </summary>
@@ -3172,42 +3230,5 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             interactablesReordered?.Invoke();
         }
-
-#if UNITY_EDITOR
-        static string GetHierarchyPath(GameObject gameObject, bool includeScene = true)
-        {
-#if UNITY_2021_3_OR_NEWER
-            return SearchUtils.GetHierarchyPath(gameObject, includeScene);
-#else
-            var sb = new StringBuilder(200);
-            if (includeScene)
-            {
-                var sceneName = gameObject.scene.name;
-                if (sceneName == string.Empty)
-                {
-                    var prefabStage = PrefabStageUtility.GetPrefabStage(gameObject);
-                    if (prefabStage != null)
-                        sceneName = "Prefab Stage";
-                    else
-                        sceneName = "Unsaved Scene";
-                }
-
-                sb.Append("<b>" + sceneName + "</b>");
-            }
-
-            sb.Append(GetTransformPath(gameObject.transform));
-
-            var path = sb.ToString();
-            return path;
-
-            static string GetTransformPath(Transform tform)
-            {
-                if (tform.parent == null)
-                    return "/" + tform.name;
-                return GetTransformPath(tform.parent) + "/" + tform.name;
-            }
-#endif
-        }
-#endif
     }
 }

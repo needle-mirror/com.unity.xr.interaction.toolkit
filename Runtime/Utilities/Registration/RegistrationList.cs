@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
 {

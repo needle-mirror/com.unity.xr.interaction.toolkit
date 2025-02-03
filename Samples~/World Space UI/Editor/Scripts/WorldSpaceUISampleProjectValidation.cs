@@ -8,6 +8,11 @@ using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 
+#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+using System.IO;
+using TMPro;
+#endif
+
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
 {
     /// <summary>
@@ -91,6 +96,21 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
                 FixItAutomatic = true,
                 Error = true,
             },
+#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+            new BuildValidationRule
+            {
+                Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
+                HelpText = "Can be installed using Window > TextMeshPro > Import TMP Essential Resources or by clicking this Edit button and then Import TMP Essentials in the window that appears.",
+                Category = k_Category,
+                CheckPredicate = () => TextMeshProEssentialsInstalled(),
+                FixIt = () =>
+                {
+                    TMP_PackageResourceImporterWindow.ShowPackageImporterWindow();
+                },
+                FixItAutomatic = false,
+                Error = true,
+            },
+#endif
         };
 
         [InitializeOnLoadMethod]
@@ -181,5 +201,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
 
             return $"An older version of {sampleDisplayName} has been found. This may cause errors.";
         }
+
+#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+        static bool TextMeshProEssentialsInstalled()
+        {
+            // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
+            // For simplicity, we don't also copy the check if the asset needs to be updated.
+            return File.Exists("Assets/TextMesh Pro/Resources/TMP Settings.asset");
+        }
+#endif
     }
 }

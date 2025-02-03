@@ -419,8 +419,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             base.DoubleClickedItem(id);
 
+#if UNITY_6000_4_OR_NEWER
+            var entityId = (EntityId)id;
+            EditorGUIUtility.PingObject(entityId);
+            Selection.activeEntityId = entityId;
+#else
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
+#endif
         }
     }
 }

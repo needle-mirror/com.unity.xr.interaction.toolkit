@@ -1558,6 +1558,98 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator GrabbedObjectRestoresRigidbodyAfterMovementTypeOverride()
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.movementType = XRBaseInteractable.MovementType.VelocityTracking;
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+            var rigidbody = grabInteractable.GetComponent<Rigidbody>();
+            rigidbody.isKinematic = false;
+            rigidbody.useGravity = true;
+#if UNITY_2023_3_OR_NEWER
+            rigidbody.linearDamping = 0.75f;
+            rigidbody.angularDamping = 0.175f;
+#else
+            rigidbody.drag = 0.75f;
+            rigidbody.angularDrag = 0.175f;
+#endif
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Create an interactor with a movement type override.
+            // Since we can't query the effective current movement type, instead read the
+            // Rigidbody.isKinematic property as a proxy for the effective type.
+            // isKinematic == true when current movement type is Kinematic or Instantaneous.
+            // isKinematic == false when current movement type is VelocityTracking.
+            // 1. Set XR Grab Interactable to VelocityTracking --> isKinematic is false
+            // 2. Grab with interactor --> {Instantaneous} --> Effective Type: Kinematic --> isKinematic is true
+            // 3. Release the override --> Effective Type: VelocityTracking --> isKinematic is false
+
+            Assert.That(rigidbody.isKinematic, Is.False);
+            Assert.That(rigidbody.useGravity, Is.True);
+#if UNITY_2023_3_OR_NEWER
+            Assert.That(rigidbody.linearDamping, Is.EqualTo(0.75f));
+            Assert.That(rigidbody.angularDamping, Is.EqualTo(0.175f));
+#else
+            Assert.That(rigidbody.drag, Is.EqualTo(0.75f));
+            Assert.That(rigidbody.angularDrag, Is.EqualTo(0.175f));
+#endif
+
+            var overrideInteractorI = TestUtilities.CreateMockMovementTypeOverrideInteractor();
+            overrideInteractorI.mockMovementTypeOverride = XRBaseInteractable.MovementType.Instantaneous;
+
+            overrideInteractorI.keepSelectedTargetValid = false;
+
+            Assert.That(overrideInteractorI.selectedInteractableMovementTypeOverride, Is.EqualTo(XRBaseInteractable.MovementType.Instantaneous));
+
+            // Have the interactor grab the object
+            overrideInteractorI.validTargets.Add(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { overrideInteractorI }));
+
+            // Override to Kinematic --> isKinematic is true
+            // The damping values are automatically cleared to 0 when selected and gravity is disabled.
+            Assert.That(rigidbody.isKinematic, Is.True);
+            Assert.That(rigidbody.useGravity, Is.False);
+#if UNITY_2023_3_OR_NEWER
+            Assert.That(rigidbody.linearDamping, Is.EqualTo(0f));
+            Assert.That(rigidbody.angularDamping, Is.EqualTo(0f));
+#else
+            Assert.That(rigidbody.drag, Is.EqualTo(0f));
+            Assert.That(rigidbody.angularDrag, Is.EqualTo(0f));
+#endif
+
+            // Release with override interactor, no longer being overridden
+            overrideInteractorI.validTargets.Remove(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+
+            // Returning to VelocityTracking reverts override --> isKinematic is false
+            // The damping values and gravity are restored.
+            Assert.That(rigidbody.isKinematic, Is.False);
+            Assert.That(rigidbody.useGravity, Is.True);
+#if UNITY_2023_3_OR_NEWER
+            Assert.That(rigidbody.linearDamping, Is.EqualTo(0.75f));
+            Assert.That(rigidbody.angularDamping, Is.EqualTo(0.175f));
+#else
+            Assert.That(rigidbody.drag, Is.EqualTo(0.75f));
+            Assert.That(rigidbody.angularDrag, Is.EqualTo(0.175f));
+#endif
+        }
+
+        [UnityTest]
         public IEnumerator MultipleGrabbedObjectReevaluatesMovementTypeOverride()
         {
             var grabInteractable = TestUtilities.CreateGrabInteractable();

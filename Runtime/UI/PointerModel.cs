@@ -381,9 +381,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public void CopyTo(PointerEventData eventData)
         {
             eventData.pointerId = pointerId;
-#if UNITY_2022_3_OR_NEWER
             eventData.displayIndex = m_DisplayIndex;
-#endif
             eventData.position = position;
             eventData.delta = deltaPosition;
             eventData.scrollDelta = scrollDelta;
@@ -400,10 +398,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_InternalData.hoverTargets.AddRange(eventData.hovered);
             m_InternalData.hoverTargets = hoverTargets;
             m_InternalData.pointerTarget = eventData.pointerEnter;
-
-#if UNITY_2022_3_OR_NEWER
             m_DisplayIndex = eventData.displayIndex;
-#endif
         }
     }
 }

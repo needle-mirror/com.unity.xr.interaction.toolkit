@@ -26,13 +26,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1323442585405899171}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5745700813747042508}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3755238779732181253
 MonoBehaviour:
@@ -70,7 +70,7 @@ MonoBehaviour:
     m_SmoothlyCurveLine: 1
     m_LineBendRatio: 0.25
     m_AdjustWidth: 1
-    m_StarWidth: 0.003
+    m_StartWidth: 0.003
     m_EndWidth: 0.003
     m_EndWidthScaleDistanceFactor: 2
     m_AdjustGradient: 1
@@ -101,6 +101,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 4
     m_CustomizeExpandLineDrawPercent: 1
@@ -109,7 +110,7 @@ MonoBehaviour:
     m_SmoothlyCurveLine: 1
     m_LineBendRatio: 0.5
     m_AdjustWidth: 1
-    m_StarWidth: 0.004
+    m_StartWidth: 0.004
     m_EndWidth: 0.004
     m_EndWidthScaleDistanceFactor: 2
     m_AdjustGradient: 1
@@ -140,6 +141,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 3
       m_NumAlphaKeys: 4
     m_CustomizeExpandLineDrawPercent: 1
@@ -148,7 +150,7 @@ MonoBehaviour:
     m_SmoothlyCurveLine: 1
     m_LineBendRatio: 0.5
     m_AdjustWidth: 1
-    m_StarWidth: 0.003
+    m_StartWidth: 0.003
     m_EndWidth: 0.003
     m_EndWidthScaleDistanceFactor: 2
     m_AdjustGradient: 1
@@ -179,6 +181,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 3
       m_NumAlphaKeys: 5
     m_CustomizeExpandLineDrawPercent: 1
@@ -187,7 +190,7 @@ MonoBehaviour:
     m_SmoothlyCurveLine: 1
     m_LineBendRatio: 0.5
     m_AdjustWidth: 1
-    m_StarWidth: 0.003
+    m_StartWidth: 0.003
     m_EndWidth: 0.003
     m_EndWidthScaleDistanceFactor: 2
     m_AdjustGradient: 1
@@ -218,6 +221,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 3
       m_NumAlphaKeys: 5
     m_CustomizeExpandLineDrawPercent: 1
@@ -226,7 +230,7 @@ MonoBehaviour:
     m_SmoothlyCurveLine: 1
     m_LineBendRatio: 0.25
     m_AdjustWidth: 1
-    m_StarWidth: 0.004
+    m_StartWidth: 0.004
     m_EndWidth: 0.004
     m_EndWidthScaleDistanceFactor: 2
     m_AdjustGradient: 1
@@ -257,6 +261,7 @@ MonoBehaviour:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 3
       m_NumAlphaKeys: 4
     m_CustomizeExpandLineDrawPercent: 1
@@ -267,6 +272,7 @@ MonoBehaviour:
   m_EmptyHitMaterial: {fileID: 0}
 --- !u!120 &3053154067257784704
 LineRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -352,16 +358,20 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 8
     numCapVertices: 8
     alignment: 0
     textureMode: 0
+    textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
+  m_MaskInteraction: 0
   m_UseWorldSpace: 1
   m_Loop: 0
+  m_ApplyActiveColorSpace: 0
 --- !u!210 &6278253758758756215
 SortingGroup:
   m_ObjectHideFlags: 0
@@ -373,6 +383,7 @@ SortingGroup:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 30005
+  m_SortAtRoot: 0
 --- !u!1 &4804964734930210078
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,6 +412,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4804964734930210078}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -408,7 +420,6 @@ Transform:
   m_Children:
   - {fileID: 893315461643433812}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2442306273320644280
 MonoBehaviour:
@@ -431,6 +442,8 @@ MonoBehaviour:
   m_DisableVisualsWhenBlockedInGroup: 1
   m_StartingSelectedInteractable: {fileID: 0}
   m_StartingTargetFilter: {fileID: 0}
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_HoverEntered:
     m_PersistentCalls:
       m_Calls: []
@@ -650,6 +663,7 @@ MonoBehaviour:
   m_ManipulationTranslateSpeed: 1
   m_ManipulationRotateSpeed: 180
   m_ManipulationRotateReferenceFrame: {fileID: 0}
+  m_EnableDebugLines: 0
 --- !u!114 &7104419533170684624
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -694,11 +708,13 @@ MonoBehaviour:
     m_Bits: 2147483681
   m_RaycastTriggerInteraction: 1
   m_RaycastSnapVolumeInteraction: 1
+  m_RaycastUIDocumentTriggerInteraction: 1
   m_TargetNumCurveSegments: 1
   m_HitDetectionType: 2
   m_CastDistance: 10
   m_SphereCastRadius: 0.1
   m_ConeCastAngle: 6
+  m_LiveConeCastDebugVisuals: 0
 --- !u!114 &3179295312718945089
 MonoBehaviour:
   m_ObjectHideFlags: 0

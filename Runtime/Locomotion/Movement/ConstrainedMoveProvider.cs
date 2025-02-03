@@ -48,6 +48,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             set => m_EnableFreeZMovement = value;
         }
 
+        GravityProvider m_GravityProvider;
+
+        /// <summary>
+        /// The gravity provider that applies gravity.
+        /// When this reference is not set, gravity will be computed and applied by this component when moving the rig.
+        /// If one is not provided, this provider will attempt to locate one at startup.
+        /// </summary>
+        public GravityProvider gravityProvider
+        {
+            get => m_GravityProvider;
+            set => m_GravityProvider = value;
+        }
+
         /// <summary>
         /// The transformation that is used by this component to apply translation movement.
         /// </summary>
@@ -57,13 +70,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         bool m_AttemptedGetCharacterController;
         bool m_IsMovingXROrigin;
 
-        GravityProvider m_GravityProvider;
-
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
-            if (ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider))
+            ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+        }
+
+        /// <inheritdoc />
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (m_GravityProvider == null)
+                ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void Start()
+        {
+            if (m_GravityProvider != null)
             {
 #pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
                 if (!m_UseGravity)

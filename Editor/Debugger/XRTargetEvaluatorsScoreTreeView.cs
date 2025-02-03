@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 {
@@ -366,8 +366,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         {
             base.DoubleClickedItem(id);
 
+#if UNITY_6000_4_OR_NEWER
+            var entityId = (EntityId)id;
+            EditorGUIUtility.PingObject(entityId);
+            Selection.activeEntityId = entityId;
+#else
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
+#endif
         }
 
         /// <summary>

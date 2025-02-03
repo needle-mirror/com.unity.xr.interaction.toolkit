@@ -236,6 +236,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             }
         }
 
+        [Tooltip("An angle, in degrees, that is subtracted from the gaze divergence angle to create the threshold used to trigger hiding the menu.")]
+        [SerializeField]
+        float m_MenuHideGazeAngleDivergenceThresholdBuffer = 20f;
+
+        float m_MenuHideGazeDivergenceDotThresholdBuffer;
+
+        /// <summary>
+        /// An angle, in degrees, that is subtracted from the gaze divergence angle to create the threshold used to trigger hiding the menu.
+        /// </summary>
+        public float menuHideGazeDivergenceThresholdBuffer
+        {
+            get => m_MenuHideGazeAngleDivergenceThresholdBuffer;
+            set
+            {
+                m_MenuHideGazeAngleDivergenceThresholdBuffer = value;
+                m_MenuHideGazeDivergenceDotThresholdBuffer = 1 - AngleToDot(value);
+            }
+        }
+
 #pragma warning disable CS0618 // Type or member is obsolete
         readonly SmartFollowVector3TweenableVariable m_HandAnchorSmartFollow = new SmartFollowVector3TweenableVariable();
         readonly QuaternionTweenableVariable m_RotTweenFollow = new QuaternionTweenableVariable();
@@ -329,6 +348,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         readonly BindableVariable<bool> m_MenuVisibleBindableVariable = new BindableVariable<bool>(false);
         float m_LastValidTrackingTime = 0f;
 
+        Transform m_HandMenuUIGameObjectTransform;
+
+        bool m_ShowMenuLeftHand;
+        bool m_ShowMenuRightHand;
+        bool m_PreviousGazeAngleMet;
+        float m_GazeDivergenceDotThresholdWithHideBuffer;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -344,6 +370,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             m_LeftOffsetRoot = new GameObject("Left Offset Root").transform;
             m_LeftOffsetRoot.transform.SetParent(m_LeftPalmAnchor);
+
+            m_GazeDivergenceDotThresholdWithHideBuffer = m_MenuVisibilityDotThreshold + m_MenuHideGazeDivergenceDotThresholdBuffer;
         }
 
         /// <summary>
@@ -372,15 +400,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 return;
             }
 
-            m_HandAnchorSmartFollow.Value = m_HandMenuUIGameObject.transform.position;
-            m_BindingsGroup.AddBinding(m_HandAnchorSmartFollow.Subscribe(newPosition => m_HandMenuUIGameObject.transform.position = newPosition));
+            m_HandMenuUIGameObjectTransform = m_HandMenuUIGameObject.transform;
 
-            m_RotTweenFollow.Value = m_HandMenuUIGameObject.transform.rotation;
-            m_BindingsGroup.AddBinding(m_RotTweenFollow.Subscribe(newRot => m_HandMenuUIGameObject.transform.rotation = newRot));
+            m_HandAnchorSmartFollow.Value = m_HandMenuUIGameObjectTransform.position;
+            m_BindingsGroup.AddBinding(m_HandAnchorSmartFollow.Subscribe(newPosition => m_HandMenuUIGameObjectTransform.position = newPosition));
 
-            m_InitialMenuLocalScale = m_HandMenuUIGameObject.transform.localScale;
+            m_RotTweenFollow.Value = m_HandMenuUIGameObjectTransform.rotation;
+            m_BindingsGroup.AddBinding(m_RotTweenFollow.Subscribe(newRot => m_HandMenuUIGameObjectTransform.rotation = newRot));
+
+            m_InitialMenuLocalScale = m_HandMenuUIGameObjectTransform.localScale;
             m_MenuScaleTweenable.Value = m_InitialMenuLocalScale;
-            m_BindingsGroup.AddBinding(m_MenuScaleTweenable.Subscribe(value => m_HandMenuUIGameObject.transform.localScale = value));
+            m_BindingsGroup.AddBinding(m_MenuScaleTweenable.Subscribe(value => m_HandMenuUIGameObjectTransform.localScale = value));
 
             m_BindingsGroup.AddBinding(XRInputModalityManager.currentInputMode.SubscribeAndUpdate(OnInputModeChanged));
 
@@ -411,9 +441,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             }
             m_BindingsGroup.Clear();
 
-            m_HandMenuUIGameObject.transform.localScale = m_InitialMenuLocalScale;
+            m_HandMenuUIGameObjectTransform.localScale = m_InitialMenuLocalScale;
             m_HandMenuUIGameObject.SetActive(true);
-            OnMenuVisible();
+            OnMenuShown();
         }
 
         /// <summary>
@@ -433,6 +463,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_HandAnchorSmartFollow.maxDistanceAllowed = m_MaxFollowDistance;
             m_HandAnchorSmartFollow.minToMaxDelaySeconds = m_MinToMaxDelaySeconds;
             m_MenuVisibilityDotThreshold = AngleToDot(m_MenuVisibleGazeAngleDivergenceThreshold);
+            m_MenuHideGazeDivergenceDotThresholdBuffer = 1 - AngleToDot(m_MenuHideGazeAngleDivergenceThresholdBuffer);
         }
 
         /// <summary>
@@ -464,15 +495,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             m_HandMenuUIGameObject.SetActive(true);
             if (m_AnimateMenuHideAndReveal && m_ShowCoroutine == null)
-                m_ShowCoroutine = StartCoroutine(m_MenuScaleTweenable.PlaySequence(m_MenuScaleTweenable.Value, m_InitialMenuLocalScale, m_RevealHideAnimationDuration, OnMenuVisible));
+            {
+                m_ShowCoroutine = StartCoroutine(m_MenuScaleTweenable.PlaySequence(m_MenuScaleTweenable.Value, m_InitialMenuLocalScale, m_RevealHideAnimationDuration, OnMenuShown));
+            }
             else
-                OnMenuVisible();
+            {
+                m_MenuScaleTweenable.Value = m_InitialMenuLocalScale;
+                OnMenuShown();
+            }
         }
 
-        void OnMenuVisible()
+        void OnMenuShown()
         {
             m_ShowCoroutine = null;
             m_WasMenuHiddenLastFrame = false;
+
+            // Reset gaze hide buffer flag whenever the menu is shown
+            m_PreviousGazeAngleMet = false;
         }
 
         void HideMenu()
@@ -484,9 +523,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             }
 
             if (m_AnimateMenuHideAndReveal && m_HideCoroutine == null)
+            {
                 m_HideCoroutine = StartCoroutine(m_MenuScaleTweenable.PlaySequence(m_MenuScaleTweenable.Value, Vector3.zero, m_RevealHideAnimationDuration, OnMenuHidden));
+            }
             else
+            {
+                m_MenuScaleTweenable.Value = Vector3.zero;
                 OnMenuHidden();
+            }
         }
 
         void OnMenuHidden()
@@ -539,8 +583,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 if (m_HideMenuWhenGazeDiverges)
                 {
                     var gazeDirection = m_LastValidCameraTransform.forward;
-                    showMenu = Vector3.Dot(gazeToObject, gazeDirection) > m_MenuVisibilityDotThreshold;
+                    var gazeToObjectVSGazeDirection = Vector3.Dot(gazeToObject, gazeDirection);
+
+                    // Pick which threshold to use this frame
+                    var currentThreshold = m_PreviousGazeAngleMet ? m_GazeDivergenceDotThresholdWithHideBuffer : m_MenuVisibilityDotThreshold;
+
+                    // Enable the buffer if we're about to fail while NOT yet using the buffer
+                    if (!m_PreviousGazeAngleMet && gazeToObjectVSGazeDirection <= currentThreshold)
+                    {
+                        m_PreviousGazeAngleMet = true;
+                        currentThreshold = m_GazeDivergenceDotThresholdWithHideBuffer;
+                    }
+
+                    // Assign with the chosen threshold
+                    showMenu = gazeToObjectVSGazeDirection > currentThreshold;
                 }
+
                 m_MenuVisibleBindableVariable.Value = showMenu;
             }
 
@@ -610,10 +668,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                 isRightSelecting = manager.IsHandSelecting(InteractorHandedness.Right);
             }
 
-            var leftMeetsRequirements = !isLeftSelecting && PalmMeetsRequirements(cameraTransform, m_LeftPalmAnchor, false, currentPreset);
-            var rightMeetsRequirements = !isRightSelecting && PalmMeetsRequirements(cameraTransform, m_RightPalmAnchor, true, currentPreset);
+            m_ShowMenuLeftHand = !isLeftSelecting && PalmMeetsRequirements(cameraTransform, m_LeftPalmAnchor, false, currentPreset, m_ShowMenuLeftHand);
+            m_ShowMenuRightHand = !isRightSelecting && PalmMeetsRequirements(cameraTransform, m_RightPalmAnchor, true, currentPreset, m_ShowMenuRightHand);
 
-            if (!leftMeetsRequirements && !rightMeetsRequirements)
+            if (!m_ShowMenuLeftHand && !m_ShowMenuRightHand)
             {
                 return false;
             }
@@ -621,7 +679,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             if (desiredHandedness == MenuHandedness.Either)
             {
                 // Check last hand to meet requirements
-                if (leftMeetsRequirements && rightMeetsRequirements)
+                if (m_ShowMenuLeftHand && m_ShowMenuRightHand)
                 {
                     var handToTry = m_LastHandThatMetRequirements == MenuHandedness.Right ? MenuHandedness.Right : MenuHandedness.Left;
                     GetTransformAnchorsForHandedness(handToTry, out palmAnchor, out palmAnchorOffset);
@@ -629,7 +687,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
                     return true;
                 }
 
-                if (leftMeetsRequirements)
+                if (m_ShowMenuLeftHand)
                 {
                     GetTransformAnchorsForHandedness(MenuHandedness.Left, out palmAnchor, out palmAnchorOffset);
                     m_LastHandThatMetRequirements = MenuHandedness.Left;
@@ -647,7 +705,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             if (desiredHandedness == MenuHandedness.Left)
             {
-                if (leftMeetsRequirements)
+                if (m_ShowMenuLeftHand)
                 {
                     GetTransformAnchorsForHandedness(MenuHandedness.Left, out palmAnchor, out palmAnchorOffset);
                     m_LastHandThatMetRequirements = MenuHandedness.Left;
@@ -662,7 +720,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 
             if (desiredHandedness == MenuHandedness.Right)
             {
-                if (rightMeetsRequirements)
+                if (m_ShowMenuRightHand)
                 {
                     GetTransformAnchorsForHandedness(MenuHandedness.Right, out palmAnchor, out palmAnchorOffset);
                     m_LastHandThatMetRequirements = MenuHandedness.Right;
@@ -734,19 +792,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             }
         }
 
-        bool PalmMeetsRequirements(Transform cameraTransform, Transform palmAnchor, bool isRightHand, in FollowPreset currentPresent)
+        bool PalmMeetsRequirements(Transform cameraTransform, Transform palmAnchor, bool isRightHand, in FollowPreset currentPreset, bool handIsShowing)
         {
-            if (currentPresent == null)
+            if (currentPreset == null)
                 return false;
 
-            var palmAnchorUp = currentPresent.GetReferenceAxisForTrackingAnchor(palmAnchor, isRightHand);
+            var palmAnchorUp = currentPreset.GetReferenceAxisForTrackingAnchor(palmAnchor, isRightHand);
             var referenceUpDirection = GetReferenceUpDirection(cameraTransform);
 
-            // With hand tracking, palm faces the world up direction when the hand is lying down flat.
-            // With controllers, we typically look for the right vector on the left controller, and the left vector on the right controller to fill this role.
-            // Check if palm is looking at the camera and whether the palm is flipped over towards the sky
-            bool meetsPalmFacingUserThreshold = !currentPresent.requirePalmFacingUser || Vector3.Dot(palmAnchorUp, -cameraTransform.forward) > currentPresent.palmFacingUserDotThreshold;
-            bool meetsPalmFacingUpThreshold = !currentPresent.requirePalmFacingUp || Vector3.Dot(palmAnchorUp, referenceUpDirection) > currentPresent.palmFacingUpDotThreshold;
+            float palmFacingUpThreshold = handIsShowing ? (currentPreset.palmFacingUserDotThreshold - (1 - currentPreset.palmFacingUserHideMenuDotThreshold)) : currentPreset.palmFacingUserDotThreshold;
+            float palmFacingUserThreshold = handIsShowing ? currentPreset.palmFacingUpDotThreshold - (1 - currentPreset.palmFacingUpHideMenuDotThreshold) : currentPreset.palmFacingUpDotThreshold;
+
+            bool meetsPalmFacingUserThreshold = !currentPreset.requirePalmFacingUser || Vector3.Dot(palmAnchorUp, -cameraTransform.forward) > palmFacingUpThreshold;
+            bool meetsPalmFacingUpThreshold = !currentPreset.requirePalmFacingUp || Vector3.Dot(palmAnchorUp, referenceUpDirection) > palmFacingUserThreshold;
 
             return meetsPalmFacingUserThreshold && meetsPalmFacingUpThreshold;
         }

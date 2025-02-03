@@ -243,11 +243,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                 if (request.Status == StatusCode.Success && request.Result.Length > 0)
                 {
                     var versions = request.Result[0].versions;
-#if UNITY_2022_2_OR_NEWER
                     var recommendedVersion = new PackageVersion(versions.recommended);
-#else
-                    var recommendedVersion = new PackageVersion(versions.verified);
-#endif
                     var latestCompatible = new PackageVersion(versions.latestCompatible);
                     if (recommendedVersion < targetVersion && targetVersion <= latestCompatible)
                         addRequest = $"{packageName}@{targetVersion}";

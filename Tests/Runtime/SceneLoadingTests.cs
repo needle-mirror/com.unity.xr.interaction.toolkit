@@ -54,6 +54,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         // - "Scene7 Enabled Manager" [XRInteractionManager]
         const string k_Scene7Path = "Packages/com.unity.xr.interaction.toolkit/Tests/Scenes/SceneLoadingTests.Scene7.unity";
 
+        // This scene contains a single activated root GameObject "Activated Root" with a single activated
+        // child GameObject "Scene8 Manager" with an XRInteractionManager component added to it.
+        // - "Activated Root"
+        //   - "Scene8 Manager" [XRInteractionManager]
+        const string k_Scene8Path = "Packages/com.unity.xr.interaction.toolkit/Tests/Scenes/SceneLoadingTests.Scene8.unity";
+
         public enum LoadMethod
         {
             Sync,
@@ -80,6 +86,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public override void TearDown()
         {
+            if (XRInteractionRuntimeSettings.InstanceInternal != null)
+            {
+                // Reset back to default project settings after each test because some tests change these.
+                XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = default;
+            }
+
             TestUtilities.DestroyAllSceneObjects();
             base.TearDown();
         }
@@ -1027,6 +1041,175 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 #endif
         }
 
+        [UnityTest]
+        [Description("A manager instance in a second scene should be automatically destroyed when a scene with a manager is already loaded when project settings are set to Single mode.")]
+        [UnityPlatform(RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
+        public IEnumerator SecondSceneManagerDestroyedAfterManagerSceneAlreadyLoaded()
+        {
+#if UNITY_EDITOR
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle;
+
+            var scene1 = EditorSceneManager.LoadSceneInPlayMode(k_Scene1Path, new LoadSceneParameters(LoadSceneMode.Additive));
+
+            yield return null;
+
+            Assert.That(scene1.isLoaded, Is.True);
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(FindAllObjectByType<XRInteractionManager>(), Has.Length.EqualTo(1));
+
+            // The first active and enabled manager should be automatically moved into the DontDestroyOnLoad scene.
+            var manager1 = ComponentLocatorUtility<XRInteractionManager>.FindComponent();
+            Assert.That(manager1, Is.Not.Null);
+            Assert.That(manager1.gameObject.scene.name, Is.EqualTo("DontDestroyOnLoad"));
+
+            Assert.That(manager1.IsRegistered((IXRInteractable)interactable), Is.True);
+
+            Assert.That(interactable.interactionManager, Is.SameAs(manager1));
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1 }));
+
+            var scene5 = EditorSceneManager.LoadSceneInPlayMode(k_Scene5Path, new LoadSceneParameters(LoadSceneMode.Additive));
+
+            LogAssert.Expect(LogType.Warning, "Another instance of XR Interaction Manager already exists (Scene1 Manager" +
+                " (UnityEngine.XR.Interaction.Toolkit.XRInteractionManager)), marking for destroying Scene5 Manager" +
+                " (UnityEngine.XR.Interaction.Toolkit.XRInteractionManager). If you want to enable multiple XR Interaction Manager" +
+                " components simultaneously, change <b>Manager Singleton Mode</b> to <b>Allow Multiple</b> in <b>Edit</b> >" +
+                " <b>Project Settings</b> > <b>XR Plug-in Management</b> > <b>XR Interaction Toolkit</b>.");
+
+            yield return null;
+
+            Assert.That(scene1.isLoaded, Is.True);
+            Assert.That(scene5.isLoaded, Is.True);
+
+            var rootGameObjects = new List<GameObject>();
+            scene5.GetRootGameObjects(rootGameObjects);
+            XRInteractionManager scene5Manager = null;
+            XRSimpleInteractable scene5Interactable = null;
+            foreach (var go in rootGameObjects)
+            {
+                if (go.TryGetComponent(out scene5Manager))
+                    break;
+            }
+            foreach (var go in rootGameObjects)
+            {
+                if (go.TryGetComponent(out scene5Interactable))
+                    break;
+            }
+
+            // The manager in this new scene should have been destroyed automatically
+            Assert.That(scene5Manager, Is.Null);
+            Assert.That(scene5Interactable, Is.Not.Null);
+
+            // The interactable loaded with the new scene should instead be registered with the first manager
+            Assert.That(manager1 != null, Is.True);
+            Assert.That(manager1.IsRegistered((IXRInteractable)interactable), Is.True);
+            Assert.That(manager1.IsRegistered((IXRInteractable)scene5Interactable), Is.True);
+
+            Assert.That(interactable.interactionManager, Is.SameAs(manager1));
+            Assert.That(scene5Interactable.interactionManager, Is.SameAs(manager1));
+
+            Assert.That(FindAllObjectByType<XRInteractionManager>(), Has.Length.EqualTo(1));
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1 }));
+
+            yield return SceneManager.UnloadSceneAsync(scene5);
+            yield return SceneManager.UnloadSceneAsync(scene1);
+#else
+            yield return null;
+#endif
+        }
+
+        [UnityTest]
+        [Description("A manager instance in a loaded scene should be replaced with one from the new scene when the new scene replaces it when project settings are set to Single mode.")]
+        [UnityPlatform(RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
+        public IEnumerator ManagerReplacedWhenLoadingDifferentScene()
+        {
+#if UNITY_EDITOR
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle;
+
+            var scene8 = EditorSceneManager.LoadSceneInPlayMode(k_Scene8Path, new LoadSceneParameters(LoadSceneMode.Additive));
+
+            yield return null;
+
+            Assert.That(scene8.isLoaded, Is.True);
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            // The first active and enabled manager should normally be automatically moved into the DontDestroyOnLoad scene,
+            // however since it is on a child GameObject, it can't be moved so it should remain in the scene.
+            var scene8Manager = ComponentLocatorUtility<XRInteractionManager>.FindComponent();
+            Assert.That(scene8Manager, Is.Not.Null);
+            Assert.That(scene8Manager.gameObject.scene, Is.EqualTo(scene8));
+
+            Assert.That(scene8Manager.IsRegistered((IXRInteractable)interactable), Is.True);
+
+            Assert.That(interactable.interactionManager, Is.SameAs(scene8Manager));
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(scene8Manager));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { scene8Manager }));
+
+            // Move the interactable to the DontDestroyOnLoad scene to test that it gets claimed by the new manager when
+            // the scene is replaced.
+            Object.DontDestroyOnLoad(interactable);
+            Assert.That(interactable.gameObject.scene.name, Is.EqualTo("DontDestroyOnLoad"));
+
+            // Replace the scene with another one with a manager. Ensure that the new scene in the new scene becomes the new
+            // default rather than being destroyed due to the presence of the manager in the other scene.
+            var unloadOperation = SceneManager.UnloadSceneAsync(scene8);
+            var scene5 = EditorSceneManager.LoadSceneInPlayMode(k_Scene5Path, new LoadSceneParameters(LoadSceneMode.Additive));
+
+            yield return unloadOperation;
+            yield return null;
+
+            Assert.That(scene8.isLoaded, Is.False);
+            Assert.That(scene5.isLoaded, Is.True);
+
+            Assert.That(XRInteractionManager.activeInteractionManagers, Has.Count.EqualTo(1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Not.EqualTo(new[] { scene8Manager }));
+            var scene5Manager = XRInteractionManager.activeInteractionManagers[0];
+
+            // The manager from this new scene should be the new default.
+            Assert.That(scene5Manager != null, Is.True);
+            Assert.That(scene8Manager == null, Is.True);
+            Assert.That(scene5Manager.name, Is.EqualTo("Scene5 Manager"));
+
+            var rootGameObjects = new List<GameObject>();
+            scene5.GetRootGameObjects(rootGameObjects);
+            XRSimpleInteractable scene5Interactable = null;
+            foreach (var go in rootGameObjects)
+            {
+                if (go.TryGetComponent(out scene5Interactable))
+                    break;
+            }
+
+            Assert.That(scene5Interactable, Is.Not.Null);
+
+            // The interactable loaded with the new scene should be registered with the remaining manager.
+            // The new manager should also automatically claim the interactable previously registered with the original manager.
+            Assert.That(scene5Manager.IsRegistered((IXRInteractable)interactable), Is.True);
+            Assert.That(scene5Manager.IsRegistered((IXRInteractable)scene5Interactable), Is.True);
+
+            Assert.That(interactable.interactionManager, Is.SameAs(scene5Manager));
+            Assert.That(scene5Interactable.interactionManager, Is.SameAs(scene5Manager));
+
+            // Explicitly destroy the interactable since it was moved to the DontDestroyOnLoad scene.
+            Object.Destroy(interactable.gameObject);
+
+            yield return SceneManager.UnloadSceneAsync(scene5);
+#else
+            yield return null;
+#endif
+        }
+
 #if UNITY_EDITOR
         static Scene BeginLoadSceneAdditive(string scenePath, LoadMethod loadMethod, out AsyncOperation sceneLoad)
         {
@@ -1058,20 +1241,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         static T FindFirstObjectByType<T>(bool includeInactive = false) where T : Object
         {
-#if HAS_FIND_FIRST_OBJECT_BY_TYPE
             return Object.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
-#else
-            return Object.FindObjectOfType<T>(includeInactive);
-#endif
         }
 
         static T[] FindAllObjectByType<T>(bool includeInactive = false) where T : Object
         {
-#if HAS_FIND_FIRST_OBJECT_BY_TYPE
             return Object.FindObjectsByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-#else
-            return Object.FindObjectsOfType<T>(includeInactive);
-#endif
         }
     }
 }

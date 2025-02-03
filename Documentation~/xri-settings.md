@@ -49,6 +49,11 @@ The **Manager Creation Mode** setting modifies whether some manager components (
 * **Create Automatically** (Default): will create the manager component automatically as needed.
 * **Manual**: will not automatically create the manager component. The component must be manually added to the scene or manually instantiated at runtime for interaction to function.
 
+The **Manager Singleton Mode** setting modifies whether the manager component ([XR Interaction Manager](xr-interaction-manager.md)) in the toolkit is allowed to have multiple component instances or will instead be automatically destroyed to enforce a single active and enabled component instance. You have the following options:
+
+* **Allow Multiple** (Default): will allow multiple instances of the manager component.
+* **Enforce Single**: will enforce that only a single manager component can be active and enabled at one time. You can use this mode to help prevent a potentially undesirable situation where interaction components cannot interact with each other due to being unintentionally registered to different manager components. The other manager component instances after the first will be automatically destroyed during their `OnEnable`. Additionally, the first active and enabled manager will be automatically set to [`DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html) if possible.
+
 The **Manager Registration Mode** setting modifies whether interaction components in the toolkit are automatically registered with a manager component when the manager reference is not set or the manager is destroyed. You have the following options:
 
 * **Find Automatically** (Default): will find the manager component and assign the manager component reference automatically at runtime and register with the manager component. Additionally, any registered interaction components to a manager being destroyed will automatically transfer to another manager, either while the original is destroyed if another manager is already active and enabled, or later when another manager is enabled.

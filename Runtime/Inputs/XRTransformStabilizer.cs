@@ -10,7 +10,8 @@ using Unity.Burst;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 {
     /// <summary>
-    /// Provides low-latency stabilization for XR pose inputs, especially useful on rays.
+    /// Reduce unwanted jitter from tracked controllers and hands with low-latency stabilization. This is especially
+    /// useful for smoothing the movement of ray interactors.
     /// </summary>
 #if BURST_PRESENT
     [BurstCompile]

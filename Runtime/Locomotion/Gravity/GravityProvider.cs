@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine.Events;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
@@ -86,6 +87,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// <summary>
         /// Buffer for the radius of the sphere cast used to check if the player is grounded.
         /// </summary>
+        /// <remarks>
+        /// Unity automatically multiplies this value by the XR Origin scale.
+        /// </remarks>
         public float sphereCastRadius
         {
             get => m_SphereCastRadius;
@@ -99,6 +103,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// <summary>
         /// Buffer for the distance of the sphere cast used to check if the player is grounded.
         /// </summary>
+        /// <remarks>
+        /// Unity automatically multiplies this value by the XR Origin scale.
+        /// </remarks>
         public float sphereCastDistanceBuffer
         {
             get => m_SphereCastDistanceBuffer;
@@ -177,10 +184,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// (Read Only) The gravity controllers that can pause gravity.
         /// </summary>
         /// <remarks>
-        /// Automatically populated during <see cref="Awake"/> with all components under the <see cref="LocomotionMediator"/>
-        /// that implement the interface.
+        /// Automatically populated during <see cref="Awake"/> or <see cref="OnEnable"/> with all components under the <see cref="LocomotionMediator"/>
+        /// that implement the interface if this list is empty.
         /// </remarks>
         public List<IGravityController> gravityControllers => m_GravityControllers;
+
+        bool m_GravityControllersAutoPopulated;
 
         /// <summary>
         /// The head of the local player.
@@ -192,6 +201,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// </summary>
         readonly RaycastHit[] m_GroundedAllocHits = new RaycastHit[1];
 
+        // Computed during CheckGrounded and stored as class fields to allow the gizmo to access the cast parameters
+        Vector3 m_CastOrigin;
+        float m_CastRadiusScaled;
+        Vector3 m_CastDirection;
+        float m_CastDistance;
+
         // Current calculated velocity of the player falling.
         Vector3 m_CurrentFallVelocity;
 
@@ -200,6 +215,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         CharacterController m_CharacterController;
 
         bool m_AttemptedGetCharacterController;
+
+        XROrigin m_SearchedXROrigin;
 
         /// <summary>
         /// Providers that have gravity forced on.
@@ -217,8 +234,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
             base.Awake();
 
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
-            if (mediator != null)
-                mediator.GetComponentsInChildren(true, m_GravityControllers);
+            InitializeGravityControllers();
+        }
+
+        /// <inheritdoc />
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            InitializeGravityControllers();
+            FindDependencies();
         }
 
         /// <summary>
@@ -226,8 +251,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// </summary>
         protected virtual void Start()
         {
-            // Need to wait until Start to allow the other components to initialize references during Awake/OnEnable.
-            FindHeadTransform();
+            // Only checking in OnEnable is insufficient since we will usually need to wait until Start to allow the
+            // mediator to initialize references during its own Awake/OnEnable. This class drills down through those
+            // properties to find additional component dependencies.
+            FindDependencies();
         }
 
         /// <summary>
@@ -253,9 +280,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
                 }
             }
 
-            if (m_HeadTransform != null && m_CharacterController != null && m_UpdateCharacterControllerCenterEachFrame)
+            if (m_UpdateCharacterControllerCenterEachFrame && m_HeadTransform != null && m_CharacterController != null)
             {
-                m_CharacterController.center = new Vector3(m_HeadTransform.localPosition.x, m_CharacterController.center.y, m_HeadTransform.localPosition.z);
+                var headLocalPosition = m_HeadTransform.localPosition;
+                m_CharacterController.center = new Vector3(headLocalPosition.x, m_CharacterController.center.y, headLocalPosition.z);
+            }
+        }
+
+        /// <summary>
+        /// Populate the list of gravity controllers, if necessary. Only done once.
+        /// </summary>
+        void InitializeGravityControllers()
+        {
+            if (m_GravityControllersAutoPopulated || m_GravityControllers.Count > 0)
+                return;
+
+            if (mediator != null)
+            {
+                mediator.GetComponentsInChildren(true, m_GravityControllers);
+                m_GravityControllersAutoPopulated = true;
             }
         }
 
@@ -407,8 +450,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         {
             var wasGrounded = m_IsGrounded;
 
-            m_IsGrounded = m_LocalPhysicsScene.SphereCast(GetBodyHeadPosition(), m_SphereCastRadius,
-                -GetCurrentUp(), m_GroundedAllocHits, GetLocalHeadHeight(), m_SphereCastLayerMask,
+            var scaleFactor = mediator.xrOrigin.Origin.transform.lossyScale.y;
+            m_CastOrigin = GetBodyHeadPosition();
+            m_CastRadiusScaled = m_SphereCastRadius * scaleFactor;
+            m_CastDirection = -GetCurrentUp();
+            m_CastDistance = (GetLocalHeadHeight() + m_SphereCastDistanceBuffer) * scaleFactor;
+
+            m_IsGrounded = m_LocalPhysicsScene.SphereCast(m_CastOrigin, m_CastRadiusScaled,
+                m_CastDirection, m_GroundedAllocHits, m_CastDistance, m_SphereCastLayerMask,
                 m_SphereCastTriggerInteraction) > 0;
 
             // Check if grounded state changed
@@ -424,12 +473,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         }
 
         /// <summary>
-        /// Gets the local head height of the player.
+        /// Gets the local head height of the player. This is not scaled based on the XR Origin scale.
         /// </summary>
         /// <returns>Returns the local head height of the player.</returns>
         float GetLocalHeadHeight()
         {
-            return mediator.xrOrigin.CameraInOriginSpaceHeight + m_SphereCastDistanceBuffer;
+            return mediator.xrOrigin.CameraInOriginSpaceHeight;
         }
 
         /// <summary>
@@ -438,60 +487,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// <returns>Returns the world space position of the player's head projected onto the body.</returns>
         Vector3 GetBodyHeadPosition()
         {
-            if (m_CharacterController == null)
-                FindCharacterController();
-
             if (m_HeadTransform == null)
-            {
-                FindHeadTransform();
-                if (m_HeadTransform == null)
-                    return m_CharacterController != null ? m_CharacterController.bounds.center : transform.position;
-            }
+                return m_CharacterController != null ? m_CharacterController.bounds.center : transform.position;
 
-            if (m_CharacterController == null && m_UpdateCharacterControllerCenterEachFrame)
+            if (m_CharacterController == null)
                 return m_HeadTransform.position;
 
             var center = m_CharacterController.bounds.center;
             return new Vector3(center.x, m_HeadTransform.position.y, center.z);
         }
 
-        void FindCharacterController()
+        void FindDependencies()
         {
-            var xrOrigin = mediator.xrOrigin?.Origin;
-            if (xrOrigin == null)
+            // Only attempt to find components on an XR Origin once, especially since
+            // the CharacterController is optional.
+            var xrOrigin = mediator.xrOrigin;
+            if (ReferenceEquals(xrOrigin, m_SearchedXROrigin))
                 return;
 
-            // Save a reference to the optional CharacterController on the rig GameObject
-            // that will be used to move instead of modifying the Transform directly.
-            if (m_CharacterController == null && !m_AttemptedGetCharacterController)
+            if (xrOrigin != null && xrOrigin.Origin != null)
             {
+                // Save a reference to the optional CharacterController on the rig GameObject.
                 // Try on the Origin GameObject first, and then fallback to the XR Origin GameObject (if different)
-                if (!xrOrigin.TryGetComponent(out m_CharacterController) && xrOrigin != mediator.xrOrigin.gameObject)
-                    mediator.xrOrigin.TryGetComponent(out m_CharacterController);
+                if (!xrOrigin.Origin.TryGetComponent(out m_CharacterController) && xrOrigin.Origin != xrOrigin.gameObject)
+                    xrOrigin.TryGetComponent(out m_CharacterController);
 
-                m_AttemptedGetCharacterController = true;
-            }
-        }
+                m_HeadTransform = xrOrigin.Camera != null ? xrOrigin.Camera.transform : null;
 
-        void FindHeadTransform()
-        {
-            // Initialize the Head Transform, getting the Camera from XR Origin.
-            var xrOrigin = mediator.xrOrigin;
-            if (xrOrigin != null)
-            {
-                var xrCamera = xrOrigin.Camera;
-                if (xrCamera != null)
-                    m_HeadTransform = xrCamera.transform;
-                else
-                {
-                    Debug.LogError("Camera is not set in XR Origin, cannot obtain Transform reference to use as the head position. Disabling Gravity Provider.", this);
-                    enabled = false;
-                }
-            }
-            else
-            {
-                Debug.LogError("XR Origin is not available through the Locomotion Mediator, cannot obtain Transform reference to use as the head position. Disabling Gravity Provider.", this);
-                enabled = false;
+                m_SearchedXROrigin = xrOrigin;
             }
         }
 
@@ -500,16 +523,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// </summary>
         protected void OnDrawGizmosSelected()
         {
-            if (!Application.isPlaying || m_HeadTransform == null)
+            if (!Application.isPlaying || !isActiveAndEnabled)
                 return;
 
-            Color color = m_IsGrounded ? Color.green : Color.red;
+            var color = m_IsGrounded ? Color.green : Color.red;
             Gizmos.color = color;
-            var bodyHeadPosition = GetBodyHeadPosition();
-            Vector3 sphereCastStartPosition = bodyHeadPosition + (-GetCurrentUp() * m_GroundedAllocHits[0].distance);
-            Gizmos.DrawWireSphere(sphereCastStartPosition, m_SphereCastRadius);
-            Gizmos.DrawSphere(m_GroundedAllocHits[0].point, 0.025f);
-            Debug.DrawLine(bodyHeadPosition, sphereCastStartPosition, color);
+
+            // Draw a line spanning the entire cast
+            var castMaxPoint = m_CastOrigin + (m_CastDirection * m_CastDistance);
+            Debug.DrawLine(m_CastOrigin, castMaxPoint, color);
+
+            var hit = m_GroundedAllocHits[0];
+
+            // Draw a wire sphere at the end of the cast, either at the grounded hit
+            // or the max possible range of the entire cast to help visualize the sphere cast.
+            if (m_IsGrounded)
+                Gizmos.DrawWireSphere(m_CastOrigin + (m_CastDirection * hit.distance), m_CastRadiusScaled);
+            else
+                Gizmos.DrawWireSphere(castMaxPoint, m_CastRadiusScaled);
+
+            // Allow drawing the last valid hit point where the player was grounded even if not currently grounded
+            if (hit.collider != null)
+                Gizmos.DrawSphere(hit.point, 0.025f);
         }
     }
 }

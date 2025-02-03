@@ -1,4 +1,3 @@
-#if UNITY_2021_2_OR_NEWER
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -99,7 +98,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         XRMissingEvaluatorTypeList(XRTargetFilter targetFilter, ManagedReferenceMissingType[] elements)
-            : base(elements, typeof (ManagedReferenceMissingType), false, true, false, true)
+            : base(elements, typeof(ManagedReferenceMissingType), false, true, false, true)
         {
             m_TargetFilter = targetFilter;
 
@@ -110,4 +109,3 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
     }
 }
-#endif

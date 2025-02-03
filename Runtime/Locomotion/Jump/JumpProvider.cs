@@ -158,6 +158,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
             set => XRInputReaderUtility.SetInputProperty(ref m_JumpInput, value, this);
         }
 
+        GravityProvider m_GravityProvider;
+
+        /// <summary>
+        /// The gravity provider that this component uses to apply and query gravity.
+        /// If one is not provided, this provider will attempt to locate one at startup.
+        /// </summary>
+        public GravityProvider gravityProvider
+        {
+            get => m_GravityProvider;
+            set => m_GravityProvider = value;
+        }
+
         /// <summary>
         /// The transformation that is used by this component to apply translation movement.
         /// </summary>
@@ -204,11 +216,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
         /// </summary>
         Vector3 m_JumpVector;
 
-        /// <summary>
-        /// Reference to the gravity provider.
-        /// </summary>
-        GravityProvider m_GravityProvider;
-
         bool m_HasGravityProvider;
 
         float m_CurrentJumpTimer;
@@ -228,30 +235,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
         {
             base.Awake();
             m_HasGravityProvider = ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
-            if (!m_HasGravityProvider)
-            {
-                Debug.LogError("Could not find Gravity Provider component which is required by the Jump Provider component. Disabling component.", this);
-                enabled = false;
-                return;
-            }
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
+            if (!m_HasGravityProvider)
+            {
+                m_HasGravityProvider = ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+                if (!m_HasGravityProvider)
+                {
+                    Debug.LogError("Could not find Gravity Provider component which is required by the Jump Provider component. Disabling component.", this);
+                    enabled = false;
+                    return;
+                }
+            }
+
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_JumpInput.EnableDirectActionIfModeUsed();
 
             m_CurrentInAirJumpCount = m_InAirJumpCount;
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
             m_JumpInput.DisableDirectActionIfModeUsed();
         }
 

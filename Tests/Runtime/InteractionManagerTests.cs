@@ -8,6 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -17,6 +18,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public void TearDown()
         {
+            if (XRInteractionRuntimeSettings.InstanceInternal != null)
+            {
+                // Reset back to default project settings after each test because some tests change these.
+                XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = default;
+            }
+
             TestUtilities.DestroyAllSceneObjects();
         }
 
@@ -1778,6 +1787,125 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(group.focusInteractable, Is.Null);
 
             LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator OtherManagersDestroyedAfterFirst()
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle;
+
+            var phases = new List<(XRInteractionManager, ComponentLifecyclePhase)>();
+            XRInteractionManager.activeInteractionManagersChanged += OnActiveInteractionManagersChanged;
+
+            var manager1 = TestUtilities.CreateInteractionManager();
+
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager1, ComponentLifecyclePhase.Awake),
+                (manager1, ComponentLifecyclePhase.Enable),
+            }));
+            phases.Clear();
+
+            var manager2 = TestUtilities.CreateInteractionManager();
+
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1, manager2 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager2, ComponentLifecyclePhase.Awake),
+                (manager2, ComponentLifecyclePhase.Enable),
+                (manager2, ComponentLifecyclePhase.Disable),
+            }));
+            phases.Clear();
+
+            yield return null;
+
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager2, ComponentLifecyclePhase.Destroy),
+            }));
+
+            XRInteractionManager.activeInteractionManagersChanged -= OnActiveInteractionManagersChanged;
+
+            void OnActiveInteractionManagersChanged(XRInteractionManager manager, ComponentLifecyclePhase phase)
+            {
+                phases.Add((manager, phase));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator OtherManagersDestroyedAfterFirstManuallyDestroyed()
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = XRInteractionRuntimeSettings.ManagerSingletonMode.EnforceSingle;
+
+            var phases = new List<(XRInteractionManager, ComponentLifecyclePhase)>();
+            XRInteractionManager.activeInteractionManagersChanged += OnActiveInteractionManagersChanged;
+
+            var manager1 = TestUtilities.CreateInteractionManager();
+
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager1, ComponentLifecyclePhase.Awake),
+                (manager1, ComponentLifecyclePhase.Enable),
+            }));
+            phases.Clear();
+
+            var manager2 = TestUtilities.CreateInteractionManager();
+
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(manager1));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1, manager2 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager2, ComponentLifecyclePhase.Awake),
+                (manager2, ComponentLifecyclePhase.Enable),
+                (manager2, ComponentLifecyclePhase.Disable),
+            }));
+            phases.Clear();
+
+            Object.Destroy(manager1);
+
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.EqualTo(new[] { manager1, manager2 }));
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager1, ComponentLifecyclePhase.Disable),
+            }));
+            phases.Clear();
+
+            yield return null;
+
+            // Destroying the default manager (manager1) should not select a manager marked for destruction as the new default.
+            Assert.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.EqualTo(null));
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(phases, Is.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager1, ComponentLifecyclePhase.Destroy),
+                (manager2, ComponentLifecyclePhase.Destroy),
+            }).Or.EqualTo(new List<(XRInteractionManager, ComponentLifecyclePhase)>()
+            {
+                (manager2, ComponentLifecyclePhase.Destroy),
+                (manager1, ComponentLifecyclePhase.Destroy),
+            }));
+
+            XRInteractionManager.activeInteractionManagersChanged -= OnActiveInteractionManagersChanged;
+
+            void OnActiveInteractionManagersChanged(XRInteractionManager manager, ComponentLifecyclePhase phase)
+            {
+                phases.Add((manager, phase));
+            }
         }
 
         /// <summary>

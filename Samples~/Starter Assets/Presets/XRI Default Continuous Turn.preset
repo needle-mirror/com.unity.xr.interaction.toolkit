@@ -37,6 +37,14 @@ Preset:
     value: 60
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_EnableTurnLeftRight
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EnableTurnAround
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_LeftHandTurnInput.m_InputSourceMode
     value: 2
     objectReference: {fileID: 0}

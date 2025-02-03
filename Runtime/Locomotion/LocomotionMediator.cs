@@ -24,8 +24,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         /// </summary>
         public XROrigin xrOrigin
         {
-            get => m_XRBodyTransformer.xrOrigin;
-            set => m_XRBodyTransformer.xrOrigin = value;
+            get => m_XRBodyTransformer?.xrOrigin;
+            set
+            {
+                if (m_XRBodyTransformer != null)
+                    m_XRBodyTransformer.xrOrigin = value;
+                else
+                    Debug.LogWarning("Cannot set XR Origin before LocomotionMediator.Awake has been invoked.", this);
+            }
         }
 
         XRBodyTransformer m_XRBodyTransformer;

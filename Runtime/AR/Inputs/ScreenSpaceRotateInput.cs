@@ -96,6 +96,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// </summary>
         protected void OnEnable()
         {
+            if (m_RayInteractor == null)
+                m_RayInteractor = GetComponentInParent<XRRayInteractor>(true);
+
             m_TwistDeltaRotationInput.EnableDirectActionIfModeUsed();
             m_DragDeltaInput.EnableDirectActionIfModeUsed();
             m_ScreenTouchCountInput.EnableDirectActionIfModeUsed();

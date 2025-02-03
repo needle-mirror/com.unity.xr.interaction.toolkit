@@ -1,20 +1,23 @@
+using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
 {
     /// <summary>
-    /// Component that allows for sending haptic impulses to a device.
+    /// Send haptic impulses to a device.
+    /// Use this component to manage the connection to haptic hardware. It acts as a bridge, allowing other components,
+    /// such as <see cref="SimpleHapticFeedback"/>, to trigger vibrations on a specific device.
     /// </summary>
     [AddComponentMenu("XR/Haptics/Haptic Impulse Player", 11)]
     [HelpURL(XRHelpURLConstants.k_HapticImpulsePlayer)]
     public class HapticImpulsePlayer : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("Specifies the output haptic control or controller that haptic impulses will be sent to.")]
+        [Tooltip("Specifies the output haptic control or controller that haptic impulses are sent to.")]
         XRInputHapticImpulseProvider m_HapticOutput = new XRInputHapticImpulseProvider("Haptic");
 
         /// <summary>
-        /// Specifies the output haptic control or controller that haptic impulses will be sent to.
+        /// Specifies the output haptic control or controller that haptic impulses are sent to.
         /// </summary>
         public XRInputHapticImpulseProvider hapticOutput
         {
@@ -23,11 +26,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
         }
 
         [SerializeField, Range(0f, 1f)]
-        [Tooltip("Amplitude multiplier which can be used to dampen the haptic impulses sent by this component.")]
+        [Tooltip("Sets a multiplier that dampens all haptic impulses this component sends. A value of 1 maintains the current amplitude.")]
         float m_AmplitudeMultiplier = 1f;
 
         /// <summary>
-        /// Amplitude multiplier which can be used to dampen the haptic impulses sent by this component.
+        /// Sets a multiplier that dampens all haptic impulses this component sends. A value of 1 maintains the current amplitude.
         /// </summary>
         public float amplitudeMultiplier
         {

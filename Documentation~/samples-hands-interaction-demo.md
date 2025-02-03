@@ -7,6 +7,9 @@ This sample demonstrates hand tracking interactions with the XR Interaction Tool
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Hands Interaction Demo` folder. You can move these Assets to a different location.
 
+> [!NOTE]
+> If the project is using the Built-in Render Pipeline with the Hands Interaction Demo, the `Render Mode` in **Project Settings** &gt; **XR Plug-in Management** &gt; **OpenXR** needs to be set to `Multi-pass` for each platform. See the [entry on known limitations](xref:xri-index#known-limitations) for more information.
+
 |**Asset**|**Description**|
 |---|---|
 |**`AffordanceThemes\`**|Asset folder containing Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the hand visuals. An example is coloring finger tips upon interaction.|

@@ -144,11 +144,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         float m_InitialOriginScale;
         float m_InitialDistanceBetweenHands;
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             if (m_LeftGrabMoveProvider == null || m_RightGrabMoveProvider == null)
             {
                 Debug.LogError("Left or Right Grab Move Provider is not set or has been destroyed.", this);
@@ -182,11 +182,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             }
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
             if (m_LeftGrabMoveProvider != null)
                 m_LeftGrabMoveProvider.canMove = true;
             if (m_RightGrabMoveProvider != null)

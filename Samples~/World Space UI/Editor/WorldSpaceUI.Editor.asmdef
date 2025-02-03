@@ -2,6 +2,7 @@
     "name": "Unity.XR.Interaction.Toolkit.Samples.WorldSpaceUI.Editor",
     "rootNamespace": "UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI",
     "references": [
+        "Unity.TextMeshPro",
         "Unity.XR.Interaction.Toolkit",
         "Unity.XR.Interaction.Toolkit.Editor",
         "Unity.XR.Interaction.Toolkit.Samples.WorldSpaceUI",
@@ -18,6 +19,11 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "UGUI_2_0_PRESENT"
+        },
         {
             "name": "Unity",
             "expression": "6000.2.0a9",

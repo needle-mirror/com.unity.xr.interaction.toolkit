@@ -9,25 +9,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     class XRTargetFilterEditor : Editor
     {
         XRTargetEvaluatorList m_EvaluatorList;
-
-#if UNITY_2021_2_OR_NEWER
         XRMissingEvaluatorTypeList m_MissingEvaluatorTypeList;
-#endif
 
         void OnEnable()
         {
             var evaluators = serializedObject.FindProperty("m_Evaluators");
             m_EvaluatorList = new XRTargetEvaluatorList(serializedObject, evaluators);
-
-#if UNITY_2021_2_OR_NEWER
             m_MissingEvaluatorTypeList = XRMissingEvaluatorTypeList.CreateList(target as XRTargetFilter);
-#endif
         }
 
         /// <inheritdoc />
         public override void OnInspectorGUI()
         {
-#if UNITY_2021_2_OR_NEWER
             if (m_MissingEvaluatorTypeList != null && m_MissingEvaluatorTypeList.count > 0)
             {
                 using (new EditorGUI.DisabledScope(true))
@@ -42,10 +35,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
                 DrawEvaluatorList();
                 DrawSelectedEvaluatorInspector();
             }
-#else
-            DrawEvaluatorList();
-            DrawSelectedEvaluatorInspector();
-#endif
         }
 
         /// <summary>
@@ -72,7 +61,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
                 m_EvaluatorList.DrawListElementInspectorGUI(index);
         }
 
-#if UNITY_2021_2_OR_NEWER
         /// <summary>
         /// Draw the missing evaluator types message
         /// </summary>
@@ -82,7 +70,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             EditorGUILayout.HelpBox("Some associated evaluator scripts cannot be loaded." +
                                     "\nPlease fix any compile errors and do the following options:" +
                                     "\n1 - If you renamed the class, namespace or moved the type to another assembly then decorate the class with MovedFromAttribute." +
-                                    "\n2 - Remove any deleted scripts from the Missing Evaluator Types list below.",  MessageType.Warning);
+                                    "\n2 - Remove any deleted scripts from the Missing Evaluator Types list below.", MessageType.Warning);
             EditorGUILayout.Space();
         }
 
@@ -103,6 +91,5 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             if (index >= 0 & index < m_MissingEvaluatorTypeList.count)
                 m_MissingEvaluatorTypeList.DrawListElementInspectorGUI(index);
         }
-#endif
     }
 }

@@ -24,11 +24,11 @@ using UnityEngine.XR.OpenXR.Features.Interactions;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 {
     /// <summary>
-    /// Manages swapping between hands and controllers at runtime based on whether hands and controllers are tracked.
+    /// Automatically change between hand tracking and motion controllers at runtime based on which input method is currently tracked.
     /// </summary>
     /// <remarks>
     /// This component uses the following logic for determining which modality is active:
-    /// If a hand begin tracking, this component will switch to the hand group of interactors.
+    /// If hands begin tracking, this component will switch to the hand group of interactors.
     /// If the player wakes the motion controllers by grabbing them, this component will switch to the motion controller group of interactors
     /// once they become tracked. While waiting to activate the controller GameObject while not tracked, both groups will be deactivated.
     /// <br />
@@ -687,11 +687,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         static bool IsHandInteractionXRControllerType(InputSystem.XR.XRController device)
         {
 #if OPENXR_1_10_OR_NEWER
+#pragma warning disable CS0618 // Type or member is obsolete
             if (device is HandInteractionProfile.HandInteraction ||
                 device is MicrosoftHandInteraction.HoloLensHand)
             {
                 return true;
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 #endif
 
             return false;

@@ -3,11 +3,13 @@ uid: xri-tunneling-vignette-controller
 ---
 # Tunneling Vignette Controller
 
-The `TunnelingVignetteController` component, combined with the [Tunneling Vignette sample assets](samples-starter-assets.md#tunneling-vignette), provide an out-of-the-box tunneling vignette solution as a comfort mode option intended to mitigate motion sickness in VR. To install the sample assets, use the `Package Manager` to import the `Tunneling Vignette` sample under the `XR Interaction Toolkit` package.
+The `TunnelingVignetteController` component, combined with the [Tunneling Vignette sample assets](samples-starter-assets.md#tunneling-vignette), provides an out-of-the-box tunneling vignette solution as a comfort mode solution intended to mitigate motion sickness in VR. To install the sample assets, use `Package Manager` to import the `Starter Assets` sample under the `XR Interaction Toolkit` package. Once imported, it will be located in the `TunnelingVignette` folder underneath the newly imported sample.
 
-The `TunnelingVignette.prefab` in the sample asset is recommended to be placed as a child GameObject of the Main Camera. It renders a hemisphere that consists of the inner transparent aperture and the black visual cut-off using the provided shader and material. The following image shows the Scene view of the rendered vignette.
+The `TunnelingVignette.prefab` should be placed as a child GameObject of the Main Camera. It uses the provided shader and material to render a hemisphere that consists of the inner transparent aperture and the black visual cut-off. The following image shows the Scene view of the rendered vignette.
 
 ![TunnelingVignetteScene](images/tunneling-vignette-hemisphere-scene.png)
+
+If you do not wish to use the tunneling vignette, you can simply delete or deactivate the prefab instance in your scene. If you want to toggle functionality at runtime, the entire `TunnelingVignette` GameObject should be deactivated or activated by calling [SetActive](https://docs.unity3d.com/ScriptReference/GameObject.SetActive.html) as opposed to changing only the [enabled](https://docs.unity3d.com/ScriptReference/Behaviour-enabled.html) property of the Tunneling Vignette Controller component, as the associated Mesh Renderer component also needs to be disabled or enabled to prevent unexpected visual behavior, such as the vignette appearing to get stuck on.
 
 The rest of this documentation details the properties and their usages of the `TunnelingVignetteController` component, which is attached to the `TunnelingVignette.prefab` by default. The image below shows the component with move and turn locomotion providers configured in the Inspector.
 

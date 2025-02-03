@@ -81,10 +81,15 @@ To enable poke support that works with the `XRPokeInteractor`, additional compon
 
 Adding an `XRSimpleInteractable` component and an `XRPokeFilter` component in addition to the `Collider` and `UI Document` enables poke support on that world space UI panel.
 
-> [!Note]
+> [!NOTE]
 > Poke is supported with both hands and controllers.
 
 ![UI Document](images/xr-ui-toolkit-poke-world-space-panel.png)
+
+UI Toolkit `Button`, `Toggle`, and `Visual Element` all support z-depth with poke. Use the Translate style to set the initial z-depth of the UI element. This can be done via the UI Builder (Transform > Translate > Z) or by programmatically updating the style. The initial z-depth (relative to parent) is cached upon an interactors first interaction with the UI element, and the UI element depth will be reset to that initial z-depth when the interaction ends.
+
+> [!Note]
+> Because the UI Toolkit support relies on a collider around the UI Document, there can be unexpected behavior if the z-depth of the UI Element protrudes out from the document box collider. The poke interaction won't be processed until the collider is reached, at which point the poke z-depth processing will begin.
 
 ## Examples
 
@@ -94,4 +99,8 @@ The **World Space UI** sample found in the XR Interaction Toolkit samples in Pac
 
 ## Known limitations
 
-- The scrollview in the in UI Toolkit station currently supports scrolling only using the horizontal and vertical handles. Support to grab the text area of the scrollview and scroll using the thumbstick is planned to be added in the future.
+> [!IMPORTANT]
+> When using an XR headset in play mode in the Unity Editor, such as over Meta Horizon Link, it may seem as though input is not working with UI Toolkit objects in the scene. This is because input will not be redirected to UI Toolkit unless the Game View is in focus. Bringing the Game View into focus can be done by simply clicking anywhere inside the Game View window.
+
+- The scroll view in the in UI Toolkit station currently supports scrolling only using the horizontal and vertical handles. Support to grab the text area of the scroll view and scroll using the thumbstick is planned to be added in the future.
+- Nested elements can impede z-depth support for poke. A `Visual Element` that is a child of a `Visual Element` with z-depth can block the poke interaction on the parent and prevent the poke interaction updating z-depth. This is handled for `Button` and `Toggle`, but should be kept in mind when applying poke z-depth to generic `Visual Element` containers.

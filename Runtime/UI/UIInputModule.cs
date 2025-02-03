@@ -83,15 +83,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_TrackedDeviceDragThresholdMultiplier = value;
         }
 
-        [SerializeField, Tooltip("Scales the scrollDelta in event data, for tracked devices, to scroll at an expected speed.")]
+        [SerializeField, Tooltip("Scales the scroll delta in pointer event data, for tracked devices only.")]
         float m_TrackedScrollDeltaMultiplier = 5f;
         /// <summary>
-        /// Scales the scrollDelta in event data, for tracked devices, to scroll at an expected speed.
+        /// Scales the scroll delta in pointer event data, for tracked devices only.
+        /// This is a multiplier value that allows you to adjust the scroll speed sent to UI components.
         /// </summary>
+        /// <remarks>
+        /// This value controls the magnitude of the <see cref="PointerEventData.scrollDelta"/> value. It acts as a multiplier,
+        /// so a value of <c>1</c> passes through the original value. A value larger than one increases the scrolling speed,
+        /// and a value less than one decreases the speed. A value of zero prevents scrolling from working at all.
+        /// You can set this to a negative value to invert the scroll direction.
+        /// </remarks>
+        /// <seealso cref="nonTrackedScrollDeltaMultiplier"/>
         public float trackedScrollDeltaMultiplier
         {
             get => m_TrackedScrollDeltaMultiplier;
             set => m_TrackedScrollDeltaMultiplier = value;
+        }
+
+        [SerializeField, Tooltip("Scales the scroll delta in pointer event data, for non-tracked devices only.")]
+        float m_NonTrackedScrollDeltaMultiplier = 6f;
+        /// <summary>
+        /// Scales the scroll delta in pointer event data, for non-tracked devices only.
+        /// This is a multiplier value that allows you to adjust the scroll speed sent to UI components.
+        /// </summary>
+        /// <remarks>
+        /// This value controls the magnitude of the <see cref="PointerEventData.scrollDelta"/> value. It acts as a multiplier,
+        /// so a value of <c>1</c> passes through the original value. A value larger than one increases the scrolling speed,
+        /// and a value less than one decreases the speed. A value of zero prevents scrolling from working at all.
+        /// You can set this to a negative value to invert the scroll direction.
+        /// <br />
+        /// This value is not used to scale the scroll delta when exclusively using the old Input Manager instead of
+        /// the Input System in order to maintain legacy functionality.
+        /// </remarks>
+        /// <seealso cref="trackedScrollDeltaMultiplier"/>
+        public float nonTrackedScrollDeltaMultiplier
+        {
+            get => m_NonTrackedScrollDeltaMultiplier;
+            set => m_NonTrackedScrollDeltaMultiplier = value;
         }
 
         [SerializeField, Tooltip("Disables sending events from Event System to UI Toolkit on behalf of this Input Module.")]
@@ -326,6 +356,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (eventData == null)
                 throw new ArgumentNullException(nameof(eventData));
 
+            // Note: RaycastAll has an internal sorting algorithm that should be considered
+            // when analyzing the results. Here is the order that things are sorted:
+            // - raycaster differences
+            //    - eventCamera depth
+            //    - sortOrderPriority
+            //    - renderOrderPriority
+            // - sortingLayer
+            // - sortingOrder
+            // - depth
+            // - distance
+            // - 2D physics
+            //    - sortingGroupID
+            //    - sortingGroupOrder
             eventSystem.RaycastAll(eventData, m_RaycastResultCache);
             finalizeRaycastResults?.Invoke(eventData, m_RaycastResultCache);
             var result = FindFirstRaycast(m_RaycastResultCache);
@@ -396,7 +439,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             var currentPointerTarget = eventData.pointerCurrentRaycast.gameObject;
 
-#if UNITY_2021_1_OR_NEWER
             // If the pointer moved, send move events to all UI elements the pointer is
             // currently over.
             var wasMoved = eventData.IsPointerMoving();
@@ -408,7 +450,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     ExecuteEvents.Execute(eventData.hovered[i], eventData, ExecuteEvents.pointerMoveHandler);
                 }
             }
-#endif
 
             // If we have no target or pointerEnter has been deleted,
             // we just send exit events to anything we are tracking
@@ -467,13 +508,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var targetGameObject = target.gameObject;
                     pointerEnter?.Invoke(targetGameObject, eventData);
                     ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerEnterHandler);
-#if UNITY_2021_1_OR_NEWER
+
                     if (wasMoved)
                     {
                         pointerMove?.Invoke(targetGameObject, eventData);
                         ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerMoveHandler);
                     }
-#endif
+
                     eventData.hovered.Add(targetGameObject);
 
                     target = target.parent;
@@ -958,5 +999,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return false;
         }
+
+#if UNITY_INPUT_SYSTEM_INPUT_MODULE_SCROLL_DELTA // Method was added in 6000.0.11
+        /// <summary>
+        /// Converts <see cref="PointerEventData.scrollDelta"/> to corresponding number of ticks of the scroll wheel.
+        /// </summary>
+        public override Vector2 ConvertPointerEventScrollDeltaToTicks(Vector2 scrollDelta)
+        {
+#if ENABLE_LEGACY_INPUT_MANAGER && !ENABLE_INPUT_SYSTEM
+            // A multiplier is not applied to `Input.mouseScrollDelta` when exclusively using the old Input Manager.
+            // Since the divisor would be 1, we can just return it.
+            return scrollDelta;
+#else
+            // This is the same const value used by `InputSystemUIInputModule`.
+            // When the multiplier is zero, scroll is effectively disabled.
+            const float kSmallestScrollDeltaPerTick = 0.00001f;
+
+            // This method is generally invoked by `PanelEventHandler.OnScroll` when processing mouse wheel
+            // rather than from an XR tracked device, so the multiplier for non-tracked is used to convert
+            // from the scaled value back to the number of ticks of the mouse wheel. This does mean that
+            // the conversion may be incorrect, but there is not enough context provided to this method
+            // to determine which multiplier should be used, so we assume non-tracked. A potential workaround
+            // is to store a class field during `ProcessScrollWheel` when dispatching to the `IScrollHandler`
+            // which device source triggered the scroll event, and then use the appropriate multiplier here.
+            var multiplier = m_NonTrackedScrollDeltaMultiplier;
+
+            if (Mathf.Abs(multiplier) < kSmallestScrollDeltaPerTick)
+                return Vector2.zero;
+
+            return scrollDelta / multiplier;
+#endif
+        }
+#endif
     }
 }

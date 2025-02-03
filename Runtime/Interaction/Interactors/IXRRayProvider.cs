@@ -6,6 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// <summary>
     /// An interface that represents a <see cref="Transform"/>-driven XR Ray.
     /// </summary>
+    /// <seealso cref="NearFarInteractor"/>
     /// <seealso cref="XRRayInteractor"/>
     /// <seealso cref="XRGazeAssistance"/>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]

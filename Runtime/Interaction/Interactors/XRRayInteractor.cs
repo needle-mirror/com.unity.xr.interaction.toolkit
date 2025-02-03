@@ -1,3 +1,7 @@
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
+
 using System;
 using System.Collections.Generic;
 #if BURST_PRESENT
@@ -51,11 +55,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         const int k_MinSampleFrequency = 2;
         const int k_MaxSampleFrequency = 100;
-
-        /// <summary>
-        /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
-        /// </summary>
-        static readonly List<IXRInteractable> s_Results = new List<IXRInteractable>();
 
         /// <summary>
         /// Reusable list of raycast hits, used to avoid allocations during sphere casting.
@@ -575,9 +574,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 if (m_EnableUIInteraction != value)
                 {
                     m_EnableUIInteraction = value;
-                    m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+                    UpdateUIRegistration();
                 }
             }
+        }
+
+        /// <summary>
+        /// Read-only property determining whether UI interaction with UI Toolkit is enabled.
+        /// </summary>
+        bool canProcessUIToolkit
+        {
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            get => m_EnableUIInteraction && XRUIToolkitHandler.uiToolkitSupportEnabled;
+#else
+            get => false;
+#endif
         }
 
         [SerializeField]
@@ -1069,6 +1080,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         RegisteredUIInteractorCache m_RegisteredUIInteractorCache;
 
+        /// <summary>
+        /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
+        /// </summary>
+        readonly List<IXRInteractable> m_Results = new List<IXRInteractable>();
+
+        /// <summary>
+        /// Reusable single-item list for UI Toolkit collider validation to avoid allocations.
+        /// </summary>
+        readonly List<Collider> m_UIToolkitValidationList = new List<Collider>(1);
+
         // Cached raycast data
         bool m_RaycastHitOccurred;
         RaycastHit m_RaycastHit;
@@ -1080,6 +1101,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         bool m_IsARHitClosest;
 #endif
 
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        bool m_LastValidHitIsUI;
+#endif
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -1088,7 +1113,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_HasRayOriginTransform = m_RayOriginTransform != null;
             m_HasReferenceFrame = m_ReferenceFrame != null;
             m_SampleFrequency = SanitizeSampleFrequency(m_SampleFrequency);
-            m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
 
 #if AR_FOUNDATION_PRESENT
             if (Application.isPlaying && isActiveAndEnabled && m_EnableARRaycasting)
@@ -1133,7 +1157,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnEnable();
 
             if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+                UpdateUIRegistration();
 
 #if AR_FOUNDATION_PRESENT
             if (m_EnableARRaycasting)
@@ -1149,6 +1173,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             // Clear lines
             m_SamplePoints?.Clear();
             m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            XRUIToolkitHandler.Unregister(this);
+#endif
         }
 
         /// <summary>
@@ -2118,6 +2146,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     if (progressToDeselect >= 1f)
                         m_PassedTimeToAutoDeselect = true;
                 }
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                HandleUIToolkitEvents();
+#endif
             }
         }
 
@@ -2245,11 +2277,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var filter = targetFilter;
             if (filter != null && filter.canProcess)
             {
-                filter.Process(this, targets, s_Results);
+                filter.Process(this, targets, m_Results);
 
                 // Copy results elements to targets
                 targets.Clear();
-                targets.AddRange(s_Results);
+                targets.AddRange(m_Results);
             }
         }
 
@@ -2410,6 +2442,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             var direction = (to - from).normalized;
             var maxDistance = Vector3.Distance(to, from);
+
             var queryTriggerInteraction = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide
                 ? QueryTriggerInteraction.Collide
                 : m_RaycastTriggerInteraction;
@@ -2879,5 +2912,75 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             /// </summary>
             public float parameter { get; set; }
         }
+
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// Handles both UGUI (via XRUIInputModule) and UI Toolkit (via XRUIToolkitHandler) registration.
+        /// </summary>
+        void UpdateUIRegistration()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            // First unregister from all UI systems
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            XRUIToolkitHandler.Unregister(this);
+#endif
+
+            // Register with the appropriate UI system
+            if (m_EnableUIInteraction)
+            {
+                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                XRUIToolkitHandler.Register(this);
+#endif
+            }
+        }
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        /// <summary>
+        /// Handles UI Toolkit pointer events by sending position and interaction state updates to the UI system.
+        /// </summary>
+        void HandleUIToolkitEvents()
+        {
+            if (!canProcessUIToolkit)
+                return;
+
+            // Track current UI Toolkit hit state
+            bool hasUIToolkitHit = false;
+
+            if (m_RaycastHitOccurred && m_RaycastHit.collider != null)
+            {
+                // Check if the hit collider is a UI Toolkit collider
+                m_UIToolkitValidationList.Clear();
+                m_UIToolkitValidationList.Add(m_RaycastHit.collider);
+                hasUIToolkitHit = XRUIToolkitHandler.IsValidUIToolkitInteraction(m_UIToolkitValidationList);
+                // Clean up for next use
+                m_UIToolkitValidationList.Clear();
+            }
+
+            bool didHaveUIToolkitHit = m_LastValidHitIsUI;
+            m_LastValidHitIsUI = hasUIToolkitHit;
+
+            // Reset if we no longer have a valid UI hit or if the sample points are invalid
+            bool shouldReset = (!hasUIToolkitHit && didHaveUIToolkitHit) ||
+                               m_SamplePoints == null ||
+                               m_SamplePoints.Count < 2;
+
+            GetLineOriginAndDirection(out var origin, out var direction);
+
+            // Use the same input source as UGUI for consistency
+            bool uiPressActive = m_UIPressInput.ReadIsPerformed();
+
+            XRUIToolkitHandler.HandlePointerUpdate(
+                this,
+                origin,
+                Quaternion.LookRotation(direction),
+                uiPressActive,
+                shouldReset);
+        }
+#endif
     }
 }

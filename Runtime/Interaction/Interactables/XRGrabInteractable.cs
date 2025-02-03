@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.XR.CoreUtils;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
@@ -11,7 +12,6 @@ using UnityEngine.XR.Interaction.Toolkit.Gaze;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
-using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 #if BURST_PRESENT
@@ -829,6 +829,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         bool m_RigidbodyColliding;
 
         // Rigidbody's settings upon select, kept to restore these values when dropped
+        bool m_RigidbodySetupActive;
         bool m_WasKinematic;
         bool m_UsedGravity;
         RigidbodyInterpolation m_InterpolationOnGrab;
@@ -1984,12 +1985,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 var newVelocity = targetVelocity;
                 if (m_LimitLinearVelocity)
                 {
-#if UNITY_2022_3_OR_NEWER // Rigidbody.maxLinearVelocity not available in earlier Unity versions
                     var maxLinearVelocity = Mathf.Min(m_Rigidbody.maxLinearVelocity, m_MaxLinearVelocityDelta);
-#else
-                    var maxLinearVelocity = m_MaxLinearVelocityDelta;
-#endif
-
                     newVelocity = Vector3.MoveTowards(currentVelocity, targetVelocity, maxLinearVelocity);
                 }
 
@@ -2187,9 +2183,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (effectiveMovementType == m_CurrentMovementType)
                 return;
 
-            SetupRigidbodyDrop(m_Rigidbody);
+            if (m_RigidbodySetupActive)
+                SetupRigidbodyDrop(m_Rigidbody);
+
             m_CurrentMovementType = effectiveMovementType;
-            SetupRigidbodyGrab(m_Rigidbody);
+
+            if (!m_RigidbodySetupActive)
+                SetupRigidbodyGrab(m_Rigidbody);
 
             // If the movement type changed from a Rigidbody type to Instantaneous while grabbed,
             // make sure the visuals pose is reset since it will no longer be driven in the process loop.
@@ -2517,7 +2517,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
 
             UpdateCurrentMovementType();
-            SetupRigidbodyGrab(m_Rigidbody);
+            if (!m_RigidbodySetupActive)
+                SetupRigidbodyGrab(m_Rigidbody);
 
             // Reset detach velocities
             m_DetachLinearVelocity = Vector3.zero;
@@ -2553,7 +2554,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     m_Transform.SetParent(m_OriginalSceneParent);
             }
 
-            SetupRigidbodyDrop(m_Rigidbody);
+            if (m_RigidbodySetupActive)
+                SetupRigidbodyDrop(m_Rigidbody);
 
             m_CurrentMovementType = m_MovementType;
             m_DetachInLateUpdate = true;
@@ -2609,20 +2611,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         }
 
         /// <summary>
-        /// Setup the <see cref="Rigidbody"/> on this object due to being grabbed.
+        /// Set up the <see cref="Rigidbody"/> on this object due to being grabbed.
         /// Automatically called when entering the Select state.
         /// </summary>
         /// <param name="rigidbody">The <see cref="Rigidbody"/> on this object.</param>
         /// <remarks>
         /// This method can also be re-triggered after the initial grab when the effective movement type changes
-        /// while grabed. This can happen when multi-selected as additional interactors select or deselect this
+        /// while grabbed. This can happen when multi-selected as additional interactors select or deselect this
         /// interactable when the interactors override the movement type, or when the movement type property is
         /// changed while selected.
+        /// <br />
+        /// Users overriding this method in a derived class should call the base method to ensure proper
+        /// setup as not doing so would prevent <see cref="SetupRigidbodyDrop"/> from being invoked again.
         /// </remarks>
         /// <seealso cref="SetupRigidbodyDrop"/>
         // ReSharper disable once ParameterHidesMember
         protected virtual void SetupRigidbodyGrab(Rigidbody rigidbody)
         {
+            if (m_RigidbodySetupActive)
+                return;
+
+            m_RigidbodySetupActive = true;
+
             // Remember Rigidbody settings and setup to move
             m_WasKinematic = rigidbody.isKinematic;
             m_UsedGravity = rigidbody.useGravity;
@@ -2651,20 +2661,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         }
 
         /// <summary>
-        /// Setup the <see cref="Rigidbody"/> on this object due to being dropped.
+        /// Set up the <see cref="Rigidbody"/> on this object due to being dropped.
         /// Automatically called when exiting the Select state.
         /// </summary>
         /// <param name="rigidbody">The <see cref="Rigidbody"/> on this object.</param>
         /// <remarks>
         /// This method can also be re-triggered after the initial grab when the effective movement type changes
-        /// while grabed. This can happen when multi-selected as additional interactors select or deselect this
+        /// while grabbed. This can happen when multi-selected as additional interactors select or deselect this
         /// interactable when the interactors override the movement type, or when the movement type property is
         /// changed while selected.
+        /// <br />
+        /// Users overriding this method in a derived class should call the base method to ensure proper
+        /// setup as not doing so would prevent <see cref="SetupRigidbodyGrab"/> from being invoked again.
         /// </remarks>
         /// <seealso cref="SetupRigidbodyGrab"/>
         // ReSharper disable once ParameterHidesMember
         protected virtual void SetupRigidbodyDrop(Rigidbody rigidbody)
         {
+            if (!m_RigidbodySetupActive)
+                return;
+
+            m_RigidbodySetupActive = false;
+
             // Restore Rigidbody settings
             rigidbody.isKinematic = m_WasKinematic;
             rigidbody.useGravity = m_UsedGravity;

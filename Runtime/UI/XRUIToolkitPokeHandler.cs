@@ -28,18 +28,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         // Reference to the owning interactor
         readonly XRPokeInteractor m_Interactor;
 
-        // Flag to enable/disable depth updates
-        bool m_UpdateDepth;
-
-        /// <summary>
-        /// Whether to update depth during interactions.
-        /// </summary>
-        public bool updateDepth
-        {
-            get => m_UpdateDepth;
-            set => m_UpdateDepth = value;
-        }
-
         /// <summary>
         /// Creates a new UI Toolkit poke handler for the given interactor.
         /// </summary>
@@ -101,6 +89,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (hitElement != null)
             {
+                // If the hit element is not a Button or Toggle, search up the hierarchy to try finding the nearest
+                // parent that is and use that instead. Otherwise, proceed with the VisualElement that was hit.
+                // These types will often contain an image child, and the poke should move the clickable element itself
+                // instead of just the image.
+                if (hitElement is not Button && hitElement is not Toggle)
+                {
+                    var ancestor = GetFirstAncestorOfType<Button, Toggle>(hitElement);
+                    if (ancestor != null)
+                        hitElement = ancestor;
+                }
+
                 // Cache the physical hit data for use by interactables
                 XRUIToolkitHandler.UpdateInteractorHitData(m_Interactor, new InteractorHitData
                 {
@@ -125,12 +124,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 bool pokeComplete = processResult > 0.99f;
 
                 // Apply element depth based on poke progress if enabled
-                if (m_UpdateDepth)
-                {
-                    // Add better handling of detection of z depth to handle this
-                    // TODO Improve depth support - it's a bit glitchy right now
-                    XRUIToolkitHandler.SetZDepthForInteractor(hitElement, m_Interactor, 20f * (1f - processResult));
-                }
+                float remainingPokePercentage = 1f - processResult;
+                XRUIToolkitHandler.SetZDepthForInteractor(hitElement, m_Interactor, remainingPokePercentage);
 
                 // Update XRUIToolkitHandler pointer state
                 XRUIToolkitHandler.HandlePointerUpdate(
@@ -148,6 +143,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #endif
         }
 
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        /// <summary>
+        /// Walks up the hierarchy, starting from the parent of the <paramref name="element"/> and returns the first
+        /// <see cref="VisualElement"/> that is either of the type parameters.
+        /// </summary>
+        /// <typeparam name="TType1">A type to check.</typeparam>
+        /// <typeparam name="TType2">A type to check.</typeparam>
+        /// <param name="element">The visual element.</param>
+        /// <returns>Returns the first <see cref="VisualElement"/> parent that is either of the type parameters. Otherwise, returns <see langword="null"/>.</returns>
+        /// <remarks>
+        /// This is similar in implementation to <see cref="VisualElement.GetFirstAncestorOfType"/> but allows for multiple types to check.
+        /// </remarks>
+        static VisualElement GetFirstAncestorOfType<TType1, TType2>(VisualElement element)
+            where TType1 : VisualElement
+            where TType2 : VisualElement
+        {
+            for (var parent = element.hierarchy.parent; parent != null; parent = parent.hierarchy.parent)
+            {
+                if (parent is TType1 || parent is TType2)
+                    return parent;
+            }
+
+            return null;
+        }
+#endif
+
         /// <summary>
         /// Reset the pointer state when no longer interacting with UI
         /// </summary>
@@ -162,10 +183,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
             // Clear depth if enabled
-            if (m_UpdateDepth)
-            {
-                XRUIToolkitHandler.ClearZDepthForInteractor(m_Interactor);
-            }
+            XRUIToolkitHandler.ClearZDepthForInteractor(m_Interactor);
 #endif
         }
 

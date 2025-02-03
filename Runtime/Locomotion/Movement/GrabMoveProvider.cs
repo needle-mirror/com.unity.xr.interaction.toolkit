@@ -99,11 +99,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 #pragma warning restore CS0618
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc/>
+        protected override void OnEnable()
         {
+            base.OnEnable();
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_GrabMoveInput.EnableDirectActionIfModeUsed();
 #pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
@@ -111,11 +110,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 #pragma warning restore CS0618
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnDisable()
+        /// <inheritdoc/>
+        protected override void OnDisable()
         {
+            base.OnDisable();
             m_GrabMoveInput.DisableDirectActionIfModeUsed();
 #pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
             m_GrabMoveAction.DisableDirectAction();

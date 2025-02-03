@@ -1116,7 +1116,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// Calculates the target render points based on the targeted snapped endpoint and the actual position of the raycast line.
         /// </summary>
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         static void CalculateLineCurveRenderPoints(int numTargetPoints, float curveRatio, in Vector3 lineOrigin, in Vector3 lineDirection, in Vector3 endPoint, ref NativeArray<Vector3> targetPoints)
@@ -1125,7 +1125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             CurveUtility.GenerateCubicBezierCurve(numTargetPoints, curveRatio, lineOrigin, lineDirection, endPoint, ref float3TargetPoints);
         }
 
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         static int ComputeNewRenderPoints(int numRenderPoints, int numTargetPoints, float targetLineLength, bool shouldSmoothPoints, bool shouldOverwritePoints, float pointSmoothIncrement,

@@ -37,16 +37,16 @@ Preset:
     value: 2.5
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_InAirControlModifier
+    value: 0.5
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_EnableStrafe
     value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_EnableFly
     value: 0
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
-    propertyPath: m_UseGravity
-    value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_ForwardSource
@@ -155,5 +155,9 @@ Preset:
   - target: {fileID: 0}
     propertyPath: m_RightHandMoveInput.m_ManualValue.y
     value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_UseGravity
+    value: 1
     objectReference: {fileID: 0}
   m_ExcludedProperties: []

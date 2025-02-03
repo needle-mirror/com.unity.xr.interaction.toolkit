@@ -23,7 +23,7 @@
   * [AR gestures](ar-gestures.md)
   * [Input components](input-components.md)
     * [Input Action Manager](input-action-manager.md)
-    * [Input Modality Manager](xr-input-modality-manager.md)
+    * [XR Input Modality Manager](xr-input-modality-manager.md)
     * [XR Transform Stabilizer](xr-transform-stabilizer.md)
   * [Feedback components](feedback-components.md)
     * [Simple Haptic Feedback](simple-haptic-feedback.md)

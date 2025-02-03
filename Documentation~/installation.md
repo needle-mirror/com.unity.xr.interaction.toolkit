@@ -6,36 +6,10 @@ uid: xri-installation
 
 To install this package, refer to the instructions that match your Unity Editor version. Keep in mind that each version of the Unity Editor will ship with a specific verified version of the XR Interaction Toolkit (XRI). To ensure you have access to the latest version of the XRI package, please update to the latest patch release of the Unity Editor for your project (if you are able to). If you are unable to update to the latest patch version of the Unity Editor, to access newer releases of the XR Interaction Toolkit, please refer to the [`Manual Installation`](#manual-installation) steps below to modify your manifest.json.
 
-## Version 2022.1 and later
+## Version 2022.3 and newer
 
-To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2022.1/Documentation/Manual/upm-ui-install.html) or click the following link to open Package Manager in your currently open project:
+To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-install.html) or click the following link to open Package Manager in your currently open project:
 [com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit). This will bring up the **Add package by name** box with an optional version field. Click **Add** to install the latest verified version of the XR Interaction Toolkit for your Unity Editor version.
-
-## Version 2021.3
-
-### 2021.3.9f1 and later
-
-To install this package (minimum version: 2.0.4), follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-install.html).
-
-### 2021.3.8f1 and earlier
-
-This package was not listed in the Editor manifest in earlier versions of Unity 2021. Due to this, installation is a manual process. To install this package:
-1. Open the project that you plan to use.
-1. Click the following link to bring up the **Add package by name** window in Package Manager:
-<a class="kharma_link">com.unity.xr.interaction.toolkit@X.Y.Z</a>
-
-   ![installation-add-package-by-name](images/installation-add-package-by-name.png)
-
-1. The version should be automatically populated, but please ensure that it is the correct version by referring to the table below.
-1. Click **Add**.
-
-|Text Field|Value|
-|---|---|
-|**Name**|`com.unity.xr.interaction.toolkit`|
-|**Version (optional)**|<code class="long_version">X.Y.Z</code>|
-
-> [!NOTE]
-> Computer configuration issues can prevent package links from opening directly in the Unity Editor. If this happens, follow the instructions in [Adding a registry package by name](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-quick.html), using the information in the table above.
 
 ## Manual Installation
 

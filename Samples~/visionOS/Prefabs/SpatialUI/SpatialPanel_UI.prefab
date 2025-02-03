@@ -194,6 +194,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_RootGameObject: {fileID: 2928372381448311198}
   m_CurrentSelectionText: {fileID: 291873033857791044}
   m_DropDownElements:
@@ -416,6 +418,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_DrownDownText: Option 4
   m_ElementRenderer: {fileID: 4759965630028237217}
   m_SelectedColor: {r: 0.1254, g: 0.5882, b: 0.9529, a: 1}
@@ -1431,6 +1435,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_ToggleBubble: {fileID: 4698495376433945988}
   m_ToggleBackground: {fileID: 5032614144784779513}
   m_SelectedColor: {r: 0.1254, g: 0.5882, b: 0.9529, a: 1}
@@ -2010,6 +2016,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_DrownDownText: Option 3
   m_ElementRenderer: {fileID: 1967422154515192344}
   m_SelectedColor: {r: 0.1254, g: 0.5882, b: 0.9529, a: 1}
@@ -2348,6 +2356,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_DrownDownText: Option 2
   m_ElementRenderer: {fileID: 1170292612159381188}
   m_SelectedColor: {r: 0.1254, g: 0.5882, b: 0.9529, a: 1}
@@ -2567,6 +2577,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_DrownDownText: Option 1
   m_ElementRenderer: {fileID: 4751783577172176653}
   m_SelectedColor: {r: 0.1254, g: 0.5882, b: 0.9529, a: 1}
@@ -4153,6 +4165,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
 --- !u!114 &8666214270460382620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4874,6 +4888,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
   m_FillRenderer: {fileID: 3595937284619768164}
   m_SliderIndirectChangeScale: 1
   m_InitialSliderPercent: 0.5

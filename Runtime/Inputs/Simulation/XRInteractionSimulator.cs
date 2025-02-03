@@ -48,6 +48,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [HelpURL(XRHelpURLConstants.k_XRInteractionSimulator)]
     public class XRInteractionSimulator : MonoBehaviour
     {
+        /// <summary>
+        /// Additional multiplier of the normalized scroll input.
+        /// </summary>
+        /// <remarks>
+        /// The serialized mouse scroll sensitivity values were originally created when the input system always reported
+        /// the values in a platform specific input range, which on Windows typically meant each notch of the wheel would
+        /// report a multiple of 120. Now that the <see cref="m_MouseScrollValue"/> is stored normalized,
+        /// this multiplier causes the original intended effective sensitivity to be kept.
+        /// </remarks>
+        /// <seealso cref="mouseScrollRotateSensitivity"/>
+        const float k_MouseScrollSensitivity = ScrollUtility.windowsPlatformSpecificDivisor;
+
         const float k_DeviceLeftRightOffsetAmount = 0.1f;
         const float k_DeviceForwardOffsetAmount = 0.3f;
         const float k_DeviceDownOffsetAmount = 0.045f;
@@ -762,7 +774,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Sensitivity of rotation along the x-axis (pitch) when triggered by input.
         /// </summary>
-        /// <seealso cref="rotationDeltaInput"/>
+        /// <seealso cref="mouseRotationDeltaInput"/>
+        /// <seealso cref="keyboardRotationDeltaInput"/>
         /// <seealso cref="rotateYSensitivity"/>
         /// <seealso cref="mouseScrollRotateSensitivity"/>
         public float rotateXSensitivity
@@ -778,7 +791,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Sensitivity of rotation along the y-axis (yaw) when triggered by input.
         /// </summary>
-        /// <seealso cref="rotationDeltaInput"/>
+        /// <seealso cref="mouseRotationDeltaInput"/>
+        /// <seealso cref="keyboardRotationDeltaInput"/>
         /// <seealso cref="rotateXSensitivity"/>
         /// <seealso cref="mouseScrollRotateSensitivity"/>
         public float rotateYSensitivity
@@ -1194,10 +1208,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // Time delay as a workaround to avoid large mouse deltas on the first frame.
             if (manipulatingFPS && Time.time > 1f)
             {
-                // Translation
+                // Translation, with scroll contribution to the forward direction
                 var xTranslateInput = m_TranslateXValue * m_TranslateXSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
                 var yTranslateInput = m_TranslateYValue * m_TranslateYSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
-                var zTranslateInput = m_TranslateZValue * m_TranslateZSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
+                var zTranslateInput = (m_TranslateZValue + m_MouseScrollValue.y) * m_TranslateZSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
                 var translationInDeviceSpace = XRSimulatorUtility.GetTranslationInDeviceSpace(xTranslateInput, yTranslateInput, zTranslateInput,
                     m_CameraTransform, cameraParentRotation, inverseCameraParentRotation);
 
@@ -1215,9 +1229,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 // Rotation
                 var scaledRotationDeltaInput =
-                    new Vector3(m_RotationDeltaValue.x * m_RotateXSensitivity,
-                        m_RotationDeltaValue.y * m_RotateYSensitivity * (m_RotateYInvert ? 1f : -1f),
-                        m_MouseScrollValue.y * m_MouseScrollRotateSensitivity);
+                    new Vector2(m_RotationDeltaValue.x * m_RotateXSensitivity,
+                        m_RotationDeltaValue.y * m_RotateYSensitivity * (m_RotateYInvert ? 1f : -1f));
 
                 Vector3 anglesDelta;
                 if (m_XConstraintValue && !m_YConstraintValue && !m_ZConstraintValue) // X
@@ -1264,9 +1277,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 var deltaPosition = XRSimulatorUtility.GetTranslationInDeviceSpace(xTranslateInput, yTranslateInput, zTranslateInput, m_CameraTransform, cameraParentRotation, inverseCameraParentRotation);
 
                 var scaledRotationDeltaInput =
-                    new Vector3(m_RotationDeltaValue.x * m_RotateXSensitivity,
-                        m_RotationDeltaValue.y * m_RotateYSensitivity * (m_RotateYInvert ? 1f : -1f),
-                        m_MouseScrollValue.y * m_MouseScrollRotateSensitivity);
+                    new Vector2(m_RotationDeltaValue.x * m_RotateXSensitivity,
+                        m_RotationDeltaValue.y * m_RotateYSensitivity * (m_RotateYInvert ? 1f : -1f));
 
                 Vector3 anglesDelta;
                 if (m_XConstraintValue && !m_YConstraintValue && m_ZConstraintValue) // XZ
@@ -1283,7 +1295,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     anglesDelta = new Vector3(scaledRotationDeltaInput.y, scaledRotationDeltaInput.x, 0f);
 
                 // Scroll contribution
-                anglesDelta += new Vector3(0f, 0f, scaledRotationDeltaInput.z);
+                anglesDelta += new Vector3(0f, 0f, m_MouseScrollValue.y * k_MouseScrollSensitivity * m_MouseScrollRotateSensitivity);
 
                 if (manipulatingLeftController)
                 {
@@ -1590,10 +1602,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 if (mouseRotationValue != Vector2.zero)
                     m_RotationDeltaValue = mouseRotationValue;
 
-                m_MouseScrollValue = m_MouseScrollInput.ReadValue();
-
-                if (m_MouseScrollValue.y != 0f)
-                    m_TranslateZValue = m_MouseScrollValue.y;
+                m_MouseScrollValue = ScrollUtility.GetNormalized(m_MouseScrollInput.ReadValue());
             }
 
             m_XConstraintValue = m_XConstraintInput.ReadIsPerformed();

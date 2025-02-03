@@ -58,6 +58,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     public partial class XRDeviceSimulator : MonoBehaviour
     {
         /// <summary>
+        /// Additional multiplier of the normalized scroll input.
+        /// </summary>
+        /// <remarks>
+        /// The serialized mouse scroll sensitivity values were originally created when the input system always reported
+        /// the values in a platform specific input range, which on Windows typically meant each notch of the wheel would
+        /// report a multiple of 120. Now that the <see cref="m_MouseScrollInput"/> is stored normalized,
+        /// this multiplier causes the original intended effective sensitivity to be kept.
+        /// </remarks>
+        /// <seealso cref="mouseScrollTranslateSensitivity"/>
+        /// <seealso cref="mouseScrollRotateSensitivity"/>
+        const float k_MouseScrollSensitivity = ScrollUtility.windowsPlatformSpecificDivisor;
+
+        /// <summary>
         /// The coordinate space in which to operate.
         /// </summary>
         /// <seealso cref="keyboardTranslateSpace"/>
@@ -1865,9 +1878,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 // Mouse rotation
                 var scaledMouseDeltaInput =
-                    new Vector3(m_MouseDeltaInput.x * m_MouseXRotateSensitivity,
-                        m_MouseDeltaInput.y * m_MouseYRotateSensitivity * (m_MouseYRotateInvert ? 1f : -1f),
-                        m_MouseScrollInput.y * m_MouseScrollRotateSensitivity);
+                    new Vector2(m_MouseDeltaInput.x * m_MouseXRotateSensitivity,
+                        m_MouseDeltaInput.y * m_MouseYRotateSensitivity * (m_MouseYRotateInvert ? 1f : -1f));
 
                 Vector3 anglesDelta;
                 if (m_XConstraintInput && !m_YConstraintInput && !m_ZConstraintInput) // X
@@ -1991,9 +2003,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
                 // Mouse translation
                 var scaledMouseDeltaInput =
-                    new Vector3(m_MouseDeltaInput.x * m_MouseXTranslateSensitivity,
-                        m_MouseDeltaInput.y * m_MouseYTranslateSensitivity,
-                        m_MouseScrollInput.y * m_MouseScrollTranslateSensitivity);
+                    new Vector2(m_MouseDeltaInput.x * m_MouseXTranslateSensitivity,
+                        m_MouseDeltaInput.y * m_MouseYTranslateSensitivity);
 
                 Vector3 deltaPosition;
                 if (m_XConstraintInput && !m_YConstraintInput && m_ZConstraintInput) // XZ
@@ -2010,7 +2021,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     deltaPosition = right * scaledMouseDeltaInput.x + up * scaledMouseDeltaInput.y;
 
                 // Scroll contribution
-                deltaPosition += forward * scaledMouseDeltaInput.z;
+                deltaPosition += forward * m_MouseScrollInput.y * k_MouseScrollSensitivity * m_MouseScrollTranslateSensitivity;
 
                 if (manipulatingLeftController)
                 {
@@ -2111,9 +2122,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 // Mouse rotation
                 var scaledMouseDeltaInput =
-                    new Vector3(m_MouseDeltaInput.x * m_MouseXRotateSensitivity,
-                        m_MouseDeltaInput.y * m_MouseYRotateSensitivity * (m_MouseYRotateInvert ? 1f : -1f),
-                        m_MouseScrollInput.y * m_MouseScrollRotateSensitivity);
+                    new Vector2(m_MouseDeltaInput.x * m_MouseXRotateSensitivity,
+                        m_MouseDeltaInput.y * m_MouseYRotateSensitivity * (m_MouseYRotateInvert ? 1f : -1f));
 
                 Vector3 anglesDelta;
                 if (m_XConstraintInput && !m_YConstraintInput && m_ZConstraintInput) // XZ
@@ -2130,7 +2140,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     anglesDelta = new Vector3(scaledMouseDeltaInput.y, scaledMouseDeltaInput.x, 0f);
 
                 // Scroll contribution
-                anglesDelta += new Vector3(0f, 0f, scaledMouseDeltaInput.z);
+                anglesDelta += new Vector3(0f, 0f, m_MouseScrollInput.y * k_MouseScrollSensitivity * m_MouseScrollRotateSensitivity);
 
                 if (manipulatingLeftController)
                 {
@@ -2599,7 +2609,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void OnMouseDeltaPerformed(InputAction.CallbackContext context) => m_MouseDeltaInput = context.ReadValue<Vector2>();
         void OnMouseDeltaCanceled(InputAction.CallbackContext context) => m_MouseDeltaInput = Vector2.zero;
 
-        void OnMouseScrollPerformed(InputAction.CallbackContext context) => m_MouseScrollInput = context.ReadValue<Vector2>();
+        void OnMouseScrollPerformed(InputAction.CallbackContext context) => m_MouseScrollInput = ScrollUtility.GetNormalized(context.ReadValue<Vector2>());
+
         void OnMouseScrollCanceled(InputAction.CallbackContext context) => m_MouseScrollInput = Vector2.zero;
 
         void OnRotateModeOverridePerformed(InputAction.CallbackContext context) => m_RotateModeOverrideInput = true;

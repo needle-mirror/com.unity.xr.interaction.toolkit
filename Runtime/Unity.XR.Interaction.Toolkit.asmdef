@@ -72,6 +72,11 @@
             "define": "BURST_PRESENT"
         },
         {
+            "name": "com.unity.inputsystem",
+            "expression": "1.9.0",
+            "define": "INPUT_SYSTEM_1_9_OR_NEWER"
+        },
+        {
             "name": "com.unity.xr.hands",
             "expression": "1.1.0",
             "define": "XR_HANDS_1_1_OR_NEWER"
@@ -115,6 +120,26 @@
             "name": "com.unity.ugui",
             "expression": "2.0.0",
             "define": "UGUI_2_0_OR_NEWER"
+        },
+        {
+            "name": "Unity",
+            "expression": "6000.0.9",
+            "define": "UNITY_INPUT_SYSTEM_PLATFORM_SCROLL_DELTA"
+        },
+        {
+            "name": "Unity",
+            "expression": "6000.0.11",
+            "define": "UNITY_INPUT_SYSTEM_INPUT_MODULE_SCROLL_DELTA"
+        },
+        {
+            "name": "Unity",
+            "expression": "[6000.0.23,6000.0.54]",
+            "define": "UNITY_6000_0_23_THROUGH_54"
+        },
+        {
+            "name": "Unity",
+            "expression": "[6000.0.57,6000.1)",
+            "define": "UNITY_6000_0_57_OR_NEWER_PATCH"
         }
     ],
     "noEngineReferences": false

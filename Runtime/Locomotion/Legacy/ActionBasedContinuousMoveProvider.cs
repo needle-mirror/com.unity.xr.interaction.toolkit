@@ -40,20 +40,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
             set => SetInputActionProperty(ref m_RightHandMoveAction, value);
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
             m_LeftHandMoveAction.EnableDirectAction();
             m_RightHandMoveAction.EnableDirectAction();
         }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
             m_LeftHandMoveAction.DisableDirectAction();
             m_RightHandMoveAction.DisableDirectAction();
         }

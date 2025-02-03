@@ -140,9 +140,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="resultAppendList">The resultant hits from the ray cast.</param>
         public override void Raycast(PointerEventData eventData, List<RaycastResult> resultAppendList)
         {
+            // Using local reference to help with code readability
+            var allRaycastResults = resultAppendList;
             if (eventData is TrackedDeviceEventData trackedEventData)
             {
-                PerformRaycasts(trackedEventData, resultAppendList);
+                PerformRaycasts(trackedEventData, allRaycastResults);
             }
         }
 
@@ -171,11 +173,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         static readonly Vector3[] s_Corners = new Vector3[4];
 
-        // Use this list on each ray cast to avoid continually allocating.
-        readonly List<RaycastHitData> m_RaycastResultsCache = new List<RaycastHitData>();
+        // Per-raycaster buffer of sorted UI Graphic hit data for the current cast.
+        // This is separate from allRaycastResults, which is shared across all raycasters.
+        // Use this list on each raycast to avoid continually allocating.
+        readonly List<RaycastHitData> m_RaycasterLocalHitDataBuffer = new List<RaycastHitData>();
+
 
         [NonSerialized]
-        static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
+        static readonly List<RaycastHitData> s_SharedSortedGraphicsBuffer = new List<RaycastHitData>();
 
         [NonSerialized]
         static readonly Dictionary<IUIInteractor, RaycastHitData> s_InteractorHitData = new Dictionary<IUIInteractor, RaycastHitData>();
@@ -385,7 +390,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }));
         }
 
-        void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> resultAppendList)
+        void PerformRaycasts(TrackedDeviceEventData eventData, List<RaycastResult> allRaycastResults)
         {
             if (canvas == null)
                 return;
@@ -410,16 +415,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (interactor != null && interactor.TryGetUIModel(out var uiModel) && uiModel.interactionType == UIInteractionType.Poke)
             {
+                // TrackedDeviceGraphicRaycaster uses two distinct result collections during a UI raycast pass:
+
+                // "allRaycastResults" (shared, aggregated output) is the List(RaycastResult) provided by the Unity EventSystem during EventSystem.RaycastAll.
+                // This list is shared across all active raycasters for the current frame/event, and each raycaster is expected to append its own RaycastResult entries into it.
+                // The EventSystem later uses the aggregated results to determine hover, press, drag, click, and other UI event routing.
+
+                // Due to allRaycastResults being shared and appended-to by multiple raycasters, its contents and ordering must not be assumed to belong to a
+                // single raycaster (e.g., allRaycastResults[0] may be a hit produced by a different raycaster).
+
+                // "m_RaycasterLocalHitDataBuffer" is a per-instance working buffer containing RaycastHitData entries computed by this specific TrackedDeviceGraphicRaycaster.
+                // It is cleared and repopulated each cast (ray or spherecast) and used to sort candidate Graphic hits for this raycaster’s Canvas.
+
+                // For poke interaction, m_RaycasterLocalHitDataBuffer[0] represents this raycaster’s top-ranked hit and is used as the authoritative target when evaluating
+                // poke state and selection via XRPokeLogic (passing the correct pokedTransform into MeetsRequirementsForSelectAction).
+                // This avoids relying on the shared allRaycastResults list for determining the “first hit,” which can be incorrect when multiple canvases/raycasters are active.
+
                 // Check if poke is blocked for this frame. Unlike rays, updates for poke ui interaction are isolated from the poke interactor.
-                if (PerformSpherecast(uiModel.position, uiModel.pokeDepth, layerMask, currentEventCamera, resultAppendList) && resultAppendList.Count > 0)
+                // PerformSpherecast appends to the shared result list, but also populates m_RaycasterLocalHitDataBuffer for this raycaster with this raycaster's top hit.
+                if (PerformSpherecast(uiModel.position, uiModel.pokeDepth, layerMask, currentEventCamera, allRaycastResults) &&
+                    m_RaycasterLocalHitDataBuffer.Count > 0)
                 {
                     eventData.rayHitIndex = 1;
-                    var firstHit = resultAppendList[0];
-                    var hitTransform = firstHit.gameObject.transform;
+
+                    // Do not use allRaycastResults[0] as the "hit". Use the per-raycaster m_RaycasterLocalHitDataBuffer instead.
+                    // Use this raycaster's first hit, not allRaycastResults[0], which is shared across all raycasters.
+                    // This is required for nested canvas support.
+                    var firstRaycastCacheResult = m_RaycasterLocalHitDataBuffer[0];
+                    var hitTransform = firstRaycastCacheResult.graphic.transform;
 
                     m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
 
-                    // Check if not already hovering interactor
+                    // Check if not already hovering interactor.
                     if (!s_PokeHoverRaycasters[this].Contains(interactor))
                     {
                         s_PokeHoverRaycasters[this].Add(interactor);
@@ -428,20 +455,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                     if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
-                        if (m_RaycastResultsCache.Count > 0)
+                        // If the existing raycast result is sorted higher, store that and update the raycaster-to-interactor reference.
+                        if (!s_InteractorHitData.TryGetValue(interactor, out var existingData) ||
+                            s_RaycastHitComparer.Compare(existingData, firstRaycastCacheResult) < 0)
                         {
-                            var firstRaycastCache = m_RaycastResultsCache[0];
-
-                            // If we have raycast result from sphere cast (we should), see if another result is already stored with a better value.
-                            // If the existing raycast result is sorted higher, store that and update the raycaster-to-interactor reference
-                            if (!s_InteractorHitData.TryGetValue(interactor, out var existingData) || s_RaycastHitComparer.Compare(existingData, firstRaycastCache) < 0)
-                            {
-                                s_InteractorHitData[interactor] = firstRaycastCache;
-                                s_InteractorRaycasters[interactor] = this;
-                            }
+                            s_InteractorHitData[interactor] = firstRaycastCacheResult;
+                            s_InteractorRaycasters[interactor] = this;
                         }
                     }
-                    else
+                    else if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster == this)
                     {
                         s_InteractorRaycasters.Remove(interactor);
                     }
@@ -459,7 +481,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 {
                     var from = rayPoints[i - 1];
                     var to = rayPoints[i];
-                    if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList, ref existingHitLength))
+                    if (PerformRaycast(from, to, layerMask, currentEventCamera, allRaycastResults, ref existingHitLength))
                     {
                         eventData.rayHitIndex = i;
                         break;
@@ -468,25 +490,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        bool PerformSpherecast(Vector3 origin, float radius, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
+        bool PerformSpherecast(Vector3 origin, float radius, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> allRaycastResults)
         {
-            m_RaycastResultsCache.Clear();
-            SortedSpherecastGraphics(canvas, origin, radius, layerMask, currentEventCamera, m_RaycastResultsCache);
+            m_RaycasterLocalHitDataBuffer.Clear();
+            SortedSpherecastGraphics(canvas, origin, radius, layerMask, currentEventCamera, m_RaycasterLocalHitDataBuffer);
 
-            if (m_RaycastResultsCache.Count <= 0)
+            if (m_RaycasterLocalHitDataBuffer.Count <= 0)
                 return false;
 
-            var firstResult = m_RaycastResultsCache[0];
+            var firstResult = m_RaycasterLocalHitDataBuffer[0];
             var ray = new Ray(origin, firstResult.worldHitPosition - origin);
 
             // Results from spherecast aim every which direction! We only want to test the nearest first direction.
-            m_RaycastResultsCache.Clear();
-            m_RaycastResultsCache.Add(firstResult);
+            m_RaycasterLocalHitDataBuffer.Clear();
+            m_RaycasterLocalHitDataBuffer.Add(firstResult);
 
-            return ProcessSortedHitsResults(ray, float.PositiveInfinity, false, m_RaycastResultsCache, resultAppendList);
+            return ProcessSortedHitsResults(ray, float.PositiveInfinity, false, m_RaycasterLocalHitDataBuffer, allRaycastResults);
         }
 
-        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList, ref float existingHitLength)
+        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> allRaycastResults, ref float existingHitLength)
         {
             var hitSomething = false;
 
@@ -519,13 +541,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #endif
             }
 
-            m_RaycastResultsCache.Clear();
-            SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, currentEventCamera, m_RaycastResultsCache);
+            m_RaycasterLocalHitDataBuffer.Clear();
+            SortedRaycastGraphics(canvas, ray, hitDistance, layerMask, currentEventCamera, m_RaycasterLocalHitDataBuffer);
 
-            return ProcessSortedHitsResults(ray, hitDistance, hitSomething, m_RaycastResultsCache, resultAppendList);
+            return ProcessSortedHitsResults(ray, hitDistance, hitSomething, m_RaycasterLocalHitDataBuffer, allRaycastResults);
         }
 
-        bool ProcessSortedHitsResults(Ray ray, float hitDistance, bool hitSomething, List<RaycastHitData> raycastHitDatums, List<RaycastResult> resultAppendList)
+        bool ProcessSortedHitsResults(Ray ray, float hitDistance, bool hitSomething, List<RaycastHitData> raycastHitDatums, List<RaycastResult> allRaycastResults)
         {
             // Now that we have a list of sorted hits, process any extra settings and filters.
             foreach (var hitData in raycastHitDatums)
@@ -551,7 +573,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         gameObject = go,
                         module = this,
                         distance = hitData.distance,
-                        index = resultAppendList.Count,
+                        index = allRaycastResults.Count,
                         depth = hitData.graphic.depth,
                         sortingLayer = canvas.sortingLayerID,
                         sortingOrder = canvas.sortingOrder,
@@ -560,7 +582,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         screenPosition = hitData.screenPosition,
                         displayIndex = hitData.displayIndex,
                     };
-                    resultAppendList.Add(castResult);
+                    allRaycastResults.Add(castResult);
 
                     hitSomething = true;
                 }
@@ -573,7 +595,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
 
-            s_SortedGraphics.Clear();
+            s_SharedSortedGraphicsBuffer.Clear();
             for (int i = 0; i < graphics.Count; ++i)
             {
                 var graphic = graphics[i];
@@ -581,12 +603,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (!ShouldTestGraphic(graphic, layerMask))
                     continue;
 
-#if UNITY_2020_1_OR_NEWER
                 var raycastPadding = graphic.raycastPadding;
-#else
-                var raycastPadding = Vector4.zero;
-#endif
-
                 if (SphereIntersectsRectTransform(graphic.rectTransform, raycastPadding, origin, out var worldPos, out var distance))
                 {
                     if (distance <= radius)
@@ -595,21 +612,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         // mask/image intersection - See Unity docs on eventAlphaThreshold for when this does anything
                         if (graphic.Raycast(screenPos, eventCamera))
                         {
-                            s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
+                            s_SharedSortedGraphicsBuffer.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
                         }
                     }
                 }
             }
 
-            SortingHelpers.Sort(s_SortedGraphics, s_RaycastHitComparer);
-            results.AddRange(s_SortedGraphics);
+            SortingHelpers.Sort(s_SharedSortedGraphicsBuffer, s_RaycastHitComparer);
+            results.AddRange(s_SharedSortedGraphicsBuffer);
         }
 
         static void SortedRaycastGraphics(Canvas canvas, Ray ray, float maxDistance, LayerMask layerMask, Camera eventCamera, List<RaycastHitData> results)
         {
             var graphics = GraphicRegistry.GetGraphicsForCanvas(canvas);
 
-            s_SortedGraphics.Clear();
+            s_SharedSortedGraphicsBuffer.Clear();
             for (int i = 0; i < graphics.Count; ++i)
             {
                 var graphic = graphics[i];
@@ -617,12 +634,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (!ShouldTestGraphic(graphic, layerMask))
                     continue;
 
-#if UNITY_2020_1_OR_NEWER
                 var raycastPadding = graphic.raycastPadding;
-#else
-                var raycastPadding = Vector4.zero;
-#endif
-
                 if (RayIntersectsRectTransform(graphic.rectTransform, raycastPadding, ray, out var worldPos, out var distance))
                 {
                     if (distance <= maxDistance)
@@ -631,14 +643,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         // mask/image intersection - See Unity docs on eventAlphaThreshold for when this does anything
                         if (graphic.Raycast(screenPos, eventCamera))
                         {
-                            s_SortedGraphics.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
+                            s_SharedSortedGraphicsBuffer.Add(new RaycastHitData(graphic, worldPos, screenPos, distance, eventCamera.targetDisplay));
                         }
                     }
                 }
             }
 
-            SortingHelpers.Sort(s_SortedGraphics, s_RaycastHitComparer);
-            results.AddRange(s_SortedGraphics);
+            SortingHelpers.Sort(s_SharedSortedGraphicsBuffer, s_RaycastHitComparer);
+            results.AddRange(s_SharedSortedGraphicsBuffer);
         }
 
         static bool ShouldTestGraphic(Graphic graphic, LayerMask layerMask)

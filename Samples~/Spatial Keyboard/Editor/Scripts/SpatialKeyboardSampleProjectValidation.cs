@@ -174,12 +174,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
             return false;
         }
 
+#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
         static bool TextMeshProEssentialsInstalled()
         {
             // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
             // For simplicity, we don't also copy the check if the asset needs to be updated.
             return File.Exists("Assets/TextMesh Pro/Resources/TMP Settings.asset");
         }
+#endif
 
         static string ToString(string packageName, string packageVersion)
         {

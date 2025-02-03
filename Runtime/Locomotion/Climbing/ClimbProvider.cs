@@ -58,6 +58,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             set => m_ClimbSettings = value;
         }
 
+        GravityProvider m_GravityProvider;
+
+        /// <summary>
+        /// The gravity provider that this component uses to apply gravity when climb locomotion is not active.
+        /// If one is not provided, this provider will attempt to locate one at startup.
+        /// </summary>
+        public GravityProvider gravityProvider
+        {
+            get => m_GravityProvider;
+            set => m_GravityProvider = value;
+        }
+
         /// <summary>
         /// The interactable that is currently grabbed and driving movement. This will be <see langword="null"/> if
         /// there is no active climb.
@@ -104,11 +116,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         /// </summary>
         public event Action<ClimbProvider> climbAnchorUpdated;
 
-        /// <summary>
-        /// The gravity provider that this component uses to apply gravity when climb locomotion is not active.
-        /// </summary>
-        GravityProvider m_GravityProvider;
-
         // These are parallel lists, where each interactor and its grabbed interactable share the same index in each list.
         // The last item in each list represents the most recent selection, which is the only one that actually drives movement.
         readonly List<IXRSelectInteractor> m_GrabbingInteractors = new List<IXRSelectInteractor>();
@@ -126,7 +133,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             if (m_ClimbSettings == null || m_ClimbSettings.Value == null)
                 m_ClimbSettings = new ClimbSettingsDatumProperty(new ClimbSettings());
 
-            ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+            if (m_GravityProvider == null)
+                ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
+        }
+
+        /// <inheritdoc />
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (m_GravityProvider == null)
+                ComponentLocatorUtility<GravityProvider>.TryFindComponent(out m_GravityProvider);
         }
 
         /// <summary>

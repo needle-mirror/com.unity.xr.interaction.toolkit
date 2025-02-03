@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
-using UnityEngine.InputSystem;
+#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
+using TMPro;
 #endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples
@@ -24,12 +27,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
         const int k_TeleportLayerIndex = 31;
         const string k_ProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
         const string k_InputSystemPackageName = "com.unity.inputsystem";
         static readonly PackageVersion s_RecommendedPackageVersion = new PackageVersion("1.11.0");
         const string k_InputActionAssetName = "XRI Default Input Actions";
         const string k_InputActionAssetGuid = "c348712bda248c246b8c49b3db54643f";
-#endif
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
@@ -37,8 +38,23 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
         static readonly List<BuildValidationRule> s_BuildValidationRules = new List<BuildValidationRule>();
 
         static AddRequest s_ShaderGraphPackageAddRequest;
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
         static AddRequest s_InputSystemPackageAddRequest;
+        static AddRequest s_UIPackageAddRequest;
+
+#if UNITY_6000_0_OR_NEWER
+        // The s_MinimumUIPackageVersion should match the UGUI_2_0_PRESENT version in the
+        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
+        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("2.0.0");
+        const string k_UIPackageName = "com.unity.ugui";
+        const string k_UIPackageDisplayName = "Unity UI";
+#else
+        // The s_MinimumUIPackageVersion should match the TEXT_MESH_PRO_PRESENT version in the
+        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
+        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("3.0.8");
+        const string k_UIPackageName = "com.unity.textmeshpro";
+        const string k_UIPackageDisplayName = "TextMeshPro";
 #endif
 
         [InitializeOnLoadMethod]
@@ -91,7 +107,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                         Error = false,
                     });
 
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
                 s_BuildValidationRules.Add(
                     new BuildValidationRule
                     {
@@ -108,6 +123,40 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                         FixItAutomatic = true,
                         Error = InputSystem.actions != null && (InputSystem.actions.name == k_InputActionAssetName || AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(InputSystem.actions)) == k_InputActionAssetGuid),
                     });
+
+                s_BuildValidationRules.Add(
+                // Is appropriate UI package installed
+                new BuildValidationRule
+                {
+                    IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
+                    Message = $"[{k_StarterAssetsSampleName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
+                    Category = k_Category,
+                    CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_UIPackageName) >= s_MinimumUIPackageVersion,
+                    FixIt = () =>
+                    {
+                        if (s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted)
+                            ProjectValidationUtility.InstallOrUpdatePackage(k_UIPackageName, s_MinimumUIPackageVersion, ref s_UIPackageAddRequest);
+                    },
+                    FixItAutomatic = true,
+                    Error = true,
+                });
+
+#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
+                s_BuildValidationRules.Add(
+                    new BuildValidationRule
+                    {
+                        IsRuleEnabled = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName),
+                        Message = $"[{k_StarterAssetsSampleName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
+                        HelpText = "Can be installed using Window > TextMeshPro > Import TMP Essential Resources or by clicking this Edit button and then Import TMP Essentials in the window that appears.",
+                        Category = k_Category,
+                        CheckPredicate = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName) && TextMeshProEssentialsInstalled(),
+                        FixIt = () =>
+                        {
+                            TMP_PackageResourceImporterWindow.ShowPackageImporterWindow();
+                        },
+                        FixItAutomatic = false,
+                        Error = true,
+                });
 #endif
             }
 
@@ -141,6 +190,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
             };
         }
 
+#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
+        static bool TextMeshProEssentialsInstalled()
+        {
+            // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
+            // For simplicity, we don't also copy the check if the asset needs to be updated.
+            return File.Exists("Assets/TextMesh Pro/Resources/TMP Settings.asset");
+        }
+#endif
+
         static bool IsInteractionLayerTeleport()
         {
             return string.Equals(InteractionLayerSettings.Instance.GetLayerNameAt(k_TeleportLayerIndex), k_TeleportLayerName, StringComparison.OrdinalIgnoreCase);
@@ -155,7 +213,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                 "Cancel");
         }
 
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
         static void InstallOrUpdateInputSystem()
         {
             // Set a 3-second timeout for request to avoid editor lockup
@@ -174,11 +231,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
             if (request.Status == StatusCode.Success && request.Result.Length > 0)
             {
                 var versions = request.Result[0].versions;
-#if UNITY_2022_2_OR_NEWER
                 var recommendedVersion = new PackageVersion(versions.recommended);
-#else
-                var recommendedVersion = new PackageVersion(versions.verified);
-#endif
                 var latestCompatible = new PackageVersion(versions.latestCompatible);
                 if (recommendedVersion < s_RecommendedPackageVersion && s_RecommendedPackageVersion <= latestCompatible)
                     addRequest = $"{k_InputSystemPackageName}@{s_RecommendedPackageVersion}";
@@ -190,6 +243,5 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                 Debug.LogError($"Package installation error: {s_InputSystemPackageAddRequest.Error}: {s_InputSystemPackageAddRequest.Error.message}");
             }
         }
-#endif
     }
 }

@@ -52,10 +52,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
     /// <summary>
     /// Scriptable object that allows for setting the shader on a material based on the current render pipeline.
-    /// Will run automatically OnEnable in the editor to set the shaders on project bootup. Can be refreshed manually with editor button.
+    /// Will run automatically OnEnable in the editor to set the shaders on project boot up. Can be refreshed manually with editor button.
     /// This exists because while objects render correctly using shadergraph shaders, others do not and using the standard shader resolves various rendering issues.
     /// </summary>
-    [CreateAssetMenu(fileName = "MaterialPipelineHandler", menuName = "XR/MaterialPipelineHandler", order = 0)]
+    [CreateAssetMenu(fileName = "MaterialPipelineHandler", menuName = "XR/Material Pipeline Handler", order = 0)]
     public class MaterialPipelineHandler : ScriptableObject
     {
         [SerializeField]

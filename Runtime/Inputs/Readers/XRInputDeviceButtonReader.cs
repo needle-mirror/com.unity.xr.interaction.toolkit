@@ -48,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        void Awake()
+        void Start()
         {
             if (m_BoolValueReader == null)
                 Debug.LogError("No bool value reader set for XRInputDeviceButtonReader.", this);

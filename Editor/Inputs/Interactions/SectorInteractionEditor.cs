@@ -1,10 +1,10 @@
 using System;
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS && UIELEMENTS_MODULE_PRESENT
+#if UIELEMENTS_MODULE_PRESENT
 using UnityEditor.UIElements;
 #endif
 using UnityEngine;
 using UnityEngine.InputSystem.Editor;
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS && UIELEMENTS_MODULE_PRESENT
+#if UIELEMENTS_MODULE_PRESENT
 using UnityEngine.UIElements;
 #endif
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions;
@@ -61,7 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Interactions
             EditorGUILayout.EndHorizontal();
         }
 
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS && UIELEMENTS_MODULE_PRESENT
+#if UIELEMENTS_MODULE_PRESENT
         /// <inheritdoc />
         public override void OnDrawVisualElements(VisualElement root, Action onChangedCallback)
         {

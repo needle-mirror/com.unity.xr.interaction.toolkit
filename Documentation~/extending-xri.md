@@ -117,7 +117,7 @@ public class ExcludeByTagEvaluator : XRTargetEvaluator
 
 Evaluators are [serialized as reference](https://docs.unity3d.com/ScriptReference/SerializeReference.html) in the `XRTargetFilter`, and Unity does not keep track of the script (or its GUID) that the Evaluator objects originated from. If an Evaluator type becomes missing, Unity will log an error in the Console window. Follow the instructions below to fix this issue:
 - If you are changing the Evaluator type (by renaming its class, namespace, etc) or moving it to another assembly, then you should decorate the Evaluator class with the [MovedFromAttribute](https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Scripting/APIUpdating/UpdatedFromAttribute.cs) passing the information of the old type.
-- Before deleting an Evaluator script, make sure that no other `XRTargetFilter` in your project is using it. If you are using Unity version 2021.2 or above, you can select the missing types from the filter Inspector and delete them. Otherwise, to delete these objects, you'll need to create a new Evaluator script, and decorate it with a `MovedFromAttribute` containing the deleted type information.
+- Before deleting an Evaluator script, make sure that no other `XRTargetFilter` in your project is using it. If you are using Unity version 2022.3 or above, you can select the missing types from the filter Inspector and delete them. Otherwise, to delete these objects, you'll need to create a new Evaluator script, and decorate it with a `MovedFromAttribute` containing the deleted type information.
 
 ## Inspectors
 

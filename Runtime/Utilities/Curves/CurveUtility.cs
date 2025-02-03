@@ -106,7 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
         /// <param name="lineDirection">The normalized forward direction vector of the line segment.</param>
         /// <param name="endPoint">The ending point of the line segment.</param>
         /// <param name="targetPoints">A reference to a native array of <see cref="float3"/> that will store the generated curve points.</param>
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         public static void GenerateCubicBezierCurve(int numTargetPoints, float curveRatio, in float3 lineOrigin, in float3 lineDirection, in float3 endPoint, ref NativeArray<float3> targetPoints)
@@ -141,7 +141,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
         /// <param name="targetPoints">A reference to a native array of <see cref="float3"/> that will store the generated curve points.</param>
         /// <param name="minLineLength">Minimum line length that will be computed before the function returns false.</param>
         /// <returns>True if the cubic Bezier curve was successfully generated, false otherwise.</returns>
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         public static bool TryGenerateCubicBezierCurve(int numTargetPoints, float curveRatio, in float3 curveOrigin, in float3 curveDirection, in float3 endPoint, ref NativeArray<float3> targetPoints, float minLineLength = 0.005f, float startOffset = 0f, float endOffset = 0f)
@@ -174,7 +174,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Curves
         /// <param name="targetPoints">A reference to a native array of <see cref="float3"/> that will store the generated curve points.</param>
         /// <param name="minLineLength">Minimum line length that will be computed before the function returns false.</param>
         /// <returns>True if the cubic Bezier curve was successfully generated, false otherwise.</returns>
-#if UNITY_2022_2_OR_NEWER && BURST_PRESENT
+#if BURST_PRESENT
         [BurstCompile]
 #endif
         public static bool TryGenerateCubicBezierCurve(int numTargetPoints, in float3 curveOrigin, in float3 midPoint, in float3 endPoint, ref NativeArray<float3> targetPoints, float minLineLength = 0.005f, float startOffset = 0f, float endOffset = 0f)

@@ -19,7 +19,6 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
     void Awake()
     {
         // Try to find an interaction manager if necessary.
-        // In Unity versions older than 2021.3.18f1, replace FindFirstObjectByType with FindObjectOfType.
         if (m_InteractionManager == null)
             m_InteractionManager = FindFirstObjectByType<XRInteractionManager>();
 

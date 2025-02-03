@@ -95,11 +95,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities.Internal
                     {
                         var direction = rotation * Vector3.forward;
                         var linePos = position + direction * size;
-#if UNITY_2020_3_OR_NEWER
-                    Handles.DrawLine(position, linePos, Handles.lineThickness);
-#else
-                        Handles.DrawLine(position, linePos);
-#endif
+                        Handles.DrawLine(position, linePos, Handles.lineThickness);
                         break;
                     }
             }

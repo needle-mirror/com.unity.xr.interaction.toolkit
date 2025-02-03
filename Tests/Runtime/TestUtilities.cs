@@ -452,7 +452,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             InputSystem.InputSystem.DisableAllEnabledActions();
 
-#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
             if (InputSystem.InputSystem.actions != null)
             {
                 foreach (var map in InputSystem.InputSystem.actions.actionMaps)
@@ -460,7 +459,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     map.Disable();
                 }
             }
-#endif
         }
     }
 

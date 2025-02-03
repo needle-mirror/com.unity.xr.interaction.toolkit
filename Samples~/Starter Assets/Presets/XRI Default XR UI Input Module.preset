@@ -53,6 +53,14 @@ Preset:
     value: 5
     objectReference: {fileID: 0}
   - target: {fileID: 0}
+    propertyPath: m_NonTrackedScrollDeltaMultiplier
+    value: 6
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_BypassUIToolkitEvents
+    value: 0
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
     propertyPath: m_ActiveInputMode
     value: 1
     objectReference: {fileID: 0}
@@ -66,6 +74,14 @@ Preset:
     objectReference: {fileID: 0}
   - target: {fileID: 0}
     propertyPath: m_EnableTouchInput
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EnableGamepadInput
+    value: 1
+    objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: m_EnableJoystickInput
     value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}
@@ -102,14 +118,6 @@ Preset:
     objectReference: {fileID: 2387711382375263438, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   - target: {fileID: 0}
     propertyPath: m_EnableBuiltinActionsAsFallback
-    value: 1
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
-    propertyPath: m_EnableGamepadInput
-    value: 1
-    objectReference: {fileID: 0}
-  - target: {fileID: 0}
-    propertyPath: m_EnableJoystickInput
     value: 1
     objectReference: {fileID: 0}
   - target: {fileID: 0}

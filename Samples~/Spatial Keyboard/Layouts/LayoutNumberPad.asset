@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 944d8cf1c59c0e8468bcd7e2fd86fe4d, type: 3}
   m_Name: LayoutNumberPad
   m_EditorClassIdentifier: 
-  m_DefaultKeyFunction: {fileID: 11400000, guid: 5e3d82ae0a9ac0d43ada00a218daeefd,
-    type: 2}
+  m_DefaultKeyFunction: {fileID: 11400000, guid: 5e3d82ae0a9ac0d43ada00a218daeefd, type: 2}
   m_KeyMappings:
   - m_Character: 1
     m_DisplayCharacter: 1

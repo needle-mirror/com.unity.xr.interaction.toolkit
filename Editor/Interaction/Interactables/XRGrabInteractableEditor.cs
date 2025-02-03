@@ -432,7 +432,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
 
                             // In Play mode, check against the Rigidbody's max linear velocity.
                             // In Authoring mode, there is no Physics settings to check against.
-#if UNITY_2022_3_OR_NEWER // Rigidbody.maxLinearVelocity not available in earlier Unity versions
                             if (Application.isPlaying)
                             {
                                 foreach (var targetObject in serializedObject.targetObjects)
@@ -448,7 +447,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
                                     }
                                 }
                             }
-#endif
                         }
                     }
 

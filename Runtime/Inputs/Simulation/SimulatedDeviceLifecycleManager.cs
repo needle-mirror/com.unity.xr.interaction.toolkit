@@ -290,7 +290,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             // Disallow switching device mode if the modality manager is being used
             // and the opposite set of GameObjects are not assigned.
-            if (m_InputModalityManager != null)
+            if (m_InputModalityManager != null || ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager))
             {
                 if (m_DeviceMode == DeviceMode.Controller && m_InputModalityManager.leftHand == null && m_InputModalityManager.rightHand == null)
                     return;
