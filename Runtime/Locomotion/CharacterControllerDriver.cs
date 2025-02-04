@@ -179,5 +179,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             UpdateCharacterController();
         }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        internal void OnDrawGizmosSelected()
+        {
+            if (m_CharacterController != null)
+            {
+                var center = m_CharacterController.center + m_CharacterController.transform.position + (Vector3.up * ((m_CharacterController.stepOffset - m_CharacterController.skinWidth) * 0.5f));
+                var height = m_CharacterController.height + m_CharacterController.stepOffset + m_CharacterController.skinWidth;
+                var radius = m_CharacterController.radius + m_CharacterController.skinWidth;
+
+                GizmoHelpers.DrawCapsule(center, height, radius, Vector3.up, new Color(1.0f, 0.92f, 0.016f, 0.5f));
+            }
+        }
     }
 }

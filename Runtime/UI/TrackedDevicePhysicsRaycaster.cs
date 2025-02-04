@@ -210,11 +210,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             var rayPoints = eventData.rayPoints;
             var layerMask = eventData.layerMask & m_EventMask;
+            var existingHitLength = 0f;
             for (var i = 1; i < rayPoints.Count; i++)
             {
                 var from = rayPoints[i - 1];
                 var to = rayPoints[i];
-                if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList))
+                if (PerformRaycast(from, to, layerMask, currentEventCamera, resultAppendList, ref existingHitLength))
                 {
                     eventData.rayHitIndex = i;
                     break;
@@ -222,7 +223,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList)
+        bool PerformRaycast(Vector3 from, Vector3 to, LayerMask layerMask, Camera currentEventCamera, List<RaycastResult> resultAppendList, ref float existingHitLength)
         {
             var hitSomething = false;
 
@@ -252,14 +253,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 var relativeMousePosition = Display.RelativeMouseAt(screenPos);
                 var displayIndex = (int)relativeMousePosition.z;
 
-                var validHit = hit.distance < hitDistance;
+                var validHit = hit.distance <= hitDistance;
                 if (validHit)
                 {
                     var result = new RaycastResult
                     {
                         gameObject = go,
                         module = this,
-                        distance = hit.distance,
+                        distance = existingHitLength + hit.distance,
                         index = resultAppendList.Count,
                         depth = 0,
                         sortingLayer = 0,
@@ -276,6 +277,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
+            existingHitLength += hitDistance;
             return hitSomething;
         }
     }

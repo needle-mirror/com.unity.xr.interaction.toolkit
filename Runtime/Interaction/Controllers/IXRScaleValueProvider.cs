@@ -14,7 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         
         /// <summary>
         /// Input scale mode: The scale is represented by a range of -1 to 1. 
-        /// This mode is typically used with <seealso cref="ActionBasedController"/>, 
+        /// This mode is typically used with <see cref="ActionBasedController"/>, 
         /// where the value is based on the scale toggle and scale delta input actions.
         /// </summary>
         Input,
@@ -22,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Distance scale mode: The scale is based on the distance between 2 physical (or virtual) inputs, such as
         /// the pinch gap between fingers where the distance is calculated based on the screen DPI, and delta from the previous frame.
-        /// This mode is typically used with <seealso cref="XRScreenSpaceController"/>.
+        /// This mode is typically used with <see cref="XRScreenSpaceController"/>.
         /// </summary>
         Distance,
     }

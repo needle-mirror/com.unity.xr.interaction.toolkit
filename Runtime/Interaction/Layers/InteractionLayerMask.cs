@@ -39,7 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Converts an interaction layer mask value to an integer value.
         /// </summary>
-        /// <returns>Returns the integer value equivalent to this Interaction Layer Mask.</returns>
+        /// <value>Returns the integer value equivalent to this Interaction Layer Mask.</value>
         public int value
         {
             get => m_Mask;

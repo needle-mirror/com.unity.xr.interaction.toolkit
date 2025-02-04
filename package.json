@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -54,15 +54,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Changed `BaseTeleportationInteractable` and `ClimbInteractable` `Awake` logic to limit expensive `FindObjectOfType` search for `TeleportationProvider` and `ClimbProvider` to once per frame if those `LocomotionProviders` are left null in the inspector. (Backport from 3.0.4)\n\n### Fixed\n- Fixed Teleportation Area component so it filters out Sphere Cast overlap hits at the start of the sweep so it no longer teleports to (0, 0, 0). Changed so the selection is blocked so the XR Interactor Line Visual uses its blocked style in that case. ([XRIT-138](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-138)) (Backport from 3.0.5)\n- Fixed Sector interaction Editor to draw all properties in the Input Actions Editor window in Unity 2022.3 or newer. (Backport from 3.0.5)\n- Fixed regression with `XRSocketInteractor` and `XRSocketGrabTransformer` where an interactable GameObject does not move to the position of the `XRSocketInteractor` when set as the Starting Selected Interactable. ([XRIT-164](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-164)) (Backport from 3.0.5)"
+    "changelog": "### Added\n- Added cone casting support to `XRRayInteractor` for Projectile, Bezier Curve, and lines with multiple segments. (Backport from 3.0.6)\n- Added `Live Cone Cast Debug Visuals` option for `XRRayInteractor` to display a more detailed cone cast debug visual. (Backport from 3.0.6)\n  - Note, this is only displayed in the Editor during Play mode when the GameObject is selected in the hierarchy. (Backport from 3.0.6)\n- Added math caching for `XRRayInteractor` cone cast angle and cone cast radius to improve performance. (Backport from 3.0.6)\n- Added project validation rule to the Starter Assets sample to suggest upgrading Input System to 1.11.0 or newer when project-wide actions are used to avoid potential errors when custom types are used in the asset. ([XRIT-157](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-157)) (Backport from 3.0.6)\n- Added an extra gizmo to the XR Body Transformer to show locomotion collision constraints for the Character Controller. (Backport from 3.0.7)\n- Added an optional bypass for UI Toolkit events that may cause incorrect events to get sent to UI Toolkit elements such as scroll views. For more information see the manual page for [XRUIInputModule](xref:xri-ui-setup). ([XRIT-203](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-203)) (Backport from 3.0.7)\n\n### Changed\n- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance calculation to take into account full distance from the cast origin when there are multiple ray points. (Backport from 3.0.6)\n- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance comparison in `PerformRaycast` from less than to less than or equal to. (Backport from 3.0.6)\n- Changed `XRRayInteractor` hit distance calculation to take into account full distance from the cast origin when using multiple target curve segments. (Backport from 3.0.6)\n\n### Fixed\n- Fixed an issue where UI sub canvases were getting blocked by parent canvas items and not allowing interaction. ([XRIT-164](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-99)) (Backport from 3.0.6)\n- Fixed `XRRayInteractor` to still process hits in the case where the 2D and 3D hits are the same GameObject. (Backport from 3.0.6)\n- Fixed issue with `XRRayInteractor` hover not working properly when a `TrackedDevicePhysicsRaycaster` is added to the scene. ([XRIT-97](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-97))\n- Fixed an issue where Interactors that were subscribed to hover events were not getting Exit events when the UI object being hovered is disabled or destroyed in the scene. (Backport from 3.0.6)\n- Fixed the pointer ID system in the `XRUIInputModule` to reuse pointer IDs. This fixes an issue with the pointer limit in UI Toolkit. ([XRIT-184](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-184)) (Backport from 3.0.6)"
   },
   "upmCi": {
-    "footprint": "df19c825b999f6a19afd7c063cafdd69e820ef7b"
+    "footprint": "ee0a61666a363216c05ad0020d71be5f1a200b55"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.6/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "aa4c569bb6cb95da73b164b065533379e4e45301"
+    "revision": "9f99aa3cc97e4004d9035881c526bebab5f33c36"
   }
 }

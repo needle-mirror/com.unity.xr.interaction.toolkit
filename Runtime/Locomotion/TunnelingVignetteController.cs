@@ -8,11 +8,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Represents the parameters to control the tunneling vignette material and customize its effects.
     /// </summary>
-    /// <remarks>
-    /// <seealso cref="TunnelingVignetteController"/>,
-    /// <seealso cref="ITunnelingVignetteProvider"/>,
+    /// <seealso cref="TunnelingVignetteController"/>
+    /// <seealso cref="ITunnelingVignetteProvider"/>
     /// <seealso cref="LocomotionVignetteProvider"/>
-    /// </remarks>
     [Serializable]
     public sealed class VignetteParameters
     {

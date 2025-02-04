@@ -127,12 +127,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio
     [Serializable]
     public class AudioAffordanceThemeDatumProperty : DatumProperty<AudioAffordanceTheme, AudioAffordanceThemeDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{AudioAffordanceTheme, AudioAffordanceThemeDatum}"/>
         public AudioAffordanceThemeDatumProperty(AudioAffordanceTheme value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{AudioAffordanceTheme, AudioAffordanceThemeDatum}"/>
         public AudioAffordanceThemeDatumProperty(AudioAffordanceThemeDatum datum) : base(datum)
         {
         }

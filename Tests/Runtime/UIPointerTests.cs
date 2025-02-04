@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using Unity.XR.CoreUtils;
+using UnityEditor;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -29,6 +30,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class UIPointerTests : InputTestFixture
     {
+        // current activation depth percentage in the XRPokeLogic code - 5% to catch depth properly
+        const float k_DepthPercentActivationThreshold = 0.020f;
+        const float k_DropdownItemHeight = -0.045f;
+
         internal enum EventType
         {
             Click,
@@ -63,6 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             public UICallbackReceiver rightUIReceiver;
             public GlobalUIReceiver globalUIReceiver;
             public XRUIInputModule uiInputModule;
+            public GameObject canvasGameObject;
 
             // *Note: Copied from InputSystem\UI\Plugins\UITests.cs
             // Assume a 640x480 resolution and translate the given coordinates from a resolution
@@ -469,8 +475,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             var testObjects = SetupRig(setFirstSelected);
 
-            var canvasGo = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
-            var canvas = canvasGo.GetComponent<Canvas>();
+            testObjects.canvasGameObject = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
+            var canvas = testObjects.canvasGameObject.GetComponent<Canvas>();
             canvas.worldCamera = testObjects.camera;
             canvas.renderMode = isWorldSpace ? RenderMode.WorldSpace : RenderMode.ScreenSpaceCamera;
 
@@ -1706,6 +1712,315 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             
             // Check that poke interactor is no longre interacting with the disable UI
             Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDeviceGraphicRaycasterPokeSelectVelocityTracked()
+        {
+            var testObjects = SetupUIScene(isWorldSpace: true);
+            var trackedDeviceGraphicRaycaster = testObjects.rightUIReceiver.GetComponentInParent<TrackedDeviceGraphicRaycaster>();
+            Assert.IsNotNull(trackedDeviceGraphicRaycaster);
+
+            var pokeInteractor = TestUtilities.CreatePokeInteractor();
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(pokeInteractor, out var trackedDeviceModel), Is.True);
+            yield return null;
+
+            // Set poke interactor position to begin interaction with the canvas
+            var trackedDeviceGraphicRaycasterPosition = trackedDeviceGraphicRaycaster.transform.position;
+
+            // Move to just outside poke Depth for first frame
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeInteractor.pokeDepth + 0.01f);
+            yield return null;
+
+            // Ensure initial poke interactor is not poking yet
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+
+            // Move inside poke depth limit
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeInteractor.pokeDepth - 0.01f);
+            yield return null;
+
+            // Check that poke interactor is interacting with the UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.False);
+
+            // To trigger the Velocity calculation code in Poke via AttachPointVelocityTracker.GetAttachPointVelocity(),
+            // a minimum frame count has to be hit defined by AttachPointVelocityTracker.k_VelocityUpdateInterval (currently 6)
+            const int k_VelocityFrameCount = 5;
+            var pokeIntervalSize = pokeInteractor.pokeDepth / k_VelocityFrameCount;
+            for (int i = k_VelocityFrameCount; i > 0; --i)
+            {
+                pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            // Move poke interactor to within selection distance (depth percentage (2.5%) minus an extra 0.5% to meet tolerance).
+            var requiredPokeDepth = pokeInteractor.pokeDepth * (k_DepthPercentActivationThreshold - 0.005f);
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, requiredPokeDepth);
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.True);
+
+            // Move just outside of poke depth range to ensure interacting (hovering), but not selecting
+            requiredPokeDepth = pokeInteractor.pokeDepth * (k_DepthPercentActivationThreshold + 0.005f);
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, requiredPokeDepth);
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.False);
+
+            // Set poke interactor position to just outside hover range
+            pokeInteractor.transform.position = trackedDeviceGraphicRaycasterPosition - new Vector3(0, 0, pokeInteractor.pokeDepth + 0.1f);
+            yield return null;
+
+            // Check that poke interactor is no longre interacting with the disable UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDeviceGraphicRaycasterPokeDropdown()
+        {
+            var testObjects = SetupUIScene(isWorldSpace: true);
+            var trackedDeviceGraphicRaycaster = testObjects.rightUIReceiver.GetComponentInParent<TrackedDeviceGraphicRaycaster>();
+            Assert.IsNotNull(trackedDeviceGraphicRaycaster);
+
+            var dropDownGameObject = DefaultControls.CreateDropdown(new DefaultControls.Resources());
+            dropDownGameObject.transform.SetParent(testObjects.canvasGameObject.transform, false);
+            var dropdownComponent = dropDownGameObject.GetComponent<Dropdown>();
+
+            testObjects.canvasGameObject.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
+
+            var pokeInteractor = TestUtilities.CreatePokeInteractor();
+            pokeInteractor.pokeDepth = 0.05f;
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(pokeInteractor, out var trackedDeviceModel), Is.True);
+            yield return null;
+
+            // Set poke interactor position to begin interaction with the canvas
+            var dropdownPosition = dropDownGameObject.transform.position;
+            var initialPokeDepth = pokeInteractor.pokeDepth + 0.01f;
+
+            // Move to just outside poke Depth for first frame
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, initialPokeDepth);
+            yield return null;
+
+            // Ensure initial poke interactor is not poking yet
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+
+            // Move inside poke depth limit
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeInteractor.pokeDepth - 0.01f);
+            yield return null;
+
+            // Check that poke interactor is interacting with the UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.False);
+
+            // To trigger the Velocity calculation code in Poke via AttachPointVelocityTracker.GetAttachPointVelocity(),
+            // a minimum frame count has to be hit defined by AttachPointVelocityTracker.k_VelocityUpdateInterval (currently 6)
+            const int k_VelocityFrameCount = 5;
+            var pokeIntervalSize = pokeInteractor.pokeDepth / k_VelocityFrameCount;
+            var requiredPokeDepth = pokeInteractor.pokeDepth * (k_DepthPercentActivationThreshold - 0.015f);
+
+            // Enter into poke
+            for (int i = k_VelocityFrameCount; i > 0; --i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            pokeInteractor.transform.position = dropdownPosition + new Vector3(0, 0, requiredPokeDepth);
+            yield return null;
+            // extra frame for UI to process ray hit and selection update
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.True);
+
+            // Check event system thinks it is also selected correctly
+            Assert.AreEqual(dropDownGameObject, EventSystem.current.currentSelectedGameObject);
+
+            // Exit Poke
+            for (int i = 0; i < k_VelocityFrameCount; ++i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            // Set poke interactor position to just outside hover range
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, initialPokeDepth);
+            yield return null;
+
+            // Check that poke interactor is no longre interacting with the disable UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+            Assert.AreEqual(0, dropdownComponent.value);
+
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeInteractor.pokeDepth - 0.01f);
+            yield return null;
+
+            // Enter into poke
+            for (int i = k_VelocityFrameCount; i > 0; --i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            pokeInteractor.transform.position = dropdownPosition + new Vector3(0, -k_DropdownItemHeight, requiredPokeDepth);
+            yield return null;
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.True);
+
+            // Exit Poke
+            for (int i = 0; i < k_VelocityFrameCount; ++i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            // Set poke interactor position to just outside hover range
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeInteractor.pokeDepth + 0.01f);
+            yield return null;
+
+            Assert.AreEqual(1, dropdownComponent.value);
+        }
+
+        [UnityTest]
+        public IEnumerator TrackedDeviceGraphicRaycasterPokeDropdownOnSubcanvas()
+        {
+            var testObjects = SetupRig();
+
+            testObjects.canvasGameObject = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster));
+            var canvas = testObjects.canvasGameObject.GetComponent<Canvas>();
+            canvas.worldCamera = testObjects.camera;
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.transform.Translate(0.0f, 0.0f, 200.0f);
+
+            testObjects.canvasGameObject.AddComponent<Image>();
+
+            // Create subcanvas for UI tests
+            var subCanvasGo = new GameObject("Sub canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(TrackedDeviceGraphicRaycaster), typeof(Image));
+            var subCanvas = subCanvasGo.GetComponent<Canvas>();
+            var subCanvasTransform = subCanvas.transform;
+
+            var dropDownGameObject = DefaultControls.CreateDropdown(new DefaultControls.Resources());
+            dropDownGameObject.transform.SetParent(subCanvas.transform, false);
+            var dropdownComponent = dropDownGameObject.GetComponent<Dropdown>();
+
+            dropDownGameObject.transform.SetParent(subCanvasTransform, false);
+            subCanvasTransform.SetParent(testObjects.canvasGameObject.transform, false);
+
+            testObjects.canvasGameObject.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
+
+            var pokeInteractor = TestUtilities.CreatePokeInteractor();
+            pokeInteractor.pokeDepth = 0.05f;
+            Assert.That(testObjects.uiInputModule.GetTrackedDeviceModel(pokeInteractor, out var trackedDeviceModel), Is.True);
+            yield return null;
+
+            // Set poke interactor position to begin interaction with the canvas
+            var dropdownPosition = dropDownGameObject.transform.position;
+            var initialPokeDepth = pokeInteractor.pokeDepth + 0.01f;
+
+            // Move to just outside poke Depth for first frame
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, initialPokeDepth);
+            yield return null;
+
+            // Ensure initial poke interactor is not poking yet
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+
+            // Move inside poke depth limit
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeInteractor.pokeDepth - 0.01f);
+            yield return null;
+
+            // Check that poke interactor is interacting with the UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.False);
+
+            // To trigger the Velocity calculation code in Poke via AttachPointVelocityTracker.GetAttachPointVelocity(),
+            // a minimum frame count has to be hit defined by AttachPointVelocityTracker.k_VelocityUpdateInterval (currently 6)
+            const int k_VelocityFrameCount = 5;
+            var pokeIntervalSize = pokeInteractor.pokeDepth / k_VelocityFrameCount;
+            var requiredPokeDepth = pokeInteractor.pokeDepth * (k_DepthPercentActivationThreshold - 0.015f);
+
+            // Enter into poke
+            for (int i = k_VelocityFrameCount; i > 0; --i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            pokeInteractor.transform.position = dropdownPosition + new Vector3(0, 0, requiredPokeDepth);
+            yield return null;
+            // extra frame for UI to process ray hit and selection update
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.True);
+
+            // Check event system thinks it is also selected correctly
+            Assert.AreEqual(dropDownGameObject, EventSystem.current.currentSelectedGameObject);
+
+            // Exit Poke
+            for (int i = 0; i < k_VelocityFrameCount; ++i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            // Set poke interactor position to just outside hover range
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, 0, initialPokeDepth);
+            yield return null;
+
+            // Check that poke interactor is no longre interacting with the disable UI
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.False);
+            Assert.AreEqual(0, dropdownComponent.value);
+
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeInteractor.pokeDepth - 0.01f);
+            yield return null;
+
+            // Enter into poke
+            for (int i = k_VelocityFrameCount; i > 0; --i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, -requiredPokeDepth);
+            yield return null;
+            yield return null;
+
+            Assert.That(TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(pokeInteractor), Is.True);
+            Assert.IsTrue(pokeInteractor.TryGetUIModel(out trackedDeviceModel));
+            Assert.IsNotNull(trackedDeviceModel.selectableObject);
+            Assert.That(trackedDeviceModel.select, Is.True);
+
+            // Exit Poke
+            for (int i = 0; i < k_VelocityFrameCount; ++i)
+            {
+                pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeIntervalSize * i);
+                yield return null;
+            }
+
+            // Set poke interactor position to just outside hover range
+            pokeInteractor.transform.position = dropdownPosition - new Vector3(0, k_DropdownItemHeight, pokeInteractor.pokeDepth + 0.01f);
+            yield return null;
+
+            Assert.AreEqual(1, dropdownComponent.value);
         }
 
         [TearDown]

@@ -76,10 +76,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <remarks>
         /// In other words, returns whether <see cref="interactionGroupsFocusing"/> contains any interaction groups.
+        /// </remarks>
         /// <example>
         /// <code>interactionGroupsFocusing.Count > 0</code>
         /// </example>
-        /// </remarks>
         /// <seealso cref="interactionGroupsFocusing"/>
         bool isFocused { get; }
 
@@ -156,7 +156,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The interactable to operate on.</param>
         /// <returns>Returns the oldest interaction group currently focusing this interactable.</returns>
         /// <remarks>
-        /// Equivalent to <code>interactionGroupsFocusing.Count > 0 ? interactionGroupsFocusing[0] : null</code>
+        /// Equivalent to <c>interactionGroupsFocusing.Count > 0 ? interactionGroupsFocusing[0] : null</c>
         /// </remarks>
         public static IXRInteractionGroup GetOldestInteractorFocusing(this IXRFocusInteractable interactable) =>
             interactable?.interactionGroupsFocusing.Count > 0 ? interactable.interactionGroupsFocusing[0] : null;

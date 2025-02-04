@@ -1448,7 +1448,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Adds the default <seealso cref="XRGeneralGrabTransformer"/> (if the Single or Multiple Grab Transformers lists are empty)
+        /// Adds the default <see cref="XRGeneralGrabTransformer"/> (if the Single or Multiple Grab Transformers lists are empty)
         /// to the list of transformers used when there is a single interactor selecting this object.
         /// </summary>
         /// <seealso cref="addDefaultGrabTransformers"/>

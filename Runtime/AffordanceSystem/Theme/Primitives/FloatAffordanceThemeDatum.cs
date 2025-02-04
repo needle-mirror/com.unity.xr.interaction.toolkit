@@ -18,12 +18,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     [Serializable]
     public class FloatAffordanceThemeDatumProperty : DatumProperty<FloatAffordanceTheme, FloatAffordanceThemeDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{FloatAffordanceTheme, FloatAffordanceThemeDatum}"/>
         public FloatAffordanceThemeDatumProperty(FloatAffordanceTheme value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{FloatAffordanceTheme, FloatAffordanceThemeDatum}"/>
         public FloatAffordanceThemeDatumProperty(FloatAffordanceThemeDatum datum) : base(datum)
         {
         }

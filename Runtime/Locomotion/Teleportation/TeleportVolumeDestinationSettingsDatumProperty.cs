@@ -11,12 +11,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
     public class TeleportVolumeDestinationSettingsDatumProperty : DatumProperty<TeleportVolumeDestinationSettings,
         TeleportVolumeDestinationSettingsDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{TeleportVolumeDestinationSettings, TeleportVolumeDestinationSettingsDatum}"/>
         public TeleportVolumeDestinationSettingsDatumProperty(TeleportVolumeDestinationSettings value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{TeleportVolumeDestinationSettings, TeleportVolumeDestinationSettingsDatum}"/>
         public TeleportVolumeDestinationSettingsDatumProperty(TeleportVolumeDestinationSettingsDatum datum) : base(datum)
         {
         }

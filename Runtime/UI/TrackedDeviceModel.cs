@@ -113,6 +113,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 pressedGameObject = null;
                 pressedGameObjectRaw = null;
                 draggedGameObject = null;
+                pointerTarget = null;
 
                 if (hoverTargets == null)
                     hoverTargets = new List<GameObject>();
@@ -328,6 +329,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     changedThisFrame = true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Interactor that is tracking and updating the state of this model.
+        /// </summary>
+        internal IUIInteractor interactor { get; set; }
+
+        /// <summary>
+        /// Updates the internal select state of the model. This is required for poke interactions
+        /// due to the frame timing when performing sphere casts against the <see cref="TrackedDeviceGraphicRaycaster"/>.
+        /// Only applies with <see cref="UIInteractionType.Poke"/>.
+        /// </summary>
+        /// <seealso cref="select"/>
+        internal void UpdatePokeSelectState()
+        {
+            if (m_InteractionType == UIInteractionType.Poke)
+                select = TrackedDeviceGraphicRaycaster.IsPokeSelectingWithUI(interactor);
         }
 
         /// <summary>

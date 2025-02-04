@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [2.6.4] - 2025-02-04
+
+### Added
+- Added cone casting support to `XRRayInteractor` for Projectile, Bezier Curve, and lines with multiple segments. (Backport from 3.0.6)
+- Added `Live Cone Cast Debug Visuals` option for `XRRayInteractor` to display a more detailed cone cast debug visual. (Backport from 3.0.6)
+  - Note, this is only displayed in the Editor during Play mode when the GameObject is selected in the hierarchy. (Backport from 3.0.6)
+- Added math caching for `XRRayInteractor` cone cast angle and cone cast radius to improve performance. (Backport from 3.0.6)
+- Added project validation rule to the Starter Assets sample to suggest upgrading Input System to 1.11.0 or newer when project-wide actions are used to avoid potential errors when custom types are used in the asset. ([XRIT-157](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-157)) (Backport from 3.0.6)
+- Added an extra gizmo to the XR Body Transformer to show locomotion collision constraints for the Character Controller. (Backport from 3.0.7)
+- Added an optional bypass for UI Toolkit events that may cause incorrect events to get sent to UI Toolkit elements such as scroll views. For more information see the manual page for [XRUIInputModule](xref:xri-ui-setup). ([XRIT-203](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-203)) (Backport from 3.0.7)
+
+### Changed
+- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance calculation to take into account full distance from the cast origin when there are multiple ray points. (Backport from 3.0.6)
+- Changed `TrackedDeviceGraphicRaycaster` and `TrackedDevicePhysicsRaycaster` hit distance comparison in `PerformRaycast` from less than to less than or equal to. (Backport from 3.0.6)
+- Changed `XRRayInteractor` hit distance calculation to take into account full distance from the cast origin when using multiple target curve segments. (Backport from 3.0.6)
+
+### Fixed
+- Fixed an issue where UI sub canvases were getting blocked by parent canvas items and not allowing interaction. ([XRIT-164](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-99)) (Backport from 3.0.6)
+- Fixed `XRRayInteractor` to still process hits in the case where the 2D and 3D hits are the same GameObject. (Backport from 3.0.6)
+- Fixed issue with `XRRayInteractor` hover not working properly when a `TrackedDevicePhysicsRaycaster` is added to the scene. ([XRIT-97](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-97))
+- Fixed an issue where Interactors that were subscribed to hover events were not getting Exit events when the UI object being hovered is disabled or destroyed in the scene. (Backport from 3.0.6)
+- Fixed the pointer ID system in the `XRUIInputModule` to reuse pointer IDs. This fixes an issue with the pointer limit in UI Toolkit. ([XRIT-184](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-184)) (Backport from 3.0.6)
+
 ## [2.6.3] - 2024-07-23
 
 ### Changed

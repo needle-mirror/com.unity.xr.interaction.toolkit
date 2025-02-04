@@ -63,7 +63,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
         /// <summary>
         /// Makes this theme's settings match the settings of another theme.
         /// </summary>
-        /// <param name="other">The <seealso cref="ColorAffordanceTheme"/> to deep copy values from. It will not be modified.</param>
+        /// <param name="other">The <see cref="ColorAffordanceTheme"/> to deep copy values from. It will not be modified.</param>
         public override void CopyFrom(BaseAffordanceTheme<Color> other)
         {
             base.CopyFrom(other);
@@ -80,12 +80,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     [Serializable]
     public class ColorAffordanceThemeDatumProperty : DatumProperty<ColorAffordanceTheme, ColorAffordanceThemeDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{ColorAffordanceTheme, ColorAffordanceThemeDatum}"/>
         public ColorAffordanceThemeDatumProperty(ColorAffordanceTheme value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{ColorAffordanceTheme, ColorAffordanceThemeDatum}"/>
         public ColorAffordanceThemeDatumProperty(ColorAffordanceThemeDatum datum) : base(datum)
         {
         }

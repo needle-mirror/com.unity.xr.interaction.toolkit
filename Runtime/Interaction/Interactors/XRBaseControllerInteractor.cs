@@ -745,13 +745,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// (Read Only) Whether or not Unity considers the UI Press controller input pressed.
         /// </summary>
-        /// <returns>Returns <see langword="true"/> if active. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool isUISelectActive => m_Controller != null && m_Controller.uiPressInteractionState.active;
 
         /// <summary>
         /// (Read Only) The current scroll value Unity would apply to the UI.
         /// </summary>
-        /// <returns>Returns a Vector2 with scroll strength for each axis. </returns>
         protected Vector2 uiScrollValue => m_Controller != null ? m_Controller.uiScrollValue : Vector2.zero;
 
         /// <inheritdoc />

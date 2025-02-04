@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// <param name="results">The results list to populate with the filtered results. This list should be sorted by priority (with highest priority first).</param>
         /// <remarks>
         /// It's recommended to call this from an implementation of <see cref="IXRInteractor.GetValidTargets"/>.
-        /// </remarks>>
+        /// </remarks>
         void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results);
     }
 }

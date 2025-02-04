@@ -240,10 +240,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected override void OnDisable()
         {
             base.OnDisable();
-            SetDebugObjectVisibility(false);
 
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache.UnregisterFromXRUIInputModule();
+            SetDebugObjectVisibility(false);
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
         }
 
         /// <inheritdoc />
@@ -498,10 +497,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             model.position = position;
             model.orientation = orientation;
             model.positionProvider = m_PositionProvider;
-            model.select = TrackedDeviceGraphicRaycaster.IsPokeSelectingWithUI(this);
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;
+            model.UpdatePokeSelectState();
 
             var raycastPoints = model.raycastPoints;
             raycastPoints.Clear();
@@ -517,6 +516,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <inheritdoc />
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
+            if (m_RegisteredUIInteractorCache == null)
+            {
+                model = TrackedDeviceModel.invalid;
+                return false;
+            }
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 

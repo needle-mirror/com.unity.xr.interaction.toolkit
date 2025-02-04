@@ -2706,7 +2706,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Add simulated XR devices to the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
+        /// <seealso href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_AddDevice__1_System_String_"/>
         protected virtual void AddDevices()
         {
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
@@ -2790,7 +2790,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Remove simulated XR devices from the Input System.
         /// </summary>
-        /// <see href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
+        /// <seealso href="https://docs.unity3d.com/Packages/com.unity.inputsystem@1.7/api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_RemoveDevice_UnityEngine_InputSystem_InputDevice_"/>
         protected virtual void RemoveDevices()
         {
 #if ENABLE_VR || (UNITY_GAMECORE && INPUT_SYSTEM_1_4_OR_NEWER)
@@ -2846,7 +2846,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Gets a <see cref="Vector3"/> that can be multiplied component-wise with another <see cref="Vector3"/>
         /// to reset components of the <see cref="Vector3"/>, based on axis constraint inputs.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns a <see cref="Vector3"/> mask used to reset the components of another <see cref="Vector3"/>.</returns>
         /// <seealso cref="resetAction"/>
         /// <seealso cref="xConstraintAction"/>
         /// <seealso cref="yConstraintAction"/>

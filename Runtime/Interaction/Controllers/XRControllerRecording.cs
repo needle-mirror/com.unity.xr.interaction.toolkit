@@ -98,7 +98,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Adds a recording of a frame.
         /// Duplicates the supplied <paramref name="state"/> object and adds the copy as a frame recording.
         /// </summary>
-        /// <param name="state"> The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <param name="state"> The <see cref="XRControllerState"/> to be recorded.</param>
         /// <seealso cref="AddRecordingFrameNonAlloc"/>
         public void AddRecordingFrame(XRControllerState state)
         {
@@ -109,7 +109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Adds a recording of a frame.
         /// Adds the supplied <paramref name="state"/> object as a frame recording; does not allocate new memory.
         /// </summary>
-        /// <param name="state"> The <seealso cref="XRControllerState"/> to be recorded.</param>
+        /// <param name="state"> The <see cref="XRControllerState"/> to be recorded.</param>
         /// <seealso cref="AddRecordingFrame(XRControllerState)"/>
         public void AddRecordingFrameNonAlloc(XRControllerState state)
         {

@@ -17,7 +17,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initializes the attribute specifying whether to allow or disallow multiple focus mode.
         /// </summary>
-        /// <param name="allowMultiple"></param>
+        /// <param name="allowMultiple">Specifies whether to allow multiple focusable objects.</param>
         public CanFocusMultipleAttribute(bool allowMultiple = true)
         {
             this.allowMultiple = allowMultiple;

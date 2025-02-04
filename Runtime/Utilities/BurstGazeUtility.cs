@@ -22,7 +22,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="gazeDirection">The direction the viewer is facing</param>
         /// <param name="targetPosition">The position of the object being viewed</param>
         /// <param name="angleThreshold">How wide a field of view the viewer has</param>
-        /// <returns></returns>
+        /// <returns>Returns <see langword="true"/> if <paramref name="targetPosition"/> is outside gaze angle threshold.</returns>
         public static bool IsOutsideGaze(in float3 gazePosition, in float3 gazeDirection, in float3 targetPosition, float angleThreshold)
         {
             var outsideThreshold = false;
@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="gazeDirection">The direction the viewer is facing</param>
         /// <param name="targetDirection">The direction the target is facing</param>
         /// <param name="angleThreshold">How far the viewer and target can diverge and still be considered looking at one another</param>
-        /// <returns></returns>
+        /// <returns>Returns <see langword="true"/> if <paramref name="targetDirection"/> is within gaze angle threshold.</returns>
         public static bool IsAlignedToGazeForward(in float3 gazeDirection, in float3 targetDirection, float angleThreshold)
         {
             var insideThreshold = false;
@@ -57,7 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="gazePosition">The position of the viewer</param>
         /// <param name="targetPosition">The position of the target</param>
         /// <param name="distanceThreshold">How far away a target can be before it is outside the viewing range</param>
-        /// <returns></returns>
+        /// <returns>Returns <see langword="true"/> if <paramref name="targetPosition"/> is outside the gaze distance threshold.</returns>
         public static bool IsOutsideDistanceRange(in float3 gazePosition, in float3 targetPosition, float distanceThreshold)
         {
             return math.length(targetPosition - gazePosition) > distanceThreshold;

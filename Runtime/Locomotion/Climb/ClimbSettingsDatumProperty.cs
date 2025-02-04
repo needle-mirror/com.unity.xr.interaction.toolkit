@@ -10,12 +10,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [Serializable]
     public class ClimbSettingsDatumProperty : DatumProperty<ClimbSettings, ClimbSettingsDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="ClimbSettings"/>
         public ClimbSettingsDatumProperty(ClimbSettings value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="ClimbSettingsDatum"/>
         public ClimbSettingsDatumProperty(ClimbSettingsDatum datum) : base(datum)
         {
         }

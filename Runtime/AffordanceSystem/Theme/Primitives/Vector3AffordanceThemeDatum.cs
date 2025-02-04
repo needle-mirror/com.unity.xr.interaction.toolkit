@@ -19,12 +19,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     [Serializable]
     public class Vector3AffordanceThemeDatumProperty : DatumProperty<Vector3AffordanceTheme, Vector3AffordanceThemeDatum>
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{Vector3AffordanceTheme, Vector3AffordanceThemeDatum}"/>
         public Vector3AffordanceThemeDatumProperty(Vector3AffordanceTheme value) : base(value)
         {
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="DatumProperty{Vector3AffordanceTheme, Vector3AffordanceThemeDatum}"/>
         public Vector3AffordanceThemeDatumProperty(Vector3AffordanceThemeDatum datum) : base(datum)
         {
         }

@@ -72,9 +72,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <remarks>
         /// In other words, returns whether <see cref="interactorsHovering"/> contains any interactors.
-        /// <example>
-        /// <code>interactorsHovering.Count > 0</code>
-        /// </example>
+        /// <c>interactorsHovering.Count > 0</c>
         /// </remarks>
         /// <seealso cref="interactorsHovering"/>
         /// <seealso cref="IXRHoverInteractor.hasHover"/>
@@ -150,7 +148,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The interactable to operate on.</param>
         /// <returns>Returns the oldest interactor currently hovering on this interactable.</returns>
         /// <remarks>
-        /// Equivalent to <code>interactorsHovering.Count > 0 ? interactorsHovering[0] : null</code>
+        /// Equivalent to <c>interactorsHovering.Count > 0 ? interactorsHovering[0] : null</c>
         /// </remarks>
         /// <seealso cref="IXRHoverInteractable.interactorsHovering"/>
         public static IXRHoverInteractor GetOldestInteractorHovering(this IXRHoverInteractable interactable) =>
