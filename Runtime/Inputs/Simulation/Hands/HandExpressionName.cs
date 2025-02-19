@@ -4,7 +4,7 @@ using UnityEngine.InputSystem.Utilities;
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 {
     /// <summary>
-    /// A name for a hand expression in the XR Device Simulator.
+    /// A name for a hand expression in the XR Interaction Simulator.
     /// This struct wraps the <see cref="InternedString"/> struct from the Input System to allow for strings to be compared by reference
     /// for better performance.
     /// When compared, the strings are case-insensitive and culture-insensitive.
@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         readonly InternedString m_InternedString;
 
         /// <summary>
-        /// Constructs a new name from a string value to be used with the XR Device Simulator.
+        /// Constructs a new name from a string value to be used with the XR Interaction Simulator.
         /// This allows for strings to be compared by reference and will only allocate memory if the string is not already interned.
         /// </summary>
         /// <param name="value">The string value for the name.</param>

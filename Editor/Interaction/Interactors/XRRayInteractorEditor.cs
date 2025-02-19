@@ -134,7 +134,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast.");
+            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
@@ -195,6 +195,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent rotateMode = EditorGUIUtility.TrTextContent("Rotate Mode", "How the Attach Transform rotation manipulation is controlled.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.scaleMode"/>.</summary>
             public static readonly GUIContent scaleMode = EditorGUIUtility.TrTextContent("Scale Mode", "Determines how the Scale Value should be used by the interactable objects requesting it.");
+            /// <summary>The help box message when <see cref="XRRayInteractor.HitDetectionType"/> is set to <see cref="XRRayInteractor.HitDetectionType.ConeCast"/> and <see cref="XRRayInteractor.sampleFrequency"/> is greater than 2.</summary>
+            public static readonly GUIContent multiSegmentConeCastWarning = EditorGUIUtility.TrTextContent("Using hit detection type Cone Cast and Sample Frequency greater than 2 may impact performance.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.uiPressInput"/>.</summary>
             public static readonly GUIContent uiPressInput = EditorGUIUtility.TrTextContent("UI Press Input", "Input to use for pressing UI elements. Functions like a mouse button when pointing over UI.");
@@ -450,10 +452,20 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
             EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
             EditorGUILayout.PropertyField(m_RaycastSnapVolumeInteraction, Contents.raycastSnapVolumeInteraction);
+
             EditorGUILayout.PropertyField(m_HitDetectionType, Contents.hitDetectionType);
-            switch (m_HitDetectionType.intValue)
+
+            // Display performance warning if using multiple segments with Cone Cast
+            bool sampleFrequencyLineType = m_LineType.intValue == (int)XRRayInteractor.LineType.ProjectileCurve || m_LineType.intValue == (int)XRRayInteractor.LineType.BezierCurve;
+            var hitType = (XRRayInteractor.HitDetectionType)m_HitDetectionType.intValue;
+            if (sampleFrequencyLineType && m_SampleFrequency.intValue > 2 && hitType == XRRayInteractor.HitDetectionType.ConeCast)
             {
-                case (int)XRRayInteractor.HitDetectionType.SphereCast:
+                EditorGUILayout.HelpBox(Contents.multiSegmentConeCastWarning.text, MessageType.Warning, false);
+            }
+
+            switch (hitType)
+            {
+                case XRRayInteractor.HitDetectionType.SphereCast:
                     {
                         using (new EditorGUI.IndentLevelScope())
                         {
@@ -462,7 +474,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
                         break;
                     }
-                case (int)XRRayInteractor.HitDetectionType.ConeCast:
+                case XRRayInteractor.HitDetectionType.ConeCast:
                     {
                         using (new EditorGUI.IndentLevelScope())
                         {

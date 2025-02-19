@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             /// <summary>
             /// The position on the screen that this button was last pressed.
-            /// In the same scale as <see cref="MouseModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
+            /// In the same scale as <see cref="PointerModel.position"/>, and caches the same value as <see cref="PointerEventData.pressPosition"/>.
             /// </summary>
             /// <seealso cref="PointerEventData.pressPosition"/>
             public Vector2 pressedPosition { get; set; }
@@ -162,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         ImplementationData m_ImplementationData;
     }
 
-    struct MouseModel
+    struct PointerModel
     {
         internal struct InternalData
         {
@@ -345,7 +345,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         InternalData m_InternalData;
 
-        public MouseModel(int pointerId)
+        public PointerModel(int pointerId)
         {
             this.pointerId = pointerId;
             changedThisFrame = false;

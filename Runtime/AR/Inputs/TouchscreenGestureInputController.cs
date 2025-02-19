@@ -97,11 +97,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// </summary>
         public IntegerControl fingerCount { get; private set; }
 
-        TapGestureRecognizer m_TapGestureRecognizer;
-        DragGestureRecognizer m_DragGestureRecognizer;
-        PinchGestureRecognizer m_PinchGestureRecognizer;
-        TwistGestureRecognizer m_TwistGestureRecognizer;
-        TwoFingerDragGestureRecognizer  m_TwoFingerDragGestureRecognizer;
+        /// <summary>
+        /// (Read Only) The Tap gesture recognizer.
+        /// </summary>
+        public TapGestureRecognizer tapGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Drag gesture recognizer.
+        /// </summary>
+        public DragGestureRecognizer dragGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Pinch gesture recognizer.
+        /// </summary>
+        public PinchGestureRecognizer pinchGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The Twist gesture recognizer.
+        /// </summary>
+        public TwistGestureRecognizer twistGestureRecognizer { get; private set; }
+
+        /// <summary>
+        /// (Read Only) The two-finger Drag gesture recognizer.
+        /// </summary>
+        public TwoFingerDragGestureRecognizer twoFingerDragGestureRecognizer { get; private set; }
 
         TouchscreenGestureInputControllerState m_ControllerState;
 
@@ -129,20 +148,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             twoFingerDragDelta = GetChildControl<Vector2Control>(nameof(twoFingerDragDelta));
             fingerCount = GetChildControl<IntegerControl>(nameof(fingerCount));
 
-            m_TapGestureRecognizer = new TapGestureRecognizer();
-            m_TapGestureRecognizer.onGestureStarted += OnGestureStarted;
+            tapGestureRecognizer = new TapGestureRecognizer();
+            tapGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            m_DragGestureRecognizer = new DragGestureRecognizer();
-            m_DragGestureRecognizer.onGestureStarted += OnGestureStarted;
+            dragGestureRecognizer = new DragGestureRecognizer();
+            dragGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            m_PinchGestureRecognizer = new PinchGestureRecognizer();
-            m_PinchGestureRecognizer.onGestureStarted += OnGestureStarted;
+            pinchGestureRecognizer = new PinchGestureRecognizer();
+            pinchGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            m_TwistGestureRecognizer = new TwistGestureRecognizer();
-            m_TwistGestureRecognizer.onGestureStarted += OnGestureStarted;
+            twistGestureRecognizer = new TwistGestureRecognizer();
+            twistGestureRecognizer.onGestureStarted += OnGestureStarted;
 
-            m_TwoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
-            m_TwoFingerDragGestureRecognizer.onGestureStarted += OnGestureStarted;
+            twoFingerDragGestureRecognizer = new TwoFingerDragGestureRecognizer();
+            twoFingerDragGestureRecognizer.onGestureStarted += OnGestureStarted;
         }
 
         /// <inheritdoc />
@@ -160,11 +179,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// <inheritdoc />
         public void OnUpdate()
         {
-            m_TapGestureRecognizer.Update();
-            m_DragGestureRecognizer.Update();
-            m_PinchGestureRecognizer.Update();
-            m_TwistGestureRecognizer.Update();
-            m_TwoFingerDragGestureRecognizer.Update();
+            tapGestureRecognizer.Update();
+            dragGestureRecognizer.Update();
+            pinchGestureRecognizer.Update();
+            twistGestureRecognizer.Update();
+            twoFingerDragGestureRecognizer.Update();
 
             var updatedTouchCount = GestureTouchesUtility.touches.Count;
             if (m_ControllerState.fingerCount != updatedTouchCount)

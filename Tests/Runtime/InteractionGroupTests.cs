@@ -2262,7 +2262,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         /// <summary>
-        /// An <see cref="IXRGroupMember"/> that is not also a <see cref="IXRInteractor"/> or <see cref="IXRInteractionGroup"/>.
+        /// An <see cref="IXRGroupMember"/> that is not also an <see cref="IXRInteractor"/> or <see cref="IXRInteractionGroup"/>.
         /// </summary>
         class InvalidGroupMember : IXRGroupMember
         {
@@ -2273,7 +2273,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         /// <summary>
-        /// An <see cref="IXRGroupMember"/> that is not also a <see cref="IXRSelectInteractor"/> or <see cref="IXRInteractionOverrideGroup"/>.
+        /// An <see cref="IXRGroupMember"/> that is not also an <see cref="IXRSelectInteractor"/> or <see cref="IXRInteractionOverrideGroup"/>.
         /// </summary>
         class InvalidInteractionOverride : IXRGroupMember, IXRInteractor
         {

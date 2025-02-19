@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -989,6 +990,64 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Unlink
             }));
         }
+
+        [UnityTest]
+        public IEnumerator RayInteractorTryGetHitInfoReturnsHighestScoredInteractable([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXROrigin();
+            var interactor = CreateRayInteractor(rayInteractorType);
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var frontInteractable = TestUtilities.CreateSimpleInteractable();
+            frontInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
+            frontInteractable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+            var backInteractable = TestUtilities.CreateSimpleInteractable();
+            backInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
+            backInteractable.transform.position = interactor.transform.position + interactor.transform.forward * 8.0f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.That(frontInteractable.isHovered, Is.True);
+            Assert.That(backInteractable.isHovered, Is.True);
+
+            // Check valid targets
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { frontInteractable, backInteractable }));
+
+            // Create the filter
+            var targetFilter = TestUtilities.CreateTargetFilter();
+            var distEvaluator = targetFilter.AddEvaluator<XRDistanceEvaluator>();
+            distEvaluator.maxDistance = 10.0f;
+
+            // Configure target filter to invert distance weight
+            foreach (var key in distEvaluator.weight.keys)
+                distEvaluator.weight.RemoveKey(0);
+
+            distEvaluator.weight.AddKey(0.0f, 1.0f);
+            distEvaluator.weight.AddKey(1.0f, 0.0f);
+
+            // Link the filter
+            interactor.targetFilter = targetFilter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(targetFilter));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Process the filter
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(targetFilter));
+            Assert.That(validTargets, Is.EqualTo(new[] { backInteractable, frontInteractable }));
+
+            // Compare target filter processed results
+            interactor.TryGetHitInfo(out var pos, out var norm, out var posInLine, out var isValid); // Returns info for back interactable
+            interactor.TryGetCurrent3DRaycastHit(out var raycastHit); // Returns info for front interactable
+            Assert.That(validTargets[0], Is.EqualTo(backInteractable));
+            Assert.That(raycastHit.point, Is.Not.EqualTo(pos));
+            Assert.That(pos, Is.EqualTo(backInteractable.transform.position - Vector3.forward));
+        }
+
 
         [UnityTest]
         public IEnumerator RayInteractorCanSelectInteractorWithSnapVolume()

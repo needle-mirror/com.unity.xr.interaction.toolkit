@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <remarks>
         /// Items being in this collection does not imply that the item is currently registered.
         /// <br />
-        /// Logically this should be a <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/>
+        /// Logically this should be an <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/>
         /// to avoid allocations when iterating. Use <see cref="Register"/> and <see cref="Unregister"/>
         /// instead of directly changing this list.
         /// </remarks>
@@ -55,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// before directly accessing it. A new list is pooled from <see cref="s_BufferedListPool"/> when needed.
         /// </summary>
         /// <remarks>
-        /// Logically this should be a <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/> to avoid
+        /// Logically this should be an <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/> to avoid
         /// allocations when iterating.
         /// </remarks>
         protected List<T> m_BufferedAdd;
@@ -68,7 +68,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// before directly accessing it. A new list is pooled from <see cref="s_BufferedListPool"/> when needed.
         /// </summary>
         /// <remarks>
-        /// Logically this should be a <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/> to avoid
+        /// Logically this should be an <see cref="IReadOnlyList{T}"/> but is kept as a <see cref="List{T}"/> to avoid
         /// allocations when iterating.
         /// </remarks>
         protected List<T> m_BufferedRemove;

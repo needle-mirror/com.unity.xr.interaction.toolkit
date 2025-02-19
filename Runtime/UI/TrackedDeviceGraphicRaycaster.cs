@@ -112,12 +112,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Specifies whether the ray cast should hit Triggers when checking for 3D occlusion.")]
+        [Tooltip("Specifies whether the ray cast should hit Triggers when checking for 3D occlusion. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// Specifies whether the ray cast should hit Triggers when checking for 3D occlusion.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
             get => m_RaycastTriggerInteraction;
@@ -185,7 +189,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Checks if poke interactor is interacting with any raycaster in the scene.
         /// </summary>
-        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically an <see cref="XRPokeInteractor"/>.</param>
         /// <returns>Returns <see langword="true"/> if the poke interactor is hovering or selecting any graphic in the scene.</returns>
         public static bool IsPokeInteractingWithUI(IUIInteractor interactor)
         {
@@ -218,7 +222,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Attempts to get the <see cref="PokeStateData"/> for the provided <see cref="IUIInteractor"/>.
         /// </summary>
-        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically an <see cref="XRPokeInteractor"/>.</param>
         /// <param name="data">The <see cref="PokeStateData"/> associated with the <see cref="IUIInteractor"/> if it is found.</param>
         /// <returns>Returns <see langword="true"/> if the poke interactor is hovering or selecting any graphic in the scene
         /// and thus its associated <see cref="PokeStateData"/> is retrieved successfully, otherwise returns <see langword="false"/>.</returns>
@@ -248,10 +252,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         BindingsGroup m_BindingsGroup = new BindingsGroup();
 
         /// <summary>
-        /// Gets the <see cref="PokeStateData"/> as a <see cref="IReadOnlyBindableVariable{TValue}"/> for the target transform.
+        /// Gets the <see cref="PokeStateData"/> as an <see cref="IReadOnlyBindableVariable{TValue}"/> for the target transform.
         /// </summary>
         /// <param name="target">The target to get the <see cref="PokeStateData"/> for.</param>
-        /// <returns>Returns a <see cref="IReadOnlyBindableVariable{TValue}"/> for the <see cref="PokeStateData"/> for the target.</returns>
+        /// <returns>Returns an <see cref="IReadOnlyBindableVariable{TValue}"/> for the <see cref="PokeStateData"/> for the target.</returns>
         public IReadOnlyBindableVariable<PokeStateData> GetPokeStateDataForTarget(Transform target)
         {
             if (!pokeStateDataDictionary.ContainsKey(target))
@@ -263,7 +267,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// This method is used to determine if the poke interactor has met the requirements for selecting.
         /// This can be treated like the equivalent of left mouse down for a mouse.
         /// </summary>
-        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
+        /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically an <see cref="XRPokeInteractor"/>.</param>
         /// <returns>Returns <see langword="true"/> if the <see cref="IUIInteractor"/> meets requirements for poke with any <see cref="TrackedDeviceGraphicRaycaster"/>.</returns>
         public static bool IsPokeSelectingWithUI(IUIInteractor interactor)
         {

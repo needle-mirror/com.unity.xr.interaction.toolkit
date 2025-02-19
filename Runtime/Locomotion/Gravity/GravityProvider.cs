@@ -119,12 +119,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         }
 
         [SerializeField]
-        [Tooltip("Whether trigger colliders are considered when using a sphere cast to determine if grounded.")]
+        [Tooltip("Whether trigger colliders are considered when using a sphere cast to determine if grounded. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_SphereCastTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// Whether trigger colliders are considered when using a sphere cast to determine if grounded.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction sphereCastTriggerInteraction
         {
             get => m_SphereCastTriggerInteraction;

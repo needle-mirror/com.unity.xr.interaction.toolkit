@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
         /// <summary>
         /// Read the value of the input as an <see cref="InputTrackingState"/>.
         /// </summary>
-        /// <returns>Returns the value of the input as a <see cref="InputTrackingState"/>.</returns>
+        /// <returns>Returns the value of the input as an <see cref="InputTrackingState"/>.</returns>
         protected InputTrackingState ReadInputTrackingStateValue()
         {
             if (RefreshInputDeviceIfNeeded() && m_InputDevice.TryGetFeatureValue(new InputFeatureUsage<InputTrackingState>(m_Usage.name), out var value))

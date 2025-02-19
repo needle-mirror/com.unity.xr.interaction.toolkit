@@ -2,6 +2,7 @@
 #define XR_SIMULATION_AVAILABLE
 #endif
 
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem.XR;
@@ -932,6 +933,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         public static XRInteractionSimulator instance { get; private set; }
 
+        /// <summary>
+        /// Calls the methods in its invocation list when the singleton component instance is set during Awake
+        /// or when the instance is destroyed during OnDestroy. The event argument is <see langword="true"/> when the instance is set,
+        /// and <see langword="false"/> when the instance is destroyed.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        /// <seealso cref="instance"/>
+        internal static Action<bool> instanceChanged;
+
         (Transform transform, Camera camera) m_CachedCamera;
 
         /// <summary>
@@ -994,6 +1006,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (instance == null)
             {
                 instance = this;
+                instanceChanged?.Invoke(true);
             }
             else if (instance != this)
             {
@@ -1108,6 +1121,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 #endif
 #endif
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            if (instance == this)
+                instanceChanged?.Invoke(false);
         }
 
         /// <summary>

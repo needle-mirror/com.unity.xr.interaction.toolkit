@@ -110,7 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         bool m_DrawOnNoHit;
         /// <summary>
         /// Whether Unity draws the <see cref="reticlePrefab"/> when there is no hit. If <see langword="true"/>, Unity will draw the <see cref="reticlePrefab"/>
-        /// at the last point of a <see cref="XRRayInteractor"/>.
+        /// at the last point of an <see cref="XRRayInteractor"/>.
         /// </summary>
         public bool drawOnNoHit
         {

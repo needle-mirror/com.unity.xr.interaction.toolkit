@@ -33,6 +33,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Filtering.XRTargetFilter.isProcessing has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Filtering.XRTargetFilter.linkedInteractors has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions.SectorInteraction.pressPointOrDefault has { internal get; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager.leftInputMode has { internal get; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager.rightInputMode has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.hasRegisteredStartingMembers has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.isRegisteredWithInteractionManager has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRDualGrabFreeTransformer.lastInteractorAttachPose has { internal get; private set; }."),
@@ -211,7 +213,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
                 // The goal is to minimize the number of internal properties, so each should be evaluated and added
                 // to the exception list if it is determined that it should remain internal.
                 var properties = type.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(property => property.PropertyType.IsPublic)
+                    .Where(property => property.PropertyType.IsPublic || property.PropertyType.IsNestedPublic)
                     .Where(property =>
                         property.GetMethod is { IsAssembly: true } ||
                         property.SetMethod is { IsAssembly: true })

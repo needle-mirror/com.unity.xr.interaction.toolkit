@@ -223,7 +223,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </param>
         /// <returns>The GameObject that triggered the <see cref="PointerEventData.pointerEnter"/> event.</returns>
         /// <remarks>
-        /// Any negative value used for <paramref name="pointerId"/> will be treated as <c>any</c>. The first event in the
+        /// Any negative value used for <paramref name="pointerId"/> will be treated as <c>any</c>. The first event
         /// from a tracked device will be used first, then to standard pointer devices such as mice and touchscreens.
         /// </remarks>
         /// <seealso cref="IsPointerOverGameObject" />
@@ -328,25 +328,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// Takes an existing <see cref="MouseModel"/> and dispatches all relevant changes through the event system.
-        /// It also updates the internal data of the <see cref="MouseModel"/>.
+        /// Takes an existing <see cref="PointerModel"/> and dispatches all relevant changes through the event system.
+        /// It also updates the internal data of the <see cref="PointerModel"/>.
         /// </summary>
-        /// <param name="mouseState">The mouse state you want to forward into the UI Event System.</param>
-        private protected void ProcessMouseState(ref MouseModel mouseState)
+        /// <param name="pointerState">The pointer state you want to forward into the UI Event System.</param>
+        private protected void ProcessPointerState(ref PointerModel pointerState)
         {
-            if (!mouseState.changedThisFrame)
+            if (!pointerState.changedThisFrame)
                 return;
 
-            var eventData = GetOrCreateCachedPointerEvent(mouseState.pointerId);
+            var eventData = GetOrCreateCachedPointerEvent(pointerState.pointerId);
             eventData.Reset();
 
-            mouseState.CopyTo(eventData);
+            pointerState.CopyTo(eventData);
 
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
 
             // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
-            var buttonState = mouseState.leftButton;
+            var buttonState = pointerState.leftButton;
             eventData.button = PointerEventData.InputButton.Left;
             buttonState.CopyTo(eventData);
             ProcessPointerButton(buttonState.lastFrameDelta, eventData);
@@ -354,15 +354,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             ProcessPointerMovement(eventData);
             ProcessScrollWheel(eventData);
 
-            mouseState.CopyFrom(eventData);
+            pointerState.CopyFrom(eventData);
 
             ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
-            mouseState.leftButton = buttonState;
+            pointerState.leftButton = buttonState;
 
             // Right Mouse Button
-            buttonState = mouseState.rightButton;
+            buttonState = pointerState.rightButton;
             eventData.button = PointerEventData.InputButton.Right;
             buttonState.CopyTo(eventData);
 
@@ -370,10 +370,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
-            mouseState.rightButton = buttonState;
+            pointerState.rightButton = buttonState;
 
             // Middle Mouse Button
-            buttonState = mouseState.middleButton;
+            buttonState = pointerState.middleButton;
             eventData.button = PointerEventData.InputButton.Middle;
             buttonState.CopyTo(eventData);
 
@@ -381,9 +381,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             ProcessPointerButtonDrag(eventData, UIPointerType.MouseOrPen);
 
             buttonState.CopyFrom(eventData);
-            mouseState.middleButton = buttonState;
+            pointerState.middleButton = buttonState;
 
-            mouseState.OnFrameFinished();
+            pointerState.OnFrameFinished();
         }
 
         void ProcessPointerMovement(PointerEventData eventData)
@@ -614,6 +614,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+#if ENABLE_LEGACY_INPUT_MANAGER && !ENABLE_INPUT_SYSTEM
         private protected void ProcessTouch(ref TouchModel touchState)
         {
             if (!touchState.changedThisFrame)
@@ -635,6 +636,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             touchState.OnFrameFinished();
         }
+#endif
 
         private protected void ProcessTrackedDevice(ref TrackedDeviceModel deviceState, bool force = false)
         {

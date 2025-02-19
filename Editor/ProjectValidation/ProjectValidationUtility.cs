@@ -25,10 +25,24 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             public Dictionary<string, SampleData> importedSamples;
         }
 
+        /// <summary>
+        /// Struct containing data about a sample.
+        /// </summary>
         struct SampleData
         {
+            /// <summary>
+            /// The display name of the sample, matches the directory.
+            /// </summary>
             public string sampleName;
+
+            /// <summary>
+            /// The display name of the package the sample is from.
+            /// </summary>
             public string packageDisplayName;
+
+            /// <summary>
+            /// The version of the package the sample is imported from.
+            /// </summary>
             public PackageVersion packageVersion;
         }
 
@@ -53,6 +67,31 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
             }
 
             return s_PackageSampleCache.TryGetValue(packageDisplayName, out var sampleData) && sampleData.importedSamples.ContainsKey(sampleDisplayName);
+        }
+
+        /// <summary>
+        /// Searches for the imported samples from a specified package.
+        /// </summary>
+        /// <param name="packageDisplayName">The display name of the package (directory that contains the samples).</param>
+        /// <param name="results">The list to populate with the unordered collection of imported samples.</param>
+        public static void GetImportedSamples(string packageDisplayName, List<(string sampleName, PackageVersion packageVersion)> results)
+        {
+            results.Clear();
+
+            if (s_PackageSampleCache == null)
+            {
+                UpdatePackageSampleCache();
+                if (s_PackageSampleCache == null)
+                    return;
+            }
+
+            if (s_PackageSampleCache.TryGetValue(packageDisplayName, out var sampleData))
+            {
+                foreach (var importedSample in sampleData.importedSamples)
+                {
+                    results.Add((importedSample.Value.sampleName, importedSample.Value.packageVersion));
+                }
+            }
         }
 
         /// <summary>

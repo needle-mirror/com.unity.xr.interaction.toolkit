@@ -1,0 +1,47 @@
+{
+    "name": "Unity.XR.Interaction.Toolkit.Analytics.Hooks.Editor",
+    "rootNamespace": "UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks",
+    "references": [
+        "Unity.XR.CoreUtils",
+        "Unity.XR.CoreUtils.Editor",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Interaction.Toolkit.Analytics.Editor",
+        "Unity.XR.Interaction.Toolkit.Editor",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.Oculus",
+        "Unity.XR.OpenXR"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.management",
+            "expression": "4.0.1",
+            "define": "XR_MANAGEMENT_4_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.oculus",
+            "expression": "3.0.0",
+            "define": "OCULUS_3_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.oculus",
+            "expression": "3.2.1",
+            "define": "OCULUS_3_2_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.openxr",
+            "expression": "1.6.0",
+            "define": "OPENXR_1_6_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

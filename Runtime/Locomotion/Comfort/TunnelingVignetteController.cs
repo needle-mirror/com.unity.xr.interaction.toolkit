@@ -428,7 +428,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
         }
 
         /// <summary>
-        /// Represents a record of a <see cref="ITunnelingVignetteProvider"/> and its dynamically updated values.
+        /// Represents a record of an <see cref="ITunnelingVignetteProvider"/> and its dynamically updated values.
         /// </summary>
         class ProviderRecord
         {
@@ -455,7 +455,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
         MaterialPropertyBlock m_VignettePropertyBlock;
 
         /// <summary>
-        /// Queues a <see cref="ITunnelingVignetteProvider"/> to trigger the ease-in vignette effect.
+        /// Queues an <see cref="ITunnelingVignetteProvider"/> to trigger the ease-in vignette effect.
         /// </summary>
         /// <param name="provider">The <see cref="ITunnelingVignetteProvider"/> that contains information of <see cref="VignetteParameters"/>.</param>
         /// <remarks>
@@ -477,7 +477,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
         }
 
         /// <summary>
-        /// Queues a <see cref="ITunnelingVignetteProvider"/> to trigger the ease-out vignette effect.
+        /// Queues an <see cref="ITunnelingVignetteProvider"/> to trigger the ease-out vignette effect.
         /// </summary>
         /// <param name="provider">The <see cref="ITunnelingVignetteProvider"/> that contains information of <see cref="VignetteParameters"/>.</param>
         /// <remarks>

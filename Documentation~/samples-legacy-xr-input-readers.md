@@ -5,7 +5,7 @@ uid: xri-samples-legacy-xr-input-readers
 
 This sample contains assets that can be used with behaviors in the XR Interaction Toolkit that read input. Refer to [Input Readers](xref:xri-input-readers#legacy-xr-input-readers) for information about using these assets.
 
-These ScriptableObjects are mainly intended to assist with migration from the older device-based controller input that can be used with the new input readers introduced with version 3.0.0. It is recommended that you use the input actions included in the [Starter Assets](samples-starter-assets.md) sample with input readers instead of these assets to take advantage of the benefits that the Input System package provides. For example, it separates the logical inputs from the physical inputs or bind multiple cross-platform controller inputs to a single semantic action. Some features of the XR Interaction Toolkit package, such as the XR Device Simulator, are only supported when using input actions.
+These ScriptableObjects are mainly intended to assist with migration from the older device-based controller input that can be used with the new input readers introduced with version 3.0.0. It is recommended that you use the input actions included in the [Starter Assets](samples-starter-assets.md) sample with input readers instead of these assets to take advantage of the benefits that the Input System package provides. For example, it separates the logical inputs from the physical inputs or bind multiple cross-platform controller inputs to a single semantic action. Some features of the XR Interaction Toolkit package, such as the XR Interaction Simulator or XR Device Simulator, are only supported when using input actions.
 
 |**Asset**| **Description**|
 |---|---|

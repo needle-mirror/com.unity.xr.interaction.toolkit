@@ -2,7 +2,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 {
     /// <summary>
     /// Stores the joints for a hand expression for both a left and right hand. The pose data is used to simulate a specific hand expression
-    /// in the XR Device Simulator.
+    /// in the XR Interaction Simulator.
     /// </summary>
     class HandExpressionCapture : ScriptableObject
     {

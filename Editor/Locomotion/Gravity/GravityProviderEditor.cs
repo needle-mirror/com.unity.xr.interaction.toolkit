@@ -80,7 +80,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Gravity
             public static readonly GUIContent useLocalSpaceGravity = EditorGUIUtility.TrTextContent("Use Local Space Gravity", "Apply gravity based on the current Up vector of the XR Origin.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GravityProvider.terminalVelocity"/>.</summary>
-            public static readonly GUIContent terminalVelocity = EditorGUIUtility.TrTextContent("Terminal Velocity Modifier", "Determines the maximum fall speed based on units per second.");
+            public static readonly GUIContent terminalVelocity = EditorGUIUtility.TrTextContent("Terminal Velocity", "Determines the maximum fall speed based on units per second.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GravityProvider.gravityAccelerationModifier"/>.</summary>
             public static readonly GUIContent gravityAccelerationModifier = EditorGUIUtility.TrTextContent("Gravity Acceleration Modifier", "Determines the speed at which a player reaches max gravity velocity.");
@@ -89,7 +89,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Gravity
             public static readonly GUIContent updateCharacterControllerCenterEachFrame = EditorGUIUtility.TrTextContent("Update Character Controller Center Each Frame", "Sets the center of the character controller to match the local x and z positions of the player camera.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GravityProvider.sphereCastRadius"/>.</summary>
-            public static readonly GUIContent sphereCastRadius = EditorGUIUtility.TrTextContent("Sphere Cast Radius", "Buffer for the radius of the sphere cast used to check if the player is grounded.");
+            public static readonly GUIContent sphereCastRadius = EditorGUIUtility.TrTextContent("Sphere Cast Radius Buffer", "Buffer for the radius of the sphere cast used to check if the player is grounded.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GravityProvider.sphereCastDistanceBuffer"/>.</summary>
             public static readonly GUIContent sphereCastDistanceBuffer = EditorGUIUtility.TrTextContent("Sphere Cast Distance Buffer", "Buffer for the distance of the sphere cast used to check if the player is grounded.");

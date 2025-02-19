@@ -41,6 +41,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         }
 
         [SerializeField]
+        XRInputValueReader<Vector2> m_DragStartPositionInput = new XRInputValueReader<Vector2>("Drag Start Position");
+
+        /// <summary>
+        /// Input to use for the screen drag start position.
+        /// </summary>
+        /// <seealso cref="TouchscreenGestureInputController.dragStartPosition"/>
+        public XRInputValueReader<Vector2> dragStartPositionInput
+        {
+            get => m_DragStartPositionInput;
+            set => XRInputReaderUtility.SetInputProperty(ref m_DragStartPositionInput, value, this);
+        }
+
+        [SerializeField]
         XRInputValueReader<Vector2> m_DragCurrentPositionInput = new XRInputValueReader<Vector2>("Drag Current Position");
 
         /// <summary>
@@ -74,6 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         readonly UnityObjectReferenceCache<Transform> m_ParentTransformCache = new UnityObjectReferenceCache<Transform>();
 
         Vector2 m_TapStartPosition;
+        Vector2 m_DragStartPosition;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -93,6 +107,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             }
 
             m_TapStartPositionInput.EnableDirectActionIfModeUsed();
+            m_DragStartPositionInput.EnableDirectActionIfModeUsed();
             m_DragCurrentPositionInput.EnableDirectActionIfModeUsed();
             m_ScreenTouchCountInput.EnableDirectActionIfModeUsed();
         }
@@ -103,6 +118,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         protected void OnDisable()
         {
             m_TapStartPositionInput.DisableDirectActionIfModeUsed();
+            m_DragStartPositionInput.DisableDirectActionIfModeUsed();
             m_DragCurrentPositionInput.DisableDirectActionIfModeUsed();
             m_ScreenTouchCountInput.DisableDirectActionIfModeUsed();
         }
@@ -115,12 +131,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             var prevTapStartPosition = m_TapStartPosition;
             var tapPerformedThisFrame = m_TapStartPositionInput.TryReadValue(out m_TapStartPosition) && prevTapStartPosition != m_TapStartPosition;
 
+            var prevDragStartPosition = m_DragStartPosition;
+            var dragStartPerformedThisFrame = m_DragStartPositionInput.TryReadValue(out m_DragStartPosition) && prevDragStartPosition != m_DragStartPosition;
+
             if (m_ScreenTouchCountInput.TryReadValue(out var screenTouchCount) && screenTouchCount > 1)
                 return;
 
-            if (m_DragCurrentPositionInput.TryReadValue(out var screenPosition))
+            if (dragStartPerformedThisFrame)
             {
-                ApplyPose(screenPosition);
+                ApplyPose(m_DragStartPosition);
+                return;
+            }
+
+            if (m_DragCurrentPositionInput.TryReadValue(out var dragCurrentPosition))
+            {
+                ApplyPose(dragCurrentPosition);
                 return;
             }
 

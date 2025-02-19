@@ -3,7 +3,10 @@ uid: xri-xr-device-simulator
 ---
 # XR Device Simulator
 
-The XR Device Simulator component which handles mouse and keyboard input from the user and uses it to drive simulated XR controllers and an XR head mounted display (HMD).
+> [!NOTE]
+> A newer simulator called XR Interaction Simulator is now available. To learn more, see the [documentation](xr-interaction-simulator.md). For guidance on setting up a scene with the XR Interaction Simulator see the [overview](xr-interaction-simulator-overview.md).
+
+The XR Device Simulator is a component which handles mouse and keyboard input from the user and uses it to drive simulated XR controllers and an XR head mounted display (HMD).
 
 This class does not directly manipulate the camera or controllers which are part of the XR Origin, but rather moves them indirectly through simulated input devices.
 
@@ -14,7 +17,7 @@ For more information about how to install and how to set it up in a scene, refer
 ![XRDeviceSimulator component](images/xr-device-simulator.png)
 
 > [!NOTE]
-> The XR Origin must read the position and rotation of the HMD and controllers by using Input System actions (such as by using `ActionBasedController` and `TrackedPoseDriver`) for this simulator to work as expected. Attempting to use XR input subsystem device methods (such as by using `XRController` and `SpatialTracking.TrackedPoseDriver`) will not work as expected since this simulator depends on the Input System to drive the simulated devices.
+> The XR Origin must read the position and rotation of the HMD and controllers by using [Input System](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) actions (such as by using `ActionBasedController` and `TrackedPoseDriver`) for this simulator to work as expected. Attempting to use XR input subsystem device methods (such as by using `XRController` and `SpatialTracking.TrackedPoseDriver`) will not work as expected since this simulator depends on the Input System to drive the simulated devices.
 
 | **Property** | **Description** |
 |---|---|

@@ -23,7 +23,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="GUIContent"/> for <see cref="XRDirectInteractor.physicsLayerMask"/>.</summary>
         public static readonly GUIContent physicsLayerMask = EditorGUIUtility.TrTextContent("Physics Layer Mask", "Physics layer mask used for limiting direct interactor overlaps when using the Improve Accuracy With Sphere Collider option.");
         /// <summary><see cref="GUIContent"/> for <see cref="XRDirectInteractor.physicsTriggerInteraction"/>.</summary>
-        public static readonly GUIContent physicsTriggerInteraction = EditorGUIUtility.TrTextContent("Physics Trigger Interaction", "Determines whether the direct interactor sphere overlap will hit triggers when using the Improve Accuracy With Sphere Collider option.");
+        public static readonly GUIContent physicsTriggerInteraction = EditorGUIUtility.TrTextContent("Physics Trigger Interaction", "Determines whether the direct interactor sphere overlap will hit triggers when using the Improve Accuracy With Sphere Collider option. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
 
         /// <inheritdoc />
         protected override void OnEnable()

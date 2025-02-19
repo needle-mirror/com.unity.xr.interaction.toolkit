@@ -25,9 +25,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics.OpenXR
         /// <inheritdoc />
         public bool SendHapticImpulse(float amplitude, float duration, float frequency)
         {
+#if OPENXR_1_7_OR_NEWER
             var actionHandle = OpenXRInput.GetActionHandle(hapticAction);
             if (actionHandle == 0L)
                 return false;
+#endif
 
             OpenXRInput.SendHapticImpulse(hapticAction, amplitude, frequency, duration, device);
             return true;

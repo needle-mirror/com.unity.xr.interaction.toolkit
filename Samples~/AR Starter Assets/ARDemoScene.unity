@@ -1192,7 +1192,7 @@ MonoBehaviour:
   m_ARInteractor: {fileID: 1366176488}
   m_ObjectSpawner: {fileID: 436358033}
   m_RequireHorizontalUpSurface: 0
-  m_SpawnTriggerType: 0
+  m_SpawnTriggerType: 1
   m_SpawnObjectInput:
     m_InputSourceMode: 2
     m_InputActionPerformed:

@@ -81,6 +81,11 @@
         },
         {
             "name": "com.unity.xr.openxr",
+            "expression": "1.7.0",
+            "define": "OPENXR_1_7_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.openxr",
             "expression": "1.10.0",
             "define": "OPENXR_1_10_OR_NEWER"
         },

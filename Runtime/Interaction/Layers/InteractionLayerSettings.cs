@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
+using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if UNITY_EDITOR
@@ -23,6 +24,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         [SerializeField]
         string[] m_LayerNames;
+
+        /// <summary>
+        /// Returns the singleton settings instance or loads the settings asset if it exists.
+        /// Unlike <see cref="ScriptableSettings{T}.Instance"/>, this method will not create the asset if it does not exist.
+        /// </summary>
+        /// <returns>A settings class derived from <see cref="ScriptableObject"/>, or <see langword="null"/>.</returns>
+        internal static InteractionLayerSettings GetInstanceOrLoadOnly()
+        {
+            if (BaseInstance != null)
+                return BaseInstance;
+
+            // See CreateAndLoad() in base class.
+            Assert.IsTrue(HasCustomPath);
+            BaseInstance = Resources.Load(GetFilePath(), typeof(InteractionLayerSettings)) as InteractionLayerSettings;
+
+            return BaseInstance;
+        }
 
         /// <summary>
         /// Check if the interaction layer name at the supplied index is empty.

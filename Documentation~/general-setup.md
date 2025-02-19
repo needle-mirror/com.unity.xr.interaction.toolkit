@@ -29,7 +29,7 @@ Refer to the [XR section](xref:XR) of the Unity manual for more general informat
 
 The XR Interaction Toolkit has a few settings to consider:
 
-* **XR Device Simulator Settings**: whether to automatically add the device simulator to your scenes when you run them in the Editor. The simulator translates mouse and keyboard input into XR controller input.
+* **XR Interaction Simulator Settings**: whether to automatically add the interaction simulator to your scenes when you run them in the Editor. The simulator translates mouse and keyboard input into XR controller input.
 * **Editor Settings**: affects how the properties of some toolkit components appear in the Inspector.
 * **Interaction Layer Settings**: assign labels to the interaction layers. You can use up to 31 interaction layers as a way to control which interactors can operate with which interactables. You must assign a label to a layer before you can use it.
 

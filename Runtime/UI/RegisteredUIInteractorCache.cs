@@ -5,7 +5,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities;
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// This class is a convenience class to handle interactor link between a <see cref="IUIInteractor"/>
+    /// This class is a convenience class to handle interactor link between an <see cref="IUIInteractor"/>
     /// and an <see cref="XRUIInputModule"/>.
     /// </summary>
     class RegisteredUIInteractorCache

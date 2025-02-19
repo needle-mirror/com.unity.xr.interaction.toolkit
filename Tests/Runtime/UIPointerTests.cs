@@ -1300,7 +1300,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(stick, Is.Not.Null);
             Assert.That(submitButton, Is.Not.Null);
 
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
+#pragma warning restore CS0618
 
             if (device is Gamepad)
                 Assert.That(Gamepad.current, Is.SameAs(device));
@@ -1411,7 +1413,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var testObjects = SetupUIScene(true);
 
             testObjects.uiInputModule.enableBuiltinActionsAsFallback = false;
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
+#pragma warning restore CS0618
 
             // Setup gamepad input with new input system
             var asset = ScriptableObject.CreateInstance<InputActionAsset>();
@@ -1466,7 +1470,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             testObjects.uiInputModule.enableJoystickInput = false;
             testObjects.uiInputModule.enableMouseInput = true;
             testObjects.uiInputModule.enableTouchInput = false;
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
+#pragma warning restore CS0618
 
             var leftUIReceiver = testObjects.leftUIReceiver;
             var rightUIReceiver = testObjects.rightUIReceiver;

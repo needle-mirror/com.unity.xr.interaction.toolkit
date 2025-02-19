@@ -40,9 +40,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public float slopInches { get; set; } = 0.1f;
 
         /// <summary>
-        /// Time (in seconds) within which a touch and release has to occur for it
+        /// Time (in seconds) within (≤) which a touch and release has to occur for it
         /// to be registered as a tap.
         /// </summary>
+        /// <remarks>
+        /// A touch and release that takes > this value causes the tap gesture to be canceled.
+        /// </remarks>
         public float durationSeconds { get; set; } = 0.3f;
 
         // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures

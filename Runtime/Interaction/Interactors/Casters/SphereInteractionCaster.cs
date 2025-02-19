@@ -30,11 +30,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         }
 
         [SerializeField]
+        [Tooltip("Determines whether the cast sphere overlap will hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// Determines whether the cast sphere overlap will hit triggers.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction physicsTriggerInteraction
         {
             get => m_PhysicsTriggerInteraction;

@@ -56,7 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Gets or sets layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Gets or sets type of interaction with trigger colliders via ray cast.");
+            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Gets or sets type of interaction with trigger colliders via ray cast. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Determines if ray casts include snap volume triggers: 'Collide' to include, 'Ignore' for performance optimization when not using specific XR components.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.targetNumCurveSegments"/>.</summary>
@@ -72,10 +72,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.liveConeCastDebugVisuals"/>.</summary>
             public static readonly GUIContent liveConeCastDebugVisuals = EditorGUIUtility.TrTextContent("Live Cone Cast Debug Visuals", "If enabled, more detailed cone cast gizmos will be displayed in the editor. Only displayed in Play mode when GameObject is selected.");
 
-            /// <summary><see cref="GUIContent"/> for the Stabilization Settings foldout.</summary>
+            /// <summary><see cref="GUIContent"/> for the Filtering Settings foldout.</summary>
             public static readonly GUIContent filteringSettingsFoldout = EditorGUIUtility.TrTextContent("Filtering Settings", "Filtering configuration for this caster.");
-            /// <summary><see cref="GUIContent"/> for the Stabilization Settings foldout.</summary>
+            /// <summary><see cref="GUIContent"/> for the Curve Casting Settings foldout.</summary>
             public static readonly GUIContent curveCastingSettingsFoldout = EditorGUIUtility.TrTextContent("Curve Casting Settings", "Curve Casting configuration for this caster.");
+
+            /// <summary>The help box message when <see cref="CurveInteractionCaster.HitDetectionType"/> is set to <see cref="CurveInteractionCaster.HitDetectionType.ConeCast"/> and <see cref="CurveInteractionCaster.targetNumCurveSegments"/> is greater than 1.</summary>
+            public static readonly GUIContent multiSegmentConeCastWarning = EditorGUIUtility.TrTextContent("Using hit detection type Cone Cast with multiple curve segments may impact performance.");
         }
 
         /// <summary>
@@ -177,18 +180,26 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(m_TargetNumCurveSegments, Contents.targetNumCurveSegments);
                     EditorGUILayout.PropertyField(m_CastDistance, Contents.castDistance);
                     EditorGUILayout.PropertyField(m_HitDetectionType, Contents.hitDetectionType);
-
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        switch (m_HitDetectionType.intValue)
+
+                        EditorGUILayout.PropertyField(m_TargetNumCurveSegments, Contents.targetNumCurveSegments);
+
+                        var hitType = (CurveInteractionCaster.HitDetectionType)m_HitDetectionType.intValue;
+                        // Display performance warning if using multiple segments with Cone Cast
+                        if (m_TargetNumCurveSegments.intValue > 1 && hitType == CurveInteractionCaster.HitDetectionType.ConeCast)
                         {
-                            case (int)CurveInteractionCaster.HitDetectionType.SphereCast:
+                            EditorGUILayout.HelpBox(Contents.multiSegmentConeCastWarning.text, MessageType.Warning, false);
+                        }
+
+                        switch (hitType)
+                        {
+                            case CurveInteractionCaster.HitDetectionType.SphereCast:
                                 EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
                                 break;
-                            case (int)CurveInteractionCaster.HitDetectionType.ConeCast:
+                            case CurveInteractionCaster.HitDetectionType.ConeCast:
                                 EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
                                 EditorGUILayout.PropertyField(m_LiveConeCastDebugVisuals, Contents.liveConeCastDebugVisuals);
                                 break;

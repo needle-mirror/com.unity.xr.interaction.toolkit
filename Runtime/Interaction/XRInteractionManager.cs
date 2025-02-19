@@ -108,14 +108,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
         /// <summary>
-        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
         /// </summary>
         public event Action<FocusEnterEventArgs> focusGained;
 
         /// <summary>
-        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
         /// </summary>
         public event Action<FocusExitEventArgs> focusLost;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when a manager is enabled or disabled.
+        /// </summary>
+        /// <seealso cref="activeInteractionManagers"/>
+        internal static event Action<XRInteractionManager, bool> activeInteractionManagersChanged;
 
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
@@ -195,8 +201,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// (Read Only) List of enabled Interaction Manager instances.
         /// </summary>
         /// <remarks>
-        /// Intended to be used by XR Interaction Debugger.
+        /// Intended to be used by XR Interaction Debugger and analytics.
         /// </remarks>
+        /// <seealso cref="activeInteractionManagersChanged"/>
         internal static List<XRInteractionManager> activeInteractionManagers { get; } = new List<XRInteractionManager>();
 
         /// <summary>
@@ -332,6 +339,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             activeInteractionManagers.Add(this);
+            activeInteractionManagersChanged?.Invoke(this, true);
             Application.onBeforeRender += OnBeforeRender;
         }
 
@@ -342,6 +350,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             Application.onBeforeRender -= OnBeforeRender;
             activeInteractionManagers.Remove(this);
+            activeInteractionManagersChanged?.Invoke(this, false);
             ClearPriorityForSelectionMap();
         }
 

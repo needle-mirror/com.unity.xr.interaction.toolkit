@@ -18,7 +18,7 @@ To use the AR interaction components in the package, you must have the [AR Found
 - Various Screen Space input components that feeds screen-space interaction data into an `XRRayInteractor` that works with AR.
 - `ARTransformer` that translates gestures such as place, select, translate, rotate, and scale into object manipulation.
 
-Finally, its possible to simulate all of your interactions with the [XR Device Simulator](xr-device-simulator.md) in case you don't have the hardware for the project you are working on, or just want to test interactions without entering the headset. For more information, see [XR Device Simulator overview](xr-device-simulator-overview.md).
+Finally, its possible to simulate all of your interactions with the [XR Interaction Simulator](xr-interaction-simulator.md) in case you don't have the hardware for the project you are working on, or just want to test interactions without entering the headset. For more information, see [XR Interaction Simulator overview](xr-interaction-simulator-overview.md).
 
 ## Technical details
 

@@ -66,6 +66,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// Determines whether the direct interactor sphere overlap will hit triggers when using the <see cref="improveAccuracyWithSphereCollider"/> option.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction physicsTriggerInteraction
         {
             get => m_PhysicsTriggerInteraction;

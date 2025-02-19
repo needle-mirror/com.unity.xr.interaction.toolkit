@@ -16,6 +16,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
     [HelpURL(XRHelpURLConstants.k_TouchscreenGestureInputLoader)]
     public class TouchscreenGestureInputLoader : MonoBehaviour
     {
+        [Header("Gesture Configuration")]
+        [SerializeField]
+        [Tooltip("Time (in seconds) within (≤) which a touch and release has to occur for it to be registered as a tap.")]
+        float m_TapDuration = 0.5f;
+
+        /// <summary>
+        /// Time (in seconds) within (≤) which a touch and release has to occur for it
+        /// to be registered as a tap.
+        /// </summary>
+        /// <remarks>
+        /// A touch and release that takes > this value causes the tap gesture to be canceled.
+        /// </remarks>
+        /// <seealso cref="TapGestureRecognizer.durationSeconds"/>
+        /// <seealso cref="RefreshGestureRecognizersConfiguration"/>
+        public float tapDuration
+        {
+            get => m_TapDuration;
+            set => m_TapDuration = value;
+        }
+
 #if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
         TouchscreenGestureInputController m_GestureInputController;
 #endif
@@ -40,6 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         protected void OnEnable()
         {
             InitializeTouchscreenGestureController();
+            RefreshGestureRecognizersConfiguration();
         }
 
         /// <summary>
@@ -48,6 +69,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         protected void OnDisable()
         {
             RemoveTouchscreenGestureController();
+        }
+
+        /// <summary>
+        /// Refresh the properties on the gesture recognizers, such as the tap duration threshold,
+        /// based on the serialized properties of this component. This is done automatically when this
+        /// component is enabled, however this method can be called to manually refresh the configuration
+        /// after the property values are changed.
+        /// </summary>
+        public void RefreshGestureRecognizersConfiguration()
+        {
+#if TOUCHSCREEN_GESTURE_INPUT_CONTROLLER_AVAILABLE
+            if (m_GestureInputController != null)
+            {
+                m_GestureInputController.tapGestureRecognizer.durationSeconds = m_TapDuration;
+            }
+#endif
         }
 
         void InitializeTouchscreenGestureController()

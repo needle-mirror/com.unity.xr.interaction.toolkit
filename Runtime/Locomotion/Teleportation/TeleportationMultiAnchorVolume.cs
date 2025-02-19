@@ -8,7 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// An interactable that teleports the user to a specific position and/or rotation defined by one of several anchors.
-    /// The volume designates a destination anchor upon first hover based on a <see cref="ITeleportationVolumeAnchorFilter"/>.
+    /// The volume designates a destination anchor upon first hover based on an <see cref="ITeleportationVolumeAnchorFilter"/>.
     /// </summary>
     /// <seealso cref="ITeleportationVolumeAnchorFilter"/>
     /// <seealso cref="TeleportationAnchor"/>

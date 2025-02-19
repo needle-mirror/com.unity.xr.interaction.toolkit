@@ -116,7 +116,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         GameObject m_RightController;
 
         /// <summary>
-        /// GameObject representing the left motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking.
+        /// GameObject representing the right motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking.
         /// </summary>
         public GameObject rightController
         {
@@ -217,7 +217,58 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         static BindableEnum<InputMode> s_CurrentInputMode = new BindableEnum<InputMode>(InputMode.None);
 
         InputMode m_LeftInputMode;
+
+        /// <summary>
+        /// (Read Only) The current input mode for the left hand input.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        internal InputMode leftInputMode => m_LeftInputMode;
+
         InputMode m_RightInputMode;
+
+        /// <summary>
+        /// (Read Only) The current input mode for the right hand input.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        internal InputMode rightInputMode => m_RightInputMode;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when the left hand input mode changes.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        internal event Action<XRInputModalityManager, InputMode> leftInputModeChanged;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when the right hand input mode changes.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        internal event Action<XRInputModalityManager, InputMode> rightInputModeChanged;
+
+        /// <summary>
+        /// (Read Only) List of enabled Input Modality Manager instances.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        /// <seealso cref="activeModalityManagersChanged"/>
+        internal static List<XRInputModalityManager> activeModalityManagers { get; } = new List<XRInputModalityManager>();
+
+        /// <summary>
+        /// Calls the methods in its invocation list when a manager is enabled or disabled.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        /// <seealso cref="activeModalityManagers"/>
+        internal static event Action<XRInputModalityManager, bool> activeModalityManagersChanged;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -246,6 +297,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
             UpdateLeftMode();
             UpdateRightMode();
+
+            activeModalityManagers.Add(this);
+            activeModalityManagersChanged?.Invoke(this, true);
         }
 
         /// <summary>
@@ -269,6 +323,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 m_InputDeviceMonitor.trackingAcquired -= OnControllerTrackingAcquired;
                 m_InputDeviceMonitor.ClearAllDevices();
             }
+
+            activeModalityManagers.Remove(this);
+            activeModalityManagersChanged?.Invoke(this, false);
         }
 
         /// <summary>
@@ -352,7 +409,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             var oldMode = m_LeftInputMode;
             m_LeftInputMode = inputMode;
 
-            OnModeChanged(oldMode, inputMode, m_RightInputMode);
+            if (oldMode != inputMode)
+            {
+                OnModeChanged(oldMode, inputMode, m_RightInputMode);
+                leftInputModeChanged?.Invoke(this, inputMode);
+            }
         }
 
         void SetRightMode(InputMode inputMode)
@@ -362,14 +423,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             var oldMode = m_RightInputMode;
             m_RightInputMode = inputMode;
 
-            OnModeChanged(oldMode, inputMode, m_LeftInputMode);
+            if (oldMode != inputMode)
+            {
+                OnModeChanged(oldMode, inputMode, m_LeftInputMode);
+                rightInputModeChanged?.Invoke(this, inputMode);
+            }
         }
 
         void OnModeChanged(InputMode oldInputMode, InputMode newInputMode, InputMode otherHandInputMode)
         {
-            if (oldInputMode == newInputMode)
-                return;
-
             // Invoke the events for the overall input modality.
             // "Started" when the first device changes to it, "Ended" when the last remaining device changes away from it.
             // Invoke the "Ended" event before the "Started" event for intuitive ordering.

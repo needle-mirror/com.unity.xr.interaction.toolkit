@@ -104,12 +104,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Determines whether the poke sphere overlap will hit triggers.")]
+        [Tooltip("Determines whether the poke sphere overlap will hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// Determines whether the poke sphere overlap will hit triggers.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction physicsTriggerInteraction
         {
             get => m_PhysicsTriggerInteraction;
@@ -291,7 +295,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 for (var i = 0; i < pokeTargetsCount; ++i)
                 {
                     var interactable = m_PokeTargets[i].interactable;
-                    if (interactable is not (IXRSelectInteractable and IXRHoverInteractable hoverable) || !hoverable.IsHoverableBy(this))
+                    if (m_ValidTargets.Contains(interactable) || interactable is not (IXRSelectInteractable and IXRHoverInteractable hoverable) || !hoverable.IsHoverableBy(this))
                         continue;
                     m_ValidTargets.Add(m_PokeTargets[i].interactable);
                     s_ValidTargetsScratchMap.Add(m_PokeTargets[i].interactable, m_PokeTargets[i].filter);

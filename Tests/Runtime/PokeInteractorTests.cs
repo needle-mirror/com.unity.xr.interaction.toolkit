@@ -357,5 +357,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(validTargets, Is.EqualTo(new[] { interactable2 }));
         }
+
+
+        [UnityTest]
+        public IEnumerator PokeInteractorValidTargetWithMultipleColliders()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.requirePokeFilter = false;
+
+            // Setup Colliders first
+            GameObject interactableGO = new GameObject("Simple Interactable");
+            TestUtilities.CreateGOSphereCollider(interactableGO, false);
+            var colliderGO = new GameObject("Secondary Collider");
+            TestUtilities.CreateGOSphereCollider(colliderGO, false);
+            colliderGO.transform.SetParent(interactableGO.transform, true);
+
+            // Then Rigid Body
+            Rigidbody rigidBody = interactableGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+
+            // Finally interactable (so it will find existing components on Awake)
+            XRSimpleInteractable interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+
+            // Test that valid targets are correct and there is only 1 in the list
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(validTargets.Count, Is.EqualTo(1));
+        }
     }
 }

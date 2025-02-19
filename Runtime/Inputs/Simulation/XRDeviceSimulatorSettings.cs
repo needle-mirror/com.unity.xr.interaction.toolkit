@@ -1,4 +1,5 @@
 using Unity.XR.CoreUtils;
+using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
@@ -10,6 +11,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [ScriptableSettingsPath(ProjectPath.k_XRInteractionSettingsFolder)]
     class XRDeviceSimulatorSettings : ScriptableSettings<XRDeviceSimulatorSettings>
     {
+        /// <summary>
+        /// Returns the singleton settings instance or loads the settings asset if it exists.
+        /// Unlike <see cref="ScriptableSettings{T}.Instance"/>, this method will not create the asset if it does not exist.
+        /// </summary>
+        /// <returns>A settings class derived from <see cref="ScriptableObject"/>, or <see langword="null"/>.</returns>
+        internal static XRDeviceSimulatorSettings GetInstanceOrLoadOnly()
+        {
+            if (BaseInstance != null)
+                return BaseInstance;
+
+            // See CreateAndLoad() in base class.
+            Assert.IsTrue(HasCustomPath);
+            BaseInstance = Resources.Load(GetFilePath(), typeof(XRDeviceSimulatorSettings)) as XRDeviceSimulatorSettings;
+
+            return BaseInstance;
+        }
+
         [SerializeField]
         bool m_AutomaticallyInstantiateSimulatorPrefab;
 
