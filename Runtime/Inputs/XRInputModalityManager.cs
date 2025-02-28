@@ -112,7 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
 
         [SerializeField]
-        [Tooltip("GameObject representing the left motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking.")]
+        [Tooltip("GameObject representing the right motion controller group of interactors. Will toggle on when using motion controllers and off when using hand tracking.")]
         GameObject m_RightController;
 
         /// <summary>

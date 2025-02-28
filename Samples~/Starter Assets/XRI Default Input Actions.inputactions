@@ -1035,6 +1035,17 @@
                 },
                 {
                     "name": "",
+                    "id": "87d9a1e7-704b-43bb-be2a-f2d8ecfde8b7",
+                    "path": "<KHRSimpleController>{LeftHand}/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "49a23327-a116-48c0-8af9-0d2c50c15a88",
                     "path": "<XRController>{LeftHand}/{Grip}",
                     "interactions": "",
@@ -1147,6 +1158,17 @@
                     "name": "",
                     "id": "ca931b95-39e0-4db1-9887-f5a5f68298d4",
                     "path": "<HoloLensHand>{LeftHand}/selectPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "36eadd9a-281d-47fe-9d16-5870d6e00480",
+                    "path": "<KHRSimpleController>{LeftHand}/select",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2106,6 +2128,17 @@
                 },
                 {
                     "name": "",
+                    "id": "69580c32-8c9a-47d9-8b23-b53d760ca5da",
+                    "path": "<KHRSimpleController>{RightHand}/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "dd433817-216c-46b9-8dd3-f3a4ea1767b9",
                     "path": "<XRController>{RightHand}/{Grip}",
                     "interactions": "",
@@ -2218,6 +2251,17 @@
                     "name": "",
                     "id": "f8a900c7-8116-4f44-9d24-8f19caf07108",
                     "path": "<HoloLensHand>{RightHand}/selectPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a65008a0-f3b6-4060-b3a0-3eabaf0563bf",
+                    "path": "<KHRSimpleController>{RightHand}/select",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

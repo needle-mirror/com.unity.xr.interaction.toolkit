@@ -309,7 +309,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                     GlobalNonNativeKeyboard.instance.RepositionKeyboardIfOutOfView();
 
                 // Sync input field caret position with keyboard caret position
-                m_InputField.caretPosition = m_ActiveKeyboard.caretPosition;
+                if (m_InputField.stringPosition != m_ActiveKeyboard.caretPosition)
+                    m_InputField.stringPosition = m_ActiveKeyboard.caretPosition;
+
                 return;
             }
 
@@ -327,7 +329,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
 
             // Sync input field caret position with keyboard caret position
-            m_InputField.caretPosition = m_ActiveKeyboard.caretPosition;
+            if (m_InputField.stringPosition != m_ActiveKeyboard.caretPosition)
+                m_InputField.stringPosition = m_ActiveKeyboard.caretPosition;
 
             // This display is opening the keyboard
             m_OnKeyboardOpened.Invoke();
@@ -364,7 +367,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             m_InputField.text = updatedText;
 
             // Update input field caret position with keyboard caret position
-            m_InputField.caretPosition = m_ActiveKeyboard.caretPosition;
+            if (m_InputField.stringPosition != m_ActiveKeyboard.caretPosition)
+                m_InputField.stringPosition = m_ActiveKeyboard.caretPosition;
         }
 
         void KeyboardOpening(KeyboardTextEventArgs args)

@@ -754,9 +754,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 if (IsActionEnabled(m_NavigateAction))
                     m_NavigationState.move = m_NavigateAction.action.ReadValue<Vector2>();
                 if (IsActionEnabled(m_SubmitAction))
-                    m_NavigationState.submitButtonDown = m_SubmitAction.action.WasPressedThisFrame();
+                    m_NavigationState.submitButtonDown = m_SubmitAction.action.WasPerformedThisFrame();
                 if (IsActionEnabled(m_CancelAction))
-                    m_NavigationState.cancelButtonDown = m_CancelAction.action.WasPressedThisFrame();
+                    m_NavigationState.cancelButtonDown = m_CancelAction.action.WasPerformedThisFrame();
             }
         }
 

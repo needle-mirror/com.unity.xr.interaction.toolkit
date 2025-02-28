@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.1.1] - 2025-02-28
+
+### Changed
+- Changed the `XRI Default Input Actions` in the Starter Assets sample. The `Select` and `UI Press` actions now include `select` bindings from the [Khronos Simple Controller (OpenXR)](xref:openxr-khronos-simple-controller-profile).
+
+### Fixed
+- Fixed issue with input field caret position when using mouse and keyboard input on `XRKeyboardDisplay` input fields. Users will need to reimport the Spatial Keyboard sample to get the updated component script. ([XRIT-230](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-230))
+- Fixed tooltip in XR Input Modality Manager component.
+- Fixed Editor analytics schema version.
+- Fixed API Updater prompts and use of deprecated method warnings in visionOS sample.
+- Fixed XR UI Input Module so the Submit and Cancel UI actions will now respect configured interactions. This matches the change made to the `InputSystemUIInputModule` in Input System 1.9.0.
+
 ## [3.1.0] - 2025-02-19
 
 ### Added

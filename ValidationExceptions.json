@@ -2,7 +2,27 @@
     "ErrorExceptions": [
         {
             "ValidationTest": "API Updater Configuration Validation",
-            "PackageVersion": "3.1.0"
+            "PackageVersion": "3.1.1"
+        },
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionMessage": "Additions require a new minor or major version.",
+            "PackageVersion": "3.1.1"
+        },
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionMessage": "New assembly \"Unity.XR.Interaction.Toolkit.Analytics.Hooks.Editor\" may only be added in a new minor or major version.",
+            "PackageVersion": "3.1.1"
+        },
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionMessage": "New assembly \"Unity.XR.Interaction.Toolkit.Analytics.Editor\" may only be added in a new minor or major version.",
+            "PackageVersion": "3.1.1"
+        },
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionMessage": "New assembly \"Unity.XR.Interaction.Toolkit.CodeSamples.Tests\" may only be added in a new minor or major version.",
+            "PackageVersion": "3.1.1"
         }
     ],
     "WarningExceptions": []

@@ -15,7 +15,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
     class XRIBuildEvent : XRIBaseAnalyticsEvent<XRIBuildEvent.Payload>
     {
         const string k_EventName = "xrinteractiontoolkit_build";
-        const int k_EventVersion = 1;
+        const int k_EventVersion = 2;
         const int k_MaxEventsPerHour = XRIAnalytics.DefaultMaxEventsPerHour;
         const int k_MaxItems = XRIAnalytics.DefaultMaxItems;
 
