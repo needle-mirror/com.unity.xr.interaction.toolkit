@@ -159,6 +159,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             {
                 m_AttemptSpawn = false;
 
+                // Cancel the spawn if the select was delayed until the frame after the spawn trigger.
+                // This can happen if the select action uses a different input source than the spawn trigger.
+                if (m_ARInteractor.hasSelection)
+                    return;
+
                 // Don't spawn the object if the tap was over screen space UI.
                 var isPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(-1);
                 if (!isPointerOverUI && m_ARInteractor.TryGetCurrentARRaycastHit(out var arRaycastHit))

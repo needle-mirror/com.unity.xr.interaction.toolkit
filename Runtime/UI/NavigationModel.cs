@@ -62,7 +62,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal ButtonDeltaState submitButtonDelta { get; private set; }
 
         /// <summary>
-        /// Tracks the current state of the submit or 'move backward' button.  Setting this also updates the <see cref="cancelButtonDelta"/> to track if a press or release occurred in the frame.
+        /// Tracks the current state of the cancel or 'move backward' button.  Setting this also updates the <see cref="cancelButtonDelta"/> to track if a press or release occurred in the frame.
         /// </summary>
         public bool cancelButtonDown
         {

@@ -46,6 +46,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <seealso cref="UpdateAffordanceState"/>
         public IReadOnlyBindableVariable<AffordanceStateData> currentAffordanceStateData => m_AffordanceStateData;
 
+        AffordanceStateData m_AffordanceStateDataBeforeSet;
+        AffordanceStateData m_PreviousAffordanceStateData;
+
         readonly HashSetList<IAsyncAffordanceStateReceiver> m_AsyncAffordanceReceivers = new HashSetList<IAsyncAffordanceStateReceiver>();
         readonly HashSetList<ISynchronousAffordanceStateReceiver> m_SynchronousAffordanceReceivers = new HashSetList<ISynchronousAffordanceStateReceiver>();
         readonly List<JobHandle> m_ScheduledJobs = new List<JobHandle>();
@@ -142,19 +145,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// <param name="newAffordanceStateData">New affordance state target.</param>
         public void UpdateAffordanceState(AffordanceStateData newAffordanceStateData)
         {
+            m_AffordanceStateDataBeforeSet = m_AffordanceStateData.Value;
             m_AffordanceStateData.Value = newAffordanceStateData;
         }
 
         void OnAffordanceStateUpdated(AffordanceStateData newAffordanceStateData)
         {
+            m_PreviousAffordanceStateData = m_AffordanceStateDataBeforeSet;
+
             for (var i = 0; i < m_AsyncAffordanceReceivers.Count; ++i)
             {
-                m_AsyncAffordanceReceivers[i].OnAffordanceStateUpdated(m_AffordanceStateData.Value, newAffordanceStateData);
+                m_AsyncAffordanceReceivers[i].OnAffordanceStateUpdated(m_PreviousAffordanceStateData, newAffordanceStateData);
             }
 
             for (var i = 0; i < m_SynchronousAffordanceReceivers.Count; ++i)
             {
-                m_SynchronousAffordanceReceivers[i].OnAffordanceStateUpdated(m_AffordanceStateData.Value, newAffordanceStateData);
+                m_SynchronousAffordanceReceivers[i].OnAffordanceStateUpdated(m_PreviousAffordanceStateData, newAffordanceStateData);
             }
 
             m_TimeSinceLastStateUpdate = 0f;

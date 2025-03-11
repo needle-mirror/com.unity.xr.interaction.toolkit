@@ -56,7 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Gets or sets layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Gets or sets type of interaction with trigger colliders via ray cast.");
+            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Gets or sets type of interaction with trigger colliders via ray cast. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Determines if ray casts include snap volume triggers: 'Collide' to include, 'Ignore' for performance optimization when not using specific XR components.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.targetNumCurveSegments"/>.</summary>

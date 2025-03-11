@@ -134,7 +134,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Layer mask used for limiting ray cast targets.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast.");
+            public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Type of interaction with trigger colliders via ray cast. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>

@@ -2056,6 +2056,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1337396801}
     m_Modifications:
+    - target: {fileID: 6957000769822834729, guid: d81193b4b57486b46b4762e8b26d2de8, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6957000769822834732, guid: d81193b4b57486b46b4762e8b26d2de8, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -3594,6 +3598,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1129778166}
     m_Modifications:
+    - target: {fileID: 5268460675038366900, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5268460675038366902, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
       propertyPath: m_Name
       value: Cube 2
@@ -6584,6 +6592,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1129778166}
     m_Modifications:
+    - target: {fileID: 5268460675038366900, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5268460675038366902, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
       propertyPath: m_Name
       value: Cube 3
@@ -7720,6 +7732,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arrow
       objectReference: {fileID: 0}
+    - target: {fileID: 8343167407413159202, guid: d56cf1aacbea4704cac4d7983df1a0ad, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d56cf1aacbea4704cac4d7983df1a0ad, type: 3}
 --- !u!1001 &195190421004440613
@@ -8127,6 +8143,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Cylinder
       objectReference: {fileID: 0}
+    - target: {fileID: 5709307613756117038, guid: 531d9182cdbe93948a57bd87a1e47fdf, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8746220130012963387, guid: 531d9182cdbe93948a57bd87a1e47fdf, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -8430,6 +8450,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1129778166}
     m_Modifications:
+    - target: {fileID: 5268460675038366900, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5268460675038366902, guid: f5afcb7f49afad5419049090809f5cc7, type: 3}
       propertyPath: m_Name
       value: Cube 1

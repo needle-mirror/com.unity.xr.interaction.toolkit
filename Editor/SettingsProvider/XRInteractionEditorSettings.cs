@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Editor;
-using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEditor.XR.Interaction.Toolkit

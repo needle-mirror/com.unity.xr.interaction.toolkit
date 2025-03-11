@@ -9,6 +9,33 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.0.8] - 2025-03-11
+
+### Added
+- Added a Drag Start Position Input property to the Screen Space Ray Pose Driver component to improve the ability to select a dragged object in AR projects. The ray will be initially cast from the touch start position instead of the current drag position when the drag gesture starts in order to improve the ability to pick small objects. (Backport from 3.1.0)
+- Added a Tap Duration property to the Touchscreen Gesture Input Loader component to configure the threshold that a touch and release must occur within for a tap gesture. (Backport from 3.1.0)
+
+### Changed
+- Changed scripts to improve performance of processing interaction strength (tagged `XRI.ProcessInteractionStrength` in Profiler). (Backport from 3.1.0-pre.1)
+- Changed the tap cancel duration from 0.3 seconds to 0.5 seconds on the `TouchscreenGestureInputController` input device created by the Touchscreen Gesture Input Loader component. This affects the `Screen Space Ray Interactor` prefab in the AR Starter Assets sample. This should make selecting objects more forgiving with a slower tap. ([XRIT-208](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-208)) (Backport from 3.1.0)
+- Changed the Max Tap Duration on the Tap interactions from the default Input System (0.2 seconds) to 0.5 seconds on the mouse bindings in both the Tap Start Position and Spawn Object input actions. This should make selecting and spawning objects more forgiving with a slower tap when using the mouse when simulating in the Unity Editor. ([XRIT-208](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-208)) (Backport from 3.1.0)
+- Changed Spawn Trigger Type from Select Attempt to Input Action on the AR Interactor Spawn Trigger component in the `Screen Space Ray Interactor` prefab in the AR Starter Assets sample. Changed the binding in the Spawn Object input action to use the tap gesture in the `TouchscreenGestureInputController` input device instead of the generic `<Touchscreen>/Press` binding with the Tap interaction so that spawning uses consistent tap cancel logic as selection taps. (Backport from 3.1.0)
+- Changed Min Scale from 0.05 to 0.2 on the AR Transformer component on each of the spawning objects in the `ARDemoScene`. (Backport from 3.1.0)
+- Changed `RigidBody.Interpolate` to `None` for interactables in the `HandsDemoScene` to fix interactable position issues when the table is moved. (Backport from 3.1.0)
+- Changed `XRRayInteractor.TryGetHitInfo` to return the hit info of the selected interactable or highest scored interactable instead of the nearest raycast hit. ([XRIT-141](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-141)) (Backport from 3.1.0)
+
+### Fixed
+- Fixed `BaseAffordanceStateProvider` so it passes the previous `AffordanceStateData` to custom affordance state receivers. (Backport from 3.1.0-pre.1)
+- Fixed an issue with the `XRPokeInteractor` that would attempt to register a valid target for each collider that was poked for a single interactable. ([XRIT-209](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-209)) (Backport from 3.1.0)
+- Fixed the AR Interactor Spawn Trigger component in the AR Starter Assets sample to avoid spawning a new object when tapping to select an existing object caused by the Spawn Object and Select inputs using different binding sources that have a frame delay. (Backport from 3.1.0)
+- Fixed missing tooltip on the Sphere Interaction Caster component for the Physics Trigger Interaction property. Updated all related tooltips and documentation to clarify that Use Global refers to the Queries Hit Triggers setting in Edit &gt; Project Settings &gt; Physics. (Backport from 3.1.0)
+- Fixed compilation issue in `OpenXRHapticImpulseChannel` related to `OpenXRInput.GetActionHandle` when OpenXR Plugin package version 1.6.0 is installed. (Backport from 3.1.0)
+- Fixed issue with input field caret position when using mouse and keyboard input on `XRKeyboardDisplay` input fields. Users will need to reimport the Spatial Keyboard sample to get the updated component script. ([XRIT-230](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-230)) (Backport from 3.1.1)
+- Fixed tooltip in XR Input Modality Manager component. (Backport from 3.1.1)
+- Fixed API Updater prompts and use of deprecated method warnings in visionOS sample. (Backport from 3.1.1)
+- Fixed XR UI Input Module so the Submit and Cancel UI actions will now respect configured interactions. This matches the change made to the `InputSystemUIInputModule` in Input System 1.9.0. (Backport from 3.1.1)
+- Fixed a `NullReferenceException` when using UI Toolkit with the XR Ray Interactor caused by trying to retrieve a `Canvas` component reference from a parent object which does not exist when using UI Toolkit. Note that XRI does not yet have full [support for UI Toolkit](xref:xri-ui-input-module#ui-toolkit-support). ([XRIT-247](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-247)) (Backport from 3.1.2)
+
 ## [3.0.7] - 2024-11-06
 
 ### Added
@@ -19,9 +46,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed scripts to use Transform methods for getting or setting both position and rotation in a single method call to improve performance.
 
 ### Fixed
-- Fixed regression introduced with version [3.0.6](#306---2024-10-15) so the XR Transform Stabilizer component allows empty Aim Target Object references. This fixes the Gaze Interactor ray to update correctly in the XR Origin (XR Rig) prefab.
+- Fixed regression introduced with version [3.0.6](#306---2024-10-15) so the XR Transform Stabilizer component allows empty Aim Target Object references. This fixes the Gaze Interactor ray to update correctly in the XR Origin (XR Rig) prefab. ([XRIT-206](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-206))
 - Fixed issues with the near far interactor's attach controller where lateral motion would erroneously trigger z-motion, and z-motion would only trigger when moving the control parallel to the ground. ([XRIT-195](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-195))
-- Fixed issue with `CurveInteractionCaster` and `XRRayInteractor` cone casting where trigger colliders would incorrectly block interactables. Conecasting now filters out trigger while it processes targets instead of after the raycast targets were identified.
+- Fixed issue with `CurveInteractionCaster` and `XRRayInteractor` cone casting where trigger colliders would incorrectly block interactables. Cone casting now filters out trigger while it processes targets instead of after the raycast targets were identified.
 
 ## [3.0.6] - 2024-10-15
 
@@ -679,7 +706,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed `XRInteractorReticleVisual` to align the reticle prefab's `z` axis with the forward direction of the reticle's interactor when `AlignPrefabWithSurfaceNormal` is `true` and aligning with a horizontal surface.
 - Updated installation documentation with convenience links for installing the XRI package on older versions of Unity 2021 where the package was not included in the main Editor manifest.
 - Changed so UGUI poke interactions are now considered to be blocking interactions for interaction groups. This allows rays to be properly hidden when hovering or selecting a UGUI canvas with poke.
-- Changed to use velocity estimation of poke interactor to add an extra validation mechanism in the XR Poke Filter hover validation check to allow poke selection to occur in cases where it was previously rejected, while still preventing poking from behind and other non-desireable cases.
+- Changed to use velocity estimation of poke interactor to add an extra validation mechanism in the XR Poke Filter hover validation check to allow poke selection to occur in cases where it was previously rejected, while still preventing poking from behind and other non-desirable cases.
 - Changed to cache poke selection validation check so that it's easier to hold a poke when the selection conditions are met. This makes scrolling UGUI canvases easier and makes poke interactions feel more consistent.
 - Changed AR Scale Interactable so changing the Min Scale and/or Max Scale during runtime will keep the current object scale if still within range instead of resizing the object to keep the same scale ratio.
 

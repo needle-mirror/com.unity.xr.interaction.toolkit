@@ -55,6 +55,11 @@
             "define": "PHYSICS2D_MODULE_PRESENT"
         },
         {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "UIELEMENTS_MODULE_PRESENT"
+        },
+        {
             "name": "com.unity.burst",
             "expression": "1.6.6",
             "define": "BURST_PRESENT"
@@ -78,6 +83,11 @@
             "name": "com.unity.xr.openxr",
             "expression": "1.6.0",
             "define": "OPENXR_1_6_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.openxr",
+            "expression": "1.7.0",
+            "define": "OPENXR_1_7_OR_NEWER"
         },
         {
             "name": "com.unity.xr.openxr",

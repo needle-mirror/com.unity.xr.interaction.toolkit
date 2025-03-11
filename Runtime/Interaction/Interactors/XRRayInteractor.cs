@@ -25,6 +25,10 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 #endif
 
+#if UIELEMENTS_MODULE_PRESENT
+using UnityEngine.UIElements;
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
@@ -449,6 +453,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// Gets or sets type of interaction with trigger colliders via ray cast.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
             get => m_RaycastTriggerInteraction;
@@ -985,6 +993,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 #endif
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
+        readonly Dictionary<IXRInteractable, RaycastHit> m_InteractableRaycastHits = new Dictionary<IXRInteractable, RaycastHit>();
+
         float m_LastTimeHoveredObjectChanged;
         bool m_PassedHoverTimeToSelect;
         float m_LastTimeAutoSelected;
@@ -1388,9 +1398,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_EnableUIInteraction && m_RegisteredUIInteractorCache != null &&
                 m_RegisteredUIInteractorCache.TryGetCurrentUIGameObject(true, out var uiObject))
             {
+                // UGUI canvas support
                 var canvas = uiObject.GetComponentInParent<Canvas>();
-                var renderMode = canvas.renderMode;
-                return renderMode == RenderMode.ScreenSpaceOverlay || renderMode == RenderMode.ScreenSpaceCamera;
+                if (canvas != null)
+                {
+                    var renderMode = canvas.renderMode;
+                    return renderMode == RenderMode.ScreenSpaceOverlay || renderMode == RenderMode.ScreenSpaceCamera;
+                }
+
+#if UIELEMENTS_MODULE_PRESENT
+                // UI Toolkit support. Note: currently does not check for screen vs world-space until world-space support is added.
+                return uiObject.TryGetComponent<PanelRaycaster>(out _);
+#endif
             }
 
             return false;
@@ -1558,7 +1577,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the current ray cast hit information, if a hit occurs. It returns the world position and the normal vector
+        /// of the hit point, and its position in linePoints.
+        /// </summary>
+        /// <param name="position">Output parameter that contains the world position of the ray impact point if a hit occurred.</param>
+        /// <param name="normal">Output parameter that contains the world normal of the surface the ray hit if a hit occurred.</param>
+        /// <param name="positionInLine">Output parameter that contains the index of the sample endpoint within the list of points returned by <see cref="GetLinePoints(ref Vector3[], out int)"/>
+        /// where a hit occurred. Otherwise, a value of <c>0</c> if no hit occurred.</param>
+        /// <param name="isValidTarget">Output parameter that contains whether both a hit occurred and it is a valid target for interaction.</param>
+        /// <remarks>By default, <see cref="XRRayInteractor"/> checks the results from valid targets and the hit information of the highest scored result. To get hit information
+        /// of the first ray cast hit, use <see cref="TryGetCurrentRaycast(out RaycastHit?, out int, out RaycastResult?, out int, out bool)"/> which gets the first 3D hit and UI ray cast hits if any are available.</remarks>
+        /// <returns>Returns <see langword="true"/> if a hit occurs, implying the ray cast hit information is valid. Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetHitInfo(out Vector3 position, out Vector3 normal, out int positionInLine, out bool isValidTarget)
         {
             position = default;
@@ -1575,6 +1605,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 return false;
             }
+
+            // Replace nearest distance raycast hit with the selected hit or highest scored valid target hit
+            if (hasSelection && m_InteractableRaycastHits.TryGetValue(interactablesSelected[0], out var selectedHit))
+                raycastHit = selectedHit;
+            else if (m_ValidTargets.Count > 0 && m_InteractableRaycastHits.TryGetValue(m_ValidTargets[0], out var validTargetHit))
+                raycastHit = validTargetHit;
 
             if (raycastResult.HasValue && isUIHitClosest)
             {
@@ -2168,6 +2204,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         public override void GetValidTargets(List<IXRInteractable> targets)
         {
             targets.Clear();
+            m_InteractableRaycastHits.Clear();
 
             if (!isActiveAndEnabled)
                 return;
@@ -2194,6 +2231,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     if (!targets.Contains(interactable))
                     {
                         targets.Add(interactable);
+                        m_InteractableRaycastHits.Add(interactable, raycastHit);
 
                         // Stop after the first if enabled
                         if (m_HitClosestOnly)

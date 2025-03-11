@@ -108,12 +108,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
 
         /// <summary>
-        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
         /// </summary>
         public event Action<FocusEnterEventArgs> focusGained;
 
         /// <summary>
-        /// Calls this method in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
+        /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
         /// </summary>
         public event Action<FocusExitEventArgs> focusLost;
 

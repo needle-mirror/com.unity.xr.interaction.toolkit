@@ -90,12 +90,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         [SerializeField]
-        [Tooltip("Specifies whether the ray cast should hit triggers.")]
+        [Tooltip("Specifies whether the ray cast should hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_RaycastTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// Specifies whether the ray cast should hit triggers.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
             get => m_RaycastTriggerInteraction;

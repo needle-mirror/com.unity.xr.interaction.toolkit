@@ -191,6 +191,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Gets or sets type of interaction with trigger colliders via ray cast.
         /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
+        /// in Edit &gt; Project Settings &gt; Physics will be used.
+        /// </remarks>
         public QueryTriggerInteraction raycastTriggerInteraction
         {
             get => m_RaycastTriggerInteraction;

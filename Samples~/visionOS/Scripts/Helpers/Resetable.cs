@@ -37,7 +37,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
                 m_Rigidbody.MoveRotation(m_InitialRotation);
                 if (!m_Rigidbody.isKinematic)
                     return;
+
+#if UNITY_2023_3_OR_NEWER
+                m_Rigidbody.linearVelocity = Vector3.zero;
+#else
                 m_Rigidbody.velocity = Vector3.zero;
+#endif
                 m_Rigidbody.angularVelocity = Vector3.zero;
             }
         }

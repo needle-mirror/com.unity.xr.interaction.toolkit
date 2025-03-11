@@ -38,16 +38,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             registrationList.Flush();
 
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
+
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
 
             Assert.That(registrationList.Register("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
 
             registrationList.Flush();
 
+            Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
+
             Assert.That(registrationList.Register("A"), Is.False);
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
         }
 
         [Test, TestCaseSource(nameof(GetRegistrationList))]
@@ -73,12 +82,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             registrationList.Flush();
 
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
             Assert.That(registrationList.Register("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
 
             registrationList.Flush();
 
@@ -151,10 +164,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             registrationList.Flush();
 
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
 
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
             Assert.That(registrationList.Register("B"), Is.True);
             Assert.That(registrationList.IsRegistered("B"), Is.True);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
@@ -163,6 +178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(registrationList.IsRegistered("A"), Is.False);
             Assert.That(registrationList.IsRegistered("B"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("B"), Is.True);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "B" }));
         }
 
@@ -301,6 +317,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Unregister B (without first calling Flush) to remove buffered add
             Assert.That(registrationList.Unregister("B"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
             Assert.That(registrationList.IsRegistered("B"), Is.False);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
             Assert.That(registrationList.flushedCount, Is.EqualTo(1));
@@ -311,6 +328,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Unregister A
             Assert.That(registrationList.Unregister("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.False);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.False);
             Assert.That(registrationList.IsRegistered("B"), Is.False);
             Assert.That(registrationList.registeredSnapshot, Is.EqualTo(new[] { "A" }));
             Assert.That(registrationList.flushedCount, Is.EqualTo(0));
@@ -333,11 +351,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(registrationList.bufferChanges, Is.False);
             Assert.That(registrationList.registeredSnapshot.Contains("A"), Is.True);
             Assert.That(registrationList.IsRegistered("A"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("A"), Is.True);
 
             // Register B immediately
             Assert.That(registrationList.Register("B"), Is.True);
             Assert.That(registrationList.registeredSnapshot.Contains("B"), Is.True);
             Assert.That(registrationList.IsRegistered("B"), Is.True);
+            Assert.That(registrationList.IsStillRegistered("B"), Is.True);
 
             // Unregister A immediately
             Assert.That(registrationList.Unregister("A"), Is.True);
