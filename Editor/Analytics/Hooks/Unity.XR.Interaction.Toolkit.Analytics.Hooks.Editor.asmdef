@@ -23,6 +23,11 @@
     "defineConstraints": [],
     "versionDefines": [
         {
+            "name": "Unity",
+            "expression": "6000.0.20f1",
+            "define": "BUILD_TYPE_AVAILABLE"
+        },
+        {
             "name": "com.unity.xr.management",
             "expression": "4.0.1",
             "define": "XR_MANAGEMENT_4_0_OR_NEWER"

@@ -21,6 +21,11 @@
             "define": "XR_HANDS_1_1_OR_NEWER"
         },
         {
+            "name": "com.unity.xr.hands",
+            "expression": "1.2.1",
+            "define": "XR_HANDS_1_2_OR_NEWER"
+        },
+        {
             "name": "Unity",
             "expression": "[2020.3.45,2021.1)",
             "define": "HAS_FIND_FIRST_OBJECT_BY_TYPE"

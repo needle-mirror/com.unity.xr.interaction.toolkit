@@ -72,7 +72,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                 // Schedule a delayed call to the next Editor frame to ensure all scenes have finished building and the final BuildReport is available.
                 // Note OnPostprocessBuild is not invoked during an AssetBundle build.
                 // Note that this means that AssetBundle builds are not sent before Unity 6.
-#if UNITY_6000_0_OR_NEWER
+#if BUILD_TYPE_AVAILABLE
                 if (report.summary.buildType == BuildType.AssetBundle && !m_AssetBundleDelayCallScheduled)
                 {
                     m_AssetBundleDelayCallScheduled = true;
@@ -172,7 +172,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             var payload = new XRIBuildEvent.Payload
             {
                 buildGuid = summary.guid.ToString(),
-#if UNITY_6000_0_OR_NEWER
+#if BUILD_TYPE_AVAILABLE
                 buildType = summary.buildType.ToString(),
 #endif
                 batchMode = Application.isBatchMode,

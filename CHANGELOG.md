@@ -9,6 +9,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.1.2] - 2025-04-16
+
+### Added
+- Added warning messages to the XR Interaction Simulator UI when hands are not set in the `XRInputModalityManager` and when an `XRHandMeshController` is non-existent.
+
+### Changed
+- Changed the XR Interaction Simulator and XR Device Simulator to disallow changing between controllers and hands when the set of GameObjects are not assigned in the `XRInputModalityManager`.
+- Lowered the minimum AR Foundation version to `5.2.0` to allow use with XR Simulation feature on older versions of the Unity Editor.
+- Changed the Hands Interaction Demo, AR Starter Assets, Spatial Keyboard, and visionOS samples to be more permissive about the required version of the imported Starter Assets sample in the Project Validation window. It now only requires a minimum imported version rather than the current package version.
+
+### Fixed
+- Fixed a `NullReferenceException` when using UI Toolkit with the XR Ray Interactor caused by trying to retrieve a `Canvas` component reference from a parent object which does not exist when using UI Toolkit. Note that XRI does not yet have full [support for UI Toolkit](xref:xri-ui-input-module#ui-toolkit-support). ([XRIT-247](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-247))
+- Fixed `Assertion failed on expression: t.GetParent() == nullptr` when exiting Play mode in some cases with the XR Grab Interactable.
+- Fixed so only a single undo operation is needed after creating an XR Grab Interactable using the **GameObject** &gt; **XR** &gt; **Grab Interactable** menu due to an extra "Modified Permitted Displacement Axes" instead of a single "Create Grab Interactable".
+- Fixed compilation in `BuildHook` analytics code related to `BuildSummary.buildType` and `BuildType` on some Unity 6 Preview versions.
+
 ## [3.1.1] - 2025-02-28
 
 ### Changed

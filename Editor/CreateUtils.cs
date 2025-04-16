@@ -107,6 +107,14 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // Enable interpolation on the Rigidbody to smooth movement
             rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
 
+            // Workaround for an extra "Modified Permitted Displacement Axes" undo operation
+            // requiring two Ctrl+Z undo operations to undo the creation of the grab interactable.
+            // Setting it to -1 instead of the default All = X | Y | Z suppresses that extraneous undo operation
+            // while having no change in the functionality of the transformer.
+            // This seems to be due to the behavior of how serialized [Flags] are handled by Unity.
+            var transformer = grabInteractableGO.GetComponent<XRGeneralGrabTransformer>();
+            transformer.permittedDisplacementAxes = (XRGeneralGrabTransformer.ManipulationAxes)(-1);
+
             Finalize(grabInteractableGO);
         }
 

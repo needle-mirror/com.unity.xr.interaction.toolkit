@@ -9,3 +9,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.XR.Interaction.Toolkit.Samples.ARStarterAssets")]
 [assembly: InternalsVisibleTo("Unity.XR.Interaction.Toolkit.Samples.Hands")]
 [assembly: InternalsVisibleTo("Unity.XR.Interaction.Toolkit.Samples.VisionOS")]
+[assembly: InternalsVisibleTo("Unity.XR.Interaction.Toolkit.Samples.DeviceSimulator")]

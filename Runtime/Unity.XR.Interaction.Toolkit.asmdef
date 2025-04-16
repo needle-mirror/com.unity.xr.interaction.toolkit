@@ -36,6 +36,11 @@
         },
         {
             "name": "com.unity.xr.arfoundation",
+            "expression": "5.2.0",
+            "define": "AR_FOUNDATION_5_2_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.arfoundation",
             "expression": "6.0.0",
             "define": "AR_FOUNDATION_6_0_OR_NEWER"
         },
@@ -53,6 +58,11 @@
             "name": "com.unity.modules.physics2d",
             "expression": "1.0.0",
             "define": "PHYSICS2D_MODULE_PRESENT"
+        },
+        {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "UIELEMENTS_MODULE_PRESENT"
         },
         {
             "name": "com.unity.burst",

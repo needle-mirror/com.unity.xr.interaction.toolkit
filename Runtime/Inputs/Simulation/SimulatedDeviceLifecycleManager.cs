@@ -5,6 +5,7 @@ using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
@@ -101,6 +102,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         internal XRDeviceSimulatorHandsSubsystem simHandSubsystem => m_SimHandSubsystem;
 
         XRHandProviderUtility.SubsystemUpdater m_SubsystemUpdater;
+        XRInputModalityManager m_InputModalityManager;
 #endif
 
         bool m_DeviceModeDirty;
@@ -123,6 +125,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 
             InitializeHandSubsystem();
+
+#if XR_HANDS_1_1_OR_NEWER
+            ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager);
+#endif
         }
 
         /// <summary>
@@ -279,8 +285,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_1_OR_NEWER
             // Fully changing between controller and hand mode takes multiple frames.
             // Don't allow changing the mode again before it has finished.
-             if (m_DeviceModeDirty)
+            if (m_DeviceModeDirty)
                 return;
+
+            // Disallow switching device mode if the modality manager is being used
+            // and the opposite set of GameObjects are not assigned.
+            if (m_InputModalityManager != null)
+            {
+                if (m_DeviceMode == DeviceMode.Controller && m_InputModalityManager.leftHand == null && m_InputModalityManager.rightHand == null)
+                    return;
+
+                if (m_DeviceMode == DeviceMode.Hand && m_InputModalityManager.leftController == null && m_InputModalityManager.rightController == null)
+                    return;
+            }
 
             m_DeviceMode = Negate(m_DeviceMode);
             m_DeviceModeDirty = true;

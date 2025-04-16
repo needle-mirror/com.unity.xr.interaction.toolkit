@@ -24,7 +24,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
         const string k_PolySpatialXRPackageName = "com.unity.polyspatial.xr";
         const string k_PolySpatialVisionOSPackageName = "com.unity.polyspatial.visionos";
-        static readonly PackageVersion s_RecommendedPackageVersion = new PackageVersion("1.1.6");
+
+        static readonly PackageVersion s_RecommendedVisionOSPackageVersion = new PackageVersion("1.1.6");
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
@@ -34,9 +35,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
             new BuildValidationRule
             {
                 IsRuleEnabled = () => s_PolySpatialXRPackageAddRequest == null || s_PolySpatialXRPackageAddRequest.IsCompleted,
-                Message = $"[{k_SampleDisplayName}] PolySpatial XR ({k_PolySpatialXRPackageName}) package must be at version {s_RecommendedPackageVersion} or higher to use the sample.",
+                Message = $"[{k_SampleDisplayName}] PolySpatial XR ({k_PolySpatialXRPackageName}) package must be at version {s_RecommendedVisionOSPackageVersion} or higher to use the sample.",
                 Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialXRPackageName) >= s_RecommendedPackageVersion,
+                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialXRPackageName) >= s_RecommendedVisionOSPackageVersion,
 #if UNITY_2022_3_19_OR_NEWER
                 FixIt = () =>
                 {
@@ -53,9 +54,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
             new BuildValidationRule
             {
                 IsRuleEnabled = () => s_PolySpatialVisionOSPackageAddRequest == null || s_PolySpatialVisionOSPackageAddRequest.IsCompleted,
-                Message = $"[{k_SampleDisplayName}] PolySpatial visionOS ({k_PolySpatialVisionOSPackageName}) package must be at version {s_RecommendedPackageVersion} or higher to use the sample.",
+                Message = $"[{k_SampleDisplayName}] PolySpatial visionOS ({k_PolySpatialVisionOSPackageName}) package must be at version {s_RecommendedVisionOSPackageVersion} or higher to use the sample.",
                 Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialVisionOSPackageName) >= s_RecommendedPackageVersion,
+                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialVisionOSPackageName) >= s_RecommendedVisionOSPackageVersion,
 #if UNITY_2022_3_19_OR_NEWER
                 FixIt = () =>
                 {
@@ -88,9 +89,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
             },
             new BuildValidationRule
             {
-                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample. {GetImportSampleVersionMessage(k_Category, k_StarterAssetsSampleName, PackageVersionUtility.GetPackageVersion(k_XRIPackageName))}",
+                Message = $"[{k_SampleDisplayName}] {k_StarterAssetsSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample. {GetImportSampleVersionMessage(k_Category, k_StarterAssetsSampleName, ProjectValidationUtility.minimumXRIStarterAssetsSampleVersion)}",
                 Category = k_Category,
-                CheckPredicate = () => TryFindSample(k_XRIPackageName, string.Empty, k_StarterAssetsSampleName, out var sample) && sample.isImported,
+                CheckPredicate = () => ProjectValidationUtility.SampleImportMeetsMinimumVersion(k_Category, k_StarterAssetsSampleName, ProjectValidationUtility.minimumXRIStarterAssetsSampleVersion),
                 FixIt = () =>
                 {
                     if (TryFindSample(k_XRIPackageName, string.Empty, k_StarterAssetsSampleName, out var sample))
@@ -209,8 +210,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
                 var recommendedVersion = new PackageVersion(versions.verified);
 #endif
                 var latestCompatible = new PackageVersion(versions.latestCompatible);
-                if (recommendedVersion < s_RecommendedPackageVersion && s_RecommendedPackageVersion <= latestCompatible)
-                    addRequestString = $"{packageName}@{s_RecommendedPackageVersion}";
+                if (recommendedVersion < s_RecommendedVisionOSPackageVersion && s_RecommendedVisionOSPackageVersion <= latestCompatible)
+                    addRequestString = $"{packageName}@{s_RecommendedVisionOSPackageVersion}";
             }
 
             var addRequest = Client.Add(addRequestString);

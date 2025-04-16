@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -91,15 +92,39 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             }
         }
 
-        static string ExtractCode(string value, string start, string end)
+        [Test]
+        public void PackageCopyrightUpToDate()
         {
-            // Extract the placeholder text from the string: **[!include[](includes/version.md)]**
-            var firstIndex = value.IndexOf(start);
-            var lastIndex = value.LastIndexOf(end);
-            if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex)
-                return string.Empty;
+            // Verify that within the package folder that the LICENSE file is current.
+            var packageDirectory = new DirectoryInfo("Packages/com.unity.xr.interaction.toolkit");
+            Assert.That(packageDirectory, Is.Not.Null);
+            Assert.That(packageDirectory.Exists, Is.True);
 
-            return value.Substring(firstIndex + start.Length, lastIndex - firstIndex - end.Length);
+            var licenseFilePath = Path.Combine(packageDirectory.FullName, "LICENSE.md");
+            Assert.That(File.Exists(licenseFilePath), Is.True);
+
+            var copyrightRegex = new Regex(@"copyright © \d+\d+\d+\d+ Unity Technologies");
+            var yearRegex = new Regex(@"\d+\d+\d+\d+");
+
+            var lines = File.ReadAllLines(licenseFilePath);
+            bool hasCopyrightString = false;
+            for (int lineNumber = 0; lineNumber < lines.Length; ++lineNumber)
+            {
+                var line = lines[lineNumber];
+                foreach (Match match in copyrightRegex.Matches(line))
+                {
+                    hasCopyrightString = true;
+                    var yearMatch = yearRegex.Match(match.Value);
+                    Assert.That(yearMatch.Success, Is.True);
+
+                    var licenseYear = yearMatch.Value;
+                    var currentYear = DateTime.Now.Year.ToString();
+
+                    Assert.AreEqual(currentYear, licenseYear, "Year is out of date in LICENSE.md file.");
+                }
+            }
+
+            Assert.That(hasCopyrightString, "Correct copyright string not found in LICENSE.md file.");
         }
 
         static string GetMajorMinor(DependencyInfo dependency) => GetMajorMinor(dependency.version);

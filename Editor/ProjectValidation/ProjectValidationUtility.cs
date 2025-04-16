@@ -15,6 +15,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         const string k_SamplesRootDirectoryName = "Samples";
 
         /// <summary>
+        /// This is the minimum version of the Starter Assets sample for the XR Interaction Toolkit that enforces correct behavior
+        /// of newly added properties, prefabs, or input actions.
+        /// </summary>
+        public static readonly PackageVersion minimumXRIStarterAssetsSampleVersion = new PackageVersion("3.1.0");
+
+        /// <summary>
         /// Dictionary used to cache packages imported samples. The dictionary key is the package display name as displayed in package Samples directory.
         /// </summary>
         static Dictionary<string, PackageSampleData> s_PackageSampleCache;

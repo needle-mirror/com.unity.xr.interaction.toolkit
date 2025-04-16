@@ -55,6 +55,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         /// </summary>
         static readonly string[] s_PackagesToCheck =
         {
+            // Unity XR packages
             "com.unity.xr.androidxr-openxr",
             "com.unity.xr.arfoundation",
             "com.unity.xr.hands",
@@ -63,6 +64,42 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             "com.unity.xr.oculus",
             "com.unity.xr.openxr",
             "com.unity.xr.visionos",
+
+            // Google packages
+            "com.google.xr.extensions",
+
+            // Meta packages
+            "com.meta.xr.sdk.all",
+            "com.meta.xr.mrutilitykit",
+            "com.meta.xr.sdk.audio",
+            "com.meta.xr.sdk.avatars",
+            "com.meta.xr.sdk.core",
+            "com.meta.xr.sdk.haptics",
+            "com.meta.xr.sdk.interaction",
+            "com.meta.xr.sdk.interaction.ovr",
+            "com.meta.xr.sdk.platform",
+            "com.meta.xr.sdk.simulator",
+            "com.meta.xr.simulator",
+            "com.meta.xr.sdk.voice",
+
+            // Microsoft MRTK packages
+            "com.microsoft.mixedreality.toolkit.foundation",
+            "com.microsoft.mixedreality.toolkit.standardassets",
+            "com.microsoft.mixedreality.toolkit.extensions",
+            "com.microsoft.mixedreality.toolkit.tools",
+            "com.microsoft.mixedreality.toolkit.handphysicsservice",
+            "org.mixedrealitytoolkit.core",
+            "org.mixedrealitytoolkit.accessibility",
+            "org.mixedrealitytoolkit.audio",
+            "org.mixedrealitytoolkit.environment",
+            "org.mixedrealitytoolkit.input",
+            "org.mixedrealitytoolkit.spatialmanipulation",
+            "org.mixedrealitytoolkit.tools",
+            "org.mixedrealitytoolkit.standardassets",
+            "org.mixedrealitytoolkit.uxcore",
+            "org.mixedrealitytoolkit.windowsspeech",
+            "org.mixedrealitytoolkit.uxcomponents",
+            "org.mixedrealitytoolkit.uxcomponents.noncanvas",
         };
 
         public static XRManagementData GetXRManagementDataPlayMode()

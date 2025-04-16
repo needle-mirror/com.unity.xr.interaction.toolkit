@@ -25,6 +25,10 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 #endif
 
+#if UIELEMENTS_MODULE_PRESENT
+using UnityEngine.UIElements;
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
@@ -1394,9 +1398,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_EnableUIInteraction && m_RegisteredUIInteractorCache != null &&
                 m_RegisteredUIInteractorCache.TryGetCurrentUIGameObject(true, out var uiObject))
             {
+                // UGUI canvas support
                 var canvas = uiObject.GetComponentInParent<Canvas>();
-                var renderMode = canvas.renderMode;
-                return renderMode == RenderMode.ScreenSpaceOverlay || renderMode == RenderMode.ScreenSpaceCamera;
+                if (canvas != null)
+                {
+                    var renderMode = canvas.renderMode;
+                    return renderMode == RenderMode.ScreenSpaceOverlay || renderMode == RenderMode.ScreenSpaceCamera;
+                }
+
+#if UIELEMENTS_MODULE_PRESENT
+                // UI Toolkit support. Note: currently does not check for screen vs world-space until world-space support is added.
+                return uiObject.TryGetComponent<PanelRaycaster>(out _);
+#endif
             }
 
             return false;
