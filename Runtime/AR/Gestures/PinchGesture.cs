@@ -29,19 +29,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture for when the user performs a two-finger pinch motion on the touch screen.
     /// </summary>
-    public class PinchGesture : Gesture<PinchGesture>
+    public partial class PinchGesture : Gesture<PinchGesture>
     {
-        /// <summary>
-        /// Initializes and returns an instance of <see cref="PinchGesture"/>.
-        /// </summary>
-        /// <param name="recognizer">The gesture recognizer.</param>
-        /// <param name="touch1">The first touch that started this gesture.</param>
-        /// <param name="touch2">The second touch that started this gesture.</param>
-        public PinchGesture(PinchGestureRecognizer recognizer, Touch touch1, Touch touch2)
-            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
-        {
-        }
-
         /// <summary>
         /// Initializes and returns an instance of <see cref="PinchGesture"/>.
         /// </summary>
@@ -58,7 +47,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Reinitialize(touch1, touch2);
         }
 
-        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
         internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
 
         void Reinitialize(CommonTouch touch1, CommonTouch touch2)

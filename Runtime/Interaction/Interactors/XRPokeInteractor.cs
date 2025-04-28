@@ -1,3 +1,6 @@
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
 using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
@@ -26,7 +29,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         static readonly List<IXRInteractable> s_Results = new List<IXRInteractable>();
 
         [SerializeField]
-        [Tooltip("The depth threshold within which an interaction can begin to be evaluated as a poke.")]
         float m_PokeDepth = 0.1f;
 
         /// <summary>
@@ -39,7 +41,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("The width threshold within which an interaction can begin to be evaluated as a poke.")]
         float m_PokeWidth = 0.0075f;
 
         /// <summary>
@@ -52,7 +53,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("The width threshold within which an interaction can be evaluated as a poke select.")]
         float m_PokeSelectWidth = 0.015f;
 
         /// <summary>
@@ -65,7 +65,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("The radius threshold within which an interaction can be evaluated as a poke hover.")]
         float m_PokeHoverRadius = 0.015f;
 
         /// <summary>
@@ -78,7 +77,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Distance along the poke interactable interaction axis that allows for a poke to be triggered sooner/with less precision.")]
         float m_PokeInteractionOffset = 0.005f;
 
         /// <summary>
@@ -91,7 +89,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Physics layer mask used for limiting poke sphere overlap.")]
         LayerMask m_PhysicsLayerMask = Physics.AllLayers;
 
         /// <summary>
@@ -104,7 +101,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Determines whether the poke sphere overlap will hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.")]
         QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
@@ -121,7 +117,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Denotes whether or not valid targets will only include objects with a poke filter.")]
+        QueryUIDocumentInteraction m_UIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
+
+        /// <summary>
+        /// Whether physics casts should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders,
+        /// even if the physics cast is set to ignore triggers.
+        /// If you are not using UI Toolkit, you should set this property
+        /// to <see cref="QueryUIDocumentInteraction.Ignore"/> to avoid the performance cost.
+        /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryUIDocumentInteraction.Collide"/> when <see cref="physicsTriggerInteraction"/> is set to ignore trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
+        /// the physics cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
+        /// hits that are not UI Toolkit UI Documents.
+        /// <br />
+        /// When set to <see cref="QueryUIDocumentInteraction.Ignore"/> when <see cref="physicsTriggerInteraction"/> is set to hit trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
+        /// this behavior will ignore any trigger collider hits that are UI Toolkit UI Documents.
+        /// </remarks>
+        /// <seealso cref="physicsTriggerInteraction"/>
+        public QueryUIDocumentInteraction uiDocumentTriggerInteraction
+        {
+            get => m_UIDocumentTriggerInteraction;
+            set => m_UIDocumentTriggerInteraction = value;
+        }
+
+        [SerializeField]
         bool m_RequirePokeFilter = true;
 
         /// <summary>
@@ -134,7 +157,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("When enabled, this allows the poke interactor to hover and select UI elements.")]
         bool m_EnableUIInteraction = true;
 
         /// <summary>
@@ -154,7 +176,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Tooltip("Denotes whether or not debug visuals are enabled for this poke interactor.")]
+        bool m_ClickUIOnDown;
+
+        /// <summary>
+        /// When enabled, this will invoke click events on press down instead of on release.
+        /// Otherwise, click is invoked as normal on release.
+        /// </summary>
+        public bool clickUIOnDown
+        {
+            get => m_ClickUIOnDown;
+            set => m_ClickUIOnDown = value;
+        }
+
+        [SerializeField]
         bool m_DebugVisualizationsEnabled;
 
         /// <summary>
@@ -223,6 +257,74 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         // Used to avoid GC Alloc each frame in UpdateUIModel
         Func<Vector3> m_PositionProvider;
 
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// </summary>
+        internal virtual void UpdateUIRegistration()
+        {
+            // First unregister from all UI systems
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            XRUIToolkitHandler.Unregister(this);
+#endif
+
+            // Register with the appropriate UI system
+            if (m_EnableUIInteraction)
+                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (m_EnableUIInteraction)
+            {
+                XRUIToolkitHandler.Register(this);
+
+                // Create the UI handler if needed
+                if (m_UIToolkitPokeHandler == null)
+                    m_UIToolkitPokeHandler = new XRUIToolkitPokeHandler(this);
+
+                // Update visualizer state
+                m_UIToolkitPokeHandler?.UpdateVisualizersState();
+            }
+#endif
+        }
+
+        /// <summary>
+        /// (Read Only) Whether UI interaction with UI Toolkit is enabled.
+        /// </summary>
+        bool canProcessUIToolkit
+        {
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            get => m_EnableUIInteraction && XRUIToolkitHandler.uiToolkitSupportEnabled;
+#else
+            get => false;
+#endif
+        }
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        /// <summary>
+        /// The handler responsible for UI Toolkit poke interaction and state management.
+        /// </summary>
+        /// <seealso cref="XRUIToolkitPokeHandler"/>
+        XRUIToolkitPokeHandler m_UIToolkitPokeHandler;
+#endif
+
+        // TODO Hidden for now - will evaluate its use later.
+        [HideInInspector]
+        [SerializeField]
+        [Tooltip("When enabled, multi-point sampling is used for more forgiving UI element detection. Off by default for performance.")]
+        bool m_EnableMultiPick;
+
+        /// <summary>
+        /// Whether to use multi-point sampling for more forgiving UI element detection.
+        /// When enabled, additional sampling points are used to improve interaction with small UI elements,
+        /// at the cost of some performance overhead.
+        /// </summary>
+        /// <seealso cref="XRUIToolkitPokeHandler"/>
+        internal bool enableMultiPick
+        {
+            get => m_EnableMultiPick;
+            set => m_EnableMultiPick = value;
+        }
+
         /// <inheritdoc />
         protected override void Awake()
         {
@@ -239,8 +341,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             SetDebugObjectVisibility(true);
             m_FirstFrame = true;
 
+            // Register with the appropriate UI system
             if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache.RegisterWithXRUIInputModule();
+                UpdateUIRegistration();
 
             if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
                 velocityTracker.ResetVelocityTracking();
@@ -252,7 +355,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnDisable();
 
             SetDebugObjectVisibility(false);
+
             m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (canProcessUIToolkit)
+            {
+                // Reset handler state
+                m_UIToolkitPokeHandler?.ResetPointerState();
+            }
+
+            XRUIToolkitHandler.Unregister(this);
+#endif
+        }
+
+        /// <inheritdoc />
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            m_UIToolkitPokeHandler?.Dispose();
+#endif
         }
 
         /// <inheritdoc />
@@ -276,6 +399,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
             base.ProcessInteractor(updatePhase);
+
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
                 UpdateDebugVisuals();
@@ -401,31 +525,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         bool FindPokeTarget(Collider hitCollider, out PokeCollision newPokeCollision)
         {
             newPokeCollision = default;
+
             if (interactionManager.TryGetInteractableForCollider(hitCollider, out var interactable))
             {
-                if (m_RequirePokeFilter)
+                if (TryGetPokeFilter(interactable, out var pokeFilter))
                 {
-                    if (interactable is XRBaseInteractable baseInteractable)
-                    {
-                        baseInteractable.selectFilters.GetAll(m_InteractableSelectFilters);
-                        foreach (var filter in m_InteractableSelectFilters)
-                        {
-                            if (filter is XRPokeFilter pokeFilter && filter.canProcess)
-                            {
-                                newPokeCollision = new PokeCollision(interactable, pokeFilter);
-                                return true;
-                            }
-                        }
-                    }
+                    newPokeCollision = new PokeCollision(interactable, pokeFilter);
+                    ProcessValidInteraction(hitCollider, interactable, pokeFilter);
+                    return true;
                 }
-                else
+                else if (!m_RequirePokeFilter)
                 {
                     newPokeCollision = new PokeCollision(interactable, null);
+                    ProcessValidInteraction(hitCollider, interactable, null);
                     return true;
                 }
             }
 
             return false;
+        }
+
+        bool TryGetPokeFilter(IXRInteractable interactable, out IXRPokeFilter pokeFilter)
+        {
+            pokeFilter = null;
+
+            if (interactable is XRBaseInteractable baseInteractable)
+            {
+                baseInteractable.selectFilters.GetAll(m_InteractableSelectFilters);
+                foreach (var filter in m_InteractableSelectFilters)
+                {
+                    if (filter is IXRPokeFilter tempPokeFilter && filter.canProcess)
+                    {
+                        pokeFilter = tempPokeFilter;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Replace UIPokeLogicImplementation with:
+        void ProcessValidInteraction(Collider hitCollider, IXRInteractable interactable, IXRPokeFilter pokeFilter)
+        {
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (canProcessUIToolkit)
+                m_UIToolkitPokeHandler?.ProcessPokeInteraction(hitCollider, interactable.transform, interactable, m_EnableMultiPick, pokeFilter);
+#endif
         }
 
         void SetDebugObjectVisibility(bool isVisible)
@@ -499,6 +645,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             model.raycastLayerMask = m_PhysicsLayerMask;
             model.pokeDepth = m_PokeDepth;
             model.interactionType = UIInteractionType.Poke;
+            model.clickOnDown = m_ClickUIOnDown;
             model.UpdatePokeSelectState();
 
             var raycastPoints = model.raycastPoints;
@@ -520,6 +667,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 model = TrackedDeviceModel.invalid;
                 return false;
             }
+
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 
@@ -556,6 +704,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         /// <inheritdoc />
+        protected override void OnHoverExited(HoverExitEventArgs args)
+        {
+            base.OnHoverExited(args);
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (args.interactableObject != null && canProcessUIToolkit && XRUIToolkitHandler.IsValidUIToolkitInteraction(args.interactableObject.colliders))
+            {
+                m_UIToolkitPokeHandler?.ResetPointerState();
+            }
+#endif
+        }
+
+        /// <inheritdoc />
         protected override void OnHoverEntering(HoverEnterEventArgs args)
         {
             base.OnHoverEntering(args);
@@ -572,6 +733,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 return attachPointVelocityTracker.GetAttachPointVelocity(origin);
             }
+
             return attachPointVelocityTracker.GetAttachPointVelocity();
         }
 
@@ -586,6 +748,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 return attachPointVelocityTracker.GetAttachPointAngularVelocity(origin);
             }
+
             return attachPointVelocityTracker.GetAttachPointAngularVelocity();
         }
     }

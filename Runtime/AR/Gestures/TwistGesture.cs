@@ -29,21 +29,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture for when the user performs a two-finger twist motion on the touch screen.
     /// </summary>
-    public class TwistGesture : Gesture<TwistGesture>
+    public partial class TwistGesture : Gesture<TwistGesture>
     {
         Vector2 m_PreviousPosition1;
         Vector2 m_PreviousPosition2;
-
-        /// <summary>
-        /// Initializes and returns an instance of <see cref="TwistGesture"/>.
-        /// </summary>
-        /// <param name="recognizer">The gesture recognizer.</param>
-        /// <param name="touch1">The first touch that started this gesture.</param>
-        /// <param name="touch2">The second touch that started this gesture.</param>
-        public TwistGesture(TwistGestureRecognizer recognizer, Touch touch1, Touch touch2)
-            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
-        {
-        }
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="TwistGesture"/>.
@@ -61,7 +50,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Reinitialize(touch1, touch2);
         }
 
-        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
         internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch1, InputSystem.EnhancedTouch.Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
 
         void Reinitialize(CommonTouch touch1, CommonTouch touch2)

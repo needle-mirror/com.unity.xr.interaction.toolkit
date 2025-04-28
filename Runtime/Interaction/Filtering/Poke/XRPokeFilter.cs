@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Unity.XR.CoreUtils;
-using Unity.XR.CoreUtils.Bindings;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -78,7 +77,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
         XRPokeLogic m_PokeLogic = new XRPokeLogic();
 
-        readonly BindingsGroup m_BindingsGroup = new BindingsGroup();
+        XRBaseInteractable m_SubscribedInteractable;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -109,13 +108,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         protected void Awake()
         {
             if (m_Interactable == null)
+                m_Interactable = FindPokeInteractable();
+
+            if (m_PokeCollider == null)
+                m_PokeCollider = FindPokeCollider();
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void Start()
+        {
+            var incomplete = false;
+            if (m_Interactable == null)
             {
                 m_Interactable = FindPokeInteractable();
                 if (m_Interactable == null)
                 {
                     Debug.LogWarning($"Could not find associated {nameof(XRBaseInteractable)} in scene." +
                         $"This {nameof(XRPokeFilter)} will be disabled.", this);
-                    enabled = false;
+                    incomplete = true;
                 }
             }
 
@@ -126,30 +138,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 {
                     Debug.LogWarning($"Could not find a {nameof(Collider)} associated with this filter in the scene." +
                         $"This {nameof(XRPokeFilter)} will be disabled.", this);
-                    enabled = false;
+                    incomplete = true;
                 }
             }
 
             if (m_PokeConfiguration.Value == null)
             {
                 Debug.LogWarning("Poke Data property has been improperly configured. Please assign a Poke Threshold Datum asset if configured to Use Asset.", this);
-                enabled = false;
+                incomplete = true;
             }
-        }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void Start()
-        {
-            Setup();
-
-            if (m_Interactable != null)
+            // Incomplete configuration, disable self to indicate this filter should not be processed.
+            if (incomplete)
             {
-                m_Interactable.selectFilters.Add(this);
-                m_Interactable.interactionStrengthFilters.Add(this);
-                SetupBindings();
+                enabled = false;
+                return;
             }
+
+            Setup();
         }
 
         /// <summary>
@@ -157,13 +163,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </summary>
         protected void OnDestroy()
         {
-            if (m_Interactable != null)
-            {
-                m_Interactable.selectFilters.Remove(this);
-                m_Interactable.interactionStrengthFilters.Remove(this);
-            }
+            Unsubscribe();
 
-            ClearBindings();
             m_PokeLogic?.Dispose();
         }
 
@@ -182,26 +183,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 
             m_PokeLogic?.DrawGizmos();
 #endif
-        }
-
-        void SetupBindings()
-        {
-            if (m_Interactable != null)
-            {
-                m_Interactable.hoverEntered.AddListener(OnHoverEntered);
-                m_Interactable.hoverExited.AddListener(OnHoverExited);
-            }
-        }
-
-        void ClearBindings()
-        {
-            m_BindingsGroup.Clear();
-
-            if (m_Interactable != null)
-            {
-                m_Interactable.hoverEntered.RemoveListener(OnHoverEntered);
-                m_Interactable.hoverExited.RemoveListener(OnHoverExited);
-            }
         }
 
         /// <inheritdoc />
@@ -239,9 +220,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             if (m_PokeLogic == null)
                 return;
 
-            var interactor = (IXRInteractor)args.interactorObject;
-            var interactorAttachTransform = interactor.GetAttachTransform(m_Interactable);
-            var interactableAttachTransform = m_Interactable.GetAttachTransform(interactor);
+            var interactor = args.interactorObject;
+            var interactable = args.interactableObject;
+            var interactorAttachTransform = interactor.GetAttachTransform(interactable);
+            var interactableAttachTransform = interactable.GetAttachTransform(interactor);
             m_PokeLogic.OnHoverEntered(interactor, interactorAttachTransform.GetWorldPose(), interactableAttachTransform);
         }
 
@@ -279,7 +261,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             if (interactableValue != null && colliderValue != null && thresholdValue != null)
             {
                 m_PokeLogic.Initialize(interactableValue.GetAttachTransform(null), thresholdValue, colliderValue);
+
+                if (Application.isPlaying)
+                    Subscribe(interactableValue);
             }
+        }
+
+        void Subscribe(XRBaseInteractable interactable)
+        {
+            if (m_SubscribedInteractable == interactable)
+                return;
+
+            Unsubscribe();
+
+            interactable.selectFilters.Add(this);
+            interactable.interactionStrengthFilters.Add(this);
+            interactable.hoverEntered.AddListener(OnHoverEntered);
+            interactable.hoverExited.AddListener(OnHoverExited);
+
+            m_SubscribedInteractable = interactable;
+        }
+
+        void Unsubscribe()
+        {
+            if (m_SubscribedInteractable == null)
+                return;
+
+            m_SubscribedInteractable.selectFilters.Remove(this);
+            m_SubscribedInteractable.interactionStrengthFilters.Remove(this);
+            m_SubscribedInteractable.hoverEntered.RemoveListener(OnHoverEntered);
+            m_SubscribedInteractable.hoverExited.RemoveListener(OnHoverExited);
+
+            m_SubscribedInteractable = null;
         }
     }
 }

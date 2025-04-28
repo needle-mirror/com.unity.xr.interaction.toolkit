@@ -39,7 +39,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         static readonly List<GestureTouchesUtility.TouchInputSource> s_TouchInputSources =
             new List<GestureTouchesUtility.TouchInputSource>
             {
+#if !XRI_LEGACY_INPUT_DISABLED
                 GestureTouchesUtility.TouchInputSource.Mock,
+#endif
                 GestureTouchesUtility.TouchInputSource.Enhanced,
             };
 
@@ -113,7 +115,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             Debug.Assert(touchesBegan.Length >= touchesMoved.Length);
             Debug.Assert(touchesBegan.Length >= touchesEnded.Length);
+#if !XRI_LEGACY_INPUT_DISABLED
             Debug.Assert(touchInputSource == GestureTouchesUtility.TouchInputSource.Mock || touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced);
+#else
+            Debug.Assert(touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced);
+#endif
 
             // Give gesture recognizer a chance to process gesture input
             IEnumerator DoYield()
@@ -123,12 +129,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             if (touchesBegan.Length > 0)
             {
+#if !XRI_LEGACY_INPUT_DISABLED
                 GestureTouchesUtility.mockTouches.Clear();
+#endif
                 for (var i = 0; i < touchesBegan.Length; ++i)
                 {
                     // For Input System, while a touch is ongoing, it must have a non-zero ID different from
                     // all other ongoing touches.
                     var id = i + 1;
+
+#if !XRI_LEGACY_INPUT_DISABLED
                     if (touchInputSource == GestureTouchesUtility.TouchInputSource.Mock)
                     {
                         GestureTouchesUtility.mockTouches.Add(
@@ -144,6 +154,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     {
                         BeginTouch(id, touchesBegan[i], true);
                     }
+#else
+                    BeginTouch(id, touchesBegan[i], true);
+#endif
                 }
 
                 yield return DoYield();
@@ -156,12 +169,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 for (var iSegments = 0; iSegments < moveSegments; ++iSegments)
                 {
                     // Track initial move from start location
+#if !XRI_LEGACY_INPUT_DISABLED
                     GestureTouchesUtility.mockTouches.Clear();
+#endif
                     for (var i = 0; i < touchesMoved.Length; ++i)
                     {
                         var deltaMove = (touchesMoved[i] - touchesBegan[i]) / moveSegments;
                         var position = touchesBegan[i] + deltaMove * (iSegments + 1);
                         var id = i + 1;
+
+#if !XRI_LEGACY_INPUT_DISABLED
                         if (touchInputSource == GestureTouchesUtility.TouchInputSource.Mock)
                         {
                             GestureTouchesUtility.mockTouches.Add(
@@ -177,6 +194,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                         {
                             MoveTouch(id, position, deltaMove, true);
                         }
+#else
+                        MoveTouch(id, position, deltaMove, true);
+#endif
                     }
 
                     yield return DoYield();
@@ -185,11 +205,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             if (touchesEnded.Length > 0)
             {
+#if !XRI_LEGACY_INPUT_DISABLED
                 GestureTouchesUtility.mockTouches.Clear();
+#endif
                 for (var i = 0; i < touchesEnded.Length; ++i)
                 {
                     var deltaPosition = touchesEnded[i] - touchesBegan[i];
                     var id = i + 1;
+
+#if !XRI_LEGACY_INPUT_DISABLED
                     if (touchInputSource == GestureTouchesUtility.TouchInputSource.Mock)
                     {
                         GestureTouchesUtility.mockTouches.Add(
@@ -205,12 +229,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     {
                         EndTouch(id, touchesEnded[i], deltaPosition, true);
                     }
+#else
+                    EndTouch(id, touchesEnded[i], deltaPosition, true);
+#endif
                 }
 
                 yield return DoYield();
             }
 
+#if !XRI_LEGACY_INPUT_DISABLED
             GestureTouchesUtility.mockTouches.Clear();
+#endif
         }
 
         static void SetupTouches(GestureTouchesUtility.TouchInputSource touchInputSource)

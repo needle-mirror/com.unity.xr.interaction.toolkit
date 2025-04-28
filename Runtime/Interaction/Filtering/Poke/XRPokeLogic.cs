@@ -326,7 +326,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// </summary>
         /// <param name="interactor">The XR Interactor associated with the hover enter event interaction.</param>
         /// <param name="updatedPose">The pose of the interactor's attach transform, in world space.</param>
-        /// <param name="pokedTransform">The transform of the poked object. Mainly considered for UGUI work where poke logic is shared between multiple transforms.</param>
+        /// <param name="pokedTransform">The transform of the poked object. Mainly considered for uGUI (Unity UI) work where poke logic is shared between multiple transforms.</param>
         public void OnHoverEntered(object interactor, Pose updatedPose, Transform pokedTransform)
         {
             m_LastHoveredTransform[interactor] = pokedTransform;

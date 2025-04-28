@@ -70,6 +70,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </remarks>
         [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
         public Vector2 Delta => delta;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+        /// <summary>
+        /// (Deprecated) Initializes and returns an instance of <see cref="TwoFingerDragGesture"/>.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch1">The first touch that started this gesture.</param>
+        /// <param name="touch2">The second touch that started this gesture.</param>
+        /// <remarks>
+        /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
+        /// </remarks>
+        [Obsolete("TwoFingerDragGesture(DragGestureRecognizer, Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TwoFingerDragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
+        public TwoFingerDragGesture(TwoFingerDragGestureRecognizer recognizer, Touch touch1, Touch touch2)
+            : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
+        {
+        }
+
+        [Obsolete("Reinitialize(Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
+        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
+#endif
 #pragma warning restore IDE1006 // Naming Styles
     }
 }

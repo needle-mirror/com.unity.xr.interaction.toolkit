@@ -165,20 +165,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Helper function for creating or re-initializing one-finger gestures when a touch begins.
-        /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
-        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
-        protected void TryCreateOneFingerGestureOnTouchBegan(
-            Func<Touch, T> createGestureFunction,
-            Action<T, Touch> reinitializeGestureFunction)
-        {
-            TryCreateOneFingerGestureOnTouchBegan(
-                TouchConverterClosureHelper.GetFunc(createGestureFunction),
-                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
-        }
-
-        /// <summary>
         /// Helper function for creating or reinitializing one-finger gestures when a touch begins.
         /// </summary>
         /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
@@ -216,20 +202,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     AddGesture(gesture);
                 }
             }
-        }
-
-        /// <summary>
-        /// Helper function for creating or re-initializing two-finger gestures when a touch begins.
-        /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
-        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
-        protected void TryCreateTwoFingerGestureOnTouchBegan(
-            Func<Touch, Touch, T> createGestureFunction,
-            Action<T, Touch, Touch> reinitializeGestureFunction)
-        {
-            TryCreateTwoFingerGestureOnTouchBegan(
-                TouchConverterClosureHelper.GetFunc(createGestureFunction),
-                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
         }
 
         /// <summary>
@@ -326,36 +298,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         static class TouchConverterClosureHelper
         {
-            // One Touch to Gesture input argument Func
+#if !XRI_LEGACY_INPUT_DISABLED
             static Func<Touch, T> s_CreateGestureFromOneTouchFunction;
-            static Func<InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromOneEnhancedTouchFunction;
-
-            // Two Touch to Gesture input argument Func
             static Func<Touch, Touch, T> s_CreateGestureFromTwoTouchFunction;
+#endif
+
+            // One Touch to Gesture input argument Func
+            static Func<InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromOneEnhancedTouchFunction;
+            // Two Touch to Gesture input argument Func
             static Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromTwoEnhancedTouchFunction;
 
             // Preallocate delegates to avoid GC Alloc
+#if !XRI_LEGACY_INPUT_DISABLED
             static readonly Func<CommonTouch, T> s_ConvertUsingOneTouch = ConvertUsingOneTouch;
-            static readonly Func<CommonTouch, T> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
             static readonly Func<CommonTouch, CommonTouch, T> s_ConvertUsingTwoTouch = ConvertUsingTwoTouch;
+#endif
+            static readonly Func<CommonTouch, T> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
             static readonly Func<CommonTouch, CommonTouch, T> s_ConvertUsingTwoEnhancedTouch = ConvertUsingTwoEnhancedTouch;
 
+#if !XRI_LEGACY_INPUT_DISABLED
+            [Obsolete("GetFunc is marked for deprecation and will be removed in a future version. Use GetFunc(Func<InputSystem.EnhancedTouch.Touch,T>) instead.", true)]
             public static Func<CommonTouch, T> GetFunc(Func<Touch, T> createGestureFunction)
             {
                 s_CreateGestureFromOneTouchFunction = createGestureFunction;
                 return s_ConvertUsingOneTouch;
             }
 
-            public static Func<CommonTouch, T> GetFunc(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
-            {
-                s_CreateGestureFromOneEnhancedTouchFunction = createGestureFunction;
-                return s_ConvertUsingOneEnhancedTouch;
-            }
-
+            [Obsolete("GetFunc is marked for deprecation and will be removed in a future version. Use GetFunc(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>) instead.", true)]
             public static Func<CommonTouch, CommonTouch, T> GetFunc(Func<Touch, Touch, T> createGestureFunction)
             {
                 s_CreateGestureFromTwoTouchFunction = createGestureFunction;
                 return s_ConvertUsingTwoTouch;
+            }
+#endif
+
+            public static Func<CommonTouch, T> GetFunc(Func<InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
+            {
+                s_CreateGestureFromOneEnhancedTouchFunction = createGestureFunction;
+                return s_ConvertUsingOneEnhancedTouch;
             }
 
             public static Func<CommonTouch, CommonTouch, T> GetFunc(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
@@ -364,14 +344,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return s_ConvertUsingTwoEnhancedTouch;
             }
 
+#if !XRI_LEGACY_INPUT_DISABLED
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             static T ConvertUsingOneTouch(CommonTouch touch) =>
                 s_CreateGestureFromOneTouchFunction(touch.GetTouch());
 
-            static T ConvertUsingOneEnhancedTouch(CommonTouch touch) =>
-                s_CreateGestureFromOneEnhancedTouchFunction(touch.GetEnhancedTouch());
-
             static T ConvertUsingTwoTouch(CommonTouch touch, CommonTouch otherTouch) =>
                 s_CreateGestureFromTwoTouchFunction(touch.GetTouch(), otherTouch.GetTouch());
+#pragma warning restore CS0618
+#endif
+
+            static T ConvertUsingOneEnhancedTouch(CommonTouch touch) =>
+                s_CreateGestureFromOneEnhancedTouchFunction(touch.GetEnhancedTouch());
 
             static T ConvertUsingTwoEnhancedTouch(CommonTouch touch, CommonTouch otherTouch) =>
                 s_CreateGestureFromTwoEnhancedTouchFunction(touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());
@@ -381,38 +365,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Helper class to preallocate delegates to avoid GC Alloc that would happen
         /// when passing the lambda to the methods which reinitialize one or two finger gestures.
         /// </summary>
-        static class TouchActionConverterClosureHelper
+        static partial class TouchActionConverterClosureHelper
         {
-            // One Touch to Gesture input argument Func
+#if !XRI_LEGACY_INPUT_DISABLED
             static Action<T, Touch> s_ReinitializeGestureFromOneTouchFunction;
-            static Action<T, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromOneEnhancedTouchFunction;
-
-            // Two Touch to Gesture input argument Func
             static Action<T, Touch, Touch> s_ReinitializeGestureFromTwoTouchFunction;
+#endif
+
+            // One Touch to Gesture input argument Func
+            static Action<T, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromOneEnhancedTouchFunction;
+            // Two Touch to Gesture input argument Func
             static Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromTwoEnhancedTouchFunction;
 
             // Preallocate delegates to avoid GC Alloc
+#if !XRI_LEGACY_INPUT_DISABLED
             static readonly Action<T, CommonTouch> s_ConvertUsingOneTouch = ConvertUsingOneTouch;
-            static readonly Action<T, CommonTouch> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
             static readonly Action<T, CommonTouch, CommonTouch> s_ConvertUsingTwoTouch = ConvertUsingTwoTouch;
-            static readonly Action<T, CommonTouch, CommonTouch> s_ConvertUsingTwoEnhancedTouch = ConvertUsingTwoEnhancedTouch;
+#endif
 
-            public static Action<T, CommonTouch> GetAction(Action<T, Touch> reinitializeGestureFunction)
-            {
-                s_ReinitializeGestureFromOneTouchFunction = reinitializeGestureFunction;
-                return s_ConvertUsingOneTouch;
-            }
+            static readonly Action<T, CommonTouch> s_ConvertUsingOneEnhancedTouch = ConvertUsingOneEnhancedTouch;
+            static readonly Action<T, CommonTouch, CommonTouch> s_ConvertUsingTwoEnhancedTouch = ConvertUsingTwoEnhancedTouch;
 
             public static Action<T, CommonTouch> GetAction(Action<T, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
             {
                 s_ReinitializeGestureFromOneEnhancedTouchFunction = reinitializeGestureFunction;
                 return s_ConvertUsingOneEnhancedTouch;
-            }
-
-            public static Action<T, CommonTouch, CommonTouch> GetAction(Action<T, Touch, Touch> reinitializeGestureFunction)
-            {
-                s_ReinitializeGestureFromTwoTouchFunction = reinitializeGestureFunction;
-                return s_ConvertUsingTwoTouch;
             }
 
             public static Action<T, CommonTouch, CommonTouch> GetAction(Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> reinitializeGestureFunction)
@@ -421,14 +398,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 return s_ConvertUsingTwoEnhancedTouch;
             }
 
+#if !XRI_LEGACY_INPUT_DISABLED
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             static void ConvertUsingOneTouch(T gesture, CommonTouch touch) =>
                 s_ReinitializeGestureFromOneTouchFunction(gesture, touch.GetTouch());
 
-            static void ConvertUsingOneEnhancedTouch(T gesture, CommonTouch touch) =>
-                s_ReinitializeGestureFromOneEnhancedTouchFunction(gesture, touch.GetEnhancedTouch());
-
             static void ConvertUsingTwoTouch(T gesture, CommonTouch touch, CommonTouch otherTouch) =>
                 s_ReinitializeGestureFromTwoTouchFunction(gesture, touch.GetTouch(), otherTouch.GetTouch());
+#pragma warning restore CS0618
+#endif
+
+            static void ConvertUsingOneEnhancedTouch(T gesture, CommonTouch touch) =>
+                s_ReinitializeGestureFromOneEnhancedTouchFunction(gesture, touch.GetEnhancedTouch());
 
             static void ConvertUsingTwoEnhancedTouch(T gesture, CommonTouch touch, CommonTouch otherTouch) =>
                 s_ReinitializeGestureFromTwoEnhancedTouchFunction(gesture, touch.GetEnhancedTouch(), otherTouch.GetEnhancedTouch());

@@ -637,6 +637,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
+        protected void OnEnable()
+        {
+            Application.onBeforeRender += OnBeforeRenderLineVisual;
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void OnDisable()
+        {
+            Application.onBeforeRender -= OnBeforeRenderLineVisual;
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         protected void OnDestroy()
         {
             if (m_FallBackSamplePoints.IsCreated)
@@ -649,6 +665,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void LateUpdate()
+        {
+            // Don't need to do anything; method kept for backwards compatibility.
+        }
+
+        [BeforeRenderOrder(XRInteractionUpdateOrder.k_BeforeRenderLineVisual)]
+        void OnBeforeRenderLineVisual()
+        {
+            UpdateLineVisual();
+        }
+
+        void UpdateLineVisual()
         {
             var curveData = curveInteractionDataProvider;
             if (!curveData.isActive)

@@ -14,7 +14,9 @@
         "Unity.Burst",
         "Unity.XR.Hands",
         "Unity.XR.OpenXR",
-        "Unity.XR.Simulation"
+        "Unity.XR.Simulation",
+        "Unity.TextMeshPro",
+        "Unity.InputSystem.ForUI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -103,6 +105,16 @@
             "name": "com.unity.xr.legacyinputhelpers",
             "expression": "2.1.10",
             "define": "XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "",
+            "define": "TEXTMESHPRO_PACKAGE_PRESENT"
+        },
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "UGUI_2_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false

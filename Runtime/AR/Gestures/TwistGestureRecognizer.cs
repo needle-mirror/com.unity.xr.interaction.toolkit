@@ -41,9 +41,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
         readonly Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, TwistGesture> m_CreateEnhancedGesture;
-        readonly Func<Touch, Touch, TwistGesture> m_CreateGestureFunction;
         readonly Action<TwistGesture, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> m_ReinitializeEnhancedGesture;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+        readonly Func<Touch, Touch, TwistGesture> m_CreateGestureFunction;
         readonly Action<TwistGesture, Touch, Touch> m_ReinitializeGestureFunction;
+#endif
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="TwistGestureRecognizer"/>.
@@ -51,11 +54,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public TwistGestureRecognizer()
         {
             m_CreateEnhancedGesture = CreateEnhancedGesture;
-            m_CreateGestureFunction = CreateGesture;
             m_ReinitializeEnhancedGesture = ReinitializeEnhancedGesture;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+            m_CreateGestureFunction = CreateGesture;
             m_ReinitializeGestureFunction = ReinitializeGesture;
+#endif
         }
 
+#if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
         /// Creates a Twist gesture with the given touches.
         /// </summary>
@@ -64,13 +71,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>The created Twist gesture.</returns>
         TwistGesture CreateGesture(Touch touch1, Touch touch2)
         {
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             return new TwistGesture(this, touch1, touch2);
+#pragma warning restore CS0618
         }
 
         static void ReinitializeGesture(TwistGesture gesture, Touch touch1, Touch touch2)
         {
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             gesture.Reinitialize(touch1, touch2);
+#pragma warning restore CS0618
         }
+#endif
 
         /// <summary>
         /// Creates a Twist gesture with the given touches.
@@ -93,8 +105,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
                 TryCreateTwoFingerGestureOnTouchBegan(m_CreateEnhancedGesture, m_ReinitializeEnhancedGesture);
+#if !XRI_LEGACY_INPUT_DISABLED
             else
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
                 TryCreateTwoFingerGestureOnTouchBegan(m_CreateGestureFunction, m_ReinitializeGestureFunction);
+#pragma warning restore CS0618
+#endif
         }
     }
 }

@@ -95,6 +95,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+#if !XRI_LEGACY_INPUT_DISABLED
         struct RegisteredTouch
         {
             public bool isValid;
@@ -108,6 +109,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 isValid = true;
             }
         }
+#endif
 
         /// <summary>
         /// Represents which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.
@@ -431,7 +433,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         internal const float kPixelPerLine = 20f;
 
+#if !XRI_LEGACY_INPUT_DISABLED
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
+#endif
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
         // Reusable event args
@@ -674,8 +678,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 var hasTouches = false;
 
+#if !XRI_LEGACY_INPUT_DISABLED
                 if (m_EnableTouchInput)
                     hasTouches = ProcessLegacyTouches();
+#endif
 
                 if (m_EnableMouseInput && !hasTouches)
                     GetLegacyMouseState();
@@ -773,6 +779,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+#if !XRI_LEGACY_INPUT_DISABLED
         bool ProcessLegacyTouches()
         {
             var hasTouches = Input.touchCount > 0;
@@ -839,6 +846,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return true;
         }
+#endif
 
         void GetLegacyNavigationState()
         {

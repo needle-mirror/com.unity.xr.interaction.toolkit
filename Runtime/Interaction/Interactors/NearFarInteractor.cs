@@ -1,3 +1,6 @@
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.XR.CoreUtils.Bindings.Variables;
@@ -317,6 +320,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         readonly UnityObjectReferenceCache<IUIModelUpdater, Object> m_UIModelUpdaterReferenceCache = new UnityObjectReferenceCache<IUIModelUpdater, Object>();
 
         bool m_HasValidRayHit;
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        bool m_LastValidHitIsUI = false;
+#endif
+
         Vector3 m_RayEndPoint;
         bool m_ValidHitIsUI;
         Vector3 m_ValidHitNormal;
@@ -331,6 +338,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// We will investigate expanding support for multiple valid targets in the future.
         /// </summary>
         readonly bool m_AllowMultipleValidTargets = false;
+
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// </summary>
+        internal virtual void UpdateUIRegistration()
+        {
+            // First unregister from all UI systems
+            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            XRUIToolkitHandler.Unregister(this);
+#endif
+
+            // Register with the appropriate UI system
+            if (m_EnableUIInteraction)
+                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (m_EnableUIInteraction)
+                XRUIToolkitHandler.Register(this);
+#endif
+        }
+
+        /// <summary>
+        /// (Read Only) Whether UI interaction with UI Toolkit is enabled.
+        /// </summary>
+        bool canProcessUIToolkit
+        {
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            get => m_EnableUIInteraction && XRUIToolkitHandler.uiToolkitSupportEnabled;
+#else
+            get => false;
+#endif
+        }
 
         /// <inheritdoc />
         protected override void Awake()
@@ -349,7 +389,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             base.OnEnable();
             if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
+                UpdateUIRegistration();
         }
 
         /// <inheritdoc />
@@ -358,6 +398,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnDisable();
 
             m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            XRUIToolkitHandler.Unregister(this);
+#endif
+
             InitializeInteractor();
         }
 
@@ -424,6 +469,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             EvaluateNearInteraction();
             EvaluateFarInteraction(newSelectionRegion);
             UpdateSelectionRegion(newSelectionRegion);
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            HandleUIToolkitEvents();
+#endif
         }
 
         void InitializeInteractor()
@@ -482,6 +530,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             var farCaster = farInteractionCaster;
             bool has3dHit = farCaster.TryGetColliderTargets(interactionManager, m_TargetColliders, m_FarRayCastHits);
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            bool shouldProcessUIToolkitHit = canProcessUIToolkit && XRUIToolkitHandler.IsValidUIToolkitInteraction(m_TargetColliders);
+            bool isUIToolkitHit = has3dHit && shouldProcessUIToolkitHit;
+
+            if (isUIToolkitHit)
+            {
+                ProcessUIToolkitHit(m_FarRayCastHits[0]);
+                m_HasValidRayHit = true;
+                m_ValidTargetCastSource = Region.Far;
+                return;
+            }
+#endif
+
             bool has2dHit = TryGetCurrentUIRaycastResult(out var uiHit);
             m_HasValidRayHit = has2dHit || has3dHit;
             m_ValidHitIsUI = false;
@@ -513,6 +575,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (shouldProcess2dHit)
                 Process2dHit(uiHit);
         }
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+        void ProcessUIToolkitHit(RaycastHit raycastHit)
+        {
+            m_RayEndPoint = raycastHit.point;
+            m_RayEndTransform = raycastHit.transform;
+            m_ValidHitNormal = raycastHit.normal;
+            m_ValidHitIsUI = true;
+        }
+
+        void HandleUIToolkitEvents()
+        {
+            if (!canProcessUIToolkit)
+                return;
+
+            bool has2dHit = m_ValidHitIsUI;
+            bool didHave2dHit = m_LastValidHitIsUI;
+            m_LastValidHitIsUI = m_ValidHitIsUI;
+
+            bool shouldReset = (!has2dHit && didHave2dHit) || !isCurveActive;
+
+            XRUIToolkitHandler.HandlePointerUpdate(
+                this,
+                farInteractionCaster.effectiveCastOrigin.position,
+                farInteractionCaster.effectiveCastOrigin.rotation,
+                isUiSelectInputActive,
+                shouldReset);
+        }
+#endif
 
         void Process3dHit(in Vector3 farCasterOrigin, bool has2dHit, float uiHitSqDistance, ref bool shouldProcess2dHit)
         {
@@ -778,6 +869,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 model = TrackedDeviceModel.invalid;
                 return false;
             }
+
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 
@@ -790,7 +882,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetCurrentUIRaycastResult(out RaycastResult raycastResult)
         {
-            if (TryGetUIModel(out var model) && model.currentRaycast.isValid)
+            if (m_EnableUIInteraction && TryGetUIModel(out var model) && model.currentRaycast.isValid)
             {
                 raycastResult = model.currentRaycast;
                 var raycastEndpointIndex = model.currentRaycastEndpointIndex;
@@ -833,8 +925,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_UIHoverExited?.Invoke(args);
         }
 
-        /// <inheritdoc />
-        bool ICurveInteractionDataProvider.isActive
+        bool isCurveActive
         {
             get
             {
@@ -849,6 +940,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return m_ValidTargetCastSource != Region.Near && !this.IsBlockedByInteractionWithinGroup();
             }
         }
+
+
+        /// <inheritdoc />
+        bool ICurveInteractionDataProvider.isActive => isCurveActive;
 
         /// <inheritdoc />
         bool ICurveInteractionDataProvider.hasValidSelect => m_ValidHitIsUI ? isUiSelectInputActive : hasSelection;

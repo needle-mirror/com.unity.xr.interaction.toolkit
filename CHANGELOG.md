@@ -9,6 +9,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.2.0-pre.1] - 2025-04-28
+
+### Added
+- Added Click UI On Down property to the XR Poke Interactor and added support to trigger UI click event on down instead of release for buttons, toggles, input fields, and dropdowns.
+- Added `ToggleColorToggler` sample script to use on/off color properties when a `Toggle` is pressed instead of toggling graphic elements on and off like the previous `ToggleGraphicToggler`.
+- Added support to the XR Grab Interactable to smooth the appearance of the object in a similar way to Rigidbody Interpolation but without the frame delay. For more information about this feature, see [What's new in 3.2](xref:xri-whats-new-3-2).
+  - Added a new Predicted Visuals Transform property to XR Grab Interactable that allows you to define a separate visual hierarchy of child GameObjects that can be driven at the application's update rate while still only moving the Rigidbody during `FixedUpdate`. This new optional property only applies when the Movement Type is Kinematic or Velocity Tracking.
+- Added support to limit the linear velocity and angular velocity of the XR Grab Interactable when the Movement Type is Velocity Tracking. This can be used to improve stability as the object collides with static geometry as it follows the interactor. These are controlled by four new properties: Limit Linear Velocity, Max Linear Velocity Delta, Limit Angular Velocity, and Max Angular Velocity Delta.
+- Added pre-release support for UI Toolkit interaction for world-space based UI documents. The additions are currently marked as internal while we gain feedback and stabilize the feature. This feature is only supported on Unity 6.2 and higher where world-space support for UI Toolkit was added.
+
+### Changed
+- Changed `Poke Interactor` prefab and components in the Starter Assets and Hand Interaction Demo samples to enable Click UI On Down for poke.
+- Replaced `ToggleGraphicToggler` from Hands Interaction Demo sample with `ToggleColorToggler` in the Starter Assets sample.
+- Changed how XR Grab Interactables are created when using the **GameObject** &gt; **XR** &gt; **Grab Interactable** menu item. When created this way, the Mesh Renderer component is now created on a child GameObject and assigned as the Predicted Visuals Transform. The Box Collider component is also now created on a child GameObject. The Reset operation on XR Grab Interactable will also automatically try to assign the Predicted Visuals Transform to a child GameObject that contains a Mesh Renderer or Skinned Mesh Renderer.
+- Changed `XRPokeFilter` so references can be reconfigured at runtime and to avoid immediately warning when adding the component to a GameObject without the other components added yet.
+- Changed `CurveVisualController` so it updates the `LineRenderer` during the Before Render (`Application.onBeforeRender`) phase instead of `LateUpdate`. This fixes the line origin so it is based on the latest tracking pose, which keeps it connected to the controller model visually.
+- Changed `CurveVisualController` by adding the `OnEnable` and `OnDisable` methods. Users who had already implemented either method in derived classes will need to call the base method.
+- Changed `XRGrabInteractable` by adding the `OnCollisionStay` method. Users who had already implemented this method in derived classes will need to call the base method.
+- Moved the XR Interaction Simulator folder out of the XR Device Simulator samples and into its own sample for greater visibility.
+
+### Deprecated
+- Methods that reference Input Manager Touch in the AR Gesture classes have been marked for deprecation. The recommended way of using those gesture classes is to use `InputSystem.EnhancedTouch.Touch` instead. The scripting define symbol `XRI_LEGACY_INPUT_DISABLED` can be added to Edit &gt; Project Settings &gt; Player to disable all use of `UnityEngine.Touch` in the package.
+
+### Fixed
+- Fixed `TrackedDeviceGraphicRaycaster` to update raycaster to interactor reference based on sorting order.
+- Fixed a version handling routine in the Project Validation Utility for sample version caching. Other Unity sample packages sometimes use non-version strings, which was throwing an exception. ([XRIT-263](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-263))
+- Fixed `ClimbProvider` to only force off gravity when initially climbing.
+
 ## [3.1.2] - 2025-04-16
 
 ### Added

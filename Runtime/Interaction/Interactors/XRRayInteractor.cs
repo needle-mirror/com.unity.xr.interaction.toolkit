@@ -1398,7 +1398,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_EnableUIInteraction && m_RegisteredUIInteractorCache != null &&
                 m_RegisteredUIInteractorCache.TryGetCurrentUIGameObject(true, out var uiObject))
             {
-                // UGUI canvas support
+                // uGUI (Unity UI) canvas support
                 var canvas = uiObject.GetComponentInParent<Canvas>();
                 if (canvas != null)
                 {

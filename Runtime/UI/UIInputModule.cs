@@ -5,6 +5,10 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.UI;
+#if TEXTMESHPRO_PACKAGE_PRESENT || (UGUI_2_0_OR_NEWER && UNITY_2023_2_OR_NEWER)
+using TMPro;
+#endif
+
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -204,7 +208,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             // This is required for mouse/pointer events to work with UI Toolkit
             if (bypassUIToolkitEvents)
+#pragma warning disable CS0618 // Type or member is obsolete
                 EventSystem.SetUITookitEventSystemOverride(eventSystem, false, false);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // Select firstSelectedGameObject if nothing is selected ATM.
             var toSelect = eventSystem.currentSelectedGameObject;
@@ -475,7 +481,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessPointerButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData)
+        void ProcessPointerButton(ButtonDeltaState mouseButtonChanges, PointerEventData eventData, bool clickOnDown = false)
         {
             var hoverTarget = eventData.pointerCurrentRaycast.gameObject;
 
@@ -527,16 +533,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     initializePotentialDrag?.Invoke(dragObject, eventData);
                     ExecuteEvents.Execute(dragObject, eventData, ExecuteEvents.initializePotentialDrag);
                 }
+
+                var clickOnDownTarget = eventData.pointerPress;
+
+                // Update mouse button state to released if click on down is applicable
+                if (clickOnDown && CanTargetClickOnDown(clickOnDownTarget))
+                {
+                    mouseButtonChanges = ButtonDeltaState.Released;
+                }
             }
 
             if ((mouseButtonChanges & ButtonDeltaState.Released) != 0)
             {
+                if (eventData.pointerPress == null)
+                    return;
+
                 var target = eventData.pointerPress;
                 pointerUp?.Invoke(target, eventData);
                 ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
 
                 var pointerUpHandler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hoverTarget);
                 var pointerDrag = eventData.pointerDrag;
+
                 if (target == pointerUpHandler && eventData.eligibleForClick)
                 {
                     pointerClick?.Invoke(target, eventData);
@@ -680,7 +698,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 eventData.position = screenPosition;
                 eventData.delta = thisFrameDelta;
 
-                ProcessPointerButton(deviceState.selectDelta, eventData);
+                ProcessPointerButton(deviceState.selectDelta, eventData, deviceState.clickOnDown);
                 ProcessPointerMovement(eventData);
                 ProcessScrollWheel(eventData);
 
@@ -875,6 +893,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
 
             return result;
+        }
+
+        static bool CanTargetClickOnDown(GameObject clickOnDownTarget)
+        {
+            if (clickOnDownTarget == null || !clickOnDownTarget.TryGetComponent<Selectable>(out var selectable))
+                return false;
+
+            if (selectable is Button || selectable is Toggle || selectable is InputField || selectable is Dropdown)
+                return true;
+
+#if TEXTMESHPRO_PACKAGE_PRESENT || (UGUI_2_0_OR_NEWER && UNITY_2023_2_OR_NEWER)
+            if (selectable is TMP_InputField || selectable is TMP_Dropdown)
+                return true;
+#endif
+
+            return false;
         }
     }
 }

@@ -103,6 +103,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_UIInputModule = -200;
 
         /// <summary>
+        /// Order when instances of type <see cref="XRUIToolkitManager"/> are updated.
+        /// </summary>
+        public const int k_XRUIToolkitManager = -200;
+
+        /// <summary>
         /// Order when <see cref="XRInteractionManager"/> is updated.
         /// </summary>
         public const int k_InteractionManager = -105;
@@ -147,7 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_BeforeRenderOrder = 100;
 
         /// <summary>
-        /// Order when <see cref="XRInteractorLineVisual.OnBeforeRenderLineVisual"/> is called.
+        /// Order when <see cref="XRInteractorLineVisual.OnBeforeRenderLineVisual"/> and <see cref="CurveVisualController.OnBeforeRenderLineVisual"/> is called.
         /// </summary>
         public const int k_BeforeRenderLineVisual = 101; // After XRInteractionManager.OnBeforeRender
 

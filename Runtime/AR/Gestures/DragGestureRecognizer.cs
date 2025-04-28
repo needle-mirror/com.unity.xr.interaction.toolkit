@@ -41,9 +41,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         // Preallocate delegates to avoid GC Alloc that would happen in TryCreateGestures
         readonly Func<InputSystem.EnhancedTouch.Touch, DragGesture> m_CreateEnhancedGesture;
-        readonly Func<Touch, DragGesture> m_CreateGestureFunction;
         readonly Action<DragGesture, InputSystem.EnhancedTouch.Touch> m_ReinitializeEnhancedGesture;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+        readonly Func<Touch, DragGesture> m_CreateGestureFunction;
         readonly Action<DragGesture, Touch> m_ReinitializeGestureFunction;
+#endif
 
         /// <summary>
         /// Initializes and returns an instance of <see cref="DragGestureRecognizer"/>.
@@ -51,11 +54,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public DragGestureRecognizer()
         {
             m_CreateEnhancedGesture = CreateEnhancedGesture;
-            m_CreateGestureFunction = CreateGesture;
             m_ReinitializeEnhancedGesture = ReinitializeEnhancedGesture;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+            m_CreateGestureFunction = CreateGesture;
             m_ReinitializeGestureFunction = ReinitializeGesture;
+#endif
         }
 
+#if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
         /// Creates a Drag gesture with the given touch.
         /// </summary>
@@ -63,13 +70,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>Returns the created Drag gesture.</returns>
         DragGesture CreateGesture(Touch touch)
         {
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             return new DragGesture(this, touch);
+#pragma warning restore CS0618
         }
 
         static void ReinitializeGesture(DragGesture gesture, Touch touch)
         {
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
             gesture.Reinitialize(touch);
+#pragma warning restore CS0618
         }
+#endif
 
         /// <summary>
         /// Creates a Drag gesture with the given touch.
@@ -91,8 +103,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
                 TryCreateOneFingerGestureOnTouchBegan(m_CreateEnhancedGesture, m_ReinitializeEnhancedGesture);
+#if !XRI_LEGACY_INPUT_DISABLED
             else
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
                 TryCreateOneFingerGestureOnTouchBegan(m_CreateGestureFunction, m_ReinitializeGestureFunction);
+#pragma warning restore CS0618
+#endif
         }
     }
 }

@@ -56,6 +56,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </remarks>
         [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
         public Vector2 Delta => delta;
+
+#if !XRI_LEGACY_INPUT_DISABLED
+        /// <summary>
+        /// (Deprecated) Initializes and returns an instance of <see cref="DragGesture"/>.
+        /// </summary>
+        /// <param name="recognizer">The gesture recognizer.</param>
+        /// <param name="touch">The touch that started this gesture.</param>
+        /// <remarks>
+        /// <c>DragGesture(DragGestureRecognizer, Touch)</c> has been deprecated for its reference to Input Manager Touch. Use
+        /// <see cref="DragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch)"/> instead.
+        /// </remarks>
+        [Obsolete("DragGesture(DragGestureRecognizer, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use DragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch) instead.")]
+        public DragGesture(DragGestureRecognizer recognizer, Touch touch)
+            : this(recognizer, new CommonTouch(touch))
+        {
+        }
+
+        [Obsolete("Reinitialize(Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch) instead.")]
+        internal void Reinitialize(Touch touch) => Reinitialize(new CommonTouch(touch));
+#endif
 #pragma warning restore IDE1006
     }
 }

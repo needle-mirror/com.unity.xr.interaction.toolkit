@@ -41,35 +41,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
 #if UNITY_2023_3_OR_NEWER // Change between Rigidbody.linearVelocity and Rigidbody.velocity
             /// <summary>
-            /// Move the Interactable object by setting the velocity and angular velocity of the Rigidbody.
+            /// Move the Interactable object by setting the linear velocity and angular velocity of the Rigidbody.
             /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody
-            /// as it follows the Interactor, however with the tradeoff that it can appear to lag behind
-            /// and not move as smoothly as <see cref="Instantaneous"/>.
+            /// as it follows the Interactor.
             /// </summary>
             /// <remarks>
-            /// Unity sets the velocity values during the FixedUpdate function. This Interactable will move at the
+            /// Unity sets the Rigidbody velocity values during the FixedUpdate function. This Rigidbody will move at the
             /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
             /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
             /// follows the Interactor, it may not visually update position each frame and be a slight distance
             /// behind the Interactor or controller due to the difference between the Physics update rate
             /// and the render update rate.
+            /// <br />
+            /// The visuals can be driven separately from the Rigidbody if <see cref="XRGrabInteractable.predictedVisualsTransform"/>
+            /// is assigned in order to keep the appearance smooth while also minimizing latency as compared to
+            /// the Rigidbody interpolation settings.
             /// </remarks>
             /// <seealso cref="Rigidbody.linearVelocity"/>
             /// <seealso cref="Rigidbody.angularVelocity"/>
 #else
             /// <summary>
-            /// Move the Interactable object by setting the velocity and angular velocity of the Rigidbody.
+            /// Move the Interactable object by setting the linear velocity and angular velocity of the Rigidbody.
             /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody
-            /// as it follows the Interactor, however with the tradeoff that it can appear to lag behind
-            /// and not move as smoothly as <see cref="Instantaneous"/>.
+            /// as it follows the Interactor.
             /// </summary>
             /// <remarks>
-            /// Unity sets the velocity values during the FixedUpdate function. This Interactable will move at the
+            /// Unity sets the Rigidbody velocity values during the FixedUpdate function. This Rigidbody will move at the
             /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
             /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
             /// follows the Interactor, it may not visually update position each frame and be a slight distance
             /// behind the Interactor or controller due to the difference between the Physics update rate
             /// and the render update rate.
+            /// <br />
+            /// The visuals can be driven separately from the Rigidbody if <see cref="XRGrabInteractable.predictedVisualsTransform"/>
+            /// is assigned in order to keep the appearance smooth while also minimizing latency as compared to
+            /// the Rigidbody interpolation settings.
             /// </remarks>
             /// <seealso cref="Rigidbody.velocity"/>
             /// <seealso cref="Rigidbody.angularVelocity"/>
@@ -78,17 +84,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             /// <summary>
             /// Move the Interactable object by moving the kinematic Rigidbody towards the target position and orientation.
-            /// Use this if you want to keep the visual representation synchronized to match its Physics state,
+            /// Use this if you want to keep the object synchronized with its Physics state rather than bypassing through the Transform,
             /// and if you want to allow the object to be able to move through other Colliders without a Rigidbody
             /// as it follows the Interactor.
             /// </summary>
             /// <remarks>
-            /// Unity will call the movement methods during the FixedUpdate function. This Interactable will move at the
+            /// Unity will call the Rigidbody movement methods during the FixedUpdate function. This Rigidbody will move at the
             /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
             /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
             /// follows the Interactor, it may not visually update position each frame and be a slight distance
             /// behind the Interactor or controller due to the difference between the Physics update rate
-            /// and the render update rate. Collisions will be more accurate as compared to <see cref="Instantaneous"/>
+            /// and the render update rate.
+            /// <br />
+            /// The visuals can be driven separately from the Rigidbody if <see cref="XRGrabInteractable.predictedVisualsTransform"/>
+            /// is assigned in order to keep the appearance smooth while also minimizing latency as compared to
+            /// the Rigidbody interpolation settings.
+            /// <br />
+            /// Collisions will be more accurate as compared to <see cref="Instantaneous"/>
             /// since with this method, the Rigidbody will be moved by settings its internal velocity rather than
             /// instantly teleporting to match the Transform pose.
             /// </remarks>
@@ -99,7 +111,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             /// <summary>
             /// Move the Interactable object by setting the position and rotation of the Transform every frame.
             /// Use this if you want the visual representation to be updated each frame, minimizing latency,
-            /// however with the tradeoff that it will be able to move through other Colliders without a Rigidbody
+            /// without making use of a separate visual hierarchy from the physics representation.
+            /// The object will be able to move through other Colliders without a Rigidbody
             /// as it follows the Interactor.
             /// </summary>
             /// <remarks>

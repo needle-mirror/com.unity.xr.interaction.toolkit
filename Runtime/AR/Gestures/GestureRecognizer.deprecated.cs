@@ -49,6 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected List<T> m_Gestures = new List<T>();
 #pragma warning restore IDE1006 // Naming Styles
 
+#if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
         /// (Deprecated) Helper function for creating one-finger gestures when a touch begins.
         /// </summary>
@@ -61,6 +62,57 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         protected void TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T> createGestureFunction)
         {
         }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating two-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
+        /// <remarks>
+        /// <c>TryCreateTwoFingerGestureOnTouchBegan(Func&lt;Touch, Touch, T&gt;)</c> has been deprecated. Use
+        /// <see cref="TryCreateTwoFingerGestureOnTouchBegan(Func{Touch, Touch, T}, Action{T, Touch, Touch})"/> instead.
+        /// </remarks>
+        [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>) is no longer functional. Use TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>, Action<T, Touch, Touch>) instead.", true)]
+        protected void TryCreateTwoFingerGestureOnTouchBegan(
+            Func<Touch, Touch, T> createGestureFunction)
+        {
+        }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating or re-initializing one-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
+        /// <remarks>
+        /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
+        /// </remarks>
+        [Obsolete("TryCreateOneFingerGestureOnTouchBegan(Func<Touch, T>, Action<T, Touch>) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TryCreateOneFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, T>, Action<T, InputSystem.EnhancedTouch.Touch>) instead.")]
+        protected void TryCreateOneFingerGestureOnTouchBegan(
+            Func<Touch, T> createGestureFunction,
+            Action<T, Touch> reinitializeGestureFunction)
+        {
+            TryCreateOneFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
+        }
+
+        /// <summary>
+        /// (Deprecated) Helper function for creating or re-initializing two-finger gestures when a touch begins.
+        /// </summary>
+        /// <param name="createGestureFunction">Function to be executed to create the gesture if no dead gesture was available to re-initialize.</param>
+        /// <param name="reinitializeGestureFunction">Function to be executed to re-initialize the gesture if a dead gesture was available to re-initialize.</param>
+        /// <remarks>
+        /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
+        /// </remarks>
+        [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>, Action<T, Touch, Touch>) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TryCreateTwoFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>, Action<T, InputSystem.EnhancedTouch.Touch>, InputSystem.EnhancedTouch.Touch) instead.")]
+        protected void TryCreateTwoFingerGestureOnTouchBegan(
+            Func<Touch, Touch, T> createGestureFunction,
+            Action<T, Touch, Touch> reinitializeGestureFunction)
+        {
+            TryCreateTwoFingerGestureOnTouchBegan(
+                TouchConverterClosureHelper.GetFunc(createGestureFunction),
+                TouchActionConverterClosureHelper.GetAction(reinitializeGestureFunction));
+        }
+#endif
 
         /// <summary>
         /// (Deprecated) Helper function for creating one-finger gestures when a touch begins.
@@ -83,24 +135,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <c>TryCreateTwoFingerGestureOnTouchBegan(Func&lt;Touch, Touch, T&gt;)</c> has been deprecated. Use
         /// <see cref="TryCreateTwoFingerGestureOnTouchBegan(Func{Touch, Touch, T}, Action{T, Touch, Touch})"/> instead.
         /// </remarks>
-        [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>) is no longer functional. Use TryCreateTwoFingerGestureOnTouchBegan(Func<Touch, Touch, T>, Action<T, Touch, Touch>) instead.", true)]
-        protected void TryCreateTwoFingerGestureOnTouchBegan(
-            Func<Touch, Touch, T> createGestureFunction)
-        {
-        }
-
-        /// <summary>
-        /// (Deprecated) Helper function for creating two-finger gestures when a touch begins.
-        /// </summary>
-        /// <param name="createGestureFunction">Function to be executed to create the gesture.</param>
-        /// <remarks>
-        /// <c>TryCreateTwoFingerGestureOnTouchBegan(Func&lt;Touch, Touch, T&gt;)</c> has been deprecated. Use
-        /// <see cref="TryCreateTwoFingerGestureOnTouchBegan(Func{Touch, Touch, T}, Action{T, Touch, Touch})"/> instead.
-        /// </remarks>
         [Obsolete("TryCreateTwoFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>) is no longer functional. Use TryCreateTwoFingerGestureOnTouchBegan(Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T>, Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch>) instead.", true)]
         protected void TryCreateTwoFingerGestureOnTouchBegan(
             Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> createGestureFunction)
         {
+        }
+
+        static partial class TouchActionConverterClosureHelper
+        {
+#if !XRI_LEGACY_INPUT_DISABLED
+            [Obsolete("GetAction is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use GetAction(Action<T, InputSystem.EnhancedTouch.Touch>) instead.", true)]
+            public static Action<T, CommonTouch> GetAction(Action<T, Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromOneTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingOneTouch;
+            }
+
+            [Obsolete("GetAction is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use GetAction(Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch>) instead.", true)]
+            public static Action<T, CommonTouch, CommonTouch> GetAction(Action<T, Touch, Touch> reinitializeGestureFunction)
+            {
+                s_ReinitializeGestureFromTwoTouchFunction = reinitializeGestureFunction;
+                return s_ConvertUsingTwoTouch;
+            }
+#endif
         }
     }
 }

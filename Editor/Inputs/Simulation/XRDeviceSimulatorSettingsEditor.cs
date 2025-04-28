@@ -13,8 +13,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         const string k_PackageName = "com.unity.xr.interaction.toolkit";
         const string k_PackageDisplayName = "XR Interaction Toolkit";
         const string k_SampleDisplayName = "XR Device Simulator";
-        const string k_ImportSampleTitle = "Importing " + k_SampleDisplayName + " sample.";
-        const string k_ImportSampleMessage = "The " + k_SampleDisplayName + " sample is going to be imported from the " + k_PackageDisplayName + " package, press \"Ok\" to continue.";
+        const string k_InteractionSimulatorSampleDisplayName = "XR Interaction Simulator";
 
         const string k_XRInteractionSimulatorPrefabName = "XR Interaction Simulator";
         const string k_XRDeviceSimulatorPrefabName = "XR Device Simulator";
@@ -89,9 +88,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                     if (m_AutomaticallyInstantiateSimulatorPrefab.boolValue)
                     {
                         if (m_UseClassic.boolValue)
-                            LoadXRDeviceSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName);
+                            LoadXRDeviceSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName, k_SampleDisplayName);
                         else
-                            LoadXRDeviceSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName);
+                            LoadXRDeviceSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
                     }
                     else
                         m_SimulatorPrefab.objectReferenceValue = null;
@@ -102,12 +101,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
-        void LoadXRDeviceSimulatorSampleAsset<T>(string simulatorPrefabName)
+        void LoadXRDeviceSimulatorSampleAsset<T>(string simulatorPrefabName, string sampleDisplayName)
         {
             var packageSamples = Sample.FindByPackage(k_PackageName, string.Empty);
             if (packageSamples == null)
             {
-                Debug.LogError($"Couldn't find samples of the {k_PackageName} package for importing the {k_SampleDisplayName} sample; aborting.", this);
+                Debug.LogError($"Couldn't find samples of the {k_PackageName} package for importing the {sampleDisplayName} sample; aborting.", this);
                 return;
             }
 
@@ -115,12 +114,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             foreach (var packageSample in packageSamples)
             {
-                if (packageSample.displayName != k_SampleDisplayName)
+                if (packageSample.displayName != sampleDisplayName)
                     continue;
 
                 if (!packageSample.isImported)
                 {
-                    if (EditorUtility.DisplayDialog(k_ImportSampleTitle, k_ImportSampleMessage, "Ok", "Cancel"))
+                    string importSampleTitle = "Importing " + sampleDisplayName + " sample.";
+                    string importSampleMessage = "The " + sampleDisplayName + " sample is going to be imported from the " + k_PackageDisplayName + " package, press \"Ok\" to continue.";
+
+                    if (EditorUtility.DisplayDialog(importSampleTitle, importSampleMessage, "Ok", "Cancel"))
                     {
                         packageSample.Import(Sample.ImportOptions.OverridePreviousImports);
                     }
@@ -137,7 +139,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (!foundXRDeviceSimulatorSample)
             {
-                Debug.LogError($"Couldn't find {k_SampleDisplayName} sample in the {k_PackageDisplayName} package; aborting.", this);
+                Debug.LogError($"Couldn't find {sampleDisplayName} sample in the {k_PackageDisplayName} package; aborting.", this);
                 return;
             }
 

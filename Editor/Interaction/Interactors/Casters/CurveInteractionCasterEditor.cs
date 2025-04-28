@@ -25,6 +25,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
         protected SerializedProperty m_RaycastTriggerInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.raycastSnapVolumeInteraction"/>.</summary>
         protected SerializedProperty m_RaycastSnapVolumeInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.raycastUIDocumentTriggerInteraction"/>.</summary>
+        protected SerializedProperty m_RaycastUIDocumentTriggerInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.targetNumCurveSegments"/>.</summary>
         protected SerializedProperty m_TargetNumCurveSegments;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.hitDetectionType"/>.</summary>
@@ -59,6 +61,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             public static readonly GUIContent raycastTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast Trigger Interaction", "Gets or sets type of interaction with trigger colliders via ray cast. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Determines if ray casts include snap volume triggers: 'Collide' to include, 'Ignore' for performance optimization when not using specific XR components.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastUIDocumentTriggerInteraction"/>.</summary>
+            public static readonly GUIContent raycastUIDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast UI Document Trigger Interaction", "Determines if ray casts include UI Document triggers: 'Collide' to include, 'Ignore' for performance optimization when not using UI Toolkit.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.targetNumCurveSegments"/>.</summary>
             public static readonly GUIContent targetNumCurveSegments = EditorGUIUtility.TrTextContent("Target Num Curve Segments", "Number of segments to sample along the curve.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.hitDetectionType"/>.</summary>
@@ -94,6 +98,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
             m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
             m_RaycastSnapVolumeInteraction = serializedObject.FindProperty("m_RaycastSnapVolumeInteraction");
+            m_RaycastUIDocumentTriggerInteraction = serializedObject.FindProperty("m_RaycastUIDocumentTriggerInteraction");
             m_TargetNumCurveSegments = serializedObject.FindProperty("m_TargetNumCurveSegments");
             m_HitDetectionType = serializedObject.FindProperty("m_HitDetectionType");
             m_CastDistance = serializedObject.FindProperty("m_CastDistance");
@@ -166,6 +171,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
                     EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
                     EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
                     EditorGUILayout.PropertyField(m_RaycastSnapVolumeInteraction, Contents.raycastSnapVolumeInteraction);
+                    // TODO for 3.2.0
+                    //EditorGUILayout.PropertyField(m_RaycastUIDocumentTriggerInteraction, Contents.raycastUIDocumentTriggerInteraction);
                 }
             }
         }

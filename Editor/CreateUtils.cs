@@ -90,15 +90,26 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             CreateInteractionManager();
 
-            var grabInteractableGO = CreateAndPlacePrimitive("Grab Interactable", menuCommand?.GetContextTransform(),
-                PrimitiveType.Cube,
+            var grabInteractableGO = CreateAndPlaceGameObject("Grab Interactable", menuCommand?.GetContextTransform(),
                 typeof(XRGrabInteractable), typeof(XRGeneralGrabTransformer));
 
             var transform = grabInteractableGO.transform;
             var localScale = InverseTransformScale(transform, new Vector3(0.1f, 0.1f, 0.1f));
             transform.localScale = Abs(localScale);
 
-            var boxCollider = grabInteractableGO.GetComponent<BoxCollider>();
+            // Create a visual for the grab interactable, but keep the collider separate from the visual
+            // so that the visuals can be updated at a different rate than the physics system.
+            // The BoxCollider that normally gets added to the Cube primitive is instead added above.
+            var visuals = CreateAndPlacePrimitive("Visuals", transform, PrimitiveType.Cube);
+            Undo.DestroyObjectImmediate(visuals.GetComponent<BoxCollider>());
+
+            var grabInteractable = grabInteractableGO.GetComponent<XRGrabInteractable>();
+            grabInteractable.predictedVisualsTransform = visuals.transform;
+
+            var boxColliderGO = ObjectFactory.CreateGameObject("Collider", typeof(BoxCollider));
+            Place(boxColliderGO, grabInteractableGO.transform);
+
+            var boxCollider = boxColliderGO.GetComponent<BoxCollider>();
             // BoxCollider does not support a negative effective size,
             // so ensure the size accounts for any negative scaling.
             boxCollider.size = Vector3.Scale(boxCollider.size, Sign(localScale));
@@ -312,7 +323,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             curveVisualController.curveInteractionDataProvider = interactor;
             curveVisualController.lineOriginTransform = curveVisualController.transform;
 
-            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            // Add a Sorting Group with a custom sorting order to make it render in front of uGUI (Unity UI)
             var sortingGroup = lineVisualGO.GetComponent<SortingGroup>();
             sortingGroup.sortingOrder = 30005;
 
@@ -329,7 +340,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             SetupLineRenderer(rayInteractableGO.GetComponent<LineRenderer>());
 
-            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            // Add a Sorting Group with a custom sorting order to make it render in front of uGUI (Unity UI)
             var sortingGroup = rayInteractableGO.GetComponent<SortingGroup>();
             sortingGroup.sortingOrder = 30005;
 
@@ -342,7 +353,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 typeof(XRGazeInteractor),
                 typeof(SortingGroup));
 
-            // Add a Sorting Group with a custom sorting order to make it render in front of UGUI
+            // Add a Sorting Group with a custom sorting order to make it render in front of uGUI (Unity UI)
             var sortingGroup = gazeInteractableGO.GetComponent<SortingGroup>();
             sortingGroup.sortingOrder = 30005;
 

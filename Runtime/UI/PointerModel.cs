@@ -28,8 +28,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     }
 
     /// <summary>
-    /// Represents the state of a single mouse button within the Unity UI (UGUI) system. Keeps track of various book-keeping regarding clicks, drags, and presses.
-    /// Can be converted to and from PointerEventData for sending into Unity UI (UGUI).
+    /// Represents the state of a single mouse button within the uGUI (Unity UI) system. Keeps track of various book-keeping regarding clicks, drags, and presses.
+    /// Can be converted to and from PointerEventData for sending into uGUI (Unity UI).
     /// </summary>
     public struct MouseButtonModel
     {
@@ -131,7 +131,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Fills a <see cref="PointerEventData"/> with this mouse button's internally cached values.
         /// </summary>
-        /// <param name="eventData">These objects are used to send data through the Unity UI (UGUI) system.</param>
+        /// <param name="eventData">These objects are used to send data through the uGUI (Unity UI) system.</param>
         public void CopyTo(PointerEventData eventData)
         {
             eventData.dragging = m_ImplementationData.isDragging;
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Fills this object with the values from a <see cref="PointerEventData"/>.
         /// </summary>
-        /// <param name="eventData">These objects are used to send data through the Unity UI (UGUI) system.</param>
+        /// <param name="eventData">These objects are used to send data through the uGUI (Unity UI) system.</param>
         public void CopyFrom(PointerEventData eventData)
         {
             m_ImplementationData.isDragging = eventData.dragging;
@@ -263,7 +263,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Cached data and button state representing a left mouse button on a mouse.
-        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
+        /// Used by uGUI (Unity UI) to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel leftButton
         {
@@ -291,7 +291,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Cached data and button state representing a right mouse button on a mouse.
-        /// Unity UI (UGUI) uses this to keep track of persistent click, press, and drag states.
+        /// uGUI (Unity UI) uses this to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel rightButton
         {
@@ -319,7 +319,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Cached data and button state representing a middle mouse button on a mouse.
-        /// Used by Unity UI (UGUI) to keep track of persistent click, press, and drag states.
+        /// Used by uGUI (Unity UI) to keep track of persistent click, press, and drag states.
         /// </summary>
         public MouseButtonModel middleButton
         {

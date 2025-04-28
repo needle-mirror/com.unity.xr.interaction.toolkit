@@ -1125,7 +1125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 using (XRInteractionManager.s_EvaluateValidSelectionsMarker.Auto())
                     m_RegisteredInteractionManager.InteractorSelectValidTargets(selectInteractor, m_ValidTargets);
 
-                // Alternatively check if the interactor is poke interacting with UGUI
+                // Alternatively check if the interactor is poke interacting with uGUI (Unity UI)
                 if (selectInteractor.hasSelection || (interactor is IUIInteractor uiInteractor && TrackedDeviceGraphicRaycaster.IsPokeInteractingWithUI(uiInteractor)))
                     performedInteraction = true;
             }

@@ -30,6 +30,7 @@ using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
+#if !XRI_LEGACY_INPUT_DISABLED
     class MockTouch
     {
         public float deltaTime
@@ -85,6 +86,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
         public Touch ToTouch() => (Touch)m_Touch;
     }
+#endif
 
     /// <summary>
     /// An adapter struct that wraps a <c>Touch</c> from either the Input System package or the Input Manager.
@@ -93,8 +95,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <seealso cref="InputSystem.EnhancedTouch.Touch"/>
     readonly struct CommonTouch
     {
+#if !XRI_LEGACY_INPUT_DISABLED
         public float deltaTime => m_IsEnhancedTouch ? (float)(m_EnhancedTouch.time - m_EnhancedTouch.startTime) : m_Touch.deltaTime;
-
         public int tapCount => m_IsEnhancedTouch ? m_EnhancedTouch.tapCount : m_Touch.tapCount;
 
         public bool isPhaseBegan => m_IsEnhancedTouch ? m_EnhancedTouch.phase == InputSystem.TouchPhase.Began : m_Touch.phase == TouchPhase.Began;
@@ -116,8 +118,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         public Vector2 position => m_IsEnhancedTouch ? m_EnhancedTouch.screenPosition : m_Touch.position;
 
         readonly Touch m_Touch;
-        readonly InputSystem.EnhancedTouch.Touch m_EnhancedTouch;
-        readonly bool m_IsEnhancedTouch;
 
         public CommonTouch(Touch touch)
         {
@@ -126,22 +126,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             m_IsEnhancedTouch = false;
         }
 
-        public CommonTouch(InputSystem.EnhancedTouch.Touch touch)
-        {
-            m_Touch = default;
-            m_EnhancedTouch = touch;
-            m_IsEnhancedTouch = true;
-        }
-
         /// <summary>
-        /// Gets the <see cref="Touch"/> if constructed with <see cref="CommonTouch(Touch)"/>.
+        /// (Deprecated) Gets the <see cref="Touch"/> if constructed with <see cref="CommonTouch(Touch)"/>.
         /// </summary>
         /// <returns>Returns the <see cref="Touch"/> used to construct this object. Otherwise, throws an exception.</returns>
         /// <exception cref="InvalidOperationException">Throws when this object was constructed with an Input System <see cref="InputSystem.EnhancedTouch.Touch"/>.</exception>
+        /// <remarks>
+        /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
+        /// </remarks>
+        [Obsolete("GetTouch() is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use GetEnhancedTouch() instead.")]
         public Touch GetTouch() =>
             !m_IsEnhancedTouch
                 ? m_Touch
                 : throw new InvalidOperationException($"Cannot convert to {typeof(Touch).FullName} since this was sourced from the Input System package.");
+#else
+        public float deltaTime => (float)(m_EnhancedTouch.time - m_EnhancedTouch.startTime);
+        public int tapCount => m_EnhancedTouch.tapCount;
+
+        public bool isPhaseBegan => m_EnhancedTouch.phase == InputSystem.TouchPhase.Began;
+        public bool isPhaseMoved => m_EnhancedTouch.phase == InputSystem.TouchPhase.Moved;
+        public bool isPhaseStationary => m_EnhancedTouch.phase == InputSystem.TouchPhase.Stationary;
+        public bool isPhaseEnded => m_EnhancedTouch.phase == InputSystem.TouchPhase.Ended;
+        public bool isPhaseCanceled => m_EnhancedTouch.phase == InputSystem.TouchPhase.Canceled;
+
+        public Vector2 deltaPosition => m_EnhancedTouch.delta;
+
+        /// <summary>
+        /// Unique ID of the touch used to identify it across multiple frames.
+        /// Not to be confused with <see cref="InputSystem.EnhancedTouch.Finger.index"/>.
+        /// </summary>
+        /// <seealso cref="Touch.fingerId"/>
+        /// <seealso cref="InputSystem.EnhancedTouch.Touch.touchId"/>
+        public int fingerId => m_EnhancedTouch.touchId;
+
+        public Vector2 position => m_EnhancedTouch.screenPosition;
+#endif
+
+        readonly InputSystem.EnhancedTouch.Touch m_EnhancedTouch;
+        readonly bool m_IsEnhancedTouch;
+
+        public CommonTouch(InputSystem.EnhancedTouch.Touch touch)
+        {
+#if !XRI_LEGACY_INPUT_DISABLED
+            m_Touch = default;
+#endif
+            m_EnhancedTouch = touch;
+            m_IsEnhancedTouch = true;
+        }
 
         /// <summary>
         /// Gets the <see cref="InputSystem.EnhancedTouch.Touch"/> if constructed with <see cref="CommonTouch(InputSystem.EnhancedTouch.Touch)"/>.
@@ -182,7 +213,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// is set to <b>Both</b> for backwards compatibility with existing projects.
         /// </remarks>
         public static readonly TouchInputSource defaultTouchInputSource =
-#if ENABLE_LEGACY_INPUT_MANAGER
+#if ENABLE_LEGACY_INPUT_MANAGER && !XRI_LEGACY_INPUT_DISABLED
             TouchInputSource.Legacy;
 #else
             TouchInputSource.Enhanced;
@@ -202,10 +233,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
                 switch (touchInputSource)
                 {
+#if !XRI_LEGACY_INPUT_DISABLED
                     case TouchInputSource.Legacy:
                         for (int index = 0, touchCount = Input.touchCount; index < touchCount; ++index)
                             s_Touches.Add(new CommonTouch(Input.GetTouch(index)));
                         break;
+                    case TouchInputSource.Mock:
+                        foreach (var touch in mockTouches)
+                            s_Touches.Add(new CommonTouch(touch.ToTouch()));
+                        break;
+#endif
                     case TouchInputSource.Enhanced:
                         // ReSharper disable once ForCanBeConvertedToForeach -- Would produce garbage, ReadOnlyArray does not use a struct for the enumerator
                         for (var index = 0; index < InputSystem.EnhancedTouch.Touch.activeTouches.Count; ++index)
@@ -214,10 +251,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                             s_Touches.Add(new CommonTouch(touch));
                         }
                         break;
-                    case TouchInputSource.Mock:
-                        foreach (var touch in mockTouches)
-                            s_Touches.Add(new CommonTouch(touch.ToTouch()));
-                        break;
                 }
 
                 return s_Touches;
@@ -225,7 +258,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         static readonly List<CommonTouch> s_Touches = new List<CommonTouch>();
+#if !XRI_LEGACY_INPUT_DISABLED
         internal static readonly List<MockTouch> mockTouches = new List<MockTouch>();
+#endif
         static readonly HashSet<int> s_RetainedFingerIds = new HashSet<int>();
 
         /// <summary>

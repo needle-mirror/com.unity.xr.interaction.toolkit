@@ -39,6 +39,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.isRegisteredWithInteractionManager has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRDualGrabFreeTransformer.lastInteractorAttachPose has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceEventData.pressWorldPosition has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor.enableMultiPick has { internal get; internal set; }." ),
         };
 
         static readonly (string, string)[] s_InternalMethodExceptionList =
@@ -71,6 +72,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.OnLocomotionStart has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.MigratePlaneClassifications has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRControllerRecording.SetFrameDependentData has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor.UpdateUIRegistration has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.NearFarInteractor.UpdateUIRegistration has internal."),
         };
 
         static readonly (string, string)[] s_PrivatePropertyExceptionList =

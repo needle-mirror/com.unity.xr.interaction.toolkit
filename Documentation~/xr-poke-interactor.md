@@ -22,4 +22,8 @@ Interactor used for interacting with interactables through poking.
 | **Physics Layer Mask** | Physics layer mask used for limiting poke sphere overlap. |
 | **Physics Trigger Interaction** | Determines whether the poke sphere overlap will hit triggers. |
 | **Require Poke Filter** | Denotes whether or not valid targets will only include objects with a poke filter. |
+| **UI Interaction** | When enabled, this allows the poke interactor to hover and select UI elements. |
+| **Click UI On Down** | When enabled, this will invoke click events on press down instead of on release. |
 | **Debug Visualizations Enabled** | Whether to display the debug visuals for the poke interaction. The visuals include a sphere that changes to green when hover is triggered, and a smaller sphere behind it that turns green when select is triggered. |
+| **Interactor Filters** | See the [Interaction Filters](interaction-filters.md) page. |
+| **Interactor Events** | See the [Interactor Events](interactor-events.md) page. |

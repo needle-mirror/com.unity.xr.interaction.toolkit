@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "3.1";
+        const string k_CurrentDocsVersion = "3.2";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_HtmlFileSuffix = ".html";
 
@@ -421,6 +421,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRUIInputModule"/>.
         /// </summary>
         public const string k_XRUIInputModule = k_BaseApi + k_BaseNamespace + k_UINamespace + nameof(XRUIInputModule) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRUIToolkitManager"/>.
+        /// </summary>
+        public const string k_XRUIToolkitManager = k_BaseApi + k_BaseNamespace + k_UINamespace + nameof(XRUIToolkitManager) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="DisposableManagerSingleton"/>.

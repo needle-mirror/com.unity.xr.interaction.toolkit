@@ -3,24 +3,24 @@ using UnityEngine.EventSystems;
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// Represents the state of a navigation in the Unity UI (UGUI) system. Keeps track of various book-keeping regarding UI selection, and move and button states.
+    /// Represents the state of a navigation in the uGUI (Unity UI) system. Keeps track of various book-keeping regarding UI selection, and move and button states.
     /// </summary>
     struct NavigationModel
     {
         public struct ImplementationData
         {
             /// <summary>
-            /// Bookkeeping value for Unity UI (UGUI) that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
+            /// Bookkeeping value for uGUI (Unity UI) that tracks the number of sequential move commands in the same direction that have been sent.  Used to handle proper repeat timing.
             /// </summary>
             public int consecutiveMoveCount { get; set; }
 
             /// <summary>
-            /// Bookkeeping value for Unity UI (UGUI) that tracks the direction of the last move command.  Used to handle proper repeat timing.
+            /// Bookkeeping value for uGUI (Unity UI) that tracks the direction of the last move command.  Used to handle proper repeat timing.
             /// </summary>
             public MoveDirection lastMoveDirection { get; set; }
 
             /// <summary>
-            /// Bookkeeping value for Unity UI (UGUI) that tracks the last time a move command was sent.  Used to handle proper repeat timing.
+            /// Bookkeeping value for uGUI (Unity UI) that tracks the last time a move command was sent.  Used to handle proper repeat timing.
             /// </summary>
             public float lastMoveTime { get; set; }
 
@@ -83,12 +83,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         internal ButtonDeltaState cancelButtonDelta { get; private set; }
 
         /// <summary>
-        /// Internal bookkeeping data used by the Unity UI (UGUI) system.
+        /// Internal bookkeeping data used by the uGUI (Unity UI) system.
         /// </summary>
         internal ImplementationData implementationData { get; set; }
 
         /// <summary>
-        /// Resets this object to it's default, unused state.
+        /// Resets this object to its default, unused state.
         /// </summary>
         public void Reset()
         {

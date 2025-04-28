@@ -149,6 +149,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
+        bool m_ClickOnDown;
+
+        /// <summary>
+        /// Whether or not the model should allow UI click events to be fired on press down instead of after release.
+        /// </summary>
+        /// <remarks>This is typically for more responsive UI poke interaction.</remarks>
+        public bool clickOnDown
+        {
+            get => m_ClickOnDown;
+            set => m_ClickOnDown = value;
+        }
+
         /// <summary>
         /// Whether the state of the select option has changed this frame.
         /// </summary>
@@ -184,7 +196,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Overrides the position point used for the world starting position of the cast with a function that returns the position instead.
         /// This position function allows for accurate just in time position querying.
-        /// Necessary for poke interaction with UGUI if the frame of reference is moving rapidly.
+        /// Necessary for poke interaction with uGUI (Unity UI) if the frame of reference is moving rapidly.
         /// </summary>
         /// <seealso cref="position"/>
         public Func<Vector3> positionProvider

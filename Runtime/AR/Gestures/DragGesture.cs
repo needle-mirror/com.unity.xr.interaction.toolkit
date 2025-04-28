@@ -36,16 +36,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         /// <param name="recognizer">The gesture recognizer.</param>
         /// <param name="touch">The touch that started this gesture.</param>
-        public DragGesture(DragGestureRecognizer recognizer, Touch touch)
-            : this(recognizer, new CommonTouch(touch))
-        {
-        }
-
-        /// <summary>
-        /// Initializes and returns an instance of <see cref="DragGesture"/>.
-        /// </summary>
-        /// <param name="recognizer">The gesture recognizer.</param>
-        /// <param name="touch">The touch that started this gesture.</param>
         public DragGesture(DragGestureRecognizer recognizer, InputSystem.EnhancedTouch.Touch touch)
             : this(recognizer, new CommonTouch(touch))
         {
@@ -56,7 +46,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Reinitialize(touch);
         }
 
-        internal void Reinitialize(Touch touch) => Reinitialize(new CommonTouch(touch));
         internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch) => Reinitialize(new CommonTouch(touch));
 
         void Reinitialize(CommonTouch touch)

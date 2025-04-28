@@ -40,12 +40,8 @@ This interactor is designed to integrate the functionality of both `XRDirectInte
 | **UI Scroll Input**                       | Defines the input used for scrolling UI elements, functioning like a mouse scroll wheel when pointing over UI. Implemented as an `XRInputValueReader<Vector2>`.               |
 | **Select Input**                          | Input to use for selecting an interactable.                                                                                                                                   |
 | **Activate Input**                        | Input to use for activating an interactable. This can trigger a secondary action on an interactable object.                                                                   |
-| **Interactor Filters**                    | Add filters to extend this Interactor without needing to create a derived behavior.                                                                                           |
-| **Starting Target Filter**                | The target filter that this Interactor will automatically link at startup (optional).                                                                                         |
-| **Starting Hover Filters**                | The hover filters that this Interactor will automatically link at startup (optional). Used as additional hover validations.                                                   |
-| **Starting Select Filters**               | The select filters that this Interactor will automatically link at startup (optional). Used as additional select validations.                                                 |
-| **UI Hover Entered Event**                | Event triggered when a UI element is hovered over by this interactor.                                                                                                         |
-| **UI Hover Exited Event**                 | Event triggered when a UI element is no longer hovered over by this interactor.                                                                                               |
+| **Interactor Filters**                    | See the [Interaction Filters](interaction-filters.md) page.                                                                                                                   |
+| **Interactor Events**                     | See the [Interactor Events](interactor-events.md) page.                                                                                                                       |
 
 ## Enums
 

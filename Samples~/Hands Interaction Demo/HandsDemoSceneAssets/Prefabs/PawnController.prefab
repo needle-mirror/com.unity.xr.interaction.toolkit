@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6689389171845895219}
-  - component: {fileID: 6689389171845895228}
   - component: {fileID: 6689389171845895229}
   - component: {fileID: 6689389171845895230}
   - component: {fileID: 6689389171845895231}
@@ -35,22 +34,10 @@ Transform:
   m_Children:
   - {fileID: 6689389173434678687}
   - {fileID: 8302078025757585448}
+  - {fileID: 610982477392564286}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &6689389171845895228
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6689389171845895218}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.03, y: 0.155, z: 0.03}
-  m_Center: {x: 0, y: -0.025, z: 0}
 --- !u!54 &6689389171845895229
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -81,7 +68,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
   m_Colliders:
-  - {fileID: 6689389171845895228}
+  - {fileID: 4521726787290210859}
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
@@ -149,6 +136,7 @@ MonoBehaviour:
   m_ReinitializeDynamicAttachEverySingleGrab: 1
   m_AttachEaseInTime: 0
   m_MovementType: 2
+  m_PredictedVisualsTransform: {fileID: 6689389173434678687}
   m_VelocityDamping: 1
   m_VelocityScale: 1
   m_AngularVelocityDamping: 1
@@ -190,6 +178,10 @@ MonoBehaviour:
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
   m_FarAttachMode: 0
+  m_LimitLinearVelocity: 0
+  m_LimitAngularVelocity: 0
+  m_MaxLinearVelocityDelta: 10
+  m_MaxAngularVelocityDelta: 20
 --- !u!114 &6689389171845895231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -226,7 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Interactable: {fileID: 6689389171845895230}
-  m_PokeCollider: {fileID: 6689389171845895228}
+  m_PokeCollider: {fileID: 4521726787290210859}
   m_PokeConfiguration:
     m_UseConstant: 1
     m_ConstantValue:
@@ -512,6 +504,51 @@ MonoBehaviour:
   m_BlendShapeIndex: 1
   m_BlendShapeMin: 0
   m_BlendShapeMax: 100
+--- !u!1 &7657675623233892162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 610982477392564286}
+  - component: {fileID: 4521726787290210859}
+  m_Layer: 0
+  m_Name: PawnController_COL
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &610982477392564286
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7657675623233892162}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 6689389171845895219}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4521726787290210859
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7657675623233892162}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.03, y: 0.155, z: 0.03}
+  m_Center: {x: 0, y: -0.025, z: 0}
 --- !u!1001 &490287090769008218
 PrefabInstance:
   m_ObjectHideFlags: 0

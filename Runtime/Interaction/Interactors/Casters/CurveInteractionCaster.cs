@@ -1,3 +1,6 @@
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -140,6 +143,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         {
             get => m_RaycastSnapVolumeInteraction;
             set => m_RaycastSnapVolumeInteraction = value;
+        }
+
+        [SerializeField]
+        QueryUIDocumentInteraction m_RaycastUIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
+
+        /// <summary>
+        /// Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders,
+        /// even if the ray cast is set to ignore triggers.
+        /// If you are not using UI Toolkit, you should set this property
+        /// to <see cref="QueryUIDocumentInteraction.Ignore"/> to avoid the performance cost.
+        /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryUIDocumentInteraction.Collide"/> when <see cref="raycastTriggerInteraction"/> is set to ignore trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
+        /// the ray cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
+        /// hits that are not UI Toolkit UI Documents.
+        /// <br />
+        /// When set to <see cref="QueryUIDocumentInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
+        /// this behavior will ignore any trigger collider hits that are UI Toolkit UI Documents.
+        /// </remarks>
+        /// <seealso cref="raycastTriggerInteraction"/>
+        public QueryUIDocumentInteraction raycastUIDocumentTriggerInteraction
+        {
+            get => m_RaycastUIDocumentTriggerInteraction;
+            set => m_RaycastUIDocumentTriggerInteraction = value;
         }
 
         [SerializeField]
@@ -328,8 +359,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
                 {
                     targets.Add(m_RaycastHits[i].collider);
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -347,8 +380,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
                     raycastHits.Add(m_RaycastHits[i]);
                     targets.Add(m_RaycastHits[i].collider);
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -599,7 +634,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         int FilterOutTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int raycastHitCount)
         {
             var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
-                            (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
+                (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
 
             if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
             {
@@ -637,7 +672,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             for (var index = 0; index < remainingCount; ++index)
             {
                 var hitCollider = raycastHits[index].collider;
-                if (hitCollider == null || (hitCollider.isTrigger && !interactionManager.IsColliderRegisteredSnapVolume(hitCollider)))
+                if (hitCollider == null || (hitCollider.isTrigger && !interactionManager.IsColliderRegisteredSnapVolume(hitCollider)
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                    && !XRUIToolkitHandler.HasUIDocument(hitCollider)
+#endif
+                ))
                 {
                     // Replace item at current index with item at the end of the list.
                     raycastHits[index--] = raycastHits[--remainingCount];

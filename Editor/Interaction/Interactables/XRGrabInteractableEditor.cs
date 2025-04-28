@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -118,6 +119,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         protected SerializedProperty m_StartingMultipleGrabTransformers;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.startingSingleGrabTransformers"/>.</summary>
         protected SerializedProperty m_StartingSingleGrabTransformers;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.predictedVisualsTransform"/>.</summary>
+        protected SerializedProperty m_PredictedVisualsTransform;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.limitLinearVelocity"/>.</summary>
+        protected SerializedProperty m_LimitLinearVelocity;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.limitAngularVelocity"/>.</summary>
+        protected SerializedProperty m_LimitAngularVelocity;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.maxLinearVelocityDelta"/>.</summary>
+        protected SerializedProperty m_MaxLinearVelocityDelta;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.maxAngularVelocityDelta"/>.</summary>
+        protected SerializedProperty m_MaxAngularVelocityDelta;
 
         /// <summary>Value to be checked before recalculate if the inspected object has a non-uniformly scaled parent.</summary>
         bool m_RecalculateHasNonUniformScale = true;
@@ -213,12 +224,36 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.startingSingleGrabTransformers"/>.</summary>
             public static readonly GUIContent startingSingleGrabTransformers = EditorGUIUtility.TrTextContent("Starting Single Grab Transformers", "The grab transformers that this Interactable automatically links at startup (optional, may be empty). Used for single-interactor selection.");
 
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.predictedVisualsTransform"/>.</summary>
+            public static readonly GUIContent predictedVisualsTransform = EditorGUIUtility.TrTextContent("Predicted Visuals Transform", "Optional child GameObject for this component to drive the visuals of this Interactable between physics updates. Not used with Instantaneous.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.limitLinearVelocity"/>.</summary>
+            public static readonly GUIContent limitLinearVelocity = EditorGUIUtility.TrTextContent("Limit Linear Velocity", "Whether to limit the linear velocity applied to the Rigidbody.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.limitAngularVelocity"/>.</summary>
+            public static readonly GUIContent limitAngularVelocity = EditorGUIUtility.TrTextContent("Limit Angular Velocity", "Whether to limit the angular velocity applied to the Rigidbody.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.maxLinearVelocityDelta"/>.</summary>
+            public static readonly GUIContent maxLinearVelocityDelta = EditorGUIUtility.TrTextContent("Max Linear Velocity Delta", "The maximum linear velocity that Unity will apply to the Rigidbody each physics frame (and the optional predicted visuals if used).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.maxAngularVelocityDelta"/>.</summary>
+            public static readonly GUIContent maxAngularVelocityDelta = EditorGUIUtility.TrTextContent("Max Angular Velocity Delta", "The maximum angular velocity in radians per second that Unity will apply to the Rigidbody each physics frame (and the optional predicted visuals if used).");
+
             /// <summary><see cref="GUIContent"/> for the Multiple Grab Transformers list in Play mode.</summary>
             public static readonly GUIContent grabTransformersConfiguration = EditorGUIUtility.TrTextContent("Grab Transformers Configuration");
             /// <summary><see cref="GUIContent"/> for the Multiple Grab Transformers list in Play mode.</summary>
             public static readonly GUIContent multipleGrabTransformers = EditorGUIUtility.TrTextContent("Multiple Grab Transformers", "The grab transformers used when there are multiple interactors selecting this object.");
             /// <summary><see cref="GUIContent"/> for the Single Grab Transformers list in Play mode.</summary>
             public static readonly GUIContent singleGrabTransformers = EditorGUIUtility.TrTextContent("Single Grab Transformers", "The grab transformers used when there is a single interactor selecting this object.");
+
+            /// <summary>The help box message when the Predicted Visuals Transform is not a child GameObject.</summary>
+            public static readonly GUIContent visualsMustBeChildWarning = EditorGUIUtility.TrTextContent("Predicted Visuals Transform must be a child GameObject.");
+            /// <summary>The help box message when the Predicted Visuals Transform has a collider component.</summary>
+            public static readonly GUIContent visualsHasColliderWarning = EditorGUIUtility.TrTextContent("Predicted Visuals Transform must not have a collider component so that it updates in step with the Rigidbody. The collider should be moved out of the visuals hierarchy, such as to a different child GameObject of this XR Grab Interactable.");
+            /// <summary>The help box message when the Predicted Visuals Transform is not an immediate child GameObject and an intermediate parent has a Transform offset.</summary>
+            public static readonly GUIContent visualsIntermediateParentOffsetWarning = EditorGUIUtility.TrTextContent("Predicted Visuals Transform has an intermediate parent GameObject with a Transform offset. Recommended to clear Position and Rotation to 0 on each parent Transform of \"{0}\" that is a child GameObject of this XR Grab Interactable.");
+            /// <summary>The help box message when the Max Angular Velocity is larger than the Physics Project Settings value.</summary>
+            public static readonly GUIContent maxAngularVelocitySettingsWarning = EditorGUIUtility.TrTextContent("Default Max Angular Speed (value: {0}) in Edit > Project Settings > Physics will clamp this value.");
+            /// <summary>The help box message when the Max Angular Velocity is larger than the Rigidbody's value at runtime.</summary>
+            public static readonly GUIContent maxAngularVelocitySettingsRuntimeWarning = EditorGUIUtility.TrTextContent("Max Angular Velocity (value: {0}) of the Rigidbody will clamp this value.");
+            /// <summary>The help box message when the Max Linear Velocity is larger than the Rigidbody's value at runtime.</summary>
+            public static readonly GUIContent maxLinearVelocitySettingsRuntimeWarning = EditorGUIUtility.TrTextContent("Max Linear Velocity (value: {0}) of the Rigidbody will clamp this value.");
 
             /// <summary>Message for non-uniformly scaled parent.</summary>
             public static readonly string nonUniformScaledParentWarning = "When a child object has a non-uniformly scaled parent and is rotated relative to that parent, it may appear skewed. To avoid this, use uniform scale in all parents' Transform of this object.";
@@ -227,7 +262,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             public static readonly GUIContent[] attachPointCompatibilityModeOptions =
             {
                 EditorGUIUtility.TrTextContent("Default (Recommended)"),
-                EditorGUIUtility.TrTextContent("Legacy (Obsolete)")
+                EditorGUIUtility.TrTextContent("Legacy (Obsolete)"),
             };
         }
 
@@ -272,6 +307,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             m_AddDefaultGrabTransformers = serializedObject.FindProperty("m_AddDefaultGrabTransformers");
             m_StartingMultipleGrabTransformers = serializedObject.FindProperty("m_StartingMultipleGrabTransformers");
             m_StartingSingleGrabTransformers = serializedObject.FindProperty("m_StartingSingleGrabTransformers");
+
+            m_PredictedVisualsTransform = serializedObject.FindProperty("m_PredictedVisualsTransform");
+            m_LimitLinearVelocity = serializedObject.FindProperty("m_LimitLinearVelocity");
+            m_LimitAngularVelocity = serializedObject.FindProperty("m_LimitAngularVelocity");
+            m_MaxLinearVelocityDelta = serializedObject.FindProperty("m_MaxLinearVelocityDelta");
+            m_MaxAngularVelocityDelta = serializedObject.FindProperty("m_MaxAngularVelocityDelta");
 
             m_SingleGrabTransformers = new List<IXRGrabTransformer>();
             m_SingleGrabTransformersReorderableList = new GrabTransformersReorderableList(m_SingleGrabTransformers)
@@ -322,6 +363,132 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         protected virtual void DrawGrabConfiguration()
         {
             EditorGUILayout.PropertyField(m_MovementType, Contents.movementType);
+
+            var movementType = (XRBaseInteractable.MovementType)m_MovementType.intValue;
+            var isRigidbodyMovement = movementType == XRBaseInteractable.MovementType.VelocityTracking ||
+                movementType == XRBaseInteractable.MovementType.Kinematic;
+            using (new EditorGUI.IndentLevelScope())
+            {
+                using (new EditorGUI.DisabledScope(!isRigidbodyMovement))
+                {
+                    EditorGUILayout.PropertyField(m_PredictedVisualsTransform, Contents.predictedVisualsTransform);
+                    if (m_PredictedVisualsTransform.objectReferenceValue != null)
+                    {
+                        // Verify that the reference is a child GameObject.
+                        foreach (var targetObject in serializedObject.targetObjects)
+                        {
+                            var interactable = (XRGrabInteractable)targetObject;
+                            var predictedVisualsTransform = (Transform)m_PredictedVisualsTransform.objectReferenceValue;
+                            var isChild = predictedVisualsTransform.IsChildOf(interactable.transform);
+                            if (predictedVisualsTransform == interactable.transform || !isChild)
+                            {
+                                EditorGUILayout.HelpBox(Contents.visualsMustBeChildWarning.text, MessageType.Error);
+                                break;
+                            }
+
+                            // Verify that the reference does not have a collider component.
+                            // The predicted visuals transform will be updated each frame, so the collider should
+                            // be moved out of the visuals hierarchy to keep it only moved with the Rigidbody.
+                            if (predictedVisualsTransform.GetComponentInChildren<Collider>() != null)
+                            {
+                                EditorGUILayout.HelpBox(Contents.visualsHasColliderWarning.text, MessageType.Error);
+                                break;
+                            }
+
+                            // Since it is a child, check if an intermediate parent has a transform offset.
+                            // This is unlikely to be an intended configuration since the predicted visuals transform
+                            // is expected to share the same relative origin as the Rigidbody. The implementation
+                            // only supports maintaining the offset of the visuals transform itself.
+                            var parent = predictedVisualsTransform.parent;
+                            while (parent != null && parent != interactable.transform)
+                            {
+                                if (parent.GetLocalPose() != Pose.identity)
+                                {
+                                    var message = string.Format(Contents.visualsIntermediateParentOffsetWarning.text, predictedVisualsTransform.name);
+                                    EditorGUILayout.HelpBox(message, MessageType.Warning);
+                                    break;
+                                }
+
+                                parent = parent.parent;
+                            }
+                        }
+                    }
+                }
+
+                if (movementType == XRBaseInteractable.MovementType.VelocityTracking)
+                {
+                    // Linear Velocity
+                    EditorGUILayout.PropertyField(m_LimitLinearVelocity, Contents.limitLinearVelocity);
+                    if (m_LimitLinearVelocity.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_MaxLinearVelocityDelta, Contents.maxLinearVelocityDelta);
+                            if (m_MaxLinearVelocityDelta.floatValue < 0f)
+                                m_MaxLinearVelocityDelta.floatValue = 0f;
+
+                            // In Play mode, check against the Rigidbody's max linear velocity.
+                            // In Authoring mode, there is no Physics settings to check against.
+#if UNITY_2022_3_OR_NEWER // Rigidbody.maxLinearVelocity not available in earlier Unity versions
+                            if (Application.isPlaying)
+                            {
+                                foreach (var targetObject in serializedObject.targetObjects)
+                                {
+                                    if (((XRGrabInteractable)targetObject).TryGetComponent<Rigidbody>(out var rigidbody))
+                                    {
+                                        if (m_MaxLinearVelocityDelta.floatValue > rigidbody.maxLinearVelocity)
+                                        {
+                                            var message = string.Format(Contents.maxLinearVelocitySettingsRuntimeWarning.text, rigidbody.maxLinearVelocity);
+                                            EditorGUILayout.HelpBox(message, MessageType.None);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+#endif
+                        }
+                    }
+
+                    // Angular Velocity
+                    EditorGUILayout.PropertyField(m_LimitAngularVelocity, Contents.limitAngularVelocity);
+                    if (m_LimitAngularVelocity.boolValue)
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_MaxAngularVelocityDelta, Contents.maxAngularVelocityDelta);
+                            if (m_MaxAngularVelocityDelta.floatValue < 0f)
+                                m_MaxAngularVelocityDelta.floatValue = 0f;
+
+                            // In Play mode, check against the Rigidbody's max angular velocity.
+                            // In Authoring mode, check against the Physics settings.
+                            if (Application.isPlaying)
+                            {
+                                foreach (var targetObject in serializedObject.targetObjects)
+                                {
+                                    if (((XRGrabInteractable)targetObject).TryGetComponent<Rigidbody>(out var rigidbody))
+                                    {
+                                        if (m_MaxAngularVelocityDelta.floatValue > rigidbody.maxAngularVelocity)
+                                        {
+                                            var message = string.Format(Contents.maxAngularVelocitySettingsRuntimeWarning.text, rigidbody.maxAngularVelocity);
+                                            EditorGUILayout.HelpBox(message, MessageType.None);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (m_MaxAngularVelocityDelta.floatValue > Physics.defaultMaxAngularSpeed)
+                                {
+                                    var message = string.Format(Contents.maxAngularVelocitySettingsWarning.text, Physics.defaultMaxAngularSpeed);
+                                    EditorGUILayout.HelpBox(message, MessageType.None);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             EditorGUILayout.PropertyField(m_RetainTransformParent, Contents.retainTransformParent);
             DrawNonUniformScaleMessage();
         }

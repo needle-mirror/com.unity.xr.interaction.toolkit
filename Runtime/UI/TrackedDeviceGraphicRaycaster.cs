@@ -177,6 +177,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [NonSerialized]
         static readonly List<RaycastHitData> s_SortedGraphics = new List<RaycastHitData>();
 
+        [NonSerialized]
+        static readonly Dictionary<IUIInteractor, RaycastHitData> s_InteractorHitData = new Dictionary<IUIInteractor, RaycastHitData>();
+
         // Poke-specific variables and methods
         XRPokeLogic m_PokeLogic;
 
@@ -215,6 +218,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_PokeLogic.OnHoverExited(interactor);
             if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null && raycaster == this)
                 s_InteractorRaycasters.Remove(interactor);
+
+            s_InteractorHitData.Remove(interactor);
 
             s_PokeHoverRaycasters[this].Remove(interactor);
         }
@@ -423,7 +428,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                     if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
-                        s_InteractorRaycasters[interactor] = this;
+                        if (m_RaycastResultsCache.Count > 0)
+                        {
+                            var firstRaycastCache = m_RaycastResultsCache[0];
+
+                            // If we have raycast result from sphere cast (we should), see if another result is already stored with a better value.
+                            // If the existing raycast result is sorted higher, store that and update the raycaster-to-interactor reference
+                            if (!s_InteractorHitData.TryGetValue(interactor, out var existingData) || s_RaycastHitComparer.Compare(existingData, firstRaycastCache) < 0)
+                            {
+                                s_InteractorHitData[interactor] = firstRaycastCache;
+                                s_InteractorRaycasters[interactor] = this;
+                            }
+                        }
                     }
                     else
                     {

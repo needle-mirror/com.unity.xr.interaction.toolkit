@@ -12,6 +12,7 @@ using UnityEditor.Experimental.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
@@ -491,6 +492,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 interactor.PreprocessInteractor(updatePhase);
             }
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+            XRUIToolkitHandler.UpdateEventSystem();
+#endif
         }
 
         /// <summary>

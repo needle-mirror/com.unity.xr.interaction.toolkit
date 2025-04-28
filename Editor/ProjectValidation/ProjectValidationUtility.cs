@@ -118,6 +118,32 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
 
         /// <summary>
+        /// Searches for a sample, <see cref="sampleDisplayName"/> from a specified package, <see cref="packageDisplayName"/>
+        /// and compares the sample version to a min and max range.
+        /// </summary>
+        /// <param name="packageDisplayName">The name of the package directory that contains the sample.</param>
+        /// <param name="sampleDisplayName">The name of the sample directory to search for.</param>
+        /// <param name="minVersion">The minimum package version the sample should be imported from.</param>
+        /// <param name="maxVersion">The maximum package version the sample should be imported from, which can either include this version or only values less than this version.</param>
+        /// <param name="isMaxInclusive">Whether or not the range includes the max version.</param>
+        /// <returns>Returns <see langword="true"/> if the sample is found in the Samples directory of the specified
+        /// package and the imported sample's version is within the range between the <see cref="minVersion"/> and the <see cref="maxVersion"/>.</returns>
+        public static bool SampleImportMeetsVersionRange(string packageDisplayName, string sampleDisplayName, PackageVersion minVersion, PackageVersion maxVersion, bool isMaxInclusive)
+        {
+            if (HasSampleImported(packageDisplayName, sampleDisplayName))
+            {
+                var packageVersion = s_PackageSampleCache[packageDisplayName].importedSamples[sampleDisplayName].packageVersion;
+
+                if (isMaxInclusive)
+                    return packageVersion >= minVersion && packageVersion <= maxVersion;
+                else
+                    return packageVersion >= minVersion && packageVersion < maxVersion;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Iterates through Samples directory and caches sample and package data.
         /// </summary>
         static void UpdatePackageSampleCache()
@@ -151,19 +177,28 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                         foreach (var versionDirectoryPath in versionDirectoryPaths)
                         {
                             var versionName = versionDirectoryPath.Split(delimiter).Last();
-                            var packageVersion = new PackageVersion(versionName);
 
-                            // Iterate through all sample directories in version
-                            var samplesDirectoryPaths = Directory.GetDirectories(versionDirectoryPath);
-                            foreach (var sampleDirectoryPath in samplesDirectoryPaths)
+                            try
                             {
-                                var sampleName = sampleDirectoryPath.Split(delimiter).Last();
-                                sampleMap.Add(sampleName, new SampleData
+                                var packageVersion = new PackageVersion(versionName);
+
+                                // Iterate through all sample directories in version
+                                var samplesDirectoryPaths = Directory.GetDirectories(versionDirectoryPath);
+                                foreach (var sampleDirectoryPath in samplesDirectoryPaths)
                                 {
-                                    sampleName = sampleName,
-                                    packageDisplayName = packageDisplayName,
-                                    packageVersion = packageVersion,
-                                });
+                                    var sampleName = sampleDirectoryPath.Split(delimiter).Last();
+                                    sampleMap.Add(sampleName, new SampleData
+                                    {
+                                        sampleName = sampleName,
+                                        packageDisplayName = packageDisplayName,
+                                        packageVersion = packageVersion,
+                                    });
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                // We may see non-version strings in these subfolders as sample dependencies for other
+                                // packages. We catch and ignore the PackageVersion constructor errors here so we can skip them.
                             }
                         }
 

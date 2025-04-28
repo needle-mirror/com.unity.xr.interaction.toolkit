@@ -179,12 +179,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             if (xrOrigin == null)
                 return;
 
+            // Check if we are already climbing
+            var alreadyClimbing = locomotionState == LocomotionState.Moving || locomotionState == LocomotionState.Preparing;
+
             m_GrabbingInteractors.Add(interactor);
             m_GrabbedClimbables.Add(climbInteractable);
             UpdateClimbAnchor(climbInteractable, interactor);
             TryPrepareLocomotion();
 
-            TryLockGravity(GravityOverride.ForcedOff);
+            // If we aren't already climbing, force off gravity.
+            if (!alreadyClimbing)
+                TryLockGravity(GravityOverride.ForcedOff);
 
             foreach (var provider in m_ProvidersToDisable)
             {

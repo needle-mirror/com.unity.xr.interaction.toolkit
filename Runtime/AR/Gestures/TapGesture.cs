@@ -30,18 +30,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Gesture for when the user performs a tap on the touch screen.
     /// </summary>
-    public class TapGesture : Gesture<TapGesture>
+    public partial class TapGesture : Gesture<TapGesture>
     {
-        /// <summary>
-        /// Initializes and returns an instance of <see cref="TapGesture"/>.
-        /// </summary>
-        /// <param name="recognizer">The gesture recognizer.</param>
-        /// <param name="touch">The touch that started this gesture.</param>
-        public TapGesture(TapGestureRecognizer recognizer, Touch touch)
-            : this(recognizer, new CommonTouch(touch))
-        {
-        }
-
         /// <summary>
         /// Initializes and returns an instance of <see cref="TapGesture"/>.
         /// </summary>
@@ -57,7 +47,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             Reinitialize(touch);
         }
 
-        internal void Reinitialize(Touch touch) => Reinitialize(new CommonTouch(touch));
         internal void Reinitialize(InputSystem.EnhancedTouch.Touch touch) => Reinitialize(new CommonTouch(touch));
 
         void Reinitialize(CommonTouch touch)

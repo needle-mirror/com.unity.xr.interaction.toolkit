@@ -78,6 +78,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         const float k_DefaultThrowLinearVelocityScale = 1.5f;
         const float k_DefaultThrowAngularVelocityScale = 1f;
         const float k_DeltaTimeThreshold = 0.001f;
+        const float k_DefaultMaxLinearVelocityDelta = 10f;
+        const float k_DefaultMaxAngularVelocityDelta = 20f;
 
         [SerializeField]
         Transform m_AttachTransform;
@@ -233,6 +235,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     SetupRigidbodyGrab(m_Rigidbody);
                 }
             }
+        }
+
+        [SerializeField, FormerlySerializedAs("m_VisualsTransform")]
+        Transform m_PredictedVisualsTransform;
+
+        /// <summary>
+        /// Optional child GameObject for this component to drive the visuals of this Interactable between physics updates.
+        /// Recommended when the Movement Type is set to <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>
+        /// or <see cref="XRBaseInteractable.MovementType.Kinematic"/> in order to avoid visual stutter due to the
+        /// difference between the lower physics system frame rate and the higher rendered frame rate.
+        /// </summary>
+        /// <remarks>
+        /// This is typically a reference to an immediate child GameObject of this Interactable that is the root visuals
+        /// representing all the Renderers (Mesh Renderers, Skinned Mesh Renderers, etc.) in the hierarchy that should be
+        /// driven by this component to predict the pose of the object between steps in the physics system. This effectively
+        /// performs a similar function to interpolation on the Rigidbody but without the latency since the target pose is calculated
+        /// each Update and can be used when the Rigidbody is not colliding with any objects. While the Rigidbody is sleeping
+        /// or colliding with a collider, this functionality is automatically disabled and the visuals returns to the original pose
+        /// (and thus there may again be visual stutter or some latency seen if interpolation is enabled on the Rigidbody).
+        /// </remarks>
+        public Transform predictedVisualsTransform
+        {
+            get => m_PredictedVisualsTransform;
+            set => m_PredictedVisualsTransform = value;
         }
 
         [SerializeField, Range(0f, 1f)]
@@ -655,6 +681,85 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             set => m_FarAttachMode = value;
         }
 
+        [SerializeField]
+        bool m_LimitLinearVelocity;
+
+        /// <summary>
+        /// Whether to limit the linear velocity applied to the Rigidbody.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when the Movement Type is set to <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>.
+        /// </remarks>
+        /// <seealso cref="limitAngularVelocity"/>
+        /// <seealso cref="maxLinearVelocityDelta"/>
+        public bool limitLinearVelocity
+        {
+            get => m_LimitLinearVelocity;
+            set => m_LimitLinearVelocity = value;
+        }
+
+        [SerializeField]
+        bool m_LimitAngularVelocity;
+
+        /// <summary>
+        /// Whether to limit the angular velocity applied to the Rigidbody.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when the Movement Type is set to <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>.
+        /// </remarks>
+        /// <seealso cref="limitLinearVelocity"/>
+        /// <seealso cref="maxAngularVelocityDelta"/>
+        public bool limitAngularVelocity
+        {
+            get => m_LimitAngularVelocity;
+            set => m_LimitAngularVelocity = value;
+        }
+
+        [SerializeField]
+        float m_MaxLinearVelocityDelta = k_DefaultMaxLinearVelocityDelta;
+
+        /// <summary>
+        /// The maximum linear velocity that Unity will apply to the Rigidbody each physics frame
+        /// (and the optional predicted visuals if used). The linear velocity is clamped to the minimum of this value
+        /// and the Rigidbody's own max linear velocity value.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when the Movement Type is set to <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>.
+        /// </remarks>
+        /// <seealso cref="maxAngularVelocityDelta"/>
+        /// <seealso cref="Rigidbody.maxLinearVelocity"/>
+        public float maxLinearVelocityDelta
+        {
+            get => m_MaxLinearVelocityDelta;
+            set => m_MaxLinearVelocityDelta = Mathf.Max(0f, value);
+        }
+
+        [SerializeField]
+        float m_MaxAngularVelocityDelta = k_DefaultMaxAngularVelocityDelta;
+
+        /// <summary>
+        /// The maximum angular velocity in radians per second that Unity will apply to the Rigidbody each physics frame
+        /// (and the optional predicted visuals if used). The angular velocity is clamped to the minimum of this value
+        /// and the Rigidbody's own max angular velocity value.
+        /// </summary>
+        /// <remarks>
+        /// This only applies when the Movement Type is set to <see cref="XRBaseInteractable.MovementType.VelocityTracking"/>.
+        /// </remarks>
+        /// <seealso cref="maxLinearVelocityDelta"/>
+        /// <seealso cref="Rigidbody.maxAngularVelocity"/>
+        /// <seealso cref="Physics.defaultMaxAngularSpeed"/>
+        public float maxAngularVelocityDelta
+        {
+            get => m_MaxAngularVelocityDelta;
+            set => m_MaxAngularVelocityDelta = Mathf.Max(0f, value);
+        }
+
+        /// <summary>
+        /// Whether the current movement type is applied through the Rigidbody as opposed to the Transform.
+        /// (in other words, either <see cref="XRBaseInteractable.MovementType.VelocityTracking"/> or <see cref="XRBaseInteractable.MovementType.Kinematic"/>).
+        /// </summary>
+        bool isRigidbodyMovement => m_CurrentMovementType == MovementType.VelocityTracking || m_CurrentMovementType == MovementType.Kinematic;
+
         /// <summary>
         /// The number of single grab transformers.
         /// These are the grab transformers used when there is a single interactor selecting this object.
@@ -668,6 +773,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// </summary>
         /// <seealso cref="AddMultipleGrabTransformer"/>
         public int multipleGrabTransformersCount => m_MultipleGrabTransformers.flushedCount;
+
+        /// <summary>
+        /// Whether the <see cref="GetAttachTransform"/> is allowed to return the visual attach transform.
+        /// This property is automatically updated by this component during different update phases,
+        /// but can be changed by derived classes to control when the visual attach transform is used.
+        /// </summary>
+        protected bool allowVisualAttachTransform { get; set; }
 
         readonly SmallRegistrationList<IXRGrabTransformer> m_SingleGrabTransformers = new SmallRegistrationList<IXRGrabTransformer>();
         readonly SmallRegistrationList<IXRGrabTransformer> m_MultipleGrabTransformers = new SmallRegistrationList<IXRGrabTransformer>();
@@ -700,6 +812,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
         }
 
+        Transform m_Transform;
+
         float m_CurrentAttachEaseTime;
         MovementType m_CurrentMovementType;
 
@@ -716,12 +830,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         IXRAimAssist m_ThrowAssist;
 
         Rigidbody m_Rigidbody;
+        bool m_RigidbodyColliding;
 
         // Rigidbody's settings upon select, kept to restore these values when dropped
         bool m_WasKinematic;
         bool m_UsedGravity;
-        float m_OldLinearDamping;
-        float m_OldAngularDamping;
+        RigidbodyInterpolation m_InterpolationOnGrab;
+        float m_LinearDampingOnGrab;
+        float m_AngularDampingOnGrab;
+
+        // Bookkeeping for driving the visuals
+        int m_LastFixedFrame;
+        float m_LastFixedDynamicTime;
+        Pose m_InitialVisualsTransformLocalPose;
+        bool m_InitialVisualsTransformLocalPoseIsIdentity = true;
 
         // Used to keep track of colliders for which to ignore collision with character only while grabbed
         bool m_IgnoringCharacterCollision;
@@ -737,10 +859,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         TeleportationMonitor m_TeleportationMonitor;
 
         readonly Dictionary<IXRSelectInteractor, Transform> m_DynamicAttachTransforms = new Dictionary<IXRSelectInteractor, Transform>();
+        readonly Dictionary<IXRSelectInteractor, Transform> m_VisualAttachTransforms = new Dictionary<IXRSelectInteractor, Transform>();
 
         static readonly LinkedPool<Transform> s_DynamicAttachTransformPool = new LinkedPool<Transform>(OnCreatePooledItem, OnGetPooledItem, OnReleasePooledItem, OnDestroyPooledItem);
 
         static readonly ProfilerMarker s_ProcessGrabTransformersMarker = new ProfilerMarker("XRI.ProcessGrabTransformers");
+
+        /// <inheritdoc />
+        protected override void Reset()
+        {
+            base.Reset();
+
+            // Determine if there is a single child GameObject with Renderers,
+            // and assume it should be used as the Predicted Visuals Transform.
+            Transform visuals = null;
+            var numVisuals = 0;
+            for (var i = 0; i < transform.childCount; ++i)
+            {
+                var child = transform.GetChild(i);
+                if (child.TryGetComponent<MeshRenderer>(out _) ||
+                    child.TryGetComponent<SkinnedMeshRenderer>(out _))
+                {
+                    if (numVisuals == 0)
+                        visuals = child;
+
+                    numVisuals++;
+                }
+            }
+
+            // There shouldn't be a collider in the visuals hierarchy
+            if (numVisuals == 1 && visuals != null && visuals.GetComponentInChildren<Collider>() == null)
+            {
+                m_PredictedVisualsTransform = visuals;
+            }
+        }
 
         /// <inheritdoc />
         protected override void Awake()
@@ -761,7 +913,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     m_RigidbodyColliders.RemoveAt(i);
             }
 
-            InitializeTargetPoseAndScale(transform);
+            m_Transform = transform;
+            InitializeTargetPoseAndScale(m_Transform);
 
             // Load the starting grab transformers into the Play mode lists.
             // It is more efficient to add than move, but if there are existing items
@@ -814,6 +967,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             base.OnDestroy();
         }
 
+        /// <summary>
+        /// See <see cref="Rigidbody"/>. Called once per frame for every collider that is touching the Rigidbody.
+        /// </summary>
+        protected virtual void OnCollisionStay()
+        {
+            m_RigidbodyColliding = true;
+        }
+
         /// <inheritdoc />
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
@@ -827,23 +988,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             FlushRegistration();
 
+            allowVisualAttachTransform = false;
+
             switch (updatePhase)
             {
-                // During Fixed update we want to apply any Rigidbody-based updates (e.g., Kinematic or VelocityTracking).
+                // During FixedUpdate we want to apply any Rigidbody-based updates.
                 case XRInteractionUpdateOrder.UpdatePhase.Fixed:
-                    if (isSelected || isTransformDirty)
+                    m_RigidbodyColliding = false;
+
+                    if ((isSelected || isTransformDirty) && isRigidbodyMovement)
                     {
-                        if (m_CurrentMovementType == MovementType.Kinematic ||
-                            m_CurrentMovementType == MovementType.VelocityTracking)
-                        {
-                            // If we only updated the target scale externally, just update that.
-                            if (m_IsTargetLocalScaleDirty && !m_IsTargetPoseDirty && !isSelected)
-                                ApplyTargetScale();
-                            else if (m_CurrentMovementType == MovementType.Kinematic)
-                                PerformKinematicUpdate(updatePhase);
-                            else if (m_CurrentMovementType == MovementType.VelocityTracking)
-                                PerformVelocityTrackingUpdate(updatePhase, Time.deltaTime);
-                        }
+                        // If we only updated the target scale externally, just update that.
+                        if (m_IsTargetLocalScaleDirty && !m_IsTargetPoseDirty && !isSelected)
+                            ApplyTargetScale();
+                        else if (m_CurrentMovementType == MovementType.Kinematic)
+                            PerformKinematicUpdate();
+                        else if (m_CurrentMovementType == MovementType.VelocityTracking)
+                            PerformVelocityTrackingUpdate(Time.deltaTime);
+
+                        m_LastFixedFrame = Time.frameCount;
                     }
 
                     if (m_IgnoringCharacterCollision && !m_StopIgnoringCollisionInLateUpdate &&
@@ -855,7 +1018,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     }
                     break;
 
-                // During Dynamic update and OnBeforeRender we want to update the target pose and apply any Transform-based updates (e.g., Instantaneous).
+                // During Dynamic Update and OnBeforeRender we want to update the target pose and apply any Transform-based updates.
                 case XRInteractionUpdateOrder.UpdatePhase.Dynamic:
                 case XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender:
                     if (isTransformDirty)
@@ -864,16 +1027,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                         if (m_IsTargetLocalScaleDirty && !m_IsTargetPoseDirty)
                             ApplyTargetScale();
                         else
-                            PerformInstantaneousUpdate(updatePhase);
+                            PerformInstantaneousUpdate();
                     }
 
                     if (isSelected || (m_GrabCountChanged && m_DropTransformersCount > 0))
                     {
                         UpdateTarget(updatePhase, Time.deltaTime);
 
+                        // Keep track of the time at the first Update frame after a FixedUpdate earlier in the same frame.
+                        // This value is expected to be slightly ahead of the time during the FixedUpdate phase.
+                        if (m_LastFixedFrame == Time.frameCount)
+                            m_LastFixedDynamicTime = Time.time;
+
                         if (m_CurrentMovementType == MovementType.Instantaneous)
-                            PerformInstantaneousUpdate(updatePhase);
+                            PerformInstantaneousUpdate();
+                        else if (m_CurrentMovementType == MovementType.Kinematic)
+                            PerformKinematicVisualsUpdate();
+                        else if (m_CurrentMovementType == MovementType.VelocityTracking)
+                            PerformVelocityVisualsUpdate();
                     }
+
+                    // At the end of the update, update the pose of the visual attach transform
+                    // for other components that drive visuals to read it.
+                    if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender &&
+                        isSelected && isRigidbodyMovement && m_PredictedVisualsTransform != null)
+                        PerformVisualAttachUpdate();
+
                     break;
 
                 // Late update is used to handle detach and restoring character collision as late as possible.
@@ -882,6 +1061,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     {
                         if (!isSelected)
                             Detach();
+
                         m_DetachInLateUpdate = false;
                     }
 
@@ -895,6 +1075,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
                         m_StopIgnoringCollisionInLateUpdate = false;
                     }
+
                     break;
             }
         }
@@ -902,13 +1083,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <inheritdoc />
         public override Transform GetAttachTransform(IXRInteractor interactor)
         {
+            var selectInteractor = interactor as IXRSelectInteractor;
+            var isSelectInteractor = selectInteractor != null;
+
+            // During the end of frame when visual components read this, override to use the visual attach transform so the predicted visuals
+            // is returned for components like the line visual during this phase. If we instead used the real attach transform,
+            // the line visual would have stutter due to Physics having a different frame rate than the rendered frame rate.
+            if (allowVisualAttachTransform && isSelected && isRigidbodyMovement && m_PredictedVisualsTransform != null && isSelectInteractor &&
+                m_VisualAttachTransforms.TryGetValue(selectInteractor, out var visualAttachTransform))
+            {
+                return visualAttachTransform;
+            }
+
             bool isFirst = interactorsSelecting.Count <= 1 || ReferenceEquals(interactor, interactorsSelecting[0]);
 
             // If first selector, do normal behavior.
             // If second, we ignore dynamic attach setting if there is no secondary attach transform.
             var shouldUseDynamicAttach = m_UseDynamicAttach || (!isFirst && m_SecondaryAttachTransform == null);
 
-            if (shouldUseDynamicAttach && interactor is IXRSelectInteractor selectInteractor &&
+            if (shouldUseDynamicAttach && isSelectInteractor &&
                 m_DynamicAttachTransforms.TryGetValue(selectInteractor, out var dynamicAttachTransform))
             {
                 if (dynamicAttachTransform != null)
@@ -1470,7 +1663,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
 
             // Skip during OnBeforeRender since it doesn't require that high accuracy.
-            // Skip when not selected since the the detach velocity has already been applied and we no longer need to compute it.
+            // Skip when not selected since the detach velocity has already been applied and we no longer need to compute it.
             // This means that the final Process for drop grab transformers does not contribute to throw velocity.
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
@@ -1554,95 +1747,291 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
         }
 
-        void PerformInstantaneousUpdate(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        void PerformInstantaneousUpdate()
         {
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic ||
-                updatePhase == XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender)
-            {
-                if (m_TrackPosition && m_TrackRotation)
-                    transform.SetWorldPose(m_TargetPose);
-                else if (m_TrackPosition)
-                    transform.position = m_TargetPose.position;
-                else if (m_TrackRotation)
-                    transform.rotation = m_TargetPose.rotation;
+            if (m_TrackPosition && m_TrackRotation)
+                m_Transform.SetWorldPose(m_TargetPose);
+            else if (m_TrackPosition)
+                m_Transform.position = m_TargetPose.position;
+            else if (m_TrackRotation)
+                m_Transform.rotation = m_TargetPose.rotation;
 
-                ApplyTargetScale();
+            ApplyTargetScale();
 
-                isTransformDirty = false;
-            }
+            isTransformDirty = false;
         }
 
-        void PerformKinematicUpdate(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        void PerformKinematicUpdate()
         {
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
-            {
-                if (m_TrackPosition)
-                    m_Rigidbody.MovePosition(m_TargetPose.position);
+            if (m_TrackPosition)
+                m_Rigidbody.MovePosition(m_TargetPose.position);
 
-                if (m_TrackRotation)
-                    m_Rigidbody.MoveRotation(m_TargetPose.rotation);
+            if (m_TrackRotation)
+                m_Rigidbody.MoveRotation(m_TargetPose.rotation);
 
-                ApplyTargetScale();
+            ApplyTargetScale();
 
-                isTransformDirty = false;
-            }
+            isTransformDirty = false;
         }
 
-        void PerformVelocityTrackingUpdate(XRInteractionUpdateOrder.UpdatePhase updatePhase, float deltaTime)
+        void PerformVelocityTrackingUpdate(float fixedDeltaTime)
         {
             // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (fixedDeltaTime < k_DeltaTimeThreshold)
+                return;
+
+            // Do linear velocity tracking
+            if (m_TrackPosition)
+            {
+                // Scale initialized velocity by prediction factor
+#if UNITY_2023_3_OR_NEWER
+                var currentVelocity = m_Rigidbody.linearVelocity;
+#else
+                var currentVelocity = m_Rigidbody.velocity;
+#endif
+                currentVelocity *= (1f - m_VelocityDamping);
+                var positionDelta = m_TargetPose.position - m_Rigidbody.position;
+                var targetVelocity = currentVelocity + (positionDelta / fixedDeltaTime * m_VelocityScale);
+                var newVelocity = m_LimitLinearVelocity
+                    ? Vector3.MoveTowards(currentVelocity, targetVelocity, m_MaxLinearVelocityDelta)
+                    : targetVelocity;
+#if UNITY_2023_3_OR_NEWER
+                m_Rigidbody.linearVelocity = newVelocity;
+#else
+                m_Rigidbody.velocity = newVelocity;
+#endif
+            }
+
+            // Do angular velocity tracking
+            if (m_TrackRotation)
+            {
+                // Scale initialized velocity by prediction factor
+                var currentVelocity = m_Rigidbody.angularVelocity;
+                currentVelocity *= (1f - m_AngularVelocityDamping);
+                var rotationDelta = m_TargetPose.rotation * Quaternion.Inverse(m_Rigidbody.rotation);
+                rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
+                if (angleInDegrees > 180f)
+                    angleInDegrees -= 360f;
+
+                if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
+                {
+                    rotationAxis = rotationAxis.normalized;
+                    var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / fixedDeltaTime;
+                    var targetVelocity = currentVelocity + (angularVelocity * m_AngularVelocityScale);
+                    m_Rigidbody.angularVelocity = m_LimitAngularVelocity
+                        ? Vector3.MoveTowards(currentVelocity, targetVelocity, m_MaxAngularVelocityDelta)
+                        : targetVelocity;
+                }
+                else
+                {
+                    m_Rigidbody.angularVelocity = currentVelocity;
+                }
+            }
+
+            ApplyTargetScale();
+
+            isTransformDirty = false;
+        }
+
+        void PerformVelocityVisualsUpdate()
+        {
+            if (m_PredictedVisualsTransform == null)
+                return;
+
+            var fixedDeltaTime = Time.fixedDeltaTime;
+            var deltaTime = Time.deltaTime;
+
+            // Skip velocity calculations if Time.deltaTime is too low due to a frame-timing issue on Quest
+            if (fixedDeltaTime < k_DeltaTimeThreshold)
+                return;
             if (deltaTime < k_DeltaTimeThreshold)
                 return;
 
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
+            // If the Rigidbody is colliding or sleeping, we don't want to predict the visuals, so the visuals
+            // transform is reset to match the Rigidbody.
+            // Collision stay events are not sent for a sleeping Rigidbody, so we assume the worst case
+            // where we assume it could be touching another object and thus should not predict the visuals.
+            if (m_RigidbodyColliding || m_Rigidbody.IsSleeping())
             {
-                // Do linear velocity tracking
-                if (m_TrackPosition)
+                m_PredictedVisualsTransform.SetLocalPose(m_InitialVisualsTransformLocalPose);
+
+                // This allows the user to configure the Rigidbody to Interpolate while colliding
+                // to reduce the stutter effect when the Rigidbody is colliding.
+                m_Rigidbody.interpolation = m_InterpolationOnGrab;
+                return;
+            }
+
+            // Do not allow interpolation while driving the visuals since we need to know the actual Rigidbody pose
+            // to Slerp from as we move to the target pose. When Interpolation is enabled, the Rigidbody pose is updated
+            // every frame instead of the actual pose after the most recent physics update.
+            m_Rigidbody.interpolation = RigidbodyInterpolation.None;
+
+            var visualsPose = Pose.identity;
+
+            // Do linear velocity tracking
+            if (m_TrackPosition)
+            {
+                // Scale initialized velocity by prediction factor
+#if UNITY_2023_3_OR_NEWER
+                var currentVelocity = m_Rigidbody.linearVelocity;
+#else
+                var currentVelocity = m_Rigidbody.velocity;
+#endif
+                currentVelocity *= (1f - m_VelocityDamping);
+                var positionDelta = m_TargetPose.position - m_Rigidbody.position;
+                var targetVelocity = currentVelocity + (positionDelta / fixedDeltaTime * m_VelocityScale);
+
+                var newVelocity = targetVelocity;
+                if (m_LimitLinearVelocity)
                 {
-                    // Scale initialized velocity by prediction factor
-#if UNITY_2023_3_OR_NEWER
-                    m_Rigidbody.linearVelocity *= (1f - m_VelocityDamping);
+#if UNITY_2022_3_OR_NEWER // Rigidbody.maxLinearVelocity not available in earlier Unity versions
+                    var maxLinearVelocity = Mathf.Min(m_Rigidbody.maxLinearVelocity, m_MaxLinearVelocityDelta);
 #else
-                    m_Rigidbody.velocity *= (1f - m_VelocityDamping);
+                    var maxLinearVelocity = m_MaxLinearVelocityDelta;
 #endif
-                    var positionDelta = m_TargetPose.position - transform.position;
-                    var velocity = positionDelta / deltaTime;
-#if UNITY_2023_3_OR_NEWER
-                    m_Rigidbody.linearVelocity += (velocity * m_VelocityScale);
-#else
-                    m_Rigidbody.velocity += (velocity * m_VelocityScale);
-#endif
+
+                    newVelocity = Vector3.MoveTowards(currentVelocity, targetVelocity, maxLinearVelocity);
                 }
 
-                // Do angular velocity tracking
-                if (m_TrackRotation)
-                {
-                    // Scale initialized velocity by prediction factor
-                    m_Rigidbody.angularVelocity *= (1f - m_AngularVelocityDamping);
-                    var rotationDelta = m_TargetPose.rotation * Quaternion.Inverse(transform.rotation);
-                    rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
-                    if (angleInDegrees > 180f)
-                        angleInDegrees -= 360f;
+                var positionOffset = (newVelocity - currentVelocity) * fixedDeltaTime;
+                if (Mathf.Abs(positionOffset.x) <= 1e-3f &&
+                    Mathf.Abs(positionOffset.y) <= 1e-3f &&
+                    Mathf.Abs(positionOffset.z) <= 1e-3f)
+                    visualsPose.position = m_Rigidbody.position;
+                else
+                    visualsPose.position = m_Rigidbody.position + positionOffset;
+            }
 
-                    if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
+            if (m_TrackRotation)
+            {
+                // Scale initialized velocity by prediction factor
+                var currentVelocity = m_Rigidbody.angularVelocity;
+                currentVelocity *= (1f - m_AngularVelocityDamping);
+                var rotationDelta = m_TargetPose.rotation * Quaternion.Inverse(m_Rigidbody.rotation);
+                rotationDelta.ToAngleAxis(out var angleInDegrees, out var rotationAxis);
+                if (angleInDegrees > 180f)
+                    angleInDegrees -= 360f;
+
+                if (Mathf.Abs(angleInDegrees) > Mathf.Epsilon)
+                {
+                    rotationAxis = rotationAxis.normalized;
+                    var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / fixedDeltaTime;
+                    var targetVelocity = currentVelocity + (angularVelocity * m_AngularVelocityScale);
+
+                    var maxAngularVelocity = m_LimitAngularVelocity
+                        ? Mathf.Min(m_Rigidbody.maxAngularVelocity, m_MaxAngularVelocityDelta)
+                        : m_Rigidbody.maxAngularVelocity;
+
+                    // When the angular velocity is within the allowed range of the Rigidbody, we can snap to the target rotation.
+                    // Otherwise, we need to Slerp towards the target rotation at the maximum rate.
+                    if (targetVelocity.sqrMagnitude <= (maxAngularVelocity * maxAngularVelocity))
                     {
-                        var angularVelocity = (rotationAxis * (angleInDegrees * Mathf.Deg2Rad)) / deltaTime;
-                        m_Rigidbody.angularVelocity += (angularVelocity * m_AngularVelocityScale);
+                        visualsPose.rotation = m_TargetPose.rotation;
+                    }
+                    else
+                    {
+                        // Clamp the delta time to the fixed delta time since the angular velocity for the Rigidbody
+                        // will be computed during the next FixedUpdate using this fixed delta time.
+                        var visualsDeltaTime = Time.time - m_LastFixedDynamicTime + deltaTime;
+                        if (visualsDeltaTime >= Time.fixedDeltaTime)
+                            visualsDeltaTime = Time.fixedDeltaTime;
+
+                        var maxRateDegrees = maxAngularVelocity * Mathf.Rad2Deg;
+                        var step = maxRateDegrees * visualsDeltaTime;
+                        var clampedRotation = Quaternion.RotateTowards(m_Rigidbody.rotation, m_TargetPose.rotation, step);
+                        visualsPose.rotation = clampedRotation;
                     }
                 }
-
-                ApplyTargetScale();
-
-                isTransformDirty = false;
+                else
+                {
+                    visualsPose.rotation = m_Rigidbody.rotation;
+                }
             }
+
+            ApplyVisuals(visualsPose);
+        }
+
+        void PerformKinematicVisualsUpdate()
+        {
+            if (m_PredictedVisualsTransform == null)
+                return;
+
+            ApplyVisuals(m_TargetPose);
+        }
+
+        void ApplyVisuals(Pose visualsPose)
+        {
+            // If there was an initial offset on the visuals transform, bake it into the target visuals pose
+            // since it assumes the visuals transform does not have an offset from the parent Rigidbody.
+            // This allows the user to directly apply an offset on the Predicted Visuals Transform itself instead of
+            // needing to modify the hierarchy to create a child Transform with their actual Mesh Renderer with the desired offset.
+            // As an optimization, we don't need to compute the combined pose if the initial offset was Pose.identity.
+            var combinedVisualsPose = m_InitialVisualsTransformLocalPoseIsIdentity
+                ? visualsPose
+                : m_InitialVisualsTransformLocalPose.GetTransformedBy(visualsPose);
+
+            if (m_TrackPosition && m_TrackRotation)
+                m_PredictedVisualsTransform.SetWorldPose(combinedVisualsPose);
+            else if (m_TrackPosition)
+                m_PredictedVisualsTransform.position = combinedVisualsPose.position;
+            else if (m_TrackRotation)
+                m_PredictedVisualsTransform.rotation = combinedVisualsPose.rotation;
         }
 
         void ApplyTargetScale()
         {
             if (m_TrackScale)
-                transform.localScale = m_TargetLocalScale;
+                m_Transform.localScale = m_TargetLocalScale;
 
             m_IsTargetLocalScaleDirty = false;
+        }
+
+        void PerformVisualAttachUpdate()
+        {
+            allowVisualAttachTransform = false;
+
+            foreach (var interactor in interactorsSelecting)
+            {
+                if (m_VisualAttachTransforms.TryGetValue(interactor, out var visualAttachTransform))
+                {
+                    Pose uncombinedVisualsPose;
+                    if (m_InitialVisualsTransformLocalPoseIsIdentity)
+                    {
+                        // No initial local pose offset, so we can just use the current world pose of the Visuals Transform.
+                        uncombinedVisualsPose = m_PredictedVisualsTransform.GetWorldPose();
+                    }
+                    else
+                    {
+                        // Derive the original visuals pose before we combined the initial local pose offset into the Visuals Transform.
+                        var inverseRotation = Quaternion.Inverse(m_InitialVisualsTransformLocalPose.rotation);
+                        var inversePosition = -(inverseRotation * m_InitialVisualsTransformLocalPose.position);
+                        var inverseInitialPose = new Pose(inversePosition, inverseRotation);
+                        uncombinedVisualsPose = inverseInitialPose.GetTransformedBy(m_PredictedVisualsTransform.GetWorldPose());
+                    }
+
+                    var realAttachTransform = GetAttachTransform(interactor);
+                    if (realAttachTransform == m_Transform)
+                    {
+                        // The effective localAttachPose is Pose.identity, so we can skip the math.
+                        visualAttachTransform.SetWorldPose(uncombinedVisualsPose);
+                    }
+                    else
+                    {
+                        // Get the local pose relative to this Transform.
+                        // If needed, convert the Attach Transform's pose to the local space of this Transform
+                        var localAttachPose = realAttachTransform.parent == m_Transform
+                            ? realAttachTransform.GetLocalPose()
+                            : m_Transform.InverseTransformPose(realAttachTransform.GetWorldPose());
+
+                        visualAttachTransform.SetWorldPose(localAttachPose.GetTransformedBy(uncombinedVisualsPose));
+                    }
+                }
+            }
+
+            // Now that the visuals have been updated, we can set this to true.
+            // Wait until the end to set this true so we get the expected Transform from GetAttachTransform
+            // instead of the visual attach transform we're trying to update.
+            allowVisualAttachTransform = true;
         }
 
         void UpdateCurrentMovementType()
@@ -1669,6 +2058,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
 
             m_CurrentMovementType = movementTypeOverride ?? m_MovementType;
+
+            // If the movement type changed from a Rigidbody type to Instantaneous while grabbed,
+            // make sure the visuals pose is reset since it will no longer be driven in the process loop.
+            // Done here instead of each frame to avoid unnecessary updates to the visuals transform.
+            // The other movement types will cause this to be updated at the next process.
+            if (m_CurrentMovementType == MovementType.Instantaneous && m_PredictedVisualsTransform != null)
+                m_PredictedVisualsTransform.SetLocalPose(m_InitialVisualsTransformLocalPose);
         }
 
         /// <inheritdoc />
@@ -1678,6 +2074,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Done before calling the base method so the attach pose captured is the dynamic one.
             var dynamicAttachTransform = CreateDynamicAttachTransform(args.interactorObject);
             InitializeDynamicAttachPoseInternal(args.interactorObject, dynamicAttachTransform);
+
+            // Setup the visual attach transform.
+            if (m_PredictedVisualsTransform != null)
+            {
+                var visualAttachTransform = CreateVisualAttachTransform(args.interactorObject);
+                m_VisualAttachTransforms.Remove(args.interactorObject);
+                m_VisualAttachTransforms[args.interactorObject] = visualAttachTransform;
+                visualAttachTransform.SetWorldPose(dynamicAttachTransform.GetWorldPose());
+            }
 
             // Store the grab count change.
             var grabCountBeforeChange = interactorsSelecting.Count;
@@ -1776,9 +2181,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 #if UNITY_EDITOR
             dynamicAttachTransform.name = $"[{interactor.transform.name}] Dynamic Attach";
 #endif
-            dynamicAttachTransform.SetParent(transform, false);
+            dynamicAttachTransform.SetParent(m_Transform, false);
 
             return dynamicAttachTransform;
+        }
+
+        Transform CreateVisualAttachTransform(IXRSelectInteractor interactor)
+        {
+            Transform visualAttachTransform;
+
+            do
+            {
+                visualAttachTransform = s_DynamicAttachTransformPool.Get();
+            } while (visualAttachTransform == null);
+
+#if UNITY_EDITOR
+            visualAttachTransform.name = $"[{interactor.transform.name}] Visual Attach";
+#endif
+            visualAttachTransform.SetParent(m_PredictedVisualsTransform, false);
+
+            return visualAttachTransform;
         }
 
         void InitializeDynamicAttachPoseInternal(IXRSelectInteractor interactor, Transform dynamicAttachTransform)
@@ -1798,9 +2220,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Technically we could just do the final else statement, but setting the local position and rotation this way
             // keeps the position and rotation seen in the Inspector tidier by exactly matching instead of potentially having small
             // floating point offsets.
-            if (staticAttachTransform == transform)
+            if (staticAttachTransform == m_Transform)
                 dynamicAttachTransform.SetLocalPose(Pose.identity);
-            else if (staticAttachTransform.parent == transform)
+            else if (staticAttachTransform.parent == m_Transform)
                 dynamicAttachTransform.SetLocalPose(staticAttachTransform.GetLocalPose());
             else
                 dynamicAttachTransform.SetWorldPose(staticAttachTransform.GetWorldPose());
@@ -1811,12 +2233,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Skip checking m_UseDynamicAttach since it may have changed after being grabbed,
             // and we should ensure it is released. We instead check Count first as a faster way to avoid hashing
             // and the Dictionary lookup, which should handle when it was never enabled in the first place.
-            if (m_DynamicAttachTransforms.Count > 0 && m_DynamicAttachTransforms.TryGetValue(interactor, out var dynamicAttachTransform))
-            {
-                if (dynamicAttachTransform != null)
-                    s_DynamicAttachTransformPool.Release(dynamicAttachTransform);
+            Release(m_DynamicAttachTransforms, interactor);
+            Release(m_VisualAttachTransforms, interactor);
 
-                m_DynamicAttachTransforms.Remove(interactor);
+            static void Release(Dictionary<IXRSelectInteractor, Transform> transforms, IXRSelectInteractor interactor)
+            {
+                if (transforms.Count > 0 && transforms.TryGetValue(interactor, out var dynamicAttachTransform))
+                {
+                    if (dynamicAttachTransform != null)
+                        s_DynamicAttachTransformPool.Release(dynamicAttachTransform);
+
+                    transforms.Remove(interactor);
+                }
             }
         }
 
@@ -1917,9 +2345,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="Drop"/>
         protected virtual void Grab()
         {
-            var thisTransform = transform;
-            m_OriginalSceneParent = thisTransform.parent;
-            thisTransform.SetParent(null);
+            m_OriginalSceneParent = m_Transform.parent;
+            m_Transform.SetParent(null);
+
+            // Capture the initial pose of the visuals transform if it exists.
+            if (m_PredictedVisualsTransform != null)
+            {
+                m_InitialVisualsTransformLocalPose = m_PredictedVisualsTransform.GetLocalPose();
+                m_InitialVisualsTransformLocalPoseIsIdentity = m_InitialVisualsTransformLocalPose == Pose.identity;
+            }
+            else
+            {
+                m_InitialVisualsTransformLocalPose = Pose.identity;
+                m_InitialVisualsTransformLocalPoseIsIdentity = true;
+            }
 
             UpdateCurrentMovementType();
             SetupRigidbodyGrab(m_Rigidbody);
@@ -1929,7 +2368,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             m_DetachAngularVelocity = Vector3.zero;
 
             // Initialize target pose and scale
-            InitializeTargetPoseAndScale(thisTransform);
+            InitializeTargetPoseAndScale(m_Transform);
         }
 
         /// <summary>
@@ -1955,7 +2394,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                             "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
                 }
                 else if (gameObject.activeInHierarchy)
-                    transform.SetParent(m_OriginalSceneParent);
+                    m_Transform.SetParent(m_OriginalSceneParent);
             }
 
             SetupRigidbodyDrop(m_Rigidbody);
@@ -1963,6 +2402,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             m_CurrentMovementType = m_MovementType;
             m_DetachInLateUpdate = true;
             EndThrowSmoothing();
+
+            if (m_PredictedVisualsTransform != null)
+                m_PredictedVisualsTransform.SetLocalPose(m_InitialVisualsTransformLocalPose);
         }
 
         /// <summary>
@@ -1988,6 +2430,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                     m_DetachLinearVelocity = m_ThrowAssist.GetAssistedVelocity(m_Rigidbody.position, m_DetachLinearVelocity, m_Rigidbody.useGravity ? -Physics.gravity.y : 0f);
                     m_ThrowAssist = null;
                 }
+                else if (m_LimitLinearVelocity)
+                {
+                    // Cap the velocity delta. This isn't done when there is a throw assist to compute the value
+                    // since it's assumed that it should be responsible for doing that if desired.
+                    m_DetachLinearVelocity = Vector3.ClampMagnitude(m_DetachLinearVelocity, m_MaxLinearVelocityDelta);
+                }
+
+                if (m_LimitAngularVelocity)
+                    m_DetachAngularVelocity = Vector3.ClampMagnitude(m_DetachAngularVelocity, m_MaxAngularVelocityDelta);
 
 #if UNITY_2023_3_OR_NEWER
                 m_Rigidbody.linearVelocity = m_DetachLinearVelocity;
@@ -2010,15 +2461,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Remember Rigidbody settings and setup to move
             m_WasKinematic = rigidbody.isKinematic;
             m_UsedGravity = rigidbody.useGravity;
+            m_InterpolationOnGrab = rigidbody.interpolation;
 #if UNITY_2023_3_OR_NEWER
-            m_OldLinearDamping = rigidbody.linearDamping;
-            m_OldAngularDamping = rigidbody.angularDamping;
+            m_LinearDampingOnGrab = rigidbody.linearDamping;
+            m_AngularDampingOnGrab = rigidbody.angularDamping;
 #else
-            m_OldLinearDamping = rigidbody.drag;
-            m_OldAngularDamping = rigidbody.angularDrag;
+            m_LinearDampingOnGrab = rigidbody.drag;
+            m_AngularDampingOnGrab = rigidbody.angularDrag;
 #endif
             rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic || m_CurrentMovementType == MovementType.Instantaneous;
             rigidbody.useGravity = false;
+            // Initialize the Rigidbody to not interpolate when we drive predicted visuals.
+            // See explanation in PerformVelocityVisualsUpdate().
+            if (isRigidbodyMovement && m_PredictedVisualsTransform != null)
+                rigidbody.interpolation = RigidbodyInterpolation.None;
+
 #if UNITY_2023_3_OR_NEWER
             rigidbody.linearDamping = 0f;
             rigidbody.angularDamping = 0f;
@@ -2040,12 +2497,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Restore Rigidbody settings
             rigidbody.isKinematic = m_WasKinematic;
             rigidbody.useGravity = m_UsedGravity;
+            // Only reset to the original Interpolation value if this component caused a change,
+            // which only happens when we use the visuals transform to predict the visuals.
+            // If this feature is not being used, keep whatever value the user may have set while it was selected.
+            if (m_PredictedVisualsTransform != null)
+                rigidbody.interpolation = m_InterpolationOnGrab;
 #if UNITY_2023_3_OR_NEWER
-            rigidbody.linearDamping = m_OldLinearDamping;
-            rigidbody.angularDamping = m_OldAngularDamping;
+            rigidbody.linearDamping = m_LinearDampingOnGrab;
+            rigidbody.angularDamping = m_AngularDampingOnGrab;
 #else
-            rigidbody.drag = m_OldLinearDamping;
-            rigidbody.angularDrag = m_OldAngularDamping;
+            rigidbody.drag = m_LinearDampingOnGrab;
+            rigidbody.angularDrag = m_AngularDampingOnGrab;
 #endif
 
             if (!isSelected)
