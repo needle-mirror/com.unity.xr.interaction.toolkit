@@ -172,7 +172,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         }
 
         /// <summary>
-        /// Start tracking the manager component, invoked when its <c>OnDisable</c> is called.
+        /// End tracking the manager component, invoked when its <c>OnDisable</c> is called.
         /// </summary>
         /// <param name="manager">The manager component to track.</param>
         /// <param name="now">Current timestamp.</param>

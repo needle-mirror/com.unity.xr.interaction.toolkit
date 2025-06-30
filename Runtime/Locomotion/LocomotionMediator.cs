@@ -30,6 +30,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 
         XRBodyTransformer m_XRBodyTransformer;
 
+        /// <summary>
+        /// The <see cref="XRBodyTransformer"/> linked with this mediator.
+        /// </summary>
+        public XRBodyTransformer bodyTransformer => m_XRBodyTransformer;
+
         readonly Dictionary<LocomotionProvider, LocomotionProviderData> m_ProviderDataMap =
             new Dictionary<LocomotionProvider, LocomotionProviderData>();
 
@@ -61,17 +66,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
                 var providerData = kvp.Value;
                 if (providerData.state == LocomotionState.Preparing && provider.canStartMoving)
                 {
-                    StartLocomotion(provider, providerData);
+                    ChangeState(provider, providerData, LocomotionState.Moving);
                 }
                 else if (providerData.state == LocomotionState.Ended && Time.frameCount > providerData.locomotionEndFrame)
                 {
-                    providerData.state = LocomotionState.Idle;
+                    ChangeState(provider, providerData, LocomotionState.Idle);
                 }
             }
 
-            foreach (var provider in s_ProvidersToRemove)
+            if (s_ProvidersToRemove.Count > 0)
             {
-                m_ProviderDataMap.Remove(provider);
+                foreach (var provider in s_ProvidersToRemove)
+                {
+                    m_ProviderDataMap.Remove(provider);
+                }
             }
         }
 
@@ -88,7 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
                 return false;
             }
 
-            providerData.state = LocomotionState.Preparing;
+            ChangeState(provider, providerData, LocomotionState.Preparing);
             return true;
         }
 
@@ -105,14 +113,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
                 return false;
             }
 
-            StartLocomotion(provider, providerData);
+            ChangeState(provider, providerData, LocomotionState.Moving);
             return true;
-        }
-
-        void StartLocomotion(LocomotionProvider provider, LocomotionProviderData providerData)
-        {
-            providerData.state = LocomotionState.Moving;
-            provider.OnLocomotionStart(m_XRBodyTransformer);
         }
 
         internal bool TryEndLocomotion(LocomotionProvider provider)
@@ -124,10 +126,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
             if (!locomotionState.IsActive())
                 return false;
 
-            providerData.state = LocomotionState.Ended;
-            providerData.locomotionEndFrame = Time.frameCount;
-            provider.OnLocomotionEnd();
+            ChangeState(provider, providerData, LocomotionState.Ended);
             return true;
+        }
+
+        void ChangeState(LocomotionProvider provider, LocomotionProviderData providerData, LocomotionState state)
+        {
+            if (providerData.state == state)
+                return;
+
+            var oldState = providerData.state;
+            providerData.state = state;
+            if (state == LocomotionState.Ended)
+                providerData.locomotionEndFrame = Time.frameCount;
+
+            provider.OnLocomotionStateChanging(oldState, state, m_XRBodyTransformer);
         }
 
         /// <summary>

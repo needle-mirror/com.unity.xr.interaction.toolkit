@@ -1,6 +1,7 @@
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
@@ -25,6 +26,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         }
 
         [SerializeField]
+        [Tooltip("If enabled, spawning will be blocked if the active interactor in the associated XR Interaction Group is hovering or selecting an interactable object.")]
+        bool m_BlockSpawnDuringInteraction;
+
+        /// <summary>
+        /// If enabled, spawning will be blocked if the active interactor in the associated <see cref="interactionGroup"/> is hovering or selecting an interactable object.
+        /// </summary>
+        public bool blockSpawnDuringInteraction
+        {
+            get => m_BlockSpawnDuringInteraction;
+            set => m_BlockSpawnDuringInteraction = value;
+        }
+
+        [SerializeField]
+        [Tooltip("XR Interaction Group associated with this contact spawn trigger.")]
+        XRInteractionGroup m_InteractionGroup;
+
+        /// <summary>
+        /// XR Interaction Group associated with this contact spawn trigger. Spawning will be blocked if an interactor from this XR Interaction Group is
+        /// hovering or selecting and interactable and <see cref="blockSpawnDuringInteraction"/> is enabled.
+        /// </summary>
+        /// <remarks>If <see langword="null"/>, this scripts attempts to find an <see cref="XRInteractionGroup"/> component on the parent.</remarks>
+        public XRInteractionGroup interactionGroup
+        {
+            get => m_InteractionGroup;
+            set => m_InteractionGroup = value;
+        }
+
+        [SerializeField]
         [Tooltip("Whether to require that the AR Plane has an alignment of horizontal up to spawn on it.")]
         bool m_RequireHorizontalUpSurface;
 
@@ -42,12 +71,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         /// </summary>
         void Start()
         {
+            if (m_InteractionGroup == null)
+            {
+                m_InteractionGroup = GetComponentInParent<XRInteractionGroup>();
+
+                if (m_BlockSpawnDuringInteraction && m_InteractionGroup == null)
+                    Debug.LogWarning("Interaction group could be found. Spawning objects will not be blocked during hover or select interaction.", this);
+            }
+
             if (m_ObjectSpawner == null)
+            {
 #if UNITY_2023_1_OR_NEWER
                 m_ObjectSpawner = FindAnyObjectByType<ObjectSpawner>();
 #else
                 m_ObjectSpawner = FindObjectOfType<ObjectSpawner>();
 #endif
+
+                if (m_ObjectSpawner == null)
+                    Debug.LogWarning("Object spawner could not be found. AR Contact Spawn Trigger will be unable to spawn objects.", this);
+            }
         }
 
         /// <summary>
@@ -55,7 +97,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         /// </summary>
         void OnTriggerEnter(Collider other)
         {
-            if (!TryGetSpawnSurfaceData(other, out var surfacePosition, out var surfaceNormal))
+            if ((blockSpawnDuringInteraction && IsInteractionBlockingSpawn()) ||
+                !TryGetSpawnSurfaceData(other, out var surfacePosition, out var surfaceNormal))
                 return;
 
             var infinitePlane = new Plane(surfaceNormal, surfacePosition);
@@ -86,6 +129,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             surfaceNormal = arPlane.normal;
             surfacePosition = arPlane.center;
             return true;
+        }
+
+        bool IsInteractionBlockingSpawn()
+        {
+            if (m_InteractionGroup != null && m_InteractionGroup.activeInteractor != null)
+            {
+                var hoverInteractor = (IXRHoverInteractor)m_InteractionGroup.activeInteractor;
+                var selectInteractor = (IXRSelectInteractor)m_InteractionGroup.activeInteractor;
+                var isHovering = (hoverInteractor != null) && hoverInteractor.hasHover;
+                var isSelecting = (selectInteractor != null) && selectInteractor.hasSelection;
+                return isHovering || isSelecting;
+            }
+
+            return false;
         }
     }
 }

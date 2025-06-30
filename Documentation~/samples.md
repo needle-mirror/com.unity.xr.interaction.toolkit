@@ -17,6 +17,7 @@ For a more comprehensive example, you can download a larger example from the [XR
 | [XR Interaction Simulator](samples-xr-interaction-simulator.md) | Assets related to the simulation of input and interactions for XR headsets, controllers and hands. |
 | [XR Device Simulator](samples-xr-device-simulator.md) | Assets related to the simulation of input for XR headsets and controllers. |
 | [Spatial Keyboard](samples-spatial-keyboard.md) | Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard. |
+| [World Space UI](samples-world-space-ui.md) | Provides a demo scene and prefabs that demonstrate world space UI support in XR Interaction Toolkit using both uGUI and UI Toolkit. |
 | [Legacy XR Input Readers](samples-legacy-xr-input-readers.md) | A set of ScriptableObject assets that you can use when updating an older project that used the obsolete XR Controller (Device-based) component. |
 | [visionOS](samples-vision-os.md) | Provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit. |
 | [XR Interaction Toolkit examples](xref:xri-examples) | A GitHub repository containing detailed examples of the types of interactions that you can build with the toolkit. |

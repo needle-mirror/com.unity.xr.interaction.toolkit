@@ -1,4 +1,5 @@
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -21,6 +22,61 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             var cameraInOriginSpacePos = xrOrigin.CameraInOriginSpacePos;
             var cameraFloorInOriginSpacePos = new Vector3(cameraInOriginSpacePos.x, 0f, cameraInOriginSpacePos.z);
             return xrOrigin.Origin.transform.TransformPoint(cameraFloorInOriginSpacePos);
+        }
+
+        internal static bool TryGetOriginTransform(LocomotionProvider locomotionProvider, out Transform originTransform)
+        {
+            // Correct version of locomotionProvider?.mediator?.xrOrigin?.Origin?.transform
+            if (locomotionProvider != null)
+            {
+                var mediator = locomotionProvider.mediator;
+                return TryGetOriginTransform(mediator, out originTransform);
+            }
+
+            originTransform = null;
+            return false;
+        }
+
+        internal static bool TryGetOriginTransform(LocomotionMediator mediator, out Transform originTransform)
+        {
+            // Correct version of mediator?.xrOrigin?.Origin?.transform
+            if (mediator != null)
+            {
+                var xrOrigin = mediator.xrOrigin;
+                if (xrOrigin != null)
+                {
+                    var origin = xrOrigin.Origin;
+                    if (origin != null)
+                    {
+                        originTransform = origin.transform;
+                        return true;
+                    }
+                }
+            }
+
+            originTransform = null;
+            return false;
+        }
+
+        internal static bool TryGetOriginTransform(XRBodyTransformer bodyTransformer, out Transform originTransform)
+        {
+            // Correct version of bodyTransformer?.xrOrigin?.Origin?.transform
+            if (bodyTransformer != null)
+            {
+                var xrOrigin = bodyTransformer.xrOrigin;
+                if (xrOrigin != null)
+                {
+                    var origin = xrOrigin.Origin;
+                    if (origin != null)
+                    {
+                        originTransform = origin.transform;
+                        return true;
+                    }
+                }
+            }
+
+            originTransform = null;
+            return false;
         }
     }
 }

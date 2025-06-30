@@ -84,34 +84,48 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var xrOrigin = TestUtilities.CreateXROrigin();
             var xrBodyTransformer = TestUtilities.CreateXRBodyTransformer(xrOrigin);
 
-            var m_Transformation1Applied = false;
-            var m_Transformation2Applied = false;
-            var m_Transformation3Applied = false;
-            var transformation1 = new DelegateXRBodyTransformation(body => { m_Transformation1Applied = true; });
-            var transformation2 = new DelegateXRBodyTransformation(body => { m_Transformation2Applied = true; });
-            var transformation3 = new DelegateXRBodyTransformation(body => { m_Transformation3Applied = true; });
+            var transformation1Applied = false;
+            var transformation2Applied = false;
+            var transformation3Applied = false;
+            var transformation1 = new DelegateXRBodyTransformation(_ => { transformation1Applied = true; });
+            var transformation2 = new DelegateXRBodyTransformation(_ => { transformation2Applied = true; });
+            var transformation3 = new DelegateXRBodyTransformation(_ => { transformation3Applied = true; });
 
             xrBodyTransformer.QueueTransformation(transformation1);
             xrBodyTransformer.QueueTransformation(transformation2);
             xrBodyTransformer.QueueTransformation(transformation3);
 
-            yield return new WaitForFixedUpdate();
-            yield return null;
-
-            Assert.IsTrue(m_Transformation1Applied);
-            Assert.IsTrue(m_Transformation2Applied);
-            Assert.IsTrue(m_Transformation3Applied);
-
-            m_Transformation1Applied = false;
-            m_Transformation2Applied = false;
-            m_Transformation3Applied = false;
+            var beforeApplyTransformationsInvoked = false;
+            var afterApplyTransformationsInvoked = false;
+            xrBodyTransformer.beforeApplyTransformations += _ => beforeApplyTransformationsInvoked = true;
+            xrBodyTransformer.afterApplyTransformations += _ => afterApplyTransformationsInvoked = true;
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.IsFalse(m_Transformation1Applied);
-            Assert.IsFalse(m_Transformation2Applied);
-            Assert.IsFalse(m_Transformation3Applied);
+            Assert.That(transformation1Applied, Is.True);
+            Assert.That(transformation2Applied, Is.True);
+            Assert.That(transformation3Applied, Is.True);
+
+            Assert.That(beforeApplyTransformationsInvoked, Is.True);
+            Assert.That(afterApplyTransformationsInvoked, Is.True);
+
+            transformation1Applied = false;
+            transformation2Applied = false;
+            transformation3Applied = false;
+
+            beforeApplyTransformationsInvoked = false;
+            afterApplyTransformationsInvoked = false;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(transformation1Applied, Is.False);
+            Assert.That(transformation2Applied, Is.False);
+            Assert.That(transformation3Applied, Is.False);
+
+            Assert.That(beforeApplyTransformationsInvoked, Is.False);
+            Assert.That(afterApplyTransformationsInvoked, Is.False);
         }
 
         [UnityTest]
@@ -145,13 +159,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var xrBodyTransformer = TestUtilities.CreateXRBodyTransformer(xrOrigin);
 
             var transformationApplied = false;
-            var transformation = new DelegateXRBodyTransformation(body => { transformationApplied = true; });
+            var transformation = new DelegateXRBodyTransformation(_ => { transformationApplied = true; });
             xrBodyTransformer.QueueTransformation(transformation);
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
-            Assert.IsTrue(transformationApplied);
+            Assert.That(transformationApplied, Is.True);
         }
 
         [UnityTest]

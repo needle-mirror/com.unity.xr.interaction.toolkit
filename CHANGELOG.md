@@ -9,6 +9,48 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.2.0] - 2025-06-30
+
+### Added
+- Added additional Editor analytics to gather data about locomotion components that helps Unity understand how the package is being used in projects. If you don't want to send data to Unity, please see [Editor analytics documentation](https://docs.unity3d.com/Manual/EditorAnalytics.html) for how to disable analytics in your project.
+- Added configurable functionality to `ARContactSpawnTrigger` in the AR Starter Assets sample to block spawning of objects on AR Planes when the active interactor in the associated `XRInteractionGroup` is either hovering or selecting an interactable object.
+- Added documentation for [World-Space UI Toolkit support](xref:xri-ui-world-space-ui-toolkit-support) and the [World Space UI sample package](xref:xri-samples-world-space-ui).
+
+### Changed
+- Changed the timing of when several locomotion events and methods are called within a frame. The primary motivation of these changes is to allow the `LocomotionProvider.locomotionEnded` event to invoke after a teleport has actually been applied to the XR Origin rather than after the transformation has merely been queued but not yet applied. This restores similar timing to that event as the deprecated `LocomotionProvider.endLocomotion` when the deprecated `LocomotionSystem` was used, fixing a regression introduced with version [3.0.0-pre.1](#300-pre1---2023-12-14). ([XRIT-255](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-255))
+  - Added `LocomotionProvider.locomotionStateChanged` event and `OnLocomotionStateChanging` method to allow users to respond to the changing `locomotionState` before any queued transformations have been applied.
+  - Added `LocomotionProvider.afterStepLocomotion` event which is invoked after a provider's queued transformation has been applied.
+  - Added `XRBodyTransformer.afterApplyTransformations` event which is invoked after all transformations have been applied in a frame.
+  - Changed `XRBodyTransformer.beforeApplyTransformations` so it is only invoked during a frame when a transformation is about to be applied rather than always being invoked every frame even if nothing had been queued.
+  - Changed `LocomotionProvider.locomotionEnded` event and `OnLocomotionEnding` method so it is invoked after any of the provider's queued transformations have been applied rather than immediately after changing `locomotionState` to `LocomotionState.Ended`.
+  - Changed `LocomotionProvider` so the `OnLocomotionEnding` method is invoked before the `locomotionEnded` event, matching the pattern elsewhere in the package of the `protected virtual` method being invoked before the `public` event.
+  - Fixed `LocomotionProvider.beforeStepLocomotion` so it is invoked as expected when a locomotion component (such as Snap Turn Provider) has a Delay Time.
+  - Fixed XR Grab Interactable being thrown at very high velocities after a teleportation due to the change in `LocomotionProvider.locomotionEnded` event timing.
+- Changed the Transformation Priority value on some Locomotion Provider components in the XR Origin (XR Rig) prefab in the Starter Assets sample to improve the default ordering when multiple providers are doing locomotion in the same frame.
+  - Changed Gravity Provider from 0 to 10 to make it more apparent that its transformations are applied after non-teleport locomotion. Due to script execution order, this was already the case.
+  - Changed Teleportation Provider from 0 to 20 so that its transformations are applied last among all the providers in the rig. This is to allow the rig to move and rotate to the exact pose previewed by the teleport reticle. Due to script execution order, it was previously indeterminate if it applied before or after move/turn locomotion.
+- Changed XR Grab Interactable so snap turn and turn around are handled the same as a teleportation when calculating the throw velocity. This fixes the object being thrown at unintentionally high velocity when dropped immediately after a snap turn or turn around.
+- Changed XR Grab Interactable so it also updates the Predicted Visuals Transform scale between physics steps, similar to pose changes, so that scale changes appears smoother.
+- Changed XR Grab Interactable so it automatically populates Starting Single Grab Transformers and Starting Multiple Grab Transformers using the components attached to the GameObject when both lists are empty during `Awake`. This ensures they are registered before the object is interacted with and makes the order of grab transformers deterministic when multiple grab transformers are added to the GameObject. Note that custom grab transformers that derive directly from `IXRGrabTransformer` and not from the abstract `XRBaseGrabTransformer` must be registered manually at runtime.
+- Changed XR Grab Interactable so it automatically adds the default grab transformer, as needed, upon hover or select to handle when interaction occurs during the first frame, such as when a socket interactor selects it when using the Starting Selected Interactable property. This ensures the default grab transformer will still be added before the socket adds the `XRSocketGrabTransformer`.
+
+### Fixed
+- Fixed `NullReferenceException` in internal analytics code when getting the package version after opening the Profiler (Standalone Process) window. ([XRIT-267](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-267))
+- Fixed XR Grab Interactable so it handles scales different from (1, 1, 1) when using the Predicted Visuals Transform.
+- Fixed XR Grab Interactable when selected by multiple interactors so it re-evaluates `XRBaseInteractor.selectedInteractableMovementTypeOverride` as each interactor selects or deselects instead of only upon the very first grab.
+- Fixed "Screen position out of view frustum" error spam when using the XR UI Input Module component together with UI Toolkit with some Panel Input Configuration settings.
+- Fixed UGUI scroll view becoming stuck interacting when dragging with the Near-Far Interactor, fixing regression introduced with version [3.2.0-pre.1](#320-pre1---2025-04-28).
+- Fixed broken links in [What's new in 3.2](xref:xri-whats-new-3-2) and [XR Grab Interactable](xref:xri-xr-grab-interactable).
+- Fixed XR Grab Interactable so the throw velocity is properly offset when a teleportation is combined with a rotation. This fixes so the object will fall straight down when dropped immediately after a teleport if it wasn't moving instead of being launched in an unexpected direction.
+- Fixed XR Grab Interactable so the throw velocity will be properly offset after a teleportation, snap turn, or turn around when the locomotion provider components are instantiated after any grab has occurred, such as when the rig prefab is destroyed and replaced during a scene load.
+- Fixed "Predicted Visuals Transform must be a child GameObject" error box always appearing in the Inspector window of XR Grab Interactable when multi-object editing.
+- Fixed an issue where Interaction Layer Settings might be accessed by Project Validation before initialization via serialization, causing a null-reference exception.
+- Fixed the XR Origin creation workflow by adding a missing console warning when selecting `XR Origin (VR Rig)` from the Create menu in the hierarchy and the scene contains another Camera object with the `MainCamera` tag. ([XRIT-283](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-283))
+- Fixed XR Socket Interactor so it returns an XR Grab Interactable to its original size when another interactor selects it and moves it out of the hover snapping range when using Hover Socket Snapping.
+- Fixed `KeyNotFoundException` when changing the XR Socket Interactor property Socket Scale Mode from None when already interacting with an XR Grab Interactable.
+- Fixed XR Socket Interactor so toggling Socket Active in the Inspector window during play mode properly syncs it to the socket grab transformer.
+- Fixed Click UI On Down property on the XR Poke Interactor preventing drags in Scroll Rects when poking buttons, toggles, input fields, and dropdowns. The property is now automatically ignored by the XR UI Input Module when the Scroll Rect content doesn't fit in the viewport to allow for scrolling.
+
 ## [3.2.0-pre.1] - 2025-04-28
 
 ### Added

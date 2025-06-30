@@ -40,6 +40,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         public SocketScaleMode scaleMode { get; set; }
 
         /// <summary>
+        /// Only calculate the scale factor applied to the interactable, suppressing calculation for pose.
+        /// </summary>
+        /// <remarks>
+        /// This is used when the socket stops selecting the interactable while still hovering, meaning another interactor
+        /// has grabbed it from the socket. We want the object to be freely movable, but keep the scale resized if the
+        /// mode allowed for resizing, but only until it is no longer hovering. This allows for immediate feedback that
+        /// the object has been grabbed but wait to restore the object's initial scale until pulled away, helping to
+        /// avoid geometry clipping.
+        /// </remarks>
+        internal bool scaleOnlyMode { get; set; }
+
+        /// <summary>
         /// Scale factor applied to the interactable when scale mode is set to Fixed.
         /// </summary>
         public float3 fixedScale { get; set; } = new float3(1f, 1f, 1f);
@@ -71,8 +83,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// <inheritdoc />
         public void OnGrabCountChanged(XRGrabInteractable grabInteractable, Pose targetPose, Vector3 localScale)
         {
-            if (scaleMode != SocketScaleMode.None)
-                RegisterInteractableScale(grabInteractable, localScale);
+            RegisterInteractableScale(grabInteractable, localScale);
         }
 
         /// <inheritdoc />
@@ -85,15 +96,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                     {
                         if (scaleMode == SocketScaleMode.None)
                         {
-                            UpdateTargetWithoutScale(grabInteractable, socketInteractor, socketSnappingRadius, ref targetPose);
+                            if (!scaleOnlyMode)
+                                UpdateTargetWithoutScale(grabInteractable, socketInteractor, socketSnappingRadius, ref targetPose);
                         }
                         else
                         {
                             float3 initialScale = m_InitialScale[grabInteractable];
-                            float3 initialBounds = m_InteractableBoundsSize[grabInteractable];
                             float3 targetScale = ComputeSocketTargetScale(grabInteractable, initialScale);
 
-                            UpdateTargetWithScale(grabInteractable, socketInteractor, socketSnappingRadius, initialScale, initialBounds, targetScale, ref targetPose, ref localScale);
+                            if (!scaleOnlyMode)
+                            {
+                                float3 initialBounds = m_InteractableBoundsSize[grabInteractable];
+                                UpdateTargetWithScale(grabInteractable, socketInteractor, socketSnappingRadius, initialScale, initialBounds, targetScale, ref targetPose, ref localScale);
+                            }
+                            else
+                            {
+                                localScale = targetScale;
+                            }
                         }
 
                         break;

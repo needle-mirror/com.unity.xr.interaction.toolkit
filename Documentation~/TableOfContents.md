@@ -1,5 +1,5 @@
 * [XR Interaction Toolkit](index.md)
-* [What's new in 3.2](whats-new-3.2.md)
+* [What's new in 3.2](xref:xri-whats-new-3-2)
   * [XRI 3.0 upgrade guide](upgrade-guide-3.0.md)
   * Previous releases
     * [What's new in 3.1](whats-new-3.1.md)
@@ -102,6 +102,7 @@
       * [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md)
 * [UI interaction](ui-interaction.md)
   * [Set up UI Canvases for XR](ui-setup.md)
+  * [UI Toolkit Support](xref:xri-ui-world-space-ui-toolkit-support)
   * [UI components](ui-components.md)
     * [XR UI Input Module](xr-ui-input-module.md)
     * [Tracked Device Graphic Raycaster](tracked-device-graphic-raycaster.md)
@@ -125,6 +126,7 @@
   * [AR Starter Assets](samples-ar-starter-assets.md)
   * [XR Device Simulator](samples-xr-device-simulator.md)
   * [Spatial Keyboard](samples-spatial-keyboard.md)
+  * [World Space UI](xref:xri-samples-world-space-ui)
   * [Legacy XR Input Readers](samples-legacy-xr-input-readers.md)
   * [visionOS](samples-vision-os.md)
   * [XR Interaction Toolkit examples](examples.md)

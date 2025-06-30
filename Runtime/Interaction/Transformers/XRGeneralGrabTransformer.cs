@@ -303,7 +303,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// </summary>
         protected void Awake()
         {
-            m_InitialScale = transform.localScale;
+            // Don't need to do anything; method kept for backwards compatibility.
+        }
+
+        /// <inheritdoc />
+        public override void OnLink(XRGrabInteractable grabInteractable)
+        {
+            base.OnLink(grabInteractable);
+
+            m_InitialScale = grabInteractable.transform.localScale;
             var maxComponent = Mathf.Max(Mathf.Abs(m_InitialScale.x), Mathf.Abs(m_InitialScale.y), Mathf.Abs(m_InitialScale.z));
             m_InitialScaleProportions = m_InitialScale.SafeDivide(new Vector3(maxComponent, maxComponent, maxComponent));
         }

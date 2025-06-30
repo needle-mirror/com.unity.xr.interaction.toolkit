@@ -11,6 +11,7 @@ using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -52,6 +53,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var provider2 = TestUtilities.CreateMockLocomotionProvider(mediator);
             var provider3 = TestUtilities.CreateMockLocomotionProvider(mediator);
 
+            LocomotionState? provider1ChangedState = null;
+            LocomotionState? provider2ChangedState = null;
+            LocomotionState? provider3ChangedState = null;
+            provider1.locomotionStateChanged += (_, state) => provider1ChangedState = state;
+            provider2.locomotionStateChanged += (_, state) => provider2ChangedState = state;
+            provider3.locomotionStateChanged += (_, state) => provider3ChangedState = state;
+
             Assert.That(provider1.locomotionState, Is.EqualTo(LocomotionState.Idle));
             Assert.That(provider2.locomotionState, Is.EqualTo(LocomotionState.Idle));
             Assert.That(provider3.locomotionState, Is.EqualTo(LocomotionState.Idle));
@@ -70,13 +78,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider1.isLocomotionActive, Is.False);
             Assert.That(provider2.isLocomotionActive, Is.False);
             Assert.That(provider3.isLocomotionActive, Is.False);
+            Assert.That(provider1ChangedState, Is.EqualTo(null));
+            Assert.That(provider2ChangedState, Is.EqualTo(null));
+            Assert.That(provider3ChangedState, Is.EqualTo(null));
 
             var provider1StartedLocomotion = false;
             var provider2StartedLocomotion = false;
             var provider3StartedLocomotion = false;
-            provider1.locomotionStarted += provider => provider1StartedLocomotion = true;
-            provider2.locomotionStarted += provider => provider2StartedLocomotion = true;
-            provider3.locomotionStarted += provider => provider3StartedLocomotion = true;
+            provider1.locomotionStarted += _ => provider1StartedLocomotion = true;
+            provider2.locomotionStarted += _ => provider2StartedLocomotion = true;
+            provider3.locomotionStarted += _ => provider3StartedLocomotion = true;
 
             provider1.InvokeTryStartLocomotionImmediately();
             provider2.InvokeTryPrepareLocomotion();
@@ -91,6 +102,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider1StartedLocomotion, Is.True);
             Assert.That(provider2StartedLocomotion, Is.False);
             Assert.That(provider3StartedLocomotion, Is.False);
+            Assert.That(provider1ChangedState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(provider2ChangedState, Is.EqualTo(LocomotionState.Preparing));
+            Assert.That(provider3ChangedState, Is.EqualTo(LocomotionState.Preparing));
+
+            provider1ChangedState = null;
+            provider2ChangedState = null;
+            provider3ChangedState = null;
 
             // Frame 2:
             // Provider 1: Moving    -> Moving
@@ -108,6 +126,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider2.isLocomotionActive, Is.True);
             Assert.That(provider2StartedLocomotion, Is.True);
             Assert.That(provider3StartedLocomotion, Is.False);
+            Assert.That(provider1ChangedState, Is.EqualTo(null));
+            Assert.That(provider2ChangedState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(provider3ChangedState, Is.EqualTo(null));
+
+            provider2ChangedState = null;
 
             yield return new WaitForFixedUpdate();
             yield return null;
@@ -115,6 +138,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider1.locomotionState, Is.EqualTo(LocomotionState.Moving));
             Assert.That(provider2.locomotionState, Is.EqualTo(LocomotionState.Moving));
             Assert.That(provider3.locomotionState, Is.EqualTo(LocomotionState.Preparing));
+
+            Assert.That(provider1ChangedState, Is.EqualTo(null));
+            Assert.That(provider2ChangedState, Is.EqualTo(null));
+            Assert.That(provider3ChangedState, Is.EqualTo(null));
 
             // Frame 3:
             // Provider 1: Moving    -> Ended
@@ -124,9 +151,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var provider1EndedLocomotion = false;
             var provider2EndedLocomotion = false;
             var provider3EndedLocomotion = false;
-            provider1.locomotionEnded += provider => provider1EndedLocomotion = true;
-            provider2.locomotionEnded += provider => provider2EndedLocomotion = true;
-            provider3.locomotionEnded += provider => provider3EndedLocomotion = true;
+            provider1.locomotionEnded += _ => provider1EndedLocomotion = true;
+            provider2.locomotionEnded += _ => provider2EndedLocomotion = true;
+            provider3.locomotionEnded += _ => provider3EndedLocomotion = true;
 
             provider1.InvokeTryEndLocomotion();
             provider2.InvokeTryEndLocomotion();
@@ -141,6 +168,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider1EndedLocomotion, Is.True);
             Assert.That(provider2EndedLocomotion, Is.True);
             Assert.That(provider3EndedLocomotion, Is.True);
+            Assert.That(provider1ChangedState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(provider2ChangedState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(provider3ChangedState, Is.EqualTo(LocomotionState.Ended));
+
+            provider1ChangedState = null;
+            provider2ChangedState = null;
+            provider3ChangedState = null;
 
             // Frame 4:
             // Provider 1: Ended -> Preparing
@@ -158,6 +192,99 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(provider1.isLocomotionActive, Is.True);
             Assert.That(provider2.isLocomotionActive, Is.False);
             Assert.That(provider3.isLocomotionActive, Is.False);
+            Assert.That(provider1ChangedState, Is.EqualTo(LocomotionState.Preparing));
+            Assert.That(provider2ChangedState, Is.EqualTo(LocomotionState.Idle));
+            Assert.That(provider3ChangedState, Is.EqualTo(LocomotionState.Idle));
+        }
+
+        [UnityTest]
+        public IEnumerator LocomotionEndedEventDeferred()
+        {
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            TestUtilities.CreateXRBodyTransformer(xrOrigin);
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            var provider = TestUtilities.CreateMockLocomotionProvider(mediator);
+
+            LocomotionState? providerChangedState = null;
+            provider.locomotionStateChanged += (_, state) => providerChangedState = state;
+
+            var providerStartedLocomotion = false;
+            provider.locomotionStarted += _ => providerStartedLocomotion = true;
+
+            var providerEndedLocomotion = false;
+            provider.locomotionEnded += _ => providerEndedLocomotion = true;
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Idle));
+
+            yield return null;
+
+            // Provider: Idle -> Moving
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Idle));
+            Assert.That(providerChangedState, Is.EqualTo(null));
+            Assert.That(providerStartedLocomotion, Is.False);
+            Assert.That(providerEndedLocomotion, Is.False);
+
+            provider.InvokeTryStartLocomotionImmediately();
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(providerChangedState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(providerStartedLocomotion, Is.True);
+            Assert.That(providerEndedLocomotion, Is.False);
+
+            providerChangedState = null;
+
+            // Provider: Moving -> Ended
+            // No queued transformation, so locomotionEnded should fire immediately
+
+            provider.InvokeTryEndLocomotion();
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(providerChangedState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(providerEndedLocomotion, Is.True);
+
+            providerChangedState = null;
+            providerStartedLocomotion = false;
+            providerEndedLocomotion = false;
+
+            yield return null;
+
+            // Provider: Ended -> Moving
+
+            provider.InvokeTryStartLocomotionImmediately();
+
+            yield return null;
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(providerChangedState, Is.EqualTo(LocomotionState.Moving));
+            Assert.That(providerStartedLocomotion, Is.True);
+            Assert.That(providerEndedLocomotion, Is.False);
+
+            // Provider: Moving -> Ended
+            // Queue a transformation, and then end locomotion.
+            // Should need to wait until the XRBodyTransformer has been updated to apply the transformation
+            // for the locomotionEnded event to fire.
+
+            var transformationApplied = false;
+            provider.delegateTransformation.transformation += _ => transformationApplied = true;
+            provider.InvokeTryQueueTransformation();
+            provider.InvokeTryEndLocomotion();
+
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(providerChangedState, Is.EqualTo(LocomotionState.Ended));
+            Assert.That(providerEndedLocomotion, Is.False);
+            Assert.That(transformationApplied, Is.False);
+
+            yield return null;
+
+            // Should now have applied the transformation and thus the locomotionEnded event should have fired.
+            // Provider: Ended -> Idle
+
+            Assert.That(transformationApplied, Is.True);
+            Assert.That(provider.locomotionState, Is.EqualTo(LocomotionState.Idle));
+            Assert.That(providerChangedState, Is.EqualTo(LocomotionState.Idle));
+            Assert.That(providerEndedLocomotion, Is.True);
+            Assert.That(transformationApplied, Is.True);
         }
 
         [UnityTest]
@@ -259,9 +386,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var provider = TestUtilities.CreateMockLocomotionProvider(mediator);
 
             var beforeStepLocomotionInvoked = false;
+            var afterStepLocomotionInvoked = false;
             var transformationApplied = false;
-            provider.beforeStepLocomotion += locomotionProvider => beforeStepLocomotionInvoked = true;
-            provider.delegateTransformation.transformation += body => transformationApplied = true;
+            provider.beforeStepLocomotion += _ => beforeStepLocomotionInvoked = true;
+            provider.afterStepLocomotion += _ => afterStepLocomotionInvoked = true;
+            provider.delegateTransformation.transformation += _ => transformationApplied = true;
 
             // Cannot queue if Idle
             Assert.That(provider.InvokeTryQueueTransformation(), Is.False);
@@ -275,6 +404,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(beforeStepLocomotionInvoked, Is.False);
+            Assert.That(afterStepLocomotionInvoked, Is.False);
             Assert.That(transformationApplied, Is.False);
 
             provider.InvokeTryStartLocomotionImmediately();
@@ -286,9 +416,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(beforeStepLocomotionInvoked, Is.True);
+            Assert.That(afterStepLocomotionInvoked, Is.True);
             Assert.That(transformationApplied, Is.True);
 
             beforeStepLocomotionInvoked = false;
+            afterStepLocomotionInvoked = false;
             transformationApplied = false;
             provider.InvokeTryEndLocomotion();
 
@@ -299,6 +431,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(beforeStepLocomotionInvoked, Is.False);
+            Assert.That(afterStepLocomotionInvoked, Is.False);
             Assert.That(transformationApplied, Is.False);
         }
 
@@ -762,6 +895,48 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(xrOrigin.Origin.transform.up, Is.EqualTo(teleAnchor.transform.up).Using(Vector3ComparerWithEqualsOperator.Instance));
             var projectedCameraForward = Vector3.ProjectOnPlane(xrOrigin.Camera.transform.forward, teleAnchor.transform.up);
             Assert.That(projectedCameraForward.normalized, Is.EqualTo(teleAnchor.transform.forward).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator TeleportationMonitorDetectsTeleport()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var xrOrigin = TestUtilities.CreateXROrigin();
+
+            // Config teleportation on XR Origin
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            var teleProvider = xrOrigin.gameObject.AddComponent<TeleportationProvider>();
+            teleProvider.mediator = mediator;
+
+            // Create teleportation anchor
+            var teleAnchor = TestUtilities.CreateTeleportAnchorPlane();
+            teleAnchor.interactionManager = manager;
+            teleAnchor.teleportationProvider = teleProvider;
+            teleAnchor.matchOrientation = MatchOrientation.TargetUpAndForward;
+
+            teleAnchor.transform.position = new Vector3(0f, -1f, 1f);
+            teleAnchor.transform.Rotate(-45f, 0f, 0f, Space.World);
+
+            var teleportingInvoked = false;
+            teleAnchor.teleporting.AddListener(_ => teleportingInvoked = true);
+
+            // Create interactor under the XR Origin
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.transform.SetParent(xrOrigin.Origin.transform);
+
+            var teleportedInvoked = false;
+            var monitor = new TeleportationMonitor();
+            monitor.teleported += (_, _, _) => teleportedInvoked = true;
+            monitor.AddInteractor(interactor);
+
+            // Manually trigger teleport to the anchor
+            teleAnchor.RequestTeleport();
+
+            // Wait a frame for the queued teleport request to be executed
+            yield return null;
+
+            Assert.That(teleportingInvoked, Is.True);
+            Assert.That(teleportedInvoked, Is.True);
         }
 
         [UnityTest]

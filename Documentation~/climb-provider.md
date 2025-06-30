@@ -10,7 +10,7 @@ Locomotion provider that allows the user to climb a [Climb Interactable](climb-i
 |**Property**|**Description**|
 |---|---|
 |**Mediator**|The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call.|
-|**Transform Priority**|The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied.|
+|**Transformation Priority**|The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied.|
 |**Providers To Disable**|List of providers to disable while climb locomotion is active. If empty, no providers will be disabled by this component while climbing.|
 |**Enable Gravity On Climb End**|Whether to allow falling when climb locomotion ends. Disable to pause gravity when releasing, keeping the user from falling.|
 |**Climb Settings**|Climb locomotion settings. Can be overridden by the Climb Interactable used for locomotion.|

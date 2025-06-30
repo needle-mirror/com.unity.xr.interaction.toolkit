@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Unity.XR.CoreUtils.Editor;
+using UnityEditor.Compilation;
 using UnityEngine.Rendering;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using Assembly = System.Reflection.Assembly;
 
 #if XR_MANAGEMENT_4_0_OR_NEWER
 using UnityEditor.XR.Management;
@@ -37,6 +40,30 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         const string k_PackageDisplayName = "XR Interaction Toolkit";
         const string k_TeleportLayerName = "Teleport";
         const int k_TeleportLayerIndex = 31;
+
+        /// <summary>
+        /// Category a type belongs to based on the assembly: XRI built-in, Unity, or Custom.
+        /// </summary>
+        /// <seealso cref="DetermineTypeCategory"/>
+        public enum TypeCategory
+        {
+            /// <summary>
+            /// XRI built-in types.
+            /// </summary>
+            BuiltIn,
+
+            /// <summary>
+            /// Types from other Unity assemblies.
+            /// </summary>
+            Unity,
+
+            /// <summary>
+            /// Custom/third-party types.
+            /// </summary>
+            Custom,
+        }
+
+        static List<Assembly> s_XRIAssemblies;
 
         public struct XRManagementData
         {
@@ -315,6 +342,74 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             var playerSettings = (SerializedObject)typeof(PlayerSettings).GetMethod("GetSerializedObject", BindingFlags.NonPublic | BindingFlags.Static)?.Invoke(null, null);
             var activeInputHandlerProp = playerSettings?.FindProperty("activeInputHandler");
             return activeInputHandlerProp?.intValue;
+        }
+
+        /// <summary>
+        /// Determines which category a type belongs to based on the assembly: XRI built-in, Unity, or Custom.
+        /// </summary>
+        /// <param name="type">The type to categorize.</param>
+        /// <returns>Returns the type category.</returns>
+        public static TypeCategory DetermineTypeCategory(Type type)
+        {
+            if (IsXRIRuntimeAssembly(type))
+                return TypeCategory.BuiltIn;
+
+            if (IsUnityAssembly(type))
+                return TypeCategory.Unity;
+
+            return TypeCategory.Custom;
+        }
+
+        /// <summary>
+        /// Determine if the type is from one of the XR Interaction Toolkit runtime assemblies, including samples.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <returns>Returns <see langword="true"/> if the type is defined in a XRI runtime assembly, including samples.</returns>
+        public static bool IsXRIRuntimeAssembly(Type type)
+        {
+            if (s_XRIAssemblies == null || s_XRIAssemblies.Count == 0)
+            {
+                s_XRIAssemblies ??= new List<Assembly>();
+                foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies))
+                {
+                    if (assembly.name.StartsWith("Unity.XR.Interaction.Toolkit"))
+                    {
+                        try
+                        {
+                            var reflectionAssembly = Assembly.LoadFrom(assembly.outputPath);
+                            s_XRIAssemblies.Add(reflectionAssembly);
+                        }
+                        catch
+                        {
+                            // Ignore any exceptions loading the assembly
+                        }
+                    }
+                }
+
+                // Fallback in case the assembly loading code above fails
+                // to at least ensure the core Unity.XR.Interaction.Toolkit assembly is included
+                if (s_XRIAssemblies.Count == 0)
+                    s_XRIAssemblies.Add(typeof(IXRInteractable).Assembly);
+            }
+
+            return s_XRIAssemblies.Any(a => type.Assembly == a);
+        }
+
+        /// <summary>
+        /// Finds and returns the closest Unity-derived type for a given type,
+        /// or the type itself it's in a Unity assembly.
+        /// </summary>
+        /// <param name="type">The type to find the Unity type for.</param>
+        /// <returns>Returns either the type if it's a Unity assembly type or the closest Unity assembly base type.
+        /// May return <see langword="null"/> if there isn't a Unity type in the class hierarchy.</returns>
+        public static Type GetClosestUnityType(Type type)
+        {
+            while (type != null && !IsUnityAssembly(type))
+            {
+                type = type.BaseType;
+            }
+
+            return type;
         }
 
         public static bool IsUnityAssembly(Type type)

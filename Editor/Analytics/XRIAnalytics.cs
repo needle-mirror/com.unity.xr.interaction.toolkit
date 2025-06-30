@@ -28,8 +28,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
         public const int DefaultMaxItems = 1000; // Same default value as AnalyticInfoAttribute
 
 #if UNITY_2023_2_OR_NEWER
-        public const string PackageName = "com.unity.xr.interaction.toolkit";
-        public static readonly string PackageVersion = PackageManager.PackageInfo.FindForPackageName(PackageName).version;
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
 #endif
 
         static XRIPlayModeEvent playModeEvent { get; } = new XRIPlayModeEvent();
@@ -55,9 +54,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
                 return false;
 
 #if UNITY_2023_2_OR_NEWER
+            if (!TryGetPackageVersion(k_PackageName, out var packageVersion))
+                return false;
+
             // Ensure package name and version are included in the payload
-            payload.package = PackageName;
-            payload.package_ver = PackageVersion;
+            payload.package = k_PackageName;
+            payload.package_ver = packageVersion;
 #endif
 
 #if XRI_ANALYTICS_DEBUGGING_ENABLED
@@ -79,9 +81,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
                 return false;
 
 #if UNITY_2023_2_OR_NEWER
+            if (!TryGetPackageVersion(k_PackageName, out var packageVersion))
+                return false;
+
             // Ensure package name and version are included in the payload
-            payload.package = PackageName;
-            payload.package_ver = PackageVersion;
+            payload.package = k_PackageName;
+            payload.package_ver = packageVersion;
 #endif
 
 #if XRI_ANALYTICS_DEBUGGING_ENABLED
@@ -91,6 +96,25 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             return buildEvent.Send(payload);
 #endif
         }
+
+#if UNITY_2023_2_OR_NEWER
+        static bool TryGetPackageVersion(string packageName, out string version)
+        {
+            // FindForPackageName can fail and return null, even if the package is installed, if attempted too early.
+            // This would happen if this was evaluated during the static constructor as a static readonly field.
+            // So only attempt to get the version while finalizing the payload.
+
+            var info = PackageManager.PackageInfo.FindForPackageName(packageName);
+            if (info == null)
+            {
+                version = null;
+                return false;
+            }
+
+            version = info.version;
+            return true;
+        }
+#endif
     }
 }
 

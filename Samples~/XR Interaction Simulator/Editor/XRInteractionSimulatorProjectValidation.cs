@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.InteractionSimulator.Editor
 {
-    static class XRInteractionSimulatorSampleProjectValidation
+    static class XRInteractionSimulatorProjectValidation
     {
         const string k_SampleDisplayName = "XR Interaction Simulator";
         const string k_Category = "XR Interaction Toolkit";

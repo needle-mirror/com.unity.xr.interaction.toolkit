@@ -7,6 +7,7 @@ using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -196,6 +197,116 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // ReSharper disable Unity.InefficientPropertyAccess -- Property value accessed after yield
             Assert.That(actualRotation, Is.EqualTo(rigTransform.rotation).Using(QuaternionEqualityComparer.Instance));
             // ReSharper restore Unity.InefficientPropertyAccess
+        }
+
+        [UnityTest]
+        public IEnumerator TeleportationMonitorDetectsSnapTurns()
+        {
+            // Create a stick control to serve as the input action source for the turn provider
+            var gamepad = InputSystem.InputSystem.AddDevice<Gamepad>();
+
+            var asset = ScriptableObject.CreateInstance<InputActionAsset>();
+            var actionMap = asset.AddActionMap("Locomotion");
+            var action = actionMap.AddAction("Turn",
+                InputActionType.Value,
+                "<Gamepad>/rightStick");
+
+            var inputActionReference = ScriptableObject.CreateInstance<InputActionReference>();
+            inputActionReference.Set(action);
+
+            action.Enable();
+
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            var rigTransform = xrOrigin.Origin.transform;
+
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.GetComponent<XRBodyTransformer>().xrOrigin = xrOrigin;
+
+            // Config snap turn on XR Origin
+            var snapTurnProvider = xrOrigin.gameObject.AddComponent<SnapTurnProvider>();
+            snapTurnProvider.mediator = mediator;
+            snapTurnProvider.rightHandTurnInput.inputActionReference = inputActionReference;
+            snapTurnProvider.enableTurnAround = true;
+            snapTurnProvider.debounceTime = 0f;
+            var snapTurnStepped = false;
+            snapTurnProvider.afterStepLocomotion += _ => snapTurnStepped = true;
+
+            // Config continuous turn on XR Origin
+            var continuousTurnProvider = xrOrigin.gameObject.AddComponent<ContinuousTurnProvider>();
+            continuousTurnProvider.mediator = mediator;
+            continuousTurnProvider.rightHandTurnInput.inputActionReference = inputActionReference;
+            continuousTurnProvider.enableTurnAround = true;
+            var continuousTurnStepped = false;
+            continuousTurnProvider.afterStepLocomotion += _ => continuousTurnStepped = true;
+
+            // Create interactor under the XR Origin
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.transform.SetParent(rigTransform);
+
+            var teleported = false;
+            var monitor = new TeleportationMonitor();
+            monitor.teleported += (_, _, _) => teleported = true;
+            monitor.AddInteractor(interactor);
+
+            // First test with SnapTurnProvider
+            snapTurnProvider.enabled = true;
+            continuousTurnProvider.enabled = false;
+
+            // Push stick down to trigger turn around.
+            Set(gamepad.rightStick, Vector2.down);
+            yield return null;
+
+            Assert.That(teleported, Is.True);
+            Assert.That(snapTurnStepped, Is.True);
+            Assert.That(continuousTurnStepped, Is.False);
+            teleported = false;
+            snapTurnStepped = false;
+
+            // Stop turning
+            Set(gamepad.rightStick, Vector2.zero);
+            yield return null;
+
+            // Turn right to trigger snap right
+            Set(gamepad.rightStick, Vector2.right);
+            yield return null;
+
+            Assert.That(teleported, Is.True);
+            Assert.That(snapTurnStepped, Is.True);
+            Assert.That(continuousTurnStepped, Is.False);
+            teleported = false;
+            snapTurnStepped = false;
+
+            // Stop turning
+            Set(gamepad.rightStick, Vector2.zero);
+            yield return null;
+
+            // Now test with ContinuousTurnProvider
+            snapTurnProvider.enabled = false;
+            continuousTurnProvider.enabled = true;
+
+            // Push stick down to trigger turn around.
+            Set(gamepad.rightStick, Vector2.down);
+            yield return null;
+
+            Assert.That(teleported, Is.True);
+            Assert.That(snapTurnStepped, Is.False);
+            Assert.That(continuousTurnStepped, Is.True);
+            teleported = false;
+            continuousTurnStepped = false;
+
+            // Stop turning
+            Set(gamepad.rightStick, Vector2.zero);
+            yield return null;
+
+            // Turn right to trigger partial turn right, which should not trigger a teleport
+            // since it only turned a few degrees
+            Set(gamepad.rightStick, Vector2.right);
+            yield return null;
+
+            Assert.That(teleported, Is.False);
+            Assert.That(snapTurnStepped, Is.False);
+            Assert.That(continuousTurnStepped, Is.True);
+            continuousTurnStepped = false;
         }
     }
 }

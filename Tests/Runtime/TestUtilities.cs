@@ -185,6 +185,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
+        internal static MockMovementTypeOverrideInteractor CreateMockMovementTypeOverrideInteractor()
+        {
+            var interactorGO = new GameObject("Mock Interactor");
+            interactorGO.transform.localPosition = Vector3.zero;
+            interactorGO.transform.localRotation = Quaternion.identity;
+            var interactor = interactorGO.AddComponent<MockMovementTypeOverrideInteractor>();
+            return interactor;
+        }
+
         internal static MockClassInteractable CreateMockClassInteractable()
         {
             var interactableGO = new GameObject("Mock Interactable");
@@ -422,6 +431,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             targets.Clear();
             targets.AddRange(validTargets);
         }
+    }
+
+    class MockMovementTypeOverrideInteractor : MockInteractor
+    {
+        public XRBaseInteractable.MovementType? mockMovementTypeOverride { get; set; }
+
+        /// <inheritdoc />
+        public override XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride => mockMovementTypeOverride;
     }
 
     /// <summary>

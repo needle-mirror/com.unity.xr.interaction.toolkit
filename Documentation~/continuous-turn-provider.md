@@ -10,7 +10,7 @@ Locomotion provider that allows the user to smoothly rotate their rig continuous
 | **Property** | **Description** |
 |---|---|
 |**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
-|**Transform Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
+|**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Turn Speed** | The number of degrees/second clockwise to rotate when turning clockwise. |
 | **Enable Turn Left Right** | Controls whether to enable left and right continuous turns. |                                                                                                                            |
 | **Enable Turn Around** | Controls whether to enable 180° snap turns. |

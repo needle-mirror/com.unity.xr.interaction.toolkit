@@ -545,9 +545,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if ((mouseButtonChanges & ButtonDeltaState.Released) != 0)
             {
-                if (eventData.pointerPress == null)
-                    return;
-
                 var target = eventData.pointerPress;
                 pointerUp?.Invoke(target, eventData);
                 ExecuteEvents.Execute(target, eventData, ExecuteEvents.pointerUpHandler);
@@ -668,13 +665,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             eventData.button = PointerEventData.InputButton.Left;
 
-            // Demolish the screen position so we don't trigger any hits from a GraphicRaycaster component on a Canvas.
-            // The position value is not used by the TrackedDeviceGraphicRaycaster.
-            // Restore the original value after the Raycast is complete.
+            // Use a screen point outside the camera's viewport to use for the `EventSystem.RaycastAll`.
+            // This invalid point will be used for the event data's position property so we don't trigger any hits
+            // from a GraphicRaycaster component on a Canvas.
+            // The TrackedDeviceGraphicRaycaster does not use position, and instead upcasts the eventData to
+            // TrackedDeviceEventData to access the ray points to cast with.
+            //
+            // Ideally we could just copy the `EventSystem.RaycastAll` method and skip raycaster modules that aren't
+            // used for tracked devices (i.e., so only our TrackedDeviceGraphicRaycaster or other whitelisted raycasters runs),
+            // but the sorting comparer (`EventSystem.RaycastComparer`) for the RaycastResult list is private to the EventSystem.
+            // `BaseRaycaster.eventCamera.pixelRect - new Vector2(-1f, -1f)` would also ensure the `Camera.ScreenToViewportPoint`
+            // method returns a negative value, causing an early out of `GraphicRaycaster.Raycast`, but that would need to be
+            // done for each raycaster.
+            //
+            // For typical setups in XR projects, (-1, -1) should likely be outside the Camera viewport.
             var savedPosition = eventData.position;
-            eventData.position = new Vector2(float.MinValue, float.MinValue);
+            var savedDelta = eventData.delta;
+            eventData.position = new Vector2(-1f, -1f);
+            eventData.delta = Vector2.zero;
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
+            // Restore the original value after the Raycast is complete.
             eventData.position = savedPosition;
+            eventData.delta = savedDelta;
 
             if (TryGetCamera(eventData, out var screenPointCamera))
             {
@@ -899,6 +911,42 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (clickOnDownTarget == null || !clickOnDownTarget.TryGetComponent<Selectable>(out var selectable))
                 return false;
+
+            // Ignore Click UI On Down if there's a IScrollHandler (i.e. Scroll Rect) above the target
+            // unless the content is fully visible where scrolling is not necessary.
+            // The scroll area would not be draggable if the user poked a button under a Scroll Rect
+            // due to the artificial release being immediately triggered, preventing drags if we allowed this.
+            //
+            // Regarding use of `?.`
+            // We can use an explicit null check instead of UnityEngine.Object lifetime check on the parent
+            // because we've already ensured the target is not destroyed above, and this is more performant.
+            var parent = clickOnDownTarget.transform.parent;
+            var scrollHandler = parent?.GetComponentInParent<IScrollHandler>();
+            if (scrollHandler != null)
+            {
+                if (scrollHandler is ScrollRect scrollRect)
+                {
+                    if (scrollRect.IsActive())
+                    {
+                        // `IsActive` implies `content` is not null, but just in case do a cheap null check.
+                        if (scrollRect.content is null)
+                            return false;
+
+                        // Disallow when not fully visible, either vertically or horizontally,
+                        // when the Scroll Rect allows scrolling in that axis
+                        var contentRect = scrollRect.content.rect;
+                        var viewportRect = scrollRect.viewport != null ? scrollRect.viewport.rect : ((RectTransform)scrollRect.transform).rect;
+
+                        if (scrollRect.vertical && contentRect.height > viewportRect.height)
+                            return false;
+
+                        if (scrollRect.horizontal && contentRect.width > viewportRect.width)
+                            return false;
+                    }
+                }
+                else
+                    return false;
+            }
 
             if (selectable is Button || selectable is Toggle || selectable is InputField || selectable is Dropdown)
                 return true;

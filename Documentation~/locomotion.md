@@ -54,11 +54,11 @@ The [Locomotion Mediator](locomotion-mediator.md) component is a key part of loc
 
 The Locomotion Mediator gets the XR Body Transformer component on `Awake` to prepare for Locomotion Provider requests.
 
-When Locomotion Providers call `LocomotionMediator.TryPrepareLocomotion`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `LocomotionState.Preparing` in the data map. Once the provider is in `LocomotionState.Preparing` the Locomotion Mediator will transition the provider to `LocomotionState.Moving` during the next `LocomotionMediator.Update` where `LocomotionProvider.canStartMoving` is true.
+Locomotion Providers begin in `LocomotionState.Idle`. When Locomotion Providers call `TryPrepareLocomotion`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `LocomotionState.Preparing` in the data map. Once the provider is in `LocomotionState.Preparing` the Locomotion Mediator will transition the provider to `LocomotionState.Moving` during the next `LocomotionMediator.Update` where `LocomotionProvider.canStartMoving` is true.
 
-Similarly, when Locomotion Providers call `LocomotionMediator.TryStartLocomotion`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `Locomotion.Moving` in the data map. The Locomotion Mediator will then call `LocomotionProvider.OnLocomotionStart(IXRBodyTransformer)` to grant that Provider access to the XR Body Transformer. Note, `LocomotionMediator.TryStartLocomotion` is usually called from `LocomotionMediator.TryStartLocomotionImmediately`, which will bypass the `LocomotionState.Preparing` state and not check `LocomotionProvider.canStartMoving`.
+Alternatively, when Locomotion Providers call `TryStartLocomotionImmediately`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State directly to `Locomotion.Moving` in the data map. Note, `LocomotionProvider.TryStartLocomotionImmediately` will bypass the `LocomotionState.Preparing` state and not check `LocomotionProvider.canStartMoving`.
 
-Lastly, when the locomotion is complete, the Locomotion Providers call `LocomotionMediator.TryEndLocomotion`. The Locomotion Mediator will check if the Locomotion State of that provider is still active. If it is no longer active, the Locomotion Mediator will update the Locomotion Provider's Locomotion State to `LocomotionState.Ended` and calls `LocomotionProvider.OnLocomotionEnd()` on the locomotion provider.
+The Locomotion Mediator will then grant that Provider access to the XR Body Transformer once in `LocomotionState.Moving`. Lastly, when the locomotion is complete, the Locomotion Providers call `TryEndLocomotion`. The Locomotion Mediator will check if the Locomotion State of that provider is still active. If it is no longer active, the Locomotion Mediator will update the Locomotion Provider's Locomotion State to `LocomotionState.Ended`, and then finally to `LocomotionState.Idle` on the subsequent frame.
 
 #### Locomotion State
 
@@ -75,7 +75,7 @@ Locomotion State is a replacement for the deprecated Locomotion Phase. It repres
 
 The [XR Body Transformer](xr-body-transformer.md) component manages user locomotion via transformations of an XR Origin.
 
-Locomotion Providers that have gained access to the XR Body Transformer via the Locomotion Mediator can call `XRBodyTransformer.QueueTransformation(IXRBodyTransformation)` to queue the transformation to be applied next `Update`. Transformations are applied sequentially based on ascending priority and transformations with the same priority are applied in the order they were queued. Each transformation is removed from the queue after it is applied.
+Locomotion Providers that have gained access to the XR Body Transformer via the Locomotion Mediator can call `XRBodyTransformer.TryQueueTransformation(IXRBodyTransformation)` to queue the transformation to be applied next `Update`, which happens later that same frame after the Locomotion Providers `Update`. Transformations are applied sequentially based on ascending priority and transformations with the same priority are applied in the order they were queued. Each transformation is removed from the queue after it is applied.
 
 ### IXRBodyTransformation
 

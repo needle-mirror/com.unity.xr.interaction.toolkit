@@ -64,7 +64,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.enableUIInteraction"/>.</summary>
             public static readonly GUIContent enableUIInteraction = EditorGUIUtility.TrTextContent("UI Interaction", "When enabled, this allows the poke interactor to hover and select UI elements.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.clickUIOnDown"/>.</summary>
-            public static readonly GUIContent clickUIOnDown = EditorGUIUtility.TrTextContent("Click UI On Down", "When enabled, this will invoke click events on press down instead of on release.");
+            public static readonly GUIContent clickUIOnDown = EditorGUIUtility.TrTextContent("Click UI On Down", "When enabled, this will invoke click events on press down instead of on release for buttons, toggles, input fields, and dropdowns.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.debugVisualizationsEnabled"/>.</summary>
             public static readonly GUIContent debugVisualizationsEnabled = EditorGUIUtility.TrTextContent("Debug Visualizations Enabled", "Denotes whether or not debug visuals are enabled for this poke interactor.");
 

@@ -10,7 +10,7 @@ Locomotion provider that allows the user to move with one hand as if grabbing th
 | **Property** | **Description** |
 |---|---|
 |**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
-|**Transform Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
+|**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Enable Free X Movement** | Controls whether to enable unconstrained movement along the x-axis. |
 | **Enable Free Y Movement** | Controls whether to enable unconstrained movement along the y-axis. |
 | **Enable Free Z Movement** | Controls whether to enable unconstrained movement along the z-axis. |

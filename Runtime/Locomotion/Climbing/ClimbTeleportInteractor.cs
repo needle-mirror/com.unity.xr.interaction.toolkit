@@ -46,7 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             new TeleportVolumeDestinationSettingsDatumProperty(new TeleportVolumeDestinationSettings
             {
                 enableDestinationEvaluationDelay = false,
-                pollForDestinationChange = true
+                pollForDestinationChange = true,
             });
 
         /// <summary>
@@ -75,8 +75,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             if (m_ClimbProvider == null && !ComponentLocatorUtility<ClimbProvider>.TryFindComponent(out m_ClimbProvider))
                 return;
 
-            m_ClimbProvider.locomotionStarted += OnClimbBegin;
-            m_ClimbProvider.locomotionEnded += OnClimbEnd;
+            m_ClimbProvider.locomotionStateChanged += OnLocomotionStateChanged;
         }
 
         /// <inheritdoc />
@@ -88,18 +87,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
             if (m_ClimbProvider == null)
                 return;
 
-            m_ClimbProvider.locomotionStarted -= OnClimbBegin;
-            m_ClimbProvider.locomotionEnded -= OnClimbEnd;
+            m_ClimbProvider.locomotionStateChanged -= OnLocomotionStateChanged;
             m_ClimbProvider.climbAnchorUpdated -= OnClimbAnchorUpdated;
         }
 
-        void OnClimbBegin(LocomotionProvider provider)
+        void OnLocomotionStateChanged(LocomotionProvider provider, LocomotionState state)
+        {
+            if (state == LocomotionState.Moving)
+                OnClimbBegin();
+            else if (state == LocomotionState.Ended)
+                OnClimbEnd();
+        }
+
+        void OnClimbBegin()
         {
             SetTargetTeleportVolume(m_ClimbProvider.climbAnchorInteractable);
             m_ClimbProvider.climbAnchorUpdated += OnClimbAnchorUpdated;
         }
 
-        void OnClimbEnd(LocomotionProvider provider)
+        void OnClimbEnd()
         {
             m_ClimbProvider.climbAnchorUpdated -= OnClimbAnchorUpdated;
             if (m_TargetTeleportVolume == null)

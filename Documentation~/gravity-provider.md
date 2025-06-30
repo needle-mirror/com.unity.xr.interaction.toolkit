@@ -10,7 +10,7 @@ Locomotion provider that provides gravity to the player. This provider will also
 | **Property** | **Description** |
 |---|---|
 |**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
-|**Transform Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
+|**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Use Gravity** | Determines the usage of gravity.|
 | **Use Local Space Gravity**| Apply gravity based on the current Up vector of the XR Origin. |
 | **Terminal Velocity** | Determines the maximum fall speed based on units per second. |

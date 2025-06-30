@@ -5,12 +5,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 {
     /// <summary>
     /// Abstract base class from which all grab transformer behaviors derive.
-    /// Instances of this class can be assigned to an <see cref="XRGrabInteractable"/> using the Inspector
-    /// by setting the Starting Single Grab Transformers (<see cref="XRGrabInteractable.startingSingleGrabTransformers"/>) and
-    /// Starting Multiple Grab Transformers (<see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>).
     /// This serves as a serializable reference instead of using the runtime list of grab transformers
     /// which is not serialized.
     /// </summary>
+    /// <remarks>
+    /// Component instances of this class can be linked to an <see cref="XRGrabInteractable"/> using the Inspector
+    /// by explicitly setting the Starting Single Grab Transformers (<see cref="XRGrabInteractable.startingSingleGrabTransformers"/>) and
+    /// Starting Multiple Grab Transformers (<see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>).
+    /// Otherwise, this instance will automatically get linked with the <see cref="XRGrabInteractable"/>
+    /// if it is added to the same GameObject and the registration mode allows it.
+    /// </remarks>
     /// <seealso cref="IXRGrabTransformer"/>
     public abstract class XRBaseGrabTransformer : MonoBehaviour, IXRGrabTransformer
     {
@@ -63,15 +67,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         protected virtual RegistrationMode registrationMode => RegistrationMode.Single;
 
         /// <summary>
+        /// Internal method for getting the registration mode, wrapping the <see langword="protected"/> property.
+        /// </summary>
+        /// <returns>Returns the <see cref="RegistrationMode"/> of this grab transformer.</returns>
+        /// <seealso cref="registrationMode"/>
+        internal RegistrationMode GetRegistrationMode() => registrationMode;
+
+        /// <summary>
         /// This function is called just before any of the Update methods is called the first time. See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Start()
         {
             if (TryGetComponent<XRGrabInteractable>(out var grabInteractable))
             {
-                // If the user has explicitly added this grab transformer to either
-                // of the starting lists, assume that automatic registration should be
-                // skipped.
+                // If this grab transformer is added to either of the starting lists, either explicitly by
+                // the user or implicitly by being added automatically during XRGrabInteractable.Awake,
+                // assume that automatic registration should be skipped.
                 if (grabInteractable.startingSingleGrabTransformers.Contains(this) ||
                     grabInteractable.startingMultipleGrabTransformers.Contains(this))
                 {
@@ -81,7 +92,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 // If this grab transformer is already registered to either
                 // of the runtime lists, assume that this was added as part of the default
                 // grab transformer addition (or by code for some other reason) so automatic
-                // registration should be skipped.
+                // registration by this component should be skipped.
                 for (var index = grabInteractable.singleGrabTransformersCount - 1; index >= 0; --index)
                 {
                     if (ReferenceEquals(grabInteractable.GetSingleGrabTransformerAt(index), this))

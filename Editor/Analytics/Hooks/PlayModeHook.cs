@@ -25,6 +25,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         static SimulatorSessionTracker s_InteractionSimulatorSessionTracker = new SimulatorSessionTracker();
         static InteractionManagerTracker s_InteractionManagerTracker = new InteractionManagerTracker();
         static InputModalityManagerTracker s_InputModalityManagerTracker = new InputModalityManagerTracker();
+        static readonly LocomotionProviderTracker s_LocomotionProviderTracker = new LocomotionProviderTracker();
 
         static readonly ProfilerMarker s_AnalyticsMarker = new ProfilerMarker("XRI.Analytics");
 
@@ -123,6 +124,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                         s_InputModalityManagerTracker.StartSession(manager, now);
                     }
 
+                    s_LocomotionProviderTracker.StartSession();
+
                     XRDeviceSimulator.instanceChanged += OnDeviceSimulatorInstanceChanged;
                     XRInteractionSimulator.instanceChanged += OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged += OnActiveInteractionManagersChanged;
@@ -156,6 +159,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                         s_InputModalityManagerTracker.EndSession(manager, now);
                     }
 
+                    s_LocomotionProviderTracker.EndSession();
+
                     XRDeviceSimulator.instanceChanged -= OnDeviceSimulatorInstanceChanged;
                     XRInteractionSimulator.instanceChanged -= OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged -= OnActiveInteractionManagersChanged;
@@ -167,6 +172,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                     s_InteractionSimulatorSessionTracker.Reset();
                     s_InteractionManagerTracker.Cleanup();
                     s_InputModalityManagerTracker.Cleanup();
+                    s_LocomotionProviderTracker.Reset();
                 }
             }
         }
@@ -202,6 +208,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
             s_InteractionManagerTracker.UpdateEventPayload(ref payload);
             s_InputModalityManagerTracker.UpdateEventPayload(ref payload);
+            s_LocomotionProviderTracker.UpdateEventPayload(ref payload);
 
             return payload;
         }

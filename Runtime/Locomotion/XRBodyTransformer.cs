@@ -7,6 +7,18 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 {
     /// <summary>
+    /// Event data associated with the event when an XR Body Transformer applies transformation(s).
+    /// </summary>
+    /// <seealso cref="XRBodyTransformer.afterApplyTransformations"/>
+    public sealed class ApplyBodyTransformationsEventArgs
+    {
+        /// <summary>
+        /// The XR Body Transformer component that raised the event and applied the transformation(s).
+        /// </summary>
+        public XRBodyTransformer bodyTransformer { get; set; }
+    }
+
+    /// <summary>
     /// Behavior that manages user locomotion via transformation of an <see cref="XROrigin.Origin"/>. This behavior
     /// applies queued <see cref="IXRBodyTransformation"/>s every <see cref="Update"/>.
     /// </summary>
@@ -117,9 +129,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list every <see cref="Update"/> before transformations are applied.
+        /// Calls the methods in its invocation list during <see cref="Update"/> before the set of queued transformations
+        /// are applied, and only if there is at least one queued transformation this frame.
         /// </summary>
+        /// <seealso cref="afterApplyTransformations"/>
         public event Action<XRBodyTransformer> beforeApplyTransformations;
+
+        /// <summary>
+        /// Calls the methods in its invocation list during <see cref="Update"/> after the set of queued transformations
+        /// are applied, and only if there is at least one queued transformation this frame.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="ApplyBodyTransformationsEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="ApplyBodyTransformationsEventArgs"/>
+        /// <seealso cref="beforeApplyTransformations"/>
+        public event Action<ApplyBodyTransformationsEventArgs> afterApplyTransformations;
 
         bool m_UsingDynamicBodyPositionEvaluator;
         bool m_UsingDynamicConstrainedBodyManipulator;
@@ -127,6 +153,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         XRMovableBody m_MovableBody;
 
         readonly LinkedList<OrderedTransformation> m_TransformationsQueue = new LinkedList<OrderedTransformation>();
+
+        // No need for a pooled event since the event can't be triggered recursively within the callback
+        readonly ApplyBodyTransformationsEventArgs m_ApplyTransformationsEventArgs = new ApplyBodyTransformationsEventArgs();
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -198,12 +227,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         /// </summary>
         protected virtual void Update()
         {
+            if (m_TransformationsQueue.Count == 0)
+                return;
+
             beforeApplyTransformations?.Invoke(this);
+
             while (m_TransformationsQueue.Count > 0)
             {
                 m_TransformationsQueue.First.Value.transformation.Apply(m_MovableBody);
                 m_TransformationsQueue.RemoveFirst();
             }
+
+            m_ApplyTransformationsEventArgs.bodyTransformer = this;
+            afterApplyTransformations?.Invoke(m_ApplyTransformationsEventArgs);
         }
 
         void InitializeMovableBody()

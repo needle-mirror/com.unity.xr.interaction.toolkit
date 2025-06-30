@@ -159,19 +159,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         }
 
         /// <inheritdoc />
+        protected override void OnLocomotionStateChanging(LocomotionState state)
+        {
+            base.OnLocomotionStateChanging(state);
+
+            if (state == LocomotionState.Moving)
+                TryLockGravity(m_EnableFly ? GravityOverride.ForcedOff : GravityOverride.ForcedOn);
+            else if (state == LocomotionState.Ended)
+                RemoveGravityLock();
+        }
+
+        /// <inheritdoc />
         protected override void OnLocomotionStarting()
         {
             base.OnLocomotionStarting();
-
-            TryLockGravity(m_EnableFly ? GravityOverride.ForcedOff : GravityOverride.ForcedOn);
         }
 
         /// <inheritdoc />
         protected override void OnLocomotionEnding()
         {
             base.OnLocomotionEnding();
-
-            RemoveGravityLock();
         }
 
         /// <summary>

@@ -455,6 +455,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
         MaterialPropertyBlock m_VignettePropertyBlock;
 
         /// <summary>
+        /// Event triggered when a comfort provider is queued.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be used by analytics.
+        /// </remarks>
+        internal static event Action<ITunnelingVignetteProvider> vignetteProviderQueued;
+
+        /// <summary>
         /// Queues an <see cref="ITunnelingVignetteProvider"/> to trigger the ease-in vignette effect.
         /// </summary>
         /// <param name="provider">The <see cref="ITunnelingVignetteProvider"/> that contains information of <see cref="VignetteParameters"/>.</param>
@@ -474,6 +482,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
             }
 
             m_ProviderRecords.Add(new ProviderRecord(provider) { easeState = EaseState.EasingIn });
+
+            vignetteProviderQueued?.Invoke(provider);
         }
 
         /// <summary>

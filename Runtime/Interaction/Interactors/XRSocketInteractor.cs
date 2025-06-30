@@ -287,7 +287,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnEnable();
             m_TriggerContactMonitor.contactAdded += OnContactAdded;
             m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
-            m_SocketGrabTransformer.canProcess = m_SocketActive;
             SyncTransformerParams();
             ResetCollidersAndValidTargets();
             StartCoroutine(m_UpdateCollidersAfterTriggerStay);
@@ -515,7 +514,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnSelectExited(args);
 
             if (args.interactableObject is XRGrabInteractable grabInteractable)
-                EndSocketSnapping(grabInteractable);
+            {
+                if (IsHovering(args.interactableObject))
+                    m_SocketGrabTransformer.scaleOnlyMode = true;
+                else
+                    EndSocketSnapping(grabInteractable);
+            }
         }
 
         Matrix4x4 GetHoverMeshMatrix(IXRInteractable interactable, MeshFilter meshFilter, float hoverScale)
@@ -786,7 +790,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <seealso cref="EndSocketSnapping"/>
         protected virtual bool StartSocketSnapping(XRGrabInteractable grabInteractable)
         {
-            // If we've already started socket snapping this interactable, do nothing
+            m_SocketGrabTransformer.scaleOnlyMode = false;
+
+            // If we've already started socket snapping this interactable, do nothing with registration.
             var interactablesSocketedCount = m_InteractablesWithSocketTransformer.Count;
             if (interactablesSocketedCount >= socketSnappingLimit ||
                 m_InteractablesWithSocketTransformer.Contains(grabInteractable))
@@ -824,6 +830,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         void SyncTransformerParams()
         {
+            m_SocketGrabTransformer.canProcess = m_SocketActive && isActiveAndEnabled;
             m_SocketGrabTransformer.socketInteractor = this;
             m_SocketGrabTransformer.socketSnappingRadius = socketSnappingRadius;
             m_SocketGrabTransformer.scaleMode = socketScaleMode;

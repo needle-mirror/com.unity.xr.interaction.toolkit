@@ -58,6 +58,8 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
 
 * The XR Poke Interactor setting **Click UI On Down** currently only works when interacting with uGUI (Unity UI) components. Future support for UI Toolkit is planned.
 
+* The XR Poke Interactor setting **Click UI On Down** is currently ignored when the buttons, toggles, input fields, and dropdowns being poked are contained within a Scroll Rect and scrolling is needed to fit the content into the viewport to allow for basic scroll dragging to continue to function.
+
 * Single-pass instanced rendering is not supported when using Shader Graph shaders on the Built-in Render Pipeline. This affects shaders included in the sample assets, including the Hand Interaction Demo. (A symptom of the issue is that one eye renders incorrectly.) If your project uses the Built-in Render Pipeline, you can avoid the problem by taking one of the following actions:
 
    * Switch to [multi-pass rendering](xref:SinglePassStereoRendering). (Performance of multi-pass rendering is typically much worse than single-pass.)

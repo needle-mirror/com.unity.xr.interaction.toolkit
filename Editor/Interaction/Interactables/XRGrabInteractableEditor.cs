@@ -378,7 +378,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
                         foreach (var targetObject in serializedObject.targetObjects)
                         {
                             var interactable = (XRGrabInteractable)targetObject;
-                            var predictedVisualsTransform = (Transform)m_PredictedVisualsTransform.objectReferenceValue;
+                            var predictedVisualsTransform = interactable.predictedVisualsTransform;
+                            if (predictedVisualsTransform == null)
+                                continue;
+
                             var isChild = predictedVisualsTransform.IsChildOf(interactable.transform);
                             if (predictedVisualsTransform == interactable.transform || !isChild)
                             {

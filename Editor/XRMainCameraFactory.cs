@@ -16,6 +16,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         internal static Camera CreateXRMainCamera(CreateUtils.HardwareTarget target)
         {
+            var mainCam = Camera.main;
+            if (mainCam != null)
+            {
+                Debug.LogWarningFormat(
+                    mainCam.gameObject,
+                    "The Main Camera GameObject under the newly created XR Origin requires the \"MainCamera\" tag, but the current scene already contains another enabled Camera tagged as \"MainCamera\". For XR to function properly, remove the \"MainCamera\" tag from \'{0}\' or disable it.",
+                    mainCam.name);
+            }
+
             switch (target)
             {
                 case CreateUtils.HardwareTarget.VR:
@@ -38,15 +47,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         static Camera CreateARMainCamera()
         {
-            var mainCam = Camera.main;
-            if (mainCam != null)
-            {
-                Debug.LogWarningFormat(
-                    mainCam.gameObject,
-                    "XR Origin Main Camera requires the \"MainCamera\" tag, but the current scene contains another enabled Camera tagged \"MainCamera\". For AR to function properly, remove the \"MainCamera\" tag from \'{0}\' or disable it.",
-                    mainCam.name);
-            }
-
             var camera = CreateMainCamera();
             camera.clearFlags = CameraClearFlags.Color;
             camera.backgroundColor = Color.black;

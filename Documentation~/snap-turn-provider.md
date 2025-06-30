@@ -10,7 +10,7 @@ A locomotion provider that allows the user to rotate their rig using a 2D axis i
 | **Property** | **Description** |
 |---|---|
 |**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
-|**Transform Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
+|**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Turn Amount** | The number of degrees clockwise Unity rotates the rig when snap turning clockwise. |
 | **Debounce Time** | The amount of time that Unity waits before starting another snap turn. |
 | **Enable Turn Left Right** | Controls whether to enable left and right snap turning. |

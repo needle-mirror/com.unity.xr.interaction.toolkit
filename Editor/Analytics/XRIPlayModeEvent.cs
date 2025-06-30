@@ -232,6 +232,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             [SerializeField]
             public int interactionSimulatorSessionCount;
 
+            /// <summary>
+            /// Locomotion-related data captured during play mode.
+            /// </summary>
+            [SerializeField]
+            public NameCountUsageData locomotionPlayModeData;
+
+            /// <summary>
+            /// Whether a comfort provider was used during play mode.
+            /// </summary>
+            [SerializeField]
+            public bool locomotionComfortWasUsed;
+
 #if UNITY_2023_2_OR_NEWER
             /// <summary>
             /// The package name of the XR Interaction Toolkit, i.e. com.unity.xr.interaction.toolkit.

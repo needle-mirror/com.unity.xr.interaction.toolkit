@@ -728,7 +728,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Mediator: {fileID: 6640002710935096923}
-  m_TransformationPriority: 0
+  m_TransformationPriority: 10
   m_UseGravity: 1
   m_UseLocalSpaceGravity: 1
   m_TerminalVelocity: 90
@@ -1091,7 +1091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Mediator: {fileID: 6640002710935096923}
-  m_TransformationPriority: 0
+  m_TransformationPriority: 20
   m_DelayTime: 0
 --- !u!1 &2626757739553014894
 GameObject:

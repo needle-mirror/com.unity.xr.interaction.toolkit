@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.XR.CoreUtils;
-using UnityEditor.Compilation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
@@ -225,21 +224,24 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             {
                 foreach (var group in components.GroupBy(i => i.GetType()))
                 {
-                    if (IsXRIRuntimeAssembly(group.Key))
+                    var typeCategory = XRIAnalyticsUtility.DetermineTypeCategory(group.Key);
+                    var count = group.Count();
+
+                    switch (typeCategory)
                     {
-                        var count = group.Count();
-                        builtInCount += count;
-                        builtInTypesUnsorted.Add(new NameCountData { typeName = group.Key.Name, count = count, });
-                    }
-                    else if (XRIAnalyticsUtility.IsUnityAssembly(group.Key))
-                    {
-                        var count = group.Count();
-                        unityCount += count;
-                        unityTypesUnsorted.Add(new NameCountData { typeName = group.Key.FullName, count = count, });
-                    }
-                    else
-                    {
-                        customDerivedComponents.AddRange(group);
+                        case XRIAnalyticsUtility.TypeCategory.BuiltIn:
+                            builtInCount += count;
+                            builtInTypesUnsorted.Add(new NameCountData { typeName = group.Key.Name, count = count, });
+                            break;
+
+                        case XRIAnalyticsUtility.TypeCategory.Unity:
+                            unityCount += count;
+                            unityTypesUnsorted.Add(new NameCountData { typeName = group.Key.FullName, count = count, });
+                            break;
+
+                        case XRIAnalyticsUtility.TypeCategory.Custom:
+                            customDerivedComponents.AddRange(group);
+                            break;
                     }
                 }
 
@@ -248,11 +250,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                     // Find the Unity type these custom components are derived from.
                     // For those component types that just implement interfaces rather than derive from one of our built-in classes,
                     // fallback to the interface type.
-                    foreach (var group in customDerivedComponents.GroupBy(i => GetBestBaseType(i.GetType()) ?? typeof(T)))
+                    foreach (var group in customDerivedComponents.GroupBy(i => XRIAnalyticsUtility.GetClosestUnityType(i.GetType()) ?? typeof(T)))
                     {
                         var count = group.Count();
                         customCount += count;
-                        var typeName = IsXRIRuntimeAssembly(group.Key) ? group.Key.Name : group.Key.FullName;
+                        var typeName = XRIAnalyticsUtility.IsXRIRuntimeAssembly(group.Key) ? group.Key.Name : group.Key.FullName;
                         customTypesUnsorted.Add(new NameCountData { typeName = typeName, count = count, });
                     }
                 }
@@ -277,51 +279,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             payload.modalityManagers = GetComponentSummaryData(allModalityManagers);
 
             payload.modalityInfo = m_ModalityData;
-        }
-
-        /// <summary>
-        /// Determine if the type is from one of the XR Interaction Toolkit runtime assemblies, including samples.
-        /// </summary>
-        /// <param name="type">The type to check.</param>
-        /// <returns>Returns <see langword="true"/> if the type is defined in a XRI runtime assembly, including samples.</returns>
-        static bool IsXRIRuntimeAssembly(Type type)
-        {
-            if (s_XRIAssemblies == null || s_XRIAssemblies.Count == 0)
-            {
-                s_XRIAssemblies ??= new List<Assembly>();
-                foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies))
-                {
-                    if (assembly.name.StartsWith("Unity.XR.Interaction.Toolkit"))
-                    {
-                        try
-                        {
-                            var reflectionAssembly = Assembly.LoadFrom(assembly.outputPath);
-                            s_XRIAssemblies.Add(reflectionAssembly);
-                        }
-                        catch
-                        {
-                            // Ignore any exceptions loading the assembly
-                        }
-                    }
-                }
-
-                // Fallback in case the assembly loading code above fails
-                // to at least ensure the core Unity.XR.Interaction.Toolkit assembly is included
-                if (s_XRIAssemblies.Count == 0)
-                    s_XRIAssemblies.Add(typeof(IXRInteractable).Assembly);
-            }
-
-            return s_XRIAssemblies.Any(a => type.Assembly == a);
-        }
-
-        static Type GetBestBaseType(Type type)
-        {
-            while (type != null && !XRIAnalyticsUtility.IsUnityAssembly(type))
-            {
-                type = type.BaseType;
-            }
-
-            return type;
         }
     }
 }

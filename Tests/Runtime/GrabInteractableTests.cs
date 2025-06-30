@@ -1552,8 +1552,98 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
 
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(characterController.Move(playerToInteractableDelta), Is.Not.EqualTo(CollisionFlags.None));
+        }
+
+        [UnityTest]
+        public IEnumerator MultipleGrabbedObjectReevaluatesMovementTypeOverride()
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.movementType = XRBaseInteractable.MovementType.VelocityTracking;
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+            var rigidbody = grabInteractable.GetComponent<Rigidbody>();
+            rigidbody.isKinematic = false;
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Create multiple interactors, two with a movement type override.
+            // Since we can't query the effective current movement type, instead read the
+            // Rigidbody.isKinematic property as a proxy for the effective type.
+            // isKinematic == true when current movement type is Kinematic or Instantaneous.
+            // isKinematic == false when current movement type is VelocityTracking.
+            // 1. Set XR Grab Interactable to VelocityTracking --> isKinematic is false
+            // 2. Grab with all 3 interactors --> {Instantaneous, Kinematic, null} --> Effective Type: Kinematic --> isKinematic is true
+            // 3. Release an override --> {Instantaneous, null} --> Effective Type: Instantaneous --> isKinematic is true
+            // 4. Release an override --> {null} --> Effective Type: VelocityTracking --> isKinematic is false
+            // 5. Grab with an override as second select --> {null, Instantaneous} --> Effective Type: Instantaneous --> isKinematic is true
+
+            Assert.That(rigidbody.isKinematic, Is.False);
+
+            var overrideInteractorI = TestUtilities.CreateMockMovementTypeOverrideInteractor();
+            var overrideInteractorK = TestUtilities.CreateMockMovementTypeOverrideInteractor();
+            overrideInteractorI.mockMovementTypeOverride = XRBaseInteractable.MovementType.Instantaneous;
+            overrideInteractorK.mockMovementTypeOverride = XRBaseInteractable.MovementType.Kinematic;
+            var interactor3 = TestUtilities.CreateMockInteractor();
+
+            overrideInteractorI.keepSelectedTargetValid = false;
+            overrideInteractorK.keepSelectedTargetValid = false;
+            interactor3.keepSelectedTargetValid = false;
+
+            Assert.That(overrideInteractorI.selectedInteractableMovementTypeOverride, Is.EqualTo(XRBaseInteractable.MovementType.Instantaneous));
+            Assert.That(overrideInteractorK.selectedInteractableMovementTypeOverride, Is.EqualTo(XRBaseInteractable.MovementType.Kinematic));
+            Assert.That(interactor3.selectedInteractableMovementTypeOverride, Is.EqualTo(null));
+
+            // Have the interactors grab the object
+            overrideInteractorI.validTargets.Add(grabInteractable);
+            overrideInteractorK.validTargets.Add(grabInteractable);
+            interactor3.validTargets.Add(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { overrideInteractorI, overrideInteractorK, interactor3 }));
+
+            // Override to Kinematic --> isKinematic is true
+            Assert.That(rigidbody.isKinematic, Is.True);
+
+            // Release with an override interactor, still being overridden
+            overrideInteractorK.validTargets.Remove(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { overrideInteractorI, interactor3 }));
+
+            // Override to Instantaneous --> isKinematic still true
+            Assert.That(rigidbody.isKinematic, Is.True);
+
+            // Release with other override interactor, no longer being overridden
+            overrideInteractorI.validTargets.Remove(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor3 }));
+
+            // Return to VelocityTracking --> isKinematic is false
+            Assert.That(rigidbody.isKinematic, Is.False);
+
+            // Grab with override interactor again, should become overridden
+            overrideInteractorI.validTargets.Add(grabInteractable);
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor3, overrideInteractorI }));
+
+            // Override to Instantaneous --> isKinematic is true
+            Assert.That(rigidbody.isKinematic, Is.True);
         }
 
         class PublicAccessGrabInteractable : XRGrabInteractable

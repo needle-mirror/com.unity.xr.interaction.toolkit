@@ -18,7 +18,11 @@ An **XR UI Input Module** works in concert with the [Near-Far Interactor](near-f
 
 ## UI Toolkit support
 
-> [!WARNING]
-> The `XRUIInputModule` does not yet fully support [UI Toolkit](https://docs.unity3d.com/Manual/UIElements.html).
+If you wish to enable support for UI Toolkit panels, please see documentation for [World-Space UI Toolkit Support](xref:xri-ui-world-space-ui-toolkit-support).
 
-When using UI Toolkit, typically it will install an event listener in the form of the `PanelEventHandler` component which intercepts events from the `XRUIInputModule`. However, the `XRUIInputModule` currently does not support sending UI Toolkit events from the Event System on behalf of the XRUIInputModule. Instead, [`EventSystem.SetUITookitEventSystemOverride`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.EventSystem.html#UnityEngine_EventSystems_EventSystem_SetUITookitEventSystemOverride_UnityEngine_EventSystems_EventSystem_System_Boolean_System_Boolean_) can be called to bypass this default mechanism when it becomes the current/activated Input Module by the `EventSystem`. This is set up in a convenient option in the UI called **Bypass UI Toolkit Events**.
+> [!NOTE]
+> The `XRUIInputModule` does not support [UI Toolkit](https://docs.unity3d.com/Manual/UIElements.html) and should only be used with uGUI or when combining UI Toolkit and uGUI in the same scene. While combining UI systems is allowed, we recommend choosing UI Toolkit or uGUI, as using them together may lead to unexpected behavior.
+
+If not using XRI's World-Space support when using UI Toolkit, be aware that it will instantiate an event listener in the form of the `PanelEventHandler` component which intercepts events from the `XRUIInputModule`. However, the `XRUIInputModule` currently does not support sending UI Toolkit events from the Event System on behalf of the `XRUIInputModule`. A `PanelInputConfiguration` component can be added to the scene and the **Panel Input Redirection** field set to **No input redirection**. This is the recommended method from UI Toolkit. Alternatively, [`EventSystem.SetUITookitEventSystemOverride`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.EventSystem.html#UnityEngine_EventSystems_EventSystem_SetUITookitEventSystemOverride_UnityEngine_EventSystems_EventSystem_System_Boolean_System_Boolean_) can be called to bypass this default mechanism when it becomes the current/activated Input Module by the `EventSystem`. This is set up in a convenient option in the UI called **Bypass UI Toolkit Events**.
+
+![Bypass UI Toolkit Events](images/xr-ui-toolkit-ui-input-module-setting.png)

@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns <see langword="true"/> if the target interaction layer is empty.</returns>
         internal bool IsLayerEmpty(int index)
         {
-            return string.IsNullOrEmpty(m_LayerNames[index]);
+            return m_LayerNames == null || string.IsNullOrEmpty(m_LayerNames[index]);
         }
 
         /// <summary>
@@ -59,6 +59,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="layerName">The name of the target interaction layer.</param>
         internal void SetLayerNameAt(int index, string layerName)
         {
+            if (m_LayerNames == null || index >= m_LayerNames.Length)
+                return;
+
 #if UNITY_EDITOR
             Undo.RecordObject(this, "Interaction Layer");
 #endif
@@ -75,7 +78,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the target interaction layer name.</returns>
         internal string GetLayerNameAt(int index)
         {
-            return m_LayerNames[index];
+            return (m_LayerNames != null && index < m_LayerNames.Length) ? m_LayerNames[index] : string.Empty;
         }
 
         /// <summary>
@@ -85,6 +88,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the interaction layer value.</returns>
         internal int GetLayer(string layerName)
         {
+            if (m_LayerNames == null)
+                return -1;
+
             for (var i = 0; i < m_LayerNames.Length; i++)
             {
                 if (string.Equals(layerName, m_LayerNames[i]))
@@ -101,6 +107,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="values">The list to fill in with interaction layer values.</param>
         internal void GetLayerNamesAndValues(List<string> names, List<int> values)
         {
+            if (m_LayerNames == null)
+                return;
+
             for (var i = 0; i < m_LayerNames.Length; i++)
             {
                 var layerName = m_LayerNames[i];
