@@ -12,7 +12,9 @@ using UnityEditor.Experimental.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit.UI;
+#endif
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
@@ -106,7 +108,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="UnregisterInteractable(IXRInteractable)"/>
         /// <seealso cref="IXRInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
-
 
         /// <summary>
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
@@ -651,7 +652,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Whether the given Interactor would be able gain focus of the given Interactable if the Interactor were in a state where it could focus.
+        /// Whether the given Interactor would be able to gain focus of the given Interactable if the Interactor were in a state where it could focus.
         /// </summary>
         /// <param name="interactor">The Interactor to check.</param>
         /// <param name="interactable">The Interactable to check.</param>
@@ -659,7 +660,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="CanSelect"/>
         public bool IsFocusPossible(IXRInteractor interactor, IXRFocusInteractable interactable)
         {
-            return interactable.canFocus && HasInteractionLayerOverlap(interactor, interactable);
+            return interactable.canFocus && HasInteractionLayerOverlap(interactor, interactable) &&
+                interactor is IXRGroupMember groupMember && groupMember.containingGroup != null;
         }
 
         /// <summary>
@@ -731,7 +733,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (group is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
                     {
                         Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
-                            "Group Members have been re-registered as not part of the Group.", this);
+                            "Group Members have been unregistered or re-registered as not part of the Group.", this);
                         return;
                     }
                 }
@@ -745,7 +747,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (interactor is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
                     {
                         Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
-                            "Group Members have been re-registered as not part of the Group.", this);
+                            "Group Members have been unregistered or re-registered as not part of the Group.", this);
                         return;
                     }
                 }
@@ -783,7 +785,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets all currently registered Interaction groups
         /// </summary>
-        /// <param name="interactionGroups">The list that will filled with all of the registered interaction groups</param>
+        /// <param name="interactionGroups">List to receive registered interaction groups.</param>
         public void GetInteractionGroups(List<IXRInteractionGroup> interactionGroups)
         {
             m_InteractionGroups.GetRegisteredItems(interactionGroups);
@@ -1343,28 +1345,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
 
             var cleared = false;
-
-            var selectInteractor = focusInteractor as IXRSelectInteractor;
-            var selectInteractable = focusInteractable as IXRSelectInteractable;
-
-            if (selectInteractor != null)
-                cleared = (selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable));
+            if (focusInteractor is IXRSelectInteractor selectInteractor)
+            {
+                if (focusInteractable is IXRSelectInteractable selectInteractable)
+                    cleared = selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable);
+                else
+                    cleared = selectInteractor.isSelectActive;
+            }
 
             if (cleared || !CanFocus(focusInteractor, focusInteractable))
-            {
-                FocusExit(interactionGroup, interactionGroup.focusInteractable);
-            }
+                FocusExit(interactionGroup, focusInteractable);
         }
 
         void CancelInteractorFocus(IXRInteractor interactor)
         {
-            var asGroupMember = interactor as IXRGroupMember;
-            var group = asGroupMember?.containingGroup;
-
-            if (group != null && group.focusInteractable != null)
-            {
+            var group = interactor is IXRGroupMember groupMember ? groupMember.containingGroup : null;
+            if (group != null && group.focusInteractable != null && group.focusInteractor == interactor)
                 FocusCancel(group, group.focusInteractable);
-            }
         }
 
         /// <summary>
@@ -1387,7 +1384,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/>
         protected internal virtual void ClearInteractorSelection(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
-            if (interactor.interactablesSelected.Count == 0)
+            if (!interactor.hasSelection)
                 return;
 
             m_CurrentSelected.Clear();
@@ -1447,7 +1444,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/>
         protected internal virtual void ClearInteractorHover(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
         {
-            if (interactor.interactablesHovered.Count == 0)
+            if (!interactor.hasHover)
                 return;
 
             m_CurrentHovered.Clear();
@@ -1530,16 +1527,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initiates losing focus of an Interactable by an Interactor.
         /// </summary>
-        /// <param name="group">The Interaction group that is losing focus.</param>
-        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        /// <param name="group">The Interaction group that is losing focus of the interactable.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         public virtual void FocusExit(IXRInteractionGroup group, IXRFocusInteractable interactable)
         {
-            var interactor = group.focusInteractor;
-
             using (m_FocusExitEventArgs.Get(out var args))
             {
                 args.manager = this;
-                args.interactorObject = interactor;
+                args.interactorObject = group.focusInteractor;
                 args.interactableObject = interactable;
                 args.interactionGroup = group;
                 args.isCanceled = false;
@@ -1552,7 +1547,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// such as from either being unregistered due to being disabled or destroyed.
         /// </summary>
         /// <param name="group">The Interaction group that is losing focus of the interactable.</param>
-        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         public virtual void FocusCancel(IXRInteractionGroup group, IXRFocusInteractable interactable)
         {
             using (m_FocusExitEventArgs.Get(out var args))
@@ -1703,6 +1698,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             using (s_FocusEnterMarker.Auto())
             {
                 group.OnFocusEntering(args);
+                // Bubble up the focus event to parent interaction groups (if any)
+                if (group is IXRGroupMember groupMember)
+                {
+                    for (var parentGroup = groupMember.containingGroup; parentGroup != null; parentGroup = (parentGroup as IXRGroupMember)?.containingGroup)
+                    {
+                        parentGroup.OnFocusEntering(args);
+                    }
+                }
+
                 interactable.OnFocusEntering(args);
                 interactable.OnFocusEntered(args);
             }
@@ -1714,8 +1718,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initiates losing focus of an Interactable by an Interaction Group, passing the given <paramref name="args"/>.
         /// </summary>
-        /// <param name="group">The Interaction Group that is no longer selecting.</param>
-        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <param name="group">The Interaction Group that is losing focus of the interactable.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
         /// <remarks>
         /// The interactable is notified immediately without waiting for a previous call to finish
@@ -1733,6 +1737,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             using (s_FocusExitMarker.Auto())
             {
                 group.OnFocusExiting(args);
+                // Bubble up the focus event to parent interaction groups (if any)
+                if (group is IXRGroupMember groupMember)
+                {
+                    for (var parentGroup = groupMember.containingGroup; parentGroup != null; parentGroup = (parentGroup as IXRGroupMember)?.containingGroup)
+                    {
+                        parentGroup.OnFocusExiting(args);
+                    }
+                }
+
                 interactable.OnFocusExiting(args);
                 interactable.OnFocusExited(args);
             }
@@ -1755,7 +1768,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// called during the handling of the first event, the second will start and finish before the first
         /// event finishes calling all methods in the sequence to notify of the first event.
         /// </remarks>
-        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
         {
             Debug.Assert(args.interactorObject == interactor, this);

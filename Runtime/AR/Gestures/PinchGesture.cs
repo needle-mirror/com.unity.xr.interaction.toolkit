@@ -23,6 +23,7 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -140,7 +141,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             var startgap = (startPosition1 - startPosition2).magnitude;
             gap = (touch1.position - touch2.position).magnitude;
-            var separation = GestureTouchesUtility.PixelsToInches(Mathf.Abs(gap - startgap));
+            var separation = DisplayUtility.PixelsToInches(Mathf.Abs(gap - startgap));
             return separation >= pinchRecognizer.slopInches;
         }
 

@@ -57,7 +57,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         FocusExitEvent focusExited { get; }
 
         /// <summary>
-        /// (Read Only) The list of Interaction groups currently focusing on this Interactable (may by empty).
+        /// (Read Only) The list of Interaction groups currently focusing on this Interactable (may be empty).
+        /// Only the group that directly contains the interactor that caused the focus will be contained in this
+        /// list, meaning if the focus group is nested within another group, that parent group will not also be included.
         /// </summary>
         /// <remarks>
         /// You should treat this as a read only view of the list and should not modify it.

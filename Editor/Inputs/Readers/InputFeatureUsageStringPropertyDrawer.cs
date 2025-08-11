@@ -7,6 +7,10 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Readers
 {
+    /// <summary>
+    /// Property drawer for <see cref="InputFeatureUsageString{T}"/>. Displays a dropdown to select Input
+    /// Feature usages defined in <see cref="InputFeatureUsage"/>.
+    /// </summary>
     [CustomPropertyDrawer(typeof(InputFeatureUsageString<>), true)]
     public class InputFeatureUsageStringPropertyDrawer : PropertyDrawer
     {

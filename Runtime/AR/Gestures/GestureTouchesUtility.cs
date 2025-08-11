@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.XR.ARFoundation;
 using Unity.XR.CoreUtils;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -285,20 +286,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         }
 
         /// <summary>
-        /// Converts Pixels to Inches.
-        /// </summary>
-        /// <param name="pixels">The amount to convert in pixels.</param>
-        /// <returns>The converted amount in inches.</returns>
-        public static float PixelsToInches(float pixels) => pixels / Screen.dpi;
-
-        /// <summary>
-        /// Converts Inches to Pixels.
-        /// </summary>
-        /// <param name="inches">The amount to convert in inches.</param>
-        /// <returns>The converted amount in pixels.</returns>
-        public static float InchesToPixels(float inches) => inches * Screen.dpi;
-
-        /// <summary>
         /// Used to determine if a touch is off the edge of the screen based on some slop.
         /// Useful to prevent accidental touches from simply holding the device from causing
         /// confusing behavior.
@@ -307,7 +294,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <returns>True if the touch is off screen edge.</returns>
         public static bool IsTouchOffScreenEdge(CommonTouch touch)
         {
-            var slopPixels = InchesToPixels(k_EdgeThresholdInches);
+            var slopPixels = DisplayUtility.InchesToPixels(k_EdgeThresholdInches);
 
             var result = touch.position.x <= slopPixels;
             result |= touch.position.y <= slopPixels;

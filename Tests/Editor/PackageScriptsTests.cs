@@ -45,6 +45,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 
         static readonly (string, string)[] s_InternalMethodExceptionList =
         {
+            ("All", "Method UnityEditor.XR.Interaction.Toolkit.Interactors.NearFarInteractorEditor.DrawSelectionConfigurationFoldout has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio.AudioAffordanceTheme.ValidateTheme has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.BaseAffordanceTheme`1.ValidateTheme has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.AR.DragGesture.Reinitialize has internal."),

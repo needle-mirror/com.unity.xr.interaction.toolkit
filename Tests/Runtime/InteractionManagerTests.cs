@@ -1023,6 +1023,115 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor2.targetsForSelection, Is.EquivalentTo(new[] { interactable2, interactable1 }));
         }
 
+        [UnityTest]
+        public IEnumerator InteractableCanBeSelectedFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            manager.SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            interactor.keepSelectedTargetValid = true;
+
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            manager.SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeHoveredFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+
+            manager.HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isHovered, Is.True);
+
+            interactor.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isHovered, Is.True);
+
+            manager.HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeFocusedFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor = TestUtilities.CreateMockInputInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            group.AddGroupMember(interactor);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+
+            manager.FocusEnter(interactor, interactable);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            // Focus should not automatically clear the next frame since there will not be a "select attempt" input
+            // due to the interactor being a MockInputInteractor rather than a simple MockInteractor.
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            yield return null;
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            manager.FocusExit(group, interactable);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+        }
+
         /// <summary>
         /// Interactor that enables another Interactor and Interactable during <see cref="ProcessInteractor"/>.
         /// </summary>

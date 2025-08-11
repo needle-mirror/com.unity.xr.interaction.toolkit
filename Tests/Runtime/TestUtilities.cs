@@ -185,6 +185,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
+        internal static MockInputInteractor CreateMockInputInteractor()
+        {
+            var interactorGO = new GameObject("Mock Input Interactor");
+            interactorGO.transform.localPosition = Vector3.zero;
+            interactorGO.transform.localRotation = Quaternion.identity;
+            var interactor = interactorGO.AddComponent<MockInputInteractor>();
+            return interactor;
+        }
+
         internal static MockMovementTypeOverrideInteractor CreateMockMovementTypeOverrideInteractor()
         {
             var interactorGO = new GameObject("Mock Interactor");
@@ -433,6 +442,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
     }
 
+    class MockInputInteractor : XRBaseInputInteractor
+    {
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> preprocessed;
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> processed;
+        public List<IXRInteractable> validTargets { get; } = new List<IXRInteractable>();
+
+        /// <inheritdoc />
+        public override void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.PreprocessInteractor(updatePhase);
+            preprocessed?.Invoke(updatePhase);
+        }
+
+        /// <inheritdoc />
+        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            base.ProcessInteractor(updatePhase);
+            processed?.Invoke(updatePhase);
+        }
+
+        /// <inheritdoc />
+        public override void GetValidTargets(List<IXRInteractable> targets)
+        {
+            targets.Clear();
+            targets.AddRange(validTargets);
+        }
+    }
+
     class MockMovementTypeOverrideInteractor : MockInteractor
     {
         public XRBaseInteractable.MovementType? mockMovementTypeOverride { get; set; }
@@ -574,6 +611,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             {
                 results.Add(targets[i]);
             }
+        }
+    }
+
+    class MockBlockSelectionTargetFilter : IXRTargetFilter
+    {
+        public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
+
+        public bool canProcess { get; set; } = true;
+
+        public void Link(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Link);
+        }
+
+        public void Unlink(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Unlink);
+        }
+
+        public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
+        {
+            results.Clear();
+            callbackExecution.Add(TargetFilterCallback.Process);
         }
     }
 

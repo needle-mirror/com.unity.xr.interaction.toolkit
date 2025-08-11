@@ -44,7 +44,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Manipulates the position of an object via a drag gesture.
     /// If not selected, the object will be selected when the drag gesture starts.
     /// </summary>
-    [AddComponentMenu("XR/AR Translation Interactable", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Translation Interactable", 22)]
     [RequireComponent(typeof(ARSelectionInteractable))]
     [HelpURL(XRHelpURLConstants.k_ARTranslationInteractable)]
     [Obsolete("ARTranslationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]

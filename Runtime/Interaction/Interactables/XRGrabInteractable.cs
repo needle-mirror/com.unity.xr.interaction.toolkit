@@ -2534,19 +2534,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="Grab"/>
         protected virtual void Drop()
         {
-            if (m_RetainTransformParent && m_OriginalSceneParent != null)
+            // Avoid reparenting when exiting Play mode since it can trigger error messages in the Console:
+            // "Assertion failed on expression: 't.GetParent() == nullptr'"
+#if UNITY_EDITOR
+            var exitingPlayMode = UnityEditor.EditorApplication.isPlaying && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
+#else
+            var exitingPlayMode = false;
+#endif
+            if (!exitingPlayMode && m_RetainTransformParent && m_OriginalSceneParent != null)
             {
                 if (!m_OriginalSceneParent.gameObject.activeInHierarchy)
                 {
-#if UNITY_EDITOR
-                    // Suppress the warning when exiting Play mode to avoid confusing the user
-                    var exitingPlayMode = UnityEditor.EditorApplication.isPlaying && !UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode;
-#else
-                    var exitingPlayMode = false;
-#endif
-                    if (!exitingPlayMode)
-                        Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. " +
-                            "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
+                    Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. " +
+                        "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
                 }
                 else if (gameObject.activeInHierarchy)
                     m_Transform.SetParent(m_OriginalSceneParent);

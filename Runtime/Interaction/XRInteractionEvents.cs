@@ -53,7 +53,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="HoverEnterEvent"/> of an <see cref="XRBaseInteractor"/> and implements custom callback functions
     /// that will be called when the <see cref="HoverEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="HoverEnterEventArgs"/>
     /// <seealso cref="HoverExitEvent"/>
@@ -78,7 +78,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="HoverEnterEvent"/> of an <see cref="XRBaseInteractor"/> and implements customs callback functions
     /// that will be called when the <see cref="HoverEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="HoverEnterEvent"/>
     /// <seealso cref="IXRHoverInteractor"/>
@@ -126,7 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="HoverExitEvent"/> of an <see cref="XRBaseInteractor"/> and implements custom callback functions
     /// that will be called when the <see cref="HoverExitEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="HoverExitEventArgs"/>
     /// <seealso cref="HoverEnterEvent"/>
@@ -155,7 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example adds a listener to the <see cref="HoverExitEvent"/> of an <see cref="XRBaseInteractor"/> and implements customs callback functions
     /// that will be called when the <see cref="HoverExitEvent"/> is invoked. The <see cref="HoverExitEventArgs"/> are utilized in the
     /// `XRInteractionEventsSample.OnInteractorHoverExit` callback to return early if the hover event was canceled.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="HoverExitEvent"/>
     /// <seealso cref="IXRHoverInteractor"/>
@@ -211,7 +211,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="SelectEnterEvent"/> of an <see cref="XRBaseInteractor"/> and implements custom callback functions
     /// that will be called when the <see cref="SelectEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="SelectEnterEventArgs"/>
     /// <seealso cref="SelectExitEvent"/>
@@ -236,7 +236,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="SelectEnterEvent"/> of an <see cref="XRBaseInteractor"/> and implements customs callback functions
     /// that will be called when the <see cref="SelectEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="SelectEnterEvent"/>
     /// <seealso cref="IXRSelectInteractor"/>
@@ -281,7 +281,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="SelectExitEvent"/> of an <see cref="XRBaseInteractor"/> and implements custom callback functions
     /// that will be called when the <see cref="SelectExitEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="SelectExitEventArgs"/>
     /// <seealso cref="SelectEnterEvent"/>
@@ -311,7 +311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example adds a listener to the <see cref="SelectExitEvent"/> of an <see cref="XRBaseInteractor"/> and implements customs callback functions
     /// that will be called when the <see cref="SelectExitEvent"/> is invoked. The <see cref="SelectExitEventArgs"/> are utilized in the
     /// `XRInteractionEventsSample.OnInteractorSelectExit` callback to return early if the selection event was canceled.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="SelectExitEvent"/>
     /// <seealso cref="IXRSelectInteractor"/>
@@ -378,7 +378,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="FocusEnterEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="FocusEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="FocusExitEvent"/>
     /// <seealso cref="FocusEnterEventArgs"/>
@@ -403,7 +403,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="FocusEnterEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="FocusEnterEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="FocusEnterEvent"/>
     /// <seealso cref="InteractableFocusMode"/>
@@ -453,7 +453,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="FocusExitEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="FocusExitEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="FocusEnterEvent"/>
     /// <seealso cref="FocusExitEventArgs"/>
@@ -480,7 +480,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="FocusExitEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="FocusExitEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="FocusEnterEvent"/>
     /// <seealso cref="InteractableFocusMode"/>
@@ -532,7 +532,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="ActivateEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="ActivateEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="DeactivateEvent"/>
     /// <seealso cref="ActivateEventArgs"/>
@@ -557,7 +557,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="ActivateEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="ActivateEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="DeactivateEvent"/>
     /// <seealso cref="IXRActivateInteractor"/>
@@ -597,7 +597,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="DeactivateEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="DeactivateEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="ActivateEvent"/>
     /// <seealso cref="DeactivateEventArgs"/>
@@ -622,7 +622,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <example>
     /// <para>The following example adds a listener to the <see cref="DeactivateEvent"/> of an <see cref="XRBaseInteractable"/> and implements custom callback functions
     /// that will be called when the <see cref="DeactivateEvent"/> is invoked.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionEventsSample.cs"/>
     /// </example>
     /// <seealso cref="DeactivateEvent"/>
     /// <seealso cref="IXRActivateInteractor"/>
@@ -697,7 +697,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactionGroupRegistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactionGroupRegistered"/> is invoked. Enabling the "Example Interaction Group"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractionGroup"/>
     /// <seealso cref="XRInteractionGroup"/>
@@ -731,7 +731,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactorRegistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactorRegistered"/> is invoked. Enabling the "Example Interactor"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="XRBaseInteractor"/>
@@ -767,7 +767,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactableRegistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactableRegistered"/> is invoked. Enabling the "Example Interactable"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractable"/>
     /// <seealso cref="XRBaseInteractable"/>
@@ -795,7 +795,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactionGroupUnregistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactionGroupUnregistered"/> is invoked. Enabling the "Example Interaction Group"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractionGroup"/>
     /// <seealso cref="XRInteractionGroup"/>
@@ -823,7 +823,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactorUnregistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactorUnregistered"/> is invoked. Enabling the "Example Interactor"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="XRBaseInteractor"/>
@@ -851,7 +851,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <para>The following example subscribes to the <see cref="XRInteractionManager.interactableUnregistered"/> event and implements custom callback functions
     /// that will be called when the <see cref="XRInteractionManager.interactableUnregistered"/> is invoked. Enabling the "Example Interactable"
     /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
-    /// <code source="../../Tests/CodeSamples/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
     /// </example>
     /// <seealso cref="IXRInteractable"/>
     /// <seealso cref="XRBaseInteractable"/>

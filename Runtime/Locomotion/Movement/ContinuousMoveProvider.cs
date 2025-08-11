@@ -233,7 +233,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             // Check if the user is not in the air, and update the input velocity accordingly.
             // If the user is in the air, update the input velocity with the inAirControlModifier.
-            if (m_GravityProvider == null || m_GravityProvider.isGrounded)
+            if (m_GravityProvider == null || !m_GravityProvider.enabled || !m_GravityProvider.useGravity || m_GravityProvider.isGrounded)
                 m_InAirVelocity = inputMove;
             else
                 m_InAirVelocity += deltaTime * m_InAirControlModifier * 10 * (inputMove - m_InAirVelocity);

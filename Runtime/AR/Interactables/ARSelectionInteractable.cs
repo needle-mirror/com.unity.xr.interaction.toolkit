@@ -42,7 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls the selection of an object via a Tap gesture.
     /// </summary>
-    [AddComponentMenu("XR/AR Selection Interactable", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Selection Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARSelectionInteractable)]
     [Obsolete("ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.")]
     public class ARSelectionInteractable : ARBaseGestureInteractable

@@ -9,6 +9,30 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.2.1] - 2025-08-11
+
+### Added
+- Added re-validation for the `InputPanelConfiguration` for UI Toolkit support.
+- Added two new prefabs to the Hands Interaction Demo sample for Android XR, based on the `LeftHandAndroidXR` and `RightHandAndroidXR` models that ship as a part of the XR Hands package HandVisualizer sample.
+- Added `PermissionManager` and `PlatformUnderstanding` sample scripts and prefab to help request permissions required for specific OpenXR platforms.
+
+### Changed
+- Changed the minimum version of the XR Hands package required from `1.2.1` to `1.5.1` as well as updated the recommended version to `1.6.1`.
+- Changed the `PinchPointFollow` script in the Hands Interaction Demo sample by making the `OnJointsUpdated` method `public` so that it can be invoked directly by the Joints Updated event in the `XRHandTrackingEvents` component, depending on which hand mesh visuals are active, Quest or Android XR.
+- Changed the `XR Origin Hands (XR Rig)` prefab in the Hands Interaction Demo sample to include the newly added Android XR hand visualizer prefabs. The existing `LeftHandInteractionVisual`/`RightHandInteractionVisual` prefabs were renamed to `LeftHandQuestVisual`/`RightHandQuestVisual` and new `LeftHandAndroidXRVisual`/`RightHandAndroidXRVisual` prefabs were added.
+
+### Fixed
+- Fixed premature `InputPanelConfiguration` warning logged in `UIToolkitHandler` when validation check happened before `InputPanelConfiguration` is set.
+- Fixed an issue with `TryGetCurveEndPoint` in the `NearFarInteractor`, where Snap Volumes are not checked against the list of valid targets, which may be different when using Target Filters.
+- Fixed an issue with `NearFarInteractor` where it would ignore the `canProcess` property on an `IXRTargetFilter`, allowing it to always process the filter.
+- Fixed warnings about use of deprecated `TreeView` classes in debugger window in Unity 6.2.
+- Fixed a regression caused by the addition of the Gravity Provider, where if the component is present, but gravity is disabled, the `inAirVelocityModifier` is applied. This causes issues in scenes where there is no ground or gravity, but locomotion should be applied normally otherwise.
+- Fixed missing Target Priority Mode and Starting Selected Interactable properties in the Near-Far Interactor Inspector window.
+- Fixed `Assertion failed on expression: t.GetParent() == nullptr` when exiting Play mode in some additional cases with the XR Grab Interactable. It no longer sets the parent when exiting Play mode.
+- Fixed so the deprecated AR interactor and interactable components appears in the Add Component menu again and files renamed from `.deprecated.cs` so that they can be added to GameObjects. They can be found under **Component** &gt; **XR** &gt; **AR** &gt; **Deprecated**.
+- Fixed handling of focus with nested XR Interaction Groups so that parent groups are also notified when member groups have an interactor that triggers focus. The `XRInteractionManager` now recursively calls `IXRInteractionGroup.OnFocusEntering` on all parent groups of the focus group, thereby setting `IXRInteractionGroup.focusInteractor` and `IXRInteractionGroup.focusInteractable`.
+- Fixed so only the focus interactor being unregistered causes a focus exit event rather than any member interactor of the XR Interaction Group being unregistered.
+
 ## [3.2.0] - 2025-06-30
 
 ### Added

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
@@ -133,7 +134,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
                 var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(attachTransform.forward, Vector3.up));
                 var rotatedDelta = worldToVerticalOrientedDevice * attachTransform.rotation * dragDeltaRotation;
 
-                value = new Vector2((rotatedDelta.x / Screen.dpi) * -50f, 0f);
+                value = new Vector2(rotatedDelta.x * DisplayUtility.screenDpiRatio * -50f, 0f);
                 return true;
             }
 

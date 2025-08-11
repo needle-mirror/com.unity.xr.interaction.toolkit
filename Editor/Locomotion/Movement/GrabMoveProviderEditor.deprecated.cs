@@ -5,9 +5,6 @@ using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
 {
-    /// <summary>
-    /// Custom editor for a <see cref="GrabMoveProvider"/>.
-    /// </summary>
     public partial class GrabMoveProviderEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="LocomotionProvider.system"/>.</summary>

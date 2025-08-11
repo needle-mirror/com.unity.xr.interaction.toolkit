@@ -39,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -47,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then dragging along the horizontal axis
     /// or performing a twist gesture will rotate along the y-axis of the item.
     /// </summary>
-    [AddComponentMenu("XR/AR Rotation Interactable", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Rotation Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARRotationInteractable)]
     [Obsolete("ARRotationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
     public class ARRotationInteractable : ARBaseGestureInteractable
@@ -109,7 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var deviceToWorld = camera.transform.rotation;
             var rotatedDelta = worldToVerticalOrientedDevice * deviceToWorld * gesture.delta;
 
-            var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * m_RotationRateDegreesDrag;
+            var rotationAmount = -1f * rotatedDelta.x * DisplayUtility.screenDpiRatio * m_RotationRateDegreesDrag;
             transform.Rotate(0f, rotationAmount, 0f);
         }
 

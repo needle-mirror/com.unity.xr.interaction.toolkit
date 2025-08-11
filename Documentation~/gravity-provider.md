@@ -18,7 +18,7 @@ Locomotion provider that provides gravity to the player. This provider will also
 | **Update Character Controller Center Each Frame**| Sets the center of the character controller to match the local x and z positions of the player camera each frame. |
 | **Sphere Cast Radius Buffer**| Buffer for the radius of the sphere cast used to check if the player is grounded. |
 | **Sphere Cast Distance Buffer**| Buffer for the distance of the sphere cast used to check if the player is grounded. |
-| **Sphere Cast Layer Mask**| The [physics-based](https://docs.unity3d.com/6000.0/Documentation/Manual/layers-and-layermasks.html) `LayerMask` (not to be confused with the [Interaction Layer Mask](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/interaction-layers.html)) used for the sphere cast to check if the player is grounded. |
+| **Sphere Cast Layer Mask**| The [physics-based](https://docs.unity3d.com/Documentation/Manual/layers-and-layermasks.html) `LayerMask` (not to be confused with the [Interaction Layer Mask](xref:xri-interaction-layers)) used for the sphere cast to check if the player is grounded. |
 | **Sphere Cast Trigger Interaction**| The `QueryTriggerInteraction` used to determine trigger collisions for the grounded sphere cast. |
 | **On Gravity Lock Changed**| A `Unity Event` that is called when gravity lock is changed. |
 | **On Grounded Changed**| A `Unity Event` that is called when the value of `isGrounded` changes. |
@@ -29,7 +29,7 @@ Locomotion provider that provides gravity to the player. This provider will also
 
 The IGravityController interface provides a contract for controlling the player's gravity behavior within the XR Interaction Toolkit's locomotion system. It includes properties to check if gravity can be processed or is paused, methods to lock/unlock gravity, and methods to respond to changes in gravity lock and grounded state changes. Implementing this interface allows for external control and interaction with the [Gravity Provider](gravity-provider.md).
 
-For more details on implementation, please see the [IGravityController Scripting API documentation](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.1/api/UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity.IGravityController.html).
+For more details on implementation, please see the [`IGravityController`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity.IGravityController) Scripting API documentation.
 
 | **Property** | **Description** |
 |---|---|

@@ -47,11 +47,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// The Interactor in this Interaction Group or any of its member Groups that initiated the last focus event.
         /// </summary>
+        /// <seealso cref="focusInteractable"/>
+        /// <seealso cref="IXRFocusInteractable.interactionGroupsFocusing"/>
         IXRInteractor focusInteractor { get; }
 
         /// <summary>
         /// The Interactable that is currently being focused by an Interactor in this Interaction Group or any of its member Groups.
         /// </summary>
+        /// <seealso cref="focusInteractor"/>
         IXRFocusInteractable focusInteractable { get; }
 
         /// <summary>
@@ -210,6 +213,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <param name="args">Event data containing the Interaction group that is initiating the focus.</param>
         /// <remarks>
         /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// <br/>
+        /// This method is also invoked when a member interaction group (meaning the group is also an <see cref="IXRGroupMember"/>
+        /// added to this interaction group) caused the focus. However, the event data (<see cref="FocusEnterEventArgs.interactionGroup"/>)
+        /// contains the reference to the group that directly caused the focus event, so it may not be equal to this group.
         /// </remarks>
         /// <seealso cref="IXRFocusInteractable.OnFocusEntered(FocusEnterEventArgs)"/>
         void OnFocusEntering(FocusEnterEventArgs args);
