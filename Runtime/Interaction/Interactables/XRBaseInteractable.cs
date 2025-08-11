@@ -13,6 +13,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 {
@@ -24,7 +25,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactables)]
-    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable, IXRFocusInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect
+    public abstract partial class XRBaseInteractable : MonoBehaviour, IXRActivateInteractable, IXRHoverInteractable, IXRSelectInteractable,
+        IXRFocusInteractable, IXRInteractionStrengthInteractable, IXROverridesGazeAutoSelect, IXRParentInteractableLink
     {
         const float k_InteractionStrengthHover = 0f;
         const float k_InteractionStrengthSelect = 1f;
@@ -606,6 +608,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         }
 
         readonly ExposedRegistrationList<IXRInteractionStrengthFilter> m_InteractionStrengthFilters = new ExposedRegistrationList<IXRInteractionStrengthFilter> { bufferChanges = false };
+
+        [SerializeField]
+        bool m_AutoFindParentInteractableInHierarchy;
+
+        /// <inheritdoc />
+        public bool autoFindParentInteractableInHierarchy
+        {
+            get => m_AutoFindParentInteractableInHierarchy;
+            set => m_AutoFindParentInteractableInHierarchy = value;
+        }
+
+        [SerializeField]
+        [RequireInterface(typeof(IXRInteractable))]
+        Object m_ParentInteractableObject;
+
+        readonly UnityObjectReferenceCache<IXRInteractable, Object> m_ParentInteractableObjectReference = new UnityObjectReferenceCache<IXRInteractable, Object>();
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// If the argument is to be serialized, it must be a Unity <see cref="Object"/> type.
+        /// </remarks>
+        public IXRInteractable parentInteractable
+        {
+            get => m_ParentInteractableObjectReference.Get(m_ParentInteractableObject);
+            set => m_ParentInteractableObjectReference.Set(ref m_ParentInteractableObject, value);
+        }
 
         /// <summary>
         /// The list of interaction strength filters in this object.

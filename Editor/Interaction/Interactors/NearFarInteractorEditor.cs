@@ -116,13 +116,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             DrawInteractionManagement();
             // Handedness needs to be manually drawn since we don't want the other properties it's grouped with.
             EditorGUILayout.PropertyField(m_Handedness, BaseContents.handedness);
-            DrawSelectionConfiguration();
             EditorGUILayout.Space();
             DrawAttachTransformController();
             EditorGUILayout.Space();
             DrawNearInteractionCaster();
             EditorGUILayout.Space();
             DrawFarInteractionCaster();
+            EditorGUILayout.Space();
+            DrawSelectionConfigurationFoldout();
             EditorGUILayout.Space();
             DrawInputConfiguration();
             EditorGUILayout.Space();
@@ -206,13 +207,33 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         }
 
         /// <summary>
+        /// Draw the Selection Configuration foldout.
+        /// </summary>
+        /// <seealso cref="DrawSelectionConfiguration"/>
+        protected virtual void DrawSelectionConfigurationFoldout()
+        {
+            m_SelectActionTrigger.isExpanded = EditorGUILayout.Foldout(m_SelectActionTrigger.isExpanded, EditorGUIUtility.TrTempContent("Selection Configuration"), true);
+            if (m_SelectActionTrigger.isExpanded)
+            {
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    DrawSelectionConfiguration();
+                }
+            }
+        }
+
+        /// <summary>
         /// Draw the property fields related to selection configuration.
         /// </summary>
+        /// <seealso cref="DrawSelectionConfigurationFoldout"/>
         protected virtual void DrawSelectionConfiguration()
         {
             DrawSelectActionTrigger();
             EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
             EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseInputContents.allowHoveredActivate);
+            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseInputContents.targetPriorityMode);
+            EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+            DrawParentInteractableConfiguration();
         }
     }
 }

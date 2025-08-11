@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 2599780285154657760}
   - component: {fileID: 3113203136159532523}
   m_Layer: 0
-  m_Name: LeftHandInteractionVisual
+  m_Name: LeftHandQuestVisual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

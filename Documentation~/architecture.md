@@ -59,7 +59,22 @@ The update loop of the Interaction Manager queries Interactors and Interactables
 
 ![interaction-update](images/interaction-update.svg)
 
-All registered Interactables and Interactors are updated before and after interaction state changes by the Interaction Manager explicitly using `PreprocessInteractor`, `ProcessInteractor`, and `ProcessInteractable`. Interactors are always notified before Interactables for both processing and state changes, and Interactors contained within Interaction Groups are always notified before Interactors that are not contained within Groups. Interactables and Interactors are not limited from using the normal `MonoBehaviour` `Update` call, but per-frame logic should typically be done in one of the process methods instead so that Interactors are able to update before Interactables.
+All registered Interactables and Interactors are updated before and after interaction state changes by the Interaction Manager explicitly using `PreprocessInteractor`, `ProcessInteractor`, and `ProcessInteractable`. Interactors are always notified before Interactables for both processing and state changes, and Interactors contained within Interaction Groups are always notified before Interactors that are not contained within Groups. Interactables and Interactors are not limited from using the normal `MonoBehaviour` `Update` call, but per-frame logic should typically be done in one of the process methods instead so that Interactors are able to update before Interactables. Using the `ProcessInteractable` method also ensures that Interactables process first if they are a virtual parent of another Interactable. The XR Interaction Manager will maintain and dynamically sort the list of Interactables based on registered dependencies when using virtual parenting.
+
+### Processing interactables
+
+Interactables register with the XR Interaction Manager during the component's own `OnEnable` and unregister with the component's `OnDisable` method. The XR Interaction Manager will process all registered interactables in the order they were most recently registered. Due to the nature of how Unity executes different script components and interactables sharing the same script execution order, the order cannot be relied upon if you have a dependency. See [Script execution order](https://docs.unity3d.com/Manual/script-execution-order.html) in the Unity manual for more information.
+
+If an interactable component needs to be processed after another interactable component is processed, this dependency relationship can be registered with the XR Interaction Manager through scripting using the `RegisterParentRelationship`/`UnregisterParentRelationship` methods on the `XRInteractionManager`. Alternatively, you can assign the Parent Interactable property in the Inspector window of an interactable component to register the dependency relationship when the component is registered with the XR Interaction Manager.
+
+A parent interactable will be processed, meaning `ProcessInteractable` will be called by the XR Interaction Manager, before its child interactables are processed. This functions recursively, meaning if the parent interactable itself has its own parent interactable, that dependency will also be respected.
+
+Interactors can also register a parent interactable to indirectly change the processing order of interactables that they select. Similarly to interactables, you can assign the Parent Interactable property in the Inspector window of an interactor component to register the dependency relationship that selected interactables will inherit from the interactor. It can also be registered through scripting using the `RegisterParentRelationship`/`UnregisterParentRelationship`.
+
+> [!NOTE]
+> The Parent Interactable property will only be read at the time when the component is registered with the manager. The `RegisterParentRelationship` method can be called at any time to set parent dependencies, including when selected.
+
+This virtual parenting system can be useful in the case where you have a [XR Socket Interactor](xref:xri-xr-socket-interactor) component which has a parent GameObject with an [XR Grab Interactable](xref:xri-xr-grab-interactable) component. Setting the Parent Interactable property on the socket to the Grab Interactable will ensure that other interactables placed into the socket will process after the socket's parent interactable. This ordering allows the target pose of the grab interactable placed in the socket to be updated correctly without a frame delay that would occur if the processing order was done in reverse if left to chance.
 
 ### Interaction strength
 

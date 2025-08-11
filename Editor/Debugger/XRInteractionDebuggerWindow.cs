@@ -25,27 +25,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
         bool m_ShowTargetFilters;
 
         [SerializeField]
-        TreeViewState m_InputDevicesTreeState;
+        XRInputDevicesTreeView.State m_InputDevicesTreeState;
         [SerializeField]
         MultiColumnHeaderState m_InputDevicesTreeHeaderState;
 
         [SerializeField]
-        TreeViewState m_InteractablesTreeState;
+        XRInteractablesTreeView.State m_InteractablesTreeState;
         [SerializeField]
         MultiColumnHeaderState m_InteractablesTreeHeaderState;
 
         [SerializeField]
-        TreeViewState m_InteractorsTreeState;
+        XRInteractorsTreeView.State m_InteractorsTreeState;
         [SerializeField]
         MultiColumnHeaderState m_InteractorsTreeHeaderState;
 
         [SerializeField]
-        TreeViewState m_FiltersTreeState;
+        XRTargetFiltersTreeView.State m_FiltersTreeState;
         [SerializeField]
         MultiColumnHeaderState m_FiltersTreeHeaderState;
 
         [SerializeField]
-        TreeViewState m_EvaluatorsScoreTreeState;
+        XRTargetEvaluatorsScoreTreeView.State m_EvaluatorsScoreTreeState;
         [SerializeField]
         MultiColumnHeaderState m_EvaluatorsScoreTreeHeaderState;
 
@@ -268,11 +268,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         internal static string JoinNames<T>(string separator, List<T> objects)
         {
+            if (objects.Count == 0)
+                return string.Empty;
+
+            // Fast path for single item
+            if (objects.Count == 1)
+                return GetDisplayName(objects[0]);
+
             s_Names.Clear();
             foreach (var obj in objects)
             {
-                var name = GetDisplayName(obj);
-                s_Names.Add(name);
+                s_Names.Add(GetDisplayName(obj));
             }
 
             return string.Join(separator, s_Names);

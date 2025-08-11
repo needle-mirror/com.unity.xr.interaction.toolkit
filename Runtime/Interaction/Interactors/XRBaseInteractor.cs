@@ -11,6 +11,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
@@ -24,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactors)]
     public abstract partial class XRBaseInteractor : MonoBehaviour, IXRHoverInteractor, IXRSelectInteractor,
-        IXRTargetPriorityInteractor, IXRGroupMember, IXRInteractionStrengthInteractor
+        IXRTargetPriorityInteractor, IXRGroupMember, IXRInteractionStrengthInteractor, IXRParentInteractableLink
     {
         const float k_InteractionStrengthHover = 0f;
         const float k_InteractionStrengthSelect = 1f;
@@ -149,6 +150,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             get => m_StartingTargetFilter;
             set => m_StartingTargetFilter = value;
+        }
+
+        [SerializeField]
+        bool m_AutoFindParentInteractableInHierarchy;
+
+        /// <inheritdoc />
+        public bool autoFindParentInteractableInHierarchy
+        {
+            get => m_AutoFindParentInteractableInHierarchy;
+            set => m_AutoFindParentInteractableInHierarchy = value;
+        }
+
+        [SerializeField]
+        [RequireInterface(typeof(IXRInteractable))]
+        Object m_ParentInteractableObject;
+
+        readonly UnityObjectReferenceCache<IXRInteractable, Object> m_ParentInteractableObjectReference = new UnityObjectReferenceCache<IXRInteractable, Object>();
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// If the argument is to be serialized, it must be a Unity <see cref="Object"/> type.
+        /// </remarks>
+        public IXRInteractable parentInteractable
+        {
+            get => m_ParentInteractableObjectReference.Get(m_ParentInteractableObject);
+            set => m_ParentInteractableObjectReference.Set(ref m_ParentInteractableObject, value);
         }
 
         [SerializeField]
@@ -981,7 +1008,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Manually initiate selection of an Interactable.
         /// </summary>
         /// <param name="interactable">Interactable that is being selected.</param>
+        /// <remarks>
+        /// This attempt may be ignored depending on the selection policy of the Interactor and/or the Interactable.
+        /// This method first checks whether the interactor and interactable are registered and are in a state where it could select.
+        /// <br />
+        /// This method can be used for input interactors to act like the select input is active until the select is manually ended,
+        /// see <see cref="XRBaseInputInteractor.isSelectActive"/>.
+        /// </remarks>
         /// <seealso cref="EndManualInteraction"/>
+        /// <seealso cref="XRInteractionManager.SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>
         public virtual void StartManualInteraction(IXRSelectInteractable interactable)
         {
             if (interactionManager == null)
@@ -990,15 +1025,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return;
             }
 
-            interactionManager.SelectEnter(this, interactable);
             m_IsPerformingManualInteraction = true;
             m_ManualInteractionInteractable = interactable;
+
+            interactionManager.SelectEnter(this, interactable);
+
+            if (!IsSelecting(interactable))
+            {
+                Debug.LogWarning("Tried to start manual interaction but select was prevented.", this);
+                m_IsPerformingManualInteraction = false;
+                m_ManualInteractionInteractable = null;
+            }
         }
 
         /// <summary>
         /// Ends the manually initiated selection of an Interactable.
         /// </summary>
         /// <seealso cref="StartManualInteraction(IXRSelectInteractable)"/>
+        /// <seealso cref="XRInteractionManager.SelectExit(IXRSelectInteractor, IXRSelectInteractable)"/>
         public virtual void EndManualInteraction()
         {
             if (interactionManager == null)

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
-namespace UnityEngine.XR.Interaction.Toolkit.Utilities
+namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
 {
     /// <summary>
     /// <inheritdoc cref="SmallRegistrationList{T}"/>

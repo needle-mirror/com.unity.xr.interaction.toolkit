@@ -39,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -47,7 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then doing a pinch/zoom will modify the scale
     /// of the object.
     /// </summary>
-    [AddComponentMenu("XR/AR Scale Interactable", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Scale Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARScaleInteractable)]
     [Obsolete("ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
     public class ARScaleInteractable : ARBaseGestureInteractable
@@ -205,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.gapDelta);
+            m_CurrentScaleRatio += sensitivity * DisplayUtility.PixelsToInches(gesture.gapDelta);
 
             transform.localScale = currentScale;
 

@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
-    [AddComponentMenu("XR/AR Gesture Interactor", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Gesture Interactor", 22)]
     [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
     [Obsolete("ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.")]
     public class ARGestureInteractor : XRBaseInteractor

@@ -6,6 +6,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {

@@ -39,6 +39,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.startingSelectFilters"/>.</summary>
         protected SerializedProperty m_StartingSelectFilters;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.autoFindParentInteractableInHierarchy"/>.</summary>
+        protected SerializedProperty m_AutoFindParentInteractableInHierarchy;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.parentInteractable"/>.</summary>
+        protected SerializedProperty m_ParentInteractableObject;
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.hoverEntered"/>.</summary>
         protected SerializedProperty m_HoverEntered;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.hoverExited"/>.</summary>
@@ -51,6 +56,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         bool m_FiltersExpanded;
         ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
         ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
+
+        ParentInteractableEditorHelper m_ParentInteractableHelper;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -111,10 +118,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
             m_FiltersExpanded = SessionState.GetBool(k_FiltersExpandedKey, false);
 
+            m_StartingTargetFilter = serializedObject.FindProperty("m_StartingTargetFilter");
             m_StartingHoverFilters = serializedObject.FindProperty("m_StartingHoverFilters");
             m_StartingSelectFilters = serializedObject.FindProperty("m_StartingSelectFilters");
 
-            m_StartingTargetFilter = serializedObject.FindProperty("m_StartingTargetFilter");
+            m_AutoFindParentInteractableInHierarchy = serializedObject.FindProperty("m_AutoFindParentInteractableInHierarchy");
+            m_ParentInteractableObject = serializedObject.FindProperty("m_ParentInteractableObject");
+            m_ParentInteractableHelper ??= new ParentInteractableEditorHelper();
+            m_ParentInteractableHelper.InitializeSerializedProperties(serializedObject, m_AutoFindParentInteractableInHierarchy, m_ParentInteractableObject);
 
             var interactor = (XRBaseInteractor)target;
             m_HoverFilters = new ReadOnlyReorderableList<IXRHoverFilter>(new List<IXRHoverFilter>(), BaseContents.hoverFiltersHeader, k_HoverFiltersExpandedKey)
@@ -172,6 +183,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         {
             DrawCoreConfiguration();
             EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
+            DrawParentInteractableConfiguration();
         }
 
         /// <summary>
@@ -197,6 +209,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             EditorGUILayout.PropertyField(m_AttachTransform, BaseContents.attachTransform);
             EditorGUILayout.PropertyField(m_DisableVisualsWhenBlockedInGroup, BaseContents.disableVisualsWhenBlockedInGroup);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+        }
+
+        /// <summary>
+        /// Draw the property fields related to parent interactable.
+        /// </summary>
+        protected virtual void DrawParentInteractableConfiguration()
+        {
+            m_ParentInteractableHelper.DrawParentInteractableConfiguration(serializedObject);
         }
 
         /// <summary>

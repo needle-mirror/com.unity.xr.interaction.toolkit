@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -380,6 +380,46 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             registrationList.RegisterReferences(references);
             registrationList.GetAll(registeredItems);
             Assert.That(registeredItems, Is.EqualTo(references));
+        }
+
+        [Test]
+        public void CanSortRegistrationList()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactable1 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+            var interactable3 = TestUtilities.CreateSimpleInteractable();
+            var registrationList = new RegistrationList<IXRInteractable>();
+
+            Assert.That(registrationList.Register(interactable1), Is.True);
+            Assert.That(registrationList.Register(interactable2), Is.True);
+            Assert.That(registrationList.Register(interactable3), Is.True);
+
+            registrationList.Flush();
+
+            Assert.That(registrationList.registeredSnapshot,
+                Is.EqualTo(new[] { interactable1, interactable2, interactable3, }));
+
+            // Make 2 a parent (explicit) of 1, keep 3 independent
+            var relationships = new ParentRelationships<IXRInteractable, IXRInteractable>();
+            relationships.AddExplicitParent(interactable1, interactable2);
+            registrationList.SortSnapshot(relationships);
+
+            // 2 has to come before 1.
+            // Order should be: 2, 1, 3
+            Assert.That(registrationList.registeredSnapshot,
+                Is.EqualTo(new[] { interactable2, interactable1, interactable3, }));
+
+            // Make 3 a parent of 2
+            // 3
+            // |--2
+            //    |--1
+            // Order should be: 3, 2, 1
+            relationships.AddInheritedParent(interactable2, interactable3);
+            registrationList.SortSnapshot(relationships);
+
+            Assert.That(registrationList.registeredSnapshot,
+                Is.EqualTo(new[] { interactable3, interactable2, interactable1, }));
         }
     }
 }

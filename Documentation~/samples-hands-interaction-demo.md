@@ -30,7 +30,7 @@ In order for this sample to function properly, a few additional packages are req
   * [Starter Assets](samples-starter-assets.md) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
   * [XR Plug-in Management (com.unity.xr.management)](https://docs.unity3d.com/Manual/com.unity.xr.management.html) - 4.3.1 or newer
   * [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) - 1.11.0 or newer
-  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.2.1 or newer (1.3.0 recommended)
+  * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) - 1.5.1 or newer (1.6.1 or newer recommended)
     * HandVisualizer - imported from Package Manager under XR Hands in the Samples area
   * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used on the rendered hands
 
@@ -62,7 +62,7 @@ The handle below the table allows you to reposition the whole table when grabbed
 
 ## Hierarchy configuration
 
-The XR Origin (XR Rig) in this scene supports either motion controllers or hand tracking, which is managed by the XR Input Modality Manager component.
+The XR Origin Hands (XR Rig) in this scene supports either motion controllers or hand tracking, which is managed by the XR Input Modality Manager component.
 
 A Poke Gesture Detector component and Meta System Gesture Detector component are on the hand tracking GameObjects which manages automatically toggling interactors to disable them and their visuals by activating or deactivating those child GameObjects when the hand is making certain gestures.
 
@@ -195,7 +195,7 @@ See Starter Assets [Hierarchy configuration](samples-starter-assets.md#hierarchy
     <td>Pinch dropper visual.</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Left/Right Hand Interaction Visual</strong></td>
+    <td colspan="2"><strong>Left/Right Hand Quest/Android XR Visual</strong></td>
     <td>
       <a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-access-data.html">XR Hand Tracking Events</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/hand-data/xr-hand-visuals.html#xr-hand-mesh-controller">XR Hand Mesh Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">

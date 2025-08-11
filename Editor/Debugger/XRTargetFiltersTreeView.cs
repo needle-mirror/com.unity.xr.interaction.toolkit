@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -10,7 +10,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Target Filters.
     /// </summary>
+#if UNITY_6000_2_OR_NEWER
+    class XRTargetFiltersTreeView : TreeView<int>
+#else
     class XRTargetFiltersTreeView : TreeView
+#endif
     {
         enum ColumnId
         {
@@ -20,18 +24,31 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             Count,
         }
 
+#if UNITY_6000_2_OR_NEWER
+        class Item : TreeViewItem<int>
+#else
         class Item : TreeViewItem
+#endif
         {
             public XRTargetFilter filter;
+        }
+
+        [Serializable]
+#if UNITY_6000_2_OR_NEWER
+        public class State : TreeViewState<int>
+#else
+        public class State : TreeViewState
+#endif
+        {
         }
 
         const float k_RowHeight = 20f;
 
         static bool exitingPlayMode => EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode;
 
-        public static XRTargetFiltersTreeView Create(List<XRTargetFilter> enabledFilters, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
+        public static XRTargetFiltersTreeView Create(List<XRTargetFilter> enabledFilters, ref State treeState, ref MultiColumnHeaderState headerState)
         {
-            treeState = treeState ?? new TreeViewState();
+            treeState ??= new State();
             var newHeaderState = CreateHeaderState();
             if (headerState != null && MultiColumnHeaderState.CanOverwriteSerializedFields(headerState, newHeaderState))
                 MultiColumnHeaderState.OverwriteSerializedFields(headerState, newHeaderState);
@@ -49,12 +66,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             {
                 width = 180f,
                 minWidth = 60f,
+                canSort = false,
                 headerContent = EditorGUIUtility.TrTextContent("Name"),
             };
             columns[(int)ColumnId.LinkedInteractors] = new MultiColumnHeaderState.Column
             {
                 width = 120f,
                 minWidth = 60f,
+                canSort = false,
                 headerContent = EditorGUIUtility.TrTextContent("Linked Interactors"),
             };
 
@@ -67,7 +86,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
         internal XRBaseTargetFilter selectedFilter => m_SelectedFilter;
 
-        public XRTargetFiltersTreeView(List<XRTargetFilter> enabledFilters, TreeViewState state, MultiColumnHeader multiColumnHeader) : base(state, multiColumnHeader)
+        public XRTargetFiltersTreeView(List<XRTargetFilter> enabledFilters, State state, MultiColumnHeader multiColumnHeader)
+            : base(state, multiColumnHeader)
         {
             foreach (var filter in enabledFilters)
                 AddFilter(filter);
@@ -113,7 +133,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
                 Reload();
         }
 
+        /// <inheritdoc />
+#if UNITY_6000_2_OR_NEWER
+        protected override TreeViewItem<int> BuildRoot()
+#else
         protected override TreeViewItem BuildRoot()
+#endif
         {
             // Wrap root control in invisible item required by TreeView.
             return new Item
@@ -124,9 +149,19 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             };
         }
 
+#if UNITY_6000_2_OR_NEWER
+        static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
+#else
+        static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
+#endif
+
+#if UNITY_6000_2_OR_NEWER
+        List<TreeViewItem<int>> BuildFilterTree()
+#else
         List<TreeViewItem> BuildFilterTree()
+#endif
         {
-            var items = new List<TreeViewItem>();
+            var items = CreateItemsList();
 
             foreach (var filter in m_Filters)
             {

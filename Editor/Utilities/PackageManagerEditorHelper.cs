@@ -14,6 +14,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         {
             public static GUIContent installNow { get; } = EditorGUIUtility.TrTextContent("Install Now");
             public static GUIContent installationInProgress { get; } = EditorGUIUtility.TrTextContent("Installation in progress...");
+
+            public static GUIContent infoIcon { get; } = EditorGUIUtility.TrIconContent("console.infoicon.sml");
+            public static GUIContent warningIcon { get; } = EditorGUIUtility.TrIconContent("console.warnicon.sml");
+            public static GUIContent errorIcon { get; } = EditorGUIUtility.TrIconContent("console.erroricon.sml");
+
+            public static readonly GUIStyle helpBoxWithButtonStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                alignment = TextAnchor.UpperLeft,
+            };
         }
 
         static PackageManagerEditorHelper s_ARFoundationHelper;
@@ -28,6 +37,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         readonly GUIContent m_DependencyMessage;
 
         AddRequest m_AddRequest;
+
+        static GUIContent s_HelpBoxMessageContent;
 
         /// <summary>
         /// Creates a new <see cref="PackageManagerEditorHelper"/> to use for a package.
@@ -57,7 +68,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         public void DrawDependencyHelpBox()
         {
             EditorGUI.BeginDisabledGroup(m_AddRequest != null && !m_AddRequest.IsCompleted);
-            if (HelpBoxWithButton(m_DependencyMessage, Contents.installNow))
+            if (HelpBoxWithButton(m_DependencyMessage, Contents.installNow, MessageType.None))
             {
                 m_AddRequest = Client.Add(m_PackageIdentifier);
             }
@@ -85,26 +96,51 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         /// </summary>
         /// <param name="messageContent">The message text.</param>
         /// <param name="buttonContent">The button text.</param>
+        /// <param name="type">The type of message, such as Warning or Error.</param>
         /// <returns>Returns <see langword="true"/> if button was pressed. Otherwise, returns <see langword="false"/>.</returns>
         /// <seealso cref="MaterialEditor.HelpBoxWithButton"/>
-        static bool HelpBoxWithButton(GUIContent messageContent, GUIContent buttonContent)
+        internal static bool HelpBoxWithButton(GUIContent messageContent, GUIContent buttonContent, MessageType type)
         {
+            // The vertical spacing is chosen to ensure the button does not overlap the text
+            // when the text is long enough to extend to the end of the help box.
             const float kButtonWidth = 90f;
-            const float kSpacing = 5f;
+            float kSingleVerticalSpacing = EditorGUIUtility.standardVerticalSpacing; // 2
+            float kDoubleVerticalSpacing = EditorGUIUtility.standardVerticalSpacing * 2f; // 4
             const float kButtonHeight = 20f;
 
+            // Set icon for the help box message
+            s_HelpBoxMessageContent ??= new GUIContent();
+            s_HelpBoxMessageContent.text = messageContent.text;
+            s_HelpBoxMessageContent.tooltip = messageContent.tooltip;
+            s_HelpBoxMessageContent.image = GetHelpIcon(type);
+
             // Reserve size of wrapped text
-            var contentRect = GUILayoutUtility.GetRect(messageContent, EditorStyles.helpBox);
+            var contentRect = GUILayoutUtility.GetRect(s_HelpBoxMessageContent, EditorStyles.helpBox);
             // Reserve size of button
-            GUILayoutUtility.GetRect(1, kButtonHeight + kSpacing);
+            GUILayoutUtility.GetRect(1f, kButtonHeight + kSingleVerticalSpacing);
 
             // Render background box with text at full height
-            contentRect.height += kButtonHeight + kSpacing;
-            GUI.Label(contentRect, messageContent, EditorStyles.helpBox);
+            contentRect.height += kButtonHeight + kDoubleVerticalSpacing;
+            GUI.Label(contentRect, s_HelpBoxMessageContent, Contents.helpBoxWithButtonStyle);
 
             // Button (align lower right)
             var buttonRect = new Rect(contentRect.xMax - kButtonWidth - 4f, contentRect.yMax - kButtonHeight - 4f, kButtonWidth, kButtonHeight);
             return GUI.Button(buttonRect, buttonContent);
+        }
+
+        static Texture GetHelpIcon(MessageType type)
+        {
+            switch (type)
+            {
+                case MessageType.Info:
+                    return Contents.infoIcon.image;
+                case MessageType.Warning:
+                    return Contents.warningIcon.image;
+                case MessageType.Error:
+                    return Contents.errorIcon.image;
+                default:
+                    return null;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 {
@@ -106,7 +107,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
 
             if (m_PinchGapDeltaInput.TryReadValue(out var pinchGapDelta))
             {
-                value = pinchGapDelta / Screen.dpi;
+                value = pinchGapDelta * DisplayUtility.screenDpiRatio;
                 return true;
             }
 

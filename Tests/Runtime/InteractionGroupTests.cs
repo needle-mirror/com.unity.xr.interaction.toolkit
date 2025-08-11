@@ -2261,6 +2261,182 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(group.activeInteractor, Is.EqualTo(memberInteractor2));
         }
 
+        [UnityTest]
+        public IEnumerator FocusInteractorRemoveFocusInteractableWhenUnregistered()
+        {
+            // Test that with an interaction group with multiple interactors, the focusing interactor
+            // being unregistered with the interaction manager removes focus of the interactable
+            // if it was focused by that interactor that was unregistered.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            group.AddGroupMember(interactor1);
+            group.AddGroupMember(interactor2);
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.True);
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.focusMode = InteractableFocusMode.Single;
+
+            interactor1.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor1.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor1.hasSelection, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor1));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            // Trigger a FocusCancel by unregistering.
+            // Currently, there is a distinction between being unregistered due to disabling the interactor component
+            // or deactivating the GameObject. To properly trigger a cancel of the focus, we need to disable
+            // the component.
+            interactor1.enabled = false;
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.False);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.True);
+
+            Assert.That(interactor1.interactablesSelected, Is.Empty);
+            Assert.That(interactor1.hasSelection, Is.False);
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(interactable.isFocused, Is.False);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+
+            yield return null;
+
+            // Same set of assertions on next frame
+            Assert.That(interactor1.interactablesSelected, Is.Empty);
+            Assert.That(interactor1.hasSelection, Is.False);
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(interactable.isFocused, Is.False);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator SiblingInteractorDoesNotRemoveFocusInteractableWhenUnregistered()
+        {
+            // Test that with an interaction group with multiple interactors, the non-focusing interactor
+            // being unregistered with the interaction manager does not remove focus of the interactable
+            // if it was focused by the other interactor group member.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            group.AddGroupMember(interactor1);
+            group.AddGroupMember(interactor2);
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.True);
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.focusMode = InteractableFocusMode.Single;
+
+            interactor1.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor1.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor1.hasSelection, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor1));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            interactor2.enabled = false;
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.False);
+
+            Assert.That(interactor1.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor1.hasSelection, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor1));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            yield return null;
+
+            // Same set of assertions on next frame
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.False);
+
+            Assert.That(interactor1.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor1.hasSelection, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor1));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator NestedFocusInteractorBubblesUpToParentGroups()
+        {
+            // Test that with an interaction group with a member group that contains an interactor that gains
+            // focus that both the immediate containing group and the root group both report the focus
+            // interactor and interactable.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var group1 = TestUtilities.CreateInteractionGroup();
+            var group2 = TestUtilities.CreateInteractionGroup();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+
+            group1.AddGroupMember(interactor1);
+            group2.AddGroupMember(interactor2);
+            group1.AddGroupMember(group2);
+
+            Assert.That(manager.IsRegistered(group1), Is.True);
+            Assert.That(manager.IsRegistered(group2), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.True);
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.focusMode = InteractableFocusMode.Single;
+
+            interactor2.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor2.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor2.hasSelection, Is.True);
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group2 }));
+            Assert.That(interactable.isFocused, Is.True);
+            Assert.That(group2.focusInteractor, Is.EqualTo(interactor2));
+            Assert.That(group2.focusInteractable, Is.EqualTo(interactable));
+            Assert.That(group1.focusInteractor, Is.EqualTo(interactor2));
+            Assert.That(group1.focusInteractable, Is.EqualTo(interactable));
+
+            // Trigger a FocusCancel by unregistering.
+            // Currently, there is a distinction between being unregistered due to disabling the interactor component
+            // or deactivating the GameObject. To properly trigger a cancel of the focus, we need to disable
+            // the component.
+            interactor2.enabled = false;
+
+            Assert.That(manager.IsRegistered(group1), Is.True);
+            Assert.That(manager.IsRegistered(group2), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor1), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor2), Is.False);
+
+            Assert.That(interactor2.interactablesSelected, Is.Empty);
+            Assert.That(interactor2.hasSelection, Is.False);
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(interactable.isFocused, Is.False);
+            Assert.That(group2.focusInteractor, Is.Null);
+            Assert.That(group2.focusInteractable, Is.Null);
+            Assert.That(group1.focusInteractor, Is.Null);
+            Assert.That(group1.focusInteractable, Is.Null);
+        }
+
         /// <summary>
         /// An <see cref="IXRGroupMember"/> that is not also an <see cref="IXRInteractor"/> or <see cref="IXRInteractionGroup"/>.
         /// </summary>

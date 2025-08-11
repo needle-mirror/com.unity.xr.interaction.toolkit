@@ -25,8 +25,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_HandsPackageName = "com.unity.xr.hands";
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
-        static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.2.1");
-        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.3.0");
+        static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.5.1");
+        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.1");
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
@@ -75,7 +75,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                     }
                 },
                 FixItAutomatic = true,
-                Error = !ProjectValidationUtility.HasSampleImported(k_HandsPackageDisplayName, k_HandVisualizerSampleName),
+                Error = !ProjectValidationUtility.SampleImportMeetsMinimumVersion(k_HandsPackageDisplayName, k_HandVisualizerSampleName, s_MinimumHandsPackageVersion),
             },
             new BuildValidationRule
             {
@@ -130,7 +130,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         {
             foreach (var validation in s_BuildValidationRules)
             {
-                if (validation.CheckPredicate == null || !validation.CheckPredicate.Invoke())
+                if (validation.CheckPredicate == null || (!validation.CheckPredicate.Invoke() && validation.Error))
                 {
                     ShowWindow();
                     return;

@@ -71,6 +71,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static readonly Dictionary<int, bool> s_WasReset = new();
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
+        static PanelInputConfiguration s_PanelInputConfigurationRef;
+        static bool s_EventSystemValidated;
+        static bool s_PanelInputConfigurationValidated;
+        static bool s_DidCheckPanelInputConfiguration;
+
         /// <summary>
         /// Dictionary tracking which VisualElements are being manipulated by which interactors
         /// </summary>
@@ -81,8 +86,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         static readonly Dictionary<uint, float> s_InitialZDepth = new Dictionary<uint, float>();
 #endif
-
-        static bool s_ValidatedPanelInputConfiguration;
 
         /// <summary>
         /// Registers an interactor with the XRUIToolkitHandler.
@@ -247,23 +250,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!TryGetPointerIndex(interactor, out var pointerIndex))
                 return;
 
-            // Validate the panel input configuration.
-            // Check for UI Toolkit EventSystem interoperability upon first process.
-            // Wait to do this until as late as possible (i.e., not upon startup or Register) since
-            // the PanelInputConfiguration.current may not be assigned yet.
-            if (!s_ValidatedPanelInputConfiguration)
-            {
-                ValidatePanelInputConfiguration();
-                s_ValidatedPanelInputConfiguration = true;
-            }
-
             // Ensure dictionary entries exist
             s_LastWasDown.TryAdd(pointerIndex, false);
-            s_WasReset.TryAdd(pointerIndex, false);
+            // Use shouldReset as initial TryAdd entry to skip reset call if it is the first call.
+            s_WasReset.TryAdd(pointerIndex, shouldReset);
 
             // If we're in a reset state and we already reset last time, return early
             if (shouldReset && s_WasReset[pointerIndex])
                 return;
+
+            // Validate the panel input configuration.
+            // Check for UI Toolkit EventSystem interoperability upon first process.
+            // Wait to do this until as late as possible (i.e., not upon startup or Register) since
+            // the PanelInputConfiguration.current may not be assigned yet.
+            if (ShouldCheckPanelInputConfigurationValidation())
+                ValidatePanelInputConfiguration();
 
             var eventPos = shouldReset ? k_ResetPos : pos;
             var eventRot = shouldReset ? Quaternion.identity : rot;
@@ -445,21 +446,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #endif
         }
 
+        /// <summary>
+        /// Checks the need for <see cref="EventSystem"/> and <see cref="PanelInputConfiguration"/> validation.
+        /// </summary>
+        /// <returns>Returns <see langword="true"/> if the <see cref="EventSystem"/> or the <see cref="PanelInputConfiguration"/> have not been validated or checked, or
+        /// if the <see cref="PanelInputConfiguration.current"/> has changed. Otherwise, returns <see langword="false"/>.</returns>
+        /// <remarks>
+        /// This does not check or indicate need for revalidation if the existing <see cref="PanelInputConfiguration.panelInputRedirection"/>
+        /// has changed and is now invalid.
+        /// </remarks>
+        static bool ShouldCheckPanelInputConfigurationValidation()
+        {
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            // Re-validate panel input configuration if it has changed
+            if (s_PanelInputConfigurationRef != PanelInputConfiguration.current)
+            {
+                s_EventSystemValidated = false;
+                s_PanelInputConfigurationValidated = false;
+                s_DidCheckPanelInputConfiguration = false;
+                return true;
+            }
+
+            var didCheckConfiguration = s_DidCheckPanelInputConfiguration || (s_EventSystemValidated && s_PanelInputConfigurationValidated);
+            return !didCheckConfiguration;
+#else
+            return false;
+#endif
+        }
+
+        /// <summary>
+        /// Validates the <see cref="EventSystem"/> and <see cref="PanelInputConfiguration"/> for UI Toolkit support.
+        /// </summary>
         static void ValidatePanelInputConfiguration()
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
-            if (EventSystem.current == null)
+            s_DidCheckPanelInputConfiguration = true;
+            s_PanelInputConfigurationValidated = false;
+
+            // Validate event system
+            if (!s_EventSystemValidated && EventSystem.current == null)
                 return;
 
+            s_EventSystemValidated = true;
+
+            // Validate Panel Input Configuration
             var panelInputConfiguration = PanelInputConfiguration.current;
+
+            // Keeps a reference to current panel input configuration to re-validate if panel input configuration changes
+            s_PanelInputConfigurationRef = panelInputConfiguration;
+
             if (panelInputConfiguration == null)
             {
-                Debug.LogWarning("Detected an Event System component that could interfere with UI Toolkit input. Create a Panel Input Configuration component and configured it by setting Panel Input Redirection to No input redirection to prevent interactions with the Event System.");
+                // Warn user if a Panel Input Configuration was null and could not be found
+                Debug.LogWarning("Detected an Event System component that could interfere with UI Toolkit input." +
+                    " Create a Panel Input Configuration component and configured it by setting Panel Input Redirection to No input redirection to prevent interactions with the Event System.");
             }
-            else if (panelInputConfiguration.panelInputRedirection !=
-                     PanelInputConfiguration.PanelInputRedirection.Never)
+            else if (panelInputConfiguration.panelInputRedirection != PanelInputConfiguration.PanelInputRedirection.Never)
             {
-                Debug.LogWarning("Detected an Event System component that could interfere with UI Toolkit input. Configure your Panel Input Configuration component to set Panel Input Redirection to No input redirection to prevent interactions with the Event System.");
+                // Warn user if the detected Panel Input Configuration is found but is improperly configured
+                Debug.LogWarning("Detected an Event System component that could interfere with UI Toolkit input." +
+                    " Configure your Panel Input Configuration component to set Panel Input Redirection to No input redirection to prevent interactions with the Event System.");
+            }
+            else
+            {
+                s_PanelInputConfigurationValidated = true;
             }
 #endif
         }

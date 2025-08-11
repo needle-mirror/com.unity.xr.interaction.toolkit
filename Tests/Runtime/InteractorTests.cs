@@ -569,5 +569,107 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(filter3WasProcessed, Is.True);
             Assert.That(interactable.interactorsSelecting, Is.Empty);
         }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeManuallySelected()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInputInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            interactor.keepSelectedTargetValid = true;
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            interactor.StartManualInteraction((IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.True);
+            Assert.That(interactor.isSelectActive, Is.True);
+
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.True);
+            Assert.That(interactor.isSelectActive, Is.True);
+
+            interactor.EndManualInteraction();
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator UnregisteredInteractableCannotBeManuallySelected()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInputInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            interactor.keepSelectedTargetValid = true;
+            interactable.enabled = false;
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.False);
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            LogAssert.Expect(LogType.Warning, "Tried to start manual interaction but select was prevented.");
+            interactor.StartManualInteraction((IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            LogAssert.Expect(LogType.Warning, "Tried to end manual interaction but was not performing manual interaction. Ignoring request.");
+            interactor.EndManualInteraction();
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            Assert.That(interactor.isPerformingManualInteraction, Is.False);
+            Assert.That(interactor.isSelectActive, Is.False);
+        }
     }
 }

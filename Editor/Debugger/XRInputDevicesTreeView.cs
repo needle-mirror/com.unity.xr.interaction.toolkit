@@ -9,12 +9,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Input Devices.
     /// </summary>
+#if UNITY_6000_2_OR_NEWER
+    class XRInputDevicesTreeView : TreeView<int>
+#else
     class XRInputDevicesTreeView : TreeView
+#endif
     {
-        public static XRInputDevicesTreeView Create(ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
+        public static XRInputDevicesTreeView Create(ref State treeState, ref MultiColumnHeaderState headerState)
         {
-            if (treeState == null)
-                treeState = new TreeViewState();
+            treeState ??= new State();
 
             var newHeaderState = CreateHeaderState();
             if (headerState != null)
@@ -47,7 +50,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         static XRNode[] s_XRNodes;
 
-        class DeviceItem : TreeViewItem
+#if UNITY_6000_2_OR_NEWER
+        class Item : TreeViewItem<int>
+#else
+        class Item : TreeViewItem
+#endif
+        {
+        }
+
+        class DeviceItem : Item
         {
             public string characteristics;
             public string role;
@@ -56,11 +67,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public string subsystem;
         }
 
-        class FeatureItem : TreeViewItem
+        class FeatureItem : Item
         {
             public InputDevice inputDevice;
             public InputFeatureUsage featureUsage;
             public string typeString;
+        }
+
+        [Serializable]
+#if UNITY_6000_2_OR_NEWER
+        public class State : TreeViewState<int>
+#else
+        public class State : TreeViewState
+#endif
+        {
         }
 
         enum ColumnId
@@ -81,61 +101,61 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             var columns = new MultiColumnHeaderState.Column[(int)ColumnId.Count];
 
-            columns[(int)ColumnId.Name] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 240f,
-                    minWidth = 60f,
-                    headerContent = EditorGUIUtility.TrTextContent("Name"),
-                };
-            columns[(int)ColumnId.Type] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 200f,
-                    headerContent = EditorGUIUtility.TrTextContent("Type"),
-                };
-            columns[(int)ColumnId.Value] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 250f,
-                    headerContent = EditorGUIUtility.TrTextContent("Value"),
-                };
-            columns[(int)ColumnId.Characteristics] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 200f,
-                    minWidth = 60f,
-                    headerContent = EditorGUIUtility.TrTextContent("Characteristics"),
-                };
-            columns[(int)ColumnId.Role] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 150f,
-                    headerContent = EditorGUIUtility.TrTextContent("Role (Deprecated)"),
-                };
-            columns[(int)ColumnId.Node] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 150f,
-                    headerContent = EditorGUIUtility.TrTextContent("XR Nodes"),
-                };
-            columns[(int)ColumnId.Manufacturer] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 150f,
-                    headerContent = EditorGUIUtility.TrTextContent("Manufacturer"),
-                };
-            columns[(int)ColumnId.Subsystem] =
-                new MultiColumnHeaderState.Column
-                {
-                    width = 200f,
-                    headerContent = EditorGUIUtility.TrTextContent("Input Subsystem"),
-                };
+            columns[(int)ColumnId.Name] = new MultiColumnHeaderState.Column
+            {
+                width = 240f,
+                minWidth = 60f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Name"),
+            };
+            columns[(int)ColumnId.Type] = new MultiColumnHeaderState.Column
+            {
+                width = 200f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Type"),
+            };
+            columns[(int)ColumnId.Value] = new MultiColumnHeaderState.Column
+            {
+                width = 250f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Value"),
+            };
+            columns[(int)ColumnId.Characteristics] = new MultiColumnHeaderState.Column
+            {
+                width = 200f,
+                minWidth = 60f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Characteristics"),
+            };
+            columns[(int)ColumnId.Role] = new MultiColumnHeaderState.Column
+            {
+                width = 150f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Role (Deprecated)"),
+            };
+            columns[(int)ColumnId.Node] = new MultiColumnHeaderState.Column
+            {
+                width = 150f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("XR Nodes"),
+            };
+            columns[(int)ColumnId.Manufacturer] = new MultiColumnHeaderState.Column
+            {
+                width = 150f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Manufacturer"),
+            };
+            columns[(int)ColumnId.Subsystem] = new MultiColumnHeaderState.Column
+            {
+                width = 200f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Input Subsystem"),
+            };
 
             return new MultiColumnHeaderState(columns);
         }
 
-        XRInputDevicesTreeView(TreeViewState state, MultiColumnHeader header)
+        XRInputDevicesTreeView(State state, MultiColumnHeader header)
             : base(state, header)
         {
             showBorder = false;
@@ -163,10 +183,15 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         void OnDeviceConfigChanged(InputDevice inputDevice) => Reload();
 
+        /// <inheritdoc />
+#if UNITY_6000_2_OR_NEWER
+        protected override TreeViewItem<int> BuildRoot()
+#else
         protected override TreeViewItem BuildRoot()
+#endif
         {
             // Wrap root control in invisible item required by TreeView.
-            var root = new TreeViewItem
+            var root = new Item
             {
                 id = 0,
                 depth = -1,
@@ -176,7 +201,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return root;
         }
 
-        static List<TreeViewItem> BuildInputDevicesTree(TreeViewItem rootItem)
+#if UNITY_6000_2_OR_NEWER
+        static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
+#else
+        static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
+#endif
+
+#if UNITY_6000_2_OR_NEWER
+        static List<TreeViewItem<int>> BuildInputDevicesTree(Item rootItem)
+#else
+        static List<TreeViewItem> BuildInputDevicesTree(Item rootItem)
+#endif
         {
             // Initialize XRNodes array with all enum values.
             if (s_XRNodes == null)
@@ -207,7 +242,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             // Build children
-            var items = new List<TreeViewItem>();
+            var items = CreateItemsList();
 
             // Build device items
             foreach (var kvp in s_NodesForAllInputDevices)
@@ -234,7 +269,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 s_FeatureUsages.Clear();
                 device.TryGetFeatureUsages(s_FeatureUsages);
 
-                var featureChildren = new List<TreeViewItem>();
+                var featureChildren = CreateItemsList();
                 for (var index = 0; index < s_FeatureUsages.Count; ++index)
                 {
                     var featureUsage = s_FeatureUsages[index];
@@ -336,6 +371,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return string.Empty;
         }
 
+        /// <inheritdoc />
         protected override void RowGUI(RowGUIArgs args)
         {
             if (!Application.isPlaying)
@@ -344,11 +380,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var columnCount = args.GetNumVisibleColumns();
             for (var i = 0; i < columnCount; ++i)
             {
-                ColumnGUI(args.GetCellRect(i), args.item, args.GetColumn(i), ref args);
+                ColumnGUI(args.GetCellRect(i), args.item as Item, args.GetColumn(i), ref args);
             }
         }
 
-        void ColumnGUI(Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
+        void ColumnGUI(Rect cellRect, Item item, int column, ref RowGUIArgs args)
         {
             CenterRectUsingSingleLineHeight(ref cellRect);
 

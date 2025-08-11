@@ -15,6 +15,8 @@ Manipulates the rotation of an object via a drag or a twist gesture. If an objec
 | **Interaction Manager** | The [XRInteractionManager](xr-interaction-manager.md) that this Interactable will communicate with (will find one if **None**). |
 | **Interaction Layer Mask** | Allows interaction with Interactors whose [Interaction Layer Mask](interaction-layers.md) overlaps with any Layer in this Interaction Layer Mask. |
 | **Colliders** | Colliders to use for interaction with this Interactable (if empty, will use any child Colliders). |
+| **Parent Interactable** | An optional reference to a parent interactable dependency for determining processing order of interactables. See [Processing interactables](xref:xri-architecture#processing-interactables) in the Interaction overview manual page for more information. |
+| **Auto Find Parent Interactable** | Automatically find a parent interactable up the GameObject hierarchy when registered with the interaction manager. Disable to manually set the object reference for improved startup performance. |
 | **Custom Reticle** | The reticle that appears at the end of the line when valid. |
 | **Select Mode** | Indicates the selection policy of an Interactable. This controls how many Interactors can select this Interactable.<br />The value is only read by the Interaction Manager when a selection attempt is made, so changing this value from **Multiple** to **Single** will not cause selections to be exited. |
 | &emsp;Single | Set **Select Mode** to **Single** to prevent additional simultaneous selections from more than one Interactor at a time. |

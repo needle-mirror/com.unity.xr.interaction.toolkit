@@ -1,6 +1,7 @@
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -14,8 +15,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// parameters.
         /// </summary>
         /// <param name="filters">The hover filters to process.</param>
-        /// <param name="interactor">The Interactor to be validate by the hover filters.</param>
-        /// <param name="interactable">The Interactable to be validate by the hover filters.</param>
+        /// <param name="interactor">The Interactor used to process the hover filters.</param>
+        /// <param name="interactable">The Interactable used to process the hover filters.</param>
         /// <returns>
         /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
         /// <see cref="filters"/> is empty. Otherwise, returns <see langword="false"/>.
@@ -57,8 +58,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// parameters.
         /// </summary>
         /// <param name="filters">The select filters to process.</param>
-        /// <param name="interactor">The Interactor to be validate by the select filters.</param>
-        /// <param name="interactable">The Interactable to be validate by the select filters.</param>
+        /// <param name="interactor">The Interactor used to process the select filters.</param>
+        /// <param name="interactable">The Interactable used to process the select filters.</param>
         /// <returns>
         /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
         /// <see cref="filters"/> is empty. Otherwise, returns <see langword="false"/>.

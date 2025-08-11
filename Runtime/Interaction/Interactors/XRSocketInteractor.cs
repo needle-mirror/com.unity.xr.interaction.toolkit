@@ -361,7 +361,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 // that are not currently tracked by the TriggerContactMonitor.
                 m_StayedColliders.Clear();
             }
-            else if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+            else if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Late)
             {
                 // An explicit check for isHoverRecycleAllowed is done since an interactable may have been deselected
                 // after this socket was updated by the manager, such as when a later Interactor takes the selection

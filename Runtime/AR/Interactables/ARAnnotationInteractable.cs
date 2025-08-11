@@ -82,7 +82,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>5
     /// Controls displaying one or more annotations when hovering over the <see cref="GameObject"/> this component is attached to.
     /// </summary>
-    [AddComponentMenu("XR/AR Annotation Interactable", 22)]
+    [AddComponentMenu("XR/AR/Deprecated/AR Annotation Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARAnnotationInteractable)]
     [Obsolete("ARAnnotationInteractable has been deprecated. Instead, it is suggested to use LazyFollow and the Hover and Select events from the current interaction system to set the visibility of UGUI canvas objects.")]
     public class ARAnnotationInteractable : ARBaseGestureInteractable

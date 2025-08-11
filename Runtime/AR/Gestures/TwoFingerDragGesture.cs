@@ -24,6 +24,7 @@
 
 using System;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -128,8 +129,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var pos2 = touch2.position;
             var diff2 = (pos2 - startPosition2).magnitude;
             var slopInches = dragRecognizer.slopInches;
-            if (GestureTouchesUtility.PixelsToInches(diff1) < slopInches ||
-                GestureTouchesUtility.PixelsToInches(diff2) < slopInches)
+            if (DisplayUtility.PixelsToInches(diff1) < slopInches ||
+                DisplayUtility.PixelsToInches(diff2) < slopInches)
             {
                 return false;
             }

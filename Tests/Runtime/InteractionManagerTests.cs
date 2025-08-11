@@ -983,6 +983,372 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator RegisterParentInteractableTriggersRegisteredSnapshotReorder()
+        {
+            // Registering parent interactables of interactables even when those interactables are already
+            // registered should trigger a sort of the registered list.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable1 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+            var interactable3 = TestUtilities.CreateSimpleInteractable();
+
+            var interactablesReordered = 0;
+            manager.interactablesReordered += () => interactablesReordered++;
+
+            yield return null;
+
+            var registeredSnapshot = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot,
+                Is.EqualTo(new[] { interactable1, interactable2, interactable3, }));
+            Assert.That(interactablesReordered, Is.EqualTo(0));
+
+            // Make 2 a parent (explicit) of 1, keep 3 independent.
+            // At this point, a dirty flag should trigger a sort, but it only occurs at the next update loop phase,
+            // so wait until next frame to check registered snapshot.
+            Assert.That(manager.RegisterParentRelationship(interactable1, interactable2), Is.True);
+            yield return null;
+
+            // 2 has to come before 1.
+            // Order should be: 2, 1, 3.
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot,
+                Is.EqualTo(new[] { interactable2, interactable1, interactable3, }));
+            Assert.That(interactablesReordered, Is.EqualTo(1));
+
+            // Make 3 a parent of 2
+            // 3
+            // |--2
+            //    |--1
+            // Order should be: 3, 2, 1
+            Assert.That(manager.RegisterParentRelationship(interactable2, interactable3), Is.True);
+            yield return null;
+
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot,
+                Is.EqualTo(new[] { interactable3, interactable2, interactable1, }));
+            Assert.That(interactablesReordered, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void InteractorCanRegisterExplicitParentInteractable()
+        {
+            // Setting a reference to a parent interactable should allow the manager to automatically
+            // register that reference as a parent interactable when the component itself is registered.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.autoFindParentInteractableInHierarchy = false;
+            interactor.parentInteractable = interactable;
+
+            var explicitParents = new List<IXRInteractable>();
+
+            // Parent interactable is only registered when the interactor is registered
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+            manager.UnregisterInteractor((IXRInteractor)interactor);
+            manager.RegisterInteractor((IXRInteractor)interactor);
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.EqualTo(new[] { interactable, }));
+            Assert.That(interactor.parentInteractable, Is.SameAs(interactable));
+            Assert.That(interactor.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void InteractableCanRegisterExplicitParentInteractable()
+        {
+            // Setting a reference to a parent interactable should allow the manager to automatically
+            // register that reference as a parent interactable when the component itself is registered.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactableParent = TestUtilities.CreateSimpleInteractable();
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.autoFindParentInteractableInHierarchy = false;
+            interactable.parentInteractable = interactableParent;
+
+            var explicitParents = new List<IXRInteractable>();
+            var inheritedParents = new List<IXRInteractable>();
+
+            // Parent interactable is only registered when the interactable is registered
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+            manager.UnregisterInteractable((IXRInteractable)interactable);
+            manager.RegisterInteractable((IXRInteractable)interactable);
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.EqualTo(new[] { interactableParent, }));
+            Assert.That(inheritedParents, Is.Empty);
+            Assert.That(interactable.parentInteractable, Is.SameAs(interactableParent));
+            Assert.That(interactable.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void InteractorCanAutoFindParentInteractable()
+        {
+            // Enabling auto find should allow a parent GameObject interactable to be found
+            // and registered as the parent interactable.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.autoFindParentInteractableInHierarchy = true;
+            interactor.parentInteractable = null;
+            interactor.transform.SetParent(interactable.transform);
+
+            var explicitParents = new List<IXRInteractable>();
+
+            // Parent interactable is only registered when the interactor is registered
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+            manager.UnregisterInteractor((IXRInteractor)interactor);
+            manager.RegisterInteractor((IXRInteractor)interactor);
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.EqualTo(new[] { interactable, }));
+            Assert.That(interactor.parentInteractable, Is.SameAs(interactable));
+            Assert.That(interactor.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void InteractableCanAutoFindParentInteractable()
+        {
+            // Enabling auto find should allow a parent GameObject interactable to be found
+            // and registered as the parent interactable.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactableParent = TestUtilities.CreateSimpleInteractable();
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.autoFindParentInteractableInHierarchy = true;
+            interactable.parentInteractable = null;
+            interactable.transform.SetParent(interactableParent.transform);
+
+            var explicitParents = new List<IXRInteractable>();
+            var inheritedParents = new List<IXRInteractable>();
+
+            // Parent interactable is only registered when the interactable is registered
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+            manager.UnregisterInteractable((IXRInteractable)interactable);
+            manager.RegisterInteractable((IXRInteractable)interactable);
+            manager.GetParentRelationships(interactable, explicitParents);
+            Assert.That(explicitParents, Is.EqualTo(new[] { interactableParent, }));
+            Assert.That(inheritedParents, Is.Empty);
+            Assert.That(interactable.parentInteractable, Is.SameAs(interactableParent));
+            Assert.That(interactable.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void InteractorCanDisableAutoFindParentInteractable()
+        {
+            // Disabling auto find should prevent the manager from auto registering a parent GameObject interactable.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.autoFindParentInteractableInHierarchy = false;
+            interactor.parentInteractable = null;
+            interactor.transform.SetParent(interactable.transform);
+
+            var explicitParents = new List<IXRInteractable>();
+
+            // Parent interactable is only potentially registered when the interactor is registered
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+            manager.UnregisterInteractor((IXRInteractor)interactor);
+            manager.RegisterInteractor((IXRInteractor)interactor);
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(interactor.parentInteractable, Is.Null);
+            Assert.That(interactor.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [Test]
+        public void InteractableCanDisableAutoFindParentInteractable()
+        {
+            // Disabling auto find should prevent the manager from auto registering a parent GameObject interactable.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactableParent = TestUtilities.CreateSimpleInteractable();
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.autoFindParentInteractableInHierarchy = false;
+            interactable.parentInteractable = null;
+            interactable.transform.SetParent(interactableParent.transform);
+
+            var explicitParents = new List<IXRInteractable>();
+            var inheritedParents = new List<IXRInteractable>();
+
+            // Parent interactable is only potentially registered when the interactable is registered
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+            manager.UnregisterInteractable((IXRInteractable)interactable);
+            manager.RegisterInteractable((IXRInteractable)interactable);
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+            Assert.That(interactable.parentInteractable, Is.Null);
+            Assert.That(interactable.autoFindParentInteractableInHierarchy, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableInheritsInteractorParentInteractable()
+        {
+            // An interactor that has a parent interactable should automatically cause an interactable being
+            // selected to inherit the parent interactable of the interactor.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable1 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.keepSelectedTargetValid = false;
+            interactor.autoFindParentInteractableInHierarchy = false;
+            interactor.parentInteractable = interactable2;
+
+            var explicitParents = new List<IXRInteractable>();
+            var inheritedParents = new List<IXRInteractable>();
+
+            // Parent interactable is only registered when the interactor is registered
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+            manager.UnregisterInteractor((IXRInteractor)interactor);
+            manager.RegisterInteractor((IXRInteractor)interactor);
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.EqualTo(new[] { interactable2, }));
+
+            yield return null;
+
+            var registeredSnapshot = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactable1, interactable2 }));
+
+            // Make the interactor select interactable1, which should make interactor1 inherit the parent relationship to interactable2
+            interactor.validTargets.Add(interactable1);
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable1 }));
+
+            manager.GetParentRelationships(interactable1, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.EqualTo(new[] { interactable2, }));
+
+            // Order should be: 2, 1
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactable2, interactable1, }));
+
+            // Inherited parents should automatically be removed once deselected
+            interactor.validTargets.Clear();
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+
+            manager.GetParentRelationships(interactable1, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableInheritsInteractorParentInteractableWhileSelected()
+        {
+            // An interactor that registers a parent interactable while selecting should automatically
+            // cause the interactable being selected to inherit the parent interactable of the interactor.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var interactableParent = TestUtilities.CreateSimpleInteractable();
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.keepSelectedTargetValid = false;
+
+            var explicitParents = new List<IXRInteractable>();
+            var inheritedParents = new List<IXRInteractable>();
+
+            manager.GetParentRelationships(interactor, explicitParents);
+            Assert.That(explicitParents, Is.Empty);
+
+            yield return null;
+
+            var registeredSnapshot = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactable, interactableParent }));
+
+            // Make the interactor select interactable
+            interactor.validTargets.Add(interactable);
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+
+            // Register parent relationship to interactor, which should make interactable inherit the parent relationship to interactableParent
+            Assert.That(manager.RegisterParentRelationship(interactor, interactableParent), Is.True);
+
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.EqualTo(new[] { interactableParent, }));
+
+            yield return null;
+
+            // Order should now be updated after a sort
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactableParent, interactable, }));
+
+            // Inherited parents should automatically be removed once deselected
+            interactor.validTargets.Clear();
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+
+            manager.GetParentRelationships(interactable, explicitParents, inheritedParents);
+            Assert.That(explicitParents, Is.Empty);
+            Assert.That(inheritedParents, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator UnregisteredParentInteractableExcludedFromRegisteredSnapshot()
+        {
+            // An unregistered interactable that is the parent interactable of another registered interactable
+            // should not be included in the registered snapshot. This tests that unregistered interactables
+            // are excluded when walking the parent interactable graph.
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable1 = TestUtilities.CreateSimpleInteractable();
+            var interactable2 = TestUtilities.CreateSimpleInteractable();
+            var interactable3 = TestUtilities.CreateSimpleInteractable();
+
+            // Order should be: 3, 2, 1
+            Assert.That(manager.RegisterParentRelationship(interactable2, interactable3), Is.True);
+            Assert.That(manager.RegisterParentRelationship(interactable1, interactable2), Is.True);
+
+            // Disable 2 to unregister it from the manager
+            interactable2.enabled = false;
+
+            yield return null;
+
+            var registeredSnapshot = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactable3, interactable1, }));
+
+            // Enable 2 to register it to the manager
+            interactable2.enabled = true;
+
+            yield return null;
+
+            manager.GetRegisteredInteractables(registeredSnapshot);
+            Assert.That(registeredSnapshot, Is.EqualTo(new[] { interactable3, interactable2, interactable1, }));
+        }
+
+        [UnityTest]
         public IEnumerator InteractableCanBePriorityForSelection()
         {
             var interactionManager = TestUtilities.CreateInteractionManager();
@@ -1021,6 +1387,206 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor1.targetsForSelection, Is.EquivalentTo(new[] { interactable1 }));
             Assert.That(interactor2.targetsForSelection, Is.EquivalentTo(new[] { interactable2, interactable1 }));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeSelectedFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            manager.SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            interactor.keepSelectedTargetValid = true;
+
+            yield return null;
+
+            Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isSelected, Is.True);
+
+            manager.SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeHoveredFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+
+            manager.HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isHovered, Is.True);
+
+            interactor.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+            Assert.That(interactable.interactorsHovering, Is.EqualTo(new[] { interactor }));
+            Assert.That(interactable.isHovered, Is.True);
+
+            manager.HoverExit((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCanBeFocusedFromScript()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor = TestUtilities.CreateMockInputInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            group.AddGroupMember(interactor);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+
+            manager.FocusEnter(interactor, interactable);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            // Focus should not automatically clear the next frame since there will not be a "select attempt" input
+            // due to the interactor being a MockInputInteractor rather than a simple MockInteractor.
+            Assert.That(interactor.isSelectActive, Is.False);
+
+            yield return null;
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.EqualTo(new[] { group }));
+            Assert.That(group.focusInteractor, Is.EqualTo(interactor));
+            Assert.That(group.focusInteractable, Is.EqualTo(interactable));
+
+            manager.FocusExit(group, interactable);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void InteractableCanBePreventedFromBeingSelectedFromScript(bool logInteractionPreventedWarnings)
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            interactor.interactionLayers = 1;
+            interactable.interactionLayers = 2;
+
+            manager.logInteractionPreventedWarnings = logInteractionPreventedWarnings;
+            if (logInteractionPreventedWarnings)
+                LogAssert.Expect(LogType.Warning, new Regex("Interaction layer mask between interactor and interactable does not overlap."));
+
+            manager.SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)interactable);
+
+            Assert.That(interactor.interactablesSelected, Is.Empty);
+            Assert.That(interactor.hasSelection, Is.False);
+            Assert.That(interactable.interactorsSelecting, Is.Empty);
+            Assert.That(interactable.isSelected, Is.False);
+
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void InteractableCanBePreventedFromBeingHoveredFromScript(bool logInteractionPreventedWarnings)
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+
+            interactor.interactionLayers = 1;
+            interactable.interactionLayers = 2;
+
+            manager.logInteractionPreventedWarnings = logInteractionPreventedWarnings;
+            if (logInteractionPreventedWarnings)
+                LogAssert.Expect(LogType.Warning, new Regex("Interaction layer mask between interactor and interactable does not overlap."));
+
+            manager.HoverEnter((IXRHoverInteractor)interactor, (IXRHoverInteractable)interactable);
+
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactable.interactorsHovering, Is.Empty);
+            Assert.That(interactable.isHovered, Is.False);
+
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void InteractableCanBePreventedFromBeingFocusedFromScript(bool logInteractionPreventedWarnings)
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            group.AddGroupMember(interactor);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+
+            interactor.interactionLayers = 1;
+            interactable.interactionLayers = 2;
+
+            manager.logInteractionPreventedWarnings = logInteractionPreventedWarnings;
+            if (logInteractionPreventedWarnings)
+                LogAssert.Expect(LogType.Warning, new Regex("Interaction layer mask between interactor and interactable does not overlap."));
+
+            manager.FocusEnter(interactor, interactable);
+
+            Assert.That(interactable.interactionGroupsFocusing, Is.Empty);
+            Assert.That(group.focusInteractor, Is.Null);
+            Assert.That(group.focusInteractable, Is.Null);
+
+            LogAssert.NoUnexpectedReceived();
         }
 
         /// <summary>

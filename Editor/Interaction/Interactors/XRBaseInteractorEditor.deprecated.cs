@@ -38,9 +38,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         [Obsolete("m_OnSelectExitedCalls property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_SelectExitedCalls instead.", true)]
         protected SerializedProperty m_OnSelectExitedCalls;
 
-        /// <summary>
-        /// Contents of GUI elements used by this editor.
-        /// </summary>
         protected static partial class BaseContents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>

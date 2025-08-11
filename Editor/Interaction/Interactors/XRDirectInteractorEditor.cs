@@ -105,6 +105,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseInputContents.allowHoveredActivate);
             EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseInputContents.targetPriorityMode);
             EditorGUILayout.PropertyField(m_StartingSelectedInteractable, BaseContents.startingSelectedInteractable);
+            DrawParentInteractableConfiguration();
         }
     }
 }

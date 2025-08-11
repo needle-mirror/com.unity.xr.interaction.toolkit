@@ -43,6 +43,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.customReticle"/>.</summary>
         protected SerializedProperty m_CustomReticle;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.autoFindParentInteractableInHierarchy"/>.</summary>
+        protected SerializedProperty m_AutoFindParentInteractableInHierarchy;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.parentInteractable"/>.</summary>
+        protected SerializedProperty m_ParentInteractableObject;
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.allowGazeInteraction"/>.</summary>
         protected SerializedProperty m_AllowGazeInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractable.allowGazeSelect"/>.</summary>
@@ -92,6 +97,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         ReadOnlyReorderableList<IXRHoverFilter> m_HoverFilters;
         ReadOnlyReorderableList<IXRSelectFilter> m_SelectFilters;
         ReadOnlyReorderableList<IXRInteractionStrengthFilter> m_InteractionStrengthFilters;
+
+        ParentInteractableEditorHelper m_ParentInteractableHelper;
 
         /// <summary>
         /// Whether <see cref="InteractableSelectMode.Multiple"/> is allowed by the script of the object being inspected.
@@ -228,6 +235,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             m_StartingSelectFilters = serializedObject.FindProperty("m_StartingSelectFilters");
             m_StartingInteractionStrengthFilters = serializedObject.FindProperty("m_StartingInteractionStrengthFilters");
 
+            m_AutoFindParentInteractableInHierarchy = serializedObject.FindProperty("m_AutoFindParentInteractableInHierarchy");
+            m_ParentInteractableObject = serializedObject.FindProperty("m_ParentInteractableObject");
+            m_ParentInteractableHelper ??= new ParentInteractableEditorHelper();
+            m_ParentInteractableHelper.InitializeSerializedProperties(serializedObject, m_AutoFindParentInteractableInHierarchy, m_ParentInteractableObject);
+
             var interactable = (XRBaseInteractable)target;
             m_HoverFilters = new ReadOnlyReorderableList<IXRHoverFilter>(new List<IXRHoverFilter>(), BaseContents.hoverFiltersHeader, k_HoverFiltersExpandedKey)
             {
@@ -313,11 +325,20 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         protected virtual void DrawCoreConfiguration()
         {
             DrawInteractionManagement();
+            DrawParentInteractableConfiguration();
             DrawDistanceCalculationMode();
             EditorGUILayout.PropertyField(m_CustomReticle, BaseContents.customReticle);
             DrawSelectionConfiguration();
             DrawFocusConfiguration();
             DrawGazeConfiguration();
+        }
+
+        /// <summary>
+        /// Draw the property fields related to parent interactable.
+        /// </summary>
+        protected virtual void DrawParentInteractableConfiguration()
+        {
+            m_ParentInteractableHelper.DrawParentInteractableConfiguration(serializedObject);
         }
 
         /// <summary>

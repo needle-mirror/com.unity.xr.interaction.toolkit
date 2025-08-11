@@ -12,10 +12,13 @@ using UnityEditor.Experimental.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
 using UnityEngine.XR.Interaction.Toolkit.UI;
+#endif
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
+using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
 #endif
@@ -107,7 +110,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="IXRInteractable.unregistered"/>
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
-
         /// <summary>
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
         /// </summary>
@@ -117,6 +119,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
         /// </summary>
         public event Action<FocusExitEventArgs> focusLost;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when the process order of registered <see cref="IXRInteractable"/>
+        /// objects has changed.
+        /// </summary>
+        internal event Action interactablesReordered;
 
         /// <summary>
         /// Calls the methods in its invocation list when a manager is enabled or disabled.
@@ -199,6 +207,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public IXRFocusInteractable lastFocused { get; protected set; }
 
         /// <summary>
+        /// Whether to log warnings when select, hover, or focus between an interactor and interactable was prevented
+        /// when the interaction was attempted manually through API.
+        /// Defaults to <see langword="true"/> to enable logging warnings.
+        /// </summary>
+        /// <seealso cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>
+        /// <seealso cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable)"/>
+        /// <seealso cref="FocusEnter"/>
+        public bool logInteractionPreventedWarnings { get; set; } = true;
+
+        /// <summary>
         /// (Read Only) List of enabled Interaction Manager instances.
         /// </summary>
         /// <remarks>
@@ -231,6 +249,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// List of registered Interactables.
         /// </summary>
         readonly RegistrationList<IXRInteractable> m_Interactables = new RegistrationList<IXRInteractable>();
+
+        readonly ParentRelationships<IXRInteractor, IXRInteractable> m_InteractorRelationships = new ParentRelationships<IXRInteractor, IXRInteractable>();
+        readonly ParentRelationships<IXRInteractable, IXRInteractable> m_InteractableRelationships = new ParentRelationships<IXRInteractable, IXRInteractable>();
 
         /// <summary>
         /// Reusable list of Interactables for retrieving the current hovered Interactables of an Interactor.
@@ -275,6 +296,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly List<IXRInteractionGroup> m_ScratchInteractionGroups = new List<IXRInteractionGroup>();
         readonly List<IXRInteractor> m_ScratchInteractors = new List<IXRInteractor>();
 
+        readonly List<(IXRInteractor interactor, int frame)> m_RecentlyUnregisteredInteractors = new List<(IXRInteractor, int)>();
+        readonly List<(IXRInteractable interactable, int frame)> m_RecentlyUnregisteredInteractables = new List<(IXRInteractable, int)>();
+
+        bool m_NeedsInteractableSort;
+
         // Reusable event args
         readonly LinkedPool<FocusEnterEventArgs> m_FocusEnterEventArgs = new LinkedPool<FocusEnterEventArgs>(() => new FocusEnterEventArgs(), collectionCheck: false);
         readonly LinkedPool<FocusExitEventArgs> m_FocusExitEventArgs = new LinkedPool<FocusExitEventArgs>(() => new FocusExitEventArgs(), collectionCheck: false);
@@ -290,6 +316,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly LinkedPool<InteractableUnregisteredEventArgs> m_InteractableUnregisteredEventArgs = new LinkedPool<InteractableUnregisteredEventArgs>(() => new InteractableUnregisteredEventArgs(), collectionCheck: false);
 
         static readonly ProfilerMarker s_PreprocessInteractorsMarker = new ProfilerMarker("XRI.PreprocessInteractors");
+        static readonly ProfilerMarker s_SortInteractableProcessingMarker = new ProfilerMarker("XRI.SortInteractableProcessing");
+        static readonly ProfilerMarker s_PruneParentRelationshipsMarker = new ProfilerMarker("XRI.PruneParentRelationships");
         static readonly ProfilerMarker s_ProcessInteractionStrengthMarker = new ProfilerMarker("XRI.ProcessInteractionStrength");
         static readonly ProfilerMarker s_ProcessInteractorsMarker = new ProfilerMarker("XRI.ProcessInteractors");
         static readonly ProfilerMarker s_ProcessInteractablesMarker = new ProfilerMarker("XRI.ProcessInteractables");
@@ -358,6 +386,20 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
+        protected virtual void FixedUpdate()
+        {
+            FlushRegistration();
+            SortInteractableProcessing();
+
+            using (s_ProcessInteractorsMarker.Auto())
+                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+            using (s_ProcessInteractablesMarker.Auto())
+                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
         // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void Update()
         {
@@ -415,6 +457,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 }
             }
 
+            PruneRelationships();
+            SortInteractableProcessing();
+
             using (s_ProcessInteractionStrengthMarker.Auto())
                 ProcessInteractionStrength(XRInteractionUpdateOrder.UpdatePhase.Dynamic);
 
@@ -430,24 +475,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void LateUpdate()
         {
             FlushRegistration();
+            SortInteractableProcessing();
 
             using (s_ProcessInteractorsMarker.Auto())
                 ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Late);
             using (s_ProcessInteractablesMarker.Auto())
                 ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Late);
-        }
-
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void FixedUpdate()
-        {
-            FlushRegistration();
-
-            using (s_ProcessInteractorsMarker.Auto())
-                ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.Fixed);
-            using (s_ProcessInteractablesMarker.Auto())
-                ProcessInteractables(XRInteractionUpdateOrder.UpdatePhase.Fixed);
         }
 
         /// <summary>
@@ -458,6 +491,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void OnBeforeRender()
         {
             FlushRegistration();
+            SortInteractableProcessing();
 
             using (s_ProcessInteractorsMarker.Auto())
                 ProcessInteractors(XRInteractionUpdateOrder.UpdatePhase.OnBeforeRender);
@@ -603,6 +637,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="CanHover"/>
         public bool IsHoverPossible(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
+            // Note: Update ValidateIsHoverPossible also with any changes here
             return HasInteractionLayerOverlap(interactor, interactable) && ProcessHoverFilters(interactor, interactable) &&
                 interactor.CanHover(interactable) && interactable.IsHoverableBy(interactor);
         }
@@ -633,6 +668,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="CanSelect"/>
         public bool IsSelectPossible(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
+            // Note: Update ValidateIsSelectPossible also with any changes here
             return HasInteractionLayerOverlap(interactor, interactable) && ProcessSelectFilters(interactor, interactable) &&
                 interactor.CanSelect(interactable) && interactable.IsSelectableBy(interactor);
         }
@@ -651,7 +687,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Whether the given Interactor would be able gain focus of the given Interactable if the Interactor were in a state where it could focus.
+        /// Whether the given Interactor would be able to gain focus of the given Interactable if the Interactor were in a state where it could focus.
         /// </summary>
         /// <param name="interactor">The Interactor to check.</param>
         /// <param name="interactable">The Interactable to check.</param>
@@ -659,7 +695,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="CanSelect"/>
         public bool IsFocusPossible(IXRInteractor interactor, IXRFocusInteractable interactable)
         {
-            return interactable.canFocus && HasInteractionLayerOverlap(interactor, interactable);
+            // Note: Update ValidateIsFocusPossible also with any changes here
+            return interactable.canFocus && HasInteractionLayerOverlap(interactor, interactable) &&
+                interactor is IXRGroupMember groupMember && groupMember.containingGroup != null;
         }
 
         /// <summary>
@@ -731,7 +769,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (group is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
                     {
                         Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
-                            "Group Members have been re-registered as not part of the Group.", this);
+                            "Group Members have been unregistered or re-registered as not part of the Group.", this);
                         return;
                     }
                 }
@@ -745,7 +783,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (interactor is IXRGroupMember groupMember && groupMember.containingGroup == interactionGroup)
                     {
                         Debug.LogError($"Cannot unregister {interactionGroup} with Interaction Manager before its " +
-                            "Group Members have been re-registered as not part of the Group.", this);
+                            "Group Members have been unregistered or re-registered as not part of the Group.", this);
                         return;
                     }
                 }
@@ -783,7 +821,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Gets all currently registered Interaction groups
         /// </summary>
-        /// <param name="interactionGroups">The list that will filled with all of the registered interaction groups</param>
+        /// <param name="interactionGroups">List to receive registered interaction groups.</param>
         public void GetInteractionGroups(List<IXRInteractionGroup> interactionGroups)
         {
             m_InteractionGroups.GetRegisteredItems(interactionGroups);
@@ -825,6 +863,24 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactors.Register(interactor))
             {
+                // Automatically register parent interactable relationship
+                if (interactor is IXRParentInteractableLink parentLink)
+                {
+                    if (parentLink.autoFindParentInteractableInHierarchy && parentLink.parentInteractable == null)
+                    {
+                        var parent = interactor.transform.parent;
+                        if (parent != null)
+                            parentLink.parentInteractable = parent.GetComponentInParent<IXRInteractable>(true);
+
+                        // Searching in the hierarchy is expensive and thus should not be done every time registered,
+                        // so prevent it from finding again by clearing the property.
+                        parentLink.autoFindParentInteractableInHierarchy = false;
+                    }
+
+                    if (parentLink.parentInteractable != null)
+                        RegisterParentRelationship(interactor, parentLink.parentInteractable);
+                }
+
                 if (containingGroup != null)
                     m_InteractorsInGroup.Add(interactor);
 
@@ -878,7 +934,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactors.Unregister(interactor))
             {
+                // Automatically unregister parent interactable relationship mainly to help avoid the relationship graph
+                // growing indefinitely if the item is being destroyed.
+                if (interactor is IXRParentInteractableLink parentLink && parentLink.parentInteractable != null)
+                    UnregisterParentRelationship(interactor, parentLink.parentInteractable);
+
                 m_InteractorsInGroup.Remove(interactor);
+                m_RecentlyUnregisteredInteractors.Add((interactor, Time.frameCount));
+
                 using (m_InteractorUnregisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
@@ -913,6 +976,29 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             if (m_Interactables.Register(interactable))
             {
+                // Automatically register parent interactable relationship
+                if (interactable is IXRParentInteractableLink parentLink)
+                {
+                    if (parentLink.autoFindParentInteractableInHierarchy && parentLink.parentInteractable == null)
+                    {
+                        var parent = interactable.transform.parent;
+                        if (parent != null)
+                            parentLink.parentInteractable = parent.GetComponentInParent<IXRInteractable>(true);
+
+                        // Searching in the hierarchy is expensive and thus should not be done every time registered,
+                        // so prevent it from finding again by clearing the property.
+                        parentLink.autoFindParentInteractableInHierarchy = false;
+                    }
+
+                    if (parentLink.parentInteractable != null)
+                        RegisterParentRelationship(interactable, parentLink.parentInteractable);
+                }
+
+                // Determine if there is another object that has already declared this interactable as a parent dependency
+                // that would require it to be inserted into the sorted list rather than being a simple append.
+                if (m_InteractorRelationships.IsParent(interactable) || m_InteractableRelationships.IsParent(interactable))
+                    m_NeedsInteractableSort = true;
+
                 foreach (var interactableCollider in interactable.colliders)
                 {
                     if (interactableCollider == null)
@@ -988,6 +1074,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactables.Unregister(interactable))
             {
+                // Automatically unregister parent interactable relationship mainly to help avoid the relationship graph
+                // growing indefinitely if the item is being destroyed.
+                if (interactable is IXRParentInteractableLink parentLink && parentLink.parentInteractable != null)
+                    UnregisterParentRelationship(interactable, parentLink.parentInteractable);
+
                 // This makes the assumption that the list of Colliders has not been changed after
                 // the Interactable is registered. If any were removed afterward, those would remain
                 // in the dictionary.
@@ -999,6 +1090,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     if (m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable) && associatedInteractable == interactable)
                         m_ColliderToInteractableMap.Remove(interactableCollider);
                 }
+
+                m_RecentlyUnregisteredInteractables.Add((interactable, Time.frameCount));
 
                 using (m_InteractableUnregisteredEventArgs.Get(out var args))
                 {
@@ -1071,6 +1164,206 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume) && associatedSnapVolume == snapVolume)
                 m_ColliderToSnapVolumes.Remove(snapCollider);
+        }
+
+        /// <summary>
+        /// Registers a relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactor">The interactor that is registering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly registered. Otherwise, returns <see langword="false"/> if the relationship is already defined.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactor is registered if it implements <see cref="IXRParentInteractableLink"/>.
+        /// <br/>
+        /// The interactables must be registered with the same XR Interaction Manager for this to have an effect
+        /// on processing order.
+        /// </remarks>
+        /// <seealso cref="UnregisterParentRelationship(IXRInteractor, IXRInteractable)"/>
+        public bool RegisterParentRelationship(IXRInteractor interactor, IXRInteractable parent)
+        {
+            if (m_InteractorRelationships.AddExplicitParent(interactor, parent))
+            {
+                if (interactor is IXRSelectInteractor selectInteractor && selectInteractor.hasSelection)
+                {
+                    foreach (var interactable in selectInteractor.interactablesSelected)
+                    {
+                        // Copy the parent interactable of the interactor to the interactable being selected
+                        // as an inherited parent relationship.
+                        RegisterInheritedParentRelationship(interactable, parent);
+                    }
+                }
+
+                m_NeedsInteractableSort = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Unregisters a relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactor">The interactor that is unregistering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly unregistered. Otherwise, returns <see langword="false"/> if the relationship is not defined.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactor is unregistered if it implements <see cref="IXRParentInteractableLink"/>.
+        /// </remarks>
+        /// <seealso cref="RegisterParentRelationship(IXRInteractor, IXRInteractable)"/>
+        public bool UnregisterParentRelationship(IXRInteractor interactor, IXRInteractable parent)
+        {
+            if (m_InteractorRelationships.RemoveExplicitParent(interactor, parent))
+            {
+                if (interactor is IXRSelectInteractor selectInteractor && selectInteractor.hasSelection)
+                {
+                    foreach (var interactable in selectInteractor.interactablesSelected)
+                    {
+                        // Remove the parent interactable of the interactor copied to the interactable being selected
+                        // as an inherited parent relationship.
+                        UnregisterInheritedParentRelationship(interactable, parent);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Registers a relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactable">The interactable that is registering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly registered. Otherwise, returns <see langword="false"/> if the relationship is already defined
+        /// or is an argument error.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactable is registered if it implements <see cref="IXRParentInteractableLink"/>.
+        /// <br/>
+        /// The interactables must be registered with the same XR Interaction Manager for this to have an effect
+        /// on processing order.
+        /// </remarks>
+        /// <seealso cref="UnregisterParentRelationship(IXRInteractable, IXRInteractable)"/>
+        public bool RegisterParentRelationship(IXRInteractable interactable, IXRInteractable parent)
+        {
+            if (ReferenceEquals(interactable, parent))
+            {
+                Debug.LogWarning("Parent Interactable relationship must not self-reference the same interactable component, ignoring register request.", this);
+                return false;
+            }
+
+            if (m_InteractableRelationships.AddExplicitParent(interactable, parent))
+            {
+                m_NeedsInteractableSort = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Unregisters a relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactable">The interactable that is unregistering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly unregistered. Otherwise, returns <see langword="false"/> if the relationship is not defined
+        /// or is an argument error.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactable is unregistered if it implements <see cref="IXRParentInteractableLink"/>.
+        /// </remarks>
+        /// <seealso cref="RegisterParentRelationship(IXRInteractor, IXRInteractable)"/>
+        public bool UnregisterParentRelationship(IXRInteractable interactable, IXRInteractable parent)
+        {
+            if (ReferenceEquals(interactable, parent))
+            {
+                Debug.LogWarning("Parent Interactable relationship must not self-reference the same interactable component, ignoring unregister request.", this);
+                return false;
+            }
+
+            return m_InteractableRelationships.RemoveExplicitParent(interactable, parent);
+        }
+
+        /// <summary>
+        /// Registers an inherited relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactable">The interactable that is registering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly registered. Otherwise, returns <see langword="false"/> if the inherited relationship is already defined
+        /// or is an argument error.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactable is selected by an interactor to inherit the parent relationships defined for the interactor.
+        /// <br/>
+        /// The interactables must be registered with the same XR Interaction Manager for this to have an effect
+        /// on processing order.
+        /// </remarks>
+        /// <seealso cref="UnregisterInheritedParentRelationship(IXRInteractable, IXRInteractable)"/>
+        protected bool RegisterInheritedParentRelationship(IXRInteractable interactable, IXRInteractable parent)
+        {
+            if (ReferenceEquals(interactable, parent))
+                return false;
+
+            if (m_InteractableRelationships.AddInheritedParent(interactable, parent))
+            {
+                m_NeedsInteractableSort = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Unregisters an inherited relationship for determining the process order of interactables such that parents are processed before their children interactables.
+        /// </summary>
+        /// <param name="interactable">The interactable that is unregistering its parent.</param>
+        /// <param name="parent">The parent interactable for determining relative processing order of interactables when the interactor is selecting.</param>
+        /// <returns>Returns <see langword="true"/> if newly unregistered. Otherwise, returns <see langword="false"/> if the inherited relationship is not defined
+        /// or is an argument error.</returns>
+        /// <remarks>
+        /// This method can be called automatically when the interactable is deselected by an interactor to remove inherited parent relationships defined for the interactor.
+        /// </remarks>
+        /// <seealso cref="RegisterInheritedParentRelationship(IXRInteractable, IXRInteractable)"/>
+        protected bool UnregisterInheritedParentRelationship(IXRInteractable interactable, IXRInteractable parent)
+        {
+            if (ReferenceEquals(interactable, parent))
+                return false;
+
+            return m_InteractableRelationships.RemoveInheritedParent(interactable, parent);
+        }
+
+        /// <summary>
+        /// Returns all registered parent relationships for the given interactor.
+        /// </summary>
+        /// <param name="interactor">The interactor to get the parent relationships for.</param>
+        /// <param name="explicitParents">List to receive explicitly registered parents.</param>
+        /// <seealso cref="RegisterParentRelationship(IXRInteractor, IXRInteractable)"/>
+        /// <seealso cref="RegisterInheritedParentRelationship(IXRInteractable, IXRInteractable)"/>
+        public void GetParentRelationships(IXRInteractor interactor, List<IXRInteractable> explicitParents)
+        {
+            m_InteractorRelationships.GetParents(interactor, explicitParents);
+        }
+
+        /// <summary>
+        /// Returns all registered parent relationships for the given interactable.
+        /// </summary>
+        /// <param name="interactable">The interactable to get the parent relationships for.</param>
+        /// <param name="explicitParents">List to receive explicitly registered parents.</param>
+        /// <seealso cref="RegisterParentRelationship(IXRInteractable, IXRInteractable)"/>
+        public void GetParentRelationships(IXRInteractable interactable, List<IXRInteractable> explicitParents)
+        {
+            m_InteractableRelationships.GetParents(interactable, explicitParents);
+        }
+
+        /// <summary>
+        /// Returns all registered parent relationships for the given interactable.
+        /// </summary>
+        /// <param name="interactable">The interactable to get the parent relationships for.</param>
+        /// <param name="explicitParents">List to receive explicitly registered parents.</param>
+        /// <param name="inheritedParents">List to receive current inherited parents such as due to being selected.</param>
+        /// <seealso cref="RegisterParentRelationship(IXRInteractable, IXRInteractable)"/>
+        /// <seealso cref="RegisterInheritedParentRelationship(IXRInteractable, IXRInteractable)"/>
+        public void GetParentRelationships(IXRInteractable interactable, List<IXRInteractable> explicitParents, List<IXRInteractable> inheritedParents)
+        {
+            m_InteractableRelationships.GetParents(interactable, explicitParents, inheritedParents);
         }
 
         /// <summary>
@@ -1343,28 +1636,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 return;
 
             var cleared = false;
-
-            var selectInteractor = focusInteractor as IXRSelectInteractor;
-            var selectInteractable = focusInteractable as IXRSelectInteractable;
-
-            if (selectInteractor != null)
-                cleared = (selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable));
+            if (focusInteractor is IXRSelectInteractor selectInteractor)
+            {
+                if (focusInteractable is IXRSelectInteractable selectInteractable)
+                    cleared = selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable);
+                else
+                    cleared = selectInteractor.isSelectActive;
+            }
 
             if (cleared || !CanFocus(focusInteractor, focusInteractable))
-            {
-                FocusExit(interactionGroup, interactionGroup.focusInteractable);
-            }
+                FocusExit(interactionGroup, focusInteractable);
         }
 
         void CancelInteractorFocus(IXRInteractor interactor)
         {
-            var asGroupMember = interactor as IXRGroupMember;
-            var group = asGroupMember?.containingGroup;
-
-            if (group != null && group.focusInteractable != null)
-            {
+            var group = interactor is IXRGroupMember groupMember ? groupMember.containingGroup : null;
+            if (group != null && group.focusInteractable != null && group.focusInteractor == interactor)
                 FocusCancel(group, group.focusInteractable);
-            }
         }
 
         /// <summary>
@@ -1387,7 +1675,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ClearInteractorHover(IXRHoverInteractor, List{IXRInteractable})"/>
         protected internal virtual void ClearInteractorSelection(IXRSelectInteractor interactor, List<IXRInteractable> validTargets)
         {
-            if (interactor.interactablesSelected.Count == 0)
+            if (!interactor.hasSelection)
                 return;
 
             m_CurrentSelected.Clear();
@@ -1447,7 +1735,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="ClearInteractorSelection(IXRSelectInteractor, List{IXRInteractable})"/>
         protected internal virtual void ClearInteractorHover(IXRHoverInteractor interactor, List<IXRInteractable> validTargets)
         {
-            if (interactor.interactablesHovered.Count == 0)
+            if (!interactor.hasHover)
                 return;
 
             m_CurrentHovered.Clear();
@@ -1504,14 +1792,44 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor that is gaining focus. Must be a member of an Interaction group.</param>
         /// <param name="interactable">The Interactable being focused.</param>
         /// <remarks>
-        /// This attempt may be ignored depending on the focus policy of the Interactor and/or the Interactable. This attempt will also be ignored if the Interactor is not a member of an Interaction group.
+        /// This attempt may be ignored depending on the focus policy of the Interactor and/or the Interactable.
+        /// This attempt will also be ignored if the Interactor is not a member of an Interaction group.
         /// </remarks>
         public virtual void FocusEnter(IXRInteractor interactor, IXRFocusInteractable interactable)
         {
-            var asGroupMember = interactor as IXRGroupMember;
-            var group = asGroupMember?.containingGroup;
+            if (!ValidateRegistered(interactor, interactable, out var reasonMessage) ||
+                !ValidateIsFocusPossible(interactor, interactable, out reasonMessage))
+            {
+                if (logInteractionPreventedWarnings)
+                {
+                    var message = $"Focus between \"{interactor}\" and \"{interactable}\" is prevented, FocusEnter request has been ignored." +
+                        $" Reason: {reasonMessage}";
+                    Debug.LogWarning(message, this);
+                }
 
-            if (group == null || !CanFocus(interactor, interactable))
+                return;
+            }
+
+            FocusEnterUnconditionally(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Initiates focus of an Interactable by an Interactor. This method may first result in other interaction events
+        /// such as causing the Interactable to first lose focus.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is gaining focus. Must be a member of an Interaction group.</param>
+        /// <param name="interactable">The Interactable being focused.</param>
+        /// <remarks>
+        /// This attempt may be ignored depending on the focus policy of the Interactor and/or the Interactable.
+        /// This attempt will also be ignored if the Interactor is not a member of an Interaction group.
+        /// Unlike the <see langword="public"/> <see cref="FocusEnter(IXRInteractor, IXRFocusInteractable)"/>, this is the method
+        /// that is invoked by other methods of this manager and ignores checks for registration and ability to focus.
+        /// </remarks>
+        /// <seealso cref="SelectEnterUnconditionally(IXRSelectInteractor, IXRSelectInteractable)"/>
+        public virtual void FocusEnterUnconditionally(IXRInteractor interactor, IXRFocusInteractable interactable)
+        {
+            var group = interactor is IXRGroupMember groupMember ? groupMember.containingGroup : null;
+            if (group == null)
                 return;
 
             if (interactable.isFocused && !ResolveExistingFocus(group, interactable))
@@ -1530,16 +1848,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initiates losing focus of an Interactable by an Interactor.
         /// </summary>
-        /// <param name="group">The Interaction group that is losing focus.</param>
-        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        /// <param name="group">The Interaction group that is losing focus of the interactable.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         public virtual void FocusExit(IXRInteractionGroup group, IXRFocusInteractable interactable)
         {
-            var interactor = group.focusInteractor;
-
             using (m_FocusExitEventArgs.Get(out var args))
             {
                 args.manager = this;
-                args.interactorObject = interactor;
+                args.interactorObject = group.focusInteractor;
                 args.interactableObject = interactable;
                 args.interactionGroup = group;
                 args.isCanceled = false;
@@ -1552,7 +1868,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// such as from either being unregistered due to being disabled or destroyed.
         /// </summary>
         /// <param name="group">The Interaction group that is losing focus of the interactable.</param>
-        /// <param name="interactable">The Interactable that is no longer focused.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         public virtual void FocusCancel(IXRInteractionGroup group, IXRFocusInteractable interactable)
         {
             using (m_FocusExitEventArgs.Get(out var args))
@@ -1574,11 +1890,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable being selected.</param>
         /// <remarks>
         /// This attempt may be ignored depending on the selection policy of the Interactor and/or the Interactable.
+        /// This method first checks whether the interactor and interactable are registered and are in a state where it could select.
         /// </remarks>
+        /// <seealso cref="IsSelectPossible"/>
         public virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
+        {
+            if (!ValidateRegistered(interactor, interactable, out var reasonMessage) ||
+                !ValidateIsSelectPossible(interactor, interactable, out reasonMessage))
+            {
+                if (logInteractionPreventedWarnings)
+                {
+                    var message = $"Select between \"{interactor}\" and \"{interactable}\" is prevented, SelectEnter request has been ignored." +
+                        $" Reason: {reasonMessage}";
+                    Debug.LogWarning(message, this);
+                }
+
+                return;
+            }
+
+            SelectEnterUnconditionally(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Initiates selection of an Interactable by an Interactor. This method may first result in other interaction events
+        /// such as causing the Interactable to first exit being selected.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is selecting.</param>
+        /// <param name="interactable">The Interactable being selected.</param>
+        /// <remarks>
+        /// This attempt may be ignored depending on the selection policy of the Interactor and/or the Interactable.
+        /// Unlike the <see langword="public"/> <see cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>, this is the method
+        /// that is invoked during the update loop of this manager and ignores checks for registration and ability to select.
+        /// </remarks>
+        public virtual void SelectEnterUnconditionally(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
             if (interactable.isSelected && !ResolveExistingSelect(interactor, interactable))
                 return;
+
+            // Copy the parent interactable of the interactor to the interactable being selected
+            // as an inherited parent relationship.
+            RegisterInheritedParentRelationships(interactor, interactable);
 
             using (m_SelectEnterEventArgs.Get(out var args))
             {
@@ -1588,10 +1939,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 SelectEnter(interactor, interactable, args);
             }
 
-            if (interactable is IXRFocusInteractable focusInteractable)
-            {
-                FocusEnter(interactor, focusInteractable);
-            }
+            if (interactable is IXRFocusInteractable focusInteractable && CanFocus(interactor, focusInteractable))
+                FocusEnterUnconditionally(interactor, focusInteractable);
         }
 
         /// <summary>
@@ -1601,6 +1950,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         public virtual void SelectExit(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
+            // Remove the interactor's parent interactable that was automatically copied
+            // to the interactable as an inherited parent relationship from when it was selected.
+            UnregisterInheritedParentRelationships(interactor, interactable);
+
             using (m_SelectExitEventArgs.Get(out var args))
             {
                 args.manager = this;
@@ -1619,6 +1972,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable that is no longer being selected.</param>
         public virtual void SelectCancel(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
+            // Remove the interactor's parent interactable that was automatically copied
+            // to the interactable as an inherited parent relationship from when it was selected.
+            UnregisterInheritedParentRelationships(interactor, interactable);
+
             using (m_SelectExitEventArgs.Get(out var args))
             {
                 args.manager = this;
@@ -1634,7 +1991,38 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <param name="interactor">The Interactor that is hovering.</param>
         /// <param name="interactable">The Interactable being hovered over.</param>
+        /// <remarks>
+        /// This method first checks whether the interactor and interactable are registered and are in a state where it could hover.
+        /// </remarks>
+        /// <seealso cref="IsHoverPossible"/>
         public virtual void HoverEnter(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
+        {
+            if (!ValidateRegistered(interactor, interactable, out var reasonMessage) ||
+                !ValidateIsHoverPossible(interactor, interactable, out reasonMessage))
+            {
+                if (logInteractionPreventedWarnings)
+                {
+                    var message = $"Hover between \"{interactor}\" and \"{interactable}\" is prevented, HoverEnter request has been ignored." +
+                        $" Reason: {reasonMessage}";
+                    Debug.LogWarning(message, this);
+                }
+
+                return;
+            }
+
+            HoverEnterUnconditionally(interactor, interactable);
+        }
+
+        /// <summary>
+        /// Initiates hovering of an Interactable by an Interactor.
+        /// </summary>
+        /// <param name="interactor">The Interactor that is hovering.</param>
+        /// <param name="interactable">The Interactable being hovered over.</param>
+        /// <remarks>
+        /// Unlike the <see langword="public"/> <see cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable)"/>, this is the method
+        /// that is invoked during the update loop of this manager and ignores checks for registration and ability to hover.
+        /// </remarks>
+        public virtual void HoverEnterUnconditionally(IXRHoverInteractor interactor, IXRHoverInteractable interactable)
         {
             using (m_HoverEnterEventArgs.Get(out var args))
             {
@@ -1703,6 +2091,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             using (s_FocusEnterMarker.Auto())
             {
                 group.OnFocusEntering(args);
+                // Bubble up the focus event to parent interaction groups (if any)
+                if (group is IXRGroupMember groupMember)
+                {
+                    for (var parentGroup = groupMember.containingGroup; parentGroup != null; parentGroup = (parentGroup as IXRGroupMember)?.containingGroup)
+                    {
+                        parentGroup.OnFocusEntering(args);
+                    }
+                }
+
                 interactable.OnFocusEntering(args);
                 interactable.OnFocusEntered(args);
             }
@@ -1714,8 +2111,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Initiates losing focus of an Interactable by an Interaction Group, passing the given <paramref name="args"/>.
         /// </summary>
-        /// <param name="group">The Interaction Group that is no longer selecting.</param>
-        /// <param name="interactable">The Interactable that is no longer being selected.</param>
+        /// <param name="group">The Interaction Group that is losing focus of the interactable.</param>
+        /// <param name="interactable">The Interactable that is no longer being focused.</param>
         /// <param name="args">Event data containing the Interactor and Interactable involved in the event.</param>
         /// <remarks>
         /// The interactable is notified immediately without waiting for a previous call to finish
@@ -1733,6 +2130,15 @@ namespace UnityEngine.XR.Interaction.Toolkit
             using (s_FocusExitMarker.Auto())
             {
                 group.OnFocusExiting(args);
+                // Bubble up the focus event to parent interaction groups (if any)
+                if (group is IXRGroupMember groupMember)
+                {
+                    for (var parentGroup = groupMember.containingGroup; parentGroup != null; parentGroup = (parentGroup as IXRGroupMember)?.containingGroup)
+                    {
+                        parentGroup.OnFocusExiting(args);
+                    }
+                }
+
                 interactable.OnFocusExiting(args);
                 interactable.OnFocusExited(args);
             }
@@ -1755,7 +2161,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// called during the handling of the first event, the second will start and finish before the first
         /// event finishes calling all methods in the sequence to notify of the first event.
         /// </remarks>
-        // ReSharper disable PossiblyImpureMethodCallOnReadonlyVariable -- ProfilerMarker.Begin with context object does not have Pure attribute
         protected virtual void SelectEnter(IXRSelectInteractor interactor, IXRSelectInteractable interactable, SelectEnterEventArgs args)
         {
             Debug.Assert(args.interactorObject == interactor, this);
@@ -1886,7 +2291,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (targetPriorityMode == TargetPriorityMode.None || targetPriorityMode == TargetPriorityMode.HighestPriorityOnly && foundHighestPriorityTarget)
                 {
                     if (CanSelect(interactor, interactable))
-                        SelectEnter(interactor, interactable);
+                        SelectEnterUnconditionally(interactor, interactable);
                 }
                 else if (IsSelectPossible(interactor, interactable))
                 {
@@ -1906,7 +2311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     targetPriorityInteractor.targetsForSelection?.Add(interactable);
 
                     if (interactor.isSelectActive)
-                        SelectEnter(interactor, interactable);
+                        SelectEnterUnconditionally(interactor, interactable);
                 }
             }
         }
@@ -1928,7 +2333,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 {
                     if (CanHover(interactor, interactable) && !interactor.IsHovering(interactable))
                     {
-                        HoverEnter(interactor, interactable);
+                        HoverEnterUnconditionally(interactor, interactable);
                     }
                 }
             }
@@ -1942,7 +2347,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable being focused.</param>
         /// <returns>Returns <see langword="true"/> if the existing focus was successfully resolved and focus should continue.
         /// Otherwise, returns <see langword="false"/> if the focus should be ignored.</returns>
-        /// <seealso cref="FocusEnter(IXRInteractor, IXRFocusInteractable)"/>
+        /// <seealso cref="FocusEnterUnconditionally(IXRInteractor, IXRFocusInteractable)"/>
         protected virtual bool ResolveExistingFocus(IXRInteractionGroup interactionGroup, IXRFocusInteractable interactable)
         {
             Debug.Assert(interactable.isFocused, this);
@@ -1973,7 +2378,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable being selected.</param>
         /// <returns>Returns <see langword="true"/> if the existing selection was successfully resolved and selection should continue.
         /// Otherwise, returns <see langword="false"/> if the select should be ignored.</returns>
-        /// <seealso cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>
+        /// <seealso cref="SelectEnterUnconditionally(IXRSelectInteractor, IXRSelectInteractable)"/>
         protected virtual bool ResolveExistingSelect(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
             Debug.Assert(interactable.isSelected, this);
@@ -2072,11 +2477,242 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_HighestPriorityTargetMap.Clear();
         }
 
+        bool ValidateRegistered(IXRInteractor interactor, IXRInteractable interactable, out string reasonMessage)
+        {
+            var interactorRegistered = m_Interactors.IsRegistered(interactor);
+            var interactableRegistered = m_Interactables.IsRegistered(interactable);
+            if (!interactorRegistered || !interactableRegistered)
+            {
+                var interactorEnabled = interactor is not Behaviour interactorComponent || interactorComponent.isActiveAndEnabled;
+                var interactableEnabled = interactable is not Behaviour interactableComponent || interactableComponent.isActiveAndEnabled;
+
+                if (!interactorRegistered && !interactableRegistered)
+                    reasonMessage = "Interactor and interactable are not registered with this XR Interaction Manager.";
+                else if (!interactorRegistered)
+                    reasonMessage = "Interactor is not registered with this XR Interaction Manager.";
+                else //if (!interactableRegistered)
+                    reasonMessage = "Interactable is not registered with this XR Interaction Manager.";
+
+                const string onEnableHint = " Interaction components typically register themselves upon OnEnable.";
+
+                if (!interactorEnabled && !interactableEnabled)
+                    reasonMessage += " Neither the interactor nor interactable components are active and enabled." + onEnableHint;
+                else if (!interactorEnabled)
+                    reasonMessage += " The interactor component is not active and enabled." + onEnableHint;
+                else if (!interactableEnabled)
+                    reasonMessage += " The interactable component is not active and enabled." + onEnableHint;
+
+                return false;
+            }
+
+            reasonMessage = null;
+            return true;
+        }
+
+        static bool ValidateIsFocusPossible(IXRInteractor interactor, IXRFocusInteractable interactable, out string reasonMessage)
+        {
+            // Equivalent to all checks done in IsFocusPossible but with a message to say which part failed.
+
+            if (!interactable.canFocus)
+            {
+                reasonMessage = "Focus Mode of the interactable is None.";
+                return false;
+            }
+
+            if (!HasInteractionLayerOverlap(interactor, interactable))
+            {
+                reasonMessage = "Interaction layer mask between interactor and interactable does not overlap.";
+                return false;
+            }
+
+            if (interactor is not IXRGroupMember groupMember)
+            {
+                reasonMessage = "Interactor component type does not implement IXRGroupMember.";
+                return false;
+            }
+
+            if (groupMember.containingGroup == null)
+            {
+                reasonMessage = "Interactor is not contained within an XR Interaction Group.";
+                return false;
+            }
+
+            reasonMessage = null;
+            return true;
+        }
+
+        bool ValidateIsSelectPossible(IXRSelectInteractor interactor, IXRSelectInteractable interactable, out string reasonMessage)
+        {
+            // Equivalent to all checks done in IsSelectPossible but with a message to say which part failed.
+
+            if (!HasInteractionLayerOverlap(interactor, interactable))
+            {
+                reasonMessage = "Interaction layer mask between interactor and interactable does not overlap.";
+                return false;
+            }
+
+            if (!ProcessSelectFilters(interactor, interactable))
+            {
+                reasonMessage = "A select filter on XR Interaction Manager returned false.";
+                return false;
+            }
+
+            if (!interactor.CanSelect(interactable))
+            {
+                reasonMessage = "IXRSelectInteractor.CanSelect returned false.";
+                return false;
+            }
+
+            if (!interactable.IsSelectableBy(interactor))
+            {
+                reasonMessage = "IXRSelectInteractable.IsSelectableBy returned false.";
+                return false;
+            }
+
+            reasonMessage = null;
+            return true;
+        }
+
+        bool ValidateIsHoverPossible(IXRHoverInteractor interactor, IXRHoverInteractable interactable, out string reasonMessage)
+        {
+            // Equivalent to all checks done in IsHoverPossible but with a message to say which part failed.
+
+            if (!HasInteractionLayerOverlap(interactor, interactable))
+            {
+                reasonMessage = "Interaction layer mask between interactor and interactable does not overlap.";
+                return false;
+            }
+
+            if (!ProcessHoverFilters(interactor, interactable))
+            {
+                reasonMessage = "A hover filter on XR Interaction Manager returned false.";
+                return false;
+            }
+
+            if (!interactor.CanHover(interactable))
+            {
+                reasonMessage = "IXRHoverInteractor.CanHover returned false.";
+                return false;
+            }
+
+            if (!interactable.IsHoverableBy(interactor))
+            {
+                reasonMessage = "IXRHoverInteractable.IsHoverableBy returned false.";
+                return false;
+            }
+
+            reasonMessage = null;
+            return true;
+        }
+
         void FlushRegistration()
         {
             m_InteractionGroups.Flush();
             m_Interactors.Flush();
             m_Interactables.Flush();
+        }
+
+        /// <summary>
+        /// Copy all the explicit parents of the <paramref name="interactor"/> to the <paramref name="interactable"/>
+        /// as inherited parent relationships.
+        /// </summary>
+        /// <param name="interactor">The interactor to copy the parents from.</param>
+        /// <param name="interactable">The interactable to copy the parents to as inherited parents.</param>
+        /// <seealso cref="UnregisterInheritedParentRelationships"/>
+        void RegisterInheritedParentRelationships(IXRInteractor interactor, IXRInteractable interactable)
+        {
+            // We don't need to get inherited parent relationships from interactors since they only have explicit parents
+            if (m_InteractorRelationships.TryGetParents(interactor, out var explicitParents))
+            {
+                if (explicitParents != null && explicitParents.Count > 0)
+                {
+                    foreach (var parent in explicitParents)
+                    {
+                        RegisterInheritedParentRelationship(interactable, parent);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Remove all the inherited parent relationships from the interactable that were copied from the
+        /// explicit parents of the <paramref name="interactor"/>.
+        /// </summary>
+        /// <param name="interactor">The interactor to copy the parents from.</param>
+        /// <param name="interactable">The interactable to copy the parents to as inherited parents.</param>
+        /// <seealso cref="RegisterInheritedParentRelationships"/>
+        void UnregisterInheritedParentRelationships(IXRInteractor interactor, IXRInteractable interactable)
+        {
+            if (m_InteractorRelationships.TryGetParents(interactor, out var explicitParents))
+            {
+                if (explicitParents != null && explicitParents.Count > 0)
+                {
+                    foreach (var parent in explicitParents)
+                    {
+                        UnregisterInheritedParentRelationship(interactable, parent);
+                    }
+                }
+            }
+        }
+
+        void PruneRelationships()
+        {
+            if (m_RecentlyUnregisteredInteractors.Count == 0 && m_RecentlyUnregisteredInteractables.Count == 0)
+                return;
+
+            using (s_PruneParentRelationshipsMarker.Auto())
+            {
+                // Go through all the recently unregistered interactors and interactables, waiting one frame
+                // after it has been unregistered to do a destroyed check since it won't yet evaluate to null
+                // the same frame it was destroyed (and thus had OnDisable trigger unregister).
+                // This won't catch interactors and interactables that were first disabled and then later
+                // destroyed, but should at least handle a common case of being unregistered due to being destroyed.
+                // Pruning from the relationships dictionary will keep the size of it in check by removing
+                // relationship items in the graph that no longer need to be created.
+                var currentFrame = Time.frameCount;
+
+                for (var i = m_RecentlyUnregisteredInteractors.Count - 1; i >= 0; --i)
+                {
+                    var (interactor, frame) = m_RecentlyUnregisteredInteractors[i];
+                    if (currentFrame > frame)
+                    {
+                        if (interactor as Object == null)
+                            m_InteractorRelationships.PruneEntity(interactor);
+
+                        m_RecentlyUnregisteredInteractors.RemoveAt(i);
+                    }
+                }
+
+                for (var i = m_RecentlyUnregisteredInteractables.Count - 1; i >= 0; --i)
+                {
+                    var (interactable, frame) = m_RecentlyUnregisteredInteractables[i];
+                    if (currentFrame > frame)
+                    {
+                        if (interactable as Object == null)
+                        {
+                            m_InteractableRelationships.PruneEntity(interactable);
+                            m_InteractorRelationships.PruneParent(interactable);
+                        }
+
+                        m_RecentlyUnregisteredInteractables.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
+        void SortInteractableProcessing()
+        {
+            if (!m_NeedsInteractableSort)
+                return;
+
+            using (s_SortInteractableProcessingMarker.Auto())
+            {
+                m_Interactables.SortSnapshot(m_InteractableRelationships);
+                if (!m_Interactables.HasBufferedChanges)
+                    m_NeedsInteractableSort = false;
+            }
+
+            interactablesReordered?.Invoke();
         }
 
 #if UNITY_EDITOR

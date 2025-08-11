@@ -306,9 +306,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         readonly List<Collider> m_TargetColliders = new List<Collider>();
         readonly List<RaycastHit> m_FarRayCastHits = new List<RaycastHit>();
         readonly List<IXRInteractable> m_InternalValidTargets = new List<IXRInteractable>();
-        readonly List<XRInteractableSnapVolume> m_InteractableSnapVolumes = new List<XRInteractableSnapVolume>();
-        readonly List<IXRInteractable> m_PreFilteredTargets = new List<IXRInteractable>();
+        readonly Dictionary<int, IXRInteractable> m_IndexToSnapVolumeMap = new Dictionary<int, IXRInteractable>();
         readonly Dictionary<IXRInteractable, int> m_FarTargetToIndexMap = new Dictionary<IXRInteractable, int>();
+        readonly List<IXRInteractable> m_PreFilteredTargets = new List<IXRInteractable>();
 
         // We keep track of whether we released the near interaction this frame to avoid flickering the ray before we get the chance to determine valid targets.
         bool m_ReleasedNearInteractionThisFrame;
@@ -324,11 +324,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         bool m_LastValidHitIsUI = false;
 #endif
 
-        Vector3 m_RayEndPoint;
-        bool m_ValidHitIsUI;
-        Vector3 m_ValidHitNormal;
-        Vector3 m_NormalRelativeToInteractable;
         Transform m_RayEndTransform;
+        Vector3 m_RayEndPoint;
+        Vector3 m_RayEndNormal;
+        Vector3 m_NormalRelativeToInteractable;
+        bool m_ValidHitIsUI;
+        bool m_ValidHitIsSnapVolume;
+        IXRInteractable m_ValidHitSnapVolumeInteractable;
 
         bool isUiSelectInputActive => m_UIPressInput.ReadIsPerformed();
         Vector2 uiScrollInputValue => m_UIScrollInput.ReadValue();
@@ -477,10 +479,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         void InitializeInteractor()
         {
             m_InternalValidTargets.Clear();
-            m_InteractableSnapVolumes.Clear();
+            m_IndexToSnapVolumeMap.Clear();
             m_TargetColliders.Clear();
             m_FarRayCastHits.Clear();
             m_HasValidRayHit = false;
+            m_ValidHitIsSnapVolume = false;
             m_ValidTargetCastSource = Region.None;
         }
 
@@ -579,9 +582,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 #if UITOOLKIT_WORLDSPACE_ENABLED
         void ProcessUIToolkitHit(RaycastHit raycastHit)
         {
-            m_RayEndPoint = raycastHit.point;
             m_RayEndTransform = raycastHit.transform;
-            m_ValidHitNormal = raycastHit.normal;
+            m_RayEndPoint = raycastHit.point;
+            m_RayEndNormal = raycastHit.normal;
             m_ValidHitIsUI = true;
         }
 
@@ -609,12 +612,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             if (!hasSelection)
             {
-                if (RegisterFarValidTargets(m_TargetColliders, m_InternalValidTargets, m_InteractableSnapVolumes, out int registeredIndex) > 0)
+                if (RegisterFarValidTargets(m_TargetColliders, m_InternalValidTargets, out int registeredIndex) > 0)
                 {
-                    var effectiveHit = m_FarRayCastHits[registeredIndex];
-                    m_RayEndPoint = effectiveHit.point;
-                    m_ValidHitNormal = effectiveHit.normal;
-                    m_RayEndTransform = effectiveHit.transform;
+                    if (m_IndexToSnapVolumeMap.TryGetValue(registeredIndex, out var interactable))
+                    {
+                        m_RayEndTransform = interactable.GetAttachTransform(this);
+                        m_RayEndPoint = m_RayEndTransform.position;
+                        m_RayEndNormal = m_RayEndTransform.up;
+                        m_ValidHitIsSnapVolume = true;
+                        m_ValidHitSnapVolumeInteractable = interactable;
+                    }
+                    else if (registeredIndex >= 0 && registeredIndex < m_FarRayCastHits.Count)
+                    {
+                        var effectiveHit = m_FarRayCastHits[registeredIndex];
+                        m_RayEndTransform = effectiveHit.transform;
+                        m_RayEndPoint = effectiveHit.point;
+                        m_RayEndNormal = effectiveHit.normal;
+                    }
 
                     if (has2dHit && registeredIndex > 0)
                         shouldProcess2dHit = uiHitSqDistance < (m_RayEndPoint - farCasterOrigin).sqrMagnitude;
@@ -632,18 +646,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             else
             {
                 var closestFar3dHit = m_FarRayCastHits[0];
-                m_RayEndPoint = closestFar3dHit.point;
-                m_ValidHitNormal = closestFar3dHit.normal;
                 m_RayEndTransform = closestFar3dHit.transform;
+                m_RayEndPoint = closestFar3dHit.point;
+                m_RayEndNormal = closestFar3dHit.normal;
             }
         }
 
         void Process2dHit(in RaycastResult uiHit)
         {
-            var hitWorldPoint = uiHit.worldPosition;
-            m_RayEndPoint = hitWorldPoint;
             m_RayEndTransform = uiHit.gameObject.transform;
-            m_ValidHitNormal = uiHit.worldNormal;
+            m_RayEndPoint = uiHit.worldPosition;
+            m_RayEndNormal = uiHit.worldNormal;
             m_ValidHitIsUI = true;
         }
 
@@ -681,25 +694,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 }
             }
 
-            if (targetFilter != null)
+            var filter = targetFilter;
+            if (filter != null && filter.canProcess)
             {
                 m_PreFilteredTargets.Clear();
                 m_PreFilteredTargets.AddRange(interactables);
-                targetFilter?.Process(this, m_PreFilteredTargets, interactables);
+                filter.Process(this, m_PreFilteredTargets, interactables);
             }
 
             return interactables.Count;
         }
 
-        int RegisterFarValidTargets(List<Collider> targets, List<IXRInteractable> interactables, List<XRInteractableSnapVolume> snapVolumes, out int firstRegisteredIndex)
+        int RegisterFarValidTargets(List<Collider> targets, List<IXRInteractable> interactables, out int firstRegisteredIndex)
         {
             firstRegisteredIndex = -1;
             int numTargets = targets.Count;
             bool foundTarget = false;
-            bool hasTargetFilter = targetFilter != null;
 
-            if (hasTargetFilter)
+            var filter = targetFilter;
+            var processTargetFilter = (filter != null && filter.canProcess);
+            if (processTargetFilter)
                 m_FarTargetToIndexMap.Clear();
+
+            m_IndexToSnapVolumeMap.Clear();
 
             for (int i = 0; i < numTargets; i++)
             {
@@ -720,28 +737,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
                     interactables.Add(interactable);
 
-                    if (isSnapVolume && snapVolume.interactableObject != null)
-                        snapVolumes.Add(snapVolume);
+                    if (isSnapVolume)
+                        m_IndexToSnapVolumeMap.Add(i, interactable);
 
-                    if (hasTargetFilter)
+                    if (processTargetFilter)
                         m_FarTargetToIndexMap.TryAdd(interactable, i);
                 }
 
                 // If there isn't a target filter, we want to early out if the first target is not a valid interactable.
                 // If the target we found is a snap volume for something we don't support, we should ignore it and try for the next target.
-                if (!hasTargetFilter && (isHoverPossible || !isSnapVolume))
+                if (!processTargetFilter && (isHoverPossible || !isSnapVolume))
                     break;
             }
 
-            if (hasTargetFilter)
+            if (processTargetFilter)
             {
                 m_PreFilteredTargets.Clear();
                 m_PreFilteredTargets.AddRange(interactables);
-                targetFilter?.Process(this, m_PreFilteredTargets, interactables);
-                if (interactables.Count > 0)
-                    firstRegisteredIndex = m_FarTargetToIndexMap[interactables[0]];
-                else
-                    firstRegisteredIndex = -1;
+                filter.Process(this, m_PreFilteredTargets, interactables);
+                firstRegisteredIndex = interactables.Count > 0 && m_FarTargetToIndexMap.TryGetValue(interactables[0], out var index) ? index : -1;
             }
 
             return interactables.Count;
@@ -798,7 +812,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             base.OnSelectEntered(args);
             if (m_SelectedTargetCastSource == Region.Far)
-                m_NormalRelativeToInteractable = firstInteractableSelected.GetAttachTransform(this).InverseTransformDirection(m_ValidHitNormal);
+                m_NormalRelativeToInteractable = firstInteractableSelected.GetAttachTransform(this).InverseTransformDirection(m_RayEndNormal);
         }
 
         /// <inheritdoc />
@@ -968,10 +982,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return EndPointType.AttachPoint;
             }
 
-            if (snapToSnapVolumeIfAvailable && m_InteractableSnapVolumes.Count > 0 && m_InteractableSnapVolumes[0].interactable != null)
+            if (snapToSnapVolumeIfAvailable && m_ValidHitIsSnapVolume)
             {
-                var targetAttachTransform = m_InteractableSnapVolumes[0].interactable.GetAttachTransform(this);
-                endPoint = targetAttachTransform.position;
+                endPoint = m_ValidHitSnapVolumeInteractable != null ? m_ValidHitSnapVolumeInteractable.GetAttachTransform(this).position : m_RayEndPoint;
                 return EndPointType.AttachPoint;
             }
 
@@ -995,7 +1008,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return EndPointType.AttachPoint;
             }
 
-            endNormal = m_ValidHitNormal;
+            endNormal = m_RayEndNormal;
             if (!m_HasValidRayHit)
                 return EndPointType.None;
             if (m_ValidHitIsUI)

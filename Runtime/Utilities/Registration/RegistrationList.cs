@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils.Collections;
+using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Pooling;
 
-namespace UnityEngine.XR.Interaction.Toolkit.Utilities
+namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
 {
     /// <summary>
     /// Use this class to maintain a registration of items (like Interactors or Interactables). This maintains
@@ -275,6 +278,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         readonly HashSet<T> m_UnorderedRegisteredItems = new HashSet<T>();
 
         /// <summary>
+        /// Equivalent to <c>m_UnorderedBufferedAdd.Count == 0</c>.
+        /// </summary>
+        /// <remarks>
+        /// This profiled slightly faster than checking the count directly.
+        /// </remarks>
+        bool m_BufferedAddEmpty = true;
+
+        /// <summary>
         /// Equivalent to <c>m_UnorderedBufferedRemove.Count == 0</c>.
         /// </summary>
         /// <remarks>
@@ -282,6 +293,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <see cref="IsStillRegistered"/> which is called during each loop iteration for every registered item.
         /// </remarks>
         bool m_BufferedRemoveEmpty = true;
+
+        static List<T> s_ScratchItems;
+        static HashSet<T> s_ItemsVisited;
+
+        /// <summary>
+        /// Whether there are buffered registration changes.
+        /// </summary>
+        public bool HasBufferedChanges => !m_BufferedAddEmpty || !m_BufferedRemoveEmpty;
 
         /// <inheritdoc />
         public override bool IsRegistered(T item) => m_UnorderedRegisteredItems.Contains(item);
@@ -292,7 +311,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <inheritdoc />
         public override bool Register(T item)
         {
-            if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Contains(item))
+            if (!m_BufferedAddEmpty && m_UnorderedBufferedAdd.Contains(item))
                 return false;
 
             var snapshotContainsItem = m_UnorderedRegisteredSnapshot.Contains(item);
@@ -305,6 +324,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 {
                     AddToBufferedAdd(item);
                     m_UnorderedBufferedAdd.Add(item);
+                    m_BufferedAddEmpty = false;
                 }
 
                 return true;
@@ -319,9 +339,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             if (!m_BufferedRemoveEmpty && m_UnorderedBufferedRemove.Contains(item))
                 return false;
 
-            if (m_UnorderedBufferedAdd.Count > 0 && m_UnorderedBufferedAdd.Remove(item))
+            if (!m_BufferedAddEmpty && m_UnorderedBufferedAdd.Remove(item))
             {
                 RemoveFromBufferedAdd(item);
+                m_BufferedAddEmpty = m_UnorderedBufferedAdd.Count == 0;
                 m_UnorderedRegisteredItems.Remove(item);
                 return true;
             }
@@ -357,7 +378,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 m_BufferedRemoveEmpty = true;
             }
 
-            if (bufferedAddCount > 0)
+            if (!m_BufferedAddEmpty)
             {
                 foreach (var item in m_BufferedAdd)
                 {
@@ -370,6 +391,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                 ClearBufferedAdd();
                 m_UnorderedBufferedAdd.Clear();
+                m_BufferedAddEmpty = true;
             }
         }
 
@@ -427,6 +449,83 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             base.OnItemMovedImmediately(item, newIndex);
             m_UnorderedRegisteredItems.Add(item);
             m_UnorderedRegisteredSnapshot.Add(item);
+        }
+
+        /// <summary>
+        /// Sort the registered snapshot based on the provided relationships.
+        /// Uses a depth-first traversal to reorder the snapshot so parents come before their children.
+        /// </summary>
+        /// <param name="relationships">The data structure which defines the parent-child relationships.</param>
+        public void SortSnapshot(ParentRelationships<T, T> relationships)
+        {
+            var capacity = registeredSnapshot.Capacity;
+
+            s_ScratchItems ??= new List<T>(capacity);
+            s_ScratchItems.Clear();
+            s_ScratchItems.EnsureCapacity(capacity);
+
+            s_ItemsVisited ??= new HashSet<T>(capacity);
+            s_ItemsVisited.Clear();
+            s_ItemsVisited.EnsureCapacity(capacity);
+
+            foreach (var item in registeredSnapshot)
+            {
+                // Some of this code is extracted out from TraverseItemRecursive to avoid method calls
+                // for the more common case where the registered item has no prerequisite relationship.
+                if (s_ItemsVisited.Contains(item))
+                    continue;
+
+                if (relationships.TryGetParents(item, out var explicitParents, out var inheritedParents))
+                    TraverseItem(explicitParents, inheritedParents, relationships, s_ScratchItems);
+
+                // We are iterating over the snapshot so we don't need to check if the item is in the snapshot
+                // like we do in the method below.
+                s_ScratchItems.Add(item);
+                s_ItemsVisited.Add(item);
+            }
+
+            Assert.AreEqual(registeredSnapshot.Count, s_ScratchItems.Count, "Count of registered snapshot changed after sorting.");
+
+            registeredSnapshot.Clear();
+            registeredSnapshot.AddRange(s_ScratchItems);
+
+            s_ScratchItems.Clear();
+            s_ItemsVisited.Clear();
+        }
+
+        void TraverseItem(HashSetList<T> explicitParents, HashSetList<T> inheritedParents, ParentRelationships<T, T> relationships, List<T> sortedSnapshot)
+        {
+            if (explicitParents != null && explicitParents.Count > 0)
+            {
+                foreach (var parent in explicitParents)
+                {
+                    TraverseItemRecursive(parent, relationships, sortedSnapshot);
+                }
+            }
+
+            if (inheritedParents != null && inheritedParents.Count > 0)
+            {
+                foreach (var parent in inheritedParents)
+                {
+                    TraverseItemRecursive(parent, relationships, sortedSnapshot);
+                }
+            }
+        }
+
+        void TraverseItemRecursive(T item, ParentRelationships<T, T> relationships, List<T> sortedSnapshot)
+        {
+            if (s_ItemsVisited.Contains(item))
+                return;
+
+            if (relationships.TryGetParents(item, out var explicitParents, out var inheritedParents))
+                TraverseItem(explicitParents, inheritedParents, relationships, sortedSnapshot);
+
+            // Only add the item if already in the snapshot since the registered relationship may be to
+            // a parent item not currently registered.
+            if (m_UnorderedRegisteredSnapshot.Contains(item))
+                sortedSnapshot.Add(item);
+
+            s_ItemsVisited.Add(item);
         }
     }
 }
