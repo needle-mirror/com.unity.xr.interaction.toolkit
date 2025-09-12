@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// An interface that provides the rotation of a reticle to match an interactor's attach transform.

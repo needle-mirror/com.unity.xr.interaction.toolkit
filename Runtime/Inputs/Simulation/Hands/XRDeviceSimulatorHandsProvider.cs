@@ -66,15 +66,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
                 if (jointArray.IsCreated)
                     jointArray.Dispose();
             }
-            
+
             m_CapturedLeftHandJointArrays.Clear();
-            
+
             foreach (var jointArray in m_CapturedRightHandJointArrays.Values)
             {
                 if (jointArray.IsCreated)
                     jointArray.Dispose();
             }
-            
+
             m_CapturedRightHandJointArrays.Clear();
         }
 
@@ -218,10 +218,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
                     m_CapturedRightHandJointArrays.Remove(expressionName);
                 }
             }
-            
+
             m_CapturedHandExpressions[expressionName] = capture;
         }
-        
+
         Pose[] GetCapturedExpressionPoses(Handedness handedness, HandState handState)
         {
             if (handedness == Handedness.Invalid)
@@ -233,7 +233,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
                     ? capturedExpression.leftHandCapturedPoses
                     : capturedExpression.rightHandCapturedPoses;
             }
-            
+
             throw new InvalidOperationException($"Unrecognized Hand Expression: {handState.expressionName}. A expression must be added to the simulated hands provider before it can be used.");
         }
 
@@ -272,7 +272,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
                 handState.needsToUpdatePose = true;
             }
         }
-         
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register()
         {

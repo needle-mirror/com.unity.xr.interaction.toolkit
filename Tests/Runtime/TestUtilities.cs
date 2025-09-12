@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.XR.CoreUtils;
@@ -35,7 +35,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var rigidbody = grabInteractable.GetComponent<Rigidbody>();
             rigidbody.maxAngularVelocity = float.PositiveInfinity;
         }
-        
+
         internal static BoxCollider CreateGOBoxCollider(GameObject go, bool isTrigger = true)
         {
             BoxCollider collider = go.AddComponent<BoxCollider>();
@@ -87,7 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Add camera offset
             var cameraOffsetGO = new GameObject("CameraOffset");
-            cameraOffsetGO.transform.SetParent(xrOrigin.transform,false);
+            cameraOffsetGO.transform.SetParent(xrOrigin.transform, false);
             xrOrigin.CameraFloorOffsetObject = cameraOffsetGO;
 
             xrOrigin.transform.position = Vector3.zero;
@@ -442,7 +442,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             results.AddRange(targets);
         }
     }
-    
+
     class MockInversionTargetFilter : IXRTargetFilter
     {
         public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
@@ -463,7 +463,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             results.Clear();
             callbackExecution.Add(TargetFilterCallback.Process);
-            for(int i = targets.Count - 1; i >= 0; i--)
+            for (int i = targets.Count - 1; i >= 0; i--)
             {
                 results.Add(targets[i]);
             }

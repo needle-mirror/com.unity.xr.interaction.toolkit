@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
+namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
     /// Creates material instance for a material associated with a given renderer material index and provide accessor to it.

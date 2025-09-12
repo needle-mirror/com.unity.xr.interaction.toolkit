@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Inputs
+namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 {
     /// <summary>
     /// One of the four primary directions.

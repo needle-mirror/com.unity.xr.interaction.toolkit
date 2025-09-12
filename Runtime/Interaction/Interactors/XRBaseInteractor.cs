@@ -354,7 +354,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Transform m_XROriginTransform;
         bool m_HasXROrigin;
         bool m_FailedToFindXROrigin;
-        
+
         /// <summary>
         /// Attempts to locate and return the XR Origin reference frame for the interactor.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
             get => m_AffordanceStateProvider;
             set => m_AffordanceStateProvider = value;
         }
-        
+
         [SerializeField]
         [Tooltip("If true, the initial captured state value for the receiver will replace the idle value in the affordance theme.")]
         bool m_ReplaceIdleStateValueWithInitialValue;
@@ -84,7 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         /// Used in certain tween jobs, and can also be used to replace the idle state of a theme.
         /// </summary>
         protected T initialValue { get; set; }
-        
+
         /// <summary>
         /// Flag informing whether the initial value has been captured yet.
         /// </summary>
@@ -141,10 +141,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
                 {
                     if (defaultAffordanceTheme == null)
                         return;
-                    
+
                     // Ensure the default theme is valid before cloning it
                     defaultAffordanceTheme.ValidateTheme();
-                    
+
                     var copiedTheme = GenerateNewAffordanceThemeInstance();
                     copiedTheme.CopyFrom(defaultAffordanceTheme);
                     affordanceTheme = copiedTheme;
@@ -227,7 +227,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         {
             if (initialValueCaptured)
                 return;
-            
+
             initialValue = GetCurrentValueForCapture();
             affordanceValue.Value = initialValue;
             initialValueCaptured = true;
@@ -235,7 +235,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
 
         /// <summary>
         /// Function used to get the current value of the receiver's target property.
-        /// Is overriden for material properties or other targets where the initial state exists outside the receiver. 
+        /// Is overriden for material properties or other targets where the initial state exists outside the receiver.
         /// </summary>
         /// <returns>Initial value.</returns>
         protected virtual T GetCurrentValueForCapture()

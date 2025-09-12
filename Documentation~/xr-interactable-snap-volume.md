@@ -1,6 +1,6 @@
 # XR Interactable Snap Volume
 
-Component that enables an [XR Ray Interactor](xr-ray-interactor.md) to visually snap to an associated interactable. This component requires a collider that is a trigger. 
+Component that enables an [XR Ray Interactor](xr-ray-interactor.md) to visually snap to an associated interactable. This component requires a collider that is a trigger.
 
 This behavior automatically registers itself with the [XR Interaction Manager](xr-interaction-manager.md) to create an association between the **Snap Collider** and the **Interactable Object**. This component should typically be added to a child GameObject of an interactable.
 

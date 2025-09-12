@@ -1,4 +1,4 @@
-﻿# Two Handed Grab Move Provider
+# Two Handed Grab Move Provider
 
 Allows the user to combine two [GrabMoveProvider](grab-move-provider.md) instances for locomotion. This allows the user to translate, scale, and rotate themselves counter to transformations of the line segment between both hands.
 

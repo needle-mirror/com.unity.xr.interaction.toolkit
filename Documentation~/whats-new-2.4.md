@@ -10,7 +10,7 @@ The XR Interactor Line Visual has been updated so that it bends to the selected 
 
 ### XR Gaze and Aim Assistance
 
-Building upon gaze interaction support from XRI 2.3, [XR Gaze Assistance](xr-gaze-assistance.md) allows specified controller-based ray interactors to fallback to eye-gaze for primary aiming and selection when they are off screen or pointing off screen. This component enables split interaction functionality to allow the user to aim with eye gaze and select with a controller. The XR Gaze Assistance component also has an aim-assist feature. This works by auto adjusting trajectories for thrown objects or projectiles to help them hit the gazed-at targets. 
+Building upon gaze interaction support from XRI 2.3, [XR Gaze Assistance](xr-gaze-assistance.md) allows specified controller-based ray interactors to fallback to eye-gaze for primary aiming and selection when they are off screen or pointing off screen. This component enables split interaction functionality to allow the user to aim with eye gaze and select with a controller. The XR Gaze Assistance component also has an aim-assist feature. This works by auto adjusting trajectories for thrown objects or projectiles to help them hit the gazed-at targets.
 
 ### Hand Interaction Additions & Updates
 
@@ -24,7 +24,7 @@ Updated the [Hands Interaction Demo](samples-hands-interaction-demo.md) with new
 
 #### Hand Tracking for Device Simulator
 
-The [XR Device Simulator](xr-device-simulator-overview.md) has received another big update with the added support for simulating Hand Tracking. This comes with a number of standard, pre-defined poses that can be used to test hand-based interactions from inside the editor. 
+The [XR Device Simulator](xr-device-simulator-overview.md) has received another big update with the added support for simulating Hand Tracking. This comes with a number of standard, pre-defined poses that can be used to test hand-based interactions from inside the editor.
 
 ### Climb Locomotion Provider
 

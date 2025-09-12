@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering

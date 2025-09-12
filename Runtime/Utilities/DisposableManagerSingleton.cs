@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Collections;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities

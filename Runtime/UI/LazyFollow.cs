@@ -60,7 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         const float k_LowerSpeedVariance = 0f;
         const float k_UpperSpeedVariance = 0.999f;
-        
+
         [Header("Target Config")]
         [SerializeField, Tooltip("(Optional) The object being followed. If not set, this will default to the main camera when this component is enabled.")]
         Transform m_Target;
@@ -85,12 +85,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             get => m_TargetOffset;
             set => m_TargetOffset = value;
         }
-        
+
         [Space]
         [SerializeField]
         [Tooltip("If true, read the local transform of the target to lazy follow, otherwise read the world transform. If using look at rotation follow modes, only world-space follow is supported.")]
         bool m_FollowInLocalSpace;
-        
+
         /// <summary>
         /// If true, read the local transform of the target to lazy follow, otherwise read the world transform.
         /// If using look at rotation follow modes, only world-space follow is supported.
@@ -108,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         [Tooltip("If true, apply the target offset in local space. If false, apply the target offset in world space.")]
         bool m_ApplyTargetInLocalSpace;
-        
+
         /// <summary>
         /// If true, apply the target offset in local space. If false, apply the target offset in world space.
         /// </summary>
@@ -139,7 +139,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         [SerializeField]
         [Range(k_LowerSpeedVariance, k_UpperSpeedVariance)]
         [Tooltip("Adjust movement speed based on distance from the target using a tolerance percentage. 0% for constant speed.")]
-            
+
         float m_MovementSpeedVariancePercentage = 0.25f;
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             get => m_MovementSpeedVariancePercentage;
             set
             {
-                m_MovementSpeedVariancePercentage = Mathf.Clamp(value, k_LowerSpeedVariance, k_UpperSpeedVariance);   
+                m_MovementSpeedVariancePercentage = Mathf.Clamp(value, k_LowerSpeedVariance, k_UpperSpeedVariance);
                 UpdateUpperAndLowerSpeedBounds();
             }
         }
@@ -439,7 +439,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         void UpdatePosition(float3 position)
         {
-            if(applyTargetInLocalSpace)
+            if (applyTargetInLocalSpace)
                 transform.localPosition = position;
             else
                 transform.position = position;
@@ -447,7 +447,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         void UpdateRotation(Quaternion rotation)
         {
-            if(applyTargetInLocalSpace)
+            if (applyTargetInLocalSpace)
                 transform.localRotation = rotation;
             else
                 transform.rotation = rotation;
@@ -468,14 +468,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     return false;
 
                 case PositionFollowMode.Follow:
-                {
-                    if (followInLocalSpace)
-                        newTarget = m_Target.localPosition + m_TargetOffset;
-                    else
-                        newTarget = m_Target.position + m_Target.TransformVector(m_TargetOffset);
-                    
-                    return m_Vector3TweenableVariable.IsNewTargetWithinThreshold(newTarget);
-                }
+                    {
+                        if (followInLocalSpace)
+                            newTarget = m_Target.localPosition + m_TargetOffset;
+                        else
+                            newTarget = m_Target.position + m_Target.TransformVector(m_TargetOffset);
+
+                        return m_Vector3TweenableVariable.IsNewTargetWithinThreshold(newTarget);
+                    }
                 default:
                     Debug.LogError($"Unhandled {nameof(PositionFollowMode)}={m_PositionFollowMode}", this);
                     goto case PositionFollowMode.None;
@@ -497,18 +497,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     return false;
 
                 case RotationFollowMode.LookAt:
-                {
-                    var forward = (transform.position - m_Target.position).normalized;
-                    BurstMathUtility.OrthogonalLookRotation(forward, Vector3.up, out newTarget);
-                    break;
-                }
+                    {
+                        var forward = (transform.position - m_Target.position).normalized;
+                        BurstMathUtility.OrthogonalLookRotation(forward, Vector3.up, out newTarget);
+                        break;
+                    }
 
                 case RotationFollowMode.LookAtWithWorldUp:
-                {
-                    var forward = (transform.position - m_Target.position).normalized;
-                    BurstMathUtility.LookRotationWithForwardProjectedOnPlane(forward, Vector3.up, out newTarget);
-                    break;
-                }
+                    {
+                        var forward = (transform.position - m_Target.position).normalized;
+                        BurstMathUtility.LookRotationWithForwardProjectedOnPlane(forward, Vector3.up, out newTarget);
+                        break;
+                    }
 
                 case RotationFollowMode.Follow:
                     newTarget = followInLocalSpace ? m_Target.localRotation : m_Target.rotation;
@@ -526,7 +526,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (!m_FollowInLocalSpace)
                 return;
-            
+
             // We cannot follow in local space if we are looking at the target.
             if (m_RotationFollowMode == RotationFollowMode.LookAt || m_RotationFollowMode == RotationFollowMode.LookAtWithWorldUp)
             {

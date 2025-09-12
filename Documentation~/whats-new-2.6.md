@@ -20,7 +20,7 @@ The spatial keyboard sample `XRKeyboardKey` leverages `KeyFunctions`, which are 
 
 #### Keyboard Display component
 
-The `XRKeyboardDisplay` component works in conjunction with input fields and can be configured to support the global keyboard or an instanced keyboard in the scene. Additionally, it can be configured to update or clear text on submit and enable the keyboard to monitor character limits. The `XRKeyboardDisplay` also contains its own set of events that respond to keyboard events which can be useful when using a global keyboard where the context can change frequently. 
+The `XRKeyboardDisplay` component works in conjunction with input fields and can be configured to support the global keyboard or an instanced keyboard in the scene. Additionally, it can be configured to update or clear text on submit and enable the keyboard to monitor character limits. The `XRKeyboardDisplay` also contains its own set of events that respond to keyboard events which can be useful when using a global keyboard where the context can change frequently.
 
 #### Keyboard layouts
 

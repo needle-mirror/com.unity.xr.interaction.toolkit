@@ -51,13 +51,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Undo.PerformUndo();
             origin = FindByType<XROrigin>();
             Assert.IsTrue(origin == null);
-            
+
             Undo.PerformRedo();
             origin = FindByType<XROrigin>();
             Assert.IsTrue(origin != null);
             Assert.That(origin.Camera.backgroundColor, Is.EqualTo(cameraBgColor).Using(ColorEqualityComparer.Instance));
             Assert.That(origin.transform.position, Is.EqualTo(originPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
-            
+
             Undo.PerformUndo();
             Undo.PerformRedo();
 
@@ -84,18 +84,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             var parentTransform = new GameObject().transform;
             parentTransform.position = new Vector3(5f, 5f, 5f);
             CreateUtils.CreateRayInteractorDeviceBased(new MenuCommand(parentTransform.gameObject));
-            
+
             Undo.PerformUndo();
             var rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor == null);
-            
+
             Undo.PerformRedo();
             rayInteractor = FindByType<XRRayInteractor>();
             Assert.IsTrue(rayInteractor != null);
             var rayTransform = rayInteractor.transform;
             Assert.That(rayTransform.parent, Is.EqualTo(parentTransform));
             Assert.That(rayTransform.localPosition, Is.EqualTo(Vector3.zero).Using(Vector3ComparerWithEqualsOperator.Instance));
-            
+
             var interactionManager = FindByType<XRInteractionManager>();
             Assert.IsTrue(interactionManager != null);
         }
@@ -118,11 +118,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
                 typeof(EventSystem),
                 typeof(StandaloneInputModule));
             Undo.IncrementCurrentGroup();
-            
+
             CreateUtils.CreateXRUICanvas(null);
             Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() == null);
             Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() != null);
-            
+
             Undo.PerformUndo();
             Assert.IsTrue(eventSystemGO.GetComponent<StandaloneInputModule>() != null);
             Assert.IsTrue(eventSystemGO.GetComponent<XRUIInputModule>() == null);

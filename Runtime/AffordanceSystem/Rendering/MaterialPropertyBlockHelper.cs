@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
+namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
     /// Bridge between components needing to write to a renderer's material property block.

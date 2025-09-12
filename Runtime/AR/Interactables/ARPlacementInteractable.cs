@@ -29,7 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this interactor.
     /// </summary>
-    public class ARPlacementInteractable {}
+    public class ARPlacementInteractable { }
 }
 
 #else

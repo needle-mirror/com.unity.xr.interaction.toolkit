@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Interface for a component on a <see cref="XRBaseInteractable.customReticle"/> for an interactable.

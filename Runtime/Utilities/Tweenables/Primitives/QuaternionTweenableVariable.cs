@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
+namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
 {
     /// <summary>
     /// Bindable variable that can tween over time towards a target Quaternion value.

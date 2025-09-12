@@ -2,7 +2,7 @@
 
 Summary of changes in XR Interaction Toolkit package version 2.2:
 
-With the XR Interaction Toolkit version 2.2.0 comes even more highly-requested features and updates. The main features in this release include multi-grab support, new locomotion methods and improvements, and a collection of completely ready-to-go prefabs in our Starter Assets sample package. 
+With the XR Interaction Toolkit version 2.2.0 comes even more highly-requested features and updates. The main features in this release include multi-grab support, new locomotion methods and improvements, and a collection of completely ready-to-go prefabs in our Starter Assets sample package.
 
 ## Multi-grab Support
 XRI now supports grabbing objects with multiple hands/controllers. XR Grab Interactables have been upgraded with our new system of [Grab transformers](xr-grab-interactable.md#grab-transformers). This behavior is enabled automatically by default and you don't even have to update your existing scenes, as default grab transformers are applied at runtime if none are provided. The solving method for grabbing with one or more hands/controllers is also fully configurable. We have made the [`IXRGrabTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.IXRGrabTransformer) interface fully extensible so that you can create your own custom movement transformers to fit your gameplay or application requirements. More information for this new feature can be found in the [XR Grab Interactable](xr-grab-interactable.md#grab-transformers) documentation.

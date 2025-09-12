@@ -247,7 +247,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 if (m_TrackedDeviceEventByPointerId.TryGetValue(pointerId, out var trackedDeviceEvent))
                     return trackedDeviceEvent?.pointerEnter;
-                
+
                 if (m_PointerEventByPointerId.TryGetValue(pointerId, out var pointerEvent))
                     return pointerEvent?.pointerEnter;
             }
@@ -274,12 +274,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// using UnityEngine;
         /// using UnityEngine.EventSystems;
         /// using UnityEngine.XR.Interaction.Toolkit.UI;
-        /// 
+        ///
         /// public class ClickExample : MonoBehaviour
         /// {
         ///     [SerializeField]
         ///     UIInputModule inputModule;
-        ///     
+        ///
         ///     private void OnEnable()
         ///     {
         ///         if (inputModule != null)
@@ -287,7 +287,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         ///             inputModule.pointerClick += OnDeviceButtonClick;
         ///         }
         ///     }
-        /// 
+        ///
         ///     private void OnDisable()
         ///     {
         ///         if (inputModule != null)
@@ -295,7 +295,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         ///             inputModule.pointerClick -= OnDeviceButtonClick;
         ///         }
         ///     }
-        ///     
+        ///
         ///     // This method will fire after registering with the UIInputModule callbacks. The UIInputModule will
         ///     // pass the PointerEventData for the device responsible for triggering the callback and can be used to
         ///     // find the pointerId registered with the EventSystem for that device-specific event.
@@ -389,7 +389,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             var currentPointerTarget = eventData.pointerCurrentRaycast.gameObject;
 
-            #if UNITY_2021_1_OR_NEWER
+#if UNITY_2021_1_OR_NEWER
             // If the pointer moved, send move events to all UI elements the pointer is
             // currently over.
             var wasMoved = eventData.IsPointerMoving();
@@ -401,7 +401,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     ExecuteEvents.Execute(eventData.hovered[i], eventData, ExecuteEvents.pointerMoveHandler);
                 }
             }
-            #endif
+#endif
 
             // If we have no target or pointerEnter has been deleted,
             // we just send exit events to anything we are tracking
@@ -460,13 +460,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var targetGameObject = target.gameObject;
                     pointerEnter?.Invoke(targetGameObject, eventData);
                     ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerEnterHandler);
-                    #if UNITY_2021_1_OR_NEWER
+#if UNITY_2021_1_OR_NEWER
                     if (wasMoved)
                     {
                         pointerMove?.Invoke(targetGameObject, eventData);
                         ExecuteEvents.Execute(targetGameObject, eventData, ExecuteEvents.pointerMoveHandler);
                     }
-                    #endif
+#endif
                     eventData.hovered.Add(targetGameObject);
 
                     target = target.parent;
@@ -680,10 +680,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 ProcessPointerButton(deviceState.selectDelta, eventData);
                 ProcessPointerMovement(eventData);
                 ProcessScrollWheel(eventData);
-                
+
                 // In a VR headset context, the camera can move while the pointer/controller stays put, but this
                 // breaks the standard 2D screen space model. This will ensure that the initial press position used
-                // for drag detection is updated as head-movement updates each frame. 
+                // for drag detection is updated as head-movement updates each frame.
                 if (eventData.pressPosition != Vector2.zero)
                 {
                     eventData.pressPosition = screenPointCamera.WorldToScreenPoint(eventData.pressWorldPosition);

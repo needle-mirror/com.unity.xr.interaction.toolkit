@@ -1,9 +1,9 @@
-﻿using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering
 {
     /// <summary>
-    /// Base class for renderer bridge components that abstract the work of setting up material instances or property blocks. 
+    /// Base class for renderer bridge components that abstract the work of setting up material instances or property blocks.
     /// </summary>
     public abstract class MaterialHelperBase : MonoBehaviour
     {

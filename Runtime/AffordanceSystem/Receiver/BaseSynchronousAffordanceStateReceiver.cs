@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 
@@ -16,7 +16,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
         public virtual void HandleTween(float tweenTarget)
         {
             CaptureInitialValue();
-            
+
             var stateData = currentAffordanceStateData.Value;
 
             // Grab affordance theme data matching the target state index.
@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver
 
             // Determine if we should use the initial value as the target.
             bool useInitialValueAsTarget = replaceIdleStateValueWithInitialValue && stateData.stateIndex == AffordanceStateShortcuts.idle;
-            
+
             // Determine a new target value using the curve adjusted transition target.
             T targetValue = useInitialValueAsTarget ? initialValue : Interpolate(themeData.animationStateStartValue, themeData.animationStateEndValue, curveAdjustedTarget);
 

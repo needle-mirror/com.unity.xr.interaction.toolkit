@@ -1,4 +1,4 @@
-﻿using UnityEngine.EventSystems;
+using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
@@ -13,7 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         XRUIInputModule m_RegisteredInputModule;
         readonly IUIInteractor m_UiInteractor;
         readonly XRBaseInteractor m_BaseInteractor;
-        
+
         /// <summary>
         /// Initializes and returns an instance of <see cref="RegisteredUIInteractorCache"/>.
         /// </summary>
@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_UiInteractor = uiInteractor;
             m_BaseInteractor = uiInteractor as XRBaseInteractor;
         }
-        
+
         /// <summary>
         /// Register with or unregister from the Input Module (if necessary).
         /// </summary>
@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (!Application.isPlaying || (m_BaseInteractor != null && !m_BaseInteractor.isActiveAndEnabled))
                 return;
-            
+
             if (enabled)
                 RegisterWithXRUIInputModule();
             else
@@ -72,7 +72,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             m_RegisteredInputModule = null;
         }
-        
+
         void FindOrCreateXRUIInputModule()
         {
             var eventSystem = EventSystem.current;

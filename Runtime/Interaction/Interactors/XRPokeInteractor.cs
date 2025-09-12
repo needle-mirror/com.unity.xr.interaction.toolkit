@@ -206,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly Collider[] m_OverlapSphereHits = new Collider[25];
         readonly List<PokeCollision> m_PokeTargets = new List<PokeCollision>();
         readonly List<IXRSelectFilter> m_InteractableSelectFilters = new List<IXRSelectFilter>();
-        
+
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
         static readonly Dictionary<IXRInteractable, IXRPokeFilter> s_ValidTargetsScratchMap = new Dictionary<IXRInteractable, IXRPokeFilter>();
 
@@ -281,7 +281,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             int sphereOverlapCount = EvaluateSphereOverlap();
             bool hasOverlap = sphereOverlapCount > 0;
-            
+
             m_ValidTargets.Clear();
             s_ValidTargetsScratchMap.Clear();
 
@@ -296,7 +296,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_ValidTargets.Add(m_PokeTargets[i].interactable);
                     s_ValidTargetsScratchMap.Add(m_PokeTargets[i].interactable, m_PokeTargets[i].filter);
                 }
-                
+
                 // Sort before target filter
                 if (m_ValidTargets.Count > 1)
                 {
@@ -304,7 +304,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_ValidTargets.Clear();
                     m_ValidTargets.AddRange(s_Results);
                 }
-                
+
                 var filter = targetFilter;
                 if (filter != null && filter.canProcess)
                 {
@@ -314,7 +314,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     m_ValidTargets.Clear();
                     m_ValidTargets.AddRange(s_Results);
                 }
-                
+
                 if (m_ValidTargets.Count == 0)
                     hasOverlap = false;
             }
@@ -342,7 +342,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (!isActiveAndEnabled)
                 return;
 
-            if(m_ValidTargets.Count > 0)
+            if (m_ValidTargets.Count > 0)
                 targets.Add(m_ValidTargets[0]);
         }
 

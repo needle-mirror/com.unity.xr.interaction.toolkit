@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="XRGrabInteractable.movementType"/>
         public enum MovementType
         {
-#if UNITY_2023_3_OR_NEWER // Change between Rigidbody.linearVelocity and Rigidbody.velocity           
+#if UNITY_2023_3_OR_NEWER // Change between Rigidbody.linearVelocity and Rigidbody.velocity
             /// <summary>
             /// Move the Interactable object by setting the velocity and angular velocity of the Rigidbody.
             /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody

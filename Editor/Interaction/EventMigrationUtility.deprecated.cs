@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Events;
 
 namespace UnityEditor.XR.Interaction.Toolkit

@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// <see cref="MonoBehaviour"/> that controls interaction recording and playback (via <see cref="XRControllerRecording"/> assets).
@@ -200,7 +200,7 @@
 
         void UpdatePlaybackTime(double playbackTime)
         {
-            if (!m_Recording || m_Recording == null || m_Recording.frames.Count == 0 || m_LastFrameIdx >= m_Recording.frames.Count  )
+            if (!m_Recording || m_Recording == null || m_Recording.frames.Count == 0 || m_LastFrameIdx >= m_Recording.frames.Count)
                 return;
 
             // Look for next frame in order (binary search would be faster but we are only searching from last cached frame index)

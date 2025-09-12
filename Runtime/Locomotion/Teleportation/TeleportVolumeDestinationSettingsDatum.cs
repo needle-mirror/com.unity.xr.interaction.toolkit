@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils.Datums;
+using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
@@ -9,6 +9,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
     [HelpURL(XRHelpURLConstants.k_TeleportVolumeDestinationSettingsDatum)]
     public class TeleportVolumeDestinationSettingsDatum : Datum<TeleportVolumeDestinationSettings>
     {
-        
+
     }
 }

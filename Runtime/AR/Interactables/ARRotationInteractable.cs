@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="RotationManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -30,12 +30,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then dragging along the horizontal axis
     /// or performing a twist gesture will rotate along the y-axis of the item.
     /// </summary>
-    public class ARRotationInteractable {}
+    public class ARRotationInteractable { }
 }
 
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -105,7 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var deviceToWorld = camera.transform.rotation;
             var rotatedDelta = worldToVerticalOrientedDevice * deviceToWorld * gesture.delta;
 
-            var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * m_RotationRateDegreesDrag;
+            var rotationAmount = -1f * rotatedDelta.x * DisplayUtility.screenDpiRatio * m_RotationRateDegreesDrag;
             transform.Rotate(0f, rotationAmount, 0f);
         }
 

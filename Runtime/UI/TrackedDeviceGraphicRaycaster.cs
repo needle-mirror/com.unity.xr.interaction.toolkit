@@ -183,7 +183,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static readonly Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>> s_PokeHoverRaycasters = new Dictionary<TrackedDeviceGraphicRaycaster, HashSet<IUIInteractor>>();
 
         /// <summary>
-        /// Checks if poke interactor is interacting with any raycaster in the scene. 
+        /// Checks if poke interactor is interacting with any raycaster in the scene.
         /// </summary>
         /// <param name="interactor">The <see cref="IUIInteractor"/> to check against, typically a <see cref="XRPokeInteractor"/>.</param>
         /// <returns>Returns <see langword="true"/> if the poke interactor is hovering or selecting any graphic in the scene.</returns>
@@ -207,7 +207,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             if (interactor == null)
                 return;
-            
+
             m_PokeLogic.OnHoverExited(interactor);
             if (s_InteractorRaycasters.TryGetValue(interactor, out var raycaster) && raycaster != null && raycaster == this)
                 s_InteractorRaycasters.Remove(interactor);
@@ -246,7 +246,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         Dictionary<Transform, BindableVariable<PokeStateData>> pokeStateDataDictionary { get; } = new Dictionary<Transform, BindableVariable<PokeStateData>>();
 
         BindingsGroup m_BindingsGroup = new BindingsGroup();
-        
+
         /// <summary>
         /// Gets the <see cref="PokeStateData"/> as a <see cref="IReadOnlyBindableVariable{TValue}"/> for the target transform.
         /// </summary>
@@ -310,7 +310,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             base.OnDisable();
 
-            // Clean up any existing data of interactors hovering or selecting this disabled TrackedDeviceGraphicRaycaster 
+            // Clean up any existing data of interactors hovering or selecting this disabled TrackedDeviceGraphicRaycaster
             using (HashSetPool<IUIInteractor>.Get(out var interactorHashSet))
             {
                 foreach (var kvp in s_InteractorRaycasters)
@@ -409,14 +409,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     var hitTransform = firstHit.gameObject.transform;
 
                     m_PokeLogic.SetPokeDepth(uiModel.pokeDepth);
-                    
+
                     // Check if not already hovering interactor
                     if (!s_PokeHoverRaycasters[this].Contains(interactor))
                     {
                         s_PokeHoverRaycasters[this].Add(interactor);
                         m_PokeLogic.OnHoverEntered(interactor, new Pose(uiModel.position, uiModel.orientation), hitTransform);
                     }
-                    
+
                     if (m_PokeLogic.MeetsRequirementsForSelectAction(interactor, hitTransform.position, uiModel.position, 0f, hitTransform))
                     {
                         s_InteractorRaycasters[interactor] = this;
@@ -628,7 +628,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return false;
 
             if (((1 << graphic.gameObject.layer) & layerMask) == 0)
-                return  false;
+                return false;
 
             return true;
         }

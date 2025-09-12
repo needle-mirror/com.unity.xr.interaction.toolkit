@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -348,10 +348,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Check that the interactable is a valid target of and can be hovered by the interactor.
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
-            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
-            
+
             // De-activate the interactor GameObject
             interactor.gameObject.SetActive(false);
 
@@ -365,8 +365,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
-            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
 
             // De-activate the interactor component.
@@ -380,10 +380,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
-            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
         }
 
@@ -391,7 +391,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator ContactInteractorValidTargetsRemainClearWhenEnabledWithNoContact([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
         {
             // This will test that the Direct and Socket Interactor will clear valid targets
-            // and colliders when the interactor is disabled during contact and the valid 
+            // and colliders when the interactor is disabled during contact and the valid
             // targets and colliders will remain clear when the interactor is enabled again
             // while not touching any colliders.
             var interactionManager = TestUtilities.CreateInteractionManager();
@@ -416,8 +416,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Check that the interactable is a valid target of and can be hovered by the interactor.
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
-            Assert.That(validTargets, Is.EqualTo(new[] {interactable}));
-            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] {interactable}));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
 
             // De-activate the interactor component.
@@ -448,7 +448,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
-            
+
             // De-activate the interactor GameObject.
             interactor.gameObject.SetActive(false);
 

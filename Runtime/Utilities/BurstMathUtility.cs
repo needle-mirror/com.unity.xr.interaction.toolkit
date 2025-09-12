@@ -236,7 +236,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Performs a safe division of two Vector3s. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component. 
+        /// Performs a safe division of two Vector3s. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component.
         /// </summary>
         /// <param name="a">The dividend Vector3.</param>
         /// <param name="b">The divisor Vector3.</param>
@@ -252,7 +252,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         }
 
         /// <summary>
-        /// Performs a safe division of two float3 vectors. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component. 
+        /// Performs a safe division of two float3 vectors. If the difference between any corresponding pair of components in the vectors exceeds a specified tolerance, the division is carried out for that component.
         /// </summary>
         /// <param name="a">The dividend float3 vector.</param>
         /// <param name="b">The divisor float3 vector.</param>
@@ -286,7 +286,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             result = new float3(a.x * b.x, a.y * b.y, a.z * b.z);
         }
-        
+
         /// <summary>
         /// Multiplies the corresponding elements of two Vector3 in a fast, non-matrix multiplication.
         /// </summary>

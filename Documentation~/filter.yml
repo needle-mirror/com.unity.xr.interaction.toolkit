@@ -8,23 +8,23 @@ apiRules:
         uid: System.ObsoleteAttribute
       type: Type
   - exclude:
-      uidRegex: Tests$
+      uidRegex: .*Tests$
       type: Namespace
   - exclude:
-      uidRegex: Editor$
+      uidRegex: .*Editor$
       type: Type
   - exclude:
-      uidRegex: PropertyDrawer$
+      uidRegex: .*PropertyDrawer$
       type: Type
   - exclude:
-      uidRegex: EventMigrationUtility
+      uidRegex: .*EventMigrationUtility$
       type: Type
   - exclude:
-      uidRegex: PackageManagerEditorHelper
+      uidRegex: .*PackageManagerEditorHelper$
       type: Type
   - exclude:
-      uidRegex: XRHelpURLConstants
+      uidRegex: .*XRHelpURLConstants$
       type: Type
   - exclude:
-      uidRegex: XRInteractionEditorUtility
+      uidRegex: .*XRInteractionEditorUtility$
       type: Type

@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Audio;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Transformation;
@@ -108,7 +108,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="ColorGradientLineRendererAffordanceReceiver"/>.
         /// </summary>
         public const string k_ColorGradientLineRendererAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.Rendering." + nameof(ColorGradientLineRendererAffordanceReceiver) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="ColorMaterialPropertyAffordanceReceiver"/>.
         /// </summary>
@@ -138,7 +138,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="ImageColorAffordanceReceiver"/>.
         /// </summary>
         public const string k_ImageColorAffordanceReceiver = k_BaseApi + k_BaseNamespace + "AffordanceSystem.Receiver.UI." + nameof(ImageColorAffordanceReceiver) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="UniformTransformScaleAffordanceReceiver"/>.
         /// </summary>
@@ -382,12 +382,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="XRSingleGrabFreeTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabFreeTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(XRSingleGrabFreeTransformer) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRSingleGrabOffsetPreserveTransformer"/>.
         /// </summary>
         public const string k_XRSingleGrabOffsetPreserveTransformer = k_BaseApi + k_BaseNamespace + "Transformers." + nameof(k_XRSingleGrabOffsetPreserveTransformer) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="XRSocketGrabTransformer"/>.
         /// </summary>
@@ -407,7 +407,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="HandMenu"/>.
         /// </summary>
         public const string k_HandMenu = k_BaseApi + k_BaseNamespace + "UI.BodyUI." + nameof(HandMenu) + ".html";
-        
+
         /// <summary>
         /// Scripting API URL for <see cref="FollowPresetDatum"/>.
         /// </summary>

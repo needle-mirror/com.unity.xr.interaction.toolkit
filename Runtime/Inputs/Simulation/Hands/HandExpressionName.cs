@@ -16,9 +16,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         /// The name for a default hand name, represents a natural resting hand shape.
         /// </summary>
         public static readonly HandExpressionName Default = new HandExpressionName("Default");
-        
+
         readonly InternedString m_InternedString;
-        
+
         /// <summary>
         /// Constructs a new name from a string value to be used with the XR Device Simulator.
         /// This allows for strings to be compared by reference and will only allocate memory if the string is not already interned.
@@ -36,7 +36,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         /// </summary>
         /// <param name="obj">The other object to compare with.</param>
         /// <returns>True if the other object is a name with the same string value ignoring case and culture. Otherwise false.</returns>
-        public override bool Equals(object obj) 
+        public override bool Equals(object obj)
         {
             if (obj is HandExpressionName name)
                 return Equals(name);
@@ -63,13 +63,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         {
             return m_InternedString.ToString();
         }
-        
+
         ///<inheritdoc/>
         public override int GetHashCode()
         {
             return m_InternedString.GetHashCode();
         }
-        
+
         /// <summary>
         /// Compares two names for equality using the == operator.
         /// </summary>

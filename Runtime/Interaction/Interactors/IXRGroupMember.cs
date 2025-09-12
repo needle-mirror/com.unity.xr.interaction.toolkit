@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// An interface that represents an object that can be contained as a member in an <see cref="IXRInteractionGroup"/>.

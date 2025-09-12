@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.SpatialTracking;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -16,12 +16,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get
             {
                 var value = PoseDataFlags.NoData;
-                
+
                 if ((inputTrackingState & InputTrackingState.Position) != 0)
                     value |= PoseDataFlags.Position;
                 if ((inputTrackingState & InputTrackingState.Rotation) != 0)
                     value |= PoseDataFlags.Rotation;
-                
+
                 return value;
             }
 
@@ -35,7 +35,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     inputTrackingState |= InputTrackingState.Rotation;
             }
         }
-        
+
         /// <summary>
         /// (Deprecated) Initializes and returns an instance of <see cref="XRControllerState"/>.
         /// </summary>

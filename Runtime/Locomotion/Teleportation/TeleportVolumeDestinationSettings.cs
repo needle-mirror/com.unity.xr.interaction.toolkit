@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation

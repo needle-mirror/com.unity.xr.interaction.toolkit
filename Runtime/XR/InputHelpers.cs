@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -247,63 +247,63 @@ namespace UnityEngine.XR.Interaction.Toolkit
             switch (info.type)
             {
                 case ButtonReadType.Binary:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
                     {
-                        isPressed = value;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
+                        {
+                            isPressed = value;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis1D:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
                     {
-                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                        isPressed = value >= threshold;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
+                        {
+                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
+                            isPressed = value >= threshold;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DUp:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                        isPressed = value.y >= threshold;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
+                            isPressed = value.y >= threshold;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DDown:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                        isPressed = value.y <= -threshold;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
+                            isPressed = value.y <= -threshold;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DLeft:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                        isPressed = value.x <= -threshold;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
+                            isPressed = value.x <= -threshold;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DRight:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                        isPressed = value.x >= threshold;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
+                            isPressed = value.x >= threshold;
+                            return true;
+                        }
                     }
-                }
                     break;
             }
 
@@ -335,58 +335,58 @@ namespace UnityEngine.XR.Interaction.Toolkit
             switch (info.type)
             {
                 case ButtonReadType.Binary:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
                     {
-                        singleValue = value ? 1f : 0f;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
+                        {
+                            singleValue = value ? 1f : 0f;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis1D:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
                     {
-                        singleValue = value;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
+                        {
+                            singleValue = value;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DUp:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        singleValue = value.y;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            singleValue = value.y;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DDown:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        singleValue = -value.y;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            singleValue = -value.y;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DLeft:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        singleValue = -value.x;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            singleValue = -value.x;
+                            return true;
+                        }
                     }
-                }
                     break;
                 case ButtonReadType.Axis2DRight:
-                {
-                    if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
                     {
-                        singleValue = value.x;
-                        return true;
+                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
+                        {
+                            singleValue = value.x;
+                            return true;
+                        }
                     }
-                }
                     break;
             }
 

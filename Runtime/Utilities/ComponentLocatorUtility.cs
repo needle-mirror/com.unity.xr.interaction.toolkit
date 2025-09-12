@@ -124,7 +124,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         static T Find()
         {
             s_LastTryFindFrame = Time.frameCount;
-            
+
 #if HAS_FIND_FIRST_OBJECT_BY_TYPE
             // Preferred API
             return Object.FindFirstObjectByType<T>();

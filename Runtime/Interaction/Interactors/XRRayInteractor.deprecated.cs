@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -91,7 +91,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Obsolete("GetLinePoints with ref int parameter has been deprecated. Use signature with out int parameter instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool GetLinePoints(ref Vector3[] linePoints, ref int numPoints, int _ = default)
-            // ReSharper restore RedundantAssignment
+        // ReSharper restore RedundantAssignment
         {
             return GetLinePoints(ref linePoints, out numPoints);
         }
@@ -111,7 +111,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         [Obsolete("TryGetHitInfo with ref parameters has been deprecated. Use signature with out parameters instead.", true)]
         // ReSharper disable RedundantAssignment
         public bool TryGetHitInfo(ref Vector3 position, ref Vector3 normal, ref int positionInLine, ref bool isValidTarget, int _ = default)
-            // ReSharper restore RedundantAssignment
+        // ReSharper restore RedundantAssignment
         {
             return TryGetHitInfo(out position, out normal, out positionInLine, out isValidTarget);
         }

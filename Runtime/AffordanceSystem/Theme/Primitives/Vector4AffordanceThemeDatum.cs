@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
 {
     /// <summary>
-    /// Affordance state theme data structure for for Vector4 affordances. 
+    /// Affordance state theme data structure for for Vector4 affordances.
     /// </summary>
     [Serializable]
     public class Vector4AffordanceTheme : BaseAffordanceTheme<float4>

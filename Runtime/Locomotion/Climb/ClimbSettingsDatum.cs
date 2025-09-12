@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils.Datums;
+using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -9,6 +9,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_ClimbSettingsDatum)]
     public class ClimbSettingsDatum : Datum<ClimbSettings>
     {
-        
+
     }
 }

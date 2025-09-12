@@ -25,7 +25,7 @@ Upon clicking the **Import** (Or **Reimport** to have the latest version) button
 
 As mentioned above, the XR Device Simulator prefab simulates user inputs from plain key presses to drive a XR System. For the XR Device Simulator to work in your scene, it must find a pre-configured XR Origin object.
 
-This section covers a guide on how to set up the pre-configured XR Origin GameObject to use it along with the XR Device Simulator 
+This section covers a guide on how to set up the pre-configured XR Origin GameObject to use it along with the XR Device Simulator
 
 ## Setting up a scene for the XR Device Simulator
 

@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [2.6.5] - 2025-09-12
+
+### Added
+- Added `ToggleComponentZone` sample script to activate/deactivate the Gaze Interactor GameObjects when entering a trigger collider to prevent unintentional gaze-based selection in the rest of the scene. This component was added to the Starter Assets and implemented in the `DemoScene` at the "Gaze Interactable Objects" station.
+
+### Changed
+- Changed `XRRayInteractor.TryGetHitInfo` to return the hit info of the selected interactable or highest scored interactable instead of the nearest raycast hit. ([XRIT-141](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-141)) (Backport from 3.1.0)
 
 ## [2.6.4] - 2025-02-04
 
@@ -265,7 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR Interactor Affordance State Provider component which can drive affordance receivers using interactor interactions events.
 - Added Color Gradient Line Renderer Affordance Receiver to pair with an XR Interactor Affordance State Provider on a Ray interactor to improve visual coloring. Has a property to automatically disable coloring of XR Interactor Line Visual.
 - Added [Hand Menu](../manual/hand-menu.html) component, as well as a sample prefab of a working hand menu in the Hands Interaction Demo sample.
-  - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`. 
+  - `HandMenu` component has a split configuration for hands and controllers, with a new `FollowPresetDatum`.
   - Added gaze activation settings and a reveal/ hide hand menu animation.
 - Added [XR Input Modality Manager](../manual/xr-input-modality-manager.html) component which manages swapping between hand and controller hierarchies in the XR Origin. Updated prefabs in the package samples to make use of this component.
 - Added ability for XR Interactor Line Visual to curve accurately and track interactable attach points during selection.
@@ -274,7 +281,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the [`IXRRayProvider`](xref:UnityEngine.XR.Interaction.Toolkit.IXRRayProvider) interface to allow other ray implementations to take advantage of split interaction.
 - Added `Focus State` to interactables. An interactable that is selected is also focused; it remains focused until another interactable is focused instead. Useful for highlighting an object to later perform operations on.
 - Added Visit Each Frame property to XR Controller Recorder to control whether each frame of the input recording must be played back regardless of the time period passed.
-- Added [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users. 
+- Added [XR Transform Stabilizer](../manual/xr-transform-stabilizer.html) component that applies optimized stabilization techniques to remove pose jitter and makes aiming and selecting with rays easier for users.
 - Added Climb Provider, which provides locomotion counter to interactor movement while the user is selecting a Climb Interactable.
   - Added menu item **Assets > Create > XR > Locomotion > Climb Settings**, which creates a Climb Settings Datum asset.
   - Added a Climb Provider instance to `XR Origin Preconfigured` in the Starter Assets sample.
@@ -379,7 +386,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Hands Interaction Demo sample to wait to activate the controller GameObjects until they are reconnected instead of each time hand tracking is lost. Also fixed the controllers appearing at the origin if they have never been tracked.
 - Fixed the Hands Interaction Demo sample so it disables the hand interactors while doing a system gesture (such as a user looking at their open palm at eye level).
 - Fixed warning about a self-intersecting polygon in the `Frame.fbx` model in the Hands Interaction Demo sample.
-- Fixed warning in Hands Interaction Demo sample about obsolete API usage coming from the hands subsystem. 
+- Fixed warning in Hands Interaction Demo sample about obsolete API usage coming from the hands subsystem.
 - Fixed `XRSimulatedController` and `XRSimulatedHMD` to have identifying characteristics information in the `capabilities` field of their corresponding `InputDeviceDescription`. ([XRIT-50](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-50))
 - Fixed an issue in the `XRController` class where the `inputDevice` property was not reinitialized when the `controllerNode` property was changed. ([XRIT-52](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-52))
 - UGUI ray interactions are now correctly blocked when interaction groups block ray interactions and the ray is hidden.

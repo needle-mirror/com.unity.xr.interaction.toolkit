@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="Manipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Base class that manipulates an object via a gesture.
     /// </summary>
-    public class ARBaseGestureInteractable {}
+    public class ARBaseGestureInteractable { }
 }
 
 #else

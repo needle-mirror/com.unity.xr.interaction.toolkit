@@ -39,8 +39,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
 
         /// <summary>
-        /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable. 
-        /// When stabilizing rotation, it uses whatever value is most optimal - either the last rotation (minimizing rotation), 
+        /// When provided a ray, the stabilizer will calculate the rotation that keeps a ray's endpoint stable.
+        /// When stabilizing rotation, it uses whatever value is most optimal - either the last rotation (minimizing rotation),
         /// or the rotation that keeps the endpoint in place.
         /// </summary>
         public IXRRayProvider aimTarget
@@ -154,14 +154,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 
                 // Use that to come up with the rotation that would put the endpoint of the ray at it's last position
                 // Stabilize rotation to whatever value is closer - keeping the endpoint stable or the ray itself stable
-                CalculateRotationParams(currentPosition, resultPosition, m_ThisTransform.forward, m_ThisTransform.up, m_AimTarget.rayEndPoint, invScale, m_AngleStabilization, 
+                CalculateRotationParams(currentPosition, resultPosition, m_ThisTransform.forward, m_ThisTransform.up, m_AimTarget.rayEndPoint, invScale, m_AngleStabilization,
                                         out var antiRotation, out var scaleFactor, out var targetAngleScale);
 
                 StabilizeOptimalRotation(currentRotation, targetRotation, antiRotation, Time.deltaTime, m_AngleStabilization, targetAngleScale, scaleFactor, out var resultRotation);
                 m_ThisTransform.SetPositionAndRotation(resultPosition, resultRotation);
             }
         }
-        
+
 #if BURST_PRESENT
         [BurstCompile]
 #endif
@@ -183,13 +183,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizePosition(in float3 startPos,in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
+        static void StabilizePosition(in float3 startPos, in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
         {
             // Calculate the stabilized position
             var positionOffset = targetPos - startPos;
             var positionDistance = math.length(positionOffset);
             var positionLerp = CalculateStabilizedLerp(positionDistance / positionStabilization, deltaTime);
-            
+
             resultPos = math.lerp(startPos, targetPos, positionLerp);
         }
 
@@ -291,4 +291,3 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
     }
 }
-

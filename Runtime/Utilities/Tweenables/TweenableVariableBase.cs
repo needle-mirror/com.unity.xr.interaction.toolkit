@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables
         }
 
         /// <summary>
-        /// Initial value used for certain tween jobs that need to process from the initial state. 
+        /// Initial value used for certain tween jobs that need to process from the initial state.
         /// </summary>
         public T initialValue { get; set; } = default;
 

@@ -279,12 +279,12 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         internal static string GetLayerMaskDisplay(int layerSize, int interactionLayerMaskValue, string maskOn, string maskOff)
-        {            
+        {
             var stringBuilder = new StringBuilder();
             for (var i = 0; i < layerSize; i++)
             {
                 var layerMaskValue = 1 << i;
-                var maskString = (layerMaskValue & interactionLayerMaskValue) != 0? maskOn : maskOff;
+                var maskString = (layerMaskValue & interactionLayerMaskValue) != 0 ? maskOn : maskOff;
                 stringBuilder.Append(maskString);
             }
 

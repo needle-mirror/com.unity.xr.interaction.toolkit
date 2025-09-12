@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
         public T stateOriginValue;
 
         /// <summary>
-        /// Affordance state upper bound. Used with <see cref="stateTransitionAmountFloat"/> and <see cref="nativeCurve"/> to find tween target. 
+        /// Affordance state upper bound. Used with <see cref="stateTransitionAmountFloat"/> and <see cref="nativeCurve"/> to find tween target.
         /// </summary>
         public T stateTargetValue;
 
@@ -50,7 +50,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs
 
         /// <summary>
         /// Native curve used to evaluate the tweens using the <see cref="stateOriginValue"/>, <see cref="stateTargetValue"/>, and <see cref="stateTransitionAmountFloat"/>.
-        /// </summary>   
+        /// </summary>
         public NativeCurve nativeCurve;
 
         /// <summary>

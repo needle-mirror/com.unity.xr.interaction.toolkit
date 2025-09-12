@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Interactor helper object that draws a targeting <see cref="reticlePrefab"/> over a ray casted point in front of the Interactor.
     /// </summary>
     /// <remarks>
-    /// When attached to an <see cref="XRRayInteractor"/>, the <see cref="XRRayInteractor.TryGetCurrentRaycast"/> 
+    /// When attached to an <see cref="XRRayInteractor"/>, the <see cref="XRRayInteractor.TryGetCurrentRaycast"/>
     /// method will be used instead of the internal ray cast function of this behavior.
     /// </remarks>
     [AddComponentMenu("XR/Visual/XR Interactor Reticle Visual", 11)]
@@ -106,7 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         }
 
         [SerializeField]
-        bool m_DrawOnNoHit;        
+        bool m_DrawOnNoHit;
         /// <summary>
         /// Whether Unity draws the <see cref="reticlePrefab"/> when there is no hit. If <see langword="true"/>, Unity will draw the <see cref="reticlePrefab"/>
         /// at the last point of a <see cref="XRRayInteractor"/>.
@@ -152,7 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         Vector3 m_TargetEndNormal;
         PhysicsScene m_LocalPhysicsScene;
         bool m_HasRaycastHit;
-        
+
         /// <summary>
         /// Reusable array of ray cast hits.
         /// </summary>
@@ -209,7 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_Interactor.selectEntered.RemoveListener(OnSelectEntered);
             }
         }
-        
+
         void FindXROrigin()
         {
             if (m_XROrigin == null)
@@ -309,7 +309,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             m_HasRaycastHit = hasRaycastHit;
-            
+
             if (hasRaycastHit || m_DrawOnNoHit)
             {
                 // Smooth target
@@ -327,23 +327,23 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 m_ReticleInstance.transform.position = m_TargetEndPoint;
 
-                // Attempt to align reticle's Z axis with the XR Origin's up vector.  
-                var relativeUpVector = (m_XROrigin != null && m_XROrigin.Origin != null)? m_XROrigin.Origin.transform.up : Vector3.up;
+                // Attempt to align reticle's Z axis with the XR Origin's up vector.
+                var relativeUpVector = (m_XROrigin != null && m_XROrigin.Origin != null) ? m_XROrigin.Origin.transform.up : Vector3.up;
 
                 if (m_AlignPrefabWithSurfaceNormal && m_HasRaycastHit)
                 {
                     var vectorToProject = relativeUpVector;
-                    
+
                     // If surface normal is directly up indicating a horizontal surface, align the reticle's Z axis with
                     // the direction of the interactor's raycast direction. Multiple by dot product to flip reticle when
                     // on the underside of a horizontal surface.
                     var targetNormalProjectedVectorDotProduct = Vector3.Dot(m_TargetEndNormal, vectorToProject);
-                    if (Mathf.Approximately(Mathf.Abs(targetNormalProjectedVectorDotProduct), 1f)) 
+                    if (Mathf.Approximately(Mathf.Abs(targetNormalProjectedVectorDotProduct), 1f))
                         vectorToProject = m_Interactor.transform.forward * targetNormalProjectedVectorDotProduct;
 
                     // Calculate the projected forward vector on the target normal
                     var forwardVector = Vector3.ProjectOnPlane(vectorToProject, m_TargetEndNormal);
-                    if(forwardVector != Vector3.zero)
+                    if (forwardVector != Vector3.zero)
                         m_ReticleInstance.transform.rotation = Quaternion.LookRotation(forwardVector, m_TargetEndNormal);
                 }
                 else

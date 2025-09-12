@@ -1,4 +1,4 @@
-﻿# Teleportation Multi-Anchor Volume
+# Teleportation Multi-Anchor Volume
 
 An interactable that teleports the user to a specific position and/or rotation defined by one of several anchors. The volume designates a destination anchor upon first hover based on an implementation of `ITeleportationVolumeAnchorFilter`.
 

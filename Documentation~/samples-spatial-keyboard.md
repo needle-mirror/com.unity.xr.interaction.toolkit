@@ -1,6 +1,6 @@
 # Spatial Keyboard
 
-The Spatial Keyboard sample provides base prefabs and scripts to add and customize a virtual keyboard. Currently the keyboard is built to work with input fields as the main use case, but can be expanded or customized to support use cases like buttons or a script based workflow. 
+The Spatial Keyboard sample provides base prefabs and scripts to add and customize a virtual keyboard. Currently the keyboard is built to work with input fields as the main use case, but can be expanded or customized to support use cases like buttons or a script based workflow.
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Spatial Keyboard` folder. You can move these Assets to a different location.
 
@@ -97,7 +97,7 @@ By overriding `ProcessKeyCode`, `TryProcessKeyPress`, or adding custom `KeyFunct
 
 ### Updating subset layouts
 
-The keyboard contains a list of sets of `XRKeyboardLayout`, `XRKeyboardConfig`, and string which act as keys to toggle between keyboard layouts.  
+The keyboard contains a list of sets of `XRKeyboardLayout`, `XRKeyboardConfig`, and string which act as keys to toggle between keyboard layouts.
 
 |**Property**|**Description**|
 |---|---|
@@ -112,7 +112,7 @@ In the image above, when a key sends the string `\sym` to update the layout, the
 
 ![keyboard-subset-layout](images/sample-spatial-keyboard-multiple-layouts.png)
 
-In the second image above, when a key sends the string `\sym` to update the layout, two different keyboard layouts will be updated. The GameObject Keyboard Layout will be updated to `LayoutSymbols` and the GameObject Keyboard Layout Numpad will be updated with `LayoutSymbols_Keypad`. 
+In the second image above, when a key sends the string `\sym` to update the layout, two different keyboard layouts will be updated. The GameObject Keyboard Layout will be updated to `LayoutSymbols` and the GameObject Keyboard Layout Numpad will be updated with `LayoutSymbols_Keypad`.
 
 These patterns can be reused with any number of layouts as long as the configuration and the layout is registered with the keyboard here.
 
@@ -145,7 +145,7 @@ The [keyboard](#keyboard) has default implementations for certain commands comin
 
 ### Key functions
 
-The keyboard keys utilize some `KeyFunction` scripts which allow users to implement their own key functionality with key specific overrides for keyboard API calls, pre and post processing functionality when the key is pressed, and the ability to override the key display based on the context of the key and the keyboard. The base functions of `PreprocessKey` and `PostprocessKey` call into 
+The keyboard keys utilize some `KeyFunction` scripts which allow users to implement their own key functionality with key specific overrides for keyboard API calls, pre and post processing functionality when the key is pressed, and the ability to override the key display based on the context of the key and the keyboard. The base functions of `PreprocessKey` and `PostprocessKey` call into
 
 These `KeyFunctions` can be updated dynamically based on layout using `XRKeyboardConfig` (See [Keyboard layout](#keyboard-layout) and [Keyboard config](#keyboard-config) for more info) allowing the ability change a key's functionality based on the current keyboard configuration and layout.
 
@@ -159,7 +159,7 @@ This pattern is optional, but provides flexibility for custom keyboard implement
 |**`Shift Function`**|Sends shift and caps lock commands to keyboard. Overrides key icon based on shifted, non-shifted, or caps lock state. |
 |**`Value Function`**|Updates keyboard with a new text character. Base key function for most keys which update the keyboard text string.|
 
-The following `KeyFunction` base methods can be overridden to provide additional key functionality. 
+The following `KeyFunction` base methods can be overridden to provide additional key functionality.
 
 |**Method**|**Description**|
 |---|---|
@@ -170,7 +170,7 @@ The following `KeyFunction` base methods can be overridden to provide additional
 |**`GetDisplayIcon`**|Returns an icon for the key. Used in conjunction with `OverrideDisplayIcon`.|
 |**`ProcessRefreshDisplay`**|Called when the key is refreshing it's display (shift change, caps lock, layout change, etc). Allows the key function to process any display logic necessary when refreshing display.|
 
-For example if you wanted to implement a custom `Alt` key, you could do the following: 
+For example if you wanted to implement a custom `Alt` key, you could do the following:
 
 ```
 public class AltFunction : KeyFunction
@@ -189,7 +189,7 @@ public class AltFunction : KeyFunction
         /*
         Check state of key and keyboard and perform some other logic while the key is being pressed.
         */
-        
+
         // Call into keyboard to process the key
         customKeyboard.ProcessAltKey();
     }
@@ -206,24 +206,24 @@ public class AltFunction : KeyFunction
 
 ## Layouts and config
 
-The keyboard uses a list of `XRKeyboardConfig` objects and the configured `XRKeyboardConfig.KeyMapping` to manage keyboard layouts. 
+The keyboard uses a list of `XRKeyboardConfig` objects and the configured `XRKeyboardConfig.KeyMapping` to manage keyboard layouts.
 
 ![keyboard-subset-layout](images/sample-spatial-keyboard-keyboard.png)
 
 ### Keyboard layout
 
-A `XRKeyboardLayout` manages a subset of keys and updates the keys with the data from the active configs `XRKeyboardConfig.KeyMapping`. 
+A `XRKeyboardLayout` manages a subset of keys and updates the keys with the data from the active configs `XRKeyboardConfig.KeyMapping`.
 
 |**Property**|**Description**|
 |---|---|
 |**`Default Key Mapping`**|The default configuration when the keyboard resets.|
 |**`Active Key Mapping`**|The active configuration for the keyboard layout. When updated, the keyboard layout will automatically attempt to update the subset of keys.|
 
-Keyboard can support multiple layouts. For example if there is a standard keyboard and keypad, each set of keys can have a `XRKeyboardLayout` at the root to manage the layouts. This allows the data of each layout to change individually or together. 
+Keyboard can support multiple layouts. For example if there is a standard keyboard and keypad, each set of keys can have a `XRKeyboardLayout` at the root to manage the layouts. This allows the data of each layout to change individually or together.
 
 ### Keyboard config
 
-The `XRKeyboardConfig` is scriptable object which contains the definition for key mappings. It also contains a default `KeyFunction` which can be applied to most of the keys. Typically this is the `Value Key Function` which updates the keyboard text. 
+The `XRKeyboardConfig` is scriptable object which contains the definition for key mappings. It also contains a default `KeyFunction` which can be applied to most of the keys. Typically this is the `Value Key Function` which updates the keyboard text.
 
 The `XRKeyboardConfig.KeyMappings` define the characters, display properties, and the key functionality of the keys for the layout. The number of items in the key mappings list should match the number of keys under a `XRKeyboardLayout`. Currently, the `XRKeyboardLayout` simply iterates through key mappings list and assigns them to the keys in sequential order.
 
@@ -236,9 +236,9 @@ There should be a `XRKeyboardConfig` instance for each layout. For example, if t
 
 ## Keyboard display
 
-The `XRKeyboardDisplay` listens to the keyboard and updates accordingly. 
+The `XRKeyboardDisplay` listens to the keyboard and updates accordingly.
 
-When this display gains focus via the input field, it opens the keyboard. When the keyboard is opened with an input field reference, it in turn observes the keyboard to support mouse and keyboard and entry and stay in sync with display options like `XRDisplay.ClearTextOnSubmit` and `XRDisplay.ClearTextOnOpen`. 
+When this display gains focus via the input field, it opens the keyboard. When the keyboard is opened with an input field reference, it in turn observes the keyboard to support mouse and keyboard and entry and stay in sync with display options like `XRDisplay.ClearTextOnSubmit` and `XRDisplay.ClearTextOnOpen`.
 
 |**Property**|**Description**|
 |---|---|

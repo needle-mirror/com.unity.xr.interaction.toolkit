@@ -105,9 +105,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             if (m_SnapCollider.objectReferenceValue == null)
                 EditorGUILayout.HelpBox(Contents.missingSnapCollider.text, MessageType.Warning, false);
-            else if(!XRInteractableSnapVolume.SupportsTriggerCollider(m_SnapCollider.objectReferenceValue as Collider))
+            else if (!XRInteractableSnapVolume.SupportsTriggerCollider(m_SnapCollider.objectReferenceValue as Collider))
                 EditorGUILayout.HelpBox(Contents.unsupportedColliderType.text, MessageType.Error, false);
-            else if(!((Collider)m_SnapCollider.objectReferenceValue).isTrigger)
+            else if (!((Collider)m_SnapCollider.objectReferenceValue).isTrigger)
                 EditorGUILayout.HelpBox(Contents.colliderNotTrigger.text, MessageType.Warning, false);
 
             EditorGUILayout.PropertyField(m_SnapToCollider, Contents.snapToCollider);

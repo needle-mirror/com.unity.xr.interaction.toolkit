@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Utilities
+namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Class that holds project folder paths.

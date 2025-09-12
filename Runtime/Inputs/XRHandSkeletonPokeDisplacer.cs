@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 #if XR_HANDS_1_3_OR_NEWER
 using Unity.Mathematics;

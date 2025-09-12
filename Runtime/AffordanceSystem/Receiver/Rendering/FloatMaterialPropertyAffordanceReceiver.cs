@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
@@ -69,7 +69,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
             m_MaterialPropertyBlockHelper.GetMaterialPropertyBlock()?.SetFloat(m_FloatProperty, newValue);
             base.OnAffordanceValueUpdated(newValue);
         }
-        
+
         /// <inheritdoc/>
         protected override float GetCurrentValueForCapture()
         {

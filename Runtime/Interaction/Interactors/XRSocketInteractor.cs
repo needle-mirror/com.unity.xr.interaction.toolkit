@@ -252,7 +252,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Determines if when snapping to a socket, any existing sockets should be ejected.
         /// </summary>
         protected virtual bool ejectExistingSocketsWhenSnapping => true;
-        
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>

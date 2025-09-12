@@ -52,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         /// </summary>
         public AxisControl pinchGap { get; private set; }
 
-        /// <summary> 
+        /// <summary>
         /// The gap delta between then position of the first and second fingers for the pinch gesture.
         /// </summary>
         public AxisControl pinchGapDelta { get; private set; }
@@ -111,7 +111,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         protected override void FinishSetup()
         {
             base.FinishSetup();
-            
+
             tapStartPosition = GetChildControl<Vector2Control>(nameof(tapStartPosition));
             dragStartPosition = GetChildControl<Vector2Control>(nameof(dragStartPosition));
             dragCurrentPosition = GetChildControl<Vector2Control>(nameof(dragCurrentPosition));
@@ -128,7 +128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
             twoFingerDragCurrentPosition = GetChildControl<Vector2Control>(nameof(twoFingerDragCurrentPosition));
             twoFingerDragDelta = GetChildControl<Vector2Control>(nameof(twoFingerDragDelta));
             fingerCount = GetChildControl<IntegerControl>(nameof(fingerCount));
-            
+
             m_TapGestureRecognizer = new TapGestureRecognizer();
             m_TapGestureRecognizer.onGestureStarted += OnGestureStarted;
 
@@ -175,7 +175,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         }
 
         void OnGestureStarted<T>(Gesture<T> gesture) where T : Gesture<T>
-        {   
+        {
             gesture.onUpdated += OnGestureUpdated;
             gesture.onFinished += OnGestureFinished;
 
@@ -190,7 +190,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         }
 
         void OnGestureUpdated<T>(Gesture<T> gesture) where T : Gesture<T>
-        {   
+        {
             switch (gesture)
             {
                 case TapGesture tapGesture:
@@ -226,7 +226,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR.Inputs
         }
 
         void OnGestureFinished<T>(Gesture<T> gesture) where T : Gesture<T>
-        {   
+        {
            switch (gesture)
             {
                 case TapGesture tapGesture:

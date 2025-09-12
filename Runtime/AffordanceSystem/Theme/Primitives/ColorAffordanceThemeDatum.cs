@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
@@ -25,7 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
     }
 
     /// <summary>
-    /// Affordance state theme data structure for for Color affordances. 
+    /// Affordance state theme data structure for for Color affordances.
     /// </summary>
     [Serializable]
     public class ColorAffordanceTheme : BaseAffordanceTheme<Color>

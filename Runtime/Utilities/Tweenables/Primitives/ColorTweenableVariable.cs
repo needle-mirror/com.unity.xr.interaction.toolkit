@@ -1,4 +1,4 @@
-﻿using Unity.Jobs;
+using Unity.Jobs;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
 
@@ -19,7 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives
         /// Value between 0 and 1 used to compute color blend modes.
         /// </summary>
         float colorBlendAmount { get; set; } = 1f;
-        
+
         /// <inheritdoc />
         protected override JobHandle ScheduleTweenJob(ref TweenJobData<Color> jobData)
         {

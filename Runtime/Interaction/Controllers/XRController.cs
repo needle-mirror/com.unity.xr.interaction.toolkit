@@ -205,7 +205,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 if (inputDevice.TryGetFeatureValue(CommonUsages.trackingState, out var trackingState))
                 {
                     controllerState.inputTrackingState = trackingState;
-                    
+
                     if ((trackingState & InputTrackingState.Position) != 0 &&
                         inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out var devicePosition))
                     {

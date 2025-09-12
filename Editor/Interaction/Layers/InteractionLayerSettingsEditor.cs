@@ -1,4 +1,4 @@
-﻿using UnityEditorInternal;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 

@@ -55,13 +55,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             var columns = new MultiColumnHeaderState.Column[(int)ColumnId.Count];
 
-            columns[(int)ColumnId.Name]      = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Name") };
-            columns[(int)ColumnId.Type]      = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Type") };
+            columns[(int)ColumnId.Name] = new MultiColumnHeaderState.Column { width = 180f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Name") };
+            columns[(int)ColumnId.Type] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Type") };
             columns[(int)ColumnId.LayerMask] = new MultiColumnHeaderState.Column { width = 240f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask") };
             columns[(int)ColumnId.LayerMaskList] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Layer Mask List") };
             columns[(int)ColumnId.Colliders] = new MultiColumnHeaderState.Column { width = 120f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Colliders") };
-            columns[(int)ColumnId.Hovered]     = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hovered") };
-            columns[(int)ColumnId.Selected]    = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Selected") };
+            columns[(int)ColumnId.Hovered] = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Hovered") };
+            columns[(int)ColumnId.Selected] = new MultiColumnHeaderState.Column { width = 80f, minWidth = 80f, headerContent = EditorGUIUtility.TrTextContent("Selected") };
 
             return new MultiColumnHeaderState(columns);
         }
@@ -69,7 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         XRInteractablesTreeView(List<XRInteractionManager> managers, TreeViewState state, MultiColumnHeader header)
             : base(state, header)
         {
-            foreach(var manager in managers)
+            foreach (var manager in managers)
                 AddManager(manager);
             showBorder = false;
             rowHeight = k_RowHeight;

@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #endif
 using Unity.Mathematics;
@@ -69,15 +69,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         internal static void GetMultiSegmentConecastParameters(float angleRadius, float segmentOffset, float offsetFromOrigin, float maxOffset, in Vector3 direction, out Vector3 originOffset, out float radius, out float castMax)
         {
             castMax = math.clamp(segmentOffset, 0.125f, maxOffset);
-            
+
             // If the segment offset cast max will be greater than the total segment length, set the target cast distance to the remaining length of the segment.
             if (segmentOffset + castMax > maxOffset)
                 castMax = math.clamp(maxOffset - segmentOffset, 0.125f, castMax);
-            
+
             radius = angleRadius * (offsetFromOrigin + castMax);
             originOffset = direction * (segmentOffset - radius);
         }
-        
+
         /// <summary>
         /// Gets the perpendicular distance from the given point to the nearest point on the given line.
         /// </summary>

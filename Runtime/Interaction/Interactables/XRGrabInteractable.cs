@@ -1548,7 +1548,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var easePercent = currentAttachEaseTime / attachEaseInTime;
             targetPose.position = math.lerp(targetPose.position, rawTargetPose.position, easePercent);
             targetPose.rotation = math.slerp(targetPose.rotation, rawTargetPose.rotation, easePercent);
-            targetLocalScale =  math.lerp(targetLocalScale, rawTargetLocalScale, easePercent);
+            targetLocalScale = math.lerp(targetLocalScale, rawTargetLocalScale, easePercent);
             currentAttachEaseTime += deltaTime;
         }
 

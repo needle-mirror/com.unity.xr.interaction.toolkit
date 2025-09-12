@@ -1,4 +1,4 @@
-﻿using Unity.Jobs;
+using Unity.Jobs;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;

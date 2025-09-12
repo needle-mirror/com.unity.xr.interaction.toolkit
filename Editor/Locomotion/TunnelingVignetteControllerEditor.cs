@@ -82,16 +82,64 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected readonly struct VignetteParameterProperties
         {
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.apertureSize"/>.
+            /// The diameter of the inner transparent circle of the tunneled vignette. A vignette provider with a smaller aperture size has a higher priority in controlling the material.
+            /// </summary>
             public readonly SerializedProperty apertureSize;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.featheringEffect"/>.
+            /// The degree of smoothly blending the edges between the aperture and full visual cut-off to add a gradual transition from the transparent aperture to the vignette edges.
+            /// </summary>
             public readonly SerializedProperty featheringEffect;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeInTime"/>.
+            /// The time it takes for the vignette to fully appear.
+            /// </summary>
             public readonly SerializedProperty easeInTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeOutTime"/>.
+            /// The time it takes for the vignette to fully disappear.
+            /// </summary>
             public readonly SerializedProperty easeOutTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeInTimeLock"/>.
+            /// Whether the ease-in time is locked.
+            /// </summary>
             public readonly SerializedProperty easeInTimeLock;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeOutDelayTime"/>.
+            /// The time it takes for the vignette to start disappearing.
+            /// </summary>
             public readonly SerializedProperty easeOutDelayTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.vignetteColor"/>.
+            /// The color of the vignette.
+            /// </summary>
             public readonly SerializedProperty vignetteColor;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.vignetteColorBlend"/>.
+            /// The color used when blending the vignette between transparent and opaque.
+            /// </summary>
             public readonly SerializedProperty vignetteColorBlend;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.apertureVerticalPosition"/>.
+            /// The vertical position offset of the vignette.
+            /// </summary>
             public readonly SerializedProperty apertureVerticalPosition;
 
+            /// <summary>
+            /// Constructs a new <see cref="VignetteParameterProperties"/> from a <see cref="SerializedProperty"/> representing a <see cref="VignetteParameters"/>.
+            /// </summary>
+            /// <param name="parameterProperties">Initial property bag to use for deserialization.</param>
             public VignetteParameterProperties(SerializedProperty parameterProperties)
             {
                 apertureSize = parameterProperties.FindPropertyRelative("m_ApertureSize");
@@ -105,6 +153,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 apertureVerticalPosition = parameterProperties.FindPropertyRelative("m_ApertureVerticalPosition");
             }
 
+            /// <summary>
+            /// Reset the parameter properties to their default values.
+            /// </summary>
             public void SetDefaultValues()
             {
                 apertureSize.floatValue = VignetteParameters.Defaults.apertureSizeDefault;
@@ -128,7 +179,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent previewInEditor = EditorGUIUtility.TrTextContent("Preview In Editor", "(Editor Only) Select which set of vignette parameters to preview. " +
                 "Adding or removing settings in the Locomotion Vignette Providers list will automatically update this preview menu.");
             /// <summary><see cref="GUIContent"/> for when the preview in editor is disabled in Play mode.</summary>
-            public static readonly GUIContent previewInEditorDisabled = EditorGUIUtility.TrTextContent("Preview In Editor (Disabled in Play mode)" );
+            public static readonly GUIContent previewInEditorDisabled = EditorGUIUtility.TrTextContent("Preview In Editor (Disabled in Play mode)");
             /// <summary><see cref="GUIContent"/> for <see cref="TunnelingVignetteController.defaultParameters"/>.</summary>
             public static readonly GUIContent defaultParameters = EditorGUIUtility.TrTextContent("Default Parameters", "The default parameters of this component to drive the tunneling vignette material. " +
                 "These values can be override to create customized tunneling vignette effects.");
@@ -160,7 +211,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 "This can be useful for instant changes, such as snap turn and teleportation.");
             /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.easeOutDelayTime"/>.</summary>
             public static readonly GUIContent easeOutDelayTime = EditorGUIUtility.TrTextContent("Ease Out Delay Time", "The delay time (in seconds) before starting to ease out of the tunneling vignette.");
-           /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColor"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColor"/>.</summary>
             public static readonly GUIContent vignetteColor = EditorGUIUtility.TrTextContent("Vignette Color", "The primary color of the visual cut-off area of the vignette.");
             /// <summary><see cref="GUIContent"/> for <see cref="VignetteParameters.vignetteColorBlend"/>.</summary>
             public static readonly GUIContent vignetteColorBlend = EditorGUIUtility.TrTextContent("Vignette Color Blend", "The optional color to add color blending to the vignette. " +

@@ -1,4 +1,4 @@
-﻿using Unity.Jobs;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;

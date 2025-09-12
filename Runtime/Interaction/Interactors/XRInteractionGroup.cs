@@ -118,10 +118,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         /// <inheritdoc />
         public IXRInteractor activeInteractor { get; private set; }
-        
+
         /// <inheritdoc />
         public IXRInteractor focusInteractor { get; private set; }
-        
+
         /// <inheritdoc />
         public IXRFocusInteractable focusInteractable { get; private set; }
 

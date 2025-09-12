@@ -1,7 +1,7 @@
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
-    /// Helper object for the <see cref="CanvasOptimizer"/>. 
+    /// Helper object for the <see cref="CanvasOptimizer"/>.
     /// Monitors for hierarchy changes to ensure that only a top-level canvas is in place.
     /// </summary>
     [AddComponentMenu("")]

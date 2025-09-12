@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 
 #if ENABLE_VR || ENABLE_AR
 using UnityEngine.Experimental.XR.Interaction;

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives
 {
     /// <summary>
-    /// Affordance state theme data structure for for float affordances. 
+    /// Affordance state theme data structure for for float affordances.
     /// </summary>
     [Serializable]
     public class FloatAffordanceTheme : BaseAffordanceTheme<float>

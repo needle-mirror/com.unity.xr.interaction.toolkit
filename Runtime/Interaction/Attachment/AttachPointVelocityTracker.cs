@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Attachment

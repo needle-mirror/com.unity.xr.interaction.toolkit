@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="ScaleManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -30,12 +30,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then doing a pinch/zoom will modify the scale
     /// of the object.
     /// </summary>
-    public class ARScaleInteractable {}
+    public class ARScaleInteractable { }
 }
 
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -201,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.gapDelta);
+            m_CurrentScaleRatio += sensitivity * DisplayUtility.PixelsToInches(gesture.gapDelta);
 
             transform.localScale = currentScale;
 

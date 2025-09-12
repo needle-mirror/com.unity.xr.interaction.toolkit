@@ -173,7 +173,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_ControllerCamera;
             set => m_ControllerCamera = value;
         }
-        
+
         [SerializeField]
         [Tooltip("Tells the XR Screen Space Controller to ignore interactions when hitting a screen space canvas.")]
         bool m_BlockInteractionsWithScreenSpaceUI = true;
@@ -290,10 +290,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             var currentTouchCount = m_ScreenTouchCountAction.action?.ReadValue<int>() ?? 0;
-            
+
             if (TryGetCurrentPositionAction(currentTouchCount, out var posAction))
             {
-                var screenPos =  posAction.ReadValue<Vector2>();
+                var screenPos = posAction.ReadValue<Vector2>();
                 var screenToWorldPoint = m_ControllerCamera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, m_ControllerCamera.nearClipPlane));
                 var directionVector = (screenToWorldPoint - m_ControllerCamera.transform.position).normalized;
                 controllerState.position = transform.parent != null ? transform.parent.InverseTransformPoint(screenToWorldPoint) : screenToWorldPoint;
@@ -347,12 +347,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 controllerState.selectInteractionState.SetFrameState(false, 0f);
             }
-        
+
             if (m_UseRotationThreshold && TryGetAbsoluteValue(m_TwistDeltaRotationAction.action, out var absRotationValue) && absRotationValue >= m_RotationThreshold)
             {
                 scaleDelta = 0f;
             }
-            else 
+            else
             {
                 scaleDelta = m_PinchGapDeltaAction.action != null ? m_PinchGapDeltaAction.action.ReadValue<float>() / Screen.dpi : 0f;
             }

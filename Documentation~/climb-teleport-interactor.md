@@ -1,4 +1,4 @@
-﻿# Climb Teleport Interactor
+# Climb Teleport Interactor
 
 Interactor that drives climb locomotion assistance via teleportation. This component is not designed to be attached to a controller (thus does not derive from `XRBaseControllerInteractor`, unlike `XRDirectInteractor` and `XRRayInteractor`) and instead performs interactions in response to climb locomotion.
 

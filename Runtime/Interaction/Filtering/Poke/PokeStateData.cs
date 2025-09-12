@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// The amount the poke interaction is currently selecting the interactable between 0 and 1.
         /// </summary>
         public float interactionStrength { get; set; }
-        
+
         /// <summary>
         /// The interaction axis used for poking.
         /// </summary>

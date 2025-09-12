@@ -505,7 +505,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var originalDirection = math.normalize(velocity);
             var targetDirection = math.normalize(toTarget);
-            
+
             // If too far out, no aim assistance occurs
             if (Vector3.Angle(originalDirection, targetDirection) > maxAngle)
             {

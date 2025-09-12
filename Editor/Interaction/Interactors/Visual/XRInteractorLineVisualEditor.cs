@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -263,7 +263,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_LineLength, Contents.lineLength);
-                    
+
                     EditorGUILayout.PropertyField(m_AutoAdjustLineLength, Contents.autoAdjustLineLength);
                     if (m_AutoAdjustLineLength.boolValue)
                     {
@@ -298,7 +298,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 }
             }
         }
-        
+
         /// <summary>
         /// Draw property fields related to snapping.
         /// </summary>
@@ -315,7 +315,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         protected virtual void DrawReticle()
         {
             EditorGUILayout.Space();
-            
+
             // Get the list of Colliders on  each reticle if this is the first time here in order to reduce the cost of evaluating the collider check warnings.
             if (!serializedObject.isEditingMultipleObjects && !m_ReticleCheckInitialized)
             {

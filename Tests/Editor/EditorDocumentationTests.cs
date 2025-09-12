@@ -93,7 +93,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Assert.That(versionLines, Is.Not.Empty);
             Assert.That(versionLines.Length, Is.EqualTo(1));
 
-            // Grab the first line of the file 
+            // Grab the first line of the file
             var versionLine = versionLines.First().Trim();
             Assert.That(versionLine, Is.Not.Empty, "Could not find version line. Has version.md been erased or removed?");
 

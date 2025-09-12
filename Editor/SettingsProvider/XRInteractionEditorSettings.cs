@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Editor;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -23,10 +23,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
             get => m_InteractionLayerUpdaterShown;
             set => m_InteractionLayerUpdaterShown = value;
         }
-        
+
         [SerializeField]
         bool m_ShowOldInteractionLayerMaskInInspector;
-        
+
         /// <summary>
         /// Gets whether the deprecated physics Layer property <c>m_InteractionLayerMask</c> should be shown in the Inspector window.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="TapGesture.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -22,7 +22,7 @@
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
-using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -126,7 +126,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 else if (touch.isPhaseMoved)
                 {
                     var diff = (touch.position - startPosition).magnitude;
-                    var diffInches = GestureTouchesUtility.PixelsToInches(diff);
+                    var diffInches = DisplayUtility.PixelsToInches(diff);
                     if (diffInches > tapRecognizer.slopInches)
                     {
                         Cancel();

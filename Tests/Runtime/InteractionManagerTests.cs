@@ -963,7 +963,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(filter1WasProcessed, Is.True);
             Assert.That(filter2WasProcessed, Is.True);
-            Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] {interactor}));
+            Assert.That(interactable.interactorsSelecting, Is.EquivalentTo(new[] { interactor }));
 
             // Add filter that returns false
             var filter3WasProcessed = false;

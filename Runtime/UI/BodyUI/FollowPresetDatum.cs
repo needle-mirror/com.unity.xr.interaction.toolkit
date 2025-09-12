@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Unity.XR.CoreUtils.Datums;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
 {
     /// <summary>
-    /// Represents the reference axis relative to the tracking anchor used to compare up and camera facing direction. 
+    /// Represents the reference axis relative to the tracking anchor used to compare up and camera facing direction.
     /// </summary>
     public enum FollowReferenceAxis
     {

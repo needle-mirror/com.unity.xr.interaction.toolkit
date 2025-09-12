@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
+namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
     /// <summary>
     /// Interface for filtering a list of anchors for a <see cref="TeleportationMultiAnchorVolume"/> to designate one

@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="SelectionManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -28,7 +28,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls the selection of an object via a Tap gesture.
     /// </summary>
-    public class ARSelectionInteractable {}
+    public class ARSelectionInteractable { }
 }
 
 #else

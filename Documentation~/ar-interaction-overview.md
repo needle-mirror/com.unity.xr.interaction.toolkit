@@ -13,13 +13,13 @@ The XR Interaction Toolkit package comes with a number of pre-defined gestures a
 
 | Gesture | Triggered by input |
 |---|---|
-| **Tap** | User touches the screen | 
+| **Tap** | User touches the screen |
 | **Drag** | User drags finger across screen |
-| **Pinch** | User moves two fingers toward or away from each other along a straight line | 
-| **Twist** | User rotates two fingers around a center point | 
+| **Pinch** | User moves two fingers toward or away from each other along a straight line |
+| **Twist** | User rotates two fingers around a center point |
 | **Two Finger Drag** | User drags with two fingers |
 
-## Setting up for Touchscreen AR 
+## Setting up for Touchscreen AR
 
 > [!NOTE]
 > The AR Starter Assets sample contains an already configured input action map which can be used in place of creating one from scratch.
@@ -31,7 +31,7 @@ To set up a scene for Touchscreen AR you will want to create an Input Action Map
 > [!NOTE]
 > The AR Starter Assets sample contains a screen-space controller preset, but if creating the controller from scratch, follow the instructions below.
 
-Add an [XR Screen Space Controller](xr-screen-space-controller.md) to the scene and toggle `Enable Touchscreen Gesture Input Control`. This will ensure that a `TouchscreenGestureInputController` device gets added to the scene. Additionally, make sure to include an XR Ray Interactor and that `Enable AR Raycasting` is checked. 
+Add an [XR Screen Space Controller](xr-screen-space-controller.md) to the scene and toggle `Enable Touchscreen Gesture Input Control`. This will ensure that a `TouchscreenGestureInputController` device gets added to the scene. Additionally, make sure to include an XR Ray Interactor and that `Enable AR Raycasting` is checked.
 
 ![TouchscreenGestureInputController toggle](images/xr-screen-space-controller-touchscreen.png)
 

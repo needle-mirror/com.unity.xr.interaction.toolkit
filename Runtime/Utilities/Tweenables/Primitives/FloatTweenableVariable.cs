@@ -1,4 +1,4 @@
-﻿using Unity.Jobs;
+using Unity.Jobs;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Jobs;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives

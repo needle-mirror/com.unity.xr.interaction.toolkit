@@ -1,6 +1,6 @@
 # Interaction filters
 
-Interaction filters are used to add additional checks to an Interactor and Interactable interaction after the base class validations are passed. 
+Interaction filters are used to add additional checks to an Interactor and Interactable interaction after the base class validations are passed.
 
 The interaction filters also include an implementation of a filter delegate that forwards the filter processing to a delegate. This enables users to add additional filter logic without needing to create new classes.
 

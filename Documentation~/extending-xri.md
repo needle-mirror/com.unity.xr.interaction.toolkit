@@ -6,7 +6,7 @@ Below is a diagram showing how existing Interactor and Interactable classes inhe
 
 ![class-hierarchy](images/class-hierarchy.svg)
 
-The rest of this documentation details the ways to extend the XR Interaction Toolkit.  
+The rest of this documentation details the ways to extend the XR Interaction Toolkit.
 
 ## Interactor and Interactable event callbacks
 

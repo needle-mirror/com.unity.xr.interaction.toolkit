@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
@@ -133,7 +133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
             get => m_IgnoreUGUIHover;
             set => m_IgnoreUGUIHover = value;
         }
-        
+
         [SerializeField]
         [Tooltip("With the XR Ray Interactor it is possible to trigger select events from the ray interactor overlapping with a canvas and triggering the select input.")]
         bool m_IgnoreUGUISelect;
@@ -169,17 +169,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         /// Is the interactor overlapping a UI Canvas and hitting a UI raycast target.
         /// </summary>
         protected virtual bool hasUIHover => !m_IgnoreUGUIHover && m_UIHovering;
-        
+
         /// <summary>
         /// Is attached interactor in a selected state.
         /// </summary>
         protected virtual bool hasXRSelection => !m_IgnoreXRInteractionEvents && m_HasSelectInteractor && m_SelectInteractor.hasSelection;
-        
+
         /// <summary>
         /// Whether the interactor is hovering UI and the interactor select action is pressed.
         /// </summary>
         protected virtual bool hasUISelection => !m_IgnoreUGUISelect && m_UISelecting;
-        
+
         /// <summary>
         /// Is attached interactable in an activated state.
         /// </summary>
@@ -608,7 +608,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.State
         protected virtual void OnLargestInteractionStrengthChanged(float value)
         {
             // If currently executing animation, do not update interaction strength state.
-            if(m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
+            if (m_SelectedClickAnimation != null || m_ActivatedClickAnimation != null)
                 return;
 
             RefreshState();

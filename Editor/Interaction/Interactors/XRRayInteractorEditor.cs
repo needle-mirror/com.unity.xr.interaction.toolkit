@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 namespace UnityEditor.XR.Interaction.Toolkit
@@ -376,24 +376,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
             switch (m_HitDetectionType.intValue)
             {
                 case (int)XRRayInteractor.HitDetectionType.SphereCast:
-                {
-                    using (new EditorGUI.IndentLevelScope())
                     {
-                        EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
-                    }
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_SphereCastRadius, Contents.sphereCastRadius);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case (int)XRRayInteractor.HitDetectionType.ConeCast:
-                {
-                    using (new EditorGUI.IndentLevelScope())
                     {
-                        EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
-                        EditorGUILayout.PropertyField(m_LiveConeCastDebugVisuals, Contents.liveConeCastDebugVisuals);
-                    }
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_ConeCastAngle, Contents.coneCastAngle);
+                            EditorGUILayout.PropertyField(m_LiveConeCastDebugVisuals, Contents.liveConeCastDebugVisuals);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
             EditorGUILayout.PropertyField(m_HitClosestOnly, Contents.hitClosestOnly);
             EditorGUILayout.PropertyField(m_BlendVisualLinePoints, Contents.blendVisualLinePoints);

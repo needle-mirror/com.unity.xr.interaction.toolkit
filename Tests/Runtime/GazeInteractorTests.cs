@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.XR.CoreUtils;
@@ -117,7 +117,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor.isSelectActive, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }
-        
+
         [UnityTest]
         public IEnumerator GazeInteractorCanResetOnInteractableDestroy()
         {

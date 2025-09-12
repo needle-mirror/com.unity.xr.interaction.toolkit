@@ -1,4 +1,4 @@
-﻿using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {

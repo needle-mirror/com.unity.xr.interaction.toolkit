@@ -1312,7 +1312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var selectInteractor = focusInteractor as IXRSelectInteractor;
             var selectInteractable = focusInteractable as IXRSelectInteractable;
-            
+
             if (selectInteractor != null)
                 cleared = (selectInteractor.isSelectActive && !selectInteractor.IsSelecting(selectInteractable));
 
@@ -1635,7 +1635,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (interactable is IXRFocusInteractable focusInteractable)
             {
-                FocusEnter(interactor, focusInteractable);                    
+                FocusEnter(interactor, focusInteractable);
             }
         }
 

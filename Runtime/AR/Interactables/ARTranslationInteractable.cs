@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="TranslationManipulator.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -29,7 +29,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// Manipulates the position of an object via a drag gesture.
     /// If not selected, the object will be selected when the drag gesture starts.
     /// </summary>
-    public class ARTranslationInteractable {}
+    public class ARTranslationInteractable { }
 }
 
 #else

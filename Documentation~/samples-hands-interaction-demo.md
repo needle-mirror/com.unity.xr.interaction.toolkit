@@ -24,7 +24,7 @@ This sample is installed into the default location for package samples, in the `
 > There is a known issue when upgrading from an older version of the Hands Interaction Demo to a newer version. Script references in the Demo Scene for scripts included in the Hands Interaction Demo become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` and `Hands Interaction Demo` folders from your `Samples` directory before importing the new Hands Interaction Demo sample package.
 
 In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window. See [Install XR Hands](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest/index.html?subfolder=/manual/project-setup/install-xrhands.html) for installation steps for that package when using the Package Manager window.
-  * [Starter Assets](samples-starter-assets.md) - imported from Package Manager under XR Interaction Toolkit in the Samples area 
+  * [Starter Assets](samples-starter-assets.md) - imported from Package Manager under XR Interaction Toolkit in the Samples area
   * [XR Plug-in Management (com.unity.xr.management)](https://docs.unity3d.com/Manual/com.unity.xr.management.html) - 4.3.1 or newer
   * [OpenXR Plugin (com.unity.xr.openxr)](https://docs.unity3d.com/Manual/com.unity.xr.openxr.html) - 1.6.0 or newer
   * [XR Hands (com.unity.xr.hands)](https://docs.unity3d.com/Packages/com.unity.xr.hands@latest) - 1.2.1 or newer (1.3.0 recommended)
@@ -229,7 +229,7 @@ The above error will happen if you have not imported the **Starter Assets** from
 
 ![sample-hands-project-validation-xri.png](images/sample-hands-project-validation-xri.png)
 
-If you are unable to run the sample scene correctly, you may not have imported the **XR Hands** package correctly. Checking the **Project Validation** in XR Plug-in Management will reveal what might be missing. Clicking **Fix** will import the main package. 
+If you are unable to run the sample scene correctly, you may not have imported the **XR Hands** package correctly. Checking the **Project Validation** in XR Plug-in Management will reveal what might be missing. Clicking **Fix** will import the main package.
 
 ![sample-hands-project-validation.png](images/sample-hands-project-validation.png)
 

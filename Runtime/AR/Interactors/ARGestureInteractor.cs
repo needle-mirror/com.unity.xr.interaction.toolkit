@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
-    public class ARGestureInteractor {}
+    public class ARGestureInteractor { }
 }
 
 #else

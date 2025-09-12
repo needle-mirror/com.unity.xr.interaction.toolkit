@@ -1,4 +1,4 @@
-﻿using Unity.Mathematics;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives

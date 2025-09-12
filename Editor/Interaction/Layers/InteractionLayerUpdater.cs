@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using UnityEditor.SceneManagement;
@@ -22,7 +22,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
     {
         static List<XRBaseInteractable> s_InteractableList;
         static List<XRBaseInteractor> s_InteractorList;
-        
+
         /// <summary>
         /// Displays a dialog message asking if you want to update the Interaction Layers in the project.
         /// </summary>
@@ -47,7 +47,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static bool IsInteractionLayerMaskPropertyOverridden(Object target)
         {
             const string layerBitsPropertyPath = "m_InteractionLayerMask.m_Bits";
-            
+
             var propertyModifications = PrefabUtility.GetPropertyModifications(target);
             if (propertyModifications == null)
                 return false;
@@ -72,16 +72,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             const string layerPropertyPath = "m_InteractionLayerMask";
             const string interactionLayerPropertyPath = "m_InteractionLayers.m_Bits";
-            
+
             if (PrefabUtility.IsPartOfImmutablePrefab(target))
                 return false;
-            
+
             // it isn't a regular object in the scene and not a missing prefab instance
             // and not a component in the source prefab or neither an overridden component (so it's a variant or nested prefab)
             // and the unity layer mask it isn't an overridden property?
             var nearestPrefabRoot = PrefabUtility.GetNearestPrefabInstanceRoot(target);
-            if (nearestPrefabRoot != null && !PrefabUtility.IsPrefabAssetMissing(target) 
-                                          && (PrefabUtility.IsPartOfVariantPrefab(nearestPrefabRoot) || !PrefabUtility.IsAddedComponentOverride(target)) 
+            if (nearestPrefabRoot != null && !PrefabUtility.IsPrefabAssetMissing(target)
+                                          && (PrefabUtility.IsPartOfVariantPrefab(nearestPrefabRoot) || !PrefabUtility.IsAddedComponentOverride(target))
                                           && !IsInteractionLayerMaskPropertyOverridden(target))
                 return false;
 
@@ -89,7 +89,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var layerProperty = serializedObject.FindProperty(layerPropertyPath);
             var interactionLayerProperty = serializedObject.FindProperty(interactionLayerPropertyPath);
 
-            if (layerProperty == null || interactionLayerProperty == null || layerProperty.propertyType != SerializedPropertyType.LayerMask 
+            if (layerProperty == null || interactionLayerProperty == null || layerProperty.propertyType != SerializedPropertyType.LayerMask
                 || interactionLayerProperty.propertyType != SerializedPropertyType.Integer)
                 return false;
 
@@ -106,7 +106,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // updates the interaction layer mask property if its value is different from the unity layer mask
             if (interactionLayerProperty.intValue == unityLayerMaskValue)
                 return false;
-            
+
             interactionLayerProperty.longValue = (uint)unityLayerMaskValue;
             serializedObject.ApplyModifiedProperties();
             return true;
@@ -122,7 +122,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static bool TryUpdate(GameObject gameObject, ref LayerMask usedUnityLayers)
         {
             var updated = false;
-            
+
             // update Interactables
             s_InteractableList.Clear();
             gameObject.GetComponentsInChildren(s_InteractableList);
@@ -137,7 +137,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             return updated;
         }
-        
+
         /// <summary>
         /// Opens or creates a Scene in the Editor.
         /// </summary>
@@ -157,7 +157,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorSceneManager.OpenScene(scenePath, mode);
             }
         }
-        
+
         /// <summary>
         /// Scans project for Interactables and Interactors in prefabs and update their Unity Layer Mask to the correspondent
         /// Interaction Layer Mask.
@@ -167,7 +167,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             const string prefabFilter = "t:Prefab";
             const string titleString = "Updating Prefabs";
-                
+
             var prefabGuids = AssetDatabase.FindAssets(prefabFilter);
             var prefabGuidsLength = prefabGuids.Length;
             LayerMask usedUnityLayers = 0;
@@ -176,9 +176,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 var prefabGuid = prefabGuids[i];
                 var prefabPath = AssetDatabase.GUIDToAssetPath(prefabGuid);
-                
+
                 EditorUtility.DisplayProgressBar(titleString, prefabPath, i / (float)prefabGuidsLength);
-                
+
                 // Check to make sure the asset is actually writable.
                 var packageInfo = PackageManager.PackageInfo.FindForAssetPath(prefabPath);
                 if (packageInfo != null && packageInfo.source != PackageSource.Embedded && packageInfo.source != PackageSource.Local)
@@ -193,7 +193,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
                 PrefabUtility.UnloadPrefabContents(rootGameObject);
             }
-            
+
             EditorUtility.ClearProgressBar();
             return usedUnityLayers;
         }
@@ -207,7 +207,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             const string sceneFilter = "t:Scene";
             const string titleString = "Updating Scenes";
-            
+
             var sceneGuids = AssetDatabase.FindAssets(sceneFilter);
             var sceneGuidsLength = sceneGuids.Length;
             var rootGameObjects = new List<GameObject>();
@@ -223,9 +223,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             {
                 var sceneGuid = sceneGuids[i];
                 var scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
-                
+
                 EditorUtility.DisplayProgressBar(titleString, scenePath, i / (float)sceneGuidsLength);
-                
+
                 // Check to make sure the asset is actually writable.
                 var packageInfo = PackageManager.PackageInfo.FindForAssetPath(scenePath);
                 if (packageInfo != null && packageInfo.source != PackageSource.Embedded && packageInfo.source != PackageSource.Local)
@@ -245,7 +245,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
                 rootGameObjects.Clear();
             }
-            
+
             // restore active and opened scenes
             if (oldOpenedScenePaths.Length <= 0)
             {
@@ -276,11 +276,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         static void CopyLayersToInteractionLayerSettings(LayerMask unityLayerMask)
         {
             const string layerNamesPropertyPath = "m_LayerNames";
-            
+
             var interactionLayerSettingsSo = new SerializedObject(InteractionLayerSettings.Instance);
             var layerNamesProperty = interactionLayerSettingsSo.FindProperty(layerNamesPropertyPath);
-            
-            // built-in Interaction Layer names are not editable, so they are ignored 
+
+            // built-in Interaction Layer names are not editable, so they are ignored
             for (var i = InteractionLayerSettings.builtInLayerSize; i < InteractionLayerSettings.layerSize; i++)
             {
                 var layerBit = 1 << i;
@@ -297,7 +297,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             interactionLayerSettingsSo.ApplyModifiedProperties();
         }
-        
+
         /// <summary>
         /// Asks you if you want to run the Interaction Layer updater.
         /// </summary>
@@ -310,13 +310,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 LayerMask usedUnityLayers = 0;
 
                 usedUnityLayers.value |= UpdatePrefabs();
-                usedUnityLayers.value |=UpdateScenes();
+                usedUnityLayers.value |= UpdateScenes();
                 CopyLayersToInteractionLayerSettings(usedUnityLayers);
 
                 s_InteractableList = null;
                 s_InteractorList = null;
             }
-            
+
             // register updater was shown
             var editorXriToolkitSettings = XRInteractionEditorSettings.Instance;
             if (!editorXriToolkitSettings.interactionLayerUpdaterShown)

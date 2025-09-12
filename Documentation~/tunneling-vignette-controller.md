@@ -6,7 +6,7 @@ The `TunnelingVignette.prefab` in the sample asset is recommended to be placed a
 
 ![TunnelingVignetteScene](images/tunneling-vignette-hemisphere-scene.png)
 
-The rest of this documentation details the properties and their usages of the `TunnelingVignetteController` component, which is attached to the `TunnelingVignette.prefab` by default. The image below shows the component with move and turn locomotion providers configured in the Inspector.   
+The rest of this documentation details the properties and their usages of the `TunnelingVignetteController` component, which is attached to the `TunnelingVignette.prefab` by default. The image below shows the component with move and turn locomotion providers configured in the Inspector.
 
 ![TunnelingVignetteController](images/tunneling-vignette-controller.png)
 

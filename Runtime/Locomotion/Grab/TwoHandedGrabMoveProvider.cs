@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.XR.Interaction.Toolkit
+namespace UnityEngine.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Allows the user to combine two <see cref="GrabMoveProvider"/> instances for locomotion. This allows the user to

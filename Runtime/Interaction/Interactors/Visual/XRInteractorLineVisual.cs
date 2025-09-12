@@ -432,7 +432,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_LineBendRatio;
             set => m_LineBendRatio = Mathf.Clamp(value, k_MinLineBendRatio, k_MaxLineBendRatio);
         }
-        
+
         [SerializeField]
         InteractionLayerMask m_BendingEnabledInteractionLayers = -1;
 
@@ -738,10 +738,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Query the raycaster to determine line hit information and determine if hit was valid. Also check for snap volumes.
             m_ValidHit = ExtractHitInformation(ref m_TargetPoints, m_NumTargetPoints, out var targetEndPoint, out var hitSnapVolume);
-            
+
             // Check if selected interactables are on interaction layers where bending is enabled
             var bendingEnabledOnInteractionLayer = false;
-            
+
             if (hasSelection)
             {
                 for (int i = 0; i < m_LineRenderableAsSelectInteractor.interactablesSelected.Count; i++)
@@ -758,7 +758,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // If overriding ray origin, the line end point will be decoupled from the raycast hit point, so we bend towards it.
             bool bendForOverride = m_OverrideInteractorLineOrigin && m_ValidHit;
             var curveRayTowardHitPoint = bendForOverride && hasStraightRayCast;
-            
+
             var shouldBendLine = (hitSnapVolume || curveRayTowardAttachPoint || curveRayTowardHitPoint) && m_LineBendRatio < 1f;
 
             if (shouldBendLine)
@@ -793,7 +793,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     {
                         var lineDelta = m_FollowTightness * Time.deltaTime;
                         lineDirection = Vector3.Lerp(m_PreviousLineDirection, lineDirection, lineDelta);
-                        lineOrigin = Vector3.Lerp( m_PreviousRenderPoints[0], lineOrigin, lineDelta);
+                        lineOrigin = Vector3.Lerp(m_PreviousRenderPoints[0], lineOrigin, lineDelta);
                     }
                     m_PreviousLineDirection = lineDirection;
                 }
@@ -1046,7 +1046,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             {
                 lineOrigin += lineDirection * m_LineOriginOffset;
             }
-            
+
             // Write the modified line origin back into the array
             targetPoints[0] = lineOrigin;
         }
@@ -1078,7 +1078,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                     if (m_XRInteractableSnapVolume != null)
                     {
-                        // If we have a selection, get the closest point to the attach transform position on the snap to collider 
+                        // If we have a selection, get the closest point to the attach transform position on the snap to collider
                         targetEndPoint = m_LineRenderableAsRayInteractor.hasSelection
                             ? m_XRInteractableSnapVolume.GetClosestPointOfAttachTransform(m_LineRenderableAsRayInteractor)
                             : m_XRInteractableSnapVolume.GetClosestPoint(targetEndPoint);
@@ -1257,7 +1257,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (TryFindLineRenderer())
             {
-                m_LineRenderer.widthMultiplier =  Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
+                m_LineRenderer.widthMultiplier = Mathf.Clamp(m_LineWidth, k_MinLineWidth, k_MaxLineWidth);
                 m_LineRenderer.widthCurve = m_WidthCurve;
                 m_SnapCurve = true;
             }

@@ -115,6 +115,7 @@ The following scripts are included to support the prefabs and `DemoScene`.
 |**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
 |**`ObjectSpawner`**|Component with an API for spawning objects from a given set of prefabs. This component has additional options to constrain when spawning happens and behavior of object when spawned.|
 |**`RotationAxisLockGrabTransformer`**|An XR grab transformer that allows for the locking of specific rotation axes.|
+|**`ToggleComponentZone`**|Component used to enable/disable components or activate/deactivate GameObjects upon entry into a trigger collider.|
 |**`XRPokeFollowAffordance`**|Component used to animate a Transform to follow the poke position. Used by poke buttons in the `DemoScene`.|
 
 ## Prefabs

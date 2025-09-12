@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils.Datums.Editor;
+using Unity.XR.CoreUtils.Datums.Editor;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.UI.BodyUI;
 
@@ -15,7 +15,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Datums.Editor
             SerializedProperty selectedValue = GetSelectedProperty(property);
             if (selectedValue.hasVisibleChildren)
             {
-                return EditorGUI.GetPropertyHeight(selectedValue, true); 
+                return EditorGUI.GetPropertyHeight(selectedValue, true);
             }
             return base.GetPropertyHeight(property, label);
         }

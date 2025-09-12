@@ -79,7 +79,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform(), InputType.DeviceBased));
         }
-        
+
         [MenuItem("GameObject/XR/Gaze Interactor (Action-based)", false, 10), UsedImplicitly]
 #pragma warning disable IDE0051 // Remove unused private members -- Editor Menu Item
         public static void CreateGazeInteractorActionBased(MenuCommand menuCommand)
@@ -130,7 +130,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             var rigidbody = grabInteractableGO.GetComponent<Rigidbody>();
             // Enable interpolation on the Rigidbody to smooth movement
             rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            
+
             Finalize(grabInteractableGO);
         }
 

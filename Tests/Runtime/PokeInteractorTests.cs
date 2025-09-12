@@ -15,7 +15,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             // Note, since test interactables are 1x1x1 in size, we need a starting pos
             // greater than 1 in any direction to start outside the bounds of the object.
-            
+
             // Valid directions:
             (PokeAxis.X, Vector3.left * 2f, true),
             (PokeAxis.Y, Vector3.down * 2f, true),
@@ -60,7 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var filter = interactable.gameObject.AddComponent<XRPokeFilter>();
             filter.pokeConfiguration.Value.enablePokeAngleThreshold = true;
             filter.pokeConfiguration.Value.pokeDirection = args.axis;
-            
+
             yield return null;
 
             // Need minimum of 7 frames for an accurate velocity check to occur
@@ -115,7 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator PokeInteractorValidTargetsListEmptyWhenInteractorDisabled()
         {
-            // This tests that the poke interactor will return an empty list of valid 
+            // This tests that the poke interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled and
             // will correctly add the target back into the list upon enabling the interactor.
             var manager = TestUtilities.CreateInteractionManager();
@@ -139,7 +139,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
             Assert.That(interactor.hasHover, Is.False);
-            
+
             // Enable interactor GameObject
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
@@ -149,7 +149,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
-            
+
             // Disable interactor
             interactor.enabled = false;
 
@@ -157,7 +157,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
             Assert.That(interactor.hasHover, Is.False);
-            
+
             // Enable interactor
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
@@ -168,11 +168,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
         }
-        
+
         [UnityTest]
         public IEnumerator PokeInteractorValidTargetsRemainEmptyWhenInteractorEnabledWithNoValidPoke()
         {
-            // This tests that the poke interactor will return an empty list of valid 
+            // This tests that the poke interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled
             // while it has a valid target and the valid targets will remain empty
             // when the interactor is enabled again without a valid poke contact.
@@ -197,13 +197,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
             Assert.That(interactor.hasHover, Is.False);
-            
+
             // Position interactor to an invalid poke position and enable interactor GameObject
             interactor.transform.position = Vector3.one * 2;
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
@@ -213,26 +213,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.hasHover, Is.True);
-            
+
             // Disable interactor component
             interactor.enabled = false;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
             Assert.That(interactor.hasHover, Is.False);
-            
+
             // Position interactor to an invalid poke position and enable interactor
             interactor.transform.position = Vector3.one * 2;
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
@@ -242,7 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
@@ -253,7 +253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public IEnumerator PokeInteractorCanUseTargetFilter()
         {
             // This test differs from other target filter tests because the poke interactor processes the target filter on PreProcess, rather than on GetValidTargets.
-            
+
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreatePokeInteractor();
             interactor.requirePokeFilter = false;
@@ -276,7 +276,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Wait 1 frame for next process.
             yield return null;
-            
+
             // Process the filter
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);
@@ -287,13 +287,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Link,
                 TargetFilterCallback.Process,
             }));
-            
+
             // Disable the filter and check if it will no longer be processed
             filter.canProcess = false;
-            
+
             // Wait one frame for next interactor PreProcess to occur
             yield return null;
-            
+
             // Validate that process has not been called
             interactor.GetValidTargets(validTargets);
             Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
@@ -301,14 +301,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Link,
                 TargetFilterCallback.Process,
             }));
-            
+
             yield return null;
 
             // Unlink the filter
             interactor.targetFilter = null;
-            
+
             yield return null;
-            
+
             Assert.That(interactor.targetFilter, Is.EqualTo(null));
             Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
             {
@@ -317,29 +317,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Unlink,
             }));
         }
-        
+
         [UnityTest]
         public IEnumerator PokeInteractorTargetFilterModifiesValidTargets()
         {
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreatePokeInteractor();
             interactor.requirePokeFilter = false;
-            
+
             var interactable = TestUtilities.CreateSimpleInteractable();
-            
+
             var interactable2 = TestUtilities.CreateSimpleInteractable();
             // Put interactable2 slightly further away than interactable
             interactable2.transform.position = new Vector3(0f, 0f, 0.00001f);
-            
+
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             var validTargets = new List<IXRInteractable>();
 
             // Test that normal valid target sorting works
             interactor.GetValidTargets(validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
-            
+
             yield return new WaitForFixedUpdate();
             yield return null;
 
@@ -348,12 +348,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Link the filter
             interactor.targetFilter = filter;
-            
+
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             interactor.GetValidTargets(validTargets);
-            
+
             Assert.That(validTargets, Is.EqualTo(new[] { interactable2 }));
         }
     }

@@ -1,4 +1,4 @@
-﻿#if BURST_PRESENT
+#if BURST_PRESENT
 using Unity.Burst;
 #else
 using System.Runtime.CompilerServices;
@@ -33,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
             return outsideThreshold;
         }
-       
+
         /// <summary>
         /// Returns if a given direction is aligned with a viewer (looking at it)
         /// </summary>

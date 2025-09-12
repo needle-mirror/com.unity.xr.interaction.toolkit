@@ -1,4 +1,4 @@
-﻿using Unity.Mathematics;
+using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Rendering;
 
@@ -70,7 +70,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
             m_MaterialPropertyBlockHelper.GetMaterialPropertyBlock()?.SetVector(m_Vector3Property, (Vector3)newValue);
             base.OnAffordanceValueUpdated(newValue);
         }
-        
+
         /// <inheritdoc/>
         protected override float3 GetCurrentValueForCapture()
         {

@@ -1,4 +1,4 @@
-﻿using Unity.XR.CoreUtils;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Primitives;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
@@ -21,14 +21,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
             /// </summary>
             /// <seealso cref="LineRenderer.startColor"/>
             StartColor,
-            
+
             /// <summary>
             /// Animates Line Renderer end color.
             /// </summary>
             /// <seealso cref="LineRenderer.endColor"/>
             EndColor,
         }
-        
+
         [SerializeField]
         [Tooltip("Line Renderer on which to animate colors.")]
         LineRenderer m_LineRenderer;
@@ -59,7 +59,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
                 CaptureInitialValue();
             }
         }
-        
+
         [SerializeField]
         [Tooltip("Prevent XR Interactor Line Visual from controlling line rendering color if present.")]
         bool m_DisableXRInteractorLineVisualColorControlIfPresent = true;
@@ -130,7 +130,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Receiver.Rendering
         {
             if (initialValueCaptured)
                 return;
-            
+
             m_InitialStartColor = m_LineRenderer.startColor;
             m_InitialEndColor = m_LineRenderer.endColor;
             base.CaptureInitialValue();

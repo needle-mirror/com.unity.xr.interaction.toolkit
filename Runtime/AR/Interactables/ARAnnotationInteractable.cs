@@ -6,7 +6,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls displaying one or more annotations when hovering over the <see cref="GameObject"/> this component is attached to.
     /// </summary>
-    public class ARAnnotationInteractable {}
+    public class ARAnnotationInteractable { }
 }
 
 #else

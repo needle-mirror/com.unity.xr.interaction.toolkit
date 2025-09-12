@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -141,7 +142,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 
             var touchOffsetRatio = Mathf.Clamp01(angle / 90f);
             var screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
-            screenPosition.y += GestureTouchesUtility.InchesToPixels(screenTouchOffset);
+            screenPosition.y += DisplayUtility.InchesToPixels(screenTouchOffset);
 
             var hoverRatio = Mathf.Clamp01(angle / 45f);
             hoverOffset *= hoverRatio;

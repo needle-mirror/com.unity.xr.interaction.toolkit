@@ -40,7 +40,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         /// We normally checked 1% as the activation point, but setting it to 2.5 % makes things feel a bit more responsive.
         /// </summary>
         const float k_DepthPercentActivationThreshold = 0.025f;//0.05f;
-        
+
         /// <summary>
         /// We require a minimum velocity for poke hover conditions to be met, and avoid the noise of tracking jitter.
         /// </summary>
@@ -60,7 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             m_SelectEntranceVectorDotThreshold = pokeThresholdData.GetSelectEntranceVectorDotThreshold();
 
             if (collider != null)
-            {             
+            {
                 interactionAxisLength = ComputeInteractionAxisLength(ComputeBounds(collider));
             }
             ResetPokeStateData(m_InitialTransform);
@@ -116,10 +116,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             float entranceVectorDot = Vector3.Dot(axisNormal, interactionPointOffset.normalized);
             float entranceVectorDotSign = Mathf.Sign(entranceVectorDot);
             bool isOverObject = entranceVectorDot > 0f;
-            
+
             float depthPercent = entranceVectorDotSign * interactionDepth / interactionAxisLength;
             float clampedDepthPercent = Mathf.Clamp01(depthPercent);
-            
+
             // Compare with hover pose, to ensure interaction started on the right side of the interaction bounds
             bool meetsHoverRequirements = true;
             if (m_PokeThresholdData.enablePokeAngleThreshold)
@@ -128,13 +128,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 // This allows us to hold a button without moving.
                 if (!m_HoldingHoverCheck.ContainsKey(interactor))
                     m_HoldingHoverCheck[interactor] = false;
-                
+
                 if (!m_HoldingHoverCheck[interactor])
                 {
                     if (isOverObject)
                     {
                         // Ensure the object's hover started from the right side of the object
-                        if(m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition))
+                        if (m_LastHoverEnterLocalPosition.TryGetValue(interactor, out var hoverLocalPosition))
                         {
                             // Restore the world space pos of the hover enter point relative to the hovered transform.
                             var hoverWorldPos = m_LastHoveredTransform[interactor].TransformPoint(hoverLocalPosition);
@@ -174,13 +174,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             {
                 clampedDepthPercent = 1f;
             }
-            
+
             // Either depth lines up, or we've moved passed the goal post after passing the hover check
             bool meetsRequirements = meetsHoverRequirements && clampedDepthPercent < k_DepthPercentActivationThreshold;
-            
+
             // Store holding hover check for this interactor
             m_HoldingHoverCheck[interactor] = meetsHoverRequirements;
-            
+
             m_LastInteractorPressDepth[interactor] = clampedDepthPercent;
 
             // If multiple interactors are poking this transform, we only want to allow the one that is deepest to select.
@@ -195,7 +195,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                         var hoveringInteractor = hoveringInteractorsList[i];
                         if (hoveringInteractor == interactor)
                             continue;
-                        
+
                         // If something else deeper, we don't allow this interactor to broadcast it's press depth.
                         var otherInteractorPressDepth = m_LastInteractorPressDepth[hoveringInteractor];
                         if (otherInteractorPressDepth < clampedDepthPercent)
@@ -203,14 +203,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                     }
                 }
             }
-            
+
             // Remove offset from visual callback to better match the actual poke position.
             var offsetRemoval = depthPercent < 1f && !meetsRequirements ? combinedOffset : 0f;
 
             // Update poke state data for affordances
             var axisDepth = meetsRequirements ? 0f : meetsHoverRequirements ? clampedDepthPercent : 1f;
             var clampedPokeDepth = Mathf.Clamp(axisDepth * interactionAxisLength + offsetRemoval, 0f, interactionAxisLength);
-            
+
             m_PokeStateData.Value = new PokeStateData
             {
                 meetsRequirements = meetsRequirements,
@@ -307,10 +307,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         public void OnHoverEntered(object interactor, Pose updatedPose, Transform pokedTransform)
         {
             m_LastHoveredTransform[interactor] = pokedTransform;
-            
+
             // Store hovered point in local space relative to the poked transform in case the transform moves.
             m_LastHoverEnterLocalPosition[interactor] = pokedTransform.InverseTransformPoint(updatedPose.position);
-            
+
             m_LastInteractorPressDepth[interactor] = 1f;
             m_HoldingHoverCheck[interactor] = false;
 
@@ -337,7 +337,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             {
                 if (m_HoveredInteractorsOnThisTransform.TryGetValue(lastTransform, out var hoveringInteractors))
                     hoveringInteractors.Remove(interactor);
-                
+
                 ResetPokeStateData(lastTransform);
                 m_LastHoveredTransform.Remove(interactor);
             }

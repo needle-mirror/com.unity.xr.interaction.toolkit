@@ -1,4 +1,4 @@
-﻿# Grab Move Provider
+# Grab Move Provider
 
 Locomotion provider that allows the user to move as if grabbing the whole world around them. When the controller moves, the XR Origin counter-moves in order to keep the controller fixed relative to the world.
 

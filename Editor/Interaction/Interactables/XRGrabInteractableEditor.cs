@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
@@ -375,9 +375,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     }
                 }
             }
-            
+
             EditorGUILayout.PropertyField(m_TrackScale, Contents.trackScale);
-            
+
             if (m_TrackScale.boolValue)
             {
                 using (new EditorGUI.IndentLevelScope())

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             get => m_Value;
             set => m_Value = value;
         }
-        
+
         [SerializeField]
         bool m_Active;
 

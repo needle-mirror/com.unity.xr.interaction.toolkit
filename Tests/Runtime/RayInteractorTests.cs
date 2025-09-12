@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -58,11 +59,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
         }
-        
+
         [UnityTest]
         public IEnumerator RayInteractorValidTargetsListEmptyWhenInteractorDisabled()
         {
-            // This tests that the ray interactor will return an empty list of valid 
+            // This tests that the ray interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled and
             // will correctly add the target back into the list upon enabling the interactor
             var manager = TestUtilities.CreateInteractionManager();
@@ -80,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
-            
+
             // Disable interactor GameObject
             interactor.gameObject.SetActive(false);
 
@@ -88,7 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Enable interactor GameObject
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
@@ -105,7 +106,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Enable interactor component
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
@@ -119,7 +120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator RayInteractorValidTargetsRemainEmptyWhenInteractorEnabledWithNoRayHit()
         {
-            // This tests that the ray interactor will return an empty list of valid 
+            // This tests that the ray interactor will return an empty list of valid
             // targets when the interactor component or the GameObject is disabled
             // while it has a valid target and the valid targets will remain empty
             // when the interactor is enabled again facing away from the interactable.
@@ -138,7 +139,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
-            
+
             // Disable interactor GameObject
             interactor.gameObject.SetActive(false);
 
@@ -146,8 +147,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
-            // Face interactor away from valid target and enable interactor GameObject 
+
+            // Face interactor away from valid target and enable interactor GameObject
             interactor.transform.forward = Vector3.back;
             interactor.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
@@ -157,12 +158,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
+
             // Face interactor towards the valid target
             interactor.transform.forward = Vector3.forward;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
@@ -174,13 +175,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
             Assert.That(interactor.interactablesHovered, Is.Empty);
-            
-            // Face interactor away from valid target and enable interactor 
+
+            // Face interactor away from valid target and enable interactor
             interactor.transform.forward = Vector3.back;
             interactor.enabled = true;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.Empty);
             Assert.That(interactor.interactablesSelected, Is.Empty);
@@ -190,7 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.forward = Vector3.forward;
             yield return new WaitForFixedUpdate();
             yield return null;
-            
+
             manager.GetValidTargets(interactor, validTargets);
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
@@ -988,6 +989,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
+        public IEnumerator RayInteractorTryGetHitInfoReturnsHighestScoredInteractable([ValueSource(nameof(s_RayInteractorTypes))] Type rayInteractorType)
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXROrigin();
+            var interactor = CreateRayInteractor(rayInteractorType);
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var frontInteractable = TestUtilities.CreateSimpleInteractable();
+            frontInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
+            frontInteractable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+            var backInteractable = TestUtilities.CreateSimpleInteractable();
+            backInteractable.allowGazeInteraction = rayInteractorType == typeof(XRGazeInteractor);
+            backInteractable.transform.position = interactor.transform.position + interactor.transform.forward * 8.0f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.That(frontInteractable.isHovered, Is.True);
+            Assert.That(backInteractable.isHovered, Is.True);
+
+            // Check valid targets
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { frontInteractable, backInteractable }));
+
+            // Create the filter
+            var targetFilter = TestUtilities.CreateTargetFilter();
+            var distEvaluator = targetFilter.AddEvaluator<XRDistanceEvaluator>();
+            distEvaluator.maxDistance = 10.0f;
+
+            // Configure target filter to invert distance weight
+            foreach (var key in distEvaluator.weight.keys)
+                distEvaluator.weight.RemoveKey(0);
+
+            distEvaluator.weight.AddKey(0.0f, 1.0f);
+            distEvaluator.weight.AddKey(1.0f, 0.0f);
+
+            // Link the filter
+            interactor.targetFilter = targetFilter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(targetFilter));
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Process the filter
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(targetFilter));
+            Assert.That(validTargets, Is.EqualTo(new[] { backInteractable, frontInteractable }));
+
+            // Compare target filter processed results
+            interactor.TryGetHitInfo(out var pos, out var norm, out var posInLine, out var isValid); // Returns info for back interactable
+            interactor.TryGetCurrent3DRaycastHit(out var raycastHit); // Returns info for front interactable
+            Assert.That(validTargets[0], Is.EqualTo(backInteractable));
+            Assert.That(raycastHit.point, Is.Not.EqualTo(pos));
+            Assert.That(pos, Is.EqualTo(backInteractable.transform.position - Vector3.forward));
+        }
+
+        [UnityTest]
         public IEnumerator RayInteractorCanSelectInteractorWithSnapVolume()
         {
             var manager = TestUtilities.CreateInteractionManager();
@@ -1000,7 +1058,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             snapVolume.interactable = interactable;
             snapVolume.snapToCollider = interactable.colliders[0];
             snapVolume.transform.position = interactable.transform.position;
-            
+
             var controller = interactor.GetComponent<XRController>();
             var controllerRecorder = TestUtilities.CreateControllerRecorder(controller, (recording) =>
             {

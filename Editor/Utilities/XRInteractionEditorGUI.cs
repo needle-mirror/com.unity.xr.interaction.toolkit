@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,7 +30,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         }
 
         static readonly int k_PropertyMaskField = nameof(k_PropertyMaskField).GetHashCode();
-        
+
         static void SetPropertyMask(System.Object parameter)
         {
             if (!(parameter is SetPropertyMaskParameter setPropertyMaskParameter))
@@ -69,7 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 
             return displayedMaskContent;
         }
-        
+
         /// <summary>
         /// Returns true if the event is a main keyboard action for the supplied control id.
         /// </summary>
@@ -80,7 +80,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         {
             if (GUIUtility.keyboardControl != controlId)
                 return false;
-            
+
             var modifier = evt.alt || evt.shift || evt.command || evt.control;
             return evt.type == EventType.KeyDown && (evt.keyCode == KeyCode.Space || evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter) && !modifier;
         }
@@ -95,7 +95,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         /// <param name="displayOptions">A string array containing the labels for each flag.</param>
         /// <param name="valueOptions">An integer list containing the value (or bit index) for each flag.</param>
         /// <param name="onAddLayerCallback">Optional callback called when users select the add layer option.</param>
-        internal static void PropertyMaskField(Rect position, GUIContent label, SerializedProperty property, 
+        internal static void PropertyMaskField(Rect position, GUIContent label, SerializedProperty property,
             IList<string> displayOptions, IList<int> valueOptions, GenericMenu.MenuFunction onAddLayerCallback = null)
         {
             // draw the property label
@@ -121,27 +121,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
                 }
 
                 CalculateMaskValues(mask, valueOptions, out var optionMaskValues);
-             
+
                 // show the interaction layer options menu
                 var menu = new GenericMenu();
                 menu.AddItem(Contents.nothing, mask == 0, SetPropertyMask, new SetPropertyMaskParameter(0, property));
                 menu.AddItem(Contents.everything, mask == -1, SetPropertyMask, new SetPropertyMaskParameter(-1, property));
-                
+
                 var size = Mathf.Min(displayOptions.Count, valueOptions.Count);
                 for (var i = 0; i < size; i++)
                 {
                     var displayedOption = displayOptions[i];
                     var optionMaskValue = valueOptions[i];
-                
+
                     menu.AddItem(new GUIContent(displayedOption), (mask & optionMaskValue) != 0, SetPropertyMask, new SetPropertyMaskParameter(optionMaskValues[i + 2], property));
                 }
-                
+
                 if (onAddLayerCallback != null)
                 {
                     menu.AddSeparator("");
                     menu.AddItem(Contents.addLayer, false, onAddLayerCallback);
                 }
-                
+
                 menu.DropDown(position);
                 GUIUtility.keyboardControl = controlId;
             }
@@ -153,10 +153,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
             // Account for "Nothing" and "Everything" options
             var bufferLength = valueOptions.Count + 2;
             var numberOfUserLayers = valueOptions.Count;
-            
+
             var totalMaskValue = 0;
             var selectedOptionsMaskValue = 0;
-            // Calculate mask for selected options 
+            // Calculate mask for selected options
             for (var index = 0; index < numberOfUserLayers; ++index)
             {
                 var flagValue = valueOptions[index];
@@ -167,7 +167,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 
             layerMaskValues = new int[bufferLength];
             layerMaskValues[0] = 0; // Default mask value for "Nothing"
-            layerMaskValues[1] = -1; // Default mask value for "Everything" 
+            layerMaskValues[1] = -1; // Default mask value for "Everything"
 
             for (var valueOptionIndex = 0; valueOptionIndex < numberOfUserLayers; ++valueOptionIndex)
             {

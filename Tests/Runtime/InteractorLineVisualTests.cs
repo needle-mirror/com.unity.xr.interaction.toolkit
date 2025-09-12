@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -16,16 +16,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRRayInteractor.LineType.ProjectileCurve,
             XRRayInteractor.LineType.BezierCurve,
         };
-        
+
         static readonly Quaternion[] k_ValidSnapRotations =
         {
             Quaternion.Euler(0f, 5f, 0f),
             Quaternion.Euler(5f, -5f, 0f),
             Quaternion.Euler(0f, 0f, 0f),
         };
-        
+
         static readonly Quaternion k_InvalidSnapRotation = Quaternion.Euler(0f, 90f, 0f);
-        
+
         static readonly Gradient k_InvalidColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.red, 0f), new GradientColorKey(Color.red, 1f) },
@@ -94,7 +94,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validReticle.activeSelf, Is.False);
             Assert.That(blockedReticle.activeSelf, Is.True);
         }
-        
+
         [UnityTest]
         public IEnumerator LineVisualSnapsToSnapVolume([ValueSource(nameof(s_LineTypes))] XRRayInteractor.LineType lineType)
         {
@@ -125,13 +125,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             snapVolume.interactable = interactable;
             snapVolume.snapToCollider = interactable.colliders[0];
             snapVolume.transform.position = interactable.transform.position;
-            
+
             // Turn interactor away from interactable
             interactor.transform.rotation = k_InvalidSnapRotation;
             yield return null;
 
             // Confirm we're not hitting anything
-            var isHitInfoValid =  interactor.TryGetHitInfo(out var hp, out _, out var hitPositionInLine, out var isValidTarget);
+            var isHitInfoValid = interactor.TryGetHitInfo(out var hp, out _, out var hitPositionInLine, out var isValidTarget);
             Assert.That(isHitInfoValid, Is.False);
             Assert.That(isValidTarget, Is.False);
             Assert.That(hitPositionInLine, Is.EqualTo(0));
@@ -155,7 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                     Assert.That(isValidTarget, Is.True);
                     var closestPoint = snapVolume.GetClosestPoint(hitPosition);
                     yield return null;
-                
+
                     lineRenderer.GetPositions(renderedPoints);
                     Assert.That(closestPoint, Is.EqualTo(renderedPoints.Last()).Using(Vector3ComparerWithEqualsOperator.Instance));
                 }
