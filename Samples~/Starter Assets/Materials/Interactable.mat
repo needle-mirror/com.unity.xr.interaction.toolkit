@@ -34,15 +34,14 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Interactable
-  m_Shader: {fileID: -6465566751694194690, guid: 0927d29e476ce5843b1f7d2a96943c51, type: 3}
+  m_Shader: {fileID: 4800000, guid: b24c216c4acb0094c892a61dfbbb76b4, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap:
-    RenderType: Opaque
+  stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3

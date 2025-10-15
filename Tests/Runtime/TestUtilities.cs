@@ -9,6 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
@@ -80,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return interactor;
         }
 
-        internal static NearFarInteractor CreateNearFarInteractorWithXROrigin(out Camera camera)
+        internal static NearFarInteractor CreateNearFarInteractorWithXROrigin(out Camera camera, bool enableStabilization = false)
         {
             var xrOrigin = CreateXROrigin();
             camera = xrOrigin.Camera;
@@ -93,6 +94,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             NearFarInteractor interactor = interactorGO.AddComponent<NearFarInteractor>();
             interactor.handedness = InteractorHandedness.Left;
+
+            if (enableStabilization)
+            {
+                interactor.GetComponent<CurveInteractionCaster>().enableStabilization = true;
+                interactor.GetComponent<SphereInteractionCaster>().enableStabilization = true;
+            }
 
             return interactor;
         }

@@ -487,6 +487,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         }
 
         /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            if (m_AnchorParent != null)
+                Destroy(m_AnchorParent.gameObject);
+        }
+
+        /// <summary>
         /// Update the parent anchor pose to match the transform to follow.
         /// </summary>
         void SyncAnchorParent()

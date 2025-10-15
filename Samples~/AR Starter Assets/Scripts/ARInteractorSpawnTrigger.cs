@@ -1,10 +1,10 @@
 #if AR_FOUNDATION_PRESENT
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 {
@@ -41,19 +41,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         {
             get => m_ARInteractor;
             set => m_ARInteractor = value;
-        }
-
-        [SerializeField]
-        [Tooltip("The behavior to use to spawn objects.")]
-        ObjectSpawner m_ObjectSpawner;
-
-        /// <summary>
-        /// The behavior to use to spawn objects.
-        /// </summary>
-        public ObjectSpawner objectSpawner
-        {
-            get => m_ObjectSpawner;
-            set => m_ObjectSpawner = value;
         }
 
         [SerializeField]
@@ -109,6 +96,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             set => m_BlockSpawnWhenInteractorHasSelection = value;
         }
 
+        /// <summary>
+        /// Calls the methods in its invocation list when an object is spawned.
+        /// </summary>
+        /// <remarks>
+        /// The first event parameter corresponds to the spawn position in world space
+        /// and the second event parameter corresponds to the vector normal to the surface.
+        /// </remarks>
+        public UnityEvent<Vector3, Vector3> objectSpawnTriggered
+        {
+            get => m_ObjectSpawnTriggered;
+            set => m_ObjectSpawnTriggered = value;
+        }
+
+        [Header("Events")]
+        [SerializeField]
+        [Tooltip("Calls the methods in its invocation list when an object is spawned.")]
+        UnityEvent<Vector3, Vector3> m_ObjectSpawnTriggered = new UnityEvent<Vector3, Vector3>();
+
         bool m_AttemptSpawn;
         bool m_EverHadSelection;
 
@@ -133,13 +138,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         /// </summary>
         void Start()
         {
-            if (m_ObjectSpawner == null)
-#if UNITY_2023_1_OR_NEWER
-                m_ObjectSpawner = FindAnyObjectByType<ObjectSpawner>();
-#else
-                m_ObjectSpawner = FindObjectOfType<ObjectSpawner>();
-#endif
-
             if (m_ARInteractor == null)
             {
                 Debug.LogError("Missing AR Interactor reference, disabling component.", this);
@@ -174,7 +172,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
                     if (m_RequireHorizontalUpSurface && arPlane.alignment != PlaneAlignment.HorizontalUp)
                         return;
 
-                    m_ObjectSpawner.TrySpawnObject(arRaycastHit.pose.position, arPlane.normal);
+                    m_ObjectSpawnTriggered.Invoke(arRaycastHit.pose.position, arPlane.normal);
                 }
 
                 return;

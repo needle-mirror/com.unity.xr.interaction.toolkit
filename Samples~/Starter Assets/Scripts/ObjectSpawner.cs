@@ -177,6 +177,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         }
 
         /// <summary>
+        /// Sets the <see cref="spawnOptionIndex"/> so that a specific object will spawn. If the index is out
+        /// of bounds of the list defined in <see cref="objectPrefabs"/>, the index will not be changed.
+        /// </summary>
+        /// <param name="index">Index of the object to be spawned.</param>
+        /// <seealso cref="objectPrefabs"/>
+        /// <seealso cref="spawnOptionIndex"/>
+        public void SetSpawnObjectIndex(int index)
+        {
+            if (index < m_ObjectPrefabs.Count)
+                m_SpawnOptionIndex = index;
+            else
+                Debug.LogWarning("Object index specified larger than number of Object Prefabs.", this);
+        }
+
+        /// <summary>
         /// Attempts to spawn an object from <see cref="objectPrefabs"/> at the given position. The object will have a
         /// yaw rotation that faces <see cref="cameraToFace"/>, plus or minus a random angle within <see cref="spawnAngleRange"/>.
         /// </summary>
@@ -200,6 +215,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 if (pointInViewportSpace.z < 0f || pointInViewportSpace.x > inViewMax || pointInViewportSpace.x < inViewMin ||
                     pointInViewportSpace.y > inViewMax || pointInViewportSpace.y < inViewMin)
                 {
+                    Debug.LogWarning("Object spawn point out of view and OnlySpawnInView is set to true.", this);
                     return false;
                 }
             }
@@ -232,6 +248,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
 
             objectSpawned?.Invoke(newObject);
             return true;
+        }
+
+        /// <summary>
+        /// Attempts to spawn an object from <see cref="objectPrefabs"/> at the given position. The object will have a
+        /// yaw rotation that faces <see cref="cameraToFace"/>, plus or minus a random angle within <see cref="spawnAngleRange"/>.
+        /// </summary>
+        /// <param name="spawnPoint">The world space position at which to spawn the object.</param>
+        /// <param name="spawnNormal">The world space normal of the spawn surface.</param>
+        /// <remarks>
+        /// The object selected to spawn is based on <see cref="spawnOptionIndex"/>. If the index is outside
+        /// the range of <see cref="objectPrefabs"/>, this method will select a random prefab from the list to spawn.
+        /// Otherwise, it will spawn the prefab at the index.
+        /// </remarks>
+        /// <seealso cref="objectSpawned"/>
+        public void SpawnObject(Vector3 spawnPoint, Vector3 spawnNormal)
+        {
+            if (!TrySpawnObject(spawnPoint, spawnNormal))
+                Debug.LogWarning("Could not spawn object.", this);
         }
     }
 }

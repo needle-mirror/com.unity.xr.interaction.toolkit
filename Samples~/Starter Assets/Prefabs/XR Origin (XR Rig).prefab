@@ -1142,6 +1142,7 @@ MonoBehaviour:
   m_TransformationPriority: 0
   m_ProvidersToDisable:
   - {fileID: 7054646180837666701}
+  - {fileID: 153982007679157697}
   m_EnableGravityOnClimbEnd: 1
   m_ClimbSettings:
     m_UseConstant: 1

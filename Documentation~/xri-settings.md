@@ -23,7 +23,7 @@ The XR Interaction Toolkit provides a few settings that modify Editor and runtim
 
 ### Interaction Simulator Settings
 
-These settings control the [Interaction Simulator](xref:xri-xr-interaction-simulator-overview), which you can install from the Package Manager window with the [XR Device Simulator](xref:xri-samples-xr-device-simulator) sample.
+These settings control the [XR Interaction Simulator](xref:xri-xr-interaction-simulator-overview) and the [XR Device Simulator (Legacy)](xref:xri-samples-xr-device-simulator), which are package samples that you can [install](xref:xri-installation#installing-samples) from the Package Manager window.
 
 * **Use XR Interaction Simulator in scenes**
 
@@ -44,7 +44,7 @@ These settings control the [Interaction Simulator](xref:xri-xr-interaction-simul
 <a name ="editor-settings"></a>
 ### Editor Settings
 
-The **Input Reader Property Drawer Mode** setting modifies how some input-related Inspector properties are shown in the Editor. You have the following options:
+The **Input Reader Property Drawer Mode** setting modifies how some [input-related Inspector properties](xref:xri-configure-input-system) are shown in the Editor. You have the following options:
 
 * **Compact**: the most condensed option. **Input Source Mode** options are available through a &vellip; menu icon. Only settings for the selected source mode are shown.
 

@@ -86,6 +86,9 @@ Interactable component that allows for basic grab functionality. When this behav
 
 This XR Grab Interactable behavior is responsible for applying the position, rotation, and local scale calculated by one or more [IXRGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.IXRGrabTransformer) implementations. The (xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRGeneralTransformer) grab transformer is automatically added by Unity (when **Add Default Grab Transformers** is enabled), but this functionality can be disabled to manually set the grab transformers used by this behavior, allowing you to customize how this component determines where the object should move and rotate to. This default grab transformer also comes with a set of configurable options to allow axis constraints for translation, two-handed rotation, and two-handed scaling (which is disabled by default).
 
+> [!NOTE]
+> While using the Unity Editor to test your interactions and if the **XR Grab Interactable** is using an **XR General Grab Transformer**, modifying the **Attach Transform** position during Play Mode will not be reflected immediately during the current frame similar to how other Grab Transformers work. This is usually seen or detected when pausing playback and attempting manual manipulation of the Transform assigned to the Attach Transform property.
+
 Grab transformer components can be added to the GameObject to link them with the XR Grab Interactable. They can be found in the **Component** &gt; **XR** &gt; **Transformers** menu. You can then add references to those components explicitly to **Starting Single Grab Transformers** or **Starting Multiple Grab Transformers** if you have more than one and need to specify the order in which they execute, or if you need to override which list the grab transformer is automatically added to.
 
 <a id="stutter"></a>

@@ -5,9 +5,10 @@ uid: xri-samples-starter-assets
 
 This sample is installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\Starter Assets` folder. You can move these Assets to a different location.
 
-This sample contains an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@8/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input. This sample also includes XR Origin, teleport, and interactable sample prefabs.
-
-This sample also contains [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
+This sample contains:
+* an [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
+* XR Origin, teleport, and interactable sample prefabs.
+* [Presets](https://docs.unity3d.com/Manual/Presets.html) for behaviors that use actions to streamline their configuration.
 
 > [!IMPORTANT]
 > There is a known issue when upgrading from an older version of the Starter Assets to a newer version. Script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` folder from your `Samples` directory before importing the new Starter Assets sample package.
@@ -122,6 +123,7 @@ The following scripts are included to support the prefabs and `DemoScene`.
 |**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
 |**`ObjectSpawner`**|Component with an API for spawning objects from a given set of prefabs. This component has additional options to constrain when spawning happens and behavior of object when spawned.|
 |**`RotationAxisLockGrabTransformer`**|An XR grab transformer that allows for the locking of specific rotation axes.|
+|**`ToggleComponentZone`**|Component used to enable/disable components or activate/deactivate GameObjects upon entry into a trigger collider.|
 |**`XRPokeFollowAffordance`**|Component used to animate a Transform to follow the poke position. Used by poke buttons in the `DemoScene`. Note, when configuring a UI button with `XRPokeFollowAffordance`, ensure there is a component on that same GameObject which can be a raycast target (i.e. `Image`, `Raw Image`, `Text`) and have `Raycast Target` set to `true`. Additionally, ensure `Raycast Target` is set to `false` on any `Text` or `Image` components on children GameObjects under the `XRPokeFollowAffordance` GameObject. See the touchpad in the [Hands Demo](samples-hands-interaction-demo.md) scene for an example.|
 
 ## Prefabs

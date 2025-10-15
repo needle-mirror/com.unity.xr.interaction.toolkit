@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.3.0-pre.1",
+  "version": "3.3.0",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -39,12 +39,12 @@
     },
     {
       "displayName": "XR Interaction Simulator",
-      "description": "Assets related to the simulation of XR HMD, controllers and interaction.",
+      "description": "Assets related to the simulation of input for XR headsets, controllers, and hands.",
       "path": "Samples~/XR Interaction Simulator"
     },
     {
       "displayName": "XR Device Simulator",
-      "description": "(Legacy) Assets related to the simulation of XR HMD and controllers.",
+      "description": "(Legacy) Assets related to the simulation of input for XR headsets, controllers, and hands. This is the older \"classic\" version of the simulator that existed before the XR Interaction Simulator sample was introduced and lacks many of the newer features.",
       "path": "Samples~/XR Device Simulator"
     },
     {
@@ -69,15 +69,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added ability to control the order that interactables are processed (`IXRInteractable.ProcessInteractable`). See [Processing interactables](xref:xri-architecture#processing-interactables) in the Interaction overview manual page for more information.\n  - Added new methods to [`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager) to set parent interactable dependencies which determine which interactables must be processed before another interactable. Use `RegisterParentRelationship` to register a parent interactable and `GetParentRelationships` to query the registered parent interactables.\n  - Added Parent Interactable and Auto Find Parent Interactable properties to interactors and interactables to register the component's parent interactable dependency when the component is registered with the XR Interaction Manager. Custom components that do not derive from [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) can implement [`IXRParentInteractableLinker`](xref:UnityEngine.XR.Interaction.Toolkit.IXRParentInteractableLinker) to enable this functionality.\n  - Added Parent Interactable column to the XR Interaction Debugger window to show registered and inherited parent interactables.\n\n### Changed\n- Changed the `public` `SelectEnter`, `HoverEnter`, and `FocusEnter` methods in `XRInteractionManager` to check conditions before allowing the state change and log a warning if it wasn't allowed. Added new `public` methods `SelectEnterUnconditionally`, `HoverEnterUnconditionally`, and `FocusEnterUnconditionally` that replicate the old functionality. ([XRIT-261](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-261))\n  - Conditions include whether the interactor and interactable are registered with that manager, whether the interaction layer masks are compatible, and whether filters allow the operation. See `IsSelectPossible`, `IsHoverPossible`, and `IsFocusPossible` for exact conditions.\n  - This change means that `XRBaseInteractor.StartManualInteraction` and `XRBaseInteractor.startingSelectedInteractable` which use the `public` `XRInteractionManager.SelectEnter` method can cause the select to be prevented.\n  - Users that override those existing `public virtual` methods may need to override the new `-Unconditionally` methods in addition or instead since now only the new methods are invoked during the update loop of the manager.\n- Changed XR Socket Interactor to draw the interactable hover mesh during `LateUpdate` instead of `Update` to allow interactables to process first.\n- Changed the XR Interaction Debugger window to show the interactors and interactables in the order that they are processed instead of alphabetically."
+    "changelog": "### Added\n- Added `ToggleComponentZone` sample script to activate/deactivate the Gaze Interactor GameObjects when entering a trigger collider to prevent unintentional gaze-based selection in the rest of the scene. This component was added to the Starter Assets and implemented in the `DemoScene` at the re-added \"Gaze Interactable Objects\" station. (Forward port from 2.6.5)\n\n### Changed\n- Changed the Climb Provider component in the `XR Origin (XR Rig)` prefab in the Starter Assets sample to also disable the Move provider when climbing.\n- Changed the `DemoScene` in Starter Assets to disable the Gaze Interactor by default so it is not causing accidental selection of interactables based on head movement.\n\n### Fixed\n- Fixed an issue where pinching with the Hand Interaction Profile caused the Interactables to stick to the thumb longer than desired, moving the object after a pinch was released. The `ReleaseThresholdButtonReader` sample component was updated with new default values to ensure tighter press and release when pinching. ([XRIT-334](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-334))\n- Fixed the Near-Far Interactor components to destroy the `Attach` and `Stabilization Cast Origin` GameObjects under the XR Origin that it creates when it is destroyed. This fix added new `OnDestroy` methods to [`InteractionCasterBase`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase) and [`InteractionAttachController`](xref:UnityEngine.XR.Interaction.Toolkit.Attachment.InteractionAttachController). Users who had already implemented either method in derived classes will need to call the base method. ([XRIT-322](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-322))\n- Fixed a compiler issue with the `KeyboardOptimizer` sample component that occurs when TextMeshPro or Unity UI packages are not installed.\n- Fixed an issue with the **AR Starter Assets** spawning components, where a compiler dependency on the `ObjectSpawner` component in **Starter Assets** was causing an inability to run Project Validation rules to import the required sample dependency.\n- Fixed hand prefabs in the `Hands Interaction Demo` sample that were based on the hand models from the XR Hands `HandVisualizer` sample. The new prefabs are built as a prefab variant, allowing smoother upgrade when the underlying models are updated. (Backport from 3.4.0-pre.1)"
   },
   "upmCi": {
-    "footprint": "bd9d65ce536122cd7803c61751957de8e1575791"
+    "footprint": "fe78342ef871c0170e4e4b8dc0f99091a23c5684"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.3/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "d6f2af9a0fe43d321e9b2e39909d86c0d50d408f"
+    "revision": "9b51c6c81a5799a07b93e26e17b760291608c9c9"
   }
 }

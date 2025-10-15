@@ -27,8 +27,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
 #if UNITY_6000_0_OR_NEWER
         const string k_UIPackageName = "com.unity.ugui";
+        const string k_UIPackageDisplayName = "Unity UI";
 #else
         const string k_UIPackageName = "com.unity.textmeshpro";
+        const string k_UIPackageDisplayName = "TextMeshPro";
 #endif
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
@@ -57,7 +59,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
             new BuildValidationRule
             {
                 IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
-                Message = $"[{k_SampleDisplayName}] UGUI ({k_UIPackageName}) package must be installed for this sample.",
+                Message = $"[{k_SampleDisplayName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed for this sample.",
                 Category = k_Category,
                 CheckPredicate = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName),
                 FixIt = () =>

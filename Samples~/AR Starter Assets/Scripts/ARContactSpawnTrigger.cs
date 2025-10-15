@@ -1,8 +1,8 @@
 #if AR_FOUNDATION_PRESENT
+using UnityEngine.Events;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 {
@@ -12,19 +12,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
     [RequireComponent(typeof(Rigidbody))]
     public class ARContactSpawnTrigger : MonoBehaviour
     {
-        [SerializeField]
-        [Tooltip("The behavior to use to spawn objects.")]
-        ObjectSpawner m_ObjectSpawner;
-
-        /// <summary>
-        /// The behavior to use to spawn objects.
-        /// </summary>
-        public ObjectSpawner objectSpawner
-        {
-            get => m_ObjectSpawner;
-            set => m_ObjectSpawner = value;
-        }
-
         [SerializeField]
         [Tooltip("If enabled, spawning will be blocked if the active interactor in the associated XR Interaction Group is hovering or selecting an interactable object.")]
         bool m_BlockSpawnDuringInteraction;
@@ -67,6 +54,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
         }
 
         /// <summary>
+        /// Calls the methods in its invocation list when an object is spawned.
+        /// </summary>
+        /// <remarks>
+        /// The first event parameter corresponds to the spawn position in world space
+        /// and the second event parameter corresponds to the vector normal to the surface.
+        /// </remarks>
+        public UnityEvent<Vector3, Vector3> objectSpawnTriggered
+        {
+            get => m_ObjectSpawnTriggered;
+            set => m_ObjectSpawnTriggered = value;
+        }
+
+        [Header("Events")]
+        [SerializeField]
+        [Tooltip("Calls the methods in its invocation list when an object is spawned.")]
+        UnityEvent<Vector3, Vector3> m_ObjectSpawnTriggered = new UnityEvent<Vector3, Vector3>();
+
+        /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         void Start()
@@ -77,18 +82,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 
                 if (m_BlockSpawnDuringInteraction && m_InteractionGroup == null)
                     Debug.LogWarning("Interaction group could be found. Spawning objects will not be blocked during hover or select interaction.", this);
-            }
-
-            if (m_ObjectSpawner == null)
-            {
-#if UNITY_2023_1_OR_NEWER
-                m_ObjectSpawner = FindAnyObjectByType<ObjectSpawner>();
-#else
-                m_ObjectSpawner = FindObjectOfType<ObjectSpawner>();
-#endif
-
-                if (m_ObjectSpawner == null)
-                    Debug.LogWarning("Object spawner could not be found. AR Contact Spawn Trigger will be unable to spawn objects.", this);
             }
         }
 
@@ -103,7 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
 
             var infinitePlane = new Plane(surfaceNormal, surfacePosition);
             var contactPoint = infinitePlane.ClosestPointOnPlane(transform.position);
-            m_ObjectSpawner.TrySpawnObject(contactPoint, surfaceNormal);
+            m_ObjectSpawnTriggered.Invoke(contactPoint, surfaceNormal);
         }
 
         /// <summary>

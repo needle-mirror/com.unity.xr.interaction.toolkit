@@ -955,5 +955,43 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 TargetFilterCallback.Process
             }));
         }
+
+        [UnityTest]
+        public IEnumerator TestNearFarInteractorCreateAndDestroyCleanup([ValueSource(nameof(s_BooleanValues))] bool enableStabilization)
+        {
+            TestUtilities.CreateInteractionManager();
+
+            // Create interactor and enable stabilization on the casters if configured this test case
+            var interactor = TestUtilities.CreateNearFarInteractorWithXROrigin(out _, enableStabilization);
+
+            yield return null;
+
+            var nearCastOrigin = interactor.nearInteractionCaster.castOrigin;
+            var farCastOrigin = interactor.farInteractionCaster.castOrigin;
+            var effectiveNearOrigin = interactor.nearInteractionCaster.effectiveCastOrigin;
+            var effectiveFarOrigin = interactor.farInteractionCaster.effectiveCastOrigin;
+            var attachTransform = interactor.attachTransform;
+
+            Assert.That(interactor == null, Is.False, "The NearFarInteractor should not be null.");
+            Assert.That(nearCastOrigin == null, Is.False, "The nearInteractionCaster.castOrigin should not be null.");
+            Assert.That(farCastOrigin == null, Is.False, "The farInteractionCaster.castOrigin should not be null.");
+            Assert.That(effectiveNearOrigin == null, Is.False, "The nearInteractionCaster.effectiveCastOrigin should not be null.");
+            Assert.That(effectiveFarOrigin == null, Is.False, "The farInteractionCaster.effectiveCastOrigin should not be null.");
+            Assert.That(attachTransform == null, Is.False, "The attachTransform should not be null.");
+
+            yield return null;
+
+            Object.Destroy(interactor.gameObject);
+
+            // Yield a frame to allow for the destroyed interactor to be fully disposed before asserting the interactor and casters are also destroyed
+            yield return null;
+
+            Assert.That(interactor == null, Is.True, "The NearFarInteractor should have been destroyed.");
+            Assert.That(nearCastOrigin == null, Is.True, "The nearInteractionCaster.castOrigin should have been destroyed.");
+            Assert.That(farCastOrigin == null, Is.True, "The farInteractionCaster.castOrigin should have been destroyed.");
+            Assert.That(effectiveNearOrigin == null, Is.True, "The nearInteractionCaster.effectiveCastOrigin should have been destroyed.");
+            Assert.That(effectiveFarOrigin == null, Is.True, "The farInteractionCaster.effectiveCastOrigin should have been destroyed.");
+            Assert.That(attachTransform == null, Is.True, "The attachTransform should have been destroyed.");
+        }
     }
 }

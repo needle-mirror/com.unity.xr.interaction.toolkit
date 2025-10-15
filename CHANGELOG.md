@@ -9,6 +9,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.3.0] - 2025-10-15
+
+### Added
+- Added `ToggleComponentZone` sample script to activate/deactivate the Gaze Interactor GameObjects when entering a trigger collider to prevent unintentional gaze-based selection in the rest of the scene. This component was added to the Starter Assets and implemented in the `DemoScene` at the re-added "Gaze Interactable Objects" station. (Forward port from 2.6.5)
+
+### Changed
+- Changed the Climb Provider component in the `XR Origin (XR Rig)` prefab in the Starter Assets sample to also disable the Move provider when climbing.
+- Changed the `DemoScene` in Starter Assets to disable the Gaze Interactor by default so it is not causing accidental selection of interactables based on head movement.
+
+### Fixed
+- Fixed an issue where pinching with the Hand Interaction Profile caused the Interactables to stick to the thumb longer than desired, moving the object after a pinch was released. The `ReleaseThresholdButtonReader` sample component was updated with new default values to ensure tighter press and release when pinching. ([XRIT-334](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-334))
+- Fixed the Near-Far Interactor components to destroy the `Attach` and `Stabilization Cast Origin` GameObjects under the XR Origin that it creates when it is destroyed. This fix added new `OnDestroy` methods to [`InteractionCasterBase`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase) and [`InteractionAttachController`](xref:UnityEngine.XR.Interaction.Toolkit.Attachment.InteractionAttachController). Users who had already implemented either method in derived classes will need to call the base method. ([XRIT-322](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-322))
+- Fixed a compiler issue with the `KeyboardOptimizer` sample component that occurs when TextMeshPro or Unity UI packages are not installed.
+- Fixed an issue with the **AR Starter Assets** spawning components, where a compiler dependency on the `ObjectSpawner` component in **Starter Assets** was causing an inability to run Project Validation rules to import the required sample dependency.
+- Fixed hand prefabs in the `Hands Interaction Demo` sample that were based on the hand models from the XR Hands `HandVisualizer` sample. The new prefabs are built as a prefab variant, allowing smoother upgrade when the underlying models are updated. (Backport from 3.4.0-pre.1)
+
 ## [3.3.0-pre.1] - 2025-08-11
 
 ### Added

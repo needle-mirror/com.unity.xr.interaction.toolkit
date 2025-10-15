@@ -71,6 +71,9 @@ The package comes with a number of samples, including a Starter Assets sample th
 
 The sample files are installed into the default location for package samples, in the `Assets\Samples\XR Interaction Toolkit\[version]\` folder. You can move these assets to a different location.
 
+> [!IMPORTANT]
+> There is a known issue when upgrading from an older version of the Starter Assets package sample to a newer version. Script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` folder from your `Samples` directory before importing the new Starter Assets sample package.
+
 For more details about individual samples, refer to the [Samples](samples.md) page.
 
 <script>

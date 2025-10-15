@@ -113,15 +113,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             // If no cast origin is set, default to this transform.
             if (m_CastOrigin == null)
                 m_CastOrigin = transform;
-
-            InitializeCaster();
-            InitializeStabilization();
         }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        protected virtual void OnDestroy() => isInitialized = false;
+        protected virtual void OnEnable()
+        {
+            InitializeCaster();
+            InitializeStabilization();
+        }
+
+        // ReSharper disable once Unity.RedundantEventFunction -- For consistent method override signature in derived classes
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDisable()
+        {
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            isInitialized = false;
+
+            if (m_StabilizationAnchor != null)
+                Destroy(m_StabilizationAnchor.gameObject);
+        }
 
         /// <inheritdoc />
         public virtual bool TryGetColliderTargets(XRInteractionManager interactionManager, List<Collider> targets)
@@ -146,6 +166,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         {
             if (!m_EnableStabilization)
                 return;
+
+            if (!m_InitializedStabilizationOrigin)
+                InitializeStabilization();
 
             float deltaTime = Time.unscaledTime - m_LastStabilizationUpdateTime;
             m_LastStabilizationUpdateTime = Time.unscaledTime;

@@ -306,20 +306,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
                 m_LiveConeCastDebugVisuals = false;
         }
 
-        // ReSharper disable once Unity.RedundantEventFunction -- OnEnable is required to ensure that the checkbox appears in the inspector
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
         }
 
-        // ReSharper disable once Unity.RedundantEventFunction -- For consistent method override signature in derived classes
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
         }
 
         /// <inheritdoc />

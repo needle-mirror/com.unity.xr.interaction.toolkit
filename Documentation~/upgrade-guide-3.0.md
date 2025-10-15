@@ -58,7 +58,7 @@ The XR Origin prefab in the [Starter Assets](samples-starter-assets.md) sample h
 
 ### Tunneling vignette
 
-In XRI 2.5.0, the Tunneling Vignette sample was moved into the Starter Assets sample. However, the XR Origin prefab does not contain the Tunneling Vignette prefab. If an existing XR Origin prefab variant utilized the Tunneling Vignette prefab, the `Locomotion Vignette Providers` on the `Tunneling Vignette Controller` will need to be reconnected to the locomotion providers on the newly imported XR Rig. These can be found at **XR Origin** / **Locomotion** in the GameObject hierarchy.
+In XRI 2.5.0, the Tunneling Vignette sample was moved into the [Starter Assets](xref:xri-samples-starter-assets) sample. However, the [XR Origin prefab](xref:xri-samples-starter-assets#prefabs) does not contain the [Tunneling Vignette prefab](xref:xri-samples-starter-assets#tunneling-vignette). If an existing XR Origin prefab variant utilized the Tunneling Vignette prefab, the `Locomotion Vignette Providers` on the `Tunneling Vignette Controller` will need to be reconnected to the locomotion providers on the newly imported XR Rig. These can be found at **XR Origin** / **Locomotion** in the GameObject hierarchy.
 
 ## Deprecation
 

@@ -64,21 +64,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         Vector3 m_LastSphereCastOrigin = Vector3.zero;
         PhysicsScene m_LocalPhysicsScene;
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
             m_FirstFrame = true;
             m_LastSphereCastOrigin = Vector3.zero;
         }
 
-        // ReSharper disable once Unity.RedundantEventFunction -- For consistent method override signature in derived classes
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected virtual void OnDisable()
+        /// <inheritdoc />
+        protected override void OnDisable()
         {
+            base.OnDisable();
         }
 
         /// <inheritdoc />

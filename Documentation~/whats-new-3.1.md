@@ -21,7 +21,10 @@ The `ClimbProvider` and `ContinuousMoveProvider` locomotion provider classes hav
 
 ### XR Interaction Simulator
 
-The usability of the XR Device Simulator has been improved with a new replacement component and prefab, the XR Interaction Simulator. Update or import the [XR Device Simulator](samples-xr-device-simulator.md) sample in the **Window** &gt; **Package Manager** window to add this new functionality to your project. For those developers already making use of the XR Device Simulator, see the note below in [Simulator project settings](#simulator-project-settings).
+The usability of the XR Device Simulator has been improved with a new replacement component and prefab, the XR Interaction Simulator. Update or import the [XR Interaction Simulator](samples-xr-interaction-simulator.md) sample in the **Window** &gt; **Package Manager** window to add this new functionality to your project. For those developers already making use of the XR Device Simulator, see the note below in [Simulator project settings](#simulator-project-settings).
+
+> [!NOTE]
+> The XR Interaction Simulator sample was added with version 3.2.0-pre.1 of the package. In previous 3.1 versions of the package, it can be found in the `XRInteractionSimulator` folder of the [XR Device Simulator](samples-xr-device-simulator.md) sample.
 
 The goal was to simplify spatial interaction and to make the controls more intuitive, along with a cohesive UI to better represent the state of the simulator. Further improvements are planned for future versions of the package to make the simulator even easier to use.
 

@@ -16,6 +16,9 @@ An **XR UI Input Module** works in concert with the [Near-Far Interactor](near-f
 
 ![ui-event-system-setup](images/ui-event-system-setup.png)
 
+> [!IMPORTANT]
+> The **XR UI Input Module** does not currently support mouse and touch input on World Space UI while running in an XR context. This means if an active [XR Display Subsystem](xref:XRPluginArchitecture) is running on the PC, such as with PCVR devices or over Quest Link, attempting to use the mouse or touch screen to interact with World Space UI objects in the **Game View** window will result in a cursor position that does not match the corresponding position in world space. Screen Space canvases will continue to work without impact.
+
 ## UI Toolkit support
 
 If you wish to enable support for UI Toolkit panels, please see documentation for [World-Space UI Toolkit Support](xref:xri-ui-world-space-ui-toolkit-support).

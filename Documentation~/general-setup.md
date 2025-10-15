@@ -22,7 +22,7 @@ To start using the toolkit, you must first take care of the following prerequisi
 * [Enable XR providers](xref:xr-configure-providers) for the devices that you plan to support.
 * [Import the toolkit Starter Assets](xref:xri-installation#installing-samples) (recommended): The Starter Assets contain Prefabs, presets, and Input Action assets.
 
-Refer to the [XR section](xref:XR) of the Unity manual for more general information about setting up a project for XR. Note that the [Starter Assets](xref:xri-samples-starter-assets) sample contains a preconfigured XR Origin prefab that already contains most of the toolkit components that you need for implementing interactions. Usually, you can save time and effort by using this prefab instead of the more generic XR Origin configurations described in the Unity Manual.
+Refer to the [XR section](xref:XR) of the Unity manual for more general information about setting up a project for XR. Note that the [Starter Assets](xref:xri-samples-starter-assets#prefabs) package sample contains a preconfigured XR Origin prefab that already contains most of the toolkit components that you need for implementing interactions. Usually, you can save time and effort by using this prefab instead of the more generic XR Origin configurations described in the [Unity Manual](xref:xr-origin).
 
 <a name="settings"></a>
 ## Configure project settings
@@ -48,9 +48,9 @@ Refer to [Settings and validation](xref:xri-settings) for more information.
 <a name="input"></a>
 ## Set up input
 
-The toolkit components use input from controllers and XR tracking systems to trigger interactions and control some modes of locomotion. The [XR Default Input Action asset](xref:xri-samples-starter-assets#input-actions-asset) in the [Starter Assets](xref:xri-samples-starter-assets) defines a standard mapping of these actions to the physical, hardware input control. For example, the default mapping binds **select** to the **Grip** button on a controller and **continuous locomotion** to the thumbsticks. You can use the **XR Default Input Action asset** as-is or adjust its bindings to better suit you project.
+The toolkit components use input from controllers and XR tracking systems to trigger interactions and control some modes of locomotion. The [XR Default Input Action asset](xref:xri-samples-starter-assets#input-actions-asset) in the [Starter Assets](xref:xri-samples-starter-assets) defines a standard mapping of these actions to the physical, hardware input control. For example, the default mapping binds **select** to the **Grip** button on a controller and **continuous locomotion** to the thumbsticks. You can use the **XR Default Input Action asset** as-is or adjust its bindings to better suit your project.
 
-The interactor and locomotion prefabs in the [Starter Assets](xref:xri-samples-starter-assets) are already configured to use the **XR Default Input Action asset**. If you don't use the starter assets, you must assign an input source to each interactor and locomotion provider component's input properties. The toolkit provides a number of ways to specify the source of input, including by referencing an input action asset, by binding an input action directly on a component, by implementing a custom objects, and by setting an input value directly. Refer to [Configure input](xref:xri-configure-input-system) for more information.
+The interactor and locomotion prefabs in the [Starter Assets](xref:xri-samples-starter-assets) are already configured to use the **XR Default Input Action asset**. If you don't use the starter assets, you must assign an input source to each interactor and locomotion provider component's input properties. The toolkit provides a number of ways to specify the source of input, including by referencing an input action asset, by binding an input action directly on a component, by implementing a custom object, and by setting an input value directly. Refer to [Configure input](xref:xri-configure-input-system) for more information.
 
 To use input from the user's hands, you must install the [XR Hands](xref:xrhands-manual) package. Not all XR platforms support hand tracking.
 
