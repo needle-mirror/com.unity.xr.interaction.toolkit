@@ -202,7 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         LineRenderer m_LineRenderer;
 
         /// <summary>
-        /// "Line renderer to control."
+        /// Line renderer to control.
         /// </summary>
         public LineRenderer lineRenderer
         {

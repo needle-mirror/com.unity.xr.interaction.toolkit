@@ -22,6 +22,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         internal static void DestroyAllSceneObjects()
         {
+            // The XR Interaction Manager may have been automatically created with DontDestroyOnLoad set,
+            // so ensure those are destroyed too since the SceneManager does not include that special scene.
+            if (XRInteractionManager.activeInteractionManagers.Count > 0)
+            {
+                if (SceneManager.sceneCount > 0)
+                {
+                    var firstScene = SceneManager.GetSceneAt(0);
+
+                    foreach (var manager in XRInteractionManager.activeInteractionManagers)
+                    {
+                        if (manager != null)
+                        {
+                            var managerGO = manager.gameObject;
+                            if (managerGO != null && managerGO.scene.name == "DontDestroyOnLoad")
+                                SceneManager.MoveGameObjectToScene(managerGO, firstScene);
+                        }
+                    }
+                }
+                else
+                    Assert.Fail("No default scene to move the DontDestroyOnLoad scene GameObjects to, cannot ensure destruction.");
+            }
+
             for (var index = 0; index < SceneManager.sceneCount; ++index)
             {
                 var scene = SceneManager.GetSceneAt(index);
@@ -29,6 +51,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 {
                     if (go.name.Contains("tests runner"))
                         continue;
+
+                    // DestroyImmediate should generally only be called during Edit mode only,
+                    // but runtime tests need to rely on automatic component location to not find
+                    // components that are pending being destroyed from a previous test. So until
+                    // the time we update all our tests to wait a frame to ensure the scene objects
+                    // from previous tests are destroyed, we use DestroyImmediate.
                     Object.DestroyImmediate(go);
                 }
             }
@@ -516,6 +544,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public bool isRegistered { get; private set; }
 
         /// <summary>
+        /// When this interactable is registered, the interaction manager that this interactable was registered with.
+        /// </summary>
+        public XRInteractionManager registeredInteractionManager { get; private set; }
+
+        /// <summary>
         /// Constructs a new interactable. Populates <see cref="colliders"/> with non-trigger colliders.
         /// </summary>
         /// <param name="transform">The <see cref="Transform"/> associated with the Interactable.</param>
@@ -552,6 +585,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public void OnRegistered(InteractableRegisteredEventArgs args)
         {
             isRegistered = true;
+            registeredInteractionManager = args.manager;
             registered?.Invoke(args);
         }
 
@@ -559,6 +593,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public void OnUnregistered(InteractableUnregisteredEventArgs args)
         {
             isRegistered = false;
+            registeredInteractionManager = null;
             unregistered?.Invoke(args);
         }
     }

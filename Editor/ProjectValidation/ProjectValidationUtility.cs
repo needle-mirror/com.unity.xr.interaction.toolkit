@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Unity.XR.CoreUtils.Editor;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 
 namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
@@ -13,6 +15,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
     internal static class ProjectValidationUtility
     {
         const string k_SamplesRootDirectoryName = "Samples";
+        const float k_PackageSearchTimeout = 3;
 
         /// <summary>
         /// This is the minimum version of the Starter Assets sample for the XR Interaction Toolkit that enforces correct behavior
@@ -210,6 +213,55 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                 {
                     Debug.LogError("Failed to update package sample cache. " + e.Message);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to install or update the package with a given package version.
+        /// </summary>
+        /// <param name="packageName">The name of the package to install (com.unity.etc...).</param>
+        /// <param name="targetVersion">The target version of the package to install.</param>
+        /// <param name="packageAddRequest">The <see cref="AddRequest"/> reference that will contain the result.</param>
+        /// <remarks>The <see cref="packageName"/> parameter should be provided in the com.unity.package format. Package display names will not work.</remarks>
+        public static void InstallOrUpdatePackage(string packageName, PackageVersion targetVersion, ref AddRequest packageAddRequest)
+        {
+            try
+            {
+                // Set a 3-second timeout for request to avoid editor lockup
+                var currentTime = DateTime.Now;
+                var endTime = currentTime + TimeSpan.FromSeconds(k_PackageSearchTimeout);
+
+                var request = Client.Search(packageName);
+                if (request.Status == StatusCode.InProgress)
+                {
+                    Debug.Log($"Searching for ({packageName}) in Unity Package Registry.");
+                    while (request.Status == StatusCode.InProgress && currentTime < endTime)
+                        currentTime = DateTime.Now;
+                }
+
+                var addRequest = packageName;
+                if (request.Status == StatusCode.Success && request.Result.Length > 0)
+                {
+                    var versions = request.Result[0].versions;
+#if UNITY_2022_2_OR_NEWER
+                    var recommendedVersion = new PackageVersion(versions.recommended);
+#else
+                    var recommendedVersion = new PackageVersion(versions.verified);
+#endif
+                    var latestCompatible = new PackageVersion(versions.latestCompatible);
+                    if (recommendedVersion < targetVersion && targetVersion <= latestCompatible)
+                        addRequest = $"{packageName}@{targetVersion}";
+                }
+
+                packageAddRequest = Client.Add(addRequest);
+                if (packageAddRequest.Error != null)
+                {
+                    Debug.LogError($"Package installation error: {packageAddRequest.Error}: {packageAddRequest.Error.message}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
     }

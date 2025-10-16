@@ -22,9 +22,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             public static readonly GUIContent inputReaderPropertyDrawerMode =
                 EditorGUIUtility.TrTextContent("Input Reader Property Drawer Mode",
                     "Determines how the Inspector window displays input reader fields.\n\n" +
-                    "'Compact' displays the property in a compact format, using a minimal number of lines.\n" +
-                    "'Multiline Effective' displays the effective input source underlying the property, using multiple lines.\n" +
-                    "'Multiline All' displays all the input sources underlying the property.");
+                    "\u2043 'Compact' displays the property in a compact format, using a minimal number of lines.\n" +
+                    "\u2043 'Multiline Effective' displays the effective input source underlying the property, using multiple lines.\n" +
+                    "\u2043 'Multiline All' displays all the input sources underlying the property.");
         }
 
         void OnEnable()

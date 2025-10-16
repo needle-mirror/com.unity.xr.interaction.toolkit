@@ -1627,7 +1627,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 positionInLine = raycastHitIndex;
 
                 // Determine if the collider is registered as an interactable and the interactable is being hovered
-                isValidTarget = interactionManager.TryGetInteractableForCollider(raycastHit.Value.collider, out var interactable) &&
+                isValidTarget = interactionManager is not null && interactionManager.TryGetInteractableForCollider(raycastHit.Value.collider, out var interactable) &&
                     IsHovering(interactable);
             }
 
@@ -1955,7 +1955,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 else
                 {
                     rayEndPoint = m_RaycastHit.point;
-                    rayEndTransform = interactionManager.TryGetInteractableForCollider(m_RaycastHit.collider, out m_RaycastInteractable)
+                    rayEndTransform = interactionManager is not null && interactionManager.TryGetInteractableForCollider(m_RaycastHit.collider, out m_RaycastInteractable)
                         ? m_RaycastInteractable.GetAttachTransform(this)
                         : m_RaycastHit.transform;
                 }
@@ -2215,6 +2215,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 for (var i = 0; i < m_RaycastHitsCount; ++i)
                 {
                     var raycastHit = m_RaycastHits[i];
+                    if (raycastHit.collider == null)
+                        continue;
 
                     // Check if UI raycast GameObject is the same as the ray interactor raycast hit GameObject
                     // If the GameObjects are the same, we will not break due to UI hits in case the GameObject is an interactable
@@ -2225,7 +2227,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                         break;
 
                     // A hit on geometry not associated with Interactables should block Interactables behind it from being a valid target
-                    if (!interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var interactable))
+                    if (interactionManager is null || !interactionManager.TryGetInteractableForCollider(raycastHit.collider, out var interactable))
                         break;
 
                     if (!targets.Contains(interactable))
@@ -2482,7 +2484,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                         continue;
 
                     // If an obstruction is found, then reject anything behind it
-                    if (!interactionManager.TryGetInteractableForCollider(hitInfo.collider, out _))
+                    if (interactionManager is null || !interactionManager.TryGetInteractableForCollider(hitInfo.collider, out _))
                     {
                         obstructionDistance = math.min(hitInfo.distance, obstructionDistance);
                         // Since we are rejecting anything past the obstruction, we push its distance back to allow for objects in the periphery to be selected first
@@ -2534,7 +2536,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                             continue;
 
                         // It must have an interactable
-                        if (!interactionManager.TryGetInteractableForCollider(hit.collider, out _))
+                        if (interactionManager is null || !interactionManager.TryGetInteractableForCollider(hit.collider, out _))
                             continue;
 
                         if (Mathf.Approximately(hit.distance, 0f) && BurstMathUtility.FastVectorEquals(hit.point, Vector3.zero))
@@ -2593,7 +2595,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 var hitCollider = raycastHits[index].collider;
                 if (hitCollider.isTrigger)
                 {
-                    interactionManager.TryGetInteractableForCollider(hitCollider, out _, out var snapVolume);
+                    XRInteractableSnapVolume snapVolume = null;
+                    if (interactionManager is not null)
+                        interactionManager.TryGetInteractableForCollider(hitCollider, out _, out snapVolume);
+
                     if (removeRule(snapVolume))
                     {
                         RemoveAt(raycastHits, index, count);

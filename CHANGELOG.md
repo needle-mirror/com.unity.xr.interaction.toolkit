@@ -9,6 +9,33 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.4.0-pre.1] - 2025-10-16
+
+### Added
+- Added a 10-key number pad prefab to the Spatial Keyboard sample.
+- Added column for the XR Interaction Group the interactor is a member of to the XR Interaction Debugger window.
+- Added Hierarchy Path column to the XR Interaction Debugger window to show the full scene hierarchy path of the object. This column is hidden by default and can be shown by right-clicking the column header list and selecting it from the context menu.
+- Added additional tab to the XR Interaction Debugger window to show registered XR Interactable Snap Volumes.
+- Added `managerDestroyed` property to the unregistered event args to let registered components know it was due to the XR Interaction Manager being destroyed.
+- Added new methods to `XRInteractionManager` to query whether a snap volume is registered and to get a list of registered snap volumes.
+- Added new methods and events to `XRInteractableSnapVolume` and `XRInteractionManager` for snap volume registration.
+
+### Changed
+- Changed interaction components that need to find the `XRInteractionManager` and/or the `XRUIInputModule` on the `EventSystem` to try finding them in all scenes that started being loaded at the time of search to allow for more flexibility in projects with multiple scenes. The default manager and input module will only be automatically created once all scenes finish loading.
+- Changed the XR Interaction Manager component so it cancels all hovers and selections and unregisters everything when that component is destroyed. The components that were registered with the destroyed manager will automatically be re-registered with another manager, either an active and enabled one in the scene or the next one to be enabled.
+- Changed interaction components so they prioritize an enabled manager when there are multiple managers in the scene when initializing an unset Interaction Manager property reference.
+- Changed the **GameObject** &gt; **XR** menu items to no longer create an XR Interaction Manager GameObject automatically.
+- Changed the XR Interaction Debugger window to grey out disabled XR Interaction Managers instead of hiding them.
+- Changed some scripts to add `MonoBehaviour` event method implementations. Users who had already implemented either method in derived classes will need to call the base method.
+  - Changed [`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager) by adding the `OnDestroy` method.
+  - Changed [`XRInputModalityManager`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager) by adding `Awake` and `OnDestroy` methods.
+- Changed the sample assets folders for the demo scenes in AR Starter Assets, Hands Interaction Demo, and Starter Assets package samples by renaming the folders to `DemoAssets` to help with naming consistency.
+
+### Fixed
+- Fixed an issue with the `JumpProvider` continually being stuck in the `LocomotionState.Moving` state and never entering the `LocomotionState.Ended` state.
+- Fixed the **GameObject** &gt; **XR** &gt; **Interaction Manager** menu item so it does not delete the GameObject upon Undo when the GameObject already existed.
+- Fixed exception when Valid Target objects are destroyed when the XR Interaction Debugger window is open.
+
 ## [3.3.0] - 2025-10-15
 
 ### Added
@@ -708,7 +735,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - The Tunneling Vignette sample was moved into the Starter Assets sample.
-- Changed the Starter Assets sample to be reorganized so all `DemoScene` assets are located in a separate `DemoSceneAssets` folder that can be easily removed.
+- Changed the Starter Assets sample to be reorganized so all `DemoScene` assets are located in a separate `DemoAssets` folder that can be easily removed.
 - Changed the automatic creation of the XR Device Simulator prefab to be excluded from standalone builds by default. A new **Instantiate In Editor Only** setting to control this behavior was added to the XR Interaction Toolkit project settings. ([XRIT-82](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-82))
 - Changed the Ray Interactor prefab in the Starter Assets sample to use cone casting instead of ray casting for the hit detection type.
 - Changed the XR Controller (Action-based) components in the Starter Assets sample to have empty action references instead of empty input actions for consistency and to avoid potential errors during the `ApplyProcessors` method of the current latest version of Input System.

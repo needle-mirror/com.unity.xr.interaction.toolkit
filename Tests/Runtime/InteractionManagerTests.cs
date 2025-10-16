@@ -42,6 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             IXRInteractionGroup unregisteredInteractionGroup = null;
             manager.interactionGroupUnregistered += args => unregisteredInteractionGroup = args.interactionGroupObject;
             var interactionGroup = TestUtilities.CreateInteractionGroup();
+            Assert.That(manager.IsRegistered(interactionGroup), Is.True);
             interactionGroup.enabled = false;
 
             var interactionGroups = new List<IXRInteractionGroup>();
@@ -96,6 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             IXRInteractor unregisteredInteractor = null;
             manager.interactorUnregistered += args => unregisteredInteractor = args.interactorObject;
             var interactor = TestUtilities.CreateDirectInteractor();
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
             interactor.enabled = false;
 
             var interactors = new List<IXRInteractor>();
@@ -150,6 +152,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             IXRInteractable unregisteredInteractable = null;
             manager.interactableUnregistered += args => unregisteredInteractable = args.interactableObject;
             var interactable = TestUtilities.CreateGrabInteractable();
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.True);
             interactable.enabled = false;
 
             var interactables = new List<IXRInteractable>();
@@ -180,6 +183,192 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             manager.GetRegisteredInteractables(interactables);
             Assert.That(interactables, Is.EqualTo(new[] { interactable }));
             Assert.That(registeredInteractable, Is.SameAs(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractionGroupUnregisteredOnManagerDestroyed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            IXRInteractionGroup unregisteredInteractionGroup = null;
+            manager.interactionGroupUnregistered += args => unregisteredInteractionGroup = args.interactionGroupObject;
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+            Assert.That(manager.IsRegistered(interactionGroup), Is.True);
+            Object.Destroy(manager);
+
+            yield return null;
+
+            Assert.That(manager == null, Is.True);
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.Empty);
+            Assert.That(unregisteredInteractionGroup, Is.SameAs(interactionGroup));
+            Assert.That(manager.IsRegistered(interactionGroup), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractorUnregisteredOnManagerDestroyed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            IXRInteractor unregisteredInteractor = null;
+            manager.interactorUnregistered += args => unregisteredInteractor = args.interactorObject;
+            var interactor = TestUtilities.CreateDirectInteractor();
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+            Object.Destroy(manager);
+
+            yield return null;
+
+            Assert.That(manager == null, Is.True);
+
+            var interactors = new List<IXRInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.Empty);
+            Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableUnregisteredOnManagerDestroyed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            IXRInteractable unregisteredInteractable = null;
+            manager.interactableUnregistered += args => unregisteredInteractable = args.interactableObject;
+            var interactable = TestUtilities.CreateGrabInteractable();
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.True);
+            Object.Destroy(manager);
+
+            yield return null;
+
+            Assert.That(manager == null, Is.True);
+
+            var interactables = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(interactables);
+            Assert.That(interactables, Is.Empty);
+            Assert.That(unregisteredInteractable, Is.SameAs(interactable));
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractorInInteractionGroupUnregisteredOnManagerDestroyed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            IXRInteractor unregisteredInteractor = null;
+            manager.interactorUnregistered += args => unregisteredInteractor = args.interactorObject;
+
+            IXRInteractionGroup unregisteredInteractionGroup = null;
+            manager.interactionGroupUnregistered += args => unregisteredInteractionGroup = args.interactionGroupObject;
+
+            var interactionGroup = TestUtilities.CreateInteractionGroup();
+            Assert.That(manager.IsRegistered(interactionGroup), Is.True);
+
+            var interactor = TestUtilities.CreateDirectInteractor();
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+
+            interactionGroup.AddGroupMember(interactor);
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+            Assert.That(manager.IsRegistered(interactionGroup), Is.True);
+
+            Object.Destroy(manager);
+
+            yield return null;
+
+            Assert.That(manager == null, Is.True);
+
+            var interactors = new List<IXRInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.Empty);
+
+            var interactionGroups = new List<IXRInteractionGroup>();
+            manager.GetRegisteredInteractionGroups(interactionGroups);
+            Assert.That(interactionGroups, Is.Empty);
+
+            Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+            Assert.That(unregisteredInteractionGroup, Is.SameAs(interactionGroup));
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.False);
+            Assert.That(manager.IsRegistered(interactionGroup), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractionsCanceledOnManagerDestroyed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            IXRInteractor unregisteredInteractor = null;
+            manager.interactorUnregistered += args => unregisteredInteractor = args.interactorObject;
+
+            IXRInteractable unregisteredInteractable = null;
+            manager.interactableUnregistered += args => unregisteredInteractable = args.interactableObject;
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.True);
+
+            var interactorEventInvoked = false;
+            IXRInteractor interactorEventInteractor = null;
+            IXRInteractable interactorEventInteractable = null;
+            var interactorEventIsCanceled = false;
+            interactor.selectExited.AddListener(args =>
+            {
+                interactorEventInvoked = true;
+                interactorEventInteractor = args.interactorObject;
+                interactorEventInteractable = args.interactableObject;
+                interactorEventIsCanceled = args.isCanceled;
+            });
+
+            var interactableEventInvoked = false;
+            IXRInteractor interactableEventInteractor = null;
+            IXRInteractable interactableEventInteractable = null;
+            var interactableEventIsCanceled = false;
+            interactable.selectExited.AddListener(args =>
+            {
+                interactableEventInvoked = true;
+                interactableEventInteractor = args.interactorObject;
+                interactableEventInteractable = args.interactableObject;
+                interactableEventIsCanceled = args.isCanceled;
+            });
+
+            interactor.keepSelectedTargetValid = true;
+            interactor.validTargets.Add(interactable);
+
+            yield return null;
+
+            Assert.That(interactor.hasSelection, Is.True);
+            Assert.That(interactable.isSelected, Is.True);
+            Assert.That(interactor.IsSelecting(interactable), Is.True);
+            Assert.That(interactable.IsSelected(interactor), Is.True);
+
+            Object.Destroy(manager);
+
+            yield return null;
+
+            Assert.That(manager == null, Is.True);
+
+            var interactors = new List<IXRInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.Empty);
+
+            var interactables = new List<IXRInteractable>();
+            manager.GetRegisteredInteractables(interactables);
+            Assert.That(interactables, Is.Empty);
+
+            Assert.That(unregisteredInteractor, Is.SameAs(interactor));
+            Assert.That(unregisteredInteractable, Is.SameAs(interactable));
+
+            Assert.That(interactorEventInvoked, Is.True);
+            Assert.That(interactorEventInteractor, Is.SameAs(interactor));
+            Assert.That(interactorEventInteractable, Is.SameAs(interactable));
+            Assert.That(interactorEventIsCanceled, Is.True);
+
+            Assert.That(interactableEventInvoked, Is.True);
+            Assert.That(interactableEventInteractor, Is.SameAs(interactor));
+            Assert.That(interactableEventInteractable, Is.SameAs(interactable));
+            Assert.That(interactableEventIsCanceled, Is.True);
+
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.False);
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.False);
         }
 
         [Test]
@@ -605,6 +794,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Object.Destroy(interactable);
 
             yield return null;
+
+            Assert.That(interactable == null, Is.True);
 
             var interactables = new List<IXRInteractable>();
             manager.GetRegisteredInteractables(interactables);

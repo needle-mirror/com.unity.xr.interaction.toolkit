@@ -77,7 +77,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         }
 
         [Test]
-#if UNITY_2021_3
+#if UNITY_2021_3_9 || UNITY_2021_3_10
         [Ignore("This test fails due to regression in 2021.3.9f1 and 2021.3.10f1.")]
 #endif
         public void UndoRedoCreateRayInteractor_WorksWithNoErrors()
@@ -96,9 +96,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             var rayTransform = rayInteractor.transform;
             Assert.That(rayTransform.parent, Is.EqualTo(parentTransform));
             Assert.That(rayTransform.localPosition, Is.EqualTo(Vector3.zero).Using(Vector3ComparerWithEqualsOperator.Instance));
-
-            var interactionManager = FindByType<XRInteractionManager>();
-            Assert.IsTrue(interactionManager != null);
         }
 
         [Test]

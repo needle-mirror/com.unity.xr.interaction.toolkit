@@ -42,7 +42,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixIt = () =>
                 {
                     if (s_HandsPackageAddRequest == null || s_HandsPackageAddRequest.IsCompleted)
-                        InstallOrUpdateHands();
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_RecommendedHandsPackageVersion, ref s_HandsPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = true,
@@ -56,7 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixIt = () =>
                 {
                     if (s_HandsPackageAddRequest == null || s_HandsPackageAddRequest.IsCompleted)
-                        InstallOrUpdateHands();
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_RecommendedHandsPackageVersion, ref s_HandsPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = false,
@@ -188,41 +188,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         static string ToString(string packageName, string packageVersion)
         {
             return string.IsNullOrEmpty(packageVersion) ? packageName : $"{packageName}@{packageVersion}";
-        }
-
-        static void InstallOrUpdateHands()
-        {
-            // Set a 3-second timeout for request to avoid editor lockup
-            var currentTime = DateTime.Now;
-            var endTime = currentTime + TimeSpan.FromSeconds(3);
-
-            var request = Client.Search(k_HandsPackageName);
-            if (request.Status == StatusCode.InProgress)
-            {
-                Debug.Log($"Searching for ({k_HandsPackageName}) in Unity Package Registry.");
-                while (request.Status == StatusCode.InProgress && currentTime < endTime)
-                    currentTime = DateTime.Now;
-            }
-
-            var addRequest = k_HandsPackageName;
-            if (request.Status == StatusCode.Success && request.Result.Length > 0)
-            {
-                var versions = request.Result[0].versions;
-#if UNITY_2022_2_OR_NEWER
-                var recommendedVersion = new PackageVersion(versions.recommended);
-#else
-                var recommendedVersion = new PackageVersion(versions.verified);
-#endif
-                var latestCompatible = new PackageVersion(versions.latestCompatible);
-                if (recommendedVersion < s_RecommendedHandsPackageVersion && s_RecommendedHandsPackageVersion <= latestCompatible)
-                    addRequest = $"{k_HandsPackageName}@{s_RecommendedHandsPackageVersion}";
-            }
-
-            s_HandsPackageAddRequest = Client.Add(addRequest);
-            if (s_HandsPackageAddRequest.Error != null)
-            {
-                Debug.LogError($"Package installation error: {s_HandsPackageAddRequest.Error}: {s_HandsPackageAddRequest.Error.message}");
-            }
         }
 
         static string GetImportSampleVersionMessage(string packageFolderName, string sampleDisplayName, PackageVersion version)

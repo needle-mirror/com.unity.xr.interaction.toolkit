@@ -41,6 +41,19 @@ These settings control the [XR Interaction Simulator](xref:xri-xr-interaction-si
 
    The simulator prefab. You can change this reference if you have a customized prefab you would rather use.
 
+<a name ="runtime-settings"></a>
+### Runtime Settings
+
+The **Manager Creation Mode** setting modifies whether some manager components ([XR Interaction Manager](xr-interaction-manager.md) and [XR UI Input Module](xr-ui-input-module.md)) in the toolkit are automatically instantiated as needed. You have the following options:
+
+* **Create Automatically** (Default): will create the manager component automatically as needed.
+* **Manual**: will not automatically create the manager component. The component must be manually added to the scene or manually instantiated at runtime for interaction to function.
+
+The **Manager Registration Mode** setting modifies whether interaction components in the toolkit are automatically registered with a manager component when the manager reference is not set or the manager is destroyed. You have the following options:
+
+* **Find Automatically** (Default): will find the manager component and assign the manager component reference automatically at runtime and register with the manager component. Additionally, any registered interaction components to a manager being destroyed will automatically transfer to another manager, either while the original is destroyed if another manager is already active and enabled, or later when another manager is enabled.
+* **Manual**: will not automatically find and register with the manager component when the manager reference is not set. The interaction manager reference must be set in the appropriate component or registered through scripting. Any registered interaction components to a manager being destroyed will automatically be added to the waitlist, but the other manager will not automatically register components from the waitlist and must be invoked through scripting to finish the transfer to another manager.
+
 <a name ="editor-settings"></a>
 ### Editor Settings
 

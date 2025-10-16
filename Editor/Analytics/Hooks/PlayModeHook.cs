@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 {
@@ -63,28 +64,28 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             }
         }
 
-        static void OnActiveInteractionManagersChanged(XRInteractionManager manager, bool enabled)
+        static void OnActiveInteractionManagersChanged(XRInteractionManager manager, ComponentLifecyclePhase phase)
         {
             var now = Time.realtimeSinceStartupAsDouble;
 
             using (s_AnalyticsMarker.Auto())
             {
-                if (enabled)
+                if (phase == ComponentLifecyclePhase.Enable)
                     s_InteractionManagerTracker.StartSession(manager, now);
-                else
+                else if (phase == ComponentLifecyclePhase.Disable)
                     s_InteractionManagerTracker.EndSession(manager, now);
             }
         }
 
-        static void OnActiveInputModalityManagersChanged(XRInputModalityManager manager, bool enabled)
+        static void OnActiveInputModalityManagersChanged(XRInputModalityManager manager, ComponentLifecyclePhase phase)
         {
             var now = Time.realtimeSinceStartupAsDouble;
 
             using (s_AnalyticsMarker.Auto())
             {
-                if (enabled)
+                if (phase == ComponentLifecyclePhase.Enable)
                     s_InputModalityManagerTracker.StartSession(manager, now);
-                else
+                else if (phase == ComponentLifecyclePhase.Disable)
                     s_InputModalityManagerTracker.EndSession(manager, now);
             }
         }
@@ -116,12 +117,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
                     foreach (var manager in XRInteractionManager.activeInteractionManagers)
                     {
-                        s_InteractionManagerTracker.StartSession(manager, now);
+                        if (manager.isActiveAndEnabled)
+                            s_InteractionManagerTracker.StartSession(manager, now);
                     }
 
                     foreach (var manager in XRInputModalityManager.activeModalityManagers)
                     {
-                        s_InputModalityManagerTracker.StartSession(manager, now);
+                        if (manager.isActiveAndEnabled)
+                            s_InputModalityManagerTracker.StartSession(manager, now);
                     }
 
                     s_LocomotionProviderTracker.StartSession();

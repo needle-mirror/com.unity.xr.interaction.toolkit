@@ -863,14 +863,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 var useBlockedVisuals = false;
                 if (!hasSelection && m_HasBaseInteractor && m_LineRenderableAsBaseInteractor.hasHover)
                 {
-                    var interactionManager = m_LineRenderableAsBaseInteractor.interactionManager;
                     var canSelectSomething = false;
-                    foreach (var interactable in m_LineRenderableAsBaseInteractor.interactablesHovered)
+                    var interactionManager = m_LineRenderableAsBaseInteractor.interactionManager;
+                    if (interactionManager != null)
                     {
-                        if (interactable is IXRSelectInteractable selectInteractable && interactionManager.IsSelectPossible(m_LineRenderableAsBaseInteractor, selectInteractable))
+                        foreach (var interactable in m_LineRenderableAsBaseInteractor.interactablesHovered)
                         {
-                            canSelectSomething = true;
-                            break;
+                            if (interactable is IXRSelectInteractable selectInteractable && interactionManager.IsSelectPossible(m_LineRenderableAsBaseInteractor, selectInteractable))
+                            {
+                                canSelectSomething = true;
+                                break;
+                            }
                         }
                     }
 
@@ -1081,7 +1084,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                         hitCollider = raycastHit.Value.collider;
 
                     if (hitCollider != m_PreviousCollider && hitCollider != null)
-                        m_LineRenderableAsBaseInteractor.interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
+                    {
+                        var interactionManager = m_LineRenderableAsBaseInteractor.interactionManager;
+                        if (interactionManager != null)
+                            interactionManager.TryGetInteractableForCollider(hitCollider, out _, out m_XRInteractableSnapVolume);
+                        else
+                            m_XRInteractableSnapVolume = null;
+                    }
 
                     if (m_XRInteractableSnapVolume != null)
                     {

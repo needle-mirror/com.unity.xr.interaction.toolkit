@@ -463,7 +463,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             optionalReticleForward = null;
             reticleUp = hitNormal;
             Vector3 reticleForward;
-            var xrOrigin = teleportationProvider.mediator.xrOrigin;
+
+            if (m_TeleportationProvider == null)
+                m_TeleportationProvider = ComponentLocatorUtility<TeleportationProvider>.FindComponent();
+
+            var xrOrigin = m_TeleportationProvider?.mediator.xrOrigin;
+
             switch (matchOrientation)
             {
                 case MatchOrientation.WorldSpaceUp:

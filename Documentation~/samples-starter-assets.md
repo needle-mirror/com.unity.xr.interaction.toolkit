@@ -17,7 +17,7 @@ This sample contains:
 |---|---|
 |**`AffordanceThemes\`**|Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers).|
 |**`Animations\`**|Animations used as part of the demo scene climb station.|
-|**`DemoSceneAssets\`**|Asset folder containing assets only used for the `DemoScene`.|
+|**`DemoAssets\`**|Asset folder containing assets only used for the `DemoScene`.|
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
 |**`Filters\`**|Interaction filters used for gaze-based teleportation assistance.|
 |**`Materials\`**|General-use materials used for non-demo scene prefabs.|

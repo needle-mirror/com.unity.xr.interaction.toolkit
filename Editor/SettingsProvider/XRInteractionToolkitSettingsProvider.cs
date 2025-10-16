@@ -42,6 +42,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             public static readonly GUIContent interactionSimulatorSettingsTitle = new GUIContent("Interaction Simulator Settings");
             public static readonly GUIContent interactionLayerSettingsTitle = new GUIContent("Interaction Layer Settings");
+            public static readonly GUIContent runtimeSettingsTitle = new GUIContent("Runtime Settings");
             public static readonly GUIContent editorSettingsTitle = new GUIContent("Editor Settings");
 
             public static readonly GUIStyle sectionTitleStyle = new GUIStyle("Label")
@@ -57,6 +58,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         internal const string k_SettingsPath = "Project/XR Plug-in Management/XR Interaction Toolkit";
 
         Editor m_InteractionLayerSettingsEditor;
+        Editor m_XRInteractionRuntimeSettingsEditor;
         Editor m_XRInteractionEditorSettingsEditor;
         Editor m_XRDeviceSimulatorSettingsEditor;
 
@@ -77,6 +79,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
             IEnumerable<string> keywords = null)
             : base(path, scopes, keywords)
         {
+        }
+
+        /// <summary>
+        /// Draws the <see cref="XRInteractionRuntimeSettings"/> editor.
+        /// </summary>
+        void DrawXRInteractionRuntimeSettingsEditor()
+        {
+            if (m_XRInteractionRuntimeSettingsEditor != null)
+            {
+                GUILayout.Label(Contents.runtimeSettingsTitle, Contents.sectionTitleStyle);
+                m_XRInteractionRuntimeSettingsEditor.OnInspectorGUI();
+            }
         }
 
         /// <summary>
@@ -121,6 +135,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             base.OnActivate(searchContext, rootElement);
 
             m_InteractionLayerSettingsEditor = Editor.CreateEditor(InteractionLayerSettings.Instance);
+            m_XRInteractionRuntimeSettingsEditor = Editor.CreateEditor(XRInteractionRuntimeSettings.Instance);
             m_XRInteractionEditorSettingsEditor = Editor.CreateEditor(XRInteractionEditorSettings.Instance);
             m_XRDeviceSimulatorSettingsEditor = Editor.CreateEditor(XRDeviceSimulatorSettings.Instance);
         }
@@ -132,6 +147,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             if (m_InteractionLayerSettingsEditor != null)
                 Object.DestroyImmediate(m_InteractionLayerSettingsEditor);
+
+            if (m_XRInteractionRuntimeSettingsEditor != null)
+                Object.DestroyImmediate(m_XRInteractionRuntimeSettingsEditor);
 
             if (m_XRInteractionEditorSettingsEditor != null)
                 Object.DestroyImmediate(m_XRInteractionEditorSettingsEditor);
@@ -148,6 +166,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
             using (new SettingsMarginScope())
             {
                 DrawXRDeviceSimulatorSettingsEditor();
+                EditorGUILayout.Space();
+                DrawXRInteractionRuntimeSettingsEditor();
                 EditorGUILayout.Space();
                 DrawXRInteractionEditorSettingsEditor();
                 EditorGUILayout.Space();

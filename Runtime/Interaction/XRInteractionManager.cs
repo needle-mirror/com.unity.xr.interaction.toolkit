@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 #endif
 using Unity.Profiling;
+using Unity.XR.CoreUtils.Collections;
 #if UNITY_EDITOR && UNITY_2021_3_OR_NEWER
 using UnityEditor.Search;
 #elif UNITY_EDITOR && !UNITY_2021_3_OR_NEWER
@@ -44,6 +45,98 @@ namespace UnityEngine.XR.Interaction.Toolkit
     [HelpURL(XRHelpURLConstants.k_XRInteractionManager)]
     public partial class XRInteractionManager : MonoBehaviour
     {
+        /// <summary>
+        /// Registers a new Interaction Group to a waitlist to be processed by the manager component once a default manager is available.
+        /// This can be used to register the component argument to a manager when it does not have a reference to a particular manager.
+        /// </summary>
+        /// <param name="interactionGroup">The Interaction Group to be registered to the waitlist.</param>
+        /// <seealso cref="UnregisterFromWaitlist(IXRInteractionGroup)"/>
+        /// <seealso cref="RegisterInteractionGroup(IXRInteractionGroup)"/>
+        public static void RegisterWithWaitlist(IXRInteractionGroup interactionGroup)
+        {
+            s_WaitlistGroups ??= new HashSetList<IXRInteractionGroup>();
+            s_WaitlistGroups.Add(interactionGroup);
+        }
+
+        /// <summary>
+        /// Remove the Interaction Group from the waitlist so that it will no longer be automatically registered with the default manager.
+        /// </summary>
+        /// <param name="interactionGroup">The Interaction Group to be unregistered from the waitlist.</param>
+        /// <seealso cref="RegisterWithWaitlist(IXRInteractionGroup)"/>
+        public static void UnregisterFromWaitlist(IXRInteractionGroup interactionGroup)
+        {
+            s_WaitlistGroups?.Remove(interactionGroup);
+        }
+
+        /// <summary>
+        /// Registers a new Interactor to a waitlist to be processed by the manager component once a default manager is available.
+        /// This can be used to register the component argument to a manager when it does not have a reference to a particular manager.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be registered to the waitlist.</param>
+        /// <seealso cref="UnregisterFromWaitList(IXRInteractor)"/>
+        /// <seealso cref="RegisterInteractor(IXRInteractor)"/>
+        public static void RegisterWithWaitlist(IXRInteractor interactor)
+        {
+            s_WaitlistInteractors ??= new HashSetList<IXRInteractor>();
+            s_WaitlistInteractors.Add(interactor);
+        }
+
+        /// <summary>
+        /// Remove the Interactor from the waitlist so that it will no longer be automatically registered with the default manager.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be unregistered from the waitlist.</param>
+        /// <seealso cref="RegisterWithWaitlist(IXRInteractor)"/>
+        public static void UnregisterFromWaitList(IXRInteractor interactor)
+        {
+            s_WaitlistInteractors?.Remove(interactor);
+        }
+
+        /// <summary>
+        /// Registers a new Interactable to a waitlist to be processed by the manager component once a default manager is available.
+        /// This can be used to register the component argument to a manager when it does not have a reference to a particular manager.
+        /// </summary>
+        /// <param name="interactable">The Interactable to be registered to the waitlist.</param>
+        /// <seealso cref="UnregisterFromWaitlist(IXRInteractable)"/>
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
+        public static void RegisterWithWaitlist(IXRInteractable interactable)
+        {
+            s_WaitlistInteractables ??= new HashSetList<IXRInteractable>();
+            s_WaitlistInteractables.Add(interactable);
+        }
+
+        /// <summary>
+        /// Remove the Interactable from the waitlist so that it will no longer be automatically registered with the default manager.
+        /// </summary>
+        /// <param name="interactable">The Interactable to be unregistered from the waitlist.</param>
+        /// <seealso cref="RegisterWithWaitlist(IXRInteractable)"/>
+        public static void UnregisterFromWaitlist(IXRInteractable interactable)
+        {
+            s_WaitlistInteractables?.Remove(interactable);
+        }
+
+        /// <summary>
+        /// Registers a new snap volume to a waitlist to associate the snap collider and interactable by the manager component once a default manager is available.
+        /// This can be used to register the component argument to a manager when it does not have a reference to a particular manager.
+        /// </summary>
+        /// <param name="snapVolume">The snap volume to be registered to the waitlist.</param>
+        /// <seealso cref="UnregisterFromWaitlist(XRInteractableSnapVolume)"/>
+        /// <seealso cref="RegisterSnapVolume"/>
+        public static void RegisterWithWaitlist(XRInteractableSnapVolume snapVolume)
+        {
+            s_WaitlistSnapVolumes ??= new HashSetList<XRInteractableSnapVolume>();
+            s_WaitlistSnapVolumes.Add(snapVolume);
+        }
+
+        /// <summary>
+        /// Remove the snap volume from the waitlist so that it will no longer be automatically registered with the default manager.
+        /// </summary>
+        /// <param name="snapVolume">The snap volume to be unregistered from the waitlist.</param>
+        /// <seealso cref="RegisterWithWaitlist(XRInteractableSnapVolume)"/>
+        public static void UnregisterFromWaitlist(XRInteractableSnapVolume snapVolume)
+        {
+            s_WaitlistSnapVolumes?.Remove(snapVolume);
+        }
+
         /// <summary>
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> is registered.
         /// </summary>
@@ -111,6 +204,28 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public event Action<InteractableUnregisteredEventArgs> interactableUnregistered;
 
         /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="XRInteractableSnapVolume"/> is registered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractableSnapVolumeRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterSnapVolume"/>
+        /// <seealso cref="XRInteractableSnapVolume.registered"/>
+        public event Action<InteractableSnapVolumeRegisteredEventArgs> snapVolumeRegistered;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="XRInteractableSnapVolume"/> is unregistered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="InteractableSnapVolumeUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterSnapVolume"/>
+        /// <seealso cref="XRInteractableSnapVolume.unregistered"/>
+        public event Action<InteractableSnapVolumeUnregisteredEventArgs> snapVolumeUnregistered;
+
+        /// <summary>
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> gains focus.
         /// </summary>
         public event Action<FocusEnterEventArgs> focusGained;
@@ -127,10 +242,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         internal event Action interactablesReordered;
 
         /// <summary>
-        /// Calls the methods in its invocation list when a manager is enabled or disabled.
+        /// Calls the methods in its invocation list when a manager changes phase of the component lifecycle (such as enabled or disabled).
         /// </summary>
         /// <seealso cref="activeInteractionManagers"/>
-        internal static event Action<XRInteractionManager, bool> activeInteractionManagersChanged;
+        internal static event Action<XRInteractionManager, ComponentLifecyclePhase> activeInteractionManagersChanged;
 
         [SerializeField]
         [RequireInterface(typeof(IXRHoverFilter))]
@@ -216,8 +331,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="FocusEnter"/>
         public bool logInteractionPreventedWarnings { get; set; } = true;
 
+        bool m_Destroyed;
+
         /// <summary>
-        /// (Read Only) List of enabled Interaction Manager instances.
+        /// (Read Only) List of active (but not necessarily enabled) Interaction Manager instances.
         /// </summary>
         /// <remarks>
         /// Intended to be used by XR Interaction Debugger and analytics.
@@ -249,6 +366,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// List of registered Interactables.
         /// </summary>
         readonly RegistrationList<IXRInteractable> m_Interactables = new RegistrationList<IXRInteractable>();
+
+        /// <summary>
+        /// List of registered Snap Volumes.
+        /// </summary>
+        readonly RegistrationList<XRInteractableSnapVolume> m_SnapVolumes = new RegistrationList<XRInteractableSnapVolume>();
 
         readonly ParentRelationships<IXRInteractor, IXRInteractable> m_InteractorRelationships = new ParentRelationships<IXRInteractor, IXRInteractable>();
         readonly ParentRelationships<IXRInteractable, IXRInteractable> m_InteractableRelationships = new ParentRelationships<IXRInteractable, IXRInteractable>();
@@ -301,6 +423,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
         bool m_NeedsInteractableSort;
 
+        static HashSetList<IXRInteractionGroup> s_WaitlistGroups;
+        static HashSetList<IXRInteractor> s_WaitlistInteractors;
+        static HashSetList<IXRInteractable> s_WaitlistInteractables;
+        static HashSetList<XRInteractableSnapVolume> s_WaitlistSnapVolumes;
+
         // Reusable event args
         readonly LinkedPool<FocusEnterEventArgs> m_FocusEnterEventArgs = new LinkedPool<FocusEnterEventArgs>(() => new FocusEnterEventArgs(), collectionCheck: false);
         readonly LinkedPool<FocusExitEventArgs> m_FocusExitEventArgs = new LinkedPool<FocusExitEventArgs>(() => new FocusExitEventArgs(), collectionCheck: false);
@@ -314,6 +441,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
         readonly LinkedPool<InteractorUnregisteredEventArgs> m_InteractorUnregisteredEventArgs = new LinkedPool<InteractorUnregisteredEventArgs>(() => new InteractorUnregisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractableRegisteredEventArgs> m_InteractableRegisteredEventArgs = new LinkedPool<InteractableRegisteredEventArgs>(() => new InteractableRegisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<InteractableUnregisteredEventArgs> m_InteractableUnregisteredEventArgs = new LinkedPool<InteractableUnregisteredEventArgs>(() => new InteractableUnregisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractableSnapVolumeRegisteredEventArgs> m_SnapVolumeRegisteredEventArgs = new LinkedPool<InteractableSnapVolumeRegisteredEventArgs>(() => new InteractableSnapVolumeRegisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<InteractableSnapVolumeUnregisteredEventArgs> m_SnapVolumeUnregisteredEventArgs = new LinkedPool<InteractableSnapVolumeUnregisteredEventArgs>(() => new InteractableSnapVolumeUnregisteredEventArgs(), collectionCheck: false);
 
         static readonly ProfilerMarker s_PreprocessInteractorsMarker = new ProfilerMarker("XRI.PreprocessInteractors");
         static readonly ProfilerMarker s_SortInteractableProcessingMarker = new ProfilerMarker("XRI.SortInteractableProcessing");
@@ -344,6 +473,14 @@ namespace UnityEngine.XR.Interaction.Toolkit
             // Setup the starting filters
             m_HoverFilters.RegisterReferences(m_StartingHoverFilters, this);
             m_SelectFilters.RegisterReferences(m_StartingSelectFilters, this);
+
+            // Set the cached reference to help avoid unnecessary find calls.
+            // This reference is set in Awake to allow interactors/interactables to use it during their own OnEnable.
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == null && enabled)
+                ComponentLocatorUtility<XRInteractionManager>.SetComponentCache(this);
+
+            activeInteractionManagers.Add(this);
+            activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Awake);
         }
 
         /// <summary>
@@ -351,25 +488,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnEnable()
         {
-            if (activeInteractionManagers.Count > 0)
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == null)
+                ComponentLocatorUtility<XRInteractionManager>.SetComponentCache(this);
+
+            // If this is the new default manager, claim any waitlist items.
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+                RegisterWaitlistItems();
+
+            if (activeInteractionManagers.Count > 1)
             {
-                var message = "There are multiple active and enabled XR Interaction Manager components in the loaded scenes." +
-                    " This is supported, but may not be intended since interactors and interactables are not able to interact with those registered to a different manager." +
-                    " You can use the <b>Window</b> > <b>Analysis</b> > <b>XR Interaction Debugger</b> window to verify the interactors and interactables registered with each.";
-#if UNITY_EDITOR
-                if (ComponentLocatorUtility<XRInteractionManager>.componentCache != null)
+                var numActiveAndEnabled = 0;
+                foreach (var manager in activeInteractionManagers)
                 {
-                    message += " The default manager that interactors and interactables automatically register with when None is: " +
-                        GetHierarchyPath(ComponentLocatorUtility<XRInteractionManager>.componentCache.gameObject);
+                    if (manager.isActiveAndEnabled)
+                        numActiveAndEnabled++;
                 }
+
+                if (numActiveAndEnabled > 0)
+                {
+                    var message = "There are multiple active and enabled XR Interaction Manager components in the loaded scenes." +
+                        " This is supported, but may not be intended since interactors and interactables are not able to interact with those registered to a different manager.";
+#if UNITY_EDITOR
+                    message += " You can use the <b>Window</b> > <b>Analysis</b> > <b>XR Interaction Debugger</b> window to verify the interactors and interactables registered with each.";
+
+                    if (ComponentLocatorUtility<XRInteractionManager>.componentCache != null)
+                    {
+                        message += " The default manager that interactors and interactables automatically register with when None is: " +
+                            GetHierarchyPath(ComponentLocatorUtility<XRInteractionManager>.componentCache.gameObject);
+                    }
 #endif
 
-                Debug.LogWarning(message, this);
+                    Debug.LogWarning(message, this);
+                }
             }
 
-            activeInteractionManagers.Add(this);
-            activeInteractionManagersChanged?.Invoke(this, true);
             Application.onBeforeRender += OnBeforeRender;
+            activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Enable);
         }
 
         /// <summary>
@@ -377,10 +531,69 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void OnDisable()
         {
-            Application.onBeforeRender -= OnBeforeRender;
-            activeInteractionManagers.Remove(this);
-            activeInteractionManagersChanged?.Invoke(this, false);
             ClearPriorityForSelectionMap();
+
+            Application.onBeforeRender -= OnBeforeRender;
+            activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Disable);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            m_Destroyed = true;
+            activeInteractionManagers.Remove(this);
+
+            FlushRegistration();
+
+            XRInteractionManager newDefaultManager = null;
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this)
+            {
+                // Replace the cached default manager reference with an active and enabled manager.
+                // If none are enabled, the first one to become enabled later will set the reference itself.
+                if (activeInteractionManagers.Count > 0)
+                {
+                    foreach (var manager in activeInteractionManagers)
+                    {
+                        if (!manager.m_Destroyed && manager.isActiveAndEnabled)
+                        {
+                            newDefaultManager = manager;
+                            break;
+                        }
+                    }
+                }
+
+                ComponentLocatorUtility<XRInteractionManager>.SetComponentCache(newDefaultManager);
+            }
+
+            foreach (var interactor in m_Interactors.registeredSnapshot)
+            {
+                UnregisterInteractor(interactor);
+            }
+
+            foreach (var interactable in m_Interactables.registeredSnapshot)
+            {
+                UnregisterInteractable(interactable);
+            }
+
+            foreach (var snapVolume in m_SnapVolumes.registeredSnapshot)
+            {
+                UnregisterSnapVolume(snapVolume);
+            }
+
+            // Unregister groups after unregistering interactors so the group can skip re-registering the member interactors.
+            foreach (var interactionGroup in m_InteractionGroups.registeredSnapshot)
+            {
+                UnregisterInteractionGroup(interactionGroup);
+            }
+
+            // If there is a new default manager that is already enabled, transfer the items that were registered to this destroyed manager.
+            // Otherwise, the next manager to become enabled will become the new default and claim any waitlist items at that time.
+            if (newDefaultManager != null && newDefaultManager.isActiveAndEnabled && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+                newDefaultManager.RegisterWaitlistItems();
+
+            activeInteractionManagersChanged?.Invoke(this, ComponentLifecyclePhase.Destroy);
         }
 
         /// <summary>
@@ -404,6 +617,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         protected virtual void Update()
         {
             ClearPriorityForSelectionMap();
+
+            // If this is the new default manager, claim any waitlist items.
+            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this && XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+                RegisterWaitlistItems();
+
             FlushRegistration();
 
             using (s_PreprocessInteractorsMarker.Auto())
@@ -706,6 +924,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactionGroup">The Interaction Group to be registered.</param>
         public virtual void RegisterInteractionGroup(IXRInteractionGroup interactionGroup)
         {
+            if (m_Destroyed)
+                return;
+
             IXRInteractionGroup containingGroup = null;
             if (interactionGroup is IXRGroupMember groupMember)
                 containingGroup = groupMember.containingGroup;
@@ -719,6 +940,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_InteractionGroups.Register(interactionGroup))
             {
+                s_WaitlistGroups?.Remove(interactionGroup);
+
                 if (containingGroup != null)
                     m_GroupsInGroup.Add(interactionGroup);
 
@@ -795,6 +1018,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (m_InteractionGroupUnregisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
+                    args.managerDestroyed = m_Destroyed;
                     args.interactionGroupObject = interactionGroup;
                     OnUnregistered(args);
                 }
@@ -850,6 +1074,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactor">The Interactor to be registered.</param>
         public virtual void RegisterInteractor(IXRInteractor interactor)
         {
+            if (m_Destroyed)
+                return;
+
             IXRInteractionGroup containingGroup = null;
             if (interactor is IXRGroupMember groupMember)
                 containingGroup = groupMember.containingGroup;
@@ -863,6 +1090,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             if (m_Interactors.Register(interactor))
             {
+                s_WaitlistInteractors?.Remove(interactor);
+
                 // Automatically register parent interactable relationship
                 if (interactor is IXRParentInteractableLink parentLink)
                 {
@@ -945,6 +1174,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (m_InteractorUnregisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
+                    args.managerDestroyed = m_Destroyed;
                     args.interactorObject = interactor;
                     OnUnregistered(args);
                 }
@@ -974,8 +1204,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="interactable">The Interactable to be registered.</param>
         public virtual void RegisterInteractable(IXRInteractable interactable)
         {
+            if (m_Destroyed)
+                return;
+
             if (m_Interactables.Register(interactable))
             {
+                s_WaitlistInteractables?.Remove(interactable);
+
                 // Automatically register parent interactable relationship
                 if (interactable is IXRParentInteractableLink parentLink)
                 {
@@ -1096,6 +1331,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 using (m_InteractableUnregisteredEventArgs.Get(out var args))
                 {
                     args.manager = this;
+                    args.managerDestroyed = m_Destroyed;
                     args.interactableObject = interactable;
                     OnUnregistered(args);
                 }
@@ -1126,24 +1362,56 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="UnregisterSnapVolume"/>
         public void RegisterSnapVolume(XRInteractableSnapVolume snapVolume)
         {
+            if (m_Destroyed)
+                return;
+
             if (snapVolume == null)
                 return;
 
-            var snapCollider = snapVolume.snapCollider;
-            if (snapCollider == null)
-                return;
+            if (m_SnapVolumes.Register(snapVolume))
+            {
+                s_WaitlistSnapVolumes?.Remove(snapVolume);
 
-            if (!m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume))
-            {
-                m_ColliderToSnapVolumes.Add(snapCollider, snapVolume);
+                var snapCollider = snapVolume.snapCollider;
+                if (snapCollider != null)
+                {
+                    if (!m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume))
+                    {
+                        m_ColliderToSnapVolumes.Add(snapCollider, snapVolume);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("A collider used by a snap volume component is already registered with another snap volume component." +
+                            $" The {snapCollider} will remain associated with {associatedSnapVolume}, which was registered before {snapVolume}." +
+                            " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
+                            snapVolume);
+                    }
+                }
+
+                using (m_SnapVolumeRegisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.snapVolume = snapVolume;
+                    OnRegistered(args);
+                }
             }
-            else
-            {
-                Debug.LogWarning("A collider used by a snap volume component is already registered with another snap volume component." +
-                    $" The {snapCollider} will remain associated with {associatedSnapVolume}, which was registered before {snapVolume}." +
-                    " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
-                    snapVolume);
-            }
+        }
+
+        /// <summary>
+        /// Automatically called when a snap volume is registered with this Interaction Manager.
+        /// Notifies the snap volume, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the registered snap volume.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterSnapVolume"/>
+        protected virtual void OnRegistered(InteractableSnapVolumeRegisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.snapVolume.OnRegisteredInternal(args);
+            snapVolumeRegistered?.Invoke(args);
         }
 
         /// <summary>
@@ -1156,14 +1424,42 @@ namespace UnityEngine.XR.Interaction.Toolkit
             if (snapVolume == null)
                 return;
 
-            // This makes the assumption that the snap collider has not been changed after
-            // the snap volume is registered.
-            var snapCollider = snapVolume.snapCollider;
-            if (snapCollider == null)
-                return;
+            if (m_SnapVolumes.Unregister(snapVolume))
+            {
+                // This makes the assumption that the snap collider has not been changed after
+                // the snap volume is registered.
+                var snapCollider = snapVolume.snapCollider;
+                if (snapCollider != null)
+                {
+                    if (m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume) && associatedSnapVolume == snapVolume)
+                        m_ColliderToSnapVolumes.Remove(snapCollider);
+                }
 
-            if (m_ColliderToSnapVolumes.TryGetValue(snapCollider, out var associatedSnapVolume) && associatedSnapVolume == snapVolume)
-                m_ColliderToSnapVolumes.Remove(snapCollider);
+                using (m_SnapVolumeUnregisteredEventArgs.Get(out var args))
+                {
+                    args.manager = this;
+                    args.managerDestroyed = m_Destroyed;
+                    args.snapVolume = snapVolume;
+                    OnUnregistered(args);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when a snap volume is unregistered from this Interaction Manager.
+        /// Notifies the snap volume, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the unregistered snap volume.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterSnapVolume"/>
+        protected virtual void OnUnregistered(InteractableSnapVolumeUnregisteredEventArgs args)
+        {
+            Debug.Assert(args.manager == this, this);
+
+            args.snapVolume.OnUnregisteredInternal(args);
+            snapVolumeUnregistered?.Invoke(args);
         }
 
         /// <summary>
@@ -1377,6 +1673,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// results of this method.
         /// Clears <paramref name="results"/> before adding to it.
         /// </remarks>
+        /// <seealso cref="RegisterInteractionGroup"/>
         public void GetRegisteredInteractionGroups(List<IXRInteractionGroup> results)
         {
             if (results == null)
@@ -1396,6 +1693,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// results of this method.
         /// Clears <paramref name="results"/> before adding to it.
         /// </remarks>
+        /// <seealso cref="RegisterInteractor(IXRInteractor)"/>
         /// <seealso cref="GetRegisteredInteractables(List{IXRInteractable})"/>
         public void GetRegisteredInteractors(List<IXRInteractor> results)
         {
@@ -1416,6 +1714,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// results of this method.
         /// Clears <paramref name="results"/> before adding to it.
         /// </remarks>
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
         /// <seealso cref="GetRegisteredInteractors(List{IXRInteractor})"/>
         public void GetRegisteredInteractables(List<IXRInteractable> results)
         {
@@ -1423,6 +1722,26 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 throw new ArgumentNullException(nameof(results));
 
             m_Interactables.GetRegisteredItems(results);
+        }
+
+        /// <summary>
+        /// Returns all registered snap volumes into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive registered snap volumes.</param>
+        /// <remarks>
+        /// This method populates the list with the registered snap volumes at the time the
+        /// method is called. It is not a live view, meaning snap volumes
+        /// registered or unregistered afterward will not be reflected in the
+        /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
+        /// </remarks>
+        /// <seealso cref="RegisterSnapVolume"/>
+        public void GetRegisteredSnapVolumes(List<XRInteractableSnapVolume> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            m_SnapVolumes.GetRegisteredItems(results);
         }
 
         /// <summary>
@@ -1456,6 +1775,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public bool IsRegistered(IXRInteractable interactable)
         {
             return m_Interactables.IsRegistered(interactable);
+        }
+
+        /// <summary>
+        /// Checks whether the <paramref name="snapVolume"/> is registered with this Interaction Manager.
+        /// </summary>
+        /// <param name="snapVolume">The snap volume to check.</param>
+        /// <returns>Returns <see langword="true"/> if registered. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="RegisterSnapVolume"/>
+        public bool IsRegistered(XRInteractableSnapVolume snapVolume)
+        {
+            return m_SnapVolumes.IsRegistered(snapVolume);
         }
 
         /// <summary>
@@ -2605,11 +2935,139 @@ namespace UnityEngine.XR.Interaction.Toolkit
             return true;
         }
 
+        /// <summary>
+        /// Register all waitlist items, which were registered items to another manager when that manager was destroyed
+        /// or enabled items which did not have a manager reference set.
+        /// </summary>
+        public void RegisterWaitlistItems()
+        {
+            // Interaction Groups
+            if (s_WaitlistGroups != null && s_WaitlistGroups.Count > 0)
+            {
+                var groups = s_WaitlistGroups;
+                s_WaitlistGroups = null;
+
+                foreach (var interactionGroup in groups)
+                {
+                    if (interactionGroup != null)
+                    {
+                        var register = false;
+                        try
+                        {
+                            register = interactionGroup is not Behaviour component || component.isActiveAndEnabled;
+                        }
+                        catch (MissingReferenceException)
+                        {
+                            // Ignore destroyed component, don't try to register it.
+                            // This helps guard against components which were destroyed with Object.DestroyImmediate.
+                        }
+
+                        if (register)
+                            RegisterInteractionGroup(interactionGroup);
+                    }
+                }
+
+                groups.Clear();
+                s_WaitlistGroups ??= groups;
+            }
+
+            // Interactors
+            if (s_WaitlistInteractors != null && s_WaitlistInteractors.Count > 0)
+            {
+                var interactors = s_WaitlistInteractors;
+                s_WaitlistInteractors = null;
+
+                foreach (var interactor in interactors)
+                {
+                    if (interactor != null)
+                    {
+                        var register = false;
+                        try
+                        {
+                            register = interactor is not Behaviour component || component.isActiveAndEnabled;
+                        }
+                        catch (MissingReferenceException)
+                        {
+                            // Ignore destroyed component, don't try to register it.
+                            // This helps guard against components which were destroyed with Object.DestroyImmediate.
+                        }
+
+                        if (register)
+                            RegisterInteractor(interactor);
+                    }
+                }
+
+                interactors.Clear();
+                s_WaitlistInteractors ??= interactors;
+            }
+
+            // Interactables
+            if (s_WaitlistInteractables != null && s_WaitlistInteractables.Count > 0)
+            {
+                var interactables = s_WaitlistInteractables;
+                s_WaitlistInteractables = null;
+
+                foreach (var interactable in interactables)
+                {
+                    if (interactable != null)
+                    {
+                        var register = false;
+                        try
+                        {
+                            register = interactable is not Behaviour component || component.isActiveAndEnabled;
+                        }
+                        catch (MissingReferenceException)
+                        {
+                            // Ignore destroyed component, don't try to register it.
+                            // This helps guard against components which were destroyed with Object.DestroyImmediate.
+                        }
+
+                        if (register)
+                            RegisterInteractable(interactable);
+                    }
+                }
+
+                interactables.Clear();
+                s_WaitlistInteractables ??= interactables;
+            }
+
+            // Snap Volumes
+            if (s_WaitlistSnapVolumes != null && s_WaitlistSnapVolumes.Count > 0)
+            {
+                var snapVolumes = s_WaitlistSnapVolumes;
+                s_WaitlistSnapVolumes = null;
+
+                foreach (var snapVolume in snapVolumes)
+                {
+                    if (snapVolume != null)
+                    {
+                        var register = false;
+                        try
+                        {
+                            register = snapVolume.isActiveAndEnabled;
+                        }
+                        catch (MissingReferenceException)
+                        {
+                            // Ignore destroyed component, don't try to register it.
+                            // This helps guard against components which were destroyed with Object.DestroyImmediate.
+                        }
+
+                        if (register)
+                            RegisterSnapVolume(snapVolume);
+                    }
+                }
+
+                snapVolumes.Clear();
+                s_WaitlistSnapVolumes ??= snapVolumes;
+            }
+        }
+
         void FlushRegistration()
         {
             m_InteractionGroups.Flush();
             m_Interactors.Flush();
             m_Interactables.Flush();
+            m_SnapVolumes.Flush();
         }
 
         /// <summary>

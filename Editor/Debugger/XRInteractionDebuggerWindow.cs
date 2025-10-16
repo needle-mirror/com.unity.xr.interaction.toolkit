@@ -22,6 +22,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [SerializeField]
         bool m_ShowInteractables = true;
         [SerializeField]
+        bool m_ShowSnapVolumes;
+        [SerializeField]
         bool m_ShowTargetFilters;
 
         [SerializeField]
@@ -40,6 +42,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         MultiColumnHeaderState m_InteractorsTreeHeaderState;
 
         [SerializeField]
+        XRInteractableSnapVolumesTreeView.State m_SnapVolumesTreeState;
+        [SerializeField]
+        MultiColumnHeaderState m_SnapVolumesTreeHeaderState;
+
+        [SerializeField]
         XRTargetFiltersTreeView.State m_FiltersTreeState;
         [SerializeField]
         MultiColumnHeaderState m_FiltersTreeHeaderState;
@@ -54,6 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         XRInteractablesTreeView m_InteractablesTree;
         XRTargetFiltersTreeView m_FiltersTree;
         XRTargetEvaluatorsScoreTreeView m_EvaluatorsScoreTree;
+        XRInteractableSnapVolumesTreeView m_SnapVolumesTree;
 
         static XRInteractionDebuggerWindow s_Instance;
 
@@ -115,6 +123,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
         }
 
+        void UpdateSnapVolumesTree()
+        {
+            var activeManagers = XRInteractionManager.activeInteractionManagers;
+            if (m_SnapVolumesTree == null)
+            {
+                m_SnapVolumesTree = XRInteractableSnapVolumesTreeView.Create(activeManagers, ref m_SnapVolumesTreeState, ref m_SnapVolumesTreeHeaderState);
+                m_SnapVolumesTree.ExpandAll();
+            }
+            else
+            {
+                m_SnapVolumesTree.UpdateManagersList(activeManagers);
+            }
+        }
+
         void UpdateFiltersTree()
         {
             var enabledFilters = XRTargetFilter.enabledFilters;
@@ -156,6 +178,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             UpdateInputDevicesTree();
             UpdateInteractorsTree();
             UpdateInteractablesTree();
+            UpdateSnapVolumesTree();
 
             UpdateFiltersTree();
             UpdateEvaluatorsScoreTree();
@@ -163,6 +186,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InputDevicesTree?.Repaint();
             m_InteractorsTree?.Repaint();
             m_InteractablesTree?.Repaint();
+            m_SnapVolumesTree?.Repaint();
 
             m_FiltersTree?.Repaint();
             if (m_EvaluatorsScoreTree != null)
@@ -185,6 +209,8 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 DrawInteractorsGUI();
             if (m_ShowInteractables && m_InteractablesTree != null)
                 DrawInteractablesGUI();
+            if (m_ShowSnapVolumes && m_SnapVolumesTree != null)
+                DrawSnapVolumesGUI();
             if (m_ShowTargetFilters && m_FiltersTree != null)
                 DrawFiltersGUI();
 
@@ -224,6 +250,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_InteractablesTree.OnGUI(rect);
         }
 
+        void DrawSnapVolumesGUI()
+        {
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label(Contents.snapVolumes, GUILayout.MinWidth(100), GUILayout.ExpandWidth(true));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+            m_SnapVolumesTree.OnGUI(rect);
+        }
+
         void DrawFiltersGUI()
         {
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -253,14 +290,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            m_ShowInputDevices
-                = GUILayout.Toggle(m_ShowInputDevices, Contents.inputDevices, EditorStyles.toolbarButton);
-            m_ShowInteractors
-                = GUILayout.Toggle(m_ShowInteractors, Contents.interactors, EditorStyles.toolbarButton);
-            m_ShowInteractables
-                = GUILayout.Toggle(m_ShowInteractables, Contents.interactables, EditorStyles.toolbarButton);
-            m_ShowTargetFilters
-                = GUILayout.Toggle(m_ShowTargetFilters, Contents.targetFilters, EditorStyles.toolbarButton);
+            m_ShowInputDevices = GUILayout.Toggle(m_ShowInputDevices, Contents.inputDevices, EditorStyles.toolbarButton);
+            m_ShowInteractors = GUILayout.Toggle(m_ShowInteractors, Contents.interactors, EditorStyles.toolbarButton);
+            m_ShowInteractables = GUILayout.Toggle(m_ShowInteractables, Contents.interactables, EditorStyles.toolbarButton);
+            m_ShowSnapVolumes = GUILayout.Toggle(m_ShowSnapVolumes, Contents.snapVolumes, EditorStyles.toolbarButton);
+            m_ShowTargetFilters = GUILayout.Toggle(m_ShowTargetFilters, Contents.targetFilters, EditorStyles.toolbarButton);
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.EndHorizontal();
@@ -318,7 +352,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 return unityObject != null ? unityObject.name : "<Destroyed>";
             }
 
-            return obj.GetType().Name;
+            return obj != null ? obj.GetType().Name : "<null>";
         }
 
         internal static string GetDisplayType(object obj)
@@ -353,14 +387,32 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return id;
         }
 
+        internal static int[] CreateVisibleColumns(int count)
+        {
+            // Create an int[] with each column index from [0..count)
+            var visibleColumns = new int[count];
+            for (var index = 0; index < count; ++index)
+            {
+                visibleColumns[index] = index;
+            }
+
+            return visibleColumns;
+        }
+
         static class Contents
         {
             public static GUIContent titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");
             public static GUIContent inputDevices = EditorGUIUtility.TrTextContent("Input Devices");
-            public static GUIContent interactables = EditorGUIUtility.TrTextContent("Interactables");
             public static GUIContent interactors = EditorGUIUtility.TrTextContent("Interactors");
+            public static GUIContent interactables = EditorGUIUtility.TrTextContent("Interactables");
+            public static GUIContent snapVolumes = EditorGUIUtility.TrTextContent("Snap Volumes");
             public static GUIContent targetFilters = EditorGUIUtility.TrTextContent("Target Filters");
             public static GUIContent score = EditorGUIUtility.TrTextContent("Score");
+        }
+
+        internal static class Styles
+        {
+            public static readonly GUIStyle richLabel = new GUIStyle("label") { richText = true };
         }
     }
 }

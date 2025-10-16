@@ -26,9 +26,17 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
         const string k_ProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
 #if UNITY_6000_0_OR_NEWER
+        // The s_MinimumUIPackageVersion should match the UGUI_2_0_PRESENT version in the
+        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
+        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("2.0.0");
         const string k_UIPackageName = "com.unity.ugui";
         const string k_UIPackageDisplayName = "Unity UI";
 #else
+        // The s_MinimumUIPackageVersion should match the TEXT_MESH_PRO_PRESENT version in the
+        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
+        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("3.0.8");
         const string k_UIPackageName = "com.unity.textmeshpro";
         const string k_UIPackageDisplayName = "TextMeshPro";
 #endif
@@ -56,23 +64,22 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
                 Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_StarterAssetsSampleName),
             },
 
+            // Is appropriate UI package installed
             new BuildValidationRule
             {
                 IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
-                Message = $"[{k_SampleDisplayName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed for this sample.",
+                Message = $"[{k_SampleDisplayName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
                 Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName),
+                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_UIPackageName) >= s_MinimumUIPackageVersion,
                 FixIt = () =>
                 {
-                    s_UIPackageAddRequest = Client.Add(k_UIPackageName);
-                    if (s_UIPackageAddRequest.Error != null)
-                    {
-                        Debug.LogError($"Package installation error: {s_UIPackageAddRequest.Error}: {s_UIPackageAddRequest.Error.message}");
-                    }
+                    if (s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted)
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_UIPackageName, s_MinimumUIPackageVersion, ref s_UIPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = true,
             },
+
 #if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
             new BuildValidationRule
             {

@@ -11,8 +11,8 @@ This sample is installed into the default location for package samples, in the `
 |---|---|
 |**`AffordanceThemes\`**|Asset folder containing Affordance Theme Datums used by [Affordance receivers](affordance-system.md#affordance-receivers) in the hand visuals. An example is coloring finger tips upon interaction.|
 |**`DatumPresets\`**|Asset folder containing Follow Preset Datums used by hand menus.|
+|**`DemoAssets\`**|Asset folder containing assets only used for the `HandsDemoScene`.|
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
-|**`HandsDemoSceneAssets\`**|Asset folder containing assets only used for the `HandsDemoScene`.|
 |**`Materials\`**|Asset folder containing materials for hand visuals.|
 |**`Models\`**|Asset folder containing models for hand visuals.|
 |**`Prefabs\`**|Asset folder containing prefabs of hand visuals and a hand variant of the XR Origin (XR Rig).|

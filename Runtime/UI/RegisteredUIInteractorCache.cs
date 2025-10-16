@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -15,6 +16,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         readonly IUIInteractor m_UiInteractor;
         readonly XRBaseInteractor m_BaseInteractor;
 
+        bool m_EnableUIInteraction;
+        bool m_FindingEventSystem;
+
+        // Used to avoid GC Alloc from delegate object creation if passing the method directly
+        Action<EventSystem> m_FindEventSystem;
+
         /// <summary>
         /// Initializes and returns an instance of <see cref="RegisteredUIInteractorCache"/>.
         /// </summary>
@@ -30,15 +37,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Register with or unregister from the Input Module (if necessary).
         /// </summary>
+        /// <param name="enableUIInteraction">Whether UI interaction should be enabled. Will register/unregister with the XR UI Input Module.</param>
         /// <remarks>
-        /// If this behavior is not active and enabled, this function does nothing.
+        /// If this behavior is not active and enabled, this function does nothing since it is assumed <c>OnEnable</c>/<c>OnDisable</c> will call into the other methods.
         /// </remarks>
-        public void RegisterOrUnregisterXRUIInputModule(bool enabled)
+        public void RegisterOrUnregisterXRUIInputModule(bool enableUIInteraction)
         {
             if (!Application.isPlaying || (m_BaseInteractor != null && !m_BaseInteractor.isActiveAndEnabled))
                 return;
 
-            if (enabled)
+            if (enableUIInteraction)
                 RegisterWithXRUIInputModule();
             else
                 UnregisterFromXRUIInputModule();
@@ -50,16 +58,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <seealso cref="UnregisterFromXRUIInputModule"/>
         public void RegisterWithXRUIInputModule()
         {
-            if (m_InputModule == null)
-                FindOrCreateXRUIInputModule();
-
-            if (m_RegisteredInputModule == m_InputModule)
+            m_EnableUIInteraction = true;
+            if (m_FindingEventSystem)
                 return;
 
-            UnregisterFromXRUIInputModule();
-
-            m_InputModule.RegisterInteractor(m_UiInteractor);
-            m_RegisteredInputModule = m_InputModule;
+            if (m_InputModule == null)
+                FindOrCreateXRUIInputModule();
+            else
+                Register();
         }
 
         /// <summary>
@@ -68,44 +74,88 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <seealso cref="RegisterWithXRUIInputModule"/>
         public void UnregisterFromXRUIInputModule()
         {
-            if (m_RegisteredInputModule != null)
-                m_RegisteredInputModule.UnregisterInteractor(m_UiInteractor);
+            m_EnableUIInteraction = false;
+            if (m_FindingEventSystem)
+                return;
 
-            m_RegisteredInputModule = null;
+            Unregister();
+        }
+
+        void Register()
+        {
+            if (m_RegisteredInputModule == m_InputModule)
+                return;
+
+            if (!m_EnableUIInteraction)
+                return;
+
+            UnregisterFromXRUIInputModule();
+
+            if (m_InputModule != null)
+            {
+                m_InputModule.RegisterInteractor(m_UiInteractor);
+                m_RegisteredInputModule = m_InputModule;
+            }
+        }
+
+        void Unregister()
+        {
+            if (m_RegisteredInputModule != null)
+            {
+                m_RegisteredInputModule.UnregisterInteractor(m_UiInteractor);
+                m_RegisteredInputModule = null;
+            }
         }
 
         void FindOrCreateXRUIInputModule()
         {
-            var eventSystem = EventSystem.current;
-            if (eventSystem == null)
-            {
-                if (ComponentLocatorUtility<EventSystem>.TryFindComponent(out eventSystem))
-                {
-                    // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
-                    if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
-                        Object.Destroy(standaloneInputModule);
-                }
-                else
-                {
-                    eventSystem = new GameObject("EventSystem", typeof(EventSystem)).GetComponent<EventSystem>();
-                }
-            }
+            if (m_FindingEventSystem)
+                return;
 
+            m_FindingEventSystem = true;
+
+            var eventSystem = EventSystem.current;
+            if (eventSystem != null)
+            {
+                // Set the cached reference to help avoid unnecessary find calls
+                if (ComponentLocatorUtility<EventSystem>.componentCache == null)
+                    ComponentLocatorUtility<EventSystem>.SetComponentCache(eventSystem);
+
+                OnFindEventSystem(eventSystem);
+            }
+            else
+                ComponentLocatorUtility<EventSystem>.FindComponentDeferred(
+                    m_FindEventSystem ??= OnFindEventSystem,
+                    createComponent: XRInteractionRuntimeSettings.Instance.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.CreateAutomatically);
+        }
+
+        void OnFindEventSystem(EventSystem eventSystem)
+        {
+            m_FindingEventSystem = false;
+
+            if (eventSystem == null)
+                return;
+
+            // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
+            if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
+                Object.Destroy(standaloneInputModule);
+
+            // Get or add our XR UI Input Module component
             if (!eventSystem.TryGetComponent(out m_InputModule))
                 m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
+
+            Register();
         }
 
         /// <summary>
         /// Attempts to retrieve the current UI Model.
         /// </summary>
         /// <param name="model">The returned model that reflects the UI state of this Interactor.</param>
-        /// <returns>Returns <see langword="true"/> if the model was able to retrieved. Otherwise, returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if the model was retrieved. Otherwise, returns <see langword="false"/>.</returns>
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
             if (m_InputModule != null)
-            {
                 return m_InputModule.GetTrackedDeviceModel(m_UiInteractor, out model);
-            }
 
             model = TrackedDeviceModel.invalid;
             return false;

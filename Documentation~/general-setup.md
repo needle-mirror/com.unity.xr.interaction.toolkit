@@ -30,6 +30,7 @@ Refer to the [XR section](xref:XR) of the Unity manual for more general informat
 The XR Interaction Toolkit has a few settings to consider:
 
 * **XR Interaction Simulator Settings**: whether to automatically add the interaction simulator to your scenes when you run them in the Editor. The simulator translates mouse and keyboard input into XR controller input.
+* **Runtime Settings**: affects whether some of the manager components of the toolkit are automatically instantiated as needed.
 * **Editor Settings**: affects how the properties of some toolkit components appear in the Inspector.
 * **Interaction Layer Settings**: assign labels to the interaction layers. You can use up to 31 interaction layers as a way to control which interactors can operate with which interactables. You must assign a label to a layer before you can use it.
 
@@ -64,7 +65,7 @@ At a minimum, a scene needs the following:
 * At least one [interactor](xref:xri-interactor-components) object (but often you might use a few specialized interactors per hand)
 
 > [!TIP]
-> The [Starter Assets](xref:xri-samples-starter-assets) contains an XR Origin prefab that includes the standard XR Origin, plus all the required toolkit manager components and a full set of interactors. You can drag this prefab to a scene to complete the minimum set up needed before designing the scene's interactions and means of locomotion.
+> The [Starter Assets](xref:xri-samples-starter-assets) contains an XR Origin prefab that includes the standard XR Origin, a full set of interactors, plus all the components for various locomotion styles. You can drag this prefab to a scene to complete the minimum set up needed before designing the scene's interactions and means of locomotion.
 
 For [3D interactions](xref:xri-3d-interaction), the scene needs interactable objects. For example, you can add an [XR Grab Interactable](xref:xri-xr-grab-interactable) component to a GameObject to let the user pick it up (with a suitable interactor).
 

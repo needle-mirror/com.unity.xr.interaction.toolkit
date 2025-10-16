@@ -10,6 +10,7 @@ using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 #endif
@@ -253,7 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         internal event Action<XRInputModalityManager, InputMode> rightInputModeChanged;
 
         /// <summary>
-        /// (Read Only) List of enabled Input Modality Manager instances.
+        /// (Read Only) List of active (but not necessarily enabled) Input Modality Manager instances.
         /// </summary>
         /// <remarks>
         /// Intended to be used by analytics.
@@ -262,13 +263,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         internal static List<XRInputModalityManager> activeModalityManagers { get; } = new List<XRInputModalityManager>();
 
         /// <summary>
-        /// Calls the methods in its invocation list when a manager is enabled or disabled.
+        /// Calls the methods in its invocation list when a manager changes phase of the component lifecycle (such as enabled or disabled).
         /// </summary>
         /// <remarks>
         /// Intended to be used by analytics.
         /// </remarks>
         /// <seealso cref="activeModalityManagers"/>
-        internal static event Action<XRInputModalityManager, bool> activeModalityManagersChanged;
+        internal static event Action<XRInputModalityManager, ComponentLifecyclePhase> activeModalityManagersChanged;
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void Awake()
+        {
+            activeModalityManagers.Add(this);
+            activeModalityManagersChanged?.Invoke(this, ComponentLifecyclePhase.Awake);
+        }
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -298,8 +308,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             UpdateLeftMode();
             UpdateRightMode();
 
-            activeModalityManagers.Add(this);
-            activeModalityManagersChanged?.Invoke(this, true);
+            activeModalityManagersChanged?.Invoke(this, ComponentLifecyclePhase.Enable);
         }
 
         /// <summary>
@@ -324,8 +333,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
                 m_InputDeviceMonitor.ClearAllDevices();
             }
 
+            activeModalityManagersChanged?.Invoke(this, ComponentLifecyclePhase.Disable);
+        }
+
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        protected void OnDestroy()
+        {
             activeModalityManagers.Remove(this);
-            activeModalityManagersChanged?.Invoke(this, false);
+            activeModalityManagersChanged?.Invoke(this, ComponentLifecyclePhase.Destroy);
         }
 
         /// <summary>

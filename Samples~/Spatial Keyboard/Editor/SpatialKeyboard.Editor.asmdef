@@ -21,7 +21,7 @@
     "versionDefines": [
         {
             "name": "com.unity.textmeshpro",
-            "expression": "3.0.6",
+            "expression": "3.0.8",
             "define": "TEXT_MESH_PRO_PRESENT"
         },
         {

@@ -1,6 +1,7 @@
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -21,6 +22,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var snapVolume = TestUtilities.CreateSnapVolume();
             snapVolume.interactable = interactable;
 
+            Assert.That(interactable.interactionManager, Is.SameAs(manager));
+            Assert.That(snapVolume.interactionManager, Is.SameAs(manager));
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.True);
             Assert.That(snapVolume.snapCollider, Is.Not.Null);
 
             Assert.That(manager.TryGetInteractableForCollider(snapVolume.snapCollider, out var associatedInteractable), Is.True);
@@ -62,12 +66,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var snapVolume = TestUtilities.CreateSnapVolume();
             snapVolume.interactable = interactable;
 
+            Assert.That(snapVolume.interactionManager, Is.SameAs(manager));
+
             manager.RegisterInteractable(interactable);
 
+            Assert.That(manager.IsRegistered(interactable), Is.True);
             Assert.That(interactable.isRegistered, Is.True);
+            Assert.That(interactable.registeredInteractionManager, Is.SameAs(manager));
             Assert.That(snapVolume.snapCollider, Is.Not.Null);
             Assert.That(snapVolume.enabled, Is.True);
 
+            Assert.That(manager.IsRegistered(snapVolume), Is.True);
             Assert.That(manager.TryGetInteractableForCollider(snapVolume.snapCollider, out var associatedInteractable), Is.True);
             Assert.That(associatedInteractable, Is.SameAs(interactable));
 
@@ -78,6 +87,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Unregister the snap volume
             snapVolume.enabled = false;
 
+            Assert.That(manager.IsRegistered(interactable), Is.True);
+            Assert.That(interactable.isRegistered, Is.True);
+
+            Assert.That(manager.IsRegistered(snapVolume), Is.False);
             Assert.That(manager.TryGetInteractableForCollider(snapVolume.snapCollider, out associatedInteractable), Is.False);
             Assert.That(associatedInteractable, Is.Null);
 
@@ -88,6 +101,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Re-register the snap volume
             snapVolume.enabled = true;
 
+            Assert.That(manager.IsRegistered(interactable), Is.True);
+            Assert.That(interactable.isRegistered, Is.True);
+
+            Assert.That(manager.IsRegistered(snapVolume), Is.True);
             Assert.That(manager.TryGetInteractableForCollider(snapVolume.snapCollider, out associatedInteractable), Is.True);
             Assert.That(associatedInteractable, Is.SameAs(interactable));
 

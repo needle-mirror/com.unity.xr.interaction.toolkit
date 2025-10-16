@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -64,12 +66,17 @@ namespace UnityEditor.XR.Interaction.Toolkit
             Selected,
             Parents,
 
+            // Initially hidden column kept as last column
+            HierarchyPath,
+
             Count,
         }
 
         static bool exitingPlayMode => EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode;
 
         readonly List<XRInteractionManager> m_InteractionManagers = new List<XRInteractionManager>();
+
+        readonly HashSet<XRInteractionManager> m_InteractionManagersInitialized = new HashSet<XRInteractionManager>();
 
         readonly List<IXRInteractable> m_ExplicitParents = new List<IXRInteractable>();
         readonly List<IXRInteractable> m_InheritedParents = new List<IXRInteractable>();
@@ -134,15 +141,32 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 canSort = false,
                 headerContent = EditorGUIUtility.TrTextContent("Parents"),
             };
+            columns[(int)ColumnId.HierarchyPath] = new MultiColumnHeaderState.Column
+            {
+                width = 540f,
+                minWidth = 80f,
+                canSort = false,
+                headerContent = EditorGUIUtility.TrTextContent("Hierarchy Path"),
+            };
 
-            return new MultiColumnHeaderState(columns);
+            var headerState = new MultiColumnHeaderState(columns)
+            {
+                // Replace the default visible columns to hide the last Hierarchy Path column by default
+                // since it can be somewhat expensive to create the string as it uses recursion.
+                visibleColumns = XRInteractionDebuggerWindow.CreateVisibleColumns((int)ColumnId.HierarchyPath),
+            };
+
+            return headerState;
         }
 
         XRInteractablesTreeView(List<XRInteractionManager> managers, State state, MultiColumnHeader header)
             : base(state, header)
         {
             foreach (var manager in managers)
+            {
                 AddManager(manager);
+            }
+
             showBorder = false;
             rowHeight = k_RowHeight;
             Reload();
@@ -263,9 +287,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 var rootTreeItem = new Item
                 {
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactionManager),
-                    displayName = XRInteractionDebuggerWindow.GetDisplayName(interactionManager),
+                    displayName = m_InteractionManagers.Count > 1 && ComponentLocatorUtility<XRInteractionManager>.componentCache == interactionManager
+                        ? $"{XRInteractionDebuggerWindow.GetDisplayName(interactionManager)} <Default>"
+                        : XRInteractionDebuggerWindow.GetDisplayName(interactionManager),
+                    interactionManager = interactionManager,
                     depth = 0,
                 };
+
+                // If this is the first time we've added this manager, expand it.
+                if (m_InteractionManagersInitialized.Add(interactionManager))
+                    SetExpanded(rootTreeItem.id, true);
 
                 // Build children.
                 interactionManager.GetRegisteredInteractables(interactables);
@@ -314,16 +345,32 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             CenterRectUsingSingleLineHeight(ref cellRect);
 
-            if (column == (int)ColumnId.Name)
+            // depth 0 is the manager itself
+            if (item.depth == 0 && item.interactionManager != null)
             {
-                args.rowRect = cellRect;
-                base.RowGUI(args);
+                switch (column)
+                {
+                    case (int)ColumnId.Name:
+                        args.rowRect = cellRect;
+                        using (new EditorGUI.DisabledScope(!item.interactionManager.isActiveAndEnabled))
+                            base.RowGUI(args);
+                        break;
+                    case (int)ColumnId.HierarchyPath:
+                        GUI.Label(cellRect, SearchUtils.GetHierarchyPath(item.interactionManager.gameObject), XRInteractionDebuggerWindow.Styles.richLabel);
+                        break;
+                }
+
+                return;
             }
 
             if (item.interactable != null)
             {
                 switch (column)
                 {
+                    case (int)ColumnId.Name:
+                        args.rowRect = cellRect;
+                        base.RowGUI(args);
+                        break;
                     case (int)ColumnId.Type:
                         GUI.Label(cellRect, item.interactable.GetType().Name);
                         break;
@@ -359,6 +406,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
                             else if (m_InheritedParents.Count > 0)
                                 GUI.Label(cellRect, XRInteractionDebuggerWindow.JoinNames(",", m_InheritedParents));
                         }
+                        break;
+                    case (int)ColumnId.HierarchyPath:
+                        GUI.Label(cellRect, SearchUtils.GetHierarchyPath(item.interactable.transform.gameObject), XRInteractionDebuggerWindow.Styles.richLabel);
                         break;
                 }
             }

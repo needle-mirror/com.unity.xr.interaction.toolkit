@@ -14,6 +14,7 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
     XRInteractionGroup m_ExampleInteractionGroup;
     NearFarInteractor m_ExampleInteractor;
     XRGrabInteractable m_ExampleInteractable;
+    XRInteractableSnapVolume m_ExampleSnapVolume;
 
     void Awake()
     {
@@ -22,7 +23,7 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         if (m_InteractionManager == null)
             m_InteractionManager = FindFirstObjectByType<XRInteractionManager>();
 
-        // Note, the code below is creating the XRInteractionGroup, NearFarInteractor, and XRGrabInteractable before subscribing
+        // Note, the code below is creating the XRInteractionGroup, NearFarInteractor, XRGrabInteractable, and XRInteractableSnapVolume before subscribing
         // to the interaction manager register/unregister events. Therefore, the initial register callback will not be logged.
         // To demonstrate these callbacks, enable/disable each example game object in the hierarchy to receive the register/unregister callbacks.
 
@@ -37,6 +38,10 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         // XRBaseInteractable automatically registers with the interaction manager on Enable
         var interactableGO = new GameObject("Example Interactable");
         m_ExampleInteractable = interactableGO.AddComponent<XRGrabInteractable>();
+
+        // XRInteractableSnapVolume automatically registers with the interaction manager on Enable
+        var snapVolumeGO = new GameObject("Example Snap Volume");
+        m_ExampleSnapVolume = snapVolumeGO.AddComponent<XRInteractableSnapVolume>();
     }
 
     void OnEnable()
@@ -51,10 +56,12 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         m_InteractionManager.interactionGroupRegistered += OnInteractionGroupRegistered;
         m_InteractionManager.interactorRegistered += OnInteractorRegistered;
         m_InteractionManager.interactableRegistered += OnInteractableRegistered;
+        m_InteractionManager.snapVolumeRegistered += OnSnapVolumeRegistered;
 
         m_InteractionManager.interactionGroupUnregistered += OnInteractionGroupUnregistered;
         m_InteractionManager.interactorUnregistered += OnInteractorUnregistered;
         m_InteractionManager.interactableUnregistered += OnInteractableUnregistered;
+        m_InteractionManager.snapVolumeUnregistered += OnSnapVolumeUnregistered;
     }
 
     void OnDisable()
@@ -66,10 +73,12 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         m_InteractionManager.interactionGroupRegistered -= OnInteractionGroupRegistered;
         m_InteractionManager.interactorRegistered -= OnInteractorRegistered;
         m_InteractionManager.interactableRegistered -= OnInteractableRegistered;
+        m_InteractionManager.snapVolumeRegistered -= OnSnapVolumeRegistered;
 
         m_InteractionManager.interactionGroupUnregistered -= OnInteractionGroupUnregistered;
         m_InteractionManager.interactorUnregistered -= OnInteractorUnregistered;
         m_InteractionManager.interactableUnregistered -= OnInteractableUnregistered;
+        m_InteractionManager.snapVolumeUnregistered -= OnSnapVolumeUnregistered;
     }
 
     void OnInteractionGroupRegistered(InteractionGroupRegisteredEventArgs args)
@@ -130,5 +139,19 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         // Logic for interactable unregistered event goes here
         if (interactable != null && interactable == m_ExampleInteractable)
             Debug.Log(args.interactableObject.transform.name + " is unregistered with " + args.manager.transform.name, this);
+    }
+
+    void OnSnapVolumeRegistered(InteractableSnapVolumeRegisteredEventArgs args)
+    {
+        // Logic for snap volume registered event goes here
+        if (args.snapVolume != null && args.snapVolume == m_ExampleSnapVolume)
+            Debug.Log(args.snapVolume.transform.name + " is registered with " + args.manager.transform.name, this);
+    }
+
+    void OnSnapVolumeUnregistered(InteractableSnapVolumeUnregisteredEventArgs args)
+    {
+        // Logic for snap volume unregistered event goes here
+        if (args.snapVolume != null && args.snapVolume == m_ExampleSnapVolume)
+            Debug.Log(args.snapVolume.transform.name + " is unregistered with " + args.manager.transform.name, this);
     }
 }

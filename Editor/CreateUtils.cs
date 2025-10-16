@@ -41,40 +41,30 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/Near-Far Interactor", false, 10), UsedImplicitly]
         public static void CreateNearFarInteractor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateNearFarInteractor(menuCommand?.GetContextTransform()));
         }
 
         [MenuItem("GameObject/XR/Ray Interactor", false, 10), UsedImplicitly]
         public static void CreateRayInteractor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateRayInteractor(menuCommand?.GetContextTransform()));
         }
 
         [MenuItem("GameObject/XR/Direct Interactor", false, 10), UsedImplicitly]
         public static void CreateDirectInteractor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateDirectInteractor(menuCommand?.GetContextTransform()));
         }
 
         [MenuItem("GameObject/XR/Gaze Interactor", false, 10), UsedImplicitly]
         public static void CreateGazeInteractor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateGazeInteractor(menuCommand?.GetContextTransform()));
         }
 
         [MenuItem("GameObject/XR/Socket Interactor", false, 10), UsedImplicitly]
         public static void CreateSocketInteractor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             var socketInteractableGO = CreateAndPlaceGameObject("Socket Interactor", menuCommand?.GetContextTransform(),
                 typeof(SphereCollider),
                 typeof(XRSocketInteractor));
@@ -88,8 +78,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/Grab Interactable", false, 10), UsedImplicitly]
         public static void CreateGrabInteractable(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             var grabInteractableGO = CreateAndPlaceGameObject("Grab Interactable", menuCommand?.GetContextTransform(),
                 typeof(XRGrabInteractable), typeof(XRGeneralGrabTransformer));
 
@@ -132,8 +120,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/Interactable Snap Volume", false, 10), UsedImplicitly]
         public static void CreateInteractableSnapVolume(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             var snapVolumeGO = CreateAndPlaceGameObject("Interactable Snap Volume", menuCommand?.GetContextTransform(),
                 typeof(SphereCollider),
                 typeof(XRInteractableSnapVolume));
@@ -160,14 +146,20 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/Interaction Manager", false, 10), UsedImplicitly]
         public static void CreateInteractionManager(MenuCommand menuCommand)
         {
-            Finalize(CreateInteractionManager(menuCommand?.GetContextTransform()));
+            var interactionManagerGO = CreateInteractionManager(menuCommand?.GetContextTransform(), out var changeSelectionOnly);
+
+            // If there was no serialization change (it already existed), only update the selection.
+            // Passing it to Undo.RegisterCreatedObjectUndo in Finalize would cause the GameObject to be destroyed
+            // upon Undo, which should not happen. This matches the behavior of GameObject > UI > Event System.
+            if (changeSelectionOnly)
+                Selection.activeGameObject = interactionManagerGO;
+            else
+                Finalize(interactionManagerGO);
         }
 
         [MenuItem("GameObject/XR/Teleportation Area", false, 10), UsedImplicitly]
         public static void CreateTeleportationArea(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateAndPlacePrimitive("Teleportation Area", menuCommand?.GetContextTransform(),
                 PrimitiveType.Plane,
                 typeof(TeleportationArea)));
@@ -176,8 +168,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/Teleportation Anchor", false, 10), UsedImplicitly]
         public static void CreateTeleportationAnchor(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             var anchorGO = CreateAndPlacePrimitive("Teleportation Anchor", menuCommand?.GetContextTransform(),
                 PrimitiveType.Plane,
                 typeof(TeleportationAnchor));
@@ -250,8 +240,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/XR Origin (VR)", false, 10), UsedImplicitly]
         public static void CreateXROriginForVR(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.VR));
         }
 
@@ -259,8 +247,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         [MenuItem("GameObject/XR/XR Origin (Mobile AR)", false, 10), UsedImplicitly]
         static void CreateXROriginForAR(MenuCommand menuCommand)
         {
-            CreateInteractionManager();
-
             Finalize(CreateXROriginWithParent(menuCommand?.GetContextTransform(), HardwareTarget.MobileAR));
         }
 #endif
@@ -275,21 +261,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         {
             Undo.RegisterCreatedObjectUndo(gameObject, $"Create {gameObject.name}");
             Selection.activeGameObject = gameObject;
-        }
-
-        /// <summary>
-        /// Create the <see cref="XRInteractionManager"/> if necessary.
-        /// </summary>
-        /// <param name="parent">The parent <see cref="Transform"/> to use.</param>
-        static GameObject CreateInteractionManager(Transform parent = null)
-        {
-            var currentStage = StageUtility.GetCurrentStageHandle();
-
-            var interactionManager = currentStage.FindComponentOfType<XRInteractionManager>();
-            if (interactionManager == null || !interactionManager.gameObject.scene.IsValid())
-                return CreateAndPlaceGameObject("XR Interaction Manager", parent, typeof(XRInteractionManager));
-
-            return interactionManager.gameObject;
         }
 
         static GameObject CreateNearFarInteractor(Transform parent, string name = "Near-Far Interactor")
@@ -385,6 +356,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
             sphereCollider.radius = GetScaledRadius(sphereCollider, 0.1f);
 
             return directInteractorGO;
+        }
+
+        /// <summary>
+        /// Create the <see cref="XRInteractionManager"/> if necessary.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="Transform"/> to use.</param>
+        /// <param name="changeSelectionOnly">Returns <see langword="true"/> when the component already existed in the current editing stage.</param>
+        /// <returns>Returns the GameObject with the <see cref="XRInteractionManager"/>, either existing or newly created.</returns>
+        static GameObject CreateInteractionManager(Transform parent, out bool changeSelectionOnly)
+        {
+            var currentStage = StageUtility.GetCurrentStageHandle();
+
+            var interactionManager = currentStage.FindComponentOfType<XRInteractionManager>();
+            if (interactionManager != null && interactionManager.gameObject.scene.IsValid())
+            {
+                changeSelectionOnly = true;
+                return interactionManager.gameObject;
+            }
+
+            changeSelectionOnly = false;
+            return CreateAndPlaceGameObject("XR Interaction Manager", parent, typeof(XRInteractionManager));
         }
 
         static GameObject CreateXRUIEventSystemWithParent(Transform parent, out bool changeSelectionOnly)

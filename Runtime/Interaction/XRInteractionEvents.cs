@@ -670,9 +670,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="InteractionGroupRegisteredEventArgs"/>
     /// <seealso cref="InteractorRegisteredEventArgs"/>
     /// <seealso cref="InteractableRegisteredEventArgs"/>
+    /// <seealso cref="InteractableSnapVolumeRegisteredEventArgs"/>
     /// <seealso cref="InteractionGroupUnregisteredEventArgs"/>
     /// <seealso cref="InteractorUnregisteredEventArgs"/>
     /// <seealso cref="InteractableUnregisteredEventArgs"/>
+    /// <seealso cref="InteractableSnapVolumeUnregisteredEventArgs"/>
     public abstract class BaseRegistrationEventArgs
     {
         /// <summary>
@@ -736,7 +738,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="XRBaseInteractor"/>
     /// <seealso cref="XRInteractionManager"/>
-    #region InteractorRegistrationEvent
     public partial class InteractorRegisteredEventArgs : BaseRegistrationEventArgs
     {
         /// <summary>
@@ -749,8 +750,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         public IXRInteractionGroup containingGroupObject { get; set; }
     }
-
-    #endregion
 
     /// <summary>
     /// Event data associated with the event when an Interactable is registered with an <see cref="XRInteractionManager"/>.
@@ -781,6 +780,33 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     /// <summary>
+    /// Event data associated with the event when a snap volume is registered with an <see cref="XRInteractionManager"/>.
+    /// </summary>
+    /// <remarks>
+    /// When an <see cref="XRInteractableSnapVolume"/> is registered with the <see cref="XRInteractionManager"/>, the
+    /// <see cref="XRInteractableSnapVolume.registered"/> event and <see cref="XRInteractionManager.snapVolumeRegistered"/> events are invoked
+    /// with <see cref="InteractableSnapVolumeRegisteredEventArgs"/> as parameters.
+    ///
+    /// <see cref="InteractableSnapVolumeRegisteredEventArgs"/> provides the registering <see cref="snapVolume"/> and the <see cref="XRInteractionManager"/>
+    /// associated with the registration event.
+    /// </remarks>
+    /// <example>
+    /// <para>The following example subscribes to the <see cref="XRInteractionManager.snapVolumeRegistered"/> event and implements custom callback functions
+    /// that will be called when the <see cref="XRInteractionManager.snapVolumeRegistered"/> is invoked. Enabling the "Example Snap Volume"
+    /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// </example>
+    /// <seealso cref="XRInteractableSnapVolume"/>
+    /// <seealso cref="XRInteractionManager"/>
+    public class InteractableSnapVolumeRegisteredEventArgs : BaseRegistrationEventArgs
+    {
+        /// <summary>
+        /// The snap volume that was registered.
+        /// </summary>
+        public XRInteractableSnapVolume snapVolume { get; set; }
+    }
+
+    /// <summary>
     /// Event data associated with the event when an Interaction Group is unregistered from an <see cref="XRInteractionManager"/>.
     /// </summary>
     /// <remarks>
@@ -806,6 +832,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Interaction Group that was unregistered.
         /// </summary>
         public IXRInteractionGroup interactionGroupObject { get; set; }
+
+        /// <summary>
+        /// Whether the unregistration event was due to the manager being destroyed.
+        /// </summary>
+        /// <seealso cref="BaseRegistrationEventArgs.manager"/>
+        public bool managerDestroyed { get; set; }
     }
 
     /// <summary>
@@ -834,6 +866,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Interactor that was unregistered.
         /// </summary>
         public IXRInteractor interactorObject { get; set; }
+
+        /// <summary>
+        /// Whether the unregistration event was due to the manager being destroyed.
+        /// </summary>
+        /// <seealso cref="BaseRegistrationEventArgs.manager"/>
+        public bool managerDestroyed { get; set; }
     }
 
     /// <summary>
@@ -862,6 +900,45 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Interactable that was unregistered.
         /// </summary>
         public IXRInteractable interactableObject { get; set; }
+
+        /// <summary>
+        /// Whether the unregistration event was due to the manager being destroyed.
+        /// </summary>
+        /// <seealso cref="BaseRegistrationEventArgs.manager"/>
+        public bool managerDestroyed { get; set; }
+    }
+
+    /// <summary>
+    /// Event data associated with the event when a snap volume is unregistered from an <see cref="XRInteractionManager"/>.
+    /// </summary>
+    /// <remarks>
+    /// When an <see cref="XRInteractableSnapVolume"/> is unregistered with the <see cref="XRInteractionManager"/>, the
+    /// <see cref="XRInteractableSnapVolume.unregistered"/> event and <see cref="XRInteractionManager.snapVolumeUnregistered"/> events are invoked
+    /// with <see cref="InteractableSnapVolumeRegisteredEventArgs"/> as parameters.
+    ///
+    /// <see cref="InteractableSnapVolumeRegisteredEventArgs"/> provides the unregistering <see cref="snapVolume"/> and the <see cref="XRInteractionManager"/>
+    /// associated with the unregistration event.
+    /// </remarks>
+    /// <example>
+    /// <para>The following example subscribes to the <see cref="XRInteractionManager.snapVolumeUnregistered"/> event and implements custom callback functions
+    /// that will be called when the <see cref="XRInteractionManager.snapVolumeUnregistered"/> is invoked. Enabling the "Example Snap Volume"
+    /// game object will trigger the registered callback, while disabling it will trigger the unregistered callback.</para>
+    /// <code source="../../DocCodeSamples.Tests/XRInteractionManagerRegistrationEventsSample.cs"/>
+    /// </example>
+    /// <seealso cref="XRInteractableSnapVolume"/>
+    /// <seealso cref="XRInteractionManager"/>
+    public partial class InteractableSnapVolumeUnregisteredEventArgs : BaseRegistrationEventArgs
+    {
+        /// <summary>
+        /// The snap volume that was unregistered.
+        /// </summary>
+        public XRInteractableSnapVolume snapVolume { get; set; }
+
+        /// <summary>
+        /// Whether the unregistration event was due to the manager being destroyed.
+        /// </summary>
+        /// <seealso cref="BaseRegistrationEventArgs.manager"/>
+        public bool managerDestroyed { get; set; }
     }
 
     #endregion

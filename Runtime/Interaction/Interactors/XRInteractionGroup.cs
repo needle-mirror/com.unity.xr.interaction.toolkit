@@ -79,7 +79,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             {
                 m_InteractionManager = value;
                 if (Application.isPlaying && isActiveAndEnabled)
-                    RegisterWithInteractionManager();
+                    RegisterWithInteractionManager(value);
             }
         }
 
@@ -145,6 +145,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         readonly List<IXRInteractable> m_ValidTargets = new List<IXRInteractable>();
 
+        // Used to avoid GC Alloc from delegate object creation if passing the method directly
+        Action<XRInteractionManager> m_RegisterWithInteractionManager;
+
         static readonly List<IXRSelectInteractable> s_InteractablesSelected = new List<IXRSelectInteractable>();
         static readonly List<IXRHoverInteractable> s_InteractablesHovered = new List<IXRHoverInteractable>();
 
@@ -164,13 +167,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         protected virtual void Awake()
         {
-            // Setup Interaction Manager
-            FindCreateInteractionManager();
-
-            // Starting member interactors will be re-registered with the manager below when they are added to the group.
-            // Make sure the group is registered first.
-            RegisterWithInteractionManager();
-
             // It is more efficient to add than move, but if there are existing items
             // use move to ensure the correct order dictated by the starting lists.
             if (m_GroupMembers.flushedCount > 0)
@@ -237,8 +233,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         protected virtual void OnEnable()
         {
-            FindCreateInteractionManager();
-            RegisterWithInteractionManager();
+            if (m_InteractionManager != null)
+                RegisterWithInteractionManager(m_InteractionManager);
+            else
+            {
+                // This is an optimization to not search for the manager if both manager modes are Manual
+                // since it won't create one and will just add to the waitlist during the callback anyway.
+                var runtimeSettings = XRInteractionRuntimeSettings.Instance;
+                if (runtimeSettings.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+                    runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.Manual)
+                {
+                    XRInteractionManager.RegisterWithWaitlist(this);
+                }
+                else
+                {
+                    ComponentLocatorUtility<XRInteractionManager>.FindComponentDeferred(
+                        m_RegisterWithInteractionManager ??= RegisterWithInteractionManager,
+                        createComponent: runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.CreateAutomatically,
+                        dontDestroyOnLoad: true);
+                }
+            }
         }
 
         /// <summary>
@@ -246,6 +260,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         protected virtual void OnDisable()
         {
+            XRInteractionManager.UnregisterFromWaitlist(this);
             UnregisterWithInteractionManager();
         }
 
@@ -371,11 +386,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <inheritdoc />
         void IXRInteractionGroup.OnRegistered(InteractionGroupRegisteredEventArgs args)
         {
-            if (args.manager != m_InteractionManager)
+            if (args.manager != m_InteractionManager && m_InteractionManager != null)
                 Debug.LogWarning($"An Interaction Group was registered with an unexpected {nameof(XRInteractionManager)}." +
-                                 $" {this} was expecting to communicate with \"{m_InteractionManager}\" but was registered with \"{args.manager}\".", this);
+                    $" {this} was expecting to communicate with \"{m_InteractionManager}\" but was registered with \"{args.manager}\".", this);
+
+            if (m_RegisteredInteractionManager != null && args.manager != m_RegisteredInteractionManager)
+                Debug.LogWarning($"An Interaction Group was registered with another {nameof(XRInteractionManager)} while already registered with a manager." +
+                    $" {this} was expecting to only communicate with \"{m_RegisteredInteractionManager}\" but was registered with \"{args.manager}\" also." +
+                    " This Interaction Group will not automatically unregister with the original manager when this component is disabled.", this);
 
             m_RegisteredInteractionManager = args.manager;
+            m_InteractionManager = args.manager;
 
             m_GroupMembers.Flush();
             m_IsProcessingGroupMembers = true;
@@ -417,6 +438,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                                  $" {this} was expecting to communicate with \"{m_RegisteredInteractionManager}\" but was unregistered from \"{args.manager}\".", this);
 
             m_RegisteredInteractionManager = null;
+
+            // Clear the reference immediately so it can evaluate to null for the rest of this frame.
+            // The manager reference can still be obtained through the event args.
+            if (args.managerDestroyed && ReferenceEquals(m_InteractionManager, args.manager))
+                m_InteractionManager = null;
+
+            if (m_InteractionManager == null && isActiveAndEnabled)
+                XRInteractionManager.RegisterWithWaitlist(this);
+
             unregistered?.Invoke(args);
         }
 
@@ -701,33 +731,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 results.UnionWith(overrides);
         }
 
-        void FindCreateInteractionManager()
+        void RegisterWithInteractionManager(XRInteractionManager manager)
         {
-            if (m_InteractionManager != null)
+            if (!isActiveAndEnabled)
                 return;
 
-            m_InteractionManager = ComponentLocatorUtility<XRInteractionManager>.FindOrCreateComponent();
-        }
-
-        void RegisterWithInteractionManager()
-        {
-            if (m_RegisteredInteractionManager == m_InteractionManager)
+            // Skip if already registered with this manager to avoid a needless unregister/re-register.
+            if (m_RegisteredInteractionManager == manager && m_RegisteredInteractionManager != null)
                 return;
+
+            // Skip if this manager differs from the field, which can happen if it was set during the find operation.
+            if (m_InteractionManager != manager && m_InteractionManager != null)
+                return;
+
+            if (XRInteractionRuntimeSettings.Instance.managerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+                m_InteractionManager == null)
+            {
+                XRInteractionManager.RegisterWithWaitlist(this);
+                return;
+            }
 
             UnregisterWithInteractionManager();
 
-            if (m_InteractionManager != null)
-            {
-                m_InteractionManager.RegisterInteractionGroup(this);
-            }
+            if (manager != null)
+                manager.RegisterInteractionGroup(this);
+            else
+                XRInteractionManager.RegisterWithWaitlist(this);
         }
 
         void UnregisterWithInteractionManager()
         {
-            if (m_RegisteredInteractionManager == null)
-                return;
-
-            m_RegisteredInteractionManager.UnregisterInteractionGroup(this);
+            if (m_RegisteredInteractionManager != null)
+                m_RegisteredInteractionManager.UnregisterInteractionGroup(this);
         }
 
         void RegisterAsGroupMember(IXRGroupMember groupMember)

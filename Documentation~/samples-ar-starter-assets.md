@@ -9,7 +9,7 @@ The XR Interaction Toolkit package provides an example implementation for mobile
 
 |**Asset**|**Description**|
 |---|---|
-|**`ARDemoSceneAssets\`**|Asset folder containing assets only used for the `ARDemoScene`.|
+|**`DemoAssets\`**|Asset folder containing assets only used for the `ARDemoScene`.|
 |**`Editor\Scripts\`**|Asset folder containing Unity Editor scripts which adds Project Validation rules for the sample.|
 |**`Materials\FeatheredPlaneMaterial`**|This material provides a visual representation used for AR plane detection in the XR Simulator and in builds.|
 |**`Prefabs\AR Feathered Plane`**|This prefab uses the `FeatheredPlaneMaterial` to show where the AR plane is detected or simulated.|
