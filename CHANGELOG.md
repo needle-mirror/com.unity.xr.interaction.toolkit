@@ -9,6 +9,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.4.0-pre.2] - 2025-10-22
+
+### Fixed
+- Fixed an issue causing UI unit tests to fail on some macOS devices.
+
 ## [3.4.0-pre.1] - 2025-10-16
 
 ### Added

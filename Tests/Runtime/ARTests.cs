@@ -78,7 +78,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public override void Setup()
         {
             base.Setup();
-
+            TestUtilities.DisableAllInputSystemActions();
             TestUtilities.CreateInteractionManager();
 
             var xrOriginGO = ObjectFactory.CreateGameObject("XR Origin",

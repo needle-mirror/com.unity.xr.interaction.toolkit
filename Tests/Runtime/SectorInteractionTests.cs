@@ -11,7 +11,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public override void Setup()
         {
             base.Setup();
-
+            TestUtilities.DisableAllInputSystemActions();
             InputSystem.InputSystem.RegisterInteraction<SectorInteraction>();
         }
 

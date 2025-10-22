@@ -453,6 +453,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             inputModule.enableTouchInput = false;
             inputModule.enableGamepadInput = false;
             inputModule.enableJoystickInput = false;
+            inputModule.bypassUIToolkitEvents = true;
             testObjects.eventSystem = eventSystemGo.GetComponent<TestEventSystem>();
             testObjects.eventSystem.UpdateModules();
             if (!setFirstSelected) // This will get called from SetupUIScene
@@ -470,6 +471,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             testObjects.interactor.maxRaycastDistance = int.MaxValue;
             testObjects.interactor.referenceFrame = rigGo.transform;
             testObjects.uiInputModule = inputModule;
+
+            InputSystem.InputSystem.DisableAllEnabledActions();
 
             return testObjects;
         }
@@ -2030,6 +2033,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.AreEqual(1, dropdownComponent.value);
+        }
+
+        [SetUp]
+        public override void Setup()
+        {
+            base.Setup();
+            TestUtilities.DisableAllInputSystemActions();
         }
 
         [TearDown]

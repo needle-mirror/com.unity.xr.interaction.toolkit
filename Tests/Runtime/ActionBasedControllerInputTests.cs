@@ -17,10 +17,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [Obsolete("ActionBasedControllerInputTests has been deprecated in version 3.0.0.")]
     class ActionBasedControllerInputTests : InputTestFixture
     {
+        public override void Setup()
+        {
+            base.Setup();
+            TestUtilities.DisableAllInputSystemActions();
+        }
+
         public override void TearDown()
         {
-            base.TearDown();
             TestUtilities.DestroyAllSceneObjects();
+            base.TearDown();
         }
 
 #if XR_INPUT_DEVICES_AVAILABLE

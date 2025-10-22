@@ -49,6 +49,11 @@
             "name": "Unity",
             "expression": "2022.3.0",
             "define": "HAS_FIND_FIRST_OBJECT_BY_TYPE"
+        },
+        {
+            "name": "Unity",
+            "expression": "2022.3",
+            "define": "UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS"
         }
     ],
     "noEngineReferences": false

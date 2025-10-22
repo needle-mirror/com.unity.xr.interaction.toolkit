@@ -21,6 +21,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Controller,
         }
 
+        [SetUp]
+        public override void Setup()
+        {
+            base.Setup();
+            TestUtilities.DisableAllInputSystemActions();
+        }
+
         [TearDown]
         public override void TearDown()
         {

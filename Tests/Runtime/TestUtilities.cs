@@ -447,6 +447,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             CreateGOBoxCollider(cube, false);
             return cube;
         }
+
+        internal static void DisableAllInputSystemActions()
+        {
+            InputSystem.InputSystem.DisableAllEnabledActions();
+
+#if UNITY_INPUT_SYSTEM_PROJECT_WIDE_ACTIONS
+            if (InputSystem.InputSystem.actions != null)
+            {
+                foreach (var map in InputSystem.InputSystem.actions.actionMaps)
+                {
+                    map.Disable();
+                }
+            }
+#endif
+        }
     }
 
     class MockInteractor : XRBaseInteractor

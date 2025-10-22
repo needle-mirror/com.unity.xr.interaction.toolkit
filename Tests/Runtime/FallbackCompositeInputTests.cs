@@ -14,6 +14,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public override void Setup()
         {
             base.Setup();
+            TestUtilities.DisableAllInputSystemActions();
             InputSystem.InputSystem.RegisterBindingComposite<Vector3FallbackComposite>();
             InputSystem.InputSystem.RegisterBindingComposite<QuaternionFallbackComposite>();
             InputSystem.InputSystem.RegisterBindingComposite<IntegerFallbackComposite>();
@@ -22,8 +23,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         public override void TearDown()
         {
-            base.TearDown();
             TestUtilities.DestroyAllSceneObjects();
+            base.TearDown();
         }
 
         [UnityTest]

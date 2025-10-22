@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor.SceneManagement;
 #endif
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -16,7 +17,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities;
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     [TestFixture]
-    class SceneLoadingTests
+    class SceneLoadingTests : InputTestFixture
     {
         // This scene is empty.
         const string k_Scene0Path = "Packages/com.unity.xr.interaction.toolkit/Tests/Scenes/SceneLoadingTests.Scene0.unity";
@@ -66,8 +67,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         };
 
         [SetUp]
-        public void SetUp()
+        public override void Setup()
         {
+            base.Setup();
+            TestUtilities.DisableAllInputSystemActions();
             Assume.That(SceneManager.sceneCount, Is.EqualTo(1));
             Assume.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
             Assume.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
@@ -75,9 +78,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
             TestUtilities.DestroyAllSceneObjects();
+            base.TearDown();
         }
 
         [UnityTest]
@@ -134,6 +138,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -192,6 +198,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -234,6 +242,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -276,6 +286,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -324,6 +336,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -381,6 +395,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -424,6 +440,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -453,6 +471,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -487,6 +507,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -534,6 +556,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled2 = true;
                 callbackResult2 = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -581,6 +605,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled2 = true;
                 callbackResult2 = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -625,6 +651,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 callbackCalled = true;
                 callbackResult = component;
             }
+#else
+            yield return null;
 #endif
         }
 
@@ -674,6 +702,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactable.interactionManager, Is.SameAs(manager));
 
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -735,6 +765,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(snapVolume.interactionManager, Is.SameAs(manager));
 
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -787,6 +819,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(nearFarModel.interactor, Is.SameAs(nearFarInteractor));
 
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -842,6 +876,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(sceneInteractable.interactionManager, Is.SameAs(manager));
 
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -878,6 +914,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return SceneManager.UnloadSceneAsync(emptyScene);
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -927,6 +965,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return SceneManager.UnloadSceneAsync(emptyScene);
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
@@ -982,6 +1022,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(sceneInteractable.interactionManager, Is.SameAs(manager));
 
             yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
 #endif
         }
 
