@@ -204,7 +204,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             // This is required for mouse/pointer events to work with UI Toolkit
             if (bypassUIToolkitEvents)
+#pragma warning disable CS0618 // Type or member is obsolete
                 EventSystem.SetUITookitEventSystemOverride(eventSystem, false, false);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // Select firstSelectedGameObject if nothing is selected ATM.
             var toSelect = eventSystem.currentSelectedGameObject;
@@ -648,13 +650,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             eventData.button = PointerEventData.InputButton.Left;
 
-            // Demolish the screen position so we don't trigger any hits from a GraphicRaycaster component on a Canvas.
-            // The position value is not used by the TrackedDeviceGraphicRaycaster.
-            // Restore the original value after the Raycast is complete.
+            // Use a screen point outside the camera's viewport to use for the `EventSystem.RaycastAll`.
+            // This invalid point will be used for the event data's position property so we don't trigger any hits
+            // from a GraphicRaycaster component on a Canvas.
+            // The TrackedDeviceGraphicRaycaster does not use position, and instead upcasts the eventData to
+            // TrackedDeviceEventData to access the ray points to cast with.
+            //
+            // Ideally we could just copy the `EventSystem.RaycastAll` method and skip raycaster modules that aren't
+            // used for tracked devices (i.e., so only our TrackedDeviceGraphicRaycaster or other whitelisted raycasters runs),
+            // but the sorting comparer (`EventSystem.RaycastComparer`) for the RaycastResult list is private to the EventSystem.
+            // `BaseRaycaster.eventCamera.pixelRect - new Vector2(-1f, -1f)` would also ensure the `Camera.ScreenToViewportPoint`
+            // method returns a negative value, causing an early out of `GraphicRaycaster.Raycast`, but that would need to be
+            // done for each raycaster.
+            //
+            // For typical setups in XR projects, (-1, -1) should likely be outside the Camera viewport.
             var savedPosition = eventData.position;
-            eventData.position = new Vector2(float.MinValue, float.MinValue);
+            var savedDelta = eventData.delta;
+            eventData.position = new Vector2(-1f, -1f);
+            eventData.delta = Vector2.zero;
             eventData.pointerCurrentRaycast = PerformRaycast(eventData);
+            // Restore the original value after the Raycast is complete.
             eventData.position = savedPosition;
+            eventData.delta = savedDelta;
 
             if (TryGetCamera(eventData, out var screenPointCamera))
             {

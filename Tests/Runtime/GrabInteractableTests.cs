@@ -1552,6 +1552,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(interactableCollider.bounds.Intersects(characterController.bounds), Is.False);
 
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             Assert.That(characterController.Move(playerToInteractableDelta), Is.Not.EqualTo(CollisionFlags.None));
         }

@@ -23,6 +23,7 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -119,7 +120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 var pos = touch.position;
                 var diff = (pos - startPosition).magnitude;
-                if (GestureTouchesUtility.PixelsToInches(diff) >= dragRecognizer.slopInches)
+                if (DisplayUtility.PixelsToInches(diff) >= dragRecognizer.slopInches)
                 {
                     return true;
                 }

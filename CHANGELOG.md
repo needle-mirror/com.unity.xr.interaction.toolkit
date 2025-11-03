@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.0.9] - 2025-11-03
+
+### Fixed
+- Fixed a version handling routine in the Project Validation Utility for sample version caching. Other Unity sample packages sometimes use non-version strings, which was throwing an exception. ([XRIT-263](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-263)) (Backport from 3.2.0-pre.1)
+- Fixed "Screen position out of view frustum" error spam when using the XR UI Input Module component together with UI Toolkit with some Panel Input Configuration settings. ([XRIT-280](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-280)) (Backport from 3.2.0)
+
 ## [3.0.8] - 2025-03-11
 
 ### Added

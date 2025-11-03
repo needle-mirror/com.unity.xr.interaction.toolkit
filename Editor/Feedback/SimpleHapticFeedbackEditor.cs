@@ -11,9 +11,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.SetInteractorSource"/>.</summary>
         protected SerializedProperty m_InteractorSourceObject;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.hapticImpulsePlayer"/>.</summary>
         protected SerializedProperty m_HapticImpulsePlayer;
-
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playSelectEntered"/>.</summary>
         protected SerializedProperty m_PlaySelectEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredDataAmplitude;
@@ -21,7 +23,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_SelectEnteredDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
         protected SerializedProperty m_SelectEnteredDataFrequency;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playSelectEntered"/>.</summary>
         protected SerializedProperty m_PlaySelectExited;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedDataAmplitude;
@@ -29,7 +33,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_SelectExitedDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
         protected SerializedProperty m_SelectExitedDataFrequency;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playSelectCanceled"/>.</summary>
         protected SerializedProperty m_PlaySelectCanceled;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledDataAmplitude;
@@ -37,8 +43,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_SelectCanceledDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
         protected SerializedProperty m_SelectCanceledDataFrequency;
-
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playHoverEntered"/>.</summary>
         protected SerializedProperty m_PlayHoverEntered;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredDataAmplitude;
@@ -46,7 +53,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_HoverEnteredDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
         protected SerializedProperty m_HoverEnteredDataFrequency;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playHoverExited"/>.</summary>
         protected SerializedProperty m_PlayHoverExited;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedDataAmplitude;
@@ -54,7 +63,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_HoverExitedDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
         protected SerializedProperty m_HoverExitedDataFrequency;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.playHoverCanceled"/>.</summary>
         protected SerializedProperty m_PlayHoverCanceled;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledData;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.amplitude"/> for <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledDataAmplitude;
@@ -62,7 +73,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         protected SerializedProperty m_HoverCanceledDataDuration;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="HapticImpulseData.frequency"/> for <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
         protected SerializedProperty m_HoverCanceledDataFrequency;
-
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="SimpleHapticFeedback.allowHoverHapticsWhileSelecting"/>.</summary>
         protected SerializedProperty m_AllowHoverHapticsWhileSelecting;
 
         /// <summary>
@@ -72,24 +83,34 @@ namespace UnityEditor.XR.Interaction.Toolkit.Feedback
         {
             /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.SetInteractorSource"/>.</summary>
             public static readonly GUIContent interactorSourceObject = EditorGUIUtility.TrTextContent("Interactor Source", "The interactor component to listen to for its interaction events.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.hapticImpulsePlayer"/>.</summary>
             public static readonly GUIContent hapticImpulsePlayer = EditorGUIUtility.TrTextContent("Haptic Impulse Player", "The Haptic Impulse Player component to use to play haptic impulses.");
-
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playSelectEntered"/>.</summary>
             public static readonly GUIContent playSelectEntered = EditorGUIUtility.TrTextContent("Play Select Entered", "Whether to play a haptic impulse when the interactor starts selecting an interactable.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.selectEnteredData"/>.</summary>
             public static readonly GUIContent selectEnteredData = EditorGUIUtility.TrTextContent("Select Entered Data", "The haptic impulse to play when the interactor starts selecting an interactable.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playSelectExited"/>.</summary>
             public static readonly GUIContent playSelectExited = EditorGUIUtility.TrTextContent("Play Select Exited", "Whether to play a haptic impulse when the interactor stops selecting an interactable without being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.selectExitedData"/>.</summary>
             public static readonly GUIContent selectExitedData = EditorGUIUtility.TrTextContent("Select Exited Data", "The haptic impulse to play when the interactor stops selecting an interactable without being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playSelectCanceled"/>.</summary>
             public static readonly GUIContent playSelectCanceled = EditorGUIUtility.TrTextContent("Play Select Canceled", "Whether to play a haptic impulse when the interactor stops selecting an interactable due to being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.selectCanceledData"/>.</summary>
             public static readonly GUIContent selectCanceledData = EditorGUIUtility.TrTextContent("Select Canceled Data", "The haptic impulse to play when the interactor stops selecting an interactable due to being canceled.");
-
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playHoverEntered"/>.</summary>
             public static readonly GUIContent playHoverEntered = EditorGUIUtility.TrTextContent("Play Hover Entered", "Whether to play a haptic impulse when the interactor starts hovering over an interactable.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.hoverEnteredData"/>.</summary>
             public static readonly GUIContent hoverEnteredData = EditorGUIUtility.TrTextContent("Hover Entered Data", "The haptic impulse to play when the interactor starts hovering over an interactable.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playHoverExited"/>.</summary>
             public static readonly GUIContent playHoverExited = EditorGUIUtility.TrTextContent("Play Hover Exited", "Whether to play a haptic impulse when the interactor stops hovering over an interactable without being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.hoverExitedData"/>.</summary>
             public static readonly GUIContent hoverExitedData = EditorGUIUtility.TrTextContent("Hover Exited Data", "The haptic impulse to play when the interactor stops hovering over an interactable without being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.playHoverCanceled"/>.</summary>
             public static readonly GUIContent playHoverCanceled = EditorGUIUtility.TrTextContent("Play Hover Canceled", "Whether to play a haptic impulse when the interactor stops hovering over an interactable due to being canceled.");
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.hoverCanceledData"/>.</summary>
             public static readonly GUIContent hoverCanceledData = EditorGUIUtility.TrTextContent("Hover Canceled Data", "The haptic impulse to play when the interactor stops hovering over an interactable due to being canceled.");
-
+            /// <summary><see cref="GUIContent"/> for the field backing <see cref="SimpleHapticFeedback.allowHoverHapticsWhileSelecting"/>.</summary>
             public static readonly GUIContent allowHoverHapticsWhileSelecting = EditorGUIUtility.TrTextContent("Allow Hover Haptics While Selecting", "Whether to allow hover haptics to play while the interactor is selecting an interactable.");
-
             /// <summary><see cref="GUIContent"/> for <see cref="HapticImpulseData.amplitude"/>.</summary>
             public static readonly GUIContent amplitude = EditorGUIUtility.TrTextContent("Amplitude", "The desired motor amplitude.");
             /// <summary><see cref="GUIContent"/> for <see cref="HapticImpulseData.duration"/>.</summary>

@@ -39,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -109,7 +110,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             var deviceToWorld = camera.transform.rotation;
             var rotatedDelta = worldToVerticalOrientedDevice * deviceToWorld * gesture.delta;
 
-            var rotationAmount = -1f * (rotatedDelta.x / Screen.dpi) * m_RotationRateDegreesDrag;
+            var rotationAmount = -1f * rotatedDelta.x * DisplayUtility.screenDpiRatio * m_RotationRateDegreesDrag;
             transform.Rotate(0f, rotationAmount, 0f);
         }
 
