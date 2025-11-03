@@ -39,6 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #else
 
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -205,7 +206,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += sensitivity * GestureTouchesUtility.PixelsToInches(gesture.gapDelta);
+            m_CurrentScaleRatio += sensitivity * DisplayUtility.PixelsToInches(gesture.gapDelta);
 
             transform.localScale = currentScale;
 

@@ -85,16 +85,64 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
         /// </summary>
         protected readonly struct VignetteParameterProperties
         {
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.apertureSize"/>.
+            /// The diameter of the inner transparent circle of the tunneled vignette. A vignette provider with a smaller aperture size has a higher priority in controlling the material.
+            /// </summary>
             public readonly SerializedProperty apertureSize;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.featheringEffect"/>.
+            /// The degree of smoothly blending the edges between the aperture and full visual cut-off to add a gradual transition from the transparent aperture to the vignette edges.
+            /// </summary>
             public readonly SerializedProperty featheringEffect;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeInTime"/>.
+            /// The time it takes for the vignette to fully appear.
+            /// </summary>
             public readonly SerializedProperty easeInTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeOutTime"/>.
+            /// The time it takes for the vignette to fully disappear.
+            /// </summary>
             public readonly SerializedProperty easeOutTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeInTimeLock"/>.
+            /// Whether the ease-in time is locked.
+            /// </summary>
             public readonly SerializedProperty easeInTimeLock;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.easeOutDelayTime"/>.
+            /// The time it takes for the vignette to start disappearing.
+            /// </summary>
             public readonly SerializedProperty easeOutDelayTime;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.vignetteColor"/>.
+            /// The color of the vignette.
+            /// </summary>
             public readonly SerializedProperty vignetteColor;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.vignetteColorBlend"/>.
+            /// The color used when blending the vignette between transparent and opaque.
+            /// </summary>
             public readonly SerializedProperty vignetteColorBlend;
+
+            /// <summary>
+            /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="VignetteParameters.apertureVerticalPosition"/>.
+            /// The vertical position offset of the vignette.
+            /// </summary>
             public readonly SerializedProperty apertureVerticalPosition;
 
+            /// <summary>
+            /// Constructs a new <see cref="VignetteParameterProperties"/> from a <see cref="SerializedProperty"/> representing a <see cref="VignetteParameters"/>.
+            /// </summary>
+            /// <param name="parameterProperties">Initial property bag to use for deserialization.</param>
             public VignetteParameterProperties(SerializedProperty parameterProperties)
             {
                 apertureSize = parameterProperties.FindPropertyRelative("m_ApertureSize");
@@ -108,6 +156,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
                 apertureVerticalPosition = parameterProperties.FindPropertyRelative("m_ApertureVerticalPosition");
             }
 
+            /// <summary>
+            /// Reset the parameter properties to their default values.
+            /// </summary>
             public void SetDefaultValues()
             {
                 apertureSize.floatValue = VignetteParameters.Defaults.apertureSizeDefault;

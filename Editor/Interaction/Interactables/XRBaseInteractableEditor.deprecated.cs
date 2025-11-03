@@ -84,9 +84,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         [Obsolete("m_OnDeactivateCalls is marked for deprecation and will be removed in a future version. It is only used for migrating deprecated events.", true)]
         protected SerializedProperty m_OnDeactivateCalls;
 
-        /// <summary>
-        /// Contents of GUI elements used by this editor.
-        /// </summary>
         protected static partial class BaseContents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.interactionLayerMask"/>.</summary>

@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "unity": "2021.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -59,15 +59,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added warning messages to the XR Interaction Simulator UI when hands are not set in the `XRInputModalityManager` and when an `XRHandMeshController` is non-existent.\n\n### Changed\n- Changed the XR Interaction Simulator and XR Device Simulator to disallow changing between controllers and hands when the set of GameObjects are not assigned in the `XRInputModalityManager`.\n- Lowered the minimum AR Foundation version to `5.2.0` to allow use with XR Simulation feature on older versions of the Unity Editor.\n- Changed the Hands Interaction Demo, AR Starter Assets, Spatial Keyboard, and visionOS samples to be more permissive about the required version of the imported Starter Assets sample in the Project Validation window. It now only requires a minimum imported version rather than the current package version.\n\n### Fixed\n- Fixed a `NullReferenceException` when using UI Toolkit with the XR Ray Interactor caused by trying to retrieve a `Canvas` component reference from a parent object which does not exist when using UI Toolkit. Note that XRI does not yet have full [support for UI Toolkit](xref:xri-ui-input-module#ui-toolkit-support). ([XRIT-247](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-247))\n- Fixed `Assertion failed on expression: t.GetParent() == nullptr` when exiting Play mode in some cases with the XR Grab Interactable.\n- Fixed so only a single undo operation is needed after creating an XR Grab Interactable using the **GameObject** &gt; **XR** &gt; **Grab Interactable** menu due to an extra \"Modified Permitted Displacement Axes\" instead of a single \"Create Grab Interactable\".\n- Fixed compilation in `BuildHook` analytics code related to `BuildSummary.buildType` and `BuildType` on some Unity 6 Preview versions."
+    "changelog": "### Fixed\n- Fixed a version handling routine in the Project Validation Utility for sample version caching. Other Unity sample packages sometimes use non-version strings, which was throwing an exception. ([XRIT-263](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-263)) (Backport from 3.2.0-pre.1)\n- Fixed `NullReferenceException` in internal analytics code when getting the package version after opening the Profiler (Standalone Process) window. ([XRIT-267](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-267)) (Backport from 3.2.0-pre.2)"
   },
   "upmCi": {
-    "footprint": "7afe7a9c7deed859c80a49bdefc3bdd9cfa17a13"
+    "footprint": "14227d7543421c5f51452d1e646e34b252fa86bf"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.1/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "dc21ba60cc820e0285c81dcc7c6cd5e3c173c1cf"
+    "revision": "14e439f5eecbf238b9ed4596b7a5a600b9f6a241"
   }
 }

@@ -151,19 +151,28 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
                         foreach (var versionDirectoryPath in versionDirectoryPaths)
                         {
                             var versionName = versionDirectoryPath.Split(delimiter).Last();
-                            var packageVersion = new PackageVersion(versionName);
 
-                            // Iterate through all sample directories in version
-                            var samplesDirectoryPaths = Directory.GetDirectories(versionDirectoryPath);
-                            foreach (var sampleDirectoryPath in samplesDirectoryPaths)
+                            try
                             {
-                                var sampleName = sampleDirectoryPath.Split(delimiter).Last();
-                                sampleMap.Add(sampleName, new SampleData
+                                var packageVersion = new PackageVersion(versionName);
+
+                                // Iterate through all sample directories in version
+                                var samplesDirectoryPaths = Directory.GetDirectories(versionDirectoryPath);
+                                foreach (var sampleDirectoryPath in samplesDirectoryPaths)
                                 {
-                                    sampleName = sampleName,
-                                    packageDisplayName = packageDisplayName,
-                                    packageVersion = packageVersion,
-                                });
+                                    var sampleName = sampleDirectoryPath.Split(delimiter).Last();
+                                    sampleMap.Add(sampleName, new SampleData
+                                    {
+                                        sampleName = sampleName,
+                                        packageDisplayName = packageDisplayName,
+                                        packageVersion = packageVersion,
+                                    });
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                // We may see non-version strings in these subfolders as sample dependencies for other
+                                // packages. We catch and ignore the PackageVersion constructor errors here so we can skip them.
                             }
                         }
 

@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.1.3] - 2025-11-03
+
+### Fixed
+- Fixed a version handling routine in the Project Validation Utility for sample version caching. Other Unity sample packages sometimes use non-version strings, which was throwing an exception. ([XRIT-263](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-263)) (Backport from 3.2.0-pre.1)
+- Fixed `NullReferenceException` in internal analytics code when getting the package version after opening the Profiler (Standalone Process) window. ([XRIT-267](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-267)) (Backport from 3.2.0-pre.2)
+
 ## [3.1.2] - 2025-04-16
 
 ### Added
