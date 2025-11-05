@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [SerializeField]
         [Tooltip("The threshold value to use to determine when the button is pressed. Considered pressed equal to or greater than this value.")]
         [Range(0f, 1f)]
-        float m_PressThreshold = 0.8f;
+        float m_PressThreshold = 1f;
 
         /// <summary>
         /// The threshold value to use to determine when the button is pressed. Considered pressed equal to or greater than this value.
@@ -43,7 +43,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         [SerializeField]
         [Tooltip("The threshold value to use to determine when the button is released when it was previously pressed. Keeps being pressed until falls back to a value of or below this value.")]
         [Range(0f, 1f)]
-        float m_ReleaseThreshold = 0.25f;
+        float m_ReleaseThreshold = 0.9f;
 
         /// <summary>
         /// The threshold value to use to determine when the button is released when it was previously pressed.
@@ -88,14 +88,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             // Only drop back to false when the release threshold is reached and the bool is no longer performed.
             var prevPerformed = m_IsPerformed;
             var pressAmount = m_ValueInput.ReadValue();
+            m_IsPerformed = m_ValueInput.ReadIsPerformed() || prevPerformed ? pressAmount > m_ReleaseThreshold : pressAmount >= m_PressThreshold;
 
-            bool newValue;
-            if (prevPerformed)
-                newValue = pressAmount > m_ReleaseThreshold || m_ValueInput.ReadIsPerformed();
-            else
-                newValue = pressAmount >= m_PressThreshold || m_ValueInput.ReadIsPerformed();
-
-            m_IsPerformed = newValue;
             m_WasPerformedThisFrame = !prevPerformed && m_IsPerformed;
             m_WasCompletedThisFrame = prevPerformed && !m_IsPerformed;
         }

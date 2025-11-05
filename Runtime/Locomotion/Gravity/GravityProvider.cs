@@ -342,10 +342,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         }
 
         /// <summary>
-        /// Locks gravity for the provider based on <paramref name="gravityOverride"/>.
+        /// Locks gravity for the <paramref name="provider"/> based on <paramref name="gravityOverride"/>.
         /// </summary>
         /// <remarks>
         /// This adds the provider to the internal lists keeping track of the locomotion providers that have forced gravity on or off.
+        /// This method will report a warning if the provider is already locked and the previous <see cref="GravityOverride"/> mode does
+        /// not match what is provided by the <paramref name="gravityOverride"/> parameter.
         /// </remarks>
         /// <param name="provider">The <paramref name="provider"/> requesting the lock.</param>
         /// <param name="gravityOverride">Determines the type of lock used.</param>
@@ -353,10 +355,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity
         /// <seealso cref="UnlockGravity"/>
         public bool TryLockGravity(IGravityController provider, GravityOverride gravityOverride)
         {
-            if (m_GravityForcedOffProviders.Contains(provider) ||
-                m_GravityForcedOnProviders.Contains(provider))
+            if (m_GravityForcedOffProviders.Contains(provider))
             {
-                Debug.LogWarning($"Gravity Provider is already being locked by {(provider is Object component ? component.name : provider)}. Unlock first before trying to lock again.", provider as Object ?? this);
+                if (gravityOverride != GravityOverride.ForcedOff)
+                    Debug.LogWarning($"Gravity Provider is already being locked (Forced Off) by {(provider is Object component ? component.name : provider)}. To force Gravity Override to on, unlock first before trying to lock again.", provider as Object ?? this);
+
+                return false;
+            }
+
+            if (m_GravityForcedOnProviders.Contains(provider))
+            {
+                if (gravityOverride != GravityOverride.ForcedOn)
+                    Debug.LogWarning($"Gravity Provider is already being locked (Forced On) by {(provider is Object component ? component.name : provider)}. To force Gravity Override to off, unlock first before trying to lock again.", provider as Object ?? this);
+
                 return false;
             }
 

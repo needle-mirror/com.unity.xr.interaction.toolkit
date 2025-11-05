@@ -339,7 +339,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
             else
                 m_JumpVector.y = m_CurrentJumpForceThisFrame * dt;
 
-            TryStartLocomotionImmediately();
+            if (m_IsJumping)
+                TryStartLocomotionImmediately();
+
             if (locomotionState != LocomotionState.Moving)
                 return;
 
@@ -399,6 +401,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
         void StopJump()
         {
             m_IsJumping = false;
+            TryEndLocomotion();
             if (m_DisableGravityDuringJump)
                 RemoveGravityLock();
         }
@@ -426,10 +429,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump
         /// <inheritdoc/>
         public bool TryLockGravity(GravityOverride gravityOverride)
         {
-            if (m_GravityProvider != null)
-                return m_GravityProvider.TryLockGravity(this, gravityOverride);
-
-            return false;
+            return m_GravityProvider != null && m_GravityProvider.TryLockGravity(this, gravityOverride);
         }
 
         /// <inheritdoc/>

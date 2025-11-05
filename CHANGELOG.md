@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.2.2] - 2025-11-05
+
+### Fixed
+- Fixed an issue where pinching with the Hand Interaction Profile caused the Interactables to stick to the thumb longer than desired, moving the object after a pinch was released. The `ReleaseThresholdButtonReader` sample component was updated with new default values to ensure tighter press and release when pinching. ([XRIT-334](https://issuetracker.unity3d.com/product/unity/issues/guid/XRIT-334)) (Backport from 3.3.0)
+- Fixed hand prefabs in the `Hands Interaction Demo` sample that were based on the hand models from the XR Hands `HandVisualizer` sample. The new prefabs are built as a prefab variant, allowing smoother upgrade when the underlying models are updated. (Backport from 3.4.0-pre.1)
+- Fixed an issue with the `JumpProvider` continually being stuck in the `LocomotionState.Moving` state and never entering the `LocomotionState.Ended` state. (Backport from 3.4.0-pre.1)
+
 ## [3.2.1] - 2025-08-11
 
 ### Added
