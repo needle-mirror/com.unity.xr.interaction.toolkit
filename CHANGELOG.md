@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.0.10] - 2025-12-09
+
+### Added
+- Added configurable functionality to `ARContactSpawnTrigger` in the AR Starter Assets sample to block spawning of objects on AR Planes when the active interactor in the associated `XRInteractionGroup` is either hovering or selecting an interactable object. (Backport from 3.2)
+
+### Fixed
+- Fixed an issue with `TryGetCurveEndPoint` in the `NearFarInteractor`, where Snap Volumes are not checked against the list of valid targets, which may be different when using Target Filters. (Backport from 3.2.1)
+- Fixed an issue with `NearFarInteractor` where it would ignore the `canProcess` property on an `IXRTargetFilter`, allowing it to always process the filter. (Backport from 3.2.1)
+- Fixed an issue in which the `HandMenu` appears unstable or flickers between showing and hiding when it is displayed while the pose of the anchor transform remains near the angle/range in which it was initially triggered to be shown. In order to solve the issue, the controller displaying the menu now has a separate wider range for hiding the menu than the allowable range that triggers the initial display of the menu. (Backport from 3.4.0)
+
 ## [3.0.9] - 2025-11-03
 
 ### Fixed

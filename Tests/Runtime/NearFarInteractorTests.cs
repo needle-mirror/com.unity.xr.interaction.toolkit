@@ -397,6 +397,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactor.transform.forward = Vector3.forward;
 
             var interactable = TestUtilities.CreateGrabInteractable();
+            TestUtilities.DisableDelayProperties(interactable);
 
             interactable.farAttachMode = args.interactableFarAttachMode;
             interactable.useDynamicAttach = !effectiveNear;
@@ -745,5 +746,214 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.Empty);
         }
 
+        [UnityTest]
+        public IEnumerator NearFarInteractorCanUseTargetFilterNear()
+        {
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+            var interactable = TestUtilities.CreateGrabInteractable();
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var filter = new MockTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            yield return null;
+
+            // Process the filter
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Disable the filter and check if it will no longer be processed
+            filter.canProcess = false;
+
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Unlink the filter
+            interactor.targetFilter = null;
+
+            yield return null;
+
+            Assert.That(interactor.targetFilter, Is.EqualTo(null));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process,
+                TargetFilterCallback.Unlink
+            }));
+        }
+
+        [UnityTest]
+        public IEnumerator NearFarInteractorCanUseTargetFilterFar()
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXROrigin();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            Assert.That(interactable.isHovered, Is.True);
+
+            // Create the filter
+            var filter = new MockTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            yield return null;
+
+            // Process the filter
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Disable the filter and check if it will no longer be processed
+            filter.canProcess = false;
+
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Unlink the filter
+            interactor.targetFilter = null;
+
+            yield return null;
+
+            Assert.That(interactor.targetFilter, Is.EqualTo(null));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process,
+                TargetFilterCallback.Unlink
+            }));
+        }
+
+        [UnityTest]
+        public IEnumerator NearFarInteractorCanFilterValidTargetsWithTargetFilterAndSnapVolume()
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXROrigin();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+            interactor.transform.position = Vector3.zero;
+            interactor.transform.forward = Vector3.forward;
+
+            var interactable = TestUtilities.CreateGrabInteractable();
+            interactable.transform.position = interactor.transform.position + interactor.transform.forward * 5.0f;
+
+            // Setup snap volume
+            var snapVolume = TestUtilities.CreateSnapVolume();
+            snapVolume.interactable = interactable;
+            snapVolume.snapToCollider = interactable.colliders[0];
+            snapVolume.transform.position = interactable.transform.position;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Select snap volume with interactor
+            var controllerRecorder = TestUtilities.CreateControllerRecorder(interactor, (recording) =>
+            {
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.0f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(0.1f, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+                recording.AddRecordingFrameNonAlloc(new XRControllerState(float.MaxValue, Vector3.zero, Quaternion.identity, InputTrackingState.All, true,
+                    false, false, false));
+            });
+            controllerRecorder.isPlaying = true;
+            controllerRecorder.visitEachFrame = true;
+
+            yield return new WaitForSeconds(0.1f);
+
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            // Create the filter
+            var filter = new MockBlockSelectionTargetFilter();
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>()));
+
+            // Link the filter
+            interactor.targetFilter = filter;
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link
+            }));
+
+            yield return null;
+
+            // Process the filter
+            validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(interactor.targetFilter, Is.EqualTo(filter));
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+
+            // Check that the endpoint returned has also been filtered if snapping is enabled
+            var endPointType = interactor.TryGetCurveEndPoint(out var endPoint, true, true);
+            Assert.That(endPointType, Is.EqualTo(EndPointType.None));
+
+            // Disable the filter and check if the valid targets list is correct again
+            filter.canProcess = false;
+
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(filter.callbackExecution, Is.EqualTo(new List<TargetFilterCallback>
+            {
+                TargetFilterCallback.Link,
+                TargetFilterCallback.Process
+            }));
+        }
     }
 }

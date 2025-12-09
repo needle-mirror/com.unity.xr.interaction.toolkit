@@ -42,6 +42,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         {
             var manager = TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();
+            TestUtilities.DisableDelayProperties(interactable);
 
             var affordanceStateProvider = interactable.gameObject.AddComponent<XRInteractableAffordanceStateProvider>();
             affordanceStateProvider.interactableSource = interactable;
@@ -73,8 +74,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             var directInteractor = TestUtilities.CreateDirectInteractor();
 
-            yield return null;
             yield return new WaitForFixedUpdate();
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             manager.GetValidTargets(directInteractor, validTargets);

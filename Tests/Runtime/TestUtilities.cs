@@ -560,6 +560,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
     }
 
+    class MockBlockSelectionTargetFilter : IXRTargetFilter
+    {
+        public readonly List<TargetFilterCallback> callbackExecution = new List<TargetFilterCallback>();
+
+        public bool canProcess { get; set; } = true;
+
+        public void Link(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Link);
+        }
+
+        public void Unlink(IXRInteractor interactor)
+        {
+            callbackExecution.Add(TargetFilterCallback.Unlink);
+        }
+
+        public void Process(IXRInteractor interactor, List<IXRInteractable> targets, List<IXRInteractable> results)
+        {
+            results.Clear();
+            callbackExecution.Add(TargetFilterCallback.Process);
+        }
+    }
+
     class MockGrabTransformer : IXRGrabTransformer
     {
         public enum MethodTrace
