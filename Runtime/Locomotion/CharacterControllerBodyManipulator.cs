@@ -62,14 +62,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
             if (linkedBody == null || characterController == null)
                 return CollisionFlags.None;
 
-            var xrOrigin = linkedBody.xrOrigin;
             var bodyGroundPosition = linkedBody.GetBodyGroundLocalPosition();
-            var capsuleHeight = xrOrigin.CameraInOriginSpaceHeight - bodyGroundPosition.y;
+            var capsuleHeight = linkedBody.xrOrigin.CameraInOriginSpaceHeight - bodyGroundPosition.y;
             characterController.height = capsuleHeight;
             characterController.center = new Vector3(bodyGroundPosition.x,
                 bodyGroundPosition.y + capsuleHeight * 0.5f + characterController.skinWidth, bodyGroundPosition.z);
 
-            return characterController.Move(motion);
+            // Avoid error "CharacterController.Move called on inactive controller"
+            if (characterController.enabled)
+                return characterController.Move(motion);
+
+            // Fall back to translating the XR Origin directly, matching the behavior of `XROriginMovement.Apply`.
+            linkedBody.originTransform.position += motion;
+            return CollisionFlags.None;
         }
     }
 }

@@ -76,7 +76,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         /// <summary>
         /// Reference axis equivalent used for comparisons with the user's gaze direction and the world up direction.
         /// </summary>
-        [Header("Hand anchor angle constraints")]
+        [Header("Show Menu Configuration")]
         [Tooltip("Reference axis equivalent used for comparisons with the user's gaze direction and the world up direction.")]
         public FollowReferenceAxis palmReferenceAxis = FollowReferenceAxis.Down;
 
@@ -126,9 +126,45 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         float m_PalmFacingUpDotThreshold;
 
         /// <summary>
+        /// The amount of time in seconds to wait before hiding the following element after the hand is no longer tracked.
+        /// </summary>
+        [Header("Hide Menu Configuration")]
+        [Tooltip("The amount of time in seconds to wait before hiding the following element after the hand is no longer tracked.")]
+        public float hideDelaySeconds = 0.25f;
+
+        /// <summary>
+        /// The additional threshold angle, in degrees, used as a buffer to hide the menu when the palm is facing the user.
+        /// </summary>
+        [Tooltip("The additional threshold angle, in degrees, used as a buffer to hide the menu when the palm is facing the user.")]
+        [SerializeField]
+        internal float PalmFacingUserHideMenuAngleThresholdDelta = 15f;
+
+        /// <summary>
+        /// The additional threshold angle, in degrees, used as a buffer to hide the menu when the palm is facing up.
+        /// </summary>
+        [Tooltip("The additional threshold angle, in degrees, used as a buffer to hide the menu when the palm is facing up.")]
+        [SerializeField]
+        internal float PalmFacingUpHideMenuAngleThresholdDelta = 15f;
+
+        /// <summary>
+        /// The dot product equivalent to the angle threshold used to check if the palm reference axis is facing the user and isn't beyond this threshold.
+        /// </summary>
+        [Tooltip("The additional threshold angle, in degrees, used as a buffer to hide the menu when the palm is facing the user.")]
+        internal float palmFacingUserHideMenuDotThreshold => m_PalmFacingUserHideMenuDotThreshold;
+
+        float m_PalmFacingUserHideMenuDotThreshold;
+
+        /// <summary>
+        /// The dot product equivalent to the angle threshold used to check if the palm reference axis is facing up and isn't beyond this threshold.
+        /// </summary>
+        internal float palmFacingUpHideMenuDotThreshold => m_PalmFacingUpHideMenuDotThreshold;
+
+        float m_PalmFacingUpHideMenuDotThreshold;
+
+        /// <summary>
         /// Configures the snap to gaze option.
         /// </summary>
-        [Header("Snap To gaze config")]
+        [Header("Snap-To-Gaze Configuration")]
         [Tooltip("Whether to snap the following element to the gaze direction.")]
         public bool snapToGaze;
 
@@ -146,16 +182,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
         float m_SnapToGazeDotThreshold;
 
         /// <summary>
-        /// The amount of time in seconds to wait before hiding the following element after the hand is no longer tracked.
-        /// </summary>
-        [Header("Hide delay config")]
-        [Tooltip("The amount of time in seconds to wait before hiding the following element after the hand is no longer tracked.")]
-        public float hideDelaySeconds = 0.25f;
-
-        /// <summary>
         /// Whether to allow smoothing of the following element position and rotation.
         /// </summary>
-        [Header("Smoothing Config")]
+        [Header("Smoothing Configuration")]
         [Tooltip("Whether to allow smoothing of the following element position and rotation.")]
         public bool allowSmoothing = true;
 
@@ -192,6 +221,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI.BodyUI
             m_PalmFacingUserDotThreshold = AngleToDot(palmFacingUserDegreeAngleThreshold);
             m_PalmFacingUpDotThreshold = AngleToDot(palmFacingUpDegreeAngleThreshold);
             m_SnapToGazeDotThreshold = AngleToDot(snapToGazeAngleThreshold);
+            m_PalmFacingUserHideMenuDotThreshold = AngleToDot(PalmFacingUserHideMenuAngleThresholdDelta);
+            m_PalmFacingUpHideMenuDotThreshold = AngleToDot(PalmFacingUpHideMenuAngleThresholdDelta);
         }
 
         static float AngleToDot(float angleDeg)

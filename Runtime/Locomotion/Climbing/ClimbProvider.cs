@@ -309,10 +309,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Climbing
         /// <inheritdoc/>
         public bool TryLockGravity(GravityOverride gravityOverride)
         {
-            if (m_GravityProvider != null)
-                return m_GravityProvider.TryLockGravity(this, gravityOverride);
-
-            return false;
+            return m_GravityProvider != null && m_GravityProvider.TryLockGravity(this, gravityOverride);
         }
 
         /// <inheritdoc/>

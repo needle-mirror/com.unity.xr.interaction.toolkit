@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.3.1] - 2025-12-16
+
+### Fixed
+- Fixed an issue with the `JumpProvider` continually being stuck in the `LocomotionState.Moving` state and never entering the `LocomotionState.Ended` state. (Backport from 3.4.0-pre.1)
+- Fixed an issue in which the `HandMenu` appears unstable or flickers between showing and hiding when it is displayed while the pose of the anchor transform remains near the angle/range in which it was initially triggered to be shown.  In order to solve the issue, the controller displaying the menu now has a separate wider range for hiding the menu than the allowable range that triggers the initial display of the menu. (Backport from 3.4.0-pre.1)
+- Fixed XR Grab Interactable not restoring the original Rigidbody settings when dropped when first grabbed by an interactor with a movement type override, such as an XR Socket Interactor. This fixes a regression introduced with version [3.2.0](#320---2025-06-30). (Backport from 3.4.0-pre.3)
+- Fixed Gravity Provider not detecting the player is grounded when the XR Origin is scaled, such as when using Two-Handed Grab Move Provider with Enable Scaling. The grounded check now automatically scales the Sphere Cast Settings properties proportionally as the XR Origin is rescaled from (1, 1, 1). This fixes movement feeling floaty due to In Air Control Modifier applying when the player should have been considered grounded. (Backport from 3.4.0-pre.3)
+- Fixed `ContinuousMoveProvider` remaining in the `LocomotionState.Moving` state for too long after the thumbstick input is released when In Air Control is allowed or when Enable Fly is enabled. This fixes the tunneling vignette for the move provider so it ends sooner when input ends while falling or flying. (Backport from 3.4.0-pre.3)
+- Fixed "CharacterController.Move called on inactive controller" errors caused by `CharacterControllerBodyManipulator` when the Character Controller component is disabled. Locomotion will now directly translate the XR Origin when the Character Controller component is disabled. (Backport from 3.4.0-pre.3)
+- Fixed potential `NullReferenceException` when the `GravityProvider` does not have a reference to a `CharacterController`. (Backport from 3.4.0-pre.3)
+- Fixed Gravity Provider gizmo when not grounded. (Backport from 3.4.0-pre.3)
+
 ## [3.3.0] - 2025-10-15
 
 ### Added

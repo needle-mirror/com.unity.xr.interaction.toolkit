@@ -28,10 +28,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         }
 
         [SerializeField]
-        [Tooltip("Determines how much control the player has while in the air (0 = no control, 1 = full control).")]
+        [Tooltip("Determines how much control the player has while falling in the air (0 = no control, 1 = full control).")]
         float m_InAirControlModifier = 0.5f;
         /// <summary>
-        /// Determines how much control the player has while in the air (0 = no control, 1 = full control).
+        /// Determines how much control the player has while falling in the air (0 = no control, 1 = full control).
         /// </summary>
         public float inAirControlModifier
         {
@@ -233,10 +233,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             // Check if the user is not in the air, and update the input velocity accordingly.
             // If the user is in the air, update the input velocity with the inAirControlModifier.
-            if (m_GravityProvider == null || !m_GravityProvider.enabled || !m_GravityProvider.useGravity || m_GravityProvider.isGrounded)
+            // Since fly movement does not use the smoothed input value from air control, use the input vector
+            // to allow the locomotion state to end immediately when input ends.
+            if (m_EnableFly || m_InAirControlModifier >= 1f || m_GravityProvider == null || !m_GravityProvider.enabled || !m_GravityProvider.useGravity || m_GravityProvider.isGrounded)
                 m_InAirVelocity = inputMove;
             else
+            {
                 m_InAirVelocity += deltaTime * m_InAirControlModifier * 10 * (inputMove - m_InAirVelocity);
+
+                // Snap the smoothed air velocity to Vector3.zero when small enough.
+                // This helps to avoid staying in the Moving state for an excessively long time
+                // as the velocity approaches zero, which could cause the comfort vignette to stay on
+                // long after the thumbstick input stops.
+                if (m_InAirVelocity.sqrMagnitude <= 1e-4f)
+                    m_InAirVelocity = Vector3.zero;
+            }
 
             // Determine frame of reference for what the input direction is relative to
             var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;
@@ -334,10 +345,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         /// <inheritdoc/>
         public bool TryLockGravity(GravityOverride gravityOverride)
         {
-            if (m_GravityProvider != null)
-                return m_GravityProvider.TryLockGravity(this, gravityOverride);
-
-            return false;
+            return m_GravityProvider != null && m_GravityProvider.TryLockGravity(this, gravityOverride);
         }
 
         /// <inheritdoc/>

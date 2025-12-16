@@ -41,6 +41,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRDualGrabFreeTransformer.lastInteractorAttachPose has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRSocketGrabTransformer.scaleOnlyMode has { internal get; internal set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceEventData.pressWorldPosition has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.BodyUI.FollowPreset.palmFacingUpHideMenuDotThreshold has { internal get; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.BodyUI.FollowPreset.palmFacingUserHideMenuDotThreshold has { internal get; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.BodyUI.HandMenu.menuHideGazeDivergenceThresholdBuffer has { internal get; internal set; }."),
         };
 
         static readonly (string, string)[] s_InternalMethodExceptionList =
