@@ -172,7 +172,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
         /// </summary>
         public override void Process()
         {

@@ -180,7 +180,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         static bool FindTeleportationProviders()
         {
             if (s_TeleportationProvidersCache == null)
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+                s_TeleportationProvidersCache = Object.FindObjectsByType<TeleportationProvider>();
+#elif UNITY_2023_1_OR_NEWER
                 s_TeleportationProvidersCache = Object.FindObjectsByType<TeleportationProvider>(FindObjectsSortMode.None);
 #else
                 s_TeleportationProvidersCache = Object.FindObjectsOfType<TeleportationProvider>();

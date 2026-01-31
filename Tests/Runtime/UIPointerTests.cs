@@ -200,7 +200,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             , IPointerMoveHandler
 #endif
         {
+#pragma warning disable UAC1001 // Public field skipped by serialization due to missing [Serializable]
             public List<Event> events = new List<Event>();
+#pragma warning restore UAC1001 // Public field skipped by serialization due to missing [Serializable]
 
             public void Reset()
             {

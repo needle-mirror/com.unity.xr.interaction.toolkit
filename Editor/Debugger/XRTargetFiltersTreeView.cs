@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -10,7 +10,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Target Filters.
     /// </summary>
+#if UNITY_6000_3_OR_NEWER
+    class XRTargetFiltersTreeView : TreeView<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+    class XRTargetFiltersTreeView : TreeView<int>
+#else
     class XRTargetFiltersTreeView : TreeView
+#endif
     {
         enum ColumnId
         {
@@ -20,18 +26,35 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             Count,
         }
 
+#if UNITY_6000_3_OR_NEWER
+        class Item : TreeViewItem<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+        class Item : TreeViewItem<int>
+#else
         class Item : TreeViewItem
+#endif
         {
             public XRTargetFilter filter;
+        }
+
+        [Serializable]
+#if UNITY_6000_3_OR_NEWER
+        public class State : TreeViewState<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+        public class State : TreeViewState<int>
+#else
+        public class State : TreeViewState
+#endif
+        {
         }
 
         const float k_RowHeight = 20f;
 
         static bool exitingPlayMode => EditorApplication.isPlaying && !EditorApplication.isPlayingOrWillChangePlaymode;
 
-        public static XRTargetFiltersTreeView Create(List<XRTargetFilter> enabledFilters, ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
+        public static XRTargetFiltersTreeView Create(List<XRTargetFilter> enabledFilters, ref State treeState, ref MultiColumnHeaderState headerState)
         {
-            treeState = treeState ?? new TreeViewState();
+            treeState ??= new State();
             var newHeaderState = CreateHeaderState();
             if (headerState != null && MultiColumnHeaderState.CanOverwriteSerializedFields(headerState, newHeaderState))
                 MultiColumnHeaderState.OverwriteSerializedFields(headerState, newHeaderState);
@@ -67,7 +90,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
         internal XRBaseTargetFilter selectedFilter => m_SelectedFilter;
 
-        public XRTargetFiltersTreeView(List<XRTargetFilter> enabledFilters, TreeViewState state, MultiColumnHeader multiColumnHeader) : base(state, multiColumnHeader)
+        public XRTargetFiltersTreeView(List<XRTargetFilter> enabledFilters, State state, MultiColumnHeader multiColumnHeader)
+            : base(state, multiColumnHeader)
         {
             foreach (var filter in enabledFilters)
                 AddFilter(filter);
@@ -113,20 +137,45 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
                 Reload();
         }
 
+        /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override TreeViewItem<EntityId> BuildRoot()
+#elif UNITY_6000_2_OR_NEWER
+        protected override TreeViewItem<int> BuildRoot()
+#else
         protected override TreeViewItem BuildRoot()
+#endif
         {
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = EntityId.None,
+#else
                 id = 0,
+#endif
                 children = BuildFilterTree(),
                 depth = -1,
             };
         }
 
+#if UNITY_6000_3_OR_NEWER
+        static List<TreeViewItem<EntityId>> CreateItemsList() => new List<TreeViewItem<EntityId>>();
+#elif UNITY_6000_2_OR_NEWER
+        static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
+#else
+        static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
+#endif
+
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildFilterTree()
+#elif UNITY_6000_2_OR_NEWER
+        List<TreeViewItem<int>> BuildFilterTree()
+#else
         List<TreeViewItem> BuildFilterTree()
+#endif
         {
-            var items = new List<TreeViewItem>();
+            var items = CreateItemsList();
 
             foreach (var filter in m_Filters)
             {
@@ -135,7 +184,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
                 var rootTreeItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(filter),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(filter),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(filter),
                     filter = filter,
                     depth = 0,
@@ -184,6 +237,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void SingleClickedItem(EntityId id)
+        {
+            base.SingleClickedItem(id);
+
+            var filter = EditorUtility.EntityIdToObject((EntityId)id) as XRTargetFilter;
+            if (filter == null)
+                return;
+
+            m_SelectedFilter = filter;
+        }
+#else
         protected override void SingleClickedItem(int id)
         {
             base.SingleClickedItem(id);
@@ -194,8 +259,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
             m_SelectedFilter = filter;
         }
+#endif
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void DoubleClickedItem(EntityId id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeEntityId = id;
+        }
+#else
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
@@ -203,6 +278,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
         }
+#endif
 
         public void UpdateFilterList(List<XRTargetFilter> currentEnabledFilters)
         {

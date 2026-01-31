@@ -7,6 +7,7 @@
         "UnityEngine.SpatialTracking",
         "Unity.XR.ARFoundation",
         "Unity.InputSystem",
+        "Unity.InputSystem.Editor",
         "Unity.XR.CoreUtils",
         "Unity.XR.CoreUtils.Editor"
     ],

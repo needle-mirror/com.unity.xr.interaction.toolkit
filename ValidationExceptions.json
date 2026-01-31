@@ -2,7 +2,11 @@
     "ErrorExceptions": [
         {
             "ValidationTest": "API Updater Configuration Validation",
-            "PackageVersion": "3.0.10"
+            "PackageVersion": "3.0.11"
+        },
+        {
+            "ValidationTest": "Package Unity Version Validation",
+            "PackageVersion": "3.0.11"
         }
     ],
     "WarningExceptions": []

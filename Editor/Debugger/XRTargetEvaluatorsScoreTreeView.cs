@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -13,7 +13,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// Multi-column <see cref="TreeView"/> that shows the Interactables final score and the contribution of each enabled evaluator.
     /// The filter is the root of the tree. The Interactables are displayed as children of the linked Interactor that invoked the filter process.
     /// </summary>
+#if UNITY_6000_3_OR_NEWER
+    class XRTargetEvaluatorsScoreTreeView : TreeView<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+    class XRTargetEvaluatorsScoreTreeView : TreeView<int>
+#else
     class XRTargetEvaluatorsScoreTreeView : TreeView
+#endif
     {
         enum ColumnId
         {
@@ -24,11 +30,28 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             Count,
         }
 
+#if UNITY_6000_3_OR_NEWER
+        class Item : TreeViewItem<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+        class Item : TreeViewItem<int>
+#else
         class Item : TreeViewItem
+#endif
         {
             public object target;
             public string finalScore;
             public List<string> scoreList;
+        }
+
+        [Serializable]
+#if UNITY_6000_3_OR_NEWER
+        public class State : TreeViewState<EntityId>
+#elif UNITY_6000_2_OR_NEWER
+        public class State : TreeViewState<int>
+#else
+        public class State : TreeViewState
+#endif
+        {
         }
 
         class ScoreTracker
@@ -122,9 +145,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         public static XRTargetEvaluatorsScoreTreeView Create(XRTargetFilter filter,
-            ref TreeViewState treeState, ref MultiColumnHeaderState headerState)
+            ref State treeState, ref MultiColumnHeaderState headerState)
         {
-            treeState = treeState ?? new TreeViewState();
+            treeState ??= new State();
             var newHeaderState = CreateHeaderState(filter);
             if (headerState != null && MultiColumnHeaderState.CanOverwriteSerializedFields(headerState, newHeaderState))
                 MultiColumnHeaderState.OverwriteSerializedFields(headerState, newHeaderState);
@@ -141,7 +164,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
         public XRTargetFilter filter => m_Filter;
 
-        XRTargetEvaluatorsScoreTreeView(XRTargetFilter filter, TreeViewState state, MultiColumnHeader multiColumnHeader) : base(state, multiColumnHeader)
+        XRTargetEvaluatorsScoreTreeView(XRTargetFilter filter, State state, MultiColumnHeader multiColumnHeader) : base(state, multiColumnHeader)
         {
             showBorder = false;
             rowHeight = k_RowHeight;
@@ -193,38 +216,70 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override TreeViewItem<EntityId> BuildRoot()
+#elif UNITY_6000_2_OR_NEWER
+        protected override TreeViewItem<int> BuildRoot()
+#else
         protected override TreeViewItem BuildRoot()
+#endif
         {
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = EntityId.None,
+#else
                 id = 0,
+#endif
                 children = BuildInteractorTree(),
                 depth = -1,
             };
         }
 
+#if UNITY_6000_3_OR_NEWER
+        static List<TreeViewItem<EntityId>> CreateItemsList() => new List<TreeViewItem<EntityId>>();
+#elif UNITY_6000_2_OR_NEWER
+        static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
+#else
+        static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
+#endif
+
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildInteractorTree()
+#elif UNITY_6000_2_OR_NEWER
+        List<TreeViewItem<int>> BuildInteractorTree()
+#else
         List<TreeViewItem> BuildInteractorTree()
+#endif
         {
-            var items = new List<TreeViewItem>();
+            var items = CreateItemsList();
 
             if (m_Filter == null)
                 return items;
 
             var rootTreeItem = new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(m_Filter),
+#else
                 id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(m_Filter),
+#endif
                 displayName = XRInteractionDebuggerWindow.GetDisplayName(m_Filter),
                 target = m_Filter,
                 depth = 0
             };
 
-            var children = new List<TreeViewItem>();
+            var children = CreateItemsList();
             foreach (var interactor in filter.linkedInteractors)
             {
                 var childItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(interactor),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactor),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(interactor),
                     target = interactor,
                     depth = 1,
@@ -241,9 +296,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             return items;
         }
 
-        List<TreeViewItem> BuildInteractableScoreTree(TreeViewItem parent, IXRInteractor interactor)
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
+#elif UNITY_6000_2_OR_NEWER
+        List<TreeViewItem<int>> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
+#else
+        List<TreeViewItem> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
+#endif
         {
-            var items = new List<TreeViewItem>();
+            var items = CreateItemsList();
 
             if (!m_ScoreByInteractorMap.TryGetValue(interactor, out var scoreTracker))
                 return items;
@@ -267,7 +328,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
                 var childItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(interactable),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactable),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(interactable),
                     target = interactable,
                     finalScore = finalScore,
@@ -325,6 +390,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void DoubleClickedItem(EntityId id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeEntityId = id;
+        }
+#else
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
@@ -332,6 +406,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
         }
+#endif
 
         /// <summary>
         /// Checks if the enabled evaluator list has changed.

@@ -8,6 +8,7 @@
         "Unity.XR.Interaction.Toolkit",
         "Unity.XR.ARFoundation",
         "Unity.PolySpatial",
+        "Unity.PolySpatial.Core",
         "Unity.PolySpatial.RealityKit",
         "Unity.PolySpatial.XR",
         "Unity.XR.Interaction.Toolkit.Samples.StarterAssets",

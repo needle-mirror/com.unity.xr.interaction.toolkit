@@ -253,7 +253,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
             m_ControllerLocomotionVignetteProviders = m_TunnelingVignetteController.locomotionVignetteProviders;
 
             // Cache all the LocomotionProviders that exist in the scene.
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            s_CachedLocomotionProviders = FindObjectsByType<LocomotionProvider>();
+#elif UNITY_2023_1_OR_NEWER
             s_CachedLocomotionProviders = FindObjectsByType<LocomotionProvider>(FindObjectsSortMode.None);
 #else
             s_CachedLocomotionProviders = FindObjectsOfType<LocomotionProvider>();

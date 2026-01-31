@@ -9,6 +9,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+<!-- Unreleased -->
+## [3.0.11] - 2026-01-31
+
+### Changed
+- Changed some components to no longer sort found components by instance ID when finding a component due to `FindObjectsSortMode.InstanceID` being deprecated in Unity 6.4. This may cause a different component instance to be used for unassigned references in Unity 6.4 or newer. (Backport from 3.5.0-pre.2)
+- Changed minimum supported version of the Unity Editor from 2021.3 to 6000.0 (LTS).
+- Changed minimum version of `com.unity.ugui` dependency to `2.0.0`.
+
+### Fixed
+- Fixed the size of the label for the Property Drawer for Input Readers when set to a type of `Unused`. (Backport from 3.4.0)
+- Fixed distance based velocity scaling to take camera velocity into account when calculating attach point velocity in order to prevent physical walking from applying velocity to held grab intractable. (Backport from 3.4.0)
+- Fixed Editor Assembly Definition to include `Unity.InputSystem.Editor` in the references to fix script compilation on some versions of Input System (com.unity.inputsystem). (Backport from 3.5.0-pre.1)
+- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026) (Backport from 3.5.0-pre.1)
+- Fixed warnings about use of deprecated `TreeView` classes in debugger window in Unity 6.2. (Backport from 3.2.1)
+- Fixed warnings caused by APIs that were deprecated in Unity 6.4. (Backport from 3.5.0-pre.2)
+- Fixed warnings caused by missing custom outlines on the spatial keyboard sprite atlas. (Backport from 3.5.0-pre.1)
+- Fixed missing assembly reference for Unity.PolySpatial.Core in the visionOS sample package. [UUM-141554](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141554) (Backport from 3.5.1)
+- Fixed/suppressed compiler warning triggered by deprecation of `MicrosoftHandInteraction.HoloLensHand` in OpenXR 1.16.0 and newer. (Backport from 3.4.0-pre.3)
+
 ## [3.0.10] - 2025-12-09
 
 ### Added

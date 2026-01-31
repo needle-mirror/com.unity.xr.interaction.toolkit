@@ -52,6 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Readers
     /// Base abstract class for a serializable input value reader without typed code.
     /// </summary>
     /// <seealso cref="XRInputValueReader{TValue}"/>
+    [Serializable]
     public abstract class XRInputValueReader
     {
         /// <summary>

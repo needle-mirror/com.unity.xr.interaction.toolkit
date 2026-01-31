@@ -166,7 +166,7 @@ A scene typically contains the following GameObjects:
   <tr>
     <td><strong>EventSystem</strong></td>
     <td>
-      <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html">Event System</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/manual/EventSystem.html">Event System</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="xr-ui-input-module.md">XR UI Input Module</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="canvas-optimizer.md">Canvas Optimizer</a>
     </td>
