@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
 
@@ -9,9 +10,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// <seealso cref="XRDeviceSimulator"/>
     /// <seealso cref="SimulatedDeviceLifecycleManager"/>
     /// <seealso cref="SimulatedHandExpression"/>
-    [AddComponentMenu("XR/Debug/Simulated Hand Expression Manager", 11)]
+    [AddComponentMenu("XR/Debug/Simulated Hand Expression Manager (Deprecated)", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_SimulatedHandExpressionManager)]
     [HelpURL(XRHelpURLConstants.k_SimulatedHandExpressionManager)]
+    [Obsolete("SimulatedHandExpressionManager has been marked for deprecation and will be replaced by SimulatedHandPlaybackManager in tandem with the XRInteractionSimulator in future versions.")]
     public class SimulatedHandExpressionManager : MonoBehaviour
     {
         [SerializeField]

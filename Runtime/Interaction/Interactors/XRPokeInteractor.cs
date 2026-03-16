@@ -21,8 +21,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Interactors/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]
-    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IPokeStateDataProvider, IAttachPointVelocityProvider
+    public class XRPokeInteractor : XRBaseInteractor, IUIHoverInteractor, IUIInteractorRegistrationHandler, IPokeStateDataProvider, IAttachPointVelocityProvider
     {
+        /// <summary>
+        /// Sets whether physics queries hit Trigger colliders and include or ignore snap volume trigger colliders.
+        /// </summary>
+        public enum QuerySnapVolumeInteraction
+        {
+            /// <summary>
+            /// Queries never report Trigger hits that are registered with a snap volume.
+            /// </summary>
+            Ignore,
+
+            /// <summary>
+            /// Queries always report Trigger hits that are registered with a snap volume.
+            /// </summary>
+            Collide,
+        }
+
         /// <summary>
         /// Reusable list of interactables (used to process the valid targets when this interactor has a filter).
         /// </summary>
@@ -117,6 +133,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
+        QuerySnapVolumeInteraction m_SnapVolumeInteraction = QuerySnapVolumeInteraction.Ignore;
+
+        /// <summary>
+        /// Whether physics queries should include or ignore hits on trigger colliders that are snap volume colliders,
+        /// even if the physics query is set to ignore triggers.
+        /// </summary>
+        /// <seealso cref="physicsTriggerInteraction"/>
+        /// <seealso cref="XRInteractableSnapVolume.snapCollider"/>
+        public QuerySnapVolumeInteraction snapVolumeInteraction
+        {
+            get => m_SnapVolumeInteraction;
+            set => m_SnapVolumeInteraction = value;
+        }
+
+        [SerializeField]
         QueryUIDocumentInteraction m_UIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
 
         /// <summary>
@@ -161,6 +192,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         /// <summary>
         /// Gets or sets whether this Interactor is able to affect UI.
+        /// Requires the XR UI Input Module on the Event System.
         /// </summary>
         public bool enableUIInteraction
         {
@@ -170,7 +202,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 if (m_EnableUIInteraction != value)
                 {
                     m_EnableUIInteraction = value;
-                    m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+                    if (Application.isPlaying && isActiveAndEnabled)
+                        UpdateUIRegistration();
                 }
             }
         }
@@ -237,9 +270,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         GameObject m_HoverDebugSphere;
         MeshRenderer m_HoverDebugRenderer;
 
-        Vector3 m_LastPokeInteractionPoint;
+        // Motion continuity state for swept-sphere discovery (internal, non-serialized)
+        // Used to validate that the inter-frame sweep path is physically meaningful
+        // before issuing a SphereCast along it.
+        Vector3 m_PrevTipWorld;
+        Vector3 m_CurrTipWorld;
+        bool m_HasValidPrev;
+        int m_LastTipUpdateFrame = -1;
 
-        bool m_FirstFrame = true;
+        /// <summary>
+        /// Squared motion threshold below which OverlapSphere is used instead of SphereCast.
+        /// 0.000025f = (0.005m)² = 5mm. Calibrated to sit above hand-tracking jitter (~1-3mm)
+        /// while catching moderate-speed pokes through thin UI surfaces (1-5mm thick).
+        /// </summary>
+        const float k_MinSweepDistanceSqr = 0.000025f;
+
+        /// <summary>
+        /// Maximum plausible squared inter-frame delta. Anything above this is treated as a teleport
+        /// and the sweep is suppressed to avoid phantom hits along a physically meaningless path.
+        /// 4.0f = (2.0m)².
+        /// </summary>
+        const float k_MaxReasonableDeltaSqr = 4.0f;
+
         IXRSelectInteractable m_CurrentPokeTarget;
         IXRPokeFilter m_CurrentPokeFilter;
 
@@ -256,36 +308,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         // Used to avoid GC Alloc each frame in UpdateUIModel
         Func<Vector3> m_PositionProvider;
-
-        /// <summary>
-        /// Updates the registration with the appropriate UI system based on current settings.
-        /// </summary>
-        internal virtual void UpdateUIRegistration()
-        {
-            // First unregister from all UI systems
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
-#if UITOOLKIT_WORLDSPACE_ENABLED
-            XRUIToolkitHandler.Unregister(this);
-#endif
-
-            // Register with the appropriate UI system
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
-
-#if UITOOLKIT_WORLDSPACE_ENABLED
-            if (m_EnableUIInteraction)
-            {
-                XRUIToolkitHandler.Register(this);
-
-                // Create the UI handler if needed
-                if (m_UIToolkitPokeHandler == null)
-                    m_UIToolkitPokeHandler = new XRUIToolkitPokeHandler(this);
-
-                // Update visualizer state
-                m_UIToolkitPokeHandler?.UpdateVisualizersState();
-            }
-#endif
-        }
 
         /// <summary>
         /// (Read Only) Whether UI interaction with UI Toolkit is enabled.
@@ -339,11 +361,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             base.OnEnable();
             SetDebugObjectVisibility(true);
-            m_FirstFrame = true;
+            ResetMotionContinuityState();
 
-            // Register with the appropriate UI system
             if (m_EnableUIInteraction)
-                UpdateUIRegistration();
+            {
+                m_RegisteredUIInteractorCache?.HandleOnEnable();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                XRUIToolkitHandler.Register(this);
+
+                // Update visualizer state
+                m_UIToolkitPokeHandler ??= new XRUIToolkitPokeHandler(this);
+                m_UIToolkitPokeHandler.UpdateVisualizersState();
+#endif
+            }
 
             if (attachPointVelocityTracker is AttachPointVelocityTracker velocityTracker)
                 velocityTracker.ResetVelocityTracking();
@@ -356,7 +386,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             SetDebugObjectVisibility(false);
 
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
+            m_RegisteredUIInteractorCache?.HandleOnDisable();
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
             if (canProcessUIToolkit)
@@ -389,6 +419,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null), origin);
                 else
                     attachPointVelocityTracker.UpdateAttachPointVelocityData(GetAttachTransform(null));
+
+                UpdateMotionContinuityState();
 
                 RegisterValidTargets(out m_CurrentPokeTarget, out m_CurrentPokeFilter);
                 ProcessPokeStateData();
@@ -474,52 +506,134 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             m_PokeTargets.Clear();
 
-            // Hover Check
-            Vector3 pokeInteractionPoint = GetAttachTransform(null).position;
-            Vector3 overlapStart = m_LastPokeInteractionPoint;
-            Vector3 interFrameEnd = pokeInteractionPoint;
+            // m_CurrTipWorld is already set by UpdateMotionContinuityState() earlier in PreprocessInteractor,
+            // so we reuse it rather than calling GetAttachTransform(null).position a second time this frame.
+            Vector3 pokeInteractionPoint = m_CurrTipWorld;
 
-            BurstPhysicsUtils.GetSphereOverlapParameters(overlapStart, interFrameEnd, out var normalizedOverlapVector, out var overlapSqrMagnitude, out var overlapDistance);
+            // Determine whether we have valid motion continuity for a swept query.
+            var continuityDelta = m_CurrTipWorld - m_PrevTipWorld;
+            float continuityDeltaSqr = continuityDelta.sqrMagnitude;
 
-            // If no movement is recorded.
-            // Check if spherecast size is sufficient for proper cast, or if first frame since last frame poke position will be invalid.
-            if (m_FirstFrame || overlapSqrMagnitude < 0.001f)
+            // m_HasValidPrev already accounts for first-frame suppression (UpdateMotionContinuityState
+            // keeps it false when m_LastTipUpdateFrame < 0), frame gaps, and teleport-like deltas
+            bool canSweep =
+                m_HasValidPrev &&
+                continuityDeltaSqr >= k_MinSweepDistanceSqr &&
+                continuityDeltaSqr <= k_MaxReasonableDeltaSqr;
+
+            var manager = interactionManager;
+
+            // Resolve trigger interaction: widen physics query to include triggers when
+            // UI document colliders need to be detected, then post-filter non-UI triggers.
+            var baseQueryHitsTriggers = m_PhysicsTriggerInteraction == QueryTriggerInteraction.Collide ||
+                (m_PhysicsTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
+
+            var allowSnapVolumes = m_SnapVolumeInteraction == QuerySnapVolumeInteraction.Collide;
+            var allowUIDocuments = m_UIDocumentTriggerInteraction == QueryUIDocumentInteraction.Collide;
+
+            var queryTriggerInteraction = (baseQueryHitsTriggers || allowSnapVolumes || allowUIDocuments)
+                ? QueryTriggerInteraction.Collide
+                : QueryTriggerInteraction.Ignore;
+
+            // If motion continuity is invalid or below sweep threshold, use static overlap at current position.
+            // Otherwise, sweep a sphere along the inter-frame path to catch thin colliders.
+            if (!canSweep)
             {
-                var numberOfOverlaps = m_LocalPhysicsScene.OverlapSphere(interFrameEnd, m_PokeHoverRadius, m_OverlapSphereHits,
-                    m_PhysicsLayerMask, m_PhysicsTriggerInteraction);
+                var numberOfOverlaps = m_LocalPhysicsScene.OverlapSphere(pokeInteractionPoint, m_PokeHoverRadius, m_OverlapSphereHits,
+                    m_PhysicsLayerMask, queryTriggerInteraction);
+
+                if (numberOfOverlaps > 0)
+                {
+                    numberOfOverlaps = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        manager, m_OverlapSphereHits, numberOfOverlaps,
+                        baseQueryHitsTriggers, allowSnapVolumes, allowUIDocuments);
+                }
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    if (FindPokeTarget(m_OverlapSphereHits[i], out var newPokeCollision))
-                    {
+                    var hitCollider = m_OverlapSphereHits[i];
+                    if (FindPokeTarget(hitCollider, out var newPokeCollision))
                         m_PokeTargets.Add(newPokeCollision);
-                    }
                 }
             }
             else
             {
+                float sweepDistance = Mathf.Sqrt(continuityDeltaSqr);
+                var sweepDirection = continuityDelta / sweepDistance;
+
                 var numberOfOverlaps = m_LocalPhysicsScene.SphereCast(
-                    overlapStart,
+                    m_PrevTipWorld,
                     m_PokeHoverRadius,
-                    normalizedOverlapVector,
+                    sweepDirection,
                     m_SphereCastHits,
-                    overlapDistance,
+                    sweepDistance,
                     m_PhysicsLayerMask,
-                    m_PhysicsTriggerInteraction);
+                    queryTriggerInteraction);
+
+                if (numberOfOverlaps > 0)
+                {
+                    numberOfOverlaps = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        manager, m_SphereCastHits, numberOfOverlaps,
+                        baseQueryHitsTriggers, allowSnapVolumes, allowUIDocuments);
+                }
 
                 for (var i = 0; i < numberOfOverlaps; ++i)
                 {
-                    if (FindPokeTarget(m_SphereCastHits[i].collider, out var newPokeCollision))
-                    {
+                    var hitCollider = m_SphereCastHits[i].collider;
+                    if (FindPokeTarget(hitCollider, out var newPokeCollision))
                         m_PokeTargets.Add(newPokeCollision);
-                    }
                 }
             }
 
-            m_LastPokeInteractionPoint = pokeInteractionPoint;
-            m_FirstFrame = false;
-
             return m_PokeTargets.Count;
+        }
+
+        /// <summary>
+        /// Resets motion continuity state. Called on enable/disable transitions to prevent
+        /// stale prev-frame positions from producing ghost sweep hits.
+        /// </summary>
+        void ResetMotionContinuityState()
+        {
+            m_HasValidPrev = false;
+            m_LastTipUpdateFrame = -1;
+            m_PrevTipWorld = Vector3.zero;
+            m_CurrTipWorld = Vector3.zero;
+        }
+
+        /// <summary>
+        /// Captures per-frame tip motion state in PreprocessInteractor to validate that inter-frame
+        /// sweep paths are physically meaningful. Intentionally conservative about continuity: any
+        /// frame gap, teleport, or first-frame condition suppresses sweeping for that frame.
+        /// </summary>
+        void UpdateMotionContinuityState()
+        {
+            var curr = GetAttachTransform(null).position;
+
+            // First update after reset, initialize both endpoints, suppress sweep.
+            // Suppress sweeping on frame gaps (skipped frames, disabled interactor, tracking discontinuities).
+            if (m_LastTipUpdateFrame < 0 || Time.frameCount != m_LastTipUpdateFrame + 1)
+            {
+                m_PrevTipWorld = curr;
+                m_CurrTipWorld = curr;
+                m_HasValidPrev = false;
+                m_LastTipUpdateFrame = Time.frameCount;
+                return;
+            }
+
+            m_PrevTipWorld = m_CurrTipWorld;
+            m_CurrTipWorld = curr;
+            m_LastTipUpdateFrame = Time.frameCount;
+
+            // Suppress sweeping on teleport-like deltas to avoid ghost hits.
+            var delta = m_CurrTipWorld - m_PrevTipWorld;
+            if (delta.sqrMagnitude > k_MaxReasonableDeltaSqr)
+            {
+                m_PrevTipWorld = m_CurrTipWorld;
+                m_HasValidPrev = false;
+                return;
+            }
+
+            m_HasValidPrev = true;
         }
 
         bool FindPokeTarget(Collider hitCollider, out PokeCollision newPokeCollision)
@@ -671,11 +785,70 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// Handles both UGUI (via XRUIInputModule) and UI Toolkit (via XRUIToolkitHandler) registration.
+        /// </summary>
+        void UpdateUIRegistration()
+        {
+            m_RegisteredUIInteractorCache?.UpdateEnableUIInteraction(m_EnableUIInteraction);
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (m_EnableUIInteraction)
+            {
+                XRUIToolkitHandler.Register(this);
+
+                // Update visualizer state
+                m_UIToolkitPokeHandler ??= new XRUIToolkitPokeHandler(this);
+                m_UIToolkitPokeHandler.UpdateVisualizersState();
+            }
+            else
+            {
+                XRUIToolkitHandler.Unregister(this);
+            }
+#endif
+        }
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnRegistered(UIInteractorRegisteredEventArgs args) => OnRegistered(args);
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnUnregistered(UIInteractorUnregisteredEventArgs args) => OnUnregistered(args);
+
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverEntered(UIHoverEventArgs args) => OnUIHoverEntered(args);
 
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverExited(UIHoverEventArgs args) => OnUIHoverExited(args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is registered with it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that registered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.RegisterInteractor"/>
+        protected virtual void OnRegistered(UIInteractorRegisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache ??= new RegisteredUIInteractorCache(this);
+            m_RegisteredUIInteractorCache.HandleOnRegistered(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is unregistered from it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that unregistered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.UnregisterInteractor"/>
+        protected virtual void OnUnregistered(UIInteractorUnregisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache?.HandleOnUnregistered(args);
+        }
 
         /// <summary>
         /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.

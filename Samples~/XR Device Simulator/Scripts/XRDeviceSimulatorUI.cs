@@ -12,9 +12,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
 {
     class XRDeviceSimulatorUI : MonoBehaviour
     {
+#pragma warning disable CS0618
         XRDeviceSimulator m_Simulator;
-        SimulatedDeviceLifecycleManager m_DeviceLifecycleManager;
         SimulatedHandExpressionManager m_HandExpressionManager;
+#pragma warning restore CS0618
+        SimulatedDeviceLifecycleManager m_DeviceLifecycleManager;
 
         const string k_MouseDeviceType = "Mouse";
         const string k_TranslateLookText = "Move";
@@ -379,9 +381,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         /// </summary>
         protected void Start()
         {
+#pragma warning disable CS0618
             var simulator = GetComponentInParent<XRDeviceSimulator>();
             if (simulator != null)
                 Initialize(simulator);
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -390,7 +394,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
         protected void Update()
         {
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Hand)
+            if (m_DeviceLifecycleManager == null || m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Hand)
                 return;
 
             for (var index = 0; index < m_HandExpressionManager.simulatedHandExpressions.Count; ++index)
@@ -439,6 +443,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
             }
         }
 
+#pragma warning disable CS0618
         void Initialize(XRDeviceSimulator simulator)
         {
             m_Simulator = simulator;
@@ -463,6 +468,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
             OnSetMouseMode();
             OnActivateHeadsetDevice();
         }
+#pragma warning restore CS0618
 
         void InitColorTheme()
         {
@@ -513,7 +519,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
             m_CursorLockValueText.text = m_Simulator.toggleCursorLockAction.action.controls[0].displayName;
             m_CursorLockButton.color = Cursor.lockState == CursorLockMode.Locked ? selectedColor : buttonColor;
 
+#pragma warning disable CS0618
             m_HeadsetLookButtonText.text = m_Simulator.mouseTransformationMode == XRDeviceSimulator.TransformationMode.Translate ? k_TranslateLookText : k_RotateLookText;
+#pragma warning restore CS0618
             m_MouseModeValueText.text = m_Simulator.toggleMouseTransformationModeAction.action.controls[0].displayName;
 
             var manipulateHeadActionControl = m_Simulator.manipulateHeadAction.action.controls[0];
@@ -1058,6 +1066,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
 
         void OnSetMouseMode()
         {
+#pragma warning disable CS0618
             // Translate/Rotate
             m_MouseModeButtonText.text = m_Simulator.negateMode
                 ? XRDeviceSimulator.Negate(m_Simulator.mouseTransformationMode).ToString()
@@ -1067,6 +1076,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                 m_Simulator.mouseTransformationMode == XRDeviceSimulator.TransformationMode.Translate
                     ? k_TranslateLookText
                     : k_RotateLookText;
+#pragma warning restore CS0618
         }
 
         void OnCursorLockChanged()

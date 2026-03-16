@@ -49,15 +49,20 @@ The **Manager Creation Mode** setting modifies whether some manager components (
 * **Create Automatically** (Default): will create the manager component automatically as needed.
 * **Manual**: will not automatically create the manager component. The component must be manually added to the scene or manually instantiated at runtime for interaction to function.
 
-The **Manager Singleton Mode** setting modifies whether the manager component ([XR Interaction Manager](xr-interaction-manager.md)) in the toolkit is allowed to have multiple component instances or will instead be automatically destroyed to enforce a single active and enabled component instance. You have the following options:
+The **Interaction Manager Singleton Mode** setting modifies whether the manager component ([XR Interaction Manager](xr-interaction-manager.md)) in the toolkit is allowed to have multiple component instances or will instead be automatically destroyed to enforce a single active and enabled component instance. You have the following options:
 
 * **Allow Multiple** (Default): will allow multiple instances of the manager component.
 * **Enforce Single**: will enforce that only a single manager component can be active and enabled at one time. You can use this mode to help prevent a potentially undesirable situation where interaction components cannot interact with each other due to being unintentionally registered to different manager components. The other manager component instances after the first will be automatically destroyed during their `OnEnable`. Additionally, the first active and enabled manager will be automatically set to [`DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html) if possible.
 
-The **Manager Registration Mode** setting modifies whether interaction components in the toolkit are automatically registered with a manager component when the manager reference is not set or the manager is destroyed. You have the following options:
+The **Interaction Manager Registration Mode** setting modifies whether interaction components in the toolkit are automatically registered with a manager component when the manager reference is not set or the manager is destroyed. You have the following options:
 
 * **Find Automatically** (Default): will find the manager component and assign the manager component reference automatically at runtime and register with the manager component. Additionally, any registered interaction components to a manager being destroyed will automatically transfer to another manager, either while the original is destroyed if another manager is already active and enabled, or later when another manager is enabled.
 * **Manual**: will not automatically find and register with the manager component when the manager reference is not set. The interaction manager reference must be set in the appropriate component or registered through scripting. Any registered interaction components to a manager being destroyed will automatically be added to the waitlist, but the other manager will not automatically register components from the waitlist and must be invoked through scripting to finish the transfer to another manager.
+
+The **XR UI Input Module Registration Mode** setting modifies whether interactor components are automatically registered with the [XR UI Input Module](xr-ui-input-module.md) component. You have the following options:
+
+* **Find Automatically** (Default): will find the component reference automatically at runtime and register with it. Any registered interactor components to a module being destroyed will automatically transfer to another module.
+* **Manual**: will not automatically find and register with the module component. The interactor must be registered through scripting. Any registered interactor components to an input module being destroyed will automatically be added to the waitlist, but the other input module will not automatically register components from the waitlist and must be invoked through scripting to finish the transfer to another input module.
 
 <a name ="editor-settings"></a>
 ### Editor Settings
@@ -101,6 +106,8 @@ The validation checks for the toolkit include:
    > * Change the **Render Mode** to **Multi-pass** in the settings for each XR Provider Plug-in in the project. Typically, single-pass instanced rendering provides better performance.
    > * Replace the shaders of any Materials that use a Shader Graph shader with a different shader type.
    > * Update the render pipeline to the Universal Render Pipeline (URP).
+
+   [!include[](snippets/birp-deprecated-warning.md)]
 
 * Starter Assets: _Interaction Layer 31 should be set to 'Teleport' for teleportation locomotion._
 

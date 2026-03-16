@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Collections;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     /// <summary>
     /// Matches the UI Model to the state of the Interactor.
     /// </summary>
+    /// <seealso cref="XRUIInputModule"/>
     public interface IUIInteractor
     {
         /// <summary>
@@ -27,8 +31,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     }
 
     /// <summary>
+    /// A <see cref="IUIInteractor"/> that gets notified when registered with the XR UI Input Module.
+    /// </summary>
+    /// <seealso cref="XRUIInputModule"/>
+    public interface IUIInteractorRegistrationHandler : IUIInteractor
+    {
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is registered with it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that registered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.RegisterInteractor"/>
+        void OnRegistered(UIInteractorRegisteredEventArgs args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is unregistered from it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that unregistered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.UnregisterInteractor"/>
+        void OnUnregistered(UIInteractorUnregisteredEventArgs args);
+    }
+
+    /// <summary>
     /// Matches the UI Model to the state of the Interactor with support for hover events.
     /// </summary>
+    /// <seealso cref="XRUIInputModule"/>
     public interface IUIHoverInteractor : IUIInteractor
     {
         /// <summary>
@@ -81,8 +115,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             public IUIInteractor interactor;
             public TrackedDeviceModel model;
-            internal bool deactivating;
-            internal bool active;
+            public bool deactivating;
+            public bool active;
 
             public RegisteredInteractor(IUIInteractor interactor, int deviceIndex)
             {
@@ -133,6 +167,49 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             /// Note: This may cause undesired effects or may impact performance if input configuration is duplicated.
             /// </summary>
             Both,
+        }
+
+        /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="IUIInteractor"/> is registered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="UIInteractorRegisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractor(IUIInteractor)"/>
+        public event Action<UIInteractorRegisteredEventArgs> interactorRegistered;
+
+        /// <summary>
+        /// Calls the methods in its invocation list when an <see cref="IUIInteractor"/> is unregistered.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="UIInteractorUnregisteredEventArgs"/> passed to each listener is only valid while the event is invoked,
+        /// do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractor(IUIInteractor)"/>
+        public event Action<UIInteractorUnregisteredEventArgs> interactorUnregistered;
+
+        /// <summary>
+        /// Registers a new Interactor to a waitlist to be processed by the XR UI Input Module component once a default XR UI Input Module is available.
+        /// This can be used to register the component argument to an XR UI Input Module when it does not have a reference to a particular XR UI Input Module.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be registered to the waitlist.</param>
+        /// <seealso cref="UnregisterFromWaitList(IUIInteractor)"/>
+        /// <seealso cref="RegisterInteractor(IUIInteractor)"/>
+        public static void RegisterWithWaitlist(IUIInteractor interactor)
+        {
+            s_WaitlistInteractors ??= new HashSetList<IUIInteractor>();
+            s_WaitlistInteractors.Add(interactor);
+        }
+
+        /// <summary>
+        /// Remove the Interactor from the waitlist so that it will no longer be automatically registered with the default XR UI Input Module.
+        /// </summary>
+        /// <param name="interactor">The Interactor to be unregistered from the waitlist.</param>
+        /// <seealso cref="RegisterWithWaitlist(IUIInteractor)"/>
+        public static void UnregisterFromWaitList(IUIInteractor interactor)
+        {
+            s_WaitlistInteractors?.Remove(interactor);
         }
 
         [HideInInspector]
@@ -424,21 +501,49 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_CancelButton = value;
         }
 
+        static bool hasWaitlistInteractor => s_WaitlistInteractors != null && s_WaitlistInteractors.Count > 0;
+
         // Initialize to 1 so mouse always uses pointer ID of 0
         int m_RollingPointerId = 1;
-        Stack<int> m_DeletedPointerIds = new Stack<int>();
+        readonly Stack<int> m_DeletedPointerIds = new Stack<int>();
         bool m_UseBuiltInInputSystemActions;
 
         PointerModel m_PointerState;
         NavigationModel m_NavigationState;
+
+        bool m_Destroyed;
 
 #if !XRI_LEGACY_INPUT_DISABLED
         readonly List<RegisteredTouch> m_RegisteredTouches = new List<RegisteredTouch>();
 #endif
         readonly List<RegisteredInteractor> m_RegisteredInteractors = new List<RegisteredInteractor>();
 
+        static HashSetList<IUIInteractor> s_WaitlistInteractors;
+
         // Reusable event args
+        readonly LinkedPool<UIInteractorRegisteredEventArgs> m_InteractorRegisteredEventArgs = new LinkedPool<UIInteractorRegisteredEventArgs>(() => new UIInteractorRegisteredEventArgs(), collectionCheck: false);
+        readonly LinkedPool<UIInteractorUnregisteredEventArgs> m_InteractorUnregisteredEventArgs = new LinkedPool<UIInteractorUnregisteredEventArgs>(() => new UIInteractorUnregisteredEventArgs(), collectionCheck: false);
         readonly LinkedPool<UIHoverEventArgs> m_UIHoverEventArgs = new LinkedPool<UIHoverEventArgs>(() => new UIHoverEventArgs(), collectionCheck: false);
+
+        /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html">MonoBehavior.Awake</a>.
+        /// </summary>
+        protected override void Awake()
+        {
+            base.Awake();
+
+            // Set the cached reference to help avoid unnecessary find calls.
+            // This reference is set in Awake to allow interactors to use it during their own OnEnable.
+            if (enabled)
+            {
+                // Note that the protected `eventSystem` is only set after `base.OnEnable`.
+                if (ComponentLocatorUtility<EventSystem>.componentCache == null)
+                    ComponentLocatorUtility<EventSystem>.SetComponentCache(GetComponent<EventSystem>());
+
+                if (ComponentLocatorUtility<XRUIInputModule>.componentCache == null)
+                    ComponentLocatorUtility<XRUIInputModule>.SetComponentCache(this);
+            }
+        }
 
         /// <summary>
         /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnEnable.html">MonoBehavior.OnEnable</a>.
@@ -461,6 +566,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
                 EnableAllActions();
+
+            if (ComponentLocatorUtility<EventSystem>.componentCache == null)
+                ComponentLocatorUtility<EventSystem>.SetComponentCache(eventSystem);
+
+            if (ComponentLocatorUtility<XRUIInputModule>.componentCache == null)
+                ComponentLocatorUtility<XRUIInputModule>.SetComponentCache(this);
+
+            // If this is the new default input module, claim any waitlist items.
+            if (hasWaitlistInteractor &&
+                ComponentLocatorUtility<XRUIInputModule>.componentCache == this &&
+                XRInteractionRuntimeSettings.Instance.uiModuleRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            {
+                RegisterWaitlistInteractors();
+            }
         }
 
         /// <summary>
@@ -477,6 +596,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
+        /// See <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnDestroy.html">MonoBehavior.OnDestroy</a>.
+        /// </summary>
+        protected override void OnDestroy()
+        {
+            m_Destroyed = true;
+
+            if (ComponentLocatorUtility<XRUIInputModule>.componentCache == this)
+                ComponentLocatorUtility<XRUIInputModule>.SetComponentCache(null);
+
+            UnregisterAllInteractors();
+
+            base.OnDestroy();
+        }
+
+        /// <summary>
         /// Register an <see cref="IUIInteractor"/> with the UI system.
         /// Calling this will enable it to start interacting with UI.
         /// </summary>
@@ -484,6 +618,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public void RegisterInteractor(IUIInteractor interactor)
         {
             if (interactor == null)
+                return;
+
+            if (m_Destroyed)
                 return;
 
             for (var i = 0; i < m_RegisteredInteractors.Count; i++)
@@ -498,7 +635,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         registeredInteractor.deactivating = false;
                         registeredInteractor.model.Reset(true);
                         m_RegisteredInteractors[i] = registeredInteractor;
+
+                        OnRegistered(interactor);
                     }
+
                     return;
                 }
             }
@@ -507,6 +647,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 newId = m_RollingPointerId++;
 
             m_RegisteredInteractors.Add(new RegisteredInteractor(interactor, newId));
+            OnRegistered(interactor);
         }
 
         /// <summary>
@@ -529,9 +670,55 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                         registeredInteractor.deactivating = true;
                         registeredInteractor.active = false;
                         m_RegisteredInteractors[i] = registeredInteractor;
+
+                        OnUnregistered(interactor);
                     }
+
                     return;
                 }
+            }
+        }
+
+        void UnregisterAllInteractors()
+        {
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
+            {
+                var registeredInteractor = m_RegisteredInteractors[i];
+                if (registeredInteractor.active)
+                {
+                    registeredInteractor.deactivating = true;
+                    registeredInteractor.active = false;
+                    m_RegisteredInteractors[i] = registeredInteractor;
+
+                    OnUnregistered(registeredInteractor.interactor);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns all registered Interactors into List <paramref name="results"/>.
+        /// </summary>
+        /// <param name="results">List to receive registered Interactors.</param>
+        /// <remarks>
+        /// This method populates the list with the registered Interactors at the time the
+        /// method is called. It is not a live view, meaning Interactors
+        /// registered or unregistered afterward will not be reflected in the
+        /// results of this method.
+        /// Clears <paramref name="results"/> before adding to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractor(IUIInteractor)"/>
+        public void GetRegisteredInteractors(List<IUIInteractor> results)
+        {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
+
+            results.Clear();
+
+            for (var i = 0; i < m_RegisteredInteractors.Count; i++)
+            {
+                var registeredInteractor = m_RegisteredInteractors[i];
+                if (registeredInteractor.active)
+                    results.Add(registeredInteractor.interactor);
             }
         }
 
@@ -555,6 +742,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return null;
         }
 
+        /// <summary>
+        /// Register all waitlist interactors, which were registered UI interactors to another XR UI Input Module when that
+        /// other input module component was destroyed, or UI enabled interactors when project settings disallow automatic
+        /// registration.
+        /// </summary>
+        public void RegisterWaitlistInteractors()
+        {
+            // Interactors
+            if (s_WaitlistInteractors != null && s_WaitlistInteractors.Count > 0)
+            {
+                var interactors = s_WaitlistInteractors;
+                s_WaitlistInteractors = null;
+
+                foreach (var interactor in interactors)
+                {
+                    if (interactor != null)
+                    {
+                        var register = false;
+                        try
+                        {
+                            register = interactor is not Behaviour component || component.isActiveAndEnabled;
+                        }
+                        catch (MissingReferenceException)
+                        {
+                            // Ignore destroyed component, don't try to register it.
+                            // This helps guard against components which were destroyed with Object.DestroyImmediate.
+                        }
+
+                        if (register)
+                            RegisterInteractor(interactor);
+                    }
+                }
+
+                interactors.Clear();
+                s_WaitlistInteractors ??= interactors;
+            }
+        }
+
         /// <summary>Retrieves the UI Model for a selected <see cref="IUIInteractor"/>.</summary>
         /// <param name="interactor">The <see cref="IUIInteractor"/> you want the model for.</param>
         /// <param name="model">The returned model that reflects the UI state of the <paramref name="interactor"/>.</param>
@@ -570,13 +795,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 }
             }
 
-            model = new TrackedDeviceModel(-1);
+            model = TrackedDeviceModel.invalid;
             return false;
         }
 
         /// <inheritdoc />
         protected override void DoProcess()
         {
+            // If this is the new default input module, claim any waitlist items.
+            if (hasWaitlistInteractor &&
+                ComponentLocatorUtility<XRUIInputModule>.componentCache == this &&
+                XRInteractionRuntimeSettings.Instance.uiModuleRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
+            {
+                RegisterWaitlistInteractors();
+            }
+
             if (m_EnableXRInput)
             {
                 for (var i = 0; i < m_RegisteredInteractors.Count; i++)
@@ -626,6 +859,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     {
                         using (m_UIHoverEventArgs.Get(out var args))
                         {
+                            args.uiSystem = UIHoverEventArgs.UISystem.UnityUI;
                             args.interactorObject = registeredInteractor.interactor;
                             args.deviceModel = registeredInteractor.model;
                             if (args.interactorObject != null && args.interactorObject is IUIHoverInteractor hoverInteractor)
@@ -661,6 +895,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                             var interactor = registeredInteractor.interactor;
                             if (interactor != null && interactor is IUIHoverInteractor hoverInteractor)
                             {
+                                args.uiSystem = UIHoverEventArgs.UISystem.UnityUI;
                                 args.interactorObject = interactor;
                                 args.uiObject = oldTarget;
                                 args.deviceModel = registeredInteractor.model;
@@ -736,19 +971,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
             else
             {
-                if (IsActionEnabled(m_PointAction))
+                if (m_EnableTouchInput || m_EnableMouseInput)
                 {
-                    m_PointerState.position = m_PointAction.action.ReadValue<Vector2>();
-                    m_PointerState.displayIndex = GetDisplayIndexFor(m_PointAction.action.activeControl);
+                    if (IsActionEnabled(m_PointAction))
+                    {
+                        m_PointerState.position = m_PointAction.action.ReadValue<Vector2>();
+                        m_PointerState.displayIndex = GetDisplayIndexFor(m_PointAction.action.activeControl);
+                    }
+                    if (IsActionEnabled(m_ScrollWheelAction))
+                        m_PointerState.scrollDelta = ScrollUtility.GetNormalized(m_ScrollWheelAction.action.ReadValue<Vector2>()) * nonTrackedScrollDeltaMultiplier;
+                    if (IsActionEnabled(m_LeftClickAction))
+                        m_PointerState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
+                    if (IsActionEnabled(m_RightClickAction))
+                        m_PointerState.rightButtonPressed = m_RightClickAction.action.IsPressed();
+                    if (IsActionEnabled(m_MiddleClickAction))
+                        m_PointerState.middleButtonPressed = m_MiddleClickAction.action.IsPressed();
                 }
-                if (IsActionEnabled(m_ScrollWheelAction))
-                    m_PointerState.scrollDelta = ScrollUtility.GetNormalized(m_ScrollWheelAction.action.ReadValue<Vector2>()) * nonTrackedScrollDeltaMultiplier;
-                if (IsActionEnabled(m_LeftClickAction))
-                    m_PointerState.leftButtonPressed = m_LeftClickAction.action.IsPressed();
-                if (IsActionEnabled(m_RightClickAction))
-                    m_PointerState.rightButtonPressed = m_RightClickAction.action.IsPressed();
-                if (IsActionEnabled(m_MiddleClickAction))
-                    m_PointerState.middleButtonPressed = m_MiddleClickAction.action.IsPressed();
 
                 if (IsActionEnabled(m_NavigateAction))
                     m_NavigationState.move = m_NavigateAction.action.ReadValue<Vector2>();
@@ -927,6 +1165,67 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 Debug.Assert(displayIndex <= byte.MaxValue, "Display index was larger than expected", this);
             }
             return displayIndex;
+        }
+
+        void OnRegistered(IUIInteractor interactor)
+        {
+            s_WaitlistInteractors?.Remove(interactor);
+
+            using (m_InteractorRegisteredEventArgs.Get(out var args))
+            {
+                args.inputModule = this;
+                args.interactor = interactor;
+                OnRegistered(args);
+            }
+        }
+
+        void OnUnregistered(IUIInteractor interactor)
+        {
+            using (m_InteractorUnregisteredEventArgs.Get(out var args))
+            {
+                args.inputModule = this;
+                args.interactor = interactor;
+                args.inputModuleDestroyed = m_Destroyed;
+                OnUnregistered(args);
+            }
+        }
+
+        /// <summary>
+        /// Automatically called when an <see cref="IUIInteractor"/> is registered with this component.
+        /// Notifies the UI interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the registered UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="RegisterInteractor(IUIInteractor)"/>
+        protected virtual void OnRegistered(UIInteractorRegisteredEventArgs args)
+        {
+            Debug.Assert(args.inputModule == this, this);
+
+            if (args.interactor is IUIInteractorRegistrationHandler handler)
+                handler.OnRegistered(args);
+
+            interactorRegistered?.Invoke(args);
+        }
+
+        /// <summary>
+        /// Automatically called when an <see cref="IUIInteractor"/> is unregistered from this component.
+        /// Notifies the UI interactor, passing the given <paramref name="args"/>.
+        /// </summary>
+        /// <param name="args">Event data containing the unregistered UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="UnregisterInteractor(IUIInteractor)"/>
+        protected virtual void OnUnregistered(UIInteractorUnregisteredEventArgs args)
+        {
+            Debug.Assert(args.inputModule == this, this);
+
+            if (args.interactor is IUIInteractorRegistrationHandler handler)
+                handler.OnUnregistered(args);
+
+            interactorUnregistered?.Invoke(args);
         }
     }
 }

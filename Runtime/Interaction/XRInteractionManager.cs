@@ -332,6 +332,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <seealso cref="FocusEnter"/>
         public bool logInteractionPreventedWarnings { get; set; } = true;
 
+        static bool hasWaitlistItem =>
+            (s_WaitlistGroups != null && s_WaitlistGroups.Count > 0) ||
+            (s_WaitlistInteractors != null && s_WaitlistInteractors.Count > 0) ||
+            (s_WaitlistInteractables != null && s_WaitlistInteractables.Count > 0) ||
+            (s_WaitlistSnapVolumes != null && s_WaitlistSnapVolumes.Count > 0);
+
         bool m_DestroySelf;
         bool m_Destroyed;
 
@@ -639,7 +645,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             // If this is the new default manager, claim any waitlist items.
-            if (ComponentLocatorUtility<XRInteractionManager>.componentCache == this &&
+            if (hasWaitlistItem &&
+                ComponentLocatorUtility<XRInteractionManager>.componentCache == this &&
                 XRInteractionRuntimeSettings.Instance.interactionManagerRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)
             {
                 RegisterWaitlistItems();

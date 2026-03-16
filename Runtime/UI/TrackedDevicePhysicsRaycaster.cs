@@ -86,7 +86,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             /// <param name="b">The second ray cast hit to compare.</param>
             /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
-                => a.distance.CompareTo(b.distance);
+                => SortingHelpers.raycastHitComparer.Compare(a, b);
         }
 
         [SerializeField]

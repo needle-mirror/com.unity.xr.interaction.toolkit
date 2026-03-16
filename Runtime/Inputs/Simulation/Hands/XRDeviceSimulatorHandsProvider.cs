@@ -42,7 +42,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         readonly HandState m_LeftHandState = new HandState();
         readonly HandState m_RightHandState = new HandState();
 
+#pragma warning disable CS0618
         readonly Dictionary<HandExpressionName, HandExpressionCapture> m_CapturedHandExpressions = new Dictionary<HandExpressionName, HandExpressionCapture>();
+#pragma warning restore CS0618
         readonly Dictionary<HandExpressionName, NativeArray<XRHandJoint>> m_CapturedLeftHandJointArrays = new Dictionary<HandExpressionName, NativeArray<XRHandJoint>>();
         readonly Dictionary<HandExpressionName, NativeArray<XRHandJoint>> m_CapturedRightHandJointArrays = new Dictionary<HandExpressionName, NativeArray<XRHandJoint>>();
 
@@ -189,6 +191,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
             }
         }
 
+#pragma warning disable CS0618
         /// <summary>
         /// Assign a captured expression for a specific expression type.
         /// When a capture is added, this provider is added as a reference to the native array data that will be allocated if needed.
@@ -221,6 +224,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 
             m_CapturedHandExpressions[expressionName] = capture;
         }
+#pragma warning restore CS0618
 
         Pose[] GetCapturedExpressionPoses(Handedness handedness, HandState handState)
         {

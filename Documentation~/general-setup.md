@@ -22,6 +22,8 @@ To start using the toolkit, you must first take care of the following prerequisi
 * [Enable XR providers](xref:xr-configure-providers) for the devices that you plan to support.
 * [Import the toolkit Starter Assets](xref:xri-installation#installing-samples) (recommended): The Starter Assets contain Prefabs, presets, and Input Action assets.
 
+[!include[](snippets/birp-deprecated-warning.md)]
+
 Refer to the [XR section](xref:XR) of the Unity manual for more general information about setting up a project for XR. Note that the [Starter Assets](xref:xri-samples-starter-assets#prefabs) package sample contains a preconfigured XR Origin prefab that already contains most of the toolkit components that you need for implementing interactions. Usually, you can save time and effort by using this prefab instead of the more generic XR Origin configurations described in the [Unity Manual](xref:xr-origin).
 
 <a name="settings"></a>

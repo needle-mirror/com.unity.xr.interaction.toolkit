@@ -35,6 +35,17 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions.SectorInteraction.pressPointOrDefault has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager.leftInputMode has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.XRInputModalityManager.rightInputMode has { internal get; }."),
+#if XR_HANDS_1_1_OR_NEWER
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.handSubsystem has { internal get; }."),
+#endif
+#if XR_HANDS_1_8_OR_NEWER
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.inBetweenKeyFrameIndexList has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.multiFrameEndIndex has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.multiFrameReverseEndIndex has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.multiFrameReverseStartIndex has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.multiFrameStartIndex has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandExpression.singleFrameIndex has { internal get; internal set; }."),
+#endif
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.hasRegisteredStartingMembers has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.isRegisteredWithInteractionManager has { internal get; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor.enableMultiPick has { internal get; internal set; }." ),
@@ -63,8 +74,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.ApplyHMDState has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.RemoveDevices has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.SwitchDeviceMode has internal."),
-            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.XRPokeInteractor.UpdateUIRegistration has internal."),
-            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.NearFarInteractor.UpdateUIRegistration has internal."),
+#if XR_HANDS_1_8_OR_NEWER
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandPlaybackManager.ProcessHandSequencePlayback has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandPlaybackManager.ToggleHandPlayback has internal."),
+#endif
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.XRInteractionSimulator.RotationInputIsPerformed has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals.XRInteractorLineVisual.UpdateLineVisual has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.RemoveMissingMembersFromStartingOverridesMap has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort.TunnelingVignetteController.PreviewInEditor has internal."),
@@ -74,6 +88,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.OnLocomotionStateChanging has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.MigratePlaneClassifications has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer.GetRegistrationMode has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule.PerformRaycast has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRControllerRecording.SetFrameDependentData has internal."),
         };
 

@@ -3,6 +3,7 @@
 #endif
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.Pool;
 #if UIELEMENTS_MODULE_PRESENT
 using UnityEngine.UIElements;
 #endif
@@ -22,6 +23,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 #if UIELEMENTS_MODULE_PRESENT
         public UIDocument hitDocument;
         public VisualElement hitElement;
+
+        public readonly bool TryGetUIDocument(out UIDocument document)
+        {
+            document = hitDocument;
+            if (document != null)
+                return true;
+
+            if (hitCollider != null && hitCollider.TryGetComponent(out document))
+                return true;
+
+            return false;
+        }
 #endif
     }
 
@@ -45,6 +58,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     {
         const int k_MaxInteractors = 8;
         const int k_InvalidIndex = -1;
+
+        // In the future we will likely want to replace this with values passed in from the
+        // specific interactor instead of always using a distance of 10, especially in the case
+        // of poke, where we are only checking small distances.
+        const float k_MaxRaycastDistance = 10f;
+
         static readonly Vector3 k_ResetPos = new Vector3(0f, -1000f, 0f);
 
         class InteractorInfo
@@ -85,6 +104,96 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Dictionary to store the initial z-depth values of manipulated VisualElements
         /// </summary>
         static readonly Dictionary<uint, float> s_InitialZDepth = new Dictionary<uint, float>();
+
+        /// <summary>
+        /// Per-interactor hover tracking state for UI Toolkit hover enter/exit events.
+        /// </summary>
+        struct HoverState
+        {
+            public VisualElement element;
+            public UIDocument document;
+            public GameObject uiObject;
+        }
+
+        static readonly Dictionary<IXRInteractor, HoverState> s_PreviousHover = new();
+
+        static readonly LinkedPool<UIHoverEventArgs> s_UIHoverEventArgs =
+            new LinkedPool<UIHoverEventArgs>(() => new UIHoverEventArgs(), collectionCheck: false);
+
+        static void UpdateHover(IXRInteractor interactor, bool shouldReset)
+        {
+            if (interactor is not IUIHoverInteractor hoverInteractor)
+                return;
+
+            s_PreviousHover.TryGetValue(interactor, out var previousState);
+
+            // If the previously-hovered host is now invalid, force a reset/exit (parity with uGUI behavior).
+            // Handles both disabled targets and Unity's "fake null" destroyed-object state.
+            if (!shouldReset &&
+                ((previousState.uiObject != null && !previousState.uiObject.activeInHierarchy) ||
+                 (previousState.uiObject is not null && previousState.uiObject == null)))
+            {
+                shouldReset = true;
+            }
+
+            var currentState = default(HoverState);
+
+            if (!shouldReset && TryGetPointerHitData(interactor, out var hitData))
+            {
+                var hitElement = hitData.hitElement;
+                if (hitElement != null && hitData.TryGetUIDocument(out var hitDocument) && hitDocument.isActiveAndEnabled)
+                {
+                    currentState.element = hitElement;
+                    currentState.document = hitDocument;
+                    currentState.uiObject = hitDocument.gameObject;
+                }
+            }
+
+            if (ReferenceEquals(previousState.element, currentState.element) &&
+                ReferenceEquals(previousState.document, currentState.document) &&
+                previousState.uiObject == currentState.uiObject)
+            {
+                return; // No state change
+            }
+
+            using (s_UIHoverEventArgs.Get(out var args))
+            {
+                // We just need the model to send arg data, we don't care if it's invalid
+                var uiInteractor = (IUIInteractor)interactor;
+                uiInteractor.TryGetUIModel(out var deviceModel);
+
+                if (shouldReset || previousState.element != null)
+                {
+                    args.interactorObject = hoverInteractor;
+                    args.uiSystem = UIHoverEventArgs.UISystem.UIToolkit;
+                    args.uiObject = previousState.uiObject;
+                    args.visualElement = previousState.element;
+                    args.uiDocument = previousState.document;
+
+                    deviceModel.selectableObject = previousState.uiObject;
+                    args.deviceModel = deviceModel;
+
+                    hoverInteractor.OnUIHoverExited(args);
+                    s_PreviousHover.Remove(interactor);
+                }
+
+                if (currentState.element != null)
+                {
+                    args.interactorObject = hoverInteractor;
+                    args.uiSystem = UIHoverEventArgs.UISystem.UIToolkit;
+                    args.uiObject = currentState.uiObject;
+                    args.visualElement = currentState.element;
+                    args.uiDocument = currentState.document;
+
+                    deviceModel.selectableObject = currentState.uiObject;
+                    deviceModel.isScrollable = currentState.element is ScrollView || currentState.element.GetFirstAncestorOfType<ScrollView>() != null;
+                    args.deviceModel = deviceModel;
+
+                    hoverInteractor.OnUIHoverEntered(args);
+                    s_PreviousHover[interactor] = currentState;
+                }
+            }
+        }
 #endif
 
         /// <summary>
@@ -101,11 +210,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return k_InvalidIndex;
             }
 
+            // Check if already registered
             if (s_RegisteredInteractors.TryGetValue(interactor, out var registeredInteractor))
-            {
-                Debug.LogWarning($"This interactor {interactor} is already registered with XR UI Toolkit Handler at index {registeredInteractor.index}.");
                 return registeredInteractor.index;
-            }
 
             // Find first available index from within the k_MaxInteractors
             var availableIndex = k_InvalidIndex;
@@ -156,6 +263,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Allow unregister to be performed in both playmode and edit mode in order to clean up spurious registrations
             if (!s_RegisteredInteractors.TryGetValue(interactor, out var info))
                 return;
+
+            // Ensure one hover exit is emitted if we were hovering
+            UpdateHover(interactor, true);
 
             // Clean up all associated state
             s_LastWasDown.Remove(info.index);
@@ -231,6 +341,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             s_InteractorHitData.Clear();
 #if UITOOLKIT_WORLDSPACE_ENABLED
             s_InteractorElements.Clear(); // Clear interactor-element associations
+            s_PreviousHover.Clear();
 #endif
             for (int i = 0; i < k_MaxInteractors; i++)
             {
@@ -254,12 +365,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="interactor">The interactor to update.</param>
         /// <param name="pos">The position of the interactor.</param>
         /// <param name="rot">The rotation of the interactor.</param>
+        /// <param name="scrollDelta">The amount to scroll based on input.</param>
         /// <param name="isUiSelectInputActive">Whether the UI select input is active.</param>
         /// <param name="shouldReset">Whether the pointer should be reset.</param>
         public static void HandlePointerUpdate(
             IXRInteractor interactor,
             Vector3 pos,
             Quaternion rot,
+            Vector2 scrollDelta,
             bool isUiSelectInputActive,
             bool shouldReset)
         {
@@ -294,7 +407,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 worldPosition = eventPos,
                 worldOrientation = eventRot,
                 eventSource = InputForUI.EventSource.TrackedDevice,
-                maxDistance = 10f,
+                maxDistance = k_MaxRaycastDistance,
             };
             InputForUI.EventProvider.Dispatch(InputForUI.Event.From(moveEvent));
 
@@ -314,14 +427,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     worldPosition = eventPos,
                     worldOrientation = eventRot,
                     eventSource = InputForUI.EventSource.TrackedDevice,
-                    maxDistance = 10f,
+                    maxDistance = k_MaxRaycastDistance,
                 };
                 InputForUI.EventProvider.Dispatch(InputForUI.Event.From(buttonEvent));
+            }
+
+            // Handle scroll
+            if (scrollDelta != Vector2.zero)
+            {
+                var scrollEvent = new InputForUI.PointerEvent
+                {
+                    pointerIndex = pointerIndex,
+                    type = InputForUI.PointerEvent.Type.Scroll,
+                    worldPosition = eventPos,
+                    worldOrientation = eventRot,
+                    eventSource = InputForUI.EventSource.TrackedDevice,
+                    maxDistance = k_MaxRaycastDistance,
+                    scroll = -scrollDelta
+                };
+                InputForUI.EventProvider.Dispatch(InputForUI.Event.From(scrollEvent));
             }
 #endif
 
             // Update reset state
             s_WasReset[pointerIndex] = shouldReset;
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            // Raise XRI hover enter/exit events for UI Toolkit
+            UpdateHover(interactor, shouldReset);
+#endif
 
             if (shouldReset)
                 ClearInteractorHitData(interactor);

@@ -66,6 +66,7 @@ To enable additional properties in some behaviors, the [Animation](https://docs.
    * Change the sample Materials to use non-Shader Graph shaders.
    * Update the project to use the Universal Render Pipeline (URP).
 
+  [!include[](snippets/birp-deprecated-warning.md)]
 
 ### Helpful links
 

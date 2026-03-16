@@ -44,9 +44,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     [AddComponentMenu("XR/Interactors/XR Ray Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRRayInteractor)]
 #if AR_FOUNDATION_PRESENT
-    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider, IARInteractor
+    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractorRegistrationHandler, IXRRayProvider, IXRScaleValueProvider, IARInteractor
 #else
-    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IXRRayProvider, IXRScaleValueProvider
+    public partial class XRRayInteractor : XRBaseInputInteractor, IAdvancedLineRenderable, IUIHoverInteractor, IUIInteractorRegistrationHandler, IXRRayProvider, IXRScaleValueProvider
 #endif
     {
         const int k_MaxRaycastHits = 10;
@@ -83,11 +83,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             /// <param name="b">The second ray cast hit to compare.</param>
             /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
-            {
-                var aDistance = a.collider != null ? a.distance : float.MaxValue;
-                var bDistance = b.collider != null ? b.distance : float.MaxValue;
-                return aDistance.CompareTo(bDistance);
-            }
+                => SortingHelpers.raycastHitComparer.Compare(a, b);
         }
 
         /// <summary>
@@ -395,12 +391,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
-        [Range(0f, 180f)]
+        [Range(0f, 20f)]
         float m_ConeCastAngle = 6f;
 
         /// <summary>
         /// Gets or sets the angle in degrees of the cone used for cone casting. Will use regular ray casting if set to 0.
         /// </summary>
+        /// <remarks>This API is intentionally left open to allow a value larger than the max range in the inspector.</remarks>
         public float coneCastAngle
         {
             get => m_ConeCastAngle;
@@ -491,6 +488,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
+        QueryUIDocumentInteraction m_RaycastUIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
+
+        /// <summary>
+        /// Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders,
+        /// even if the ray cast is set to ignore triggers.
+        /// If you are not using UI Toolkit, you should set this property
+        /// to <see cref="QueryUIDocumentInteraction.Ignore"/> to avoid the performance cost.
+        /// </summary>
+        /// <remarks>
+        /// When set to <see cref="QueryUIDocumentInteraction.Collide"/> when <see cref="raycastTriggerInteraction"/> is set to ignore trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
+        /// the ray cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
+        /// hits that are not UI Toolkit UI Documents.
+        /// <br />
+        /// When set to <see cref="QueryUIDocumentInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
+        /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
+        /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
+        /// this behavior will ignore any trigger collider hits that are UI Toolkit UI Documents.
+        /// </remarks>
+        /// <seealso cref="raycastTriggerInteraction"/>
+        public QueryUIDocumentInteraction raycastUIDocumentTriggerInteraction
+        {
+            get => m_RaycastUIDocumentTriggerInteraction;
+            set => m_RaycastUIDocumentTriggerInteraction = value;
+        }
+
+        [SerializeField]
         bool m_HitClosestOnly;
         /// <summary>
         /// Whether Unity considers only the closest Interactable as a valid target for interaction.
@@ -574,7 +599,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 if (m_EnableUIInteraction != value)
                 {
                     m_EnableUIInteraction = value;
-                    UpdateUIRegistration();
+                    if (Application.isPlaying && isActiveAndEnabled)
+                        UpdateUIRegistration();
                 }
             }
         }
@@ -949,6 +975,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         Vector3 referencePosition => m_HasReferenceFrame ? m_ReferenceFrame.position : Vector3.zero;
 
+        Vector2 uiScrollInputValue
+        {
+            get
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (forceDeprecatedInput)
+                    return uiScrollValue;
+#pragma warning restore CS0618
+
+                return m_UIScrollInput.ReadValue();
+            }
+        }
+
         bool m_HasRayOriginTransform;
         bool m_HasReferenceFrame;
 
@@ -1105,6 +1144,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         bool m_LastValidHitIsUI;
 #endif
 
+        // Cached trigger filter settings, updated once per frame in UpdateRaycastHits
+        bool m_BaseQueryHitsTriggers;
+        bool m_CollideWithSnapVolumes;
+        bool m_CollideWithUIDocuments;
+        QueryTriggerInteraction m_ResolvedQueryTriggerInteraction;
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -1157,7 +1202,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnEnable();
 
             if (m_EnableUIInteraction)
-                UpdateUIRegistration();
+            {
+                m_RegisteredUIInteractorCache?.HandleOnEnable();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                XRUIToolkitHandler.Register(this);
+#endif
+            }
 
 #if AR_FOUNDATION_PRESENT
             if (m_EnableARRaycasting)
@@ -1172,8 +1222,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             // Clear lines
             m_SamplePoints?.Clear();
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
 
+            m_RegisteredUIInteractorCache?.HandleOnDisable();
 #if UITOOLKIT_WORLDSPACE_ENABLED
             XRUIToolkitHandler.Unregister(this);
 #endif
@@ -1691,23 +1741,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     select = m_UIPressInput.ReadIsPerformed();
             }
 
-            Vector2 scrollDelta;
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (forceDeprecatedInput)
-            {
-                scrollDelta = uiScrollValue;
-            }
-#pragma warning restore CS0618
-            else
-            {
-                scrollDelta = m_UIScrollInput.ReadValue();
-            }
-
             var originPose = originTransform.GetWorldPose();
             model.position = originPose.position;
             model.orientation = originPose.rotation;
             model.select = select;
-            model.scrollDelta = scrollDelta;
+            model.scrollDelta = uiScrollInputValue;
             model.raycastLayerMask = m_RaycastMask;
             model.interactionType = UIInteractionType.Ray;
 
@@ -1734,6 +1772,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 model = TrackedDeviceModel.invalid;
                 return false;
             }
+
             return m_RegisteredUIInteractorCache.TryGetUIModel(out model);
         }
 
@@ -2387,6 +2426,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// </summary>
         void UpdateRaycastHits()
         {
+            UpdateTriggerFilterSettings();
+
             m_RaycastHitsCount = 0;
             m_RaycastHitEndpointIndex = 0;
             m_ConeCastDebugInfo.Clear();
@@ -2443,32 +2484,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var direction = (to - from).normalized;
             var maxDistance = Vector3.Distance(to, from);
 
-            var queryTriggerInteraction = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide
-                ? QueryTriggerInteraction.Collide
-                : m_RaycastTriggerInteraction;
-
             switch (m_HitDetectionType)
             {
                 case HitDetectionType.Raycast:
                     m_RaycastHitsCount = m_LocalPhysicsScene.Raycast(from, direction,
-                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                        m_RaycastHits, maxDistance, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
 
                 case HitDetectionType.SphereCast:
                     m_RaycastHitsCount = m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, direction,
-                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                        m_RaycastHits, maxDistance, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
 
                 case HitDetectionType.ConeCast:
                     m_RaycastHitsCount = FilteredConecast(from, direction, origin,
-                        m_RaycastHits, maxDistance, m_RaycastMask, queryTriggerInteraction);
+                        m_RaycastHits, maxDistance, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
             }
 
             if (m_RaycastHitsCount > 0)
             {
                 if (m_HitDetectionType != HitDetectionType.ConeCast)
-                    m_RaycastHitsCount = FilterOutTriggerColliders(interactionManager, m_RaycastHits, m_RaycastHitsCount);
+                    m_RaycastHitsCount = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        interactionManager, m_RaycastHits, m_RaycastHitsCount,
+                        m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                 // Sort all the hits by distance along the curve since the results of the 3D ray cast are not ordered.
                 // Sorting is done after filtering above for performance.
@@ -2508,7 +2547,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var optimalHits = m_LocalPhysicsScene.Raycast(from, direction, s_SpherecastScratch, maxDistance, layerMask, queryTriggerInteraction);
             if (optimalHits > 0)
             {
-                optimalHits = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, optimalHits);
+                optimalHits = TriggerColliderFilterUtility.FilterTriggerColliders(
+                    interactionManager, s_SpherecastScratch, optimalHits,
+                    m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                 for (var i = 0; i < optimalHits; ++i)
                 {
@@ -2553,7 +2594,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 var initialResults = m_LocalPhysicsScene.SphereCast(from + originRadiusOffset, endRadius, direction, s_SpherecastScratch, sphereCastDistance, layerMask, queryTriggerInteraction);
                 if (initialResults > 0)
                 {
-                    initialResults = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, initialResults);
+                    initialResults = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        interactionManager, s_SpherecastScratch, initialResults,
+                        m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                     for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
                     {
@@ -2596,66 +2639,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         /// <summary>
-        /// Filters out trigger colliders based on caster trigger collider settings.
+        /// Updates cached trigger-filtering settings used for this cast evaluation to avoid redundant recomputation.
         /// </summary>
-        /// <param name="manager">The XR interaction manager used to help filter colliders.</param>
-        /// <param name="raycastHits">Array to store the results of the raycast hits.</param>
-        /// <param name="raycastHitCount">Number of existing raycast hits.</param>
-        /// <returns>Returns the number of raycast hits after filtering out trigger colliders.</returns>
-        int FilterOutTriggerColliders(XRInteractionManager manager, RaycastHit[] raycastHits, int raycastHitCount)
+        void UpdateTriggerFilterSettings()
         {
-            var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
+            m_CollideWithSnapVolumes = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide;
+            m_CollideWithUIDocuments = m_RaycastUIDocumentTriggerInteraction == QueryUIDocumentInteraction.Collide;
+
+            m_BaseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
                 (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
 
-            if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
-            {
-                // Filter out Snap Volume trigger collider hits
-                raycastHitCount = FilterTriggerColliders(manager, raycastHits, raycastHitCount, snapVolume => snapVolume != null);
-            }
-            else if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide && !baseQueryHitsTriggers)
-            {
-                // Filter out trigger collider hits that are not Snap Volume snap colliders
-                raycastHitCount = FilterTriggerColliders(manager, raycastHits, raycastHitCount, snapVolume => snapVolume == null);
-            }
-
-            return raycastHitCount;
-        }
-
-        static int FilterTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count, Func<XRInteractableSnapVolume, bool> removeRule)
-        {
-            for (var index = 0; index < count; ++index)
-            {
-                var hitCollider = raycastHits[index].collider;
-                if (hitCollider.isTrigger)
-                {
-                    XRInteractableSnapVolume snapVolume = null;
-                    if (interactionManager is not null)
-                        interactionManager.TryGetInteractableForCollider(hitCollider, out _, out snapVolume);
-
-                    if (removeRule(snapVolume))
-                    {
-                        RemoveAt(raycastHits, index, count);
-                        --count;
-                        --index;
-                    }
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        /// Remove the array element by shifting the remaining elements down by one index.
-        /// This does not resize the length of the array.
-        /// </summary>
-        /// <typeparam name="T">The struct type.</typeparam>
-        /// <param name="array">The array to modify.</param>
-        /// <param name="index">The index of the array element to effectively remove.</param>
-        /// <param name="count">The number of elements contained in the array, which may be less than the array length.</param>
-        static void RemoveAt<T>(T[] array, int index, int count) where T : struct
-        {
-            Array.Copy(array, index + 1, array, index, count - index - 1);
-            Array.Clear(array, count - 1, 1);
+            m_ResolvedQueryTriggerInteraction = (m_BaseQueryHitsTriggers || m_CollideWithSnapVolumes || m_CollideWithUIDocuments)
+                ? QueryTriggerInteraction.Collide
+                : QueryTriggerInteraction.Ignore;
         }
 
         void CreateBezierCurve(List<SamplePoint> samplePoints, int endSamplePointIndex, float3[] quadraticControlPoints, Ray? rayOriginOverride = null)
@@ -2804,11 +2800,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 RestoreAttachTransform();
         }
 
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// Handles both UGUI (via XRUIInputModule) and UI Toolkit (via XRUIToolkitHandler) registration.
+        /// </summary>
+        void UpdateUIRegistration()
+        {
+            m_RegisteredUIInteractorCache?.UpdateEnableUIInteraction(m_EnableUIInteraction);
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (m_EnableUIInteraction)
+                XRUIToolkitHandler.Register(this);
+            else
+                XRUIToolkitHandler.Unregister(this);
+#endif
+        }
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnRegistered(UIInteractorRegisteredEventArgs args) => OnRegistered(args);
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnUnregistered(UIInteractorUnregisteredEventArgs args) => OnUnregistered(args);
+
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverEntered(UIHoverEventArgs args) => OnUIHoverEntered(args);
 
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverExited(UIHoverEventArgs args) => OnUIHoverExited(args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is registered with it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that registered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.RegisterInteractor"/>
+        protected virtual void OnRegistered(UIInteractorRegisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache ??= new RegisteredUIInteractorCache(this);
+            m_RegisteredUIInteractorCache.HandleOnRegistered(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is unregistered from it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that unregistered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.UnregisterInteractor"/>
+        protected virtual void OnUnregistered(UIInteractorUnregisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache?.HandleOnUnregistered(args);
+        }
 
         /// <summary>
         /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.
@@ -2913,32 +2960,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             public float parameter { get; set; }
         }
 
-        /// <summary>
-        /// Updates the registration with the appropriate UI system based on current settings.
-        /// Handles both UGUI (via XRUIInputModule) and UI Toolkit (via XRUIToolkitHandler) registration.
-        /// </summary>
-        void UpdateUIRegistration()
-        {
-            if (!Application.isPlaying)
-                return;
-
-            // First unregister from all UI systems
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
-#if UITOOLKIT_WORLDSPACE_ENABLED
-            XRUIToolkitHandler.Unregister(this);
-#endif
-
-            // Register with the appropriate UI system
-            if (m_EnableUIInteraction)
-            {
-                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
-
-#if UITOOLKIT_WORLDSPACE_ENABLED
-                XRUIToolkitHandler.Register(this);
-#endif
-            }
-        }
-
 #if UITOOLKIT_WORLDSPACE_ENABLED
         /// <summary>
         /// Handles UI Toolkit pointer events by sending position and interaction state updates to the UI system.
@@ -2978,6 +2999,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 this,
                 origin,
                 Quaternion.LookRotation(direction),
+                uiScrollInputValue,
                 uiPressActive,
                 shouldReset);
         }

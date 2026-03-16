@@ -9,6 +9,46 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+
+## [3.5.0-pre.1] - 2026-03-16
+
+### Added
+- Added an example prefab for hand-based teleportation to the Hands Interaction Demo.
+- Added `prioritizeDistanceSorting` to the `UIInputModule` to ensure closer objects are prioritized for UI interactions.
+- Added new methods and events to `XRUIInputModule` related to registration changes, including getting a list of registered UI interactors and for adding to a waitlist that an input module can consume to register UI interactors automatically or through scripting.
+- Added a new [`IUIInteractorRegistrationHandler`](xref:UnityEngine.XR.Interaction.Toolkit.UI.IUIInteractorRegistrationHandler) interface that is a [`IUIInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.UI.IUIInteractor) but allows for the UI interactor to be notified of registration changes to an XR UI Input Module component. The built-in interactor components that support UI interaction now implement this new interface.
+- Added motion continuity validation to `XRPokeInteractor` that detects frame gaps, teleport-like discontinuities, and first-frame conditions to ensure swept sphere queries only trace physically meaningful inter-frame paths.
+- Added a Snap Volume Interaction collision setting to `XRPokeInteractor`.
+- Added support for sending [`UIHoverEnterEvent`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEnterEvent) and [`UIHoverExitEvent`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverExitEvent) events from the world-space support for UI Toolkit. Additional properties were added to the [`UIHoverEventArgs`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs) passed to each to allow users to distinguish between UI Toolkit or uGUI (Unity UI) and access values specific to each.
+- Added ability to use input from **UI Scroll Input** on both **XR Ray Interactor** and **Near-Far Interactor** to allow scrolling on UI Toolkit scroll views.
+- Added point-and-click functionality to the simulated controllers in `XRInteractionSimulator`. This allows you to interact with objects in controller mode via mouse point and click.
+- Added hand interactivity to the `XRInteractionSimulator`. Originally, hands in the simulator were only visual. Now hand interaction is simulated and passed to a hand subsystem allowing users to interact with their scene using simulated hands.
+- Added a new XR Mouse Interaction Demo sample with support for the [XR_ANDROID_mouse_interaction](https://developer.android.com/develop/xr/openxr/extensions/XR_ANDROID_mouse_interaction) OpenXR extension.
+
+### Changed
+- Changed the Hands Interaction Demo base environment to include teleport anchors to utilize hand-based teleportation.
+- Changed package sample textures and sprites to conform to power of two standards.
+- Changed max Cone Cast Angle from 180 degrees to 20 degrees in the XR Ray Interactor Inspector window.
+- Changed Cone Cast Angle to a slider with range 0 to 20 degrees in the Curve Interaction Caster Inspector window.
+- Changed the `XRUIInputModule` on the `EventSystem` that is automatically created at runtime by a UI interactor to be marked as `DontDestroyOnLoad`. The default input module will only be automatically created once all scenes finish loading.
+- Changed the XR UI Input Module component so it unregisters all UI interactors when that component is destroyed. The components that were registered with the destroyed input module will automatically be re-registered with another input module, either an active and enabled one in the scene or the next one to be enabled. This updates the behavior of the XR UI Input Module and UI interactors to match the functionality of interactors with the XR Interaction Manager.
+- `XRInteractionSimulator` now keeps track of both left and right controller inputs/hand expressions.
+- `XRUIInputModule` now gates touchscreen and mouse related input actions with `enableTouchInput` or `enableMouseInput`.
+
+### Deprecated
+- Deprecated `XRDeviceSimulator` as it will be replaced with the `XRInteractionSimulator`.
+- Deprecated `SimulatedHandExpressionManager` as it will be replaced with the `SimulatedHandPlaybackManager`.
+
+### Fixed
+- Fixed `LazyFollow` snap on enable not snapping rotation correctly.
+- Fixed an issue where the `CurveVisualController` would not display hover visuals when hovering an `XRInteractableSnapVolume`.
+- Fixed the icon used for the additional Input Reader properties that may appear based on the input source selected. It is now an information bubble icon, whereas previously a help icon was used. This lead to confusion with the standard clickable help icons used for linking to manual pages.
+- Fixed Editor Assembly Definition to include `Unity.InputSystem.Editor` in the references to fix script compilation on some versions of Input System (com.unity.inputsystem).
+- Fixed `XRPokeInteractor` producing ghost hover events after interactor re-enable or XR rig teleport due to stale previous-frame position being used as the sweep origin without validity checks.
+- Fixed `XRPokeInteractor` failing to detect thin colliders (1–5mm) during normal-speed poke interactions due to sweep threshold being too high for the swept sphere query to activate. Adjusted `XRPokeInteractor` sweep threshold from 31.6mm to 5mm, allowing moderate-speed pokes to use swept sphere queries for more reliable detection of thin UI surfaces.
+- Fixed obsolete warnings when accessing `activeInstanceID` in unity 6000.3.
+- Fixed `MaterialPipelineHandler` sample script causing error "Calls to AssetDatabase.SaveAssets are restricted during asset importing." upon initial import.
+
 ## [3.4.0] - 2025-02-03
 
 ### Added
@@ -50,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed UI Toolkit interaction in `XRRayInteractor` to use trigger button input (via `m_UIPressInput`) instead of grip button, matching UGUI behavior.
 - Fixed an issue in `TrackedDeviceGraphicRaycaster` where poke selection could be evaluated against the wrong UI target when multiple raycasters appended results to the same raycast list. This could prevent foreground world-space UI from being selectable if a background Canvas also received hit (in a child Dropdown for example).
 - Fixed compiler warnings along with added a missing call to `base.OnEnable()` in the `VisionOSFarCaster` in the `visionOS` sample.
+- Fixed Filtering UI Toolkit trigger volumes in Ray, Curve, and Poke interactors.
 
 ## [3.4.0-pre.2] - 2025-10-22
 

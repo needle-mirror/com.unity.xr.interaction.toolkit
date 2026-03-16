@@ -132,7 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         /// the ray cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
         /// hits that are not snap volumes.
         /// <br />
-        /// When set to <see cref="XRRayInteractor.QuerySnapVolumeInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
+        /// When set to <see cref="QuerySnapVolumeInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
         /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
         /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
         /// this behavior will ignore any trigger collider hits that are snap volumes.
@@ -230,11 +230,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         }
 
         [SerializeField]
+        [Range(0f, 20f)]
         float m_ConeCastAngle = 3f;
 
         /// <summary>
         /// Gets or sets the angle in degrees of the cone used for cone casting. Will use regular ray casting if set to 0.
         /// </summary>
+        /// <remarks>This API is intentionally left open to allow a value larger than the max range in the inspector.</remarks>
         public float coneCastAngle
         {
             get => m_ConeCastAngle;
@@ -276,6 +278,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         protected bool isDestroyed { get; private set; } = false;
 
         PhysicsScene m_LocalPhysicsScene;
+
+        bool m_BaseQueryHitsTriggers;
+        bool m_CollideWithSnapVolumes;
+        bool m_CollideWithUIDocuments;
+        QueryTriggerInteraction m_ResolvedQueryTriggerInteraction;
 
         int m_RaycastHitsCount;
         readonly RaycastHit[] m_RaycastHits = new RaycastHit[k_MaxRaycastHits];
@@ -443,6 +450,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         {
             m_RaycastHitsCount = 0;
             m_ConeCastDebugInfo.Clear();
+            UpdateTriggerFilterSettings();
 
             float totalCastLength = 0f;
             for (var i = 1; i < samplePoints.Length; ++i)
@@ -472,6 +480,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
         }
 
         /// <summary>
+        /// Updates cached trigger-filtering settings used for this cast evaluation to avoid redundant recomputation.
+        /// </summary>
+        void UpdateTriggerFilterSettings()
+        {
+            m_CollideWithSnapVolumes = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide;
+            m_CollideWithUIDocuments = m_RaycastUIDocumentTriggerInteraction == QueryUIDocumentInteraction.Collide;
+
+            m_BaseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
+                (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
+
+            m_ResolvedQueryTriggerInteraction = (m_BaseQueryHitsTriggers || m_CollideWithSnapVolumes || m_CollideWithUIDocuments)
+                ? QueryTriggerInteraction.Collide
+                : QueryTriggerInteraction.Ignore;
+        }
+
+        /// <summary>
         /// Checks for colliders between specified points using a raycast, sphere cast, or cone cast based on the current configuration. Returns the count of hits detected.
         /// </summary>
         /// <param name="interactionManager">The XR interaction manager used to help filter colliders</param>
@@ -488,31 +512,29 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             var distanceBetweenPoints = math.length(fromToVector);
             var direction = math.normalize(fromToVector);
 
-            var queryTriggerInteraction = m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide
-                ? QueryTriggerInteraction.Collide
-                : m_RaycastTriggerInteraction;
-
             switch (m_HitDetectionType)
             {
                 case HitDetectionType.Raycast:
                     raycastHitCount = m_LocalPhysicsScene.Raycast(from, direction,
-                        raycastHits, distanceBetweenPoints, m_RaycastMask, queryTriggerInteraction);
+                        raycastHits, distanceBetweenPoints, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
 
                 case HitDetectionType.SphereCast:
                     raycastHitCount = m_LocalPhysicsScene.SphereCast(from, m_SphereCastRadius, direction,
-                        raycastHits, distanceBetweenPoints, m_RaycastMask, queryTriggerInteraction);
+                        raycastHits, distanceBetweenPoints, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
                 case HitDetectionType.ConeCast:
                     raycastHitCount = FilteredConecast(interactionManager, from, direction, origin,
-                        raycastHits, distanceBetweenPoints, m_RaycastMask, queryTriggerInteraction);
+                        raycastHits, distanceBetweenPoints, m_RaycastMask, m_ResolvedQueryTriggerInteraction);
                     break;
             }
 
             if (raycastHitCount > 0)
             {
                 if (m_HitDetectionType != HitDetectionType.ConeCast)
-                    raycastHitCount = FilterOutTriggerColliders(interactionManager, raycastHits, raycastHitCount);
+                    raycastHitCount = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        interactionManager, raycastHits, raycastHitCount,
+                        m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                 // Sort all the hits by distance along the curve since the results of the 3D ray cast are not ordered.
                 // Sorting is done after filtering above for performance.
@@ -533,7 +555,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             var optimalHits = m_LocalPhysicsScene.Raycast(from, direction, s_SpherecastScratch, maxDistance, layerMask, queryTriggerInteraction);
             if (optimalHits > 0)
             {
-                optimalHits = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, optimalHits);
+                optimalHits = TriggerColliderFilterUtility.FilterTriggerColliders(
+                    interactionManager, s_SpherecastScratch, optimalHits,
+                    m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                 for (var i = 0; i < optimalHits; ++i)
                 {
@@ -578,7 +602,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
                 var initialResults = m_LocalPhysicsScene.SphereCast(from + originRadiusOffset, endRadius, direction, s_SpherecastScratch, sphereCastDistance, layerMask, queryTriggerInteraction);
                 if (initialResults > 0)
                 {
-                    initialResults = FilterOutTriggerColliders(interactionManager, s_SpherecastScratch, initialResults);
+                    initialResults = TriggerColliderFilterUtility.FilterTriggerColliders(
+                        interactionManager, s_SpherecastScratch, initialResults,
+                        m_BaseQueryHitsTriggers, m_CollideWithSnapVolumes, m_CollideWithUIDocuments);
 
                     for (var i = 0; (i < initialResults && hitCounter < results.Length); i++)
                     {
@@ -620,67 +646,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             return hitCounter;
         }
 
-        /// <summary>
-        /// Filters out trigger colliders based on caster trigger collider settings.
-        /// </summary>
-        /// <param name="interactionManager">The XR interaction manager used to help filter colliders.</param>
-        /// <param name="raycastHits">Array to store the results of the raycast hits.</param>
-        /// <param name="raycastHitCount">Number of existing raycast hits.</param>
-        /// <returns>Returns the number of raycast hits after filtering out trigger colliders.</returns>
-        int FilterOutTriggerColliders(XRInteractionManager interactionManager, RaycastHit[] raycastHits, int raycastHitCount)
-        {
-            var baseQueryHitsTriggers = m_RaycastTriggerInteraction == QueryTriggerInteraction.Collide ||
-                (m_RaycastTriggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
-
-            if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Ignore && baseQueryHitsTriggers)
-            {
-                // Filter out Snap Volume trigger collider hits
-                raycastHitCount = FilterOutSnapTriggerColliders(interactionManager, raycastHits, raycastHitCount);
-            }
-            else if (m_RaycastSnapVolumeInteraction == QuerySnapVolumeInteraction.Collide && !baseQueryHitsTriggers)
-            {
-                // Filter out trigger collider hits that are not Snap Volume snap colliders
-                raycastHitCount = FilterOutNonSnapTriggerColliders(interactionManager, raycastHits, raycastHitCount);
-            }
-
-            return raycastHitCount;
-        }
-
-        static int FilterOutSnapTriggerColliders(in XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count)
-        {
-            int remainingCount = count;
-            for (var index = 0; index < remainingCount; ++index)
-            {
-                var hitCollider = raycastHits[index].collider;
-                if (hitCollider == null || (hitCollider.isTrigger && interactionManager.IsColliderRegisteredSnapVolume(hitCollider)))
-                {
-                    // Replace item at current index with item at the end of the list.
-                    raycastHits[index--] = raycastHits[--remainingCount];
-                }
-            }
-
-            return remainingCount;
-        }
-
-        static int FilterOutNonSnapTriggerColliders(in XRInteractionManager interactionManager, RaycastHit[] raycastHits, int count)
-        {
-            int remainingCount = count;
-            for (var index = 0; index < remainingCount; ++index)
-            {
-                var hitCollider = raycastHits[index].collider;
-                if (hitCollider == null || (hitCollider.isTrigger && !interactionManager.IsColliderRegisteredSnapVolume(hitCollider)
-#if UITOOLKIT_WORLDSPACE_ENABLED
-                    && !XRUIToolkitHandler.HasUIDocument(hitCollider)
-#endif
-                ))
-                {
-                    // Replace item at current index with item at the end of the list.
-                    raycastHits[index--] = raycastHits[--remainingCount];
-                }
-            }
-
-            return remainingCount;
-        }
 
         /// <inheritdoc />
         public bool UpdateUIModel(ref TrackedDeviceModel uiModel, bool isSelectActive, in Vector2 scrollDelta)
@@ -729,9 +694,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
             /// <param name="b">The second ray cast hit to compare.</param>
             /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
             public int Compare(RaycastHit a, RaycastHit b)
-            {
-                return a.distance.CompareTo(b.distance);
-            }
+                => SortingHelpers.raycastHitComparer.Compare(a, b);
         }
 
         /// <summary>

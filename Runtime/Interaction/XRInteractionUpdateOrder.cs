@@ -53,6 +53,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_SimulatedHandExpressionManager = -29994; // Before XRDeviceSimulator
 
         /// <summary>
+        /// Order when instances of type <see cref="SimulatedHandPlaybackManager"/> are updated.
+        /// </summary>
+        public const int k_SimulatedHandPlaybackManager = -29994; // Before XRInteractionSimulator
+
+        /// <summary>
         /// Order when instances of type <see cref="XRInteractionSimulator"/> are updated.
         /// </summary>
         public const int k_InteractionSimulator = -29991; // Before XRBaseController

@@ -26,12 +26,11 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _BUILTIN_SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords:
-  - _SURFACE_TYPE_TRANSPARENT
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3002
+  m_CustomRenderQueue: -1
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
@@ -48,11 +47,47 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _CombinedFingerIndexHighlightMask:
         m_Texture: {fileID: 2800000, guid: 323e734c56102e643a829e6f33533314, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FingerGlowMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -98,9 +133,12 @@ Material:
     - _BUILTIN_ZWrite: 0
     - _BUILTIN_ZWriteControl: 0
     - _Blend: 0
+    - _BumpScale: 1
     - _CastShadows: 1
     - _Cull: 2
-    - _DstBlend: 10
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
     - _EdgeHighlightPower: 5
     - _FadeSize: 0.02
     - _FadeStart: 0.12
@@ -108,9 +146,15 @@ Material:
     - _Float_1: 0.71
     - _Fragments: 0.71
     - _FresnelPower: 0.16
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _Metallic: 0
+    - _Mode: 0
     - _Noise: 0
     - _NoiseScale: 5000
     - _NoiseStrength: 0.5
+    - _OcclusionStrength: 1
     - _Offset: 0.15
     - _Opacity: 0.8
     - _OutlineGlowIntensity: 0
@@ -119,6 +163,7 @@ Material:
     - _OutlinePinchRange: 0.15
     - _OutlineSphereHardness: 0.3
     - _OutlineWidth: 0.00134
+    - _Parallax: 0.02
     - _PinchIntensity: 0
     - _PinchRange: 0.03
     - _Power: 2.5
@@ -126,16 +171,19 @@ Material:
     - _QueueControl: 1
     - _QueueOffset: 0
     - _Scale: 0.16
-    - _SrcBlend: 5
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
     - _Surface: 1
     - _TransitionSize: 0.1
+    - _UVSec: 0
     - _WristRange: 0.06
     - _WristRangeBaseScalar: 1
     - _WristRangeScalar: 1
     - _WristRangeScalarA: 1
     - _WristRangeScalarB: 1
     - _ZTest: 4
-    - _ZWrite: 0
+    - _ZWrite: 1
     - _ZWriteControl: 0
     m_Colors:
     - Color_d710c7c4aa1a4153a2a64167ef0bec76: {r: 0.2623709, g: 0.6187253, b: 0.8301887, a: 1}
@@ -151,6 +199,7 @@ Material:
     - _ColorTop: {r: 0.19607836, g: 0.20392147, b: 0.21176466, a: 1}
     - _Color_1: {r: 0, g: 0, b: 0, a: 0.5803922}
     - _EdgeColor: {r: 0.9, g: 0.9, b: 0.9, a: 0.8}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FadeCenter: {r: 0, g: 0, b: 0.15, a: 0}
     - _FadeCenter_1: {r: 1, g: 4, b: 1, a: 0}
     - _FadeScale: {r: 1, g: 4, b: 1, a: 0}

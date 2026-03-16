@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "XRI Default Input Actions",
     "maps": [
         {
@@ -622,6 +623,17 @@
                 },
                 {
                     "name": "",
+                    "id": "938b6e3d-9fc2-4fba-a049-738668dc07e5",
+                    "path": "<XRHandDevice>{LeftHand}/aimPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2623b909-75bd-40da-97bd-ae1ecfb0a89b",
                     "path": "<MetaAimHand>{LeftHand}/deviceRotation",
                     "interactions": "",
@@ -657,6 +669,17 @@
                     "name": "",
                     "id": "4848899c-8c90-455a-a915-6422290f501b",
                     "path": "<HoloLensHand>{LeftHand}/pointer/rotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "73f3c491-d5ec-4851-84f5-9138a454eb5c",
+                    "path": "<XRHandDevice>{LeftHand}/aimRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -890,7 +913,7 @@
                     "name": "Activate",
                     "type": "Button",
                     "id": "0c0991c5-d329-4afc-8892-1076b440477c",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1046,6 +1069,28 @@
                 },
                 {
                     "name": "",
+                    "id": "502d470d-dc8a-46a5-8391-81cba04305cf",
+                    "path": "<XRHandDevice>{LeftHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7fa12256-8331-468c-9951-60255e867cd6",
+                    "path": "<XRHandDevice>{LeftHand}/graspFirm",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "49a23327-a116-48c0-8af9-0d2c50c15a88",
                     "path": "<XRController>{LeftHand}/{Grip}",
                     "interactions": "",
@@ -1092,6 +1137,28 @@
                     "name": "",
                     "id": "a8d99ae3-e736-4370-ad5e-9fa45cb7a1be",
                     "path": "<HoloLensHand>{LeftHand}/squeeze",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7bb4b9cf-262f-4f6c-ac85-8a228792bc2e",
+                    "path": "<XRHandDevice>{LeftHand}/pinchValue",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d08c5dcc-5696-4ca7-8f1f-a34a297b4501",
+                    "path": "<XRHandDevice>{LeftHand}/graspValue",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -1715,6 +1782,17 @@
                 },
                 {
                     "name": "",
+                    "id": "d5e01c2b-7d1d-4866-a59e-a2aae1290e59",
+                    "path": "<XRHandDevice>{RightHand}/aimPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "2bb1158a-2d78-446b-9351-6f9b3f1364cb",
                     "path": "<MetaAimHand>{RightHand}/deviceRotation",
                     "interactions": "",
@@ -1750,6 +1828,17 @@
                     "name": "",
                     "id": "2fac2635-e015-4fb7-9578-34b85a5d5797",
                     "path": "<HoloLensHand>{RightHand}/pointer/rotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "43fa4f6a-9bc1-47f1-9c04-3840e77ba4ec",
+                    "path": "<XRHandDevice>{RightHand}/aimRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2139,6 +2228,39 @@
                 },
                 {
                     "name": "",
+                    "id": "fe3bfc2a-3586-4334-8b73-d6d5f4d46f68",
+                    "path": "<AndroidMouseInteraction>/click",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6e62575c-e262-4a40-91f0-8a4dd9ffb2d9",
+                    "path": "<XRHandDevice>{RightHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ffad08e7-8ce9-47a3-b22c-a5295117a45a",
+                    "path": "<XRHandDevice>{RightHand}/graspFirm",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "dd433817-216c-46b9-8dd3-f3a4ea1767b9",
                     "path": "<XRController>{RightHand}/{Grip}",
                     "interactions": "",
@@ -2185,6 +2307,28 @@
                     "name": "",
                     "id": "e890a130-d436-4b52-a092-bff81d18bfb7",
                     "path": "<HoloLensHand>{RightHand}/squeeze",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0a8a448a-b838-4e13-8eeb-3e3a95e88f2f",
+                    "path": "<XRHandDevice>{RightHand}/pinchValue",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c184e047-2003-4172-9a3d-af4fcbaae04f",
+                    "path": "<XRHandDevice>{RightHand}/graspValue",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2262,6 +2406,17 @@
                     "name": "",
                     "id": "a65008a0-f3b6-4060-b3a0-3eabaf0563bf",
                     "path": "<KHRSimpleController>{RightHand}/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "174a58ab-1be9-47d5-ab2d-0dcfb077b490",
+                    "path": "<AndroidMouseInteraction>/click",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2642,6 +2797,17 @@
                 },
                 {
                     "name": "",
+                    "id": "029b1a68-89af-484c-904f-be2b56b0b89c",
+                    "path": "<AndroidMouseInteraction>/click",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "57909bb4-1088-4975-9227-ecc87a305257",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
@@ -2664,6 +2830,17 @@
                 },
                 {
                     "name": "",
+                    "id": "9a4ffad3-ad80-4d97-a288-9a117b21d65b",
+                    "path": "<AndroidMouseInteraction>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ScrollWheel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "d6fd3bb5-c747-4eba-b599-1c6d7c738e2a",
                     "path": "<Mouse>/scroll",
                     "interactions": "",
@@ -2675,12 +2852,34 @@
                 },
                 {
                     "name": "",
+                    "id": "673084aa-69c2-4192-9c12-6bca1d428778",
+                    "path": "<AndroidMouseInteraction>/tertiaryClick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MiddleClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "fb2286cc-fa20-4564-bff6-9f790f12cf6b",
                     "path": "<Mouse>/middleButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "MiddleClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7311e597-1971-4442-a9b3-c1de5a20b586",
+                    "path": "<AndroidMouseInteraction>/secondaryClick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RightClick",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -3395,6 +3594,249 @@
                     "action": "Spawn Object",
                     "isComposite": false,
                     "isPartOfComposite": true
+                }
+            ]
+        },
+        {
+            "name": "Android Mouse Interaction",
+            "id": "51eeaf8b-9c2d-4b7b-a4e7-9cb6e332ad84",
+            "actions": [
+                {
+                    "name": "Click",
+                    "type": "PassThrough",
+                    "id": "6c40b073-5d03-4365-9b21-949718f62d28",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Scroll",
+                    "type": "PassThrough",
+                    "id": "e638f953-7d8b-480f-a289-3215848ec03a",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Aim",
+                    "type": "PassThrough",
+                    "id": "ab586f98-046d-40c1-bb43-3ea03b2066a3",
+                    "expectedControlType": "Pose",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Secondary Click",
+                    "type": "PassThrough",
+                    "id": "b32d0678-19e7-4a5a-9f2b-1b9906072a56",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Tertiary Click",
+                    "type": "PassThrough",
+                    "id": "d4798d30-bc89-46f7-bbd8-d9f3c3b5b34e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Aim Position",
+                    "type": "PassThrough",
+                    "id": "8a9190a7-67ab-4170-a8a8-2c570dba6c2a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Aim Rotation",
+                    "type": "PassThrough",
+                    "id": "92dc345b-bad5-4222-a050-ffdcc88a955a",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Mouse Position",
+                    "type": "Value",
+                    "id": "b9e133ef-d9ec-44ae-afc4-58164dedff8b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Press",
+                    "type": "Value",
+                    "id": "2d447048-eaa7-42f4-a2b2-4622ce13ff34",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "d24d4fd6-bd57-4805-8a47-6036c15c0983",
+                    "path": "<AndroidMouseInteraction>/click",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e89a238f-dfea-4ed4-ad6d-f32b6f46f7e6",
+                    "path": "<Mouse>/{Click}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "80d9bf16-ccfd-4bd7-88c4-500f82c2d42b",
+                    "path": "<AndroidMouseInteraction>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3e4a49ff-0f91-4fa9-9a31-240b49b82b26",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d9cfedab-fac7-4fed-9141-521f0c4a5e02",
+                    "path": "<AndroidMouseInteraction>/aim",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eb0a2aa2-946a-4454-adb4-9e03d5e2a0c9",
+                    "path": "<AndroidMouseInteraction>/secondaryClick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Secondary Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "47439dcc-8559-4a42-b490-5fb024bdc3c1",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Secondary Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "369d87a4-ff15-4619-997d-fac990814a2f",
+                    "path": "<AndroidMouseInteraction>/tertiaryClick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tertiary Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c55cb7a6-b091-4241-9f59-87d5de5f5738",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tertiary Click",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f8e868a7-d4b8-4dce-9ed4-792ea4a9bd52",
+                    "path": "<AndroidMouseInteraction>/aim/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "01f643c1-875d-477b-9592-893aec1e8170",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "77dd4d35-104e-410a-9bf0-a2e4a88c6865",
+                    "path": "<AndroidMouseInteraction>/aim/rotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Aim Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e55afef2-432b-4b61-b636-1a23cf83a6dc",
+                    "path": "<AndroidMouseInteraction>/aim/position/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Mouse Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "74677dce-8b8d-4226-86a2-9562252d17c7",
+                    "path": "<AndroidMouseInteraction>/click",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

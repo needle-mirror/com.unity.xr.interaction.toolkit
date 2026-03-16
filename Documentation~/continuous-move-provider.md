@@ -9,7 +9,7 @@ Locomotion provider that allows the user to smoothly move their rig continuously
 
 | **Property** | **Description** |
 |---|---|
-|**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
+|**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its `Awake` or `OnEnable` call. |
 |**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Move Speed** | The speed, in units per second, to move forward. |
 | **In Air Control Modifier** | Determines how much control the player has while falling in the air (0 = no control, 1 = full control). |

@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "3.4";
+        const string k_CurrentDocsVersion = "3.5";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_HtmlFileSuffix = ".html";
 
@@ -231,14 +231,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_SimulatedDeviceLifecycleManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedDeviceLifecycleManager) + k_HtmlFileSuffix;
 
         /// <summary>
-        /// Scripting API URL for <see cref="SimulatedHandExpressionManager"/>.
+        /// Scripting API URL for <see cref="SimulatedHandPlaybackManager"/>.
         /// </summary>
-        public const string k_SimulatedHandExpressionManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedHandExpressionManager) + k_HtmlFileSuffix;
-
-        /// <summary>
-        /// Scripting API URL for <see cref="XRDeviceSimulator"/>.
-        /// </summary>
-        public const string k_XRDeviceSimulator = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(XRDeviceSimulator) + k_HtmlFileSuffix;
+        public const string k_SimulatedHandPlaybackManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedHandPlaybackManager) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="XRInteractionSimulator"/>.

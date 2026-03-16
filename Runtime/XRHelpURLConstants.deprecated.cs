@@ -10,6 +10,7 @@ using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio;
 using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Primitives;
 using UnityEngine.XR.Interaction.Toolkit.AR;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -296,5 +297,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         [Obsolete("k_CharacterControllerDriver has been deprecated in version 3.0.0.")]
         public const string k_CharacterControllerDriver = k_BaseApi + k_BaseNamespace + nameof(CharacterControllerDriver) + ".html";
+
+        /// <summary>
+        /// Scripting API URL for <see cref="SimulatedHandExpressionManager"/>.
+        /// </summary>
+        [Obsolete("SimulatedHandExpressionManager is marked for deprecation and will be removed in a future version.")]
+        public const string k_SimulatedHandExpressionManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(SimulatedHandExpressionManager) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="XRDeviceSimulator"/>.
+        /// </summary>
+        [Obsolete("XRDeviceSimulator is marked for deprecation and will be removed in a future version.")]
+        public const string k_XRDeviceSimulator = k_BaseApi + k_BaseNamespace + k_InputsNamespace + k_SimulationNamespace + nameof(XRDeviceSimulator) + k_HtmlFileSuffix;
     }
 }

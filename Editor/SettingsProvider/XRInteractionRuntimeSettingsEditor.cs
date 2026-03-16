@@ -20,6 +20,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractionRuntimeSettings.interactionManagerRegistrationMode"/>.</summary>
         SerializedProperty m_InteractionManagerRegistrationMode;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRInteractionRuntimeSettings.uiModuleRegistrationMode"/>.</summary>
+        SerializedProperty m_UIModuleRegistrationMode;
+
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
@@ -45,6 +48,13 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     "Determines whether interaction components are automatically registered with the XR Interaction Manager component when the manager reference is not set or the manager is destroyed.\n\n" +
                     "\u2043 'Find Automatically' (Default) will assign the manager component reference automatically at runtime and register with the manager component. Any registered interaction components to a manager being destroyed will automatically transfer to another manager.\n" +
                     "\u2043 'Manual' will not automatically find and register with the manager component when the manager reference is not set. The interaction manager reference must be set in the appropriate component or registered through scripting.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="XRInteractionRuntimeSettings.interactionManagerRegistrationMode"/>.</summary>
+            public static readonly GUIContent uiModuleRegistrationMode =
+                EditorGUIUtility.TrTextContent("XR UI Input Module Registration Mode",
+                    "Determines whether interactor components are automatically registered with the XR UI Input Module component.\n\n" +
+                    "\u2043 'Find Automatically' (Default) will find the component reference automatically at runtime and register with it. Any registered interactor components to a module being destroyed will automatically transfer to another module.\n" +
+                    "\u2043 'Manual' will not automatically find and register with the module component. The interactor must be registered through scripting.");
         }
 
         void OnEnable()
@@ -52,6 +62,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
             m_ManagerCreationMode = serializedObject.FindProperty(nameof(m_ManagerCreationMode));
             m_InteractionManagerSingletonMode = serializedObject.FindProperty(nameof(m_InteractionManagerSingletonMode));
             m_InteractionManagerRegistrationMode = serializedObject.FindProperty(nameof(m_InteractionManagerRegistrationMode));
+            m_UIModuleRegistrationMode = serializedObject.FindProperty(nameof(m_UIModuleRegistrationMode));
         }
 
         public override void OnInspectorGUI()
@@ -65,6 +76,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                 EditorGUILayout.PropertyField(m_ManagerCreationMode, Contents.managerCreationMode);
                 EditorGUILayout.PropertyField(m_InteractionManagerSingletonMode, Contents.interactionManagerSingletonMode);
                 EditorGUILayout.PropertyField(m_InteractionManagerRegistrationMode, Contents.interactionManagerRegistrationMode);
+                EditorGUILayout.PropertyField(m_UIModuleRegistrationMode, Contents.uiModuleRegistrationMode);
                 EditorGUIUtility.labelWidth = labelWidth;
 
                 if (check.changed)

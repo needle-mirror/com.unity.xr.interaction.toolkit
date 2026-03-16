@@ -377,17 +377,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 {
                     if (TryGetThresholdTargetPosition(out var newPositionTarget))
                         m_Vector3TweenableVariable.target = newPositionTarget;
+
+                    m_Vector3TweenableVariable.HandleTween(1f);
                 }
 
                 if (m_RotationFollowMode != RotationFollowMode.None)
                 {
                     if (TryGetThresholdTargetRotation(out var newRotationTarget))
                         m_QuaternionTweenableVariable.target = newRotationTarget;
-                }
 
-                m_Vector3TweenableVariable.HandleTween(1f);
-                m_QuaternionTweenableVariable.HandleTween(1f);
+                    m_QuaternionTweenableVariable.HandleTween(1f);
+                }
             }
+
         }
 
         /// <summary>

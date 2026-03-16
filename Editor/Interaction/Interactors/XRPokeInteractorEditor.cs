@@ -23,6 +23,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         protected SerializedProperty m_PhysicsLayerMask;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRPokeInteractor.physicsTriggerInteraction"/>.</summary>
         protected SerializedProperty m_PhysicsTriggerInteraction;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRPokeInteractor.snapVolumeInteraction"/>.</summary>
+        protected SerializedProperty m_SnapVolumeInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRPokeInteractor.uiDocumentTriggerInteraction"/>.</summary>
         protected SerializedProperty m_UIDocumentTriggerInteraction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRPokeInteractor.requirePokeFilter"/>.</summary>
@@ -57,6 +59,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent physicsLayerMask = EditorGUIUtility.TrTextContent("Physics Layer Mask", "Physics layer mask used for limiting poke sphere overlap.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.physicsTriggerInteraction"/>.</summary>
             public static readonly GUIContent physicsTriggerInteraction = EditorGUIUtility.TrTextContent("Physics Trigger Interaction", "Determines whether the poke sphere overlap and cast will hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.snapVolumeInteraction"/>.</summary>
+            public static readonly GUIContent snapVolumeInteraction = EditorGUIUtility.TrTextContent("Snap Volume Interaction", "Determines if poke sphere overlap and cast include Snap Volumes: 'Collide' to include, 'Ignore' to avoid accidental selection with Snap Volumes.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.uiDocumentTriggerInteraction"/>.</summary>
             public static readonly GUIContent uiDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("UI Document Trigger Interaction", "Determines if poke sphere overlap and cast include UI Document triggers: 'Collide' to include, 'Ignore' for performance optimization when not using UI Toolkit.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.requirePokeFilter"/>.</summary>
@@ -83,6 +87,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_PokeInteractionOffset = serializedObject.FindProperty("m_PokeInteractionOffset");
             m_PhysicsLayerMask = serializedObject.FindProperty("m_PhysicsLayerMask");
             m_PhysicsTriggerInteraction = serializedObject.FindProperty("m_PhysicsTriggerInteraction");
+            m_SnapVolumeInteraction = serializedObject.FindProperty("m_SnapVolumeInteraction");
             m_UIDocumentTriggerInteraction = serializedObject.FindProperty("m_UIDocumentTriggerInteraction");
             m_RequirePokeFilter = serializedObject.FindProperty("m_RequirePokeFilter");
             m_EnableUIInteraction = serializedObject.FindProperty("m_EnableUIInteraction");
@@ -118,8 +123,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             EditorGUILayout.PropertyField(m_PokeInteractionOffset, Contents.pokeInteractionOffset);
             EditorGUILayout.PropertyField(m_PhysicsLayerMask, Contents.physicsLayerMask);
             EditorGUILayout.PropertyField(m_PhysicsTriggerInteraction, Contents.physicsTriggerInteraction);
-            // TODO for 3.2.0
-            //EditorGUILayout.PropertyField(m_UIDocumentTriggerInteraction, Contents.uiDocumentTriggerInteraction);
+            EditorGUILayout.PropertyField(m_SnapVolumeInteraction, Contents.snapVolumeInteraction);
+            EditorGUILayout.PropertyField(m_UIDocumentTriggerInteraction, Contents.uiDocumentTriggerInteraction);
             EditorGUILayout.PropertyField(m_RequirePokeFilter, Contents.requirePokeFilter);
         }
 

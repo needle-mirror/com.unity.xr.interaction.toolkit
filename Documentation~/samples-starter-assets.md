@@ -195,8 +195,8 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
     <td>
       <a href="near-far-interactor.md">Near-Far Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="interaction-attach-controller.md">Interaction Attach Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
-      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.4/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.SphereInteractionCaster.html">Sphere Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
-      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.4/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster.html">Curve Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.SphereInteractionCaster.html">Sphere Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster.html">Curve Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="simple-haptic-feedback.md">Simple Haptic Feedback</a>
     </td>
     <td>The Near-Far Interactor enables grabbing interactables at close range, as well as grabbing from a distance via ray casts.
@@ -331,6 +331,8 @@ Assets to let users set up and configure tunneling vignette effects as a comfort
 |**`TunnelingVignette.shader`**|Default shader used by the material and Prefab to compute the vignette effect. Works with the built-in rendering pipeline and Scriptable Render Pipeline (SRP).|
 |**`TunnelingVignetteHemisphere.fbx`**|Hemisphere model with the mesh for showing the tunneling vignette on its inner surface.|
 |**`TunnelingVignetteSG.shadergraph`**|[Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) asset primarily used as reference material to demonstrate the computation of the default shader. Notes in the asset explain the math involved and the steps needed to generate a SRP shader that achieves the same function as the default shader. This is not used by the material or Prefab, however this can be used as an alternative starting point to create a modified shader.|
+
+[!include[](snippets/birp-deprecated-warning.md)]
 
 ## Presets
 

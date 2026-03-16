@@ -190,6 +190,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         internal static readonly Vector3 leftDeviceDefaultInitialPosition = new Vector3(-0.1f, -0.05f, 0.3f);
         internal static readonly Vector3 rightDeviceDefaultInitialPosition = new Vector3(0.1f, -0.05f, 0.3f);
 
+        /// <summary>
+        /// Searches for a <see cref="SimulatedDeviceLifecycleManager"/> component in the scene, and creates one if an existing
+        /// component is not found.
+        /// </summary>
         internal static SimulatedDeviceLifecycleManager FindCreateSimulatedDeviceLifecycleManager(GameObject simulator)
         {
             if (ComponentLocatorUtility<SimulatedDeviceLifecycleManager>.TryFindComponent(out var simulatedDeviceLifecycleManager))
@@ -203,6 +207,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
+        /// <summary>
+        /// Searches for a <see cref="SimulatedHandExpressionManager"/> component in the scene, and creates one if an existing
+        /// component is not found.
+        /// </summary>
+        [Obsolete("SimulatedHandExpressionManager has been marked as deprecated. It will be replaced with SimulatedHandPlaybackManager in future versions.")]
         internal static SimulatedHandExpressionManager FindCreateSimulatedHandExpressionManager(GameObject simulator)
         {
             if (ComponentLocatorUtility<SimulatedHandExpressionManager>.TryFindComponent(out var simulatedHandExpressionManager))
@@ -213,6 +222,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 simulatedHandExpressionManager = simulator.AddComponent<SimulatedHandExpressionManager>();
                 return simulatedHandExpressionManager;
+            }
+        }
+
+        /// <summary>
+        /// Searches for a <see cref="SimulatedHandPlaybackManager"/> component in the scene, and creates one if an existing
+        /// component is not found.
+        /// </summary>
+        internal static SimulatedHandPlaybackManager FindCreateSimulatedHandPlaybackManager(GameObject simulator)
+        {
+            if (ComponentLocatorUtility<SimulatedHandPlaybackManager>.TryFindComponent(out var simulatedHandPlaybackManager))
+            {
+                return simulatedHandPlaybackManager;
+            }
+            else
+            {
+                simulatedHandPlaybackManager = simulator.AddComponent<SimulatedHandPlaybackManager>();
+                return simulatedHandPlaybackManager;
             }
         }
 
@@ -341,7 +367,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // Camera.main returns the first active and enabled main camera, so if the cached one
             // is no longer enabled, find the new main camera. This is to support, for example,
             // toggling between different XROrigin rigs each with their own main camera.
-            if (cachedCamera.transform == null ||
+            if (cachedCamera.transform == null || cameraTransform == null ||
                 (cachedCamera.camera != null && !cachedCamera.camera.isActiveAndEnabled))
             {
                 var mainCamera = Camera.main;
@@ -349,7 +375,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     return false;
 
                 cameraTransform = mainCamera.transform;
-                cachedCamera = (cameraTransform, cameraTransform.GetComponent<Camera>());
+                cachedCamera = (cameraTransform, mainCamera);
             }
 
             return true;

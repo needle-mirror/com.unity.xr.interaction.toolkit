@@ -41,6 +41,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         static readonly Comparison<IXRInteractable> s_InteractableDistanceComparison = InteractableDistanceComparison;
 
         /// <summary>
+        /// Used to sort raycast hits by distance.
+        /// </summary>
+        public static readonly IComparer<RaycastHit> raycastHitComparer = new RaycastHitComparer();
+
+        /// <summary>
         /// Evaluates the squared distance between the attachment points of an interactor and an interactable.
         /// </summary>
         public static readonly IInteractorDistanceEvaluator squareDistanceAttachPointEvaluator = new SquareDistanceAttachPointEvaluator();
@@ -192,6 +197,35 @@ namespace UnityEngine.XR.Interaction.Toolkit
             var xDistance = s_InteractableDistanceSqrMap[x];
             var yDistance = s_InteractableDistanceSqrMap[y];
             return xDistance.CompareTo(yDistance);
+        }
+
+        /// <summary>
+        /// Sorts an array of <see cref="RaycastHit"/>s ascending by distance. Sorting is done in-place.
+        /// </summary>
+        /// <param name="raycastHits">Array of <see cref="RaycastHit"/>s to be sorted.</param>
+        /// <param name="raycastHitCount">Number of <see cref="RaycastHit"/>s in the array.</param>
+        public static void SortRaycastHitsByDistance(RaycastHit[] raycastHits, int raycastHitCount)
+        {
+            Sort(raycastHits, raycastHitComparer, raycastHitCount);
+        }
+
+        /// <summary>
+        /// Compares ray cast hits by distance, to sort in ascending order.
+        /// </summary>
+        sealed class RaycastHitComparer : IComparer<RaycastHit>
+        {
+            /// <summary>
+            /// Compares ray cast hits by distance in ascending order.
+            /// </summary>
+            /// <param name="a">The first ray cast hit to compare.</param>
+            /// <param name="b">The second ray cast hit to compare.</param>
+            /// <returns>Returns less than 0 if a is closer than b. 0 if a and b are equal. Greater than 0 if b is closer than a.</returns>
+            int IComparer<RaycastHit>.Compare(RaycastHit a, RaycastHit b)
+            {
+                var aDistance = a.collider != null ? a.distance : float.MaxValue;
+                var bDistance = b.collider != null ? b.distance : float.MaxValue;
+                return aDistance.CompareTo(bDistance);
+            }
         }
 
         /// <summary>

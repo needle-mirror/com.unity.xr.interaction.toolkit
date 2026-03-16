@@ -7,10 +7,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
     {
         XRDeviceSimulatorHandsProvider handsProvider => provider as XRDeviceSimulatorHandsProvider;
 
+#pragma warning disable CS0618
         internal void SetCapturedExpression(HandExpressionName expressionName, HandExpressionCapture capture)
         {
             handsProvider.SetCapturedExpression(expressionName, capture);
         }
+#pragma warning restore CS0618
 
         internal void SetHandExpression(Handedness handedness, HandExpressionName expressionName)
         {

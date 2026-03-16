@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 8518324294302271954}
   - component: {fileID: 6900676903622151380}
   - component: {fileID: 3966192772413791964}
-  - component: {fileID: 4976647607938919449}
   - component: {fileID: 9147200356447112767}
+  - component: {fileID: 8031605675589883834}
   m_Layer: 0
   m_Name: XR Interaction Simulator
   m_TagString: Untagged
@@ -48,8 +48,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_CameraTransform: {fileID: 0}
+  m_LeftControllerTransform: {fileID: 0}
+  m_RightControllerTransform: {fileID: 0}
   m_DeviceLifecycleManager: {fileID: 3966192772413791964}
-  m_HandExpressionManager: {fileID: 4976647607938919449}
+  m_HandPlaybackManager: {fileID: 8031605675589883834}
   m_InteractionSimulatorUI: {fileID: 8640641445779114434, guid: be0c86f67bf3f46659373b3776d9ecbb, type: 3}
   m_HMDIsTracked: 1
   m_HMDTrackingState: 3
@@ -907,6 +909,50 @@ MonoBehaviour:
     m_ManualQueueWasCompletedThisFrame: 0
     m_ManualQueueValue: 0
     m_ManualQueueTargetFrame: 0
+  m_MouseClickInput:
+    m_InputSourceMode: 2
+    m_InputActionPerformed:
+      m_Name: 
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: b9f4dc3c-8884-4a29-a04a-ef0a71cb6d5a
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_InputActionValue:
+      m_Name: 
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: a9499719-28e8-4cfc-a547-4232c54cac9f
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_InputActionReferencePerformed: {fileID: 5782307508335624352, guid: 7f59cc19636f04d5cbbc64e77a20787f, type: 3}
+    m_InputActionReferenceValue: {fileID: 5782307508335624352, guid: 7f59cc19636f04d5cbbc64e77a20787f, type: 3}
+    m_ObjectReferenceObject: {fileID: 0}
+    m_ManualPerformed: 0
+    m_ManualValue: 0
+    m_ManualQueuePerformed: 0
+    m_ManualQueueWasPerformedThisFrame: 0
+    m_ManualQueueWasCompletedThisFrame: 0
+    m_ManualQueueValue: 0
+    m_ManualQueueTargetFrame: 0
+  m_MousePointInput:
+    m_InputSourceMode: 2
+    m_InputAction:
+      m_Name: 
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 495ae9af-b055-4d4d-8706-bc6b3924db07
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_InputActionReference: {fileID: -6745814794947100691, guid: 7f59cc19636f04d5cbbc64e77a20787f, type: 3}
+    m_ObjectReferenceObject: {fileID: 0}
+    m_ManualValue: {x: 0, y: 0}
   m_GripAmount: 1
   m_TriggerAmount: 1
   m_TranslateXSpeed: 0.2
@@ -919,6 +965,8 @@ MonoBehaviour:
   m_RotateYInvert: 0
   m_TranslateSpace: 1
   m_QuickActionControllerInputModes: 01000000020000000300000004000000
+  m_UsePointAndClick: 1
+  m_DefaultPointAndClickHandedness: 2
 --- !u!114 &3966192772413791964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -933,218 +981,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RemoveOtherHMDDevices: 1
   m_HandTrackingCapability: 1
---- !u!114 &4976647607938919449
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8135023674665499069}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18d5c629281874bc18cb5ead1d245f6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SimulatedHandExpressions:
-  - m_Name: Poke
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: 67459d21-4103-40e8-ba86-d898e89fade0
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: 329926d4-25cb-4366-ad3d-ca0e5db7726d
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: -5976510165261225158, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
-      m_InputActionReferenceValue: {fileID: -5976510165261225158, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: ac5d39631059b48e7adac17367aa3908, type: 2}
-    m_IsQuickAction: 1
-  - m_Name: Pinch
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: 7ab91dd1-6e51-4f9f-9cba-72167d459a3a
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: c5314228-c514-4378-a5db-a32f501c8459
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: -8306000708137014372, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
-      m_InputActionReferenceValue: {fileID: -8306000708137014372, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: 72c39edbc5fea456ab30a2ef2ea6d4d0, type: 2}
-    m_IsQuickAction: 1
-  - m_Name: Grab
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: a227dc4d-1738-4659-b714-bc223f4c5390
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: aef3415f-2df1-4a87-87e1-c58d10696474
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: -4373459253818063952, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_InputActionReferenceValue: {fileID: -4373459253818063952, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: 2c7c6caedfd0a43e3a614236a83aa148, type: 2}
-    m_IsQuickAction: 1
-  - m_Name: Thumb
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: ce019abe-d3bd-456b-96e0-8d7b163bf17e
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: 03a70ded-ebb4-4f41-8e83-1a32aaacbddc
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: -741559036651486339, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_InputActionReferenceValue: {fileID: -741559036651486339, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: b8da6254ca32341d6b80019659732616, type: 2}
-    m_IsQuickAction: 0
-  - m_Name: Open
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: e2417513-5829-4bf3-90ef-24876c36a169
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: 0b108380-6860-474f-86c9-c140b42976d0
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: -9192331390769138535, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_InputActionReferenceValue: {fileID: -9192331390769138535, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: 7ea145a784214457f9e6950f55d58b34, type: 2}
-    m_IsQuickAction: 0
-  - m_Name: Fist
-    m_ToggleInput:
-      m_InputSourceMode: 2
-      m_InputActionPerformed:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: d625b666-df24-4952-889e-6242a8ffeb8e
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionValue:
-        m_Name: 
-        m_Type: 0
-        m_ExpectedControlType: 
-        m_Id: e11a62f5-9de0-429d-86fe-48af9248b747
-        m_Processors: 
-        m_Interactions: 
-        m_SingletonActionBindings: []
-        m_Flags: 0
-      m_InputActionReferencePerformed: {fileID: 6469712917552426222, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_InputActionReferenceValue: {fileID: 6469712917552426222, guid: b72ab2a46d9094be38774d023beb4d34, type: 3}
-      m_ObjectReferenceObject: {fileID: 0}
-      m_ManualPerformed: 0
-      m_ManualValue: 0
-      m_ManualQueuePerformed: 0
-      m_ManualQueueWasPerformedThisFrame: 0
-      m_ManualQueueWasCompletedThisFrame: 0
-      m_ManualQueueValue: 0
-      m_ManualQueueTargetFrame: 0
-    m_Capture: {fileID: 11400000, guid: fa004868963da45f6a2e6520cfd82522, type: 2}
-    m_IsQuickAction: 0
-  m_RestingHandExpressionCapture: {fileID: 11400000, guid: 3a2050912ec71479899c69612c0af028, type: 2}
 --- !u!114 &9147200356447112767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,3 +997,181 @@ MonoBehaviour:
   - {fileID: -944628639613478452, guid: 7f59cc19636f04d5cbbc64e77a20787f, type: 3}
   - {fileID: -944628639613478452, guid: b6d5c44ebe3244b7692e81ae8265eb22, type: 3}
   - {fileID: -944628639613478452, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+--- !u!114 &8031605675589883834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8135023674665499069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1eb83c2ee0ce243f6823f2f7551cfd7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandPlaybackManager
+  m_SimulatedHandExpressions:
+  - m_Name: Poke
+    m_ToggleInput:
+      m_InputSourceMode: 2
+      m_InputActionPerformed:
+        m_Name: Input Action Performed
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 5c9a3b9e-2a32-4d40-9173-3400377909df
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionValue:
+        m_Name: Input Action Value
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 66c4422c-32ab-480a-8a42-2830654045a6
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionReferencePerformed: {fileID: -5976510165261225158, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_InputActionReferenceValue: {fileID: -5976510165261225158, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_ObjectReferenceObject: {fileID: 0}
+      m_ManualPerformed: 0
+      m_ManualValue: 0
+      m_ManualQueuePerformed: 0
+      m_ManualQueueWasPerformedThisFrame: 0
+      m_ManualQueueWasCompletedThisFrame: 0
+      m_ManualQueueValue: 0
+      m_ManualQueueTargetFrame: 0
+    m_CaptureSequence: {fileID: 11400000, guid: 6df5845b904624b8f8a3b140002a522f, type: 2}
+    m_SequenceType: 0
+    m_SingleFrameIndex: 150
+    m_MultiFrameStartIndex: 0
+    m_MultiFrameEndIndex: 0
+    m_MultiFrameReverseStartIndex: 0
+    m_MultiFrameReverseEndIndex: 0
+    m_InBetweenKeyFrameIndexList: 
+    m_Capture: {fileID: 11400000, guid: ac5d39631059b48e7adac17367aa3908, type: 2}
+    m_IsQuickAction: 1
+  - m_Name: Pinch
+    m_ToggleInput:
+      m_InputSourceMode: 2
+      m_InputActionPerformed:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionValue:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionReferencePerformed: {fileID: -8306000708137014372, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_InputActionReferenceValue: {fileID: -8306000708137014372, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_ObjectReferenceObject: {fileID: 0}
+      m_ManualPerformed: 0
+      m_ManualValue: 0
+      m_ManualQueuePerformed: 0
+      m_ManualQueueWasPerformedThisFrame: 0
+      m_ManualQueueWasCompletedThisFrame: 0
+      m_ManualQueueValue: 0
+      m_ManualQueueTargetFrame: 0
+    m_CaptureSequence: {fileID: 11400000, guid: 149208170d63649d396a3996194c40d6, type: 2}
+    m_SequenceType: 1
+    m_SingleFrameIndex: 0
+    m_MultiFrameStartIndex: 100
+    m_MultiFrameEndIndex: 125
+    m_MultiFrameReverseStartIndex: 125
+    m_MultiFrameReverseEndIndex: 175
+    m_InBetweenKeyFrameIndexList: 
+    m_Capture: {fileID: 11400000, guid: 72c39edbc5fea456ab30a2ef2ea6d4d0, type: 2}
+    m_IsQuickAction: 1
+  - m_Name: Grab
+    m_ToggleInput:
+      m_InputSourceMode: 2
+      m_InputActionPerformed:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionValue:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionReferencePerformed: {fileID: -4373459253818063952, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_InputActionReferenceValue: {fileID: -4373459253818063952, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_ObjectReferenceObject: {fileID: 0}
+      m_ManualPerformed: 0
+      m_ManualValue: 0
+      m_ManualQueuePerformed: 0
+      m_ManualQueueWasPerformedThisFrame: 0
+      m_ManualQueueWasCompletedThisFrame: 0
+      m_ManualQueueValue: 0
+      m_ManualQueueTargetFrame: 0
+    m_CaptureSequence: {fileID: 11400000, guid: ef066b860acb140c793550c9bf9f0025, type: 2}
+    m_SequenceType: 1
+    m_SingleFrameIndex: 0
+    m_MultiFrameStartIndex: 100
+    m_MultiFrameEndIndex: 150
+    m_MultiFrameReverseStartIndex: 150
+    m_MultiFrameReverseEndIndex: 200
+    m_InBetweenKeyFrameIndexList: 
+    m_Capture: {fileID: 11400000, guid: 2c7c6caedfd0a43e3a614236a83aa148, type: 2}
+    m_IsQuickAction: 1
+  m_RestingHandExpression:
+    m_Name: Idle
+    m_ToggleInput:
+      m_InputSourceMode: 2
+      m_InputActionPerformed:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: c0757c62-965d-410c-8d7c-2087116582b7
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionValue:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: 8636ed2c-e387-4194-af84-67725aef5b23
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionReferencePerformed: {fileID: -9154874258283710783, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_InputActionReferenceValue: {fileID: -9154874258283710783, guid: 1f7ec93f6b8c84f5981db5008b5859cd, type: 3}
+      m_ObjectReferenceObject: {fileID: 0}
+      m_ManualPerformed: 0
+      m_ManualValue: 0
+      m_ManualQueuePerformed: 0
+      m_ManualQueueWasPerformedThisFrame: 0
+      m_ManualQueueWasCompletedThisFrame: 0
+      m_ManualQueueValue: 0
+      m_ManualQueueTargetFrame: 0
+    m_CaptureSequence: {fileID: 11400000, guid: 88e933a85bc6241118106b6f0c6e5453, type: 2}
+    m_SequenceType: 0
+    m_SingleFrameIndex: 200
+    m_MultiFrameStartIndex: 0
+    m_MultiFrameEndIndex: 0
+    m_MultiFrameReverseStartIndex: 0
+    m_MultiFrameReverseEndIndex: 0
+    m_InBetweenKeyFrameIndexList: 
+    m_Capture: {fileID: 0}
+    m_IsQuickAction: 0

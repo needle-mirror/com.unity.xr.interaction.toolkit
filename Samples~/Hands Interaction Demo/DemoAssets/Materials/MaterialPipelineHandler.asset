@@ -1,0 +1,198 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7883133e628dff4a86f50c082f77055, type: 3}
+  m_Name: MaterialPipelineHandler
+  m_EditorClassIdentifier: 
+  m_ShaderContainers:
+  - material: {fileID: 2100000, guid: 53c16fb5d5c516b40a1f6a8fc34132f3, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Simple Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 5c49e6dfb27f23c419a41f72612a38ae, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: bf535219ddb55fa47aa1a3361c3225c0, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 0b3e50cff38c81e4e89e8bda80582c94, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: f8b02ef1d22712f4db0746111a3d686b, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 3d0dbe0d83151dc4c94881a85ab2ef2b, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 6e402270f1d9478429bd2ae7ce7eca67, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: -6465566751694194690, guid: 0927d29e476ce5843b1f7d2a96943c51, type: 3}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 4800000, guid: b24c216c4acb0094c892a61dfbbb76b4, type: 3}
+  - material: {fileID: 2100000, guid: 9d73f41c7719ba2449097a8c12e0a3aa, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 40808a1b89c64184e9466aaec1fd1ac1, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 2edb876ca20f6ea40b4ebb61f96f1df1, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: f95c205049f12cc4cb5bd57dbded286c, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 6fe37c045403f7d419765f4a583c21c7, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 19360606bcfcbeb429c461ec10c6ab40, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 6e7895a83b46e8c43a748c6465dfa4a4, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 2cf0bcfa476070542a4c90468fc32181, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: cb11ed65c00b03b42be1911bd4d439f8, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Unlit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 73b0a23f47c95b644820e018a0ab4ea6, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 54f7c59213ac02b4d9f00104348dbac3, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: b3c19a119577be64885886bfcc8792fe, type: 2}
+    useSRPShaderName: 0
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: -6465566751694194690, guid: 0927d29e476ce5843b1f7d2a96943c51, type: 3}
+    useBuiltinShaderName: 0
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 4800000, guid: b24c216c4acb0094c892a61dfbbb76b4, type: 3}
+  - material: {fileID: 2100000, guid: c91596000a6cc4b4996417901edef94c, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 6c72d2d2ead00e54db4b71b27ffb03d4, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 3ce47e4e69bf19e49a7d0513149e8f37, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 5b0e69288f45e7943add774eaf2572fe, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Unlit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: be3c68e7d11b1644d8a735236c8fd4ee, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 029f8a55031eba342849aa7cc9616f2c, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Simple Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  - material: {fileID: 2100000, guid: 8cd43e2243b7d0040858c9be02500050, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  m_AutoRefreshShaders: 1

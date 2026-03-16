@@ -49,11 +49,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
             }
 
+#pragma warning disable CS0618
             if (XRDeviceSimulator.instance != null)
             {
                 Object.DontDestroyOnLoad(XRDeviceSimulator.instance);
                 return;
             }
+#pragma warning restore CS0618
 
             var simulatorPrefab = XRDeviceSimulatorSettings.Instance.simulatorPrefab;
             if (simulatorPrefab == null)

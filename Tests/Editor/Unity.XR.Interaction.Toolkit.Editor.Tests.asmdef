@@ -23,6 +23,17 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.1.0",
+            "define": "XR_HANDS_1_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.8.0-pre.1",
+            "define": "XR_HANDS_1_8_OR_NEWER"
+        }
+    ],
     "noEngineReferences": false
 }

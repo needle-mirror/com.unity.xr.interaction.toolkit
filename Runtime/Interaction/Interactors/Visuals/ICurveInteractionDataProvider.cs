@@ -3,7 +3,7 @@ using Unity.Collections;
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 {
     /// <summary>
-    /// Enum representing the the various types of interaction results that dictate the behavior and world space location of the endpoint.
+    /// Enum representing the various types of interaction results that dictate the behavior and world space location of the endpoint.
     /// </summary>
     public enum EndPointType
     {
@@ -20,7 +20,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// </summary>
         ValidCastHit,
         /// <summary>
-        /// End point is snapped to the attach point of a selected interactable.
+        /// End point is snapped to the attach point of a selected interactable or a hovered snap volume.
         /// </summary>
         AttachPoint,
         /// <summary>

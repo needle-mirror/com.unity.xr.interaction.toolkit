@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
@@ -10,6 +11,11 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities;
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 using UnityEngine.XR.Hands.ProviderImplementation;
+#endif
+
+#if XR_HANDS_1_8_OR_NEWER
+using UnityEngine.XR.Hands.Capture.Playback;
+using UnityEngine.XR.Hands.Configuration;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
@@ -103,10 +109,51 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         XRHandProviderUtility.SubsystemUpdater m_SubsystemUpdater;
         XRInputModalityManager m_InputModalityManager;
+
+        XRHandSubsystem m_HandSubsystem;
+
+        /// <summary>
+        /// The instance of the hand subsystem for playback.
+        /// </summary>
+        internal XRHandSubsystem handSubsystem => m_HandSubsystem;
+
+#if XR_HANDS_1_8_OR_NEWER
+        XRHandPlayback m_LeftHandPlayback;
+
+        /// <summary>
+        /// The property that handles left handed playback.
+        /// </summary>
+        internal XRHandPlayback leftHandPlayback
+        {
+            get => m_LeftHandPlayback;
+            set => m_LeftHandPlayback = value;
+        }
+
+        XRHandPlayback m_RightHandPlayback;
+
+        /// <summary>
+        /// The property that handles right handed playback.
+        /// </summary>
+        internal XRHandPlayback rightHandPlayback
+        {
+            get => m_RightHandPlayback;
+            set => m_RightHandPlayback = value;
+        }
 #endif
+#endif
+
+        /// <summary>
+        /// Calls the methods in its invocation when the <see cref="deviceMode"/> has changed.
+        /// </summary>
+        internal event Action<DeviceMode> deviceModeChanged;
 
         bool m_DeviceModeDirty;
         bool m_StartedDeviceModeChange;
+
+        /// <summary>
+        /// This flag indicates whether we will use the simulated hand subsystem or use a regular hand subsystem with playback.
+        /// </summary>
+        bool m_UseSimulatedHandSubsystem;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -124,6 +171,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
             }
 
+#pragma warning disable CS0618 // Type or member is obsolete -- Backwards compatibility for the deprecated Classic simulator
+            m_UseSimulatedHandSubsystem = TryGetComponent<XRDeviceSimulator>(out _);
+#pragma warning restore CS0618 // Type or member is obsolete
             InitializeHandSubsystem();
 
 #if XR_HANDS_1_1_OR_NEWER
@@ -139,8 +189,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if ENABLE_VR || UNITY_GAMECORE
 
 #if XR_HANDS_1_1_OR_NEWER
-            m_SimHandSubsystem?.Start();
-            m_SubsystemUpdater?.Start();
+            if (m_UseSimulatedHandSubsystem)
+            {
+                m_SimHandSubsystem?.Start();
+                m_SubsystemUpdater?.Start();
+            }
+            else
+            {
+                m_HandSubsystem?.Start();
+            }
 #endif
 
             if (m_RemoveOtherHMDDevices)
@@ -159,6 +216,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 #endif
             AddDevices();
+
+#if XR_HANDS_1_8_OR_NEWER
+            m_LeftHandPlayback = handSubsystem?.GetPlayback(Handedness.Left);
+            m_RightHandPlayback = handSubsystem?.GetPlayback(Handedness.Right);
+#endif
         }
 
         /// <summary>
@@ -176,8 +238,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             RemoveDevices();
 
 #if XR_HANDS_1_1_OR_NEWER
-            m_SubsystemUpdater?.Stop();
-            m_SimHandSubsystem?.Stop();
+            if (m_UseSimulatedHandSubsystem)
+            {
+                m_SimHandSubsystem?.Stop();
+                m_SubsystemUpdater?.Stop();
+            }
+            else
+            {
+                m_HandSubsystem?.Stop();
+            }
 #endif
         }
 
@@ -187,10 +256,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void OnDestroy()
         {
 #if XR_HANDS_1_1_OR_NEWER
-            m_SimHandSubsystem?.Destroy();
-            m_SubsystemUpdater?.Destroy();
-            m_SimHandSubsystem = null;
-            m_SubsystemUpdater = null;
+            if (m_UseSimulatedHandSubsystem)
+            {
+                m_SimHandSubsystem?.Destroy();
+                m_SimHandSubsystem = null;
+                m_SubsystemUpdater?.Destroy();
+                m_SubsystemUpdater = null;
+            }
+            else
+            {
+                m_HandSubsystem?.Destroy();
+                m_HandSubsystem = null;
+            }
 #endif
         }
 
@@ -209,7 +286,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     // Step 2: Add controller input devices.
                     case DeviceMode.Controller when !m_StartedDeviceModeChange:
                         // Step 1
-                        m_SimHandSubsystem?.SetUpdateHandsAllowed(false);
+                        if (m_UseSimulatedHandSubsystem)
+                            m_SimHandSubsystem?.SetUpdateHandsAllowed(false);
                         m_StartedDeviceModeChange = true;
                         break;
                     case DeviceMode.Controller:
@@ -228,7 +306,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                         break;
                     case DeviceMode.Hand:
                         // Step 2
-                        m_SimHandSubsystem?.SetUpdateHandsAllowed(true);
+                        if (m_UseSimulatedHandSubsystem)
+                            m_SimHandSubsystem?.SetUpdateHandsAllowed(true);
                         m_DeviceModeDirty = false;
                         m_StartedDeviceModeChange = false;
                         break;
@@ -266,28 +345,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_DeviceMode != DeviceMode.Hand)
                 return;
 
-            if (m_SimHandSubsystem == null)
-                return;
+            if (m_UseSimulatedHandSubsystem)
+            {
+                if (m_SimHandSubsystem == null)
+                    return;
 
-            m_SimHandSubsystem.SetIsTracked(Handedness.Left, leftHandState.isTracked);
-            m_SimHandSubsystem.SetIsTracked(Handedness.Right, rightHandState.isTracked);
+                m_SimHandSubsystem.SetIsTracked(Handedness.Left, leftHandState.isTracked);
+                m_SimHandSubsystem.SetIsTracked(Handedness.Right, rightHandState.isTracked);
 
-            m_SimHandSubsystem.SetHandExpression(Handedness.Left, leftHandState.expressionName);
-            m_SimHandSubsystem.SetRootHandPose(Handedness.Left, new Pose(leftHandState.position, leftHandState.rotation));
+                m_SimHandSubsystem.SetHandExpression(Handedness.Left, leftHandState.expressionName);
+                m_SimHandSubsystem.SetRootHandPose(Handedness.Left, new Pose(leftHandState.position, leftHandState.rotation));
 
-            m_SimHandSubsystem.SetHandExpression(Handedness.Right, rightHandState.expressionName);
-            m_SimHandSubsystem.SetRootHandPose(Handedness.Right, new Pose(rightHandState.position, rightHandState.rotation));
+                m_SimHandSubsystem.SetHandExpression(Handedness.Right, rightHandState.expressionName);
+                m_SimHandSubsystem.SetRootHandPose(Handedness.Right, new Pose(rightHandState.position, rightHandState.rotation));
+            }
+            else
+            {
+#if XR_HANDS_1_8_OR_NEWER
+                if (m_LeftHandPlayback != null && m_LeftHandPlayback.sourceCaptureSequence != null)
+                {
+                    m_LeftHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
+                    m_LeftHandPlayback.anchor = new Pose(leftHandState.position, leftHandState.rotation);
+                }
+
+                if (m_RightHandPlayback != null && m_RightHandPlayback.sourceCaptureSequence != null)
+                {
+                    m_RightHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
+                    m_RightHandPlayback.anchor = new Pose(rightHandState.position, rightHandState.rotation);
+                }
+#endif
+            }
 #endif
         }
 
         internal void SwitchDeviceMode()
         {
-#if XR_HANDS_1_1_OR_NEWER
             // Fully changing between controller and hand mode takes multiple frames.
             // Don't allow changing the mode again before it has finished.
             if (m_DeviceModeDirty)
                 return;
 
+#if XR_HANDS_1_1_OR_NEWER
             // Disallow switching device mode if the modality manager is being used
             // and the opposite set of GameObjects are not assigned.
             if (m_InputModalityManager != null || ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager))
@@ -301,6 +399,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             m_DeviceMode = Negate(m_DeviceMode);
             m_DeviceModeDirty = true;
+            deviceModeChanged?.Invoke(m_DeviceMode);
 #endif
         }
 
@@ -441,34 +540,56 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             {
                 var currentHandSubsystems = new List<XRHandSubsystem>();
                 SubsystemManager.GetSubsystems(currentHandSubsystems);
-                foreach (var handSubsystem in currentHandSubsystems)
+                foreach (var subsystem in currentHandSubsystems)
                 {
-                    if (handSubsystem.running)
-                        handSubsystem.Stop();
+                    if (subsystem.running)
+                        subsystem.Stop();
                 }
             }
 
-            var descriptors = new List<XRHandSubsystemDescriptor>();
-            SubsystemManager.GetSubsystemDescriptors(descriptors);
-            for (var i = 0; i < descriptors.Count; ++i)
+            if (m_UseSimulatedHandSubsystem)
             {
-                var descriptor = descriptors[i];
-                if (descriptor.id == XRDeviceSimulatorHandsProvider.id)
+                var descriptors = new List<XRHandSubsystemDescriptor>();
+                SubsystemManager.GetSubsystemDescriptors(descriptors);
+                for (var i = 0; i < descriptors.Count; ++i)
                 {
-                    m_SimHandSubsystem = descriptor.Create() as XRDeviceSimulatorHandsSubsystem;
-                    break;
+                    var descriptor = descriptors[i];
+
+                    if (descriptor.id == XRDeviceSimulatorHandsProvider.id)
+                    {
+                        m_SimHandSubsystem = descriptor.Create() as XRDeviceSimulatorHandsSubsystem;
+                        break;
+                    }
                 }
-            }
 
-            if (m_SimHandSubsystem == null)
+                if (m_SimHandSubsystem == null)
+                {
+                    Debug.LogError("Couldn't create simulated hands subsystem.", this);
+                    return;
+                }
+
+                m_SimHandSubsystem.SetUpdateHandsAllowed(false);
+
+                m_SubsystemUpdater = new XRHandProviderUtility.SubsystemUpdater(m_SimHandSubsystem);
+            }
+            else
             {
-                Debug.LogError("Couldn't find simulated hands subsystem.", this);
-                return;
+#if XR_HANDS_1_8_OR_NEWER
+                m_HandSubsystem = XRHandSubsystemDescriptor.CreatePlaybackOnly();
+
+                if (m_HandSubsystem == null)
+                {
+                    Debug.LogError("Couldn't find or create playback only hands subsystem.", this);
+                    return;
+                }
+
+                XRHandSubsystemConfiguration configuration = new()
+                {
+                    xrHandDevicePoseSource = XRHandDevicePoseSource.CommonGestures
+                };
+                m_HandSubsystem.UpdateHandsConfiguration(configuration);
+#endif
             }
-
-            m_SimHandSubsystem.SetUpdateHandsAllowed(false);
-
-            m_SubsystemUpdater = new XRHandProviderUtility.SubsystemUpdater(m_SimHandSubsystem);
 #endif
         }
 

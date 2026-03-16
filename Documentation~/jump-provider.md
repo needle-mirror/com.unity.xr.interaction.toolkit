@@ -8,7 +8,7 @@ Jump Provider allows the player to jump in the scene. This uses a jump force to 
 
 | **Property** | **Description** |
 |---|---|
-|**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its Awake call. |
+|**Mediator**| The behavior that this provider communicates with for access to the mediator's XR Body Transformer. If one is not provided, this provider will attempt to locate one during its `Awake` or `OnEnable` call. |
 |**Transformation Priority**| The queue order of this provider's transformations of the XR Origin. The lower the value, the earlier the transformations are applied. |
 | **Jump Height**| The height (approximately in meters) the player will be when reaching the apex of the jump. |
 | **Jump Forgiveness Window**| The time window after leaving the ground that a jump can still be performed. Sometimes known as coyote time. |

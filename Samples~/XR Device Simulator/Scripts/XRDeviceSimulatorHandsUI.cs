@@ -81,13 +81,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
 
         XRDeviceSimulatorUI m_MainUIManager;
         HandExpressionUI m_ActiveExpression;
+#pragma warning disable CS0618
         SimulatedHandExpressionManager m_HandExpressionManager;
+#pragma warning restore CS0618
 
         protected void Awake()
         {
             m_MainUIManager = GetComponent<XRDeviceSimulatorUI>();
         }
 
+#pragma warning disable CS0618
         internal void Initialize(XRDeviceSimulator simulator)
         {
             if (!simulator.gameObject.TryGetComponent(out m_HandExpressionManager))
@@ -177,6 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                 ToggleExpression(m_Expressions[index]);
             }
         }
+#pragma warning restore CS0618
 
         void ToggleExpression(HandExpressionUI expression)
         {

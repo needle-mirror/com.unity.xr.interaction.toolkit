@@ -91,6 +91,10 @@ UI Toolkit `Button`, `Toggle`, and `Visual Element` all support z-depth with pok
 > [!Note]
 > Because the UI Toolkit support relies on a collider around the UI Document, there can be unexpected behavior if the z-depth of the UI Element protrudes out from the document box collider. The poke interaction won't be processed until the collider is reached, at which point the poke z-depth processing will begin.
 
+## UI Hover Events
+
+When an interactor that implements the [`IUIHoverInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.UI.IUIHoverInteractor) interface is hovering over a `Visual Element` of any type, the interactor will receive the appropriate [`OnUIHoverEntered(UIHoverEventArgs)`](xref:UnityEngine.XR.Interaction.Toolkit.UI.IUIHoverInteractor.OnUIHoverEntered(UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs)) or [`OnUIHoverExited(UIHoverEventArgs)`](xref:UnityEngine.XR.Interaction.Toolkit.UI.IUIHoverInteractor.OnUIHoverExited(UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs)) calls and raise the [`UIHoverEnterEvent`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEnterEvent) or [`UIHoverExitEvent`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverExitEvent) event that you can subscribe to. The [`UIHoverEventArgs`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs) contain additional details relevant to UI Toolkit types, including the [`visualElement`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs.visualElement) and the [`uiDocument`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs.uiDocument). If subscribing to these events, the UI framework type, typically uGUI (Unity UI) or UI Toolkit, can be determined by checking the [`uiFramework`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIHoverEventArgs.uiFramework) property stored in the args parameter.
+
 ## Examples
 
 The **World Space UI** sample found in the XR Interaction Toolkit samples in Package Manager provides a demo scene that shows how to configure world space UI in both UI Toolkit as well as uGUI. To import, open the Package Manager by going to **Window** &gt; **Package Manager**, then select XR Interaction Toolkit package in the left side bar, and select the Samples tab. Scroll and locate the World Space UI sample and click Import.
@@ -102,5 +106,8 @@ The **World Space UI** sample found in the XR Interaction Toolkit samples in Pac
 > [!IMPORTANT]
 > When using an XR headset in play mode in the Unity Editor, such as over Meta Horizon Link, it may seem as though input is not working with UI Toolkit objects in the scene. This is because input will not be redirected to UI Toolkit unless the Game View is in focus. Bringing the Game View into focus can be done by simply clicking anywhere inside the Game View window.
 
-- The scroll view in the in UI Toolkit station currently supports scrolling only using the horizontal and vertical handles. Support to grab the text area of the scroll view and scroll using the thumbstick is planned to be added in the future.
 - Nested elements can impede z-depth support for poke. A `Visual Element` that is a child of a `Visual Element` with z-depth can block the poke interaction on the parent and prevent the poke interaction updating z-depth. This is handled for `Button` and `Toggle`, but should be kept in mind when applying poke z-depth to generic `Visual Element` containers.
+
+### Scroll Views
+
+- Support for grabbing and dragging scroll views has been added to newer versions of the Unity Editor. To use this capability, please update to one of the following versions or newer: `6000.3.8f1`, `6000.4.0b9`, or `6000.5.0a7`. Otherwise, scrolling will only work by grabbing and dragging the horizontal and vertical handles, or by using the thumbstick while pointing at a scroll view with the Near-Far Interactor or XR Ray Interactor.

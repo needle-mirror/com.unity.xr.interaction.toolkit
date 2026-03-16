@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
+#if UIELEMENTS_MODULE_PRESENT || PACKAGE_DOCS_GENERATION
+using UnityEngine.UIElements;
+#endif
+
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
     public abstract partial class UIInputModule
@@ -125,6 +129,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     public class UIHoverEventArgs
     {
         /// <summary>
+        /// Indicates which UI system produced a UI hover event.
+        /// </summary>
+        /// <seealso cref="uiSystem"/>
+        public enum UISystem
+        {
+            /// <summary>
+            /// uGUI (Unity UI).
+            /// </summary>
+            UnityUI,
+
+            /// <summary>
+            /// UI Toolkit (UITK).
+            /// </summary>
+            UIToolkit,
+
+            /// <summary>
+            /// Unknown or not specified.
+            /// </summary>
+            Unknown = -1,
+        }
+
+        /// <summary>
         /// The <see cref="IUIInteractor"/> that is hovering.
         /// </summary>
         public IUIInteractor interactorObject { get; set; }
@@ -136,9 +162,86 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public TrackedDeviceModel deviceModel { get; set; }
 
         /// <summary>
-        /// The UI element that is being hovered over.
+        /// The object representing the hovered UI target.
+        /// For uGUI (Unity UI), this is the Graphic's GameObject.
+        /// For UI Toolkit, this is the panel host GameObject (e.g. the UIDocument GameObject), or <see langword="null"/> if not available.
         /// </summary>
         public GameObject uiObject { get; set; }
+
+        /// <summary>
+        /// Indicates which UI system produced this hover event.
+        /// </summary>
+        public UISystem uiSystem { get; set; }
+
+#if UIELEMENTS_MODULE_PRESENT || PACKAGE_DOCS_GENERATION
+        /// <summary>
+        /// For UI Toolkit interactions, the VisualElement being hovered.
+        /// Will be <see langword="null"/> for uGUI (Unity UI) interactions.
+        /// </summary>
+        public VisualElement visualElement { get; set; }
+
+        /// <summary>
+        /// Optional reference to the UIDocument associated with the hovered VisualElement, if available.
+        /// Will be <see langword="null"/> for uGUI (Unity UI) interactions or when no document can be determined.
+        /// </summary>
+        public UIDocument uiDocument { get; set; }
+#endif
     }
+    #endregion
+
+    #region Registration
+
+    /// <summary>
+    /// Event data associated with the event when a UI interactor is registered with an <see cref="XRUIInputModule"/>.
+    /// </summary>
+    /// <remarks>
+    /// When an <see cref="IUIInteractor"/> is registered with the <see cref="XRUIInputModule"/>, the
+    /// <see cref="IUIInteractorRegistrationHandler.OnRegistered"/> method and <see cref="XRUIInputModule.interactorRegistered"/> event are invoked
+    /// with <see cref="UIInteractorRegisteredEventArgs"/> as parameters.
+    /// </remarks>
+    /// <seealso cref="IUIInteractorRegistrationHandler"/>
+    /// <seealso cref="XRUIInputModule"/>
+    public class UIInteractorRegisteredEventArgs
+    {
+        /// <summary>
+        /// The XR UI Input Module associated with the registration event.
+        /// </summary>
+        public XRUIInputModule inputModule { get; set; }
+
+        /// <summary>
+        /// The UI interactor that was registered.
+        /// </summary>
+        public IUIInteractor interactor { get; set; }
+    }
+
+    /// <summary>
+    /// Event data associated with the event when a UI interactor is unregistered from an <see cref="XRUIInputModule"/>.
+    /// </summary>
+    /// <remarks>
+    /// When an <see cref="IUIInteractor"/> is unregistered with the <see cref="XRUIInputModule"/>, the
+    /// <see cref="IUIInteractorRegistrationHandler.OnUnregistered"/> method and <see cref="XRUIInputModule.interactorUnregistered"/> event are invoked
+    /// with <see cref="UIInteractorUnregisteredEventArgs"/> as parameters.
+    /// </remarks>
+    /// <seealso cref="IUIInteractorRegistrationHandler"/>
+    /// <seealso cref="XRUIInputModule"/>
+    public class UIInteractorUnregisteredEventArgs
+    {
+        /// <summary>
+        /// The XR UI Input Module associated with the registration event.
+        /// </summary>
+        public XRUIInputModule inputModule { get; set; }
+
+        /// <summary>
+        /// The UI interactor that was unregistered.
+        /// </summary>
+        public IUIInteractor interactor { get; set; }
+
+        /// <summary>
+        /// Whether the unregistration event was due to the input module being destroyed.
+        /// </summary>
+        /// <seealso cref="inputModule"/>
+        public bool inputModuleDestroyed { get; set; }
+    }
+
     #endregion
 }

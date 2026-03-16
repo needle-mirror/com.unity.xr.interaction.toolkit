@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "XR Interaction Hand Controls",
     "maps": [
         {
@@ -9,7 +10,7 @@
                     "name": "Poke",
                     "type": "Button",
                     "id": "40eda730-1343-4304-a541-d7c035370ce5",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -18,7 +19,7 @@
                     "name": "Pinch",
                     "type": "Button",
                     "id": "34056e04-d03d-4802-982b-a9972fd692ff",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -36,7 +37,7 @@
                     "name": "Thumb",
                     "type": "Button",
                     "id": "cc02894b-62a0-483f-8d1b-87b399099928",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -45,7 +46,7 @@
                     "name": "Open",
                     "type": "Button",
                     "id": "0221ceea-2049-4516-a5e4-23aab7d2185e",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -55,6 +56,15 @@
                     "type": "Button",
                     "id": "5f81ec5a-1bc2-4ce7-852c-d84a8000be9b",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Idle",
+                    "type": "Button",
+                    "id": "c375a0a0-9f8d-400c-ae7a-9684f1306a60",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -124,6 +134,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Open",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f040adf3-9b77-4b58-9fe3-01374cec041d",
+                    "path": "<Keyboard>/minus",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Idle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

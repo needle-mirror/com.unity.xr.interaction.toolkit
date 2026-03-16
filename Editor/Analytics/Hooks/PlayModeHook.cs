@@ -109,8 +109,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                     s_EnteredPlayModeRealtime = now;
                     s_EnteredPlayModeTicks = nowTicks;
 
+#pragma warning disable CS0618
                     if (XRDeviceSimulator.instance != null)
                         s_DeviceSimulatorSessionTracker.StartSession(now);
+#pragma warning restore CS0618
 
                     if (XRInteractionSimulator.instance != null)
                         s_InteractionSimulatorSessionTracker.StartSession(now);
@@ -129,7 +131,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
                     s_LocomotionProviderTracker.StartSession();
 
+#pragma warning disable CS0618
                     XRDeviceSimulator.instanceChanged += OnDeviceSimulatorInstanceChanged;
+#pragma warning restore CS0618
+
                     XRInteractionSimulator.instanceChanged += OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged += OnActiveInteractionManagersChanged;
                     XRInputModalityManager.activeModalityManagersChanged += OnActiveInputModalityManagersChanged;
@@ -146,8 +151,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             {
                 using (s_AnalyticsMarker.Auto())
                 {
+#pragma warning disable CS0618
                     if (XRDeviceSimulator.instance != null)
                         s_DeviceSimulatorSessionTracker.EndSession(now);
+#pragma warning restore CS0618
 
                     if (XRInteractionSimulator.instance != null)
                         s_InteractionSimulatorSessionTracker.EndSession(now);
@@ -164,7 +171,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
                     s_LocomotionProviderTracker.EndSession();
 
+#pragma warning disable CS0618
                     XRDeviceSimulator.instanceChanged -= OnDeviceSimulatorInstanceChanged;
+#pragma warning restore CS0618
+
                     XRInteractionSimulator.instanceChanged -= OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged -= OnActiveInteractionManagersChanged;
                     XRInputModalityManager.activeModalityManagersChanged -= OnActiveInputModalityManagersChanged;

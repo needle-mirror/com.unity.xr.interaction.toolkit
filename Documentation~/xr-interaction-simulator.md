@@ -41,6 +41,8 @@ For more information about how to install and how to set it up in a scene, refer
 | **Toggle Perform Quick Action Input** | The input used to perform the currently active quick-action controller input mode or hand expression. |
 | **Toggle Primary Axis 2D Target Input** | The input used to toggle manipulation of the `Axis2DTargets.Primary2DAxis` of the controllers when pressed. |
 | ***Toggle Secondary Axis 2D Target Input** | The input used to toggle enable manipulation of the `Axis2DTargets.Secondary2DAxis` of the controllers when pressed. |
+| **Mouse Click Input** | The input used to toggle point and click select. This input is interpreted as a trigger press when over UI objects, otherwise it is interpreted as a grip press. |
+| **Mouse Point Input** | The input that represents the current screen-space position of the mouse in pixels. |
 | **Controller Inputs** | |
 | **Axis 2D Input** | The input used to control the value of one or more 2D Axis controls on the manipulated controller device(s). Typically bound to IJKL on a keyboard, and controls the primary and/or secondary 2D Axis controls on them. |
 | **Grip Input** | The input used to control the Grip control of the manipulated controller device(s). |
@@ -57,6 +59,8 @@ For more information about how to install and how to set it up in a scene, refer
 | **Quick Action Controller Input Modes** | The subset of quick-action controller buttons/inputs that a user can shift through in the simulator. |
 | **Simulator Settings** | |
 | **Camera Transform** | The `Transform` that contains the `Camera`. This is usually the "Head" of XR Origins. Automatically set to `Camera.main` if unset. |
+| **Left Controller Transform** | The Transform that contains the left controller. Automatically set to the Left Controller reference in the XR Input Modality Manager if unset. |
+| **Right Controller Transform** | The Transform that contains the right controller. Automatically set to the Right Controller reference in the XR Input Modality Manager if unset. |
 | **Device Lifecycle Manager** | The corresponding manager for this simulator that handles the lifecycle of the simulated devices. If this value is not set, the simulator will either find a lifecycle manager in the scene or create one. |
 | **Hand Expression Manager** | The corresponding manager for this simulator that handles the hand expressions. If this value is not set, the simulator will either find a hand expression manager in the scene or create one. |
 | **Translate Space** | The coordinate space in which translation should operate. |
@@ -134,27 +138,33 @@ When manipulating **Controllers** or **Hands**:
   - When held, hand or controller hotkeys now activate the buttons/poses for the left device.
 
 When manipulating **Controllers**:
-* T [Toggle]
+* Mouse Movement
+  - Points the controller towards where the mouse is hovering.
+* Left-mouse Button [Hold]
+  - Triggers select on the active controller.
+* Right-mouse Button [Hold]
+  - Rotates the simulated headset.
+* T [Hold]
   - Trigger
-* G [Toggle]
+* G [Hold]
   - Grip
-* 1 [Toggle]
+* 1 [Hold]
   - Primary Button
-* 2 [Toggle]
+* 2 [Hold]
   - Secondary Button
-* M [Toggle]
+* M [Hold]
   - Menu
-* 3 [Toggle]
+* 3 [Hold]
   - Primary Axis 2D Click
-* 4 [Toggle]
+* 4 [Hold]
   - Secondary Axis 2D Click
-* 5 [Toggle]
+* 5 [Hold]
   - Primary Axis 2D Touch
-* 6 [Toggle]
+* 6 [Hold]
   - Secondary Axis 2D Touch
-* 7 [Toggle]
+* 7 [Hold]
   - Primary Touch
-* 8 [Toggle]
+* 8 [Hold]
   - Secondary Touch
 
 When manipulating **Hands**:

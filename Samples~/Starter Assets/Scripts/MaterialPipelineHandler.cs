@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -10,10 +11,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
     [InitializeOnLoad]
     static class RenderPipelineValidation
     {
-        static RenderPipelineValidation()
+        /// <summary>
+        /// Manually refreshes all Material Pipeline Handler scriptable objects.
+        /// </summary>
+        [MenuItem("Assets/Refresh Materials (Material Pipeline Handler)")]
+        internal static void RefreshMaterialPipelineHandlers()
         {
             foreach (var pipelineHandler in GetAllInstances())
+            {
                 pipelineHandler.AutoRefreshPipelineShaders();
+            }
+        }
+
+        static RenderPipelineValidation()
+        {
+            // Use delayCall to ensure this runs after the editor is fully initialized and all assets are imported.
+            // Without delayCall, this script may execute before new assets (such as newly imported samples)
+            // are registered in the AssetDatabase, so they won't be found or converted.
+            EditorApplication.delayCall += () => RefreshMaterialPipelineHandlers();
         }
 
         static List<MaterialPipelineHandler> GetAllInstances()
@@ -66,6 +81,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         [Tooltip("If true, the shaders will be refreshed automatically when the editor opens and when this scriptable object instance is enabled.")]
         bool m_AutoRefreshShaders = true;
 
+        bool m_SaveAssetsPending;
+
 #if UNITY_EDITOR
         void OnEnable()
         {
@@ -86,10 +103,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         /// </summary>
         public void SetPipelineShaders()
         {
+            // Already updated materials, waiting on the save to finish.
+            if (m_SaveAssetsPending)
+                return;
+
             if (m_ShaderContainers == null)
                 return;
 
             bool isBuiltinRenderPipeline = GraphicsSettings.currentRenderPipeline == null;
+            bool isModified = false;
+            int modifiedCount = 0;
 
             foreach (var info in m_ShaderContainers)
             {
@@ -108,14 +131,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
                 {
                     info.material.shader = birpShader;
                     MarkMaterialModified(info.material);
+                    isModified = true;
+                    modifiedCount++;
                 }
                 else if (!isBuiltinRenderPipeline && srpShader != null && currentShader != srpShader)
                 {
                     info.material.shader = srpShader;
                     MarkMaterialModified(info.material);
+                    isModified = true;
+                    modifiedCount++;
                 }
             }
+
+            if (isModified)
+            {
+#if UNITY_EDITOR
+                Debug.Log($"Material Pipeline Handlers have updated {modifiedCount} material asset(s).", this);
+
+                // Invoking `AssetDatabase.SaveAssets` ensures the material changes are saved immediately,
+                // otherwise they won't be saved until the next domain reload.
+                // Calls to AssetDatabase.SaveAssets are restricted during asset importing,
+                // so schedule it for the next Editor frame.
+                m_SaveAssetsPending = true;
+                EditorApplication.delayCall -= OnDelayCall;
+                EditorApplication.delayCall += OnDelayCall;
+#endif
+            }
         }
+
+#if UNITY_EDITOR
+        void OnDelayCall()
+        {
+            m_SaveAssetsPending = false;
+            AssetDatabase.SaveAssets();
+        }
+#endif
 
         static void MarkMaterialModified(Material material)
         {

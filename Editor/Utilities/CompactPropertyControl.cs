@@ -133,11 +133,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 
                 if (properties.Count > 1 && hasHelpTooltip)
                 {
-                    var helpRect = buttonRect;
-                    helpRect.y += rowRect.height + EditorGUIUtility.standardVerticalSpacing;
-                    m_TempContent.image = Contents.helpIcon.image;
+                    var infoRect = buttonRect;
+                    infoRect.y += rowRect.height + EditorGUIUtility.standardVerticalSpacing;
+                    m_TempContent.image = Contents.infoIcon.image;
                     m_TempContent.tooltip = helpTooltip;
-                    EditorGUI.LabelField(helpRect, m_TempContent, EditorStyles.iconButton);
+                    EditorGUI.LabelField(infoRect, m_TempContent, EditorStyles.iconButton);
                 }
 
                 for (var index = 1; index < properties.Count; ++index)
@@ -198,7 +198,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities
         static class Contents
         {
             public static readonly GUIContent unusedLabelText = EditorGUIUtility.TrTextContent("Unused");
-            public static readonly GUIContent helpIcon = EditorGUIUtility.TrIconContent("_Help");
+            public static readonly GUIContent infoIcon = EditorGUIUtility.TrIconContent("console.infoicon.sml");
             public static readonly GUIContent warningIcon = EditorGUIUtility.TrIconContent("console.warnicon.sml");
         }
 

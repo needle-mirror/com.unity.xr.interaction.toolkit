@@ -8,6 +8,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// </summary>
     /// <seealso cref="XRPokeInteractor.uiDocumentTriggerInteraction"/>
     /// <seealso cref="CurveInteractionCaster.raycastUIDocumentTriggerInteraction"/>
+    /// <seealso cref="XRRayInteractor.raycastUIDocumentTriggerInteraction"/>
     public enum QueryUIDocumentInteraction
     {
         /// <summary>

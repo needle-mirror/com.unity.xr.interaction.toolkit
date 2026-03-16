@@ -1,0 +1,27 @@
+{
+    "name": "Unity.XR.Interaction.Toolkit.Samples.XRMouse",
+    "rootNamespace": "",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.CoreUtils.Editor",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Interaction.Toolkit.Samples.Hands",
+        "Unity.XR.OpenXR"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+          "name": "com.unity.xr.openxr",
+          "expression": "1.17.0-pre.2",
+          "define": "OPEN_XR_1_17_OR_NEWER"
+        }
+    ],
+    "noEngineReferences": false
+}

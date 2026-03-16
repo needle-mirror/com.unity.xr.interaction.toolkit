@@ -96,6 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
             m_MainUIManager = GetComponent<XRDeviceSimulatorUI>();
         }
 
+#pragma warning disable CS0618
         internal void Initialize(XRDeviceSimulator simulator)
         {
             m_PrimaryButtonText.text = simulator.primaryButtonAction.action.controls[0].displayName;
@@ -154,6 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.DeviceSimulator
                 m_ControllerOverlayImage.color = m_MainUIManager.disabledColor;
             }
         }
+#pragma warning restore CS0618
 
         // This function keeps the button selected color active if the key if hold when the controller is disabled.
         // Other buttons are disabled to avoid adding extra noise.

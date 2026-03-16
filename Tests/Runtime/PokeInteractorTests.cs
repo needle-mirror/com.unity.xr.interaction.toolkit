@@ -391,5 +391,169 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
             Assert.That(validTargets.Count, Is.EqualTo(1));
         }
+
+        [UnityTest]
+        public IEnumerator PokeInteractorThinColliderDetectedWithModerateSpeedPoke()
+        {
+            // Validates the lowered sweep threshold (5mm vs baseline 31.6mm).
+            // A moderate-speed poke that displaces 24mm in one frame sits above the new 5mm
+            // threshold (triggers SphereCast) but below the old 31.6mm threshold (which would
+            // have used OverlapSphere). The interactor passes fully through a 2mm-thick collider,
+            // ending 11mm past it, beyond the 2mm hover radius. SphereCast catches the collider
+            // along the swept path; OverlapSphere at the endpoint would miss it.
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.requirePokeFilter = false;
+
+            // Use a small hover radius so OverlapSphere at the endpoint can't reach back
+            // to the thin collider. Default 15mm would bridge the gap and mask the bug.
+            interactor.pokeHoverRadius = 0.002f;
+
+            // Thin collider: 2mm thick in Z, centered at origin.
+            // Surfaces at z = -0.001 and z = +0.001.
+            var thinGO = new GameObject("Thin Surface");
+            var boxCollider = thinGO.AddComponent<BoxCollider>();
+            boxCollider.size = new Vector3(0.2f, 0.2f, 0.002f);
+            var rigidBody = thinGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            var interactable = thinGO.AddComponent<XRSimpleInteractable>();
+
+            // Sync collider into physics world.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Position behind the thin collider (11mm from nearest surface at z = -0.001).
+            interactor.transform.position = new Vector3(0f, 0f, -0.012f);
+
+            // Establish motion continuity over consecutive frames.
+            // yield return null guarantees exactly one frame, avoiding frame-gap detection
+            // that WaitForFixedUpdate can trigger when FixedUpdate cadence differs from Update.
+            yield return null;
+            yield return null;
+            yield return null;
+
+            // Move through the thin collider in one frame.
+            // Displacement: 24mm. sqrMagnitude: 0.000576.
+            // New threshold (0.000025): canSweep = true → SphereCast from z=-0.012 to z=+0.012 → HIT.
+            // Old threshold (0.001): 0.000576 < 0.001 → OverlapSphere at z=+0.012 → MISS.
+            interactor.transform.position = new Vector3(0f, 0f, 0.012f);
+
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }),
+                "SphereCast along the inter-frame path should detect the thin collider");
+
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator PokeInteractorTeleportDoesNotCauseGhostHover()
+        {
+            // Validates the teleport guard (k_MaxReasonableDeltaSqr = 4.0, i.e. 2m).
+            // When the interactor jumps more than 2m in a single frame, physically impossible
+            // for a human hand at typical XR frame rates, the sweep is suppressed and
+            // OverlapSphere at the endpoint is used instead. Without the guard, SphereCast
+            // would trace the full teleport path and produce phantom hovers on anything
+            // between the old and new positions.
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.requirePokeFilter = false;
+
+            // Place an interactable at the midpoint of the teleport path.
+            // If sweep fires, SphereCast from z=0 to z=3 would catch it.
+            // If sweep is suppressed, OverlapSphere at z=3 with 15mm radius can't reach z=1.5.
+            var midpointGO = new GameObject("Midpoint Interactable");
+            var boxCollider = midpointGO.AddComponent<BoxCollider>();
+            boxCollider.size = new Vector3(0.5f, 0.5f, 0.5f);
+            var rigidBody = midpointGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            midpointGO.AddComponent<XRSimpleInteractable>();
+            midpointGO.transform.position = new Vector3(0f, 0f, 1.5f);
+
+            // Sync collider into physics world.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Start at origin, establish continuity.
+            interactor.transform.position = Vector3.zero;
+
+            yield return null;
+            yield return null;
+            yield return null;
+
+            // Teleport: 3m displacement in one frame. sqrMagnitude = 9.0 > 4.0.
+            // Continuity guard detects this as a teleport, sets m_HasValidPrev = false.
+            // canSweep = false → OverlapSphere at z=3 → no detection of midpoint interactable.
+            interactor.transform.position = new Vector3(0f, 0f, 3.0f);
+
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.Empty,
+                "Teleport-like displacement should suppress sweep; interactable along the path should not be detected");
+            Assert.That(interactor.hasHover, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator PokeInteractorSweepResumesAfterTeleportOnNextValidFrame()
+        {
+            // Validates that after a teleport suppresses sweep for one frame,
+            // normal sweep behavior resumes on the next consecutive frame with
+            // valid (sub-teleport) motion. The continuity state machine should
+            // recover gracefully rather than permanently disabling sweep.
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.requirePokeFilter = false;
+            interactor.pokeHoverRadius = 0.002f;
+
+            // Thin collider at z = 3.0 (near the post-teleport position).
+            var thinGO = new GameObject("Post-Teleport Thin Surface");
+            var boxCollider = thinGO.AddComponent<BoxCollider>();
+            boxCollider.size = new Vector3(0.2f, 0.2f, 0.002f);
+            var rigidBody = thinGO.AddComponent<Rigidbody>();
+            rigidBody.useGravity = false;
+            rigidBody.isKinematic = true;
+            var interactable = thinGO.AddComponent<XRSimpleInteractable>();
+            thinGO.transform.position = new Vector3(0f, 0f, 3.0f);
+
+            // Sync collider into physics world.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Establish continuity at origin.
+            interactor.transform.position = Vector3.zero;
+
+            yield return null;
+            yield return null;
+            yield return null;
+
+            // Teleport to just behind the thin collider.
+            // This frame's sweep is suppressed (delta > 2m), but continuity resets cleanly.
+            interactor.transform.position = new Vector3(0f, 0f, 2.988f);
+
+            yield return null;
+
+            // One more frame at the same position to re-establish continuity.
+            yield return null;
+            yield return null;
+
+            // Moderate-speed poke through the thin collider (24mm displacement).
+            // Sweep should fire normally, the teleport suppression was one frame only.
+            interactor.transform.position = new Vector3(0f, 0f, 3.012f);
+
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            manager.GetValidTargets(interactor, validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }),
+                "Sweep should resume after teleport recovery; thin collider should be detected");
+
+            Assert.That(interactor.hasHover, Is.True);
+        }
     }
 }

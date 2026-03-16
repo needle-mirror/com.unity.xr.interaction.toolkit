@@ -1,9 +1,12 @@
+using System;
+
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 {
     /// <summary>
     /// Stores the joints for a hand expression for both a left and right hand. The pose data is used to simulate a specific hand expression
     /// in the XR Interaction Simulator.
     /// </summary>
+    [Obsolete("HandExpressionCapture has been marked for deprecation and will be functionally replaced by XRHandCaptureSequence in the XR Hands package.")]
     class HandExpressionCapture : ScriptableObject
     {
         [SerializeField]

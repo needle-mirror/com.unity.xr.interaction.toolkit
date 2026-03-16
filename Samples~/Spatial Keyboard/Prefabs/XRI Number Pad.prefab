@@ -2146,7 +2146,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 55e9723cd5e9f4472a5f3e62a2cbfd49, type: 3}
+  m_Sprite: {fileID: -1552482034, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -7056,7 +7056,7 @@ MonoBehaviour:
   m_KeyCode: 13
   m_Character: \r
   m_DisplayCharacter: Enter
-  m_DisplayIcon: {fileID: 21300000, guid: 55e9723cd5e9f4472a5f3e62a2cbfd49, type: 3}
+  m_DisplayIcon: {fileID: -1552482034, guid: e6a95303640ef3c4188ac4583185f5ba, type: 3}
   m_ShiftCharacter: \r
   m_ShiftDisplayCharacter: Enter
   m_ShiftDisplayIcon: {fileID: 0}

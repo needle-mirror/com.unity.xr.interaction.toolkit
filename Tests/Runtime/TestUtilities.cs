@@ -20,30 +20,55 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
     static class TestUtilities
     {
+        /// <summary>
+        /// Reset the XR Interaction Toolkit runtime project settings back to default.
+        /// </summary>
+        internal static void ResetXRIRuntimeSettings()
+        {
+            if (XRInteractionRuntimeSettings.InstanceInternal != null)
+            {
+                XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = default;
+                XRInteractionRuntimeSettings.InstanceInternal.uiModuleRegistrationMode = default;
+            }
+        }
+
         internal static void DestroyAllSceneObjects()
         {
-            // The XR Interaction Manager may have been automatically created with DontDestroyOnLoad set,
-            // so ensure those are destroyed too since the SceneManager does not include that special scene.
-            if (XRInteractionManager.activeInteractionManagers.Count > 0)
+            // Some XR Interaction Toolkit components may have been automatically created with DontDestroyOnLoad set
+            // by the ComponentLocatorUtility, so ensure those are destroyed too since the SceneManager does not
+            // include that special scene.
+            // Note that DontDestroyOnLoad can only be invoked in Play mode, so skip this when running EditMode tests.
+            if (Application.isPlaying)
             {
                 if (SceneManager.sceneCount > 0)
                 {
                     var firstScene = SceneManager.GetSceneAt(0);
 
-                    foreach (var manager in XRInteractionManager.activeInteractionManagers)
+                    var helperGO = new GameObject("DestroyAllSceneObjects Helper");
+                    Object.DontDestroyOnLoad(helperGO);
+                    if (helperGO.scene.name == "DontDestroyOnLoad")
                     {
-                        if (manager != null)
+                        foreach (var go in helperGO.scene.GetRootGameObjects())
                         {
-                            var managerGO = manager.gameObject;
-                            if (managerGO != null && managerGO.scene.name == "DontDestroyOnLoad")
-                                SceneManager.MoveGameObjectToScene(managerGO, firstScene);
+                            // Ignore the DebugUpdater created by com.unity.render-pipelines.core
+                            if (go.name == "[Debug Updater]")
+                                continue;
+
+                            SceneManager.MoveGameObjectToScene(go, firstScene);
                         }
                     }
+                    else
+                        Assert.Fail("Helper GameObject was not immediately moved to the DontDestroyOnLoad scene," +
+                            "cannot iterate that scene to ensure destruction of all GameObjects.");
                 }
                 else
-                    Assert.Fail("No default scene to move the DontDestroyOnLoad scene GameObjects to, cannot ensure destruction.");
+                    Assert.Fail("No default scene to move the DontDestroyOnLoad scene GameObjects to." +
+                        " Cannot ensure destruction of all GameObjects.");
             }
 
+            // Destroy all GameObjects in all scenes
             for (var index = 0; index < SceneManager.sceneCount; ++index)
             {
                 var scene = SceneManager.GetSceneAt(index);
@@ -235,6 +260,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             interactorGO.transform.localPosition = Vector3.zero;
             interactorGO.transform.localRotation = Quaternion.identity;
             var interactor = interactorGO.AddComponent<MockMovementTypeOverrideInteractor>();
+            return interactor;
+        }
+
+        internal static MockClassInteractor CreateMockClassInteractor()
+        {
+            var interactorGO = new GameObject("Mock Interactor");
+            interactorGO.transform.localPosition = Vector3.zero;
+            interactorGO.transform.localRotation = Quaternion.identity;
+            var interactor = new MockClassInteractor(interactorGO.transform);
+            return interactor;
+        }
+
+        internal static MockClassUIInteractor CreateMockClassUIInteractor()
+        {
+            var interactorGO = new GameObject("Mock UI Interactor");
+            interactorGO.transform.localPosition = Vector3.zero;
+            interactorGO.transform.localRotation = Quaternion.identity;
+            var interactor = new MockClassUIInteractor(interactorGO.transform);
             return interactor;
         }
 
@@ -524,6 +567,140 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         /// <inheritdoc />
         public override XRBaseInteractable.MovementType? selectedInteractableMovementTypeOverride => mockMovementTypeOverride;
+    }
+
+    /// <summary>
+    /// An interactor that is a plain C# object that uses a given GameObject.
+    /// </summary>
+    class MockClassInteractor : IXRInteractor
+    {
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> preprocessed;
+        public event Action<XRInteractionUpdateOrder.UpdatePhase> processed;
+        public List<IXRInteractable> validTargets { get; } = new List<IXRInteractable>();
+
+        /// <inheritdoc />
+        public event Action<InteractorRegisteredEventArgs> registered;
+
+        /// <inheritdoc />
+        public event Action<InteractorUnregisteredEventArgs> unregistered;
+
+        /// <inheritdoc />
+        public InteractionLayerMask interactionLayers { get; set; } = -1;
+
+        /// <inheritdoc />
+        public InteractorHandedness handedness { get; set; }
+
+        /// <inheritdoc />
+        public Transform transform { get; }
+
+        /// <summary>
+        /// Whether this interactor is registered;
+        /// </summary>
+        public bool isRegistered { get; private set; }
+
+        /// <summary>
+        /// When this interactor is registered, the interaction manager that this interactor was registered with.
+        /// </summary>
+        public XRInteractionManager registeredInteractionManager { get; private set; }
+
+        /// <summary>
+        /// Constructs a new interactor.
+        /// </summary>
+        /// <param name="transform">The <see cref="Transform"/> associated with the Interactor.</param>
+        public MockClassInteractor(Transform transform)
+        {
+            this.transform = transform;
+        }
+
+        /// <inheritdoc />
+        public Transform GetAttachTransform(IXRInteractable interactable)
+        {
+            return transform;
+        }
+
+        /// <inheritdoc />
+        public void GetValidTargets(List<IXRInteractable> targets)
+        {
+            targets.Clear();
+            targets.AddRange(validTargets);
+        }
+
+        /// <inheritdoc />
+        public void OnRegistered(InteractorRegisteredEventArgs args)
+        {
+            isRegistered = true;
+            registeredInteractionManager = args.manager;
+            registered?.Invoke(args);
+        }
+
+        /// <inheritdoc />
+        public void OnUnregistered(InteractorUnregisteredEventArgs args)
+        {
+            isRegistered = false;
+            registeredInteractionManager = null;
+            unregistered?.Invoke(args);
+        }
+
+        /// <inheritdoc />
+        public void PreprocessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            preprocessed?.Invoke(updatePhase);
+        }
+
+        /// <inheritdoc />
+        public void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+        {
+            processed?.Invoke(updatePhase);
+        }
+    }
+
+    class MockClassUIInteractor : MockClassInteractor, IUIInteractorRegistrationHandler
+    {
+        public delegate void ProcessUIModel(ref TrackedDeviceModel model);
+
+        /// <summary>
+        /// External implementation of the <see cref="UpdateUIModel"/> method.
+        /// </summary>
+        public ProcessUIModel processUIModel { get; set; }
+
+        /// <summary>
+        /// When this interactor is registered, the XR UI Input Module that this interactor was registered with.
+        /// </summary>
+        public XRUIInputModule registeredInputModule { get; private set; }
+
+        /// <inheritdoc />
+        public MockClassUIInteractor(Transform transform)
+            : base(transform)
+        {
+        }
+
+        /// <inheritdoc />
+        public void UpdateUIModel(ref TrackedDeviceModel model)
+        {
+            processUIModel?.Invoke(ref model);
+        }
+
+        /// <inheritdoc />
+        public bool TryGetUIModel(out TrackedDeviceModel model)
+        {
+            if (registeredInputModule != null)
+                return registeredInputModule.GetTrackedDeviceModel(this, out model);
+
+            model = TrackedDeviceModel.invalid;
+            return false;
+        }
+
+        /// <inheritdoc />
+        public void OnRegistered(UIInteractorRegisteredEventArgs args)
+        {
+            registeredInputModule = args.inputModule;
+        }
+
+        /// <inheritdoc />
+        public void OnUnregistered(UIInteractorUnregisteredEventArgs args)
+        {
+            registeredInputModule = null;
+        }
     }
 
     /// <summary>

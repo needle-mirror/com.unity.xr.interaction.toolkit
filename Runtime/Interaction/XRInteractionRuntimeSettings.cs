@@ -60,6 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// when the manager reference is not set or the manager is destroyed.
         /// </summary>
         /// <seealso cref="XRInteractionRuntimeSettings.interactionManagerRegistrationMode"/>
+        /// <seealso cref="XRInteractionRuntimeSettings.uiModuleRegistrationMode"/>
         public enum ManagerRegistrationMode
         {
             /// <summary>
@@ -149,6 +150,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_InteractionManagerRegistrationMode;
             set => m_InteractionManagerRegistrationMode = value;
+        }
+
+        [SerializeField]
+        ManagerRegistrationMode m_UIModuleRegistrationMode;
+
+        /// <summary>
+        /// Gets the setting for controlling whether the XR UI Input Module component is automatically registered with.
+        /// </summary>
+        /// <seealso cref="ManagerRegistrationMode"/>
+        public ManagerRegistrationMode uiModuleRegistrationMode
+        {
+            get => m_UIModuleRegistrationMode;
+            set => m_UIModuleRegistrationMode = value;
         }
     }
 }

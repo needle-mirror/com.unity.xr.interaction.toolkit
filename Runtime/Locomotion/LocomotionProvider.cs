@@ -16,12 +16,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
     {
         [SerializeField]
         [Tooltip("The behavior that this provider communicates with for access to the mediator's XR Body Transformer. " +
-            "If one is not provided, this provider will attempt to locate one during its Awake call.")]
+            "If one is not provided, this provider will attempt to locate one during its Awake or OnEnable call.")]
         LocomotionMediator m_Mediator;
 
         /// <summary>
         /// The behavior that this provider communicates with for access to the mediator's <see cref="XRBodyTransformer"/>.
-        /// If one is not provided, this provider will attempt to locate one during its <see cref="Awake"/> call.
+        /// If one is not provided, this provider will attempt to locate one during its <see cref="Awake"/> or <see cref="OnEnable"/> call.
         /// </summary>
         public LocomotionMediator mediator
         {

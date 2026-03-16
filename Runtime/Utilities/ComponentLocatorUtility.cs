@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 
@@ -37,7 +38,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
             public HashSet<Scene> ignoredScenes { get; } = new HashSet<Scene>();
 
-            public List<Action<T>> callbacks { get; } = new List<Action<T>>();
+            public HashSetList<Action<T>> callbacks { get; } = new HashSetList<Action<T>>();
 
             public bool subscribed { get; private set; }
 

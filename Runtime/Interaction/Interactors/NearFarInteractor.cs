@@ -24,7 +24,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/Near-Far Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_NearFarInteractor)]
-    public class NearFarInteractor : XRBaseInputInteractor, IXRRayProvider, IUIHoverInteractor, ICurveInteractionDataProvider
+    public class NearFarInteractor : XRBaseInputInteractor, IXRRayProvider, IUIHoverInteractor, IUIInteractorRegistrationHandler, ICurveInteractionDataProvider
     {
         /// <summary>
         /// Enum used to keep track of whether the selection is currently occurring in the near-field or far-field region.
@@ -204,7 +204,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 if (m_EnableUIInteraction != value)
                 {
                     m_EnableUIInteraction = value;
-                    m_RegisteredUIInteractorCache?.RegisterOrUnregisterXRUIInputModule(m_EnableUIInteraction);
+                    if (Application.isPlaying && isActiveAndEnabled)
+                        UpdateUIRegistration();
                 }
             }
         }
@@ -342,27 +343,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         readonly bool m_AllowMultipleValidTargets = false;
 
         /// <summary>
-        /// Updates the registration with the appropriate UI system based on current settings.
-        /// </summary>
-        internal virtual void UpdateUIRegistration()
-        {
-            // First unregister from all UI systems
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
-#if UITOOLKIT_WORLDSPACE_ENABLED
-            XRUIToolkitHandler.Unregister(this);
-#endif
-
-            // Register with the appropriate UI system
-            if (m_EnableUIInteraction)
-                m_RegisteredUIInteractorCache?.RegisterWithXRUIInputModule();
-
-#if UITOOLKIT_WORLDSPACE_ENABLED
-            if (m_EnableUIInteraction)
-                XRUIToolkitHandler.Register(this);
-#endif
-        }
-
-        /// <summary>
         /// (Read Only) Whether UI interaction with UI Toolkit is enabled.
         /// </summary>
         bool canProcessUIToolkit
@@ -390,8 +370,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected override void OnEnable()
         {
             base.OnEnable();
+
             if (m_EnableUIInteraction)
-                UpdateUIRegistration();
+            {
+                m_RegisteredUIInteractorCache?.HandleOnEnable();
+#if UITOOLKIT_WORLDSPACE_ENABLED
+                XRUIToolkitHandler.Register(this);
+#endif
+            }
         }
 
         /// <inheritdoc />
@@ -399,8 +385,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             base.OnDisable();
 
-            m_RegisteredUIInteractorCache?.UnregisterFromXRUIInputModule();
-
+            m_RegisteredUIInteractorCache?.HandleOnDisable();
 #if UITOOLKIT_WORLDSPACE_ENABLED
             XRUIToolkitHandler.Unregister(this);
 #endif
@@ -599,12 +584,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             bool shouldReset = (!has2dHit && didHave2dHit) || !isCurveActive;
 
-            XRUIToolkitHandler.HandlePointerUpdate(
-                this,
-                farInteractionCaster.effectiveCastOrigin.position,
-                farInteractionCaster.effectiveCastOrigin.rotation,
-                isUiSelectInputActive,
-                shouldReset);
+            if (has2dHit || didHave2dHit)
+            {
+                XRUIToolkitHandler.HandlePointerUpdate(
+                    this,
+                    farInteractionCaster.effectiveCastOrigin.position,
+                    farInteractionCaster.effectiveCastOrigin.rotation,
+                    uiScrollInputValue,
+                    isUiSelectInputActive,
+                    shouldReset);
+            }
         }
 #endif
 
@@ -907,11 +896,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             return false;
         }
 
+        /// <summary>
+        /// Updates the registration with the appropriate UI system based on current settings.
+        /// Handles both UGUI (via XRUIInputModule) and UI Toolkit (via XRUIToolkitHandler) registration.
+        /// </summary>
+        void UpdateUIRegistration()
+        {
+            m_RegisteredUIInteractorCache?.UpdateEnableUIInteraction(m_EnableUIInteraction);
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            if (m_EnableUIInteraction)
+                XRUIToolkitHandler.Register(this);
+            else
+                XRUIToolkitHandler.Unregister(this);
+#endif
+        }
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnRegistered(UIInteractorRegisteredEventArgs args) => OnRegistered(args);
+
+        /// <inheritdoc />
+        void IUIInteractorRegistrationHandler.OnUnregistered(UIInteractorUnregisteredEventArgs args) => OnUnregistered(args);
+
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverEntered(UIHoverEventArgs args) => OnUIHoverEntered(args);
 
         /// <inheritdoc />
         void IUIHoverInteractor.OnUIHoverExited(UIHoverEventArgs args) => OnUIHoverExited(args);
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is registered with it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that registered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.RegisterInteractor"/>
+        protected virtual void OnRegistered(UIInteractorRegisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache ??= new RegisteredUIInteractorCache(this);
+            m_RegisteredUIInteractorCache.HandleOnRegistered(args);
+        }
+
+        /// <summary>
+        /// The <see cref="XRUIInputModule"/> calls this method
+        /// when this UI interactor is unregistered from it.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that unregistered this UI interactor.</param>
+        /// <remarks>
+        /// <paramref name="args"/> is only valid during this method call, do not hold a reference to it.
+        /// </remarks>
+        /// <seealso cref="XRUIInputModule.UnregisterInteractor"/>
+        protected virtual void OnUnregistered(UIInteractorUnregisteredEventArgs args)
+        {
+            m_RegisteredUIInteractorCache?.HandleOnUnregistered(args);
+        }
 
         /// <summary>
         /// The <see cref="XRUIInputModule"/> calls this method when the Interactor begins hovering over a UI element.

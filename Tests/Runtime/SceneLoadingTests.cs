@@ -40,6 +40,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         // - "Scene4 EventSystem" [EventSystem, XRUIInputModule]
         const string k_Scene4Path = "Packages/com.unity.xr.interaction.toolkit/Tests/Scenes/SceneLoadingTests.Scene4.unity";
 
+        // This scene contains a single activated GameObject "Scene4 EventSystem" with no input module component added to it.
+        // - "Scene4a EventSystem" [EventSystem]
+        const string k_Scene4aPath = "Packages/com.unity.xr.interaction.toolkit/Tests/Scenes/SceneLoadingTests.Scene4a.unity";
+
         // This scene contains an activated XRInteractionManager and interactable component.
         // - "Scene5 Manager" [XRInteractionManager]
         // - "Scene5 Interactable" [XRSimpleInteractable]
@@ -72,6 +76,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             LoadMethod.Async,
         };
 
+        static readonly string[] s_EventSystemScenes =
+        {
+            k_Scene4Path,
+            k_Scene4aPath,
+        };
+
         [SetUp]
         public override void Setup()
         {
@@ -86,14 +96,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public override void TearDown()
         {
-            if (XRInteractionRuntimeSettings.InstanceInternal != null)
-            {
-                // Reset back to default project settings after each test because some tests change these.
-                XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = default;
-                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = default;
-                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = default;
-            }
-
+            TestUtilities.ResetXRIRuntimeSettings();
             TestUtilities.DestroyAllSceneObjects();
             base.TearDown();
         }
@@ -787,12 +790,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         [Description("Components should be registered automatically after OnEnable with EventSystem still pending.")]
         [UnityPlatform(RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
-        public IEnumerator ComponentRegisteredAfterEventSystemSceneLoaded()
+        public IEnumerator ComponentRegisteredAfterEventSystemSceneLoaded([ValueSource(nameof(s_EventSystemScenes))] string scenePath)
         {
 #if UNITY_EDITOR
-            var sceneLoad = EditorSceneManager.LoadSceneAsyncInPlayMode(k_Scene4Path, new LoadSceneParameters(LoadSceneMode.Additive));
+            Assume.That(FindAllObjectByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assume.That(FindAllObjectByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+
+            var sceneLoad = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Additive));
             sceneLoad.allowSceneActivation = false;
-            var scene = SceneManager.GetSceneByPath(k_Scene4Path);
+            var scene = SceneManager.GetSceneByPath(scenePath);
 
             var manager = TestUtilities.CreateInteractionManager();
             var pokeInteractor = TestUtilities.CreatePokeInteractor();
@@ -825,12 +831,82 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(inputModule, Is.Not.Null);
             Assert.That(inputModule.gameObject.scene, Is.EqualTo(scene));
 
+            var uiInteractors = new List<IUIInteractor>();
+            inputModule.GetRegisteredInteractors(uiInteractors);
+            Assert.That(uiInteractors, Is.EqualTo(new IUIInteractor[] { pokeInteractor, rayInteractor, nearFarInteractor }));
+
+            var interactors = new List<IXRInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.EqualTo(new IXRInteractor[] { pokeInteractor, rayInteractor, nearFarInteractor }));
+
             Assert.That(inputModule.GetTrackedDeviceModel(pokeInteractor, out var pokeModel), Is.True);
             Assert.That(inputModule.GetTrackedDeviceModel(rayInteractor, out var rayModel), Is.True);
             Assert.That(inputModule.GetTrackedDeviceModel(nearFarInteractor, out var nearFarModel), Is.True);
             Assert.That(pokeModel.interactor, Is.SameAs(pokeInteractor));
             Assert.That(rayModel.interactor, Is.SameAs(rayInteractor));
             Assert.That(nearFarModel.interactor, Is.SameAs(nearFarInteractor));
+
+            yield return SceneManager.UnloadSceneAsync(scene);
+#else
+            yield return null;
+#endif
+        }
+
+        [UnityTest]
+        [Description("Components that disable UI interaction after a find is started should not be registered automatically after EventSystem scene finishes loading.")]
+        [UnityPlatform(RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor)]
+        public IEnumerator ComponentNotRegisteredAfterEventSystemDeferredFindFinishes([ValueSource(nameof(s_EventSystemScenes))] string scenePath)
+        {
+#if UNITY_EDITOR
+            Assume.That(FindAllObjectByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assume.That(FindAllObjectByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+
+            var sceneLoad = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Additive));
+            sceneLoad.allowSceneActivation = false;
+            var scene = SceneManager.GetSceneByPath(scenePath);
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var pokeInteractor = TestUtilities.CreatePokeInteractor();
+            var rayInteractor = TestUtilities.CreateRayInteractor();
+            var nearFarInteractor = TestUtilities.CreateNearFarInteractor();
+
+            pokeInteractor.enableUIInteraction = true;
+            rayInteractor.enableUIInteraction = true;
+            nearFarInteractor.enableUIInteraction = true;
+
+            Assert.That(FindAllObjectByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assert.That(FindAllObjectByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+
+            yield return null;
+
+            pokeInteractor.enableUIInteraction = false;
+            rayInteractor.enableUIInteraction = false;
+            nearFarInteractor.enableUIInteraction = false;
+
+            Assert.That(FindAllObjectByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assert.That(FindAllObjectByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+
+            sceneLoad.allowSceneActivation = true;
+
+            yield return sceneLoad;
+
+            Assert.That(scene.isLoaded, Is.True);
+
+            Assert.That(FindAllObjectByType<EventSystem>(), Has.Length.EqualTo(1));
+            Assert.That(FindAllObjectByType<XRUIInputModule>(), Has.Length.EqualTo(1));
+
+            Assert.That(EventSystem.current, Is.Not.Null);
+            var inputModule = EventSystem.current.GetComponent<XRUIInputModule>();
+            Assert.That(inputModule, Is.Not.Null);
+            Assert.That(inputModule.gameObject.scene, Is.EqualTo(scene));
+
+            var uiInteractors = new List<IUIInteractor>();
+            inputModule.GetRegisteredInteractors(uiInteractors);
+            Assert.That(uiInteractors, Is.Empty);
+
+            var interactors = new List<IXRInteractor>();
+            manager.GetRegisteredInteractors(interactors);
+            Assert.That(interactors, Is.EqualTo(new IXRInteractor[] { pokeInteractor, rayInteractor, nearFarInteractor }));
 
             yield return SceneManager.UnloadSceneAsync(scene);
 #else

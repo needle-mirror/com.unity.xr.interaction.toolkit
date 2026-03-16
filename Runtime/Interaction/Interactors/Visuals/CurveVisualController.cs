@@ -825,7 +825,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 EndPointType.None => m_NoValidHitProperties,
                 EndPointType.EmptyCastHit => m_NoValidHitProperties,
                 EndPointType.ValidCastHit => curveInteractionDataProvider.hasValidSelect ? m_SelectHitProperties : m_HoverHitProperties,
-                EndPointType.AttachPoint => m_SelectHitProperties,
+                EndPointType.AttachPoint => curveInteractionDataProvider.hasValidSelect ? m_SelectHitProperties : m_HoverHitProperties,
                 EndPointType.UI => curveInteractionDataProvider.hasValidSelect ? m_UIPressHitProperties : m_UIHitProperties,
                 _ => m_NoValidHitProperties
             };

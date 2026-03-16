@@ -132,6 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     m_Interactor,
                     rayOrigin,
                     Quaternion.LookRotation((closestPoint - rayOrigin).normalized),
+                    Vector2.zero,
                     pokeComplete,
                     false);
             }
@@ -178,6 +179,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 m_Interactor,
                 Vector3.zero,
                 Quaternion.identity,
+                Vector2.zero,
                 false,
                 true);
 

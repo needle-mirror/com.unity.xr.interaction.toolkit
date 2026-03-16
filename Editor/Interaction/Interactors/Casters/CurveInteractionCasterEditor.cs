@@ -171,8 +171,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
                     EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
                     EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
                     EditorGUILayout.PropertyField(m_RaycastSnapVolumeInteraction, Contents.raycastSnapVolumeInteraction);
-                    // TODO for 3.2.0
-                    //EditorGUILayout.PropertyField(m_RaycastUIDocumentTriggerInteraction, Contents.raycastUIDocumentTriggerInteraction);
+                    EditorGUILayout.PropertyField(m_RaycastUIDocumentTriggerInteraction, Contents.raycastUIDocumentTriggerInteraction);
                 }
             }
         }

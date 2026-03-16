@@ -15,8 +15,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         XRUIInputModule m_RegisteredInputModule;
         readonly IUIInteractor m_UiInteractor;
         readonly XRBaseInteractor m_BaseInteractor;
+        readonly bool m_IsBaseInteractor;
 
-        bool m_EnableUIInteraction;
+        bool m_EnableUIInteraction = true;
         bool m_FindingEventSystem;
 
         // Used to avoid GC Alloc from delegate object creation if passing the method directly
@@ -31,120 +32,176 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // This constructor only requires the IUIInteractor reference
             // as only one XRUIInputModule may be present at one time.
             m_UiInteractor = uiInteractor;
-            m_BaseInteractor = uiInteractor as XRBaseInteractor;
+            m_IsBaseInteractor = uiInteractor is XRBaseInteractor;
+            m_BaseInteractor = m_IsBaseInteractor ? (XRBaseInteractor)uiInteractor : null;
         }
 
         /// <summary>
-        /// Register with or unregister from the Input Module (if necessary).
+        /// Register or unregister with the <see cref="XRUIInputModule"/> (if necessary).
+        /// Assumed to be called from the <c>enableUIInteraction</c> property setter of the interactor.
         /// </summary>
         /// <param name="enableUIInteraction">Whether UI interaction should be enabled. Will register/unregister with the XR UI Input Module.</param>
-        /// <remarks>
-        /// If this behavior is not active and enabled, this function does nothing since it is assumed <c>OnEnable</c>/<c>OnDisable</c> will call into the other methods.
-        /// </remarks>
-        public void RegisterOrUnregisterXRUIInputModule(bool enableUIInteraction)
+        public void UpdateEnableUIInteraction(bool enableUIInteraction)
         {
-            if (!Application.isPlaying || (m_BaseInteractor != null && !m_BaseInteractor.isActiveAndEnabled))
+            m_EnableUIInteraction = enableUIInteraction;
+            if (m_FindingEventSystem)
                 return;
 
             if (enableUIInteraction)
-                RegisterWithXRUIInputModule();
+                RegisterWithInputModule(m_InputModule);
             else
-                UnregisterFromXRUIInputModule();
+                HandleOnDisable();
         }
 
         /// <summary>
-        /// Register with the <see cref="XRUIInputModule"/> (if necessary).
+        /// Locate and register with the <see cref="XRUIInputModule"/>.
+        /// Assumed to be called from <c>OnEnable</c> of the interactor.
         /// </summary>
-        /// <seealso cref="UnregisterFromXRUIInputModule"/>
-        public void RegisterWithXRUIInputModule()
+        public void HandleOnEnable()
         {
-            m_EnableUIInteraction = true;
+            // This guards against an interactor being disabled and re-enabled before the deferred find finishes.
             if (m_FindingEventSystem)
                 return;
 
             if (m_InputModule == null)
-                FindOrCreateXRUIInputModule();
+            {
+                if (ComponentLocatorUtility<XRUIInputModule>.componentCache != null)
+                    m_InputModule = ComponentLocatorUtility<XRUIInputModule>.componentCache;
+                else
+                {
+                    var eventSystem = EventSystem.current ?? ComponentLocatorUtility<EventSystem>.componentCache;
+                    if (eventSystem != null)
+                        m_InputModule = eventSystem.GetComponent<XRUIInputModule>();
+                }
+            }
+
+            if (m_InputModule != null)
+                RegisterWithInputModule(m_InputModule);
             else
-                Register();
+            {
+                // This is an optimization to not search for the input module if both manager modes are Manual
+                // since it won't create one and will just add to the waitlist during the callback anyway.
+                var runtimeSettings = XRInteractionRuntimeSettings.Instance;
+                if (runtimeSettings.uiModuleRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual &&
+                    runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.Manual)
+                {
+                    XRUIInputModule.RegisterWithWaitlist(m_UiInteractor);
+                }
+                else
+                {
+                    m_FindingEventSystem = true;
+                    ComponentLocatorUtility<EventSystem>.FindComponentDeferred(
+                        m_FindEventSystem ??= OnFindEventSystem,
+                        createComponent: runtimeSettings.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.CreateAutomatically,
+                        dontDestroyOnLoad: true);
+                }
+            }
         }
 
         /// <summary>
-        /// Unregister from the <see cref="XRUIInputModule"/> (if necessary).
+        /// Unregister from the <see cref="XRUIInputModule"/>.
+        /// Assumed to be called from <c>OnDisable</c> of the interactor.
         /// </summary>
-        /// <seealso cref="RegisterWithXRUIInputModule"/>
-        public void UnregisterFromXRUIInputModule()
+        public void HandleOnDisable()
         {
-            m_EnableUIInteraction = false;
-            if (m_FindingEventSystem)
-                return;
-
-            Unregister();
+            XRUIInputModule.UnregisterFromWaitList(m_UiInteractor);
+            UnregisterWithInputModule();
         }
 
-        void Register()
+        /// <summary>
+        /// Handle being registered with the <see cref="XRUIInputModule"/>.
+        /// Assumed to be called from <see cref="IUIInteractorRegistrationHandler.OnRegistered"/> of the interactor.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that registered this UI interactor.</param>
+        public void HandleOnRegistered(UIInteractorRegisteredEventArgs args)
         {
-            if (m_RegisteredInputModule == m_InputModule)
-                return;
+            if (args.inputModule != m_InputModule && m_InputModule != null)
+                Debug.LogWarning($"An Interactor was registered with an unexpected {nameof(XRUIInputModule)}." +
+                    $" {this} was expecting to communicate with \"{m_InputModule}\" but was registered with \"{args.inputModule}\".", m_BaseInteractor);
 
-            if (!m_EnableUIInteraction)
-                return;
+            if (m_RegisteredInputModule != null && args.inputModule != m_RegisteredInputModule)
+                Debug.LogWarning($"An Interactor was registered with another {nameof(XRUIInputModule)} while already registered with an input module component." +
+                    $" {this} was expecting to only communicate with \"{m_RegisteredInputModule}\" but was registered with \"{args.inputModule}\" also." +
+                    $" This Interactor will not automatically unregister with the original {nameof(XRUIInputModule)} when this component is disabled.", m_BaseInteractor);
 
-            UnregisterFromXRUIInputModule();
-
-            if (m_InputModule != null)
-            {
-                m_InputModule.RegisterInteractor(m_UiInteractor);
-                m_RegisteredInputModule = m_InputModule;
-            }
+            m_RegisteredInputModule = args.inputModule;
+            m_InputModule = args.inputModule;
         }
 
-        void Unregister()
+        /// <summary>
+        /// Handle being registered with the <see cref="XRUIInputModule"/>.
+        /// Assumed to be called from <see cref="IUIInteractorRegistrationHandler.OnUnregistered"/> of the interactor.
+        /// </summary>
+        /// <param name="args">Event data containing the XR UI Input Module that unregistered this UI interactor.</param>
+        public void HandleOnUnregistered(UIInteractorUnregisteredEventArgs args)
         {
-            if (m_RegisteredInputModule != null)
-            {
-                m_RegisteredInputModule.UnregisterInteractor(m_UiInteractor);
-                m_RegisteredInputModule = null;
-            }
-        }
+            if (args.inputModule != m_RegisteredInputModule)
+                Debug.LogWarning($"An Interactor was unregistered from an unexpected {nameof(XRUIInputModule)}." +
+                    $" {this} was expecting to communicate with \"{m_RegisteredInputModule}\" but was unregistered from \"{args.inputModule}\".", m_BaseInteractor);
 
-        void FindOrCreateXRUIInputModule()
-        {
-            if (m_FindingEventSystem)
-                return;
+            m_RegisteredInputModule = null;
 
-            m_FindingEventSystem = true;
+            // Clear the reference immediately so it can evaluate to null for the rest of this frame.
+            // The input module component reference can still be obtained through the event args.
+            if (args.inputModuleDestroyed && ReferenceEquals(m_InputModule, args.inputModule))
+                m_InputModule = null;
 
-            var eventSystem = EventSystem.current;
-            if (eventSystem != null)
-            {
-                // Set the cached reference to help avoid unnecessary find calls
-                if (ComponentLocatorUtility<EventSystem>.componentCache == null)
-                    ComponentLocatorUtility<EventSystem>.SetComponentCache(eventSystem);
-
-                OnFindEventSystem(eventSystem);
-            }
-            else
-                ComponentLocatorUtility<EventSystem>.FindComponentDeferred(
-                    m_FindEventSystem ??= OnFindEventSystem,
-                    createComponent: XRInteractionRuntimeSettings.Instance.managerCreationMode == XRInteractionRuntimeSettings.ManagerCreationMode.CreateAutomatically);
+            if (m_InputModule == null && m_EnableUIInteraction && (!m_IsBaseInteractor || m_BaseInteractor.isActiveAndEnabled))
+                XRUIInputModule.RegisterWithWaitlist(m_UiInteractor);
         }
 
         void OnFindEventSystem(EventSystem eventSystem)
         {
             m_FindingEventSystem = false;
 
-            if (eventSystem == null)
+            if (eventSystem != null)
+            {
+                // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
+                if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
+                    Object.Destroy(standaloneInputModule);
+
+                // Get or add our XR UI Input Module component
+                if (m_InputModule == null && !eventSystem.TryGetComponent(out m_InputModule))
+                    m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
+            }
+
+            RegisterWithInputModule(m_InputModule);
+        }
+
+        void RegisterWithInputModule(XRUIInputModule module)
+        {
+            if (!m_EnableUIInteraction)
                 return;
 
-            // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
-            if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
-                Object.Destroy(standaloneInputModule);
+            if (m_IsBaseInteractor && !m_BaseInteractor.isActiveAndEnabled)
+                return;
 
-            // Get or add our XR UI Input Module component
-            if (!eventSystem.TryGetComponent(out m_InputModule))
-                m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
+            // Skip if already registered with this module to avoid a needless unregister/re-register.
+            if (m_RegisteredInputModule == module && m_RegisteredInputModule != null)
+                return;
 
-            Register();
+            // Note that this block of code intentionally differs from the very similar XR Interaction Manager registration logic.
+            // There's no property to set the XRUIInputModule reference directly, so we don't need to early return if
+            // the module reference differs. Thus, we should also not check that field when the registration mode is Manual.
+
+            if (XRInteractionRuntimeSettings.Instance.uiModuleRegistrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                XRUIInputModule.RegisterWithWaitlist(m_UiInteractor);
+                return;
+            }
+
+            UnregisterWithInputModule();
+
+            if (module != null)
+                module.RegisterInteractor(m_UiInteractor);
+            else
+                XRUIInputModule.RegisterWithWaitlist(m_UiInteractor);
+        }
+
+        void UnregisterWithInputModule()
+        {
+            if (m_RegisteredInputModule != null)
+                m_RegisteredInputModule.UnregisterInteractor(m_UiInteractor);
         }
 
         /// <summary>
@@ -152,6 +209,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         /// <param name="model">The returned model that reflects the UI state of this Interactor.</param>
         /// <returns>Returns <see langword="true"/> if the model was retrieved. Otherwise, returns <see langword="false"/>.</returns>
+        /// <seealso cref="IUIInteractor.TryGetUIModel"/>
         public bool TryGetUIModel(out TrackedDeviceModel model)
         {
             if (m_InputModule != null)

@@ -38,6 +38,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_LeftDeviceActionsInput;
         SerializedProperty m_TogglePrimary2DAxisTargetInput;
         SerializedProperty m_ToggleSecondary2DAxisTargetInput;
+        SerializedProperty m_MouseClickInput;
+        SerializedProperty m_MousePointInput;
 
         // Controller Inputs
         bool m_ControllerInputsExpanded;
@@ -58,10 +60,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         // Simulator Settings
         bool m_SimulatorSettingsExpanded;
         SerializedProperty m_CameraTransform;
+        SerializedProperty m_LeftControllerTransform;
+        SerializedProperty m_RightControllerTransform;
         SerializedProperty m_DeviceLifecycleManager;
-        SerializedProperty m_HandExpressionManager;
+        SerializedProperty m_HandPlaybackManager;
         SerializedProperty m_TranslateSpace;
         SerializedProperty m_InteractionSimulatorUI;
+        SerializedProperty m_UsePointAndClick;
+#if XR_HANDS_1_1_OR_NEWER
+        SerializedProperty m_DefaultPointAndClickHandedness;
+#endif
 
         // Sensitivity
         bool m_SensitivityExpanded;
@@ -127,6 +135,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_LeftDeviceActionsInput = serializedObject.FindProperty("m_LeftDeviceActionsInput");
             m_TogglePrimary2DAxisTargetInput = serializedObject.FindProperty("m_TogglePrimary2DAxisTargetInput");
             m_ToggleSecondary2DAxisTargetInput = serializedObject.FindProperty("m_ToggleSecondary2DAxisTargetInput");
+            m_MouseClickInput = serializedObject.FindProperty("m_MouseClickInput");
+            m_MousePointInput = serializedObject.FindProperty("m_MousePointInput");
 
             m_Axis2DInput = serializedObject.FindProperty("m_Axis2DInput");
             m_GripInput = serializedObject.FindProperty("m_GripInput");
@@ -143,10 +153,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_QuickActionControllerInputModes = serializedObject.FindProperty("m_QuickActionControllerInputModes");
 
             m_CameraTransform = serializedObject.FindProperty("m_CameraTransform");
+            m_LeftControllerTransform = serializedObject.FindProperty("m_LeftControllerTransform");
+            m_RightControllerTransform = serializedObject.FindProperty("m_RightControllerTransform");
             m_DeviceLifecycleManager = serializedObject.FindProperty("m_DeviceLifecycleManager");
-            m_HandExpressionManager = serializedObject.FindProperty("m_HandExpressionManager");
+            m_HandPlaybackManager = serializedObject.FindProperty("m_HandPlaybackManager");
             m_TranslateSpace = serializedObject.FindProperty("m_TranslateSpace");
             m_InteractionSimulatorUI = serializedObject.FindProperty("m_InteractionSimulatorUI");
+            m_UsePointAndClick = serializedObject.FindProperty("m_UsePointAndClick");
+#if XR_HANDS_1_1_OR_NEWER
+            m_DefaultPointAndClickHandedness = serializedObject.FindProperty("m_DefaultPointAndClickHandedness");
+#endif
 
             m_TranslateXSpeed = serializedObject.FindProperty("m_TranslateXSpeed");
             m_TranslateYSpeed = serializedObject.FindProperty("m_TranslateYSpeed");
@@ -245,6 +261,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_LeftDeviceActionsInput);
                 EditorGUILayout.PropertyField(m_TogglePrimary2DAxisTargetInput);
                 EditorGUILayout.PropertyField(m_ToggleSecondary2DAxisTargetInput);
+                EditorGUILayout.PropertyField(m_MouseClickInput);
+                EditorGUILayout.PropertyField(m_MousePointInput);
             }
         }
 
@@ -298,10 +316,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(m_CameraTransform);
+                EditorGUILayout.PropertyField(m_LeftControllerTransform);
+                EditorGUILayout.PropertyField(m_RightControllerTransform);
                 EditorGUILayout.PropertyField(m_DeviceLifecycleManager);
-                EditorGUILayout.PropertyField(m_HandExpressionManager);
+                EditorGUILayout.PropertyField(m_HandPlaybackManager);
                 EditorGUILayout.PropertyField(m_TranslateSpace);
                 EditorGUILayout.PropertyField(m_InteractionSimulatorUI);
+                EditorGUILayout.PropertyField(m_UsePointAndClick);
+#if XR_HANDS_1_1_OR_NEWER
+                EditorGUILayout.PropertyField(m_DefaultPointAndClickHandedness);
+#endif
             }
         }
 

@@ -87,8 +87,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     if (m_AutomaticallyInstantiateSimulatorPrefab.boolValue)
                     {
+#pragma warning disable CS0618
                         if (m_UseClassic.boolValue)
                             LoadXRDeviceSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName, k_SampleDisplayName);
+#pragma warning restore CS0618
                         else
                             LoadXRDeviceSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
                     }

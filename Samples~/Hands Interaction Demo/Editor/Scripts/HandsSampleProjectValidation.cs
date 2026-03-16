@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
@@ -7,9 +8,7 @@ using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
-
 #if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
-using System.IO;
 using TMPro;
 #endif
 
@@ -30,25 +29,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_HandsPackageName = "com.unity.xr.hands";
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
-        static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.5.1");
-        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.1");
-
 #if UNITY_6000_0_OR_NEWER
         // The s_MinimumUIPackageVersion should match the UGUI_2_0_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
+        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
         static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("2.0.0");
         const string k_UIPackageName = "com.unity.ugui";
         const string k_UIPackageDisplayName = "Unity UI";
 #else
         // The s_MinimumUIPackageVersion should match the TEXT_MESH_PRO_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
+        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
+        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
         static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("3.0.8");
         const string k_UIPackageName = "com.unity.textmeshpro";
         const string k_UIPackageDisplayName = "TextMeshPro";
 #endif
 
+        static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.6.2");
+        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.2");
+
+        static AddRequest s_HandsPackageAddRequest;
+        static AddRequest s_ShaderGraphPackageAddRequest;
         static AddRequest s_UIPackageAddRequest;
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
@@ -135,7 +136,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
             new BuildValidationRule
             {
                 IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
-                Message = $"[{k_StarterAssetsSampleName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
+                Message = $"[{k_SampleDisplayName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
                 Category = k_Category,
                 CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_UIPackageName) >= s_MinimumUIPackageVersion,
                 FixIt = () =>
@@ -163,9 +164,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
             },
 #endif
         };
-
-        static AddRequest s_HandsPackageAddRequest;
-        static AddRequest s_ShaderGraphPackageAddRequest;
 
         [InitializeOnLoadMethod]
         static void RegisterProjectValidationRules()
@@ -248,7 +246,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         {
             // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
             // For simplicity, we don't also copy the check if the asset needs to be updated.
-            return File.Exists("Assets/TextMesh Pro/Resources/TMP Settings.asset");
+            return File.Exists(Path.Combine("Assets", "TextMesh Pro", "Resources", "TMP Settings.asset"));
         }
 #endif
 

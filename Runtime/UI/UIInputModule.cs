@@ -162,9 +162,104 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         Camera m_MainCameraCache;
 
+        [SerializeField]
+        [Tooltip("When enabled, additional sorting is run to ensure things closer to the point of interaction are considered first. It is recommended to enable this for XR devices and disable for non-XR devices.")]
+        bool m_PrioritizeDistanceSorting;
+
+        /// <summary>
+        /// When enabled, the UI Input Module will run additional sorting after <c>RaycastAll</c> is called to ensure
+        /// things that are closer to the point of interaction are considered first when analyzing results.
+        /// It is recommended to enable this for XR devices and disable for non-XR devices.
+        /// </summary>
+        /// <remarks>
+        /// This is only available for tracked devices. When re-sorting the Raycast Results list, this will sort
+        /// first by distance, then follow the same order as the <c>EventSystem.RaycastComparer</c> uses to determine
+        /// result ordering. If using non-XR platforms, this should be set to <see langword="false"/> since the
+        /// additional sorting will add unnecessary overhead and existing results are already sorted in a way that
+        /// makes sense for screen space interactions.
+        /// </remarks>
+        public bool prioritizeDistanceSorting
+        {
+            get => m_PrioritizeDistanceSorting;
+            set => m_PrioritizeDistanceSorting = value;
+        }
+
         AxisEventData m_CachedAxisEvent;
         readonly Dictionary<int, PointerEventData> m_PointerEventByPointerId = new Dictionary<int, PointerEventData>();
         readonly Dictionary<int, TrackedDeviceEventData> m_TrackedDeviceEventByPointerId = new Dictionary<int, TrackedDeviceEventData>();
+
+        /// <summary>
+        /// This is a copy of the RaycastComparer from EventSystem to allow for custom sorting of raycast results
+        /// based on distance first.
+        /// Original source file located at unity/Packages/com.unity.ugui/Runtime/UGUI/EventSystem/EventSystem.cs
+        /// </summary>
+        sealed class RaycastResultComparer : IComparer<RaycastResult>
+        {
+            public int Compare(RaycastResult lhs, RaycastResult rhs)
+            {
+                // Prioritize distance first for XR applications, but only if the delta is large enough to be visually meaningful.
+                // When distances are nearly equal, continue with the same ordering logic as the EventSystem.
+                // This distance threshold helps with sorting consistency as the distance can fluctuate over time.
+
+                // More details of the specific case this is solving for:
+                // This threshold for distance sorting was added because the distance between a Scroll Rect's
+                // Viewport child GameObject will sometimes change ordering compared to a parent GameObject of
+                // the Scroll Rect since the distances are sub-millimeter even when there aren't any Z-offsets in
+                // the Rect Transforms. This could cause the closest element hit to no longer be under the
+                // `IScrollHandler` component hierarchy, which can cause unwanted behavior, such as re-enabling
+                // of locomotion in the Controller Input Action Manager component, even when the user is still
+                // pointing at the same UI. This distance flipping behavior seems to occur consistently when scrolling
+                // beyond the beginning or end when the Scroll Rect has Movement Type set to either Unrestricted or Elastic.
+                const float nearlyEqualThreshold = 1e-3f;
+                if (Mathf.Abs(lhs.distance - rhs.distance) > nearlyEqualThreshold)
+                    return lhs.distance.CompareTo(rhs.distance);
+
+                if (lhs.module != rhs.module)
+                {
+                    var lhsEventCamera = lhs.module.eventCamera;
+                    var rhsEventCamera = rhs.module.eventCamera;
+                    if (lhsEventCamera != null && rhsEventCamera != null && lhsEventCamera.depth != rhsEventCamera.depth)
+                    {
+                        // need to reverse the standard compareTo
+                        if (lhsEventCamera.depth < rhsEventCamera.depth)
+                            return 1;
+                        if (lhsEventCamera.depth == rhsEventCamera.depth)
+                            return 0;
+
+                        return -1;
+                    }
+
+                    if (lhs.module.sortOrderPriority != rhs.module.sortOrderPriority)
+                        return rhs.module.sortOrderPriority.CompareTo(lhs.module.sortOrderPriority);
+
+                    if (lhs.module.renderOrderPriority != rhs.module.renderOrderPriority)
+                        return rhs.module.renderOrderPriority.CompareTo(lhs.module.renderOrderPriority);
+                }
+
+                // Renderer sorting
+                if (lhs.sortingLayer != rhs.sortingLayer)
+                {
+                    // Uses the layer value to properly compare the relative order of the layers.
+                    var rid = SortingLayer.GetLayerValueFromID(rhs.sortingLayer);
+                    var lid = SortingLayer.GetLayerValueFromID(lhs.sortingLayer);
+                    return rid.CompareTo(lid);
+                }
+
+                if (lhs.sortingOrder != rhs.sortingOrder)
+                    return rhs.sortingOrder.CompareTo(lhs.sortingOrder);
+
+                // comparing depth only makes sense if the two raycast results have the same root canvas (case 912396)
+                if (lhs.depth != rhs.depth && lhs.module.rootRaycaster == rhs.module.rootRaycaster)
+                    return rhs.depth.CompareTo(lhs.depth);
+
+                if (lhs.distance != rhs.distance)
+                    return lhs.distance.CompareTo(rhs.distance);
+
+                return lhs.index.CompareTo(rhs.index);
+            }
+        }
+
+        static readonly RaycastResultComparer s_RaycastResultComparer = new RaycastResultComparer();
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -351,7 +446,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             return GetCurrentGameObject(pointerId) != null;
         }
 
-        RaycastResult PerformRaycast(PointerEventData eventData)
+        RaycastResult PerformRaycast(PointerEventData eventData, bool resort)
         {
             if (eventData == null)
                 throw new ArgumentNullException(nameof(eventData));
@@ -370,7 +465,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             //    - sortingGroupID
             //    - sortingGroupOrder
             eventSystem.RaycastAll(eventData, m_RaycastResultCache);
+            if (resort && m_RaycastResultCache.Count > 1)
+                SortingHelpers.Sort(m_RaycastResultCache, s_RaycastResultComparer);
+
             finalizeRaycastResults?.Invoke(eventData, m_RaycastResultCache);
+            var result = FindFirstRaycast(m_RaycastResultCache);
+            m_RaycastResultCache.Clear();
+            return result;
+        }
+
+        //CONSIDER: #XRA-664
+        internal RaycastResult PerformRaycast(ref PointerEventData eventData, Vector2 screenPosition)
+        {
+            eventData ??= new PointerEventData(eventSystem);
+            eventData.position = screenPosition;
+
+            // Skip finalizeRaycastResults in this method since the assumption is that this method bypasses the normal
+            // process sequence since it is used by the simulator. Skipping it keeps the execution flow unchanged.
+            eventSystem.RaycastAll(eventData, m_RaycastResultCache);
             var result = FindFirstRaycast(m_RaycastResultCache);
             m_RaycastResultCache.Clear();
             return result;
@@ -391,7 +503,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             pointerState.CopyTo(eventData);
 
-            eventData.pointerCurrentRaycast = PerformRaycast(eventData);
+            eventData.pointerCurrentRaycast = PerformRaycast(eventData, false);
 
             // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
@@ -681,7 +793,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             touchState.CopyTo(eventData);
 
-            eventData.pointerCurrentRaycast = (touchState.selectPhase == TouchPhase.Canceled) ? new RaycastResult() : PerformRaycast(eventData);
+            eventData.pointerCurrentRaycast = (touchState.selectPhase == TouchPhase.Canceled) ? new RaycastResult() : PerformRaycast(eventData, false);
             eventData.button = PointerEventData.InputButton.Left;
 
             ProcessPointerButton(touchState.selectDelta, eventData);
@@ -724,7 +836,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             var savedDelta = eventData.delta;
             eventData.position = new Vector2(-1f, -1f);
             eventData.delta = Vector2.zero;
-            eventData.pointerCurrentRaycast = PerformRaycast(eventData);
+            eventData.pointerCurrentRaycast = PerformRaycast(eventData, m_PrioritizeDistanceSorting);
             // Restore the original value after the Raycast is complete.
             eventData.position = savedPosition;
             eventData.delta = savedDelta;

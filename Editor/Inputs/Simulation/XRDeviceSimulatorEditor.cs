@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 
@@ -6,7 +7,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
     /// <summary>
     /// Custom editor for <see cref="XRDeviceSimulator"/>.
     /// </summary>
+#pragma warning disable CS0618
     [CustomEditor(typeof(XRDeviceSimulator), true), CanEditMultipleObjects]
+#pragma warning restore CS0618
     class XRDeviceSimulatorEditor : BaseInteractionEditor
     {
         const string k_GlobalActionsExpandedKey = "XRI." + nameof(XRDeviceSimulatorEditor) + ".GlobalActionsExpanded";

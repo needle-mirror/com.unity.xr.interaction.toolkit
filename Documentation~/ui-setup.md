@@ -16,7 +16,22 @@ The XR Interaction Toolkit package comes with menu items that perform basic setu
 
 ## Event System
 
-The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module to process input. Use the default configuration, pictured below, as a starting point. Only one Input Module can be active at one time. The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to receive Event System events from tracked devices.
+The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module component to process input. Use the default configuration, pictured in the [XR UI Input Module](xref:xri-ui-input-module) component documentation, as a starting point. Only one Event System can be active at one time in your scene, and only one Input Module component should be enabled at one time on the Event System GameObject. Since XR interactor components that support UI Interaction, such as the [Near-Far Interactor](xref:xri-near-far-interactor) or [XR Poke Interactor](xref:xri-xr-poke-interactor), need to register with the XR UI Input Module to interact with uGUI (Unity UI) components, the EventSystem GameObject is typically set to [`Object.DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html) to make it always available, easily findable, and kept to a single instance. See [Interaction overview](architecture.md#dont-destroy-on-load) for a sample script to set a GameObject to not be destroyed when loading another scene.
+
+The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to receive Event System events from tracked devices. This component functions in a similar way to the [Physics Raycaster](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/script-PhysicsRaycaster.html) component from uGUI (Unity UI) to send messages to 3D physics objects that implement event interfaces.
+
+## Canvas
+
+All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below) called the **Tracked Device Graphic Raycaster**. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
+
+![ui-canvas-setup](images/ui-canvas-setup.png)
+
+### Checking for UI Occlusion
+
+When using the **Tracked Device Graphic Raycaster** with the canvas components, you might run into situations where non-UI objects exist in front of the UI elements. The natural behavior would be for the non-UI object to block access to the UI. To support this behavior, enable **Check For 3D Occlusion** for 3D objects to block the ray from UI behind it. Enable **Check For 2D Occlusion** if you make use of 2D physics and those 2D objects should block the ray in a similar way.
+
+> [!IMPORTANT]
+> These occlusion options are turned off by default to save on performance. Be aware that each of these checkboxes performs additional ray casts to find 3D and 2D occlusion objects.
 
 ## Canvas optimizer
 
@@ -27,20 +42,7 @@ Add this component to a scene, such as on the EventSystem GameObject, to allow t
 > [!NOTE]
 > If you instantiate a UI element with a Canvas at runtime, you will need to manually register it with the Canvas Optimizer by calling `CanvasOptimizer.RegisterCanvas(Canvas)`.
 
-## Canvas
-
-All UI elements exist in the canvas. In the XR Interaction Toolkit, a user can only interact with canvases that have their **Render Mode** set to **World Space**. The XR Interaction Toolkit package contains a new component (pictured below) called the **Tracked Device Graphic Raycaster**. This component lets you use 3D tracked devices to highlight and select UI elements in that canvas.
-
-![ui-canvas-setup](images/ui-canvas-setup.png)
-
-## Checking for UI Occlusion
-
-When using the **Tracked Device Graphic Raycaster** with the canvas components, you might run into situations where non-UI objects exist in front of the UI elements. The natural behavior would be for the non-UI object to block access to the UI. To support this behavior, enable **Check For 3D Occlusion** for 3D objects to block the ray from UI behind it. Enable **Check For 2D Occlusion** if you make use of 2D physics and those 2D objects should block the ray in a similar way.
-
-> [!IMPORTANT]
-> These occlusion options are turned off by default to save on performance. Be aware that each of these checkboxes performs additional ray casts to find 3D and 2D occlusion objects.
-
 ## Known Issues with Input Fields
 
-- When building for UWP (Universal Windows Platform) and using standard UGUI Input Fields, the input field does not receive text input from the software keyboard provided by the Mixed Reality Portal. The TextMeshPro - Input Field component should be used instead, which responds correctly to software keyboard events.
+- When building for UWP (Universal Windows Platform) and using standard uGUI (Unity UI) Input Fields, the input field does not receive text input from the software keyboard provided by the Mixed Reality Portal. The TextMeshPro - Input Field component should be used instead, which responds correctly to software keyboard events.
 - There is an issue where the software keyboard cannot be closed on Quest platform builds when using an **Input Field** with **Line Type** set to **Multi Line Newline**.

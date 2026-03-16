@@ -52,9 +52,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// <seealso cref="XRSimulatedController"/>
     /// <seealso cref="XRSimulatedHMD"/>
     /// <seealso cref="SimulatedInputLayoutLoader"/>
-    [AddComponentMenu("XR/Debug/XR Device Simulator", 11)]
+    [AddComponentMenu("XR/Debug/XR Device Simulator (Deprecated)", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_DeviceSimulator)]
     [HelpURL(XRHelpURLConstants.k_XRDeviceSimulator)]
+    [Obsolete("XRDeviceSimulator has been marked for deprecation and will be replaced by the XRInteractionSimulator in future versions.")]
     public partial class XRDeviceSimulator : MonoBehaviour
     {
         /// <summary>
@@ -2686,6 +2687,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// </summary>
     static class TargetedDevicesExtensions
     {
+#pragma warning disable CS0618
         /// <summary>
         /// Returns the flags enum with the given flag set.
         /// </summary>
@@ -2719,5 +2721,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             return (devices & device) == device;
         }
+#pragma warning restore CS0618
     }
 }

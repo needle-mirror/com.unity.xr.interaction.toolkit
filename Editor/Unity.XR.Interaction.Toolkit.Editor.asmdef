@@ -7,8 +7,10 @@
         "UnityEngine.SpatialTracking",
         "Unity.XR.ARFoundation",
         "Unity.InputSystem",
+        "Unity.InputSystem.Editor",
         "Unity.XR.CoreUtils",
-        "Unity.XR.CoreUtils.Editor"
+        "Unity.XR.CoreUtils.Editor",
+        "Unity.XR.Hands"
     ],
     "includePlatforms": [
         "Editor"
@@ -44,6 +46,11 @@
             "name": "com.unity.modules.uielements",
             "expression": "1.0.0",
             "define": "UIELEMENTS_MODULE_PRESENT"
+        },
+        {
+            "name": "com.unity.xr.hands",
+            "expression": "1.1.0",
+            "define": "XR_HANDS_1_1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

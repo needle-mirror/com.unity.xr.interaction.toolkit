@@ -18,14 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [TearDown]
         public void TearDown()
         {
-            if (XRInteractionRuntimeSettings.InstanceInternal != null)
-            {
-                // Reset back to default project settings after each test because some tests change these.
-                XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = default;
-                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerSingletonMode = default;
-                XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = default;
-            }
-
+            TestUtilities.ResetXRIRuntimeSettings();
             TestUtilities.DestroyAllSceneObjects();
         }
 
@@ -297,6 +290,212 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(unregisteredInteractionGroup, Is.SameAs(interactionGroup));
             Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.False);
             Assert.That(manager.IsRegistered(interactionGroup), Is.False);
+        }
+
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)]
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)]
+        public void CustomInteractorRegisteredFromWaitlist(XRInteractionRuntimeSettings.ManagerRegistrationMode registrationMode)
+        {
+            // Unlike the test below, this test does not rely on the interactor itself registering with the
+            // interaction manager during its own OnEnable. This test verifies that an interactor manually
+            // added to the waitlist through API is actually registered with a new manager.
+
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = XRInteractionRuntimeSettings.ManagerCreationMode.Manual;
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = registrationMode;
+
+            var interactor = TestUtilities.CreateMockClassInteractor();
+
+            // The manager should not be automatically created from the mock plain C# class-based interactor
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(interactor.isRegistered, Is.False);
+            Assert.That(interactor.registeredInteractionManager, Is.Null);
+
+            // Use API to add the custom interactor to the waitlist
+            XRInteractionManager.RegisterWithWaitlist(interactor);
+
+            var interactors = new List<IXRInteractor>();
+            var manager = TestUtilities.CreateInteractionManager();
+
+            if (registrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                // The manager should not automatically register waitlist items when set to Manual
+                manager.GetRegisteredInteractors(interactors);
+
+                Assert.That(interactors, Is.Empty);
+                Assert.That(manager.IsRegistered(interactor), Is.False);
+                Assert.That(interactor.isRegistered, Is.False);
+                Assert.That(interactor.registeredInteractionManager, Is.Null);
+
+                // Explicitly register waitlist items
+                manager.RegisterWaitlistItems();
+            }
+
+            manager.GetRegisteredInteractors(interactors);
+
+            Assert.That(interactors, Is.EqualTo(new[] { interactor }));
+            Assert.That(manager.IsRegistered(interactor), Is.True);
+            Assert.That(interactor.isRegistered, Is.True);
+            Assert.That(interactor.registeredInteractionManager, Is.SameAs(manager));
+        }
+
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)]
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)]
+        public void InteractorRegisteredFromWaitlist(XRInteractionRuntimeSettings.ManagerRegistrationMode registrationMode)
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = XRInteractionRuntimeSettings.ManagerCreationMode.Manual;
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = registrationMode;
+
+            var interactor = TestUtilities.CreateMockInteractor();
+
+            // The manager should not be automatically created when set to Manual
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(interactor.interactionManager, Is.Null);
+
+            var interactors = new List<IXRInteractor>();
+            var manager = TestUtilities.CreateInteractionManager();
+
+            if (registrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                // The manager should not automatically register waitlist items when set to Manual
+                manager.GetRegisteredInteractors(interactors);
+
+                Assert.That(interactors, Is.Empty);
+                Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.False);
+
+                // Explicitly register waitlist items
+                manager.RegisterWaitlistItems();
+            }
+
+            manager.GetRegisteredInteractors(interactors);
+
+            Assert.That(interactors, Is.EqualTo(new[] { interactor }));
+            Assert.That(manager.IsRegistered((IXRInteractor)interactor), Is.True);
+        }
+
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)]
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)]
+        public void InteractableRegisteredFromWaitlist(XRInteractionRuntimeSettings.ManagerRegistrationMode registrationMode)
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = XRInteractionRuntimeSettings.ManagerCreationMode.Manual;
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = registrationMode;
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            // The manager should not be automatically created when set to Manual
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(interactable.interactionManager, Is.Null);
+
+            var interactables = new List<IXRInteractable>();
+            var manager = TestUtilities.CreateInteractionManager();
+
+            if (registrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                // The manager should not automatically register waitlist items when set to Manual
+                manager.GetRegisteredInteractables(interactables);
+
+                Assert.That(interactables, Is.Empty);
+                Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.False);
+
+                // Explicitly register waitlist items
+                manager.RegisterWaitlistItems();
+            }
+
+            manager.GetRegisteredInteractables(interactables);
+
+            Assert.That(interactables, Is.EqualTo(new[] { interactable }));
+            Assert.That(manager.IsRegistered((IXRInteractable)interactable), Is.True);
+        }
+
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)]
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)]
+        public void SnapVolumeRegisteredFromWaitlist(XRInteractionRuntimeSettings.ManagerRegistrationMode registrationMode)
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = XRInteractionRuntimeSettings.ManagerCreationMode.Manual;
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = registrationMode;
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var snapVolume = TestUtilities.CreateSnapVolume();
+            snapVolume.interactable = interactable;
+
+            // The manager should not be automatically created when set to Manual
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(interactable.interactionManager, Is.Null);
+
+            var snapVolumes = new List<XRInteractableSnapVolume>();
+            var manager = TestUtilities.CreateInteractionManager();
+
+            if (registrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                // The manager should not automatically register waitlist items when set to Manual
+                manager.GetRegisteredSnapVolumes(snapVolumes);
+
+                Assert.That(snapVolumes, Is.Empty);
+                Assert.That(manager.IsRegistered(snapVolume), Is.False);
+
+                // Explicitly register waitlist items
+                manager.RegisterWaitlistItems();
+            }
+
+            manager.GetRegisteredSnapVolumes(snapVolumes);
+
+            Assert.That(snapVolumes, Is.EqualTo(new[] { snapVolume }));
+            Assert.That(manager.IsRegistered(snapVolume), Is.True);
+        }
+
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.FindAutomatically)]
+        [TestCase(XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)]
+        public void InteractionGroupRegisteredFromWaitlist(XRInteractionRuntimeSettings.ManagerRegistrationMode registrationMode)
+        {
+            Assume.That(XRInteractionRuntimeSettings.InstanceInternal != null, Is.True);
+            Assume.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assume.That(ComponentLocatorUtility<XRInteractionManager>.componentCache, Is.Null);
+
+            XRInteractionRuntimeSettings.InstanceInternal.managerCreationMode = XRInteractionRuntimeSettings.ManagerCreationMode.Manual;
+            XRInteractionRuntimeSettings.InstanceInternal.interactionManagerRegistrationMode = registrationMode;
+
+            var group = TestUtilities.CreateInteractionGroup();
+            var interactor = TestUtilities.CreateMockInteractor();
+            group.AddGroupMember(interactor);
+
+            // The manager should not be automatically created when set to Manual
+            Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
+            Assert.That(interactor.interactionManager, Is.Null);
+
+            var groups = new List<IXRInteractionGroup>();
+            var manager = TestUtilities.CreateInteractionManager();
+
+            if (registrationMode == XRInteractionRuntimeSettings.ManagerRegistrationMode.Manual)
+            {
+                // The manager should not automatically register waitlist items when set to Manual
+                manager.GetRegisteredInteractionGroups(groups);
+
+                Assert.That(groups, Is.Empty);
+                Assert.That(manager.IsRegistered(group), Is.False);
+
+                // Explicitly register waitlist items
+                manager.RegisterWaitlistItems();
+            }
+
+            manager.GetRegisteredInteractionGroups(groups);
+
+            Assert.That(groups, Is.EqualTo(new[] { group }));
+            Assert.That(manager.IsRegistered(group), Is.True);
         }
 
         [UnityTest]
