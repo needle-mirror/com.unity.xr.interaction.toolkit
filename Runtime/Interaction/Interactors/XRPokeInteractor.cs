@@ -26,6 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// Sets whether physics queries hit Trigger colliders and include or ignore snap volume trigger colliders.
         /// </summary>
+        /// <seealso cref="XRPokeInteractor.snapVolumeInteraction"/>
         public enum QuerySnapVolumeInteraction
         {
             /// <summary>
@@ -120,7 +121,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         QueryTriggerInteraction m_PhysicsTriggerInteraction = QueryTriggerInteraction.Ignore;
 
         /// <summary>
-        /// Determines whether the poke sphere overlap will hit triggers.
+        /// Determines whether the poke sphere overlap and cast will hit triggers.
         /// </summary>
         /// <remarks>
         /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)

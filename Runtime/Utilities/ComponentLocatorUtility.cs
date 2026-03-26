@@ -338,10 +338,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         {
             s_LastTryFindFrame = Time.frameCount;
 
-            // Sorting by ID since this utility is often used to find a component of which there is a single instance,
+            // Prior to Unity 6.4, we are sorting by ID since this utility is often used to find a component of which there is a single instance,
             // so the penalty for sorting will be minimal but with the benefit of having consistent results when
-            // there are multiple components to choose from.
+            // there are multiple components to choose from. With Unity 6.4+, sort order cannot be maintained when
+            // changing from instance ID to entity ID, so FindObjectsSortMode was deprecated. Rather than suppressing the warning,
+            // we just use the equivalent of FindObjectsSortMode.None.
+#if UNITY_6000_4_OR_NEWER
+            var objectsByType = Object.FindObjectsByType(typeof(T), FindObjectsInactive.Exclude);
+#else
             var objectsByType = Object.FindObjectsByType(typeof(T), FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+#endif
 
             if (objectsByType.Length == 0)
                 return null;

@@ -20,7 +20,7 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
     {
         // Try to find an interaction manager if necessary.
         if (m_InteractionManager == null)
-            m_InteractionManager = FindFirstObjectByType<XRInteractionManager>();
+            m_InteractionManager = FindAnyObjectByType<XRInteractionManager>();
 
         // Note, the code below is creating the XRInteractionGroup, NearFarInteractor, XRGrabInteractable, and XRInteractableSnapVolume before subscribing
         // to the interaction manager register/unregister events. Therefore, the initial register callback will not be logged.

@@ -50,6 +50,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 
         static XRDeviceSimulatorHandsProvider() => id = "XRI Device Simulator Hands Provider";
 
+        static bool s_SubsystemRegistered;
+
         /// <inheritdoc/>
         public override void Start()
         {
@@ -280,13 +282,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register()
         {
-            var handsSubsystemCinfo = new XRHandSubsystemDescriptor.Cinfo
+            if (!s_SubsystemRegistered)
             {
-                id = id,
-                providerType = typeof(XRDeviceSimulatorHandsProvider),
-                subsystemTypeOverride = typeof(XRDeviceSimulatorHandsSubsystem),
-            };
-            XRHandSubsystemDescriptor.Register(handsSubsystemCinfo);
+                var handsSubsystemCinfo = new XRHandSubsystemDescriptor.Cinfo
+                {
+                    id = id,
+                    providerType = typeof(XRDeviceSimulatorHandsProvider),
+                    subsystemTypeOverride = typeof(XRDeviceSimulatorHandsSubsystem),
+                };
+                XRHandSubsystemDescriptor.Register(handsSubsystemCinfo);
+                s_SubsystemRegistered = true;
+            }
         }
     }
 }

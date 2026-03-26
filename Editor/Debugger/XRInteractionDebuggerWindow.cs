@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_6000_4_OR_NEWER
+using System.Security.Cryptography;
+#endif
 using System.Text;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.XR.Interaction.Toolkit.Filtering;
@@ -7,7 +10,9 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using Object = UnityEngine.Object;
+#if !UNITY_6000_4_OR_NEWER
 using Random = UnityEngine.Random;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -67,7 +72,16 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         static readonly List<string> s_Names = new List<string>();
 
+#if UNITY_6000_3_OR_NEWER
+        static readonly Dictionary<object, EntityId> s_GeneratedUniqueIds = new Dictionary<object, EntityId>();
+#else
         static readonly Dictionary<object, int> s_GeneratedUniqueIds = new Dictionary<object, int>();
+#endif
+
+#if UNITY_6000_4_OR_NEWER
+        // ulong is 8 bytes (64 bits)
+        static readonly byte[] s_RandomBytes = new byte[8];
+#endif
 
         [MenuItem("Window/Analysis/XR Interaction Debugger", false, 2100)]
         public static void Init()
@@ -365,34 +379,63 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return obj != null ? obj.GetType().Name : "<null>";
         }
 
-        internal static int GetUniqueTreeViewId(object obj)
+#if UNITY_6000_3_OR_NEWER
+        internal static EntityId GetUniqueTreeViewEntityId(object obj)
         {
             if (obj is Object unityObject)
-            {
-                return unityObject.GetInstanceID();
-            }
+                return unityObject.GetEntityId();
 
             // Generate an ID if the object isn't a Unity Object,
-            // making sure to not clash with an existing instance ID.
+            // making sure to not clash with an existing entity ID.
             if (!s_GeneratedUniqueIds.TryGetValue(obj, out var id))
             {
-#if UNITY_6000_3_OR_NEWER
                 do
                 {
-                    id = Random.Range(int.MinValue, int.MaxValue);
-                } while (EditorUtility.EntityIdToObject((EntityId)id) != null);
-#else
-                do
-                {
-                    id = Random.Range(int.MinValue, int.MaxValue);
-                } while (EditorUtility.InstanceIDToObject(id) != null);
-#endif
+                    id = CreateRandomEntityId();
+                } while (EditorUtility.EntityIdToObject(id) != null);
 
                 s_GeneratedUniqueIds.Add(obj, id);
             }
 
             return id;
         }
+
+        static EntityId CreateRandomEntityId()
+        {
+#if UNITY_6000_4_OR_NEWER
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(s_RandomBytes);
+                }
+                ulong longRand = (ulong)BitConverter.ToInt64(s_RandomBytes, 0);
+
+                return EntityId.FromULong(longRand);
+#else
+            int randInt = Random.Range(int.MinValue, int.MaxValue);
+            return (EntityId)randInt;
+#endif
+        }
+#else
+        internal static int GetUniqueTreeViewId(object obj)
+        {
+            if (obj is Object unityObject)
+                return unityObject.GetInstanceID();
+
+            // Generate an ID if the object isn't a Unity Object,
+            // making sure to not clash with an existing instance ID.
+            if (!s_GeneratedUniqueIds.TryGetValue(obj, out var id))
+            {
+                do
+                {
+                    id = Random.Range(int.MinValue, int.MaxValue);
+                } while (EditorUtility.InstanceIDToObject(id) != null);
+
+                s_GeneratedUniqueIds.Add(obj, id);
+            }
+
+            return id;
+        }
+#endif
 
         internal static int[] CreateVisibleColumns(int count)
         {

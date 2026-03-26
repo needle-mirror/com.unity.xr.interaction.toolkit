@@ -94,6 +94,7 @@ Use the options in the **Raycast Configuration** section to specify how the ray 
 | **Raycast Mask** | The layer mask used for limiting ray cast targets. The interactor can interact with interactables included in any of the layers in the mask. A mask setting of **Everything** includes all interactables. A mask setting of **Nothing** includes no interactables. |
 | **Raycast Trigger Interaction** | The type of interaction with trigger colliders via ray cast. |
 | **Raycast Snap Volume Interaction** | Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers. If you are not using gaze assistance or XR Interactable Snap Volume components, you should set this property to Ignore to avoid the performance cost. |
+| **Raycast UI Document Trigger Interaction** | Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the ray cast is set to ignore triggers. |
 | **Hit Detection Type** | Which type of hit detection to use for the ray cast. |
 | &emsp;Raycast | Set **Hit Detection Type** to **Raycast** to use `Physics` Raycast to detect collisions. |
 | &emsp;Sphere Cast | Set **Hit Detection Type** to **Sphere Cast** to use `Physics` Sphere Cast to detect collisions. |

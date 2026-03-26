@@ -9,6 +9,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.5.0-pre.2] - 2026-03-26
+
+### Changed
+- Changed some components to no longer sort found components by instance ID when finding a component due to `FindObjectsSortMode.InstanceID` being deprecated in Unity 6.4. This may cause a different component instance to be used for unassigned references in Unity 6.4 or newer.
+
+### Fixed
+- Fixed warnings caused by APIs that were deprecated in Unity 6.4.
+- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026)
 
 ## [3.5.0-pre.1] - 2026-03-16
 

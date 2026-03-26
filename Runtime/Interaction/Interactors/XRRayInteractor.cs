@@ -461,6 +461,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
         [SerializeField]
         QuerySnapVolumeInteraction m_RaycastSnapVolumeInteraction = QuerySnapVolumeInteraction.Collide;
+
         /// <summary>
         /// Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders,
         /// even if the ray cast is set to ignore triggers.

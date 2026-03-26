@@ -13,7 +13,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// Multi-column <see cref="TreeView"/> that shows the Interactables final score and the contribution of each enabled evaluator.
     /// The filter is the root of the tree. The Interactables are displayed as children of the linked Interactor that invoked the filter process.
     /// </summary>
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+    class XRTargetEvaluatorsScoreTreeView : TreeView<EntityId>
+#elif UNITY_6000_2_OR_NEWER
     class XRTargetEvaluatorsScoreTreeView : TreeView<int>
 #else
     class XRTargetEvaluatorsScoreTreeView : TreeView
@@ -28,7 +30,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             Count,
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        class Item : TreeViewItem<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         class Item : TreeViewItem<int>
 #else
         class Item : TreeViewItem
@@ -40,7 +44,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         [Serializable]
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        public class State : TreeViewState<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         public class State : TreeViewState<int>
 #else
         public class State : TreeViewState
@@ -212,7 +218,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        protected override TreeViewItem<EntityId> BuildRoot()
+#elif UNITY_6000_2_OR_NEWER
         protected override TreeViewItem<int> BuildRoot()
 #else
         protected override TreeViewItem BuildRoot()
@@ -221,19 +229,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = EntityId.None,
+#else
                 id = 0,
+#endif
                 children = BuildInteractorTree(),
                 depth = -1,
             };
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        static List<TreeViewItem<EntityId>> CreateItemsList() => new List<TreeViewItem<EntityId>>();
+#elif UNITY_6000_2_OR_NEWER
         static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
 #else
         static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
 #endif
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildInteractorTree()
+#elif UNITY_6000_2_OR_NEWER
         List<TreeViewItem<int>> BuildInteractorTree()
 #else
         List<TreeViewItem> BuildInteractorTree()
@@ -246,7 +262,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
             var rootTreeItem = new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(m_Filter),
+#else
                 id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(m_Filter),
+#endif
                 displayName = XRInteractionDebuggerWindow.GetDisplayName(m_Filter),
                 target = m_Filter,
                 depth = 0
@@ -257,7 +277,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             {
                 var childItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(interactor),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactor),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(interactor),
                     target = interactor,
                     depth = 1,
@@ -274,7 +298,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             return items;
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
+#elif UNITY_6000_2_OR_NEWER
         List<TreeViewItem<int>> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
 #else
         List<TreeViewItem> BuildInteractableScoreTree(Item parent, IXRInteractor interactor)
@@ -304,7 +330,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
                 var childItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(interactable),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactable),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(interactable),
                     target = interactable,
                     finalScore = finalScore,
@@ -362,19 +392,23 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void DoubleClickedItem(EntityId id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeEntityId = id;
+        }
+#else
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
 
-#if UNITY_6000_3_OR_NEWER
-            var entityId = (EntityId)id;
-            EditorGUIUtility.PingObject(entityId);
-            Selection.activeEntityId = entityId;
-#else
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
-#endif
         }
+#endif
 
         /// <summary>
         /// Checks if the enabled evaluator list has changed.

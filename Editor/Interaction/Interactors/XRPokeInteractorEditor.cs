@@ -60,9 +60,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.physicsTriggerInteraction"/>.</summary>
             public static readonly GUIContent physicsTriggerInteraction = EditorGUIUtility.TrTextContent("Physics Trigger Interaction", "Determines whether the poke sphere overlap and cast will hit triggers. Use Global refers to the Queries Hit Triggers setting in Physics Project Settings.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.snapVolumeInteraction"/>.</summary>
-            public static readonly GUIContent snapVolumeInteraction = EditorGUIUtility.TrTextContent("Snap Volume Interaction", "Determines if poke sphere overlap and cast include Snap Volumes: 'Collide' to include, 'Ignore' to avoid accidental selection with Snap Volumes.");
+            public static readonly GUIContent snapVolumeInteraction = EditorGUIUtility.TrTextContent("Snap Volume Interaction", "Whether physics cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the physics cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.uiDocumentTriggerInteraction"/>.</summary>
-            public static readonly GUIContent uiDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("UI Document Trigger Interaction", "Determines if poke sphere overlap and cast include UI Document triggers: 'Collide' to include, 'Ignore' for performance optimization when not using UI Toolkit.");
+            public static readonly GUIContent uiDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("UI Document Trigger Interaction", "Whether physics cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the physics cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.requirePokeFilter"/>.</summary>
             public static readonly GUIContent requirePokeFilter = EditorGUIUtility.TrTextContent("Require Poke Filter", "Denotes whether or not valid targets will only include objects with a poke filter.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.enableUIInteraction"/>.</summary>
