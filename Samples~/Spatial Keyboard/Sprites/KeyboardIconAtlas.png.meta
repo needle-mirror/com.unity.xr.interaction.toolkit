@@ -114,17 +114,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 32
-        width: 32
-        height: 32
+        y: 342
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -15, y: -13}
-        - {x: 15, y: -13}
-        - {x: 15, y: 13}
-        - {x: -15, y: 13}
+      - - {x: -81, y: -11}
+        - {x: -26, y: -64}
+        - {x: 74, y: -64}
+        - {x: 74, y: 60}
+        - {x: -27, y: 61}
+        - {x: -82, y: 5}
       physicsShape: []
       tessellationDetail: 0
       bones: []
@@ -138,18 +140,24 @@ TextureImporter:
       name: Caps Lock
       rect:
         serializedVersion: 2
-        x: 32
-        y: 32
-        width: 32
-        height: 32
+        x: 171
+        y: 342
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -14, y: -13}
-        - {x: 14, y: -13}
-        - {x: 14, y: 14}
-        - {x: -14, y: 14}
+      - - {x: -71, y: 4}
+        - {x: -57, y: -12}
+        - {x: -32, y: -12}
+        - {x: -30, y: -67}
+        - {x: 30, y: -67}
+        - {x: 30, y: -12}
+        - {x: 62, y: -12}
+        - {x: 76, y: 3}
+        - {x: 10, y: 73}
+        - {x: -10, y: 73}
       physicsShape: []
       tessellationDetail: 0
       bones: []
@@ -163,18 +171,25 @@ TextureImporter:
       name: Emoji
       rect:
         serializedVersion: 2
-        x: 64
-        y: 32
-        width: 32
-        height: 32
+        x: 342
+        y: 342
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -15, y: -15}
-        - {x: 15, y: -15}
-        - {x: 15, y: 15}
-        - {x: -15, y: 15}
+      - - {x: -73, y: 30}
+        - {x: -77, y: -11}
+        - {x: -60, y: -53}
+        - {x: -26, y: -76}
+        - {x: 21, y: -76}
+        - {x: 61, y: -52}
+        - {x: 78, y: -2}
+        - {x: 67, y: 38}
+        - {x: 34, y: 70}
+        - {x: -12, y: 73}
+        - {x: -51, y: 62}
       physicsShape: []
       tessellationDetail: 0
       bones: []
@@ -189,17 +204,20 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 32
-        height: 32
+        y: 171
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -16, y: -16}
-        - {x: 16, y: -16}
-        - {x: 16, y: 14}
-        - {x: -16, y: 14}
+      - - {x: -85, y: -47}
+        - {x: -23, y: -47}
+        - {x: -2, y: -80}
+        - {x: 15, y: -48}
+        - {x: 85, y: -47}
+        - {x: 85, y: 75}
+        - {x: -85, y: 76}
       physicsShape: []
       tessellationDetail: 0
       bones: []
@@ -213,18 +231,24 @@ TextureImporter:
       name: Mic
       rect:
         serializedVersion: 2
-        x: 32
-        y: 0
-        width: 32
-        height: 32
+        x: 171
+        y: 171
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -9, y: -14}
-        - {x: 9, y: -14}
-        - {x: 9, y: 14}
-        - {x: -9, y: 14}
+      - - {x: -33, y: -45}
+        - {x: -39, y: -70}
+        - {x: 38, y: -70}
+        - {x: 31, y: -46}
+        - {x: 42, y: -33}
+        - {x: 45, y: 54}
+        - {x: 28, y: 70}
+        - {x: -25, y: 70}
+        - {x: -43, y: 56}
+        - {x: -42, y: -31}
       physicsShape: []
       tessellationDetail: 0
       bones: []
@@ -238,23 +262,106 @@ TextureImporter:
       name: Shift
       rect:
         serializedVersion: 2
-        x: 64
-        y: 0
-        width: 32
-        height: 32
+        x: 342
+        y: 171
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline:
-      - - {x: -14, y: -15}
-        - {x: 15, y: -15}
-        - {x: 15, y: 14}
-        - {x: -14, y: 14}
+      - - {x: -71, y: 4}
+        - {x: -62, y: -10}
+        - {x: -29, y: -12}
+        - {x: -30, y: -76}
+        - {x: 28, y: -77}
+        - {x: 29, y: -12}
+        - {x: 58, y: -12}
+        - {x: 70, y: 6}
+        - {x: 8, y: 75}
+        - {x: -8, y: 75}
       physicsShape: []
       tessellationDetail: 0
       bones: []
       spriteID: f3268a3d31974164d9305cce0516934d
       internalID: 373736265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Submit
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 0
+        width: 170
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -85, y: -85}
+        - {x: -85, y: 85}
+        - {x: -63, y: 85}
+        - {x: 85, y: 12}
+        - {x: 85, y: -6}
+        - {x: -64, y: -85}
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5549c25a5b523584b833625dd9524917
+      internalID: -1552482034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: '#+='
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 0
+        width: 170
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -82, y: -35}
+        - {x: -82, y: 34}
+        - {x: 72, y: 34}
+        - {x: 72, y: -35}
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7d8f800f6a6c6b459bc81ced52d7bd1
+      internalID: -2076790281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ABC
+      rect:
+        serializedVersion: 2
+        x: 342
+        y: 2
+        width: 170
+        height: 170
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -85, y: -41}
+        - {x: -85, y: 33}
+        - {x: 81, y: 33}
+        - {x: 81, y: -40}
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e80a0b65f5d84df488eab1c3d2cea46d
+      internalID: -1819991788
       vertices: []
       indices: 
       edges: []
@@ -270,12 +377,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      '#+=': -2076790281
+      ABC: -1819991788
       Backspace: 172946984
       Caps Lock: -92300165
       Emoji: 1365469357
       HideKeyboard: 1163011659
       Mic: 47032972
       Shift: 373736265
+      Submit: -1552482034
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

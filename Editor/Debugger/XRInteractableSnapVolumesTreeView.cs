@@ -12,7 +12,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows snap volumes.
     /// </summary>
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+    class XRInteractableSnapVolumesTreeView : TreeView<EntityId>
+#elif UNITY_6000_2_OR_NEWER
     class XRInteractableSnapVolumesTreeView : TreeView<int>
 #else
     class XRInteractableSnapVolumesTreeView : TreeView
@@ -33,7 +35,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         const float k_RowHeight = 20f;
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        class Item : TreeViewItem<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         class Item : TreeViewItem<int>
 #else
         class Item : TreeViewItem
@@ -44,7 +48,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         [Serializable]
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        public class State : TreeViewState<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         public class State : TreeViewState<int>
 #else
         public class State : TreeViewState
@@ -220,7 +226,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        protected override TreeViewItem<EntityId> BuildRoot()
+#elif UNITY_6000_2_OR_NEWER
         protected override TreeViewItem<int> BuildRoot()
 #else
         protected override TreeViewItem BuildRoot()
@@ -229,19 +237,27 @@ namespace UnityEditor.XR.Interaction.Toolkit
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = EntityId.None,
+#else
                 id = 0,
+#endif
                 children = BuildInteractableTree(),
                 depth = -1,
             };
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        static List<TreeViewItem<EntityId>> CreateItemsList() => new List<TreeViewItem<EntityId>>();
+#elif UNITY_6000_2_OR_NEWER
         static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
 #else
         static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
 #endif
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildInteractableTree()
+#elif UNITY_6000_2_OR_NEWER
         List<TreeViewItem<int>> BuildInteractableTree()
 #else
         List<TreeViewItem> BuildInteractableTree()
@@ -257,7 +273,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
                 var rootTreeItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(interactionManager),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(interactionManager),
+#endif
                     displayName = m_InteractionManagers.Count > 1 && ComponentLocatorUtility<XRInteractionManager>.componentCache == interactionManager
                         ? $"{XRInteractionDebuggerWindow.GetDisplayName(interactionManager)} <Default>"
                         : XRInteractionDebuggerWindow.GetDisplayName(interactionManager),
@@ -278,7 +298,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     {
                         var childItem = new Item
                         {
+#if UNITY_6000_3_OR_NEWER
+                            id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(snapVolume),
+#else
                             id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(snapVolume),
+#endif
                             displayName = XRInteractionDebuggerWindow.GetDisplayName(snapVolume),
                             snapVolume = snapVolume,
                             interactionManager = interactionManager,
@@ -378,18 +402,22 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void DoubleClickedItem(EntityId id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeEntityId = id;
+        }
+#else
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
 
-#if UNITY_6000_4_OR_NEWER
-            var entityId = (EntityId)id;
-            EditorGUIUtility.PingObject(entityId);
-            Selection.activeEntityId = entityId;
-#else
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
-#endif
         }
+#endif
     }
 }

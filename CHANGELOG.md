@@ -9,7 +9,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
-## [3.4.0] - 2025-02-03
+## [3.4.1] - 2026-04-02
+
+### Changed
+- Changed some components to no longer sort found components by instance ID when finding a component due to `FindObjectsSortMode.InstanceID` being deprecated in Unity 6.4. This may cause a different component instance to be used for unassigned references in Unity 6.4 or newer. (Backport from 3.5.0-pre.2)
+
+
+### Fixed
+- Fixed Editor Assembly Definition to include `Unity.InputSystem.Editor` in the references to fix script compilation on some versions of Input System (com.unity.inputsystem). (Backport from 3.5.0-pre.1)
+- Fixed warnings caused by APIs that were deprecated in Unity 6.4. (Backport from 3.5.0-pre.2)
+- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026) (Backport from 3.5.0-pre.2)
+
+## [3.4.0] - 2026-02-03
 
 ### Added
 - Added UI Toolkit world-space support to `XRRayInteractor` for Unity 6.2.0 and newer, enabling ray-based interaction with UI Toolkit panels in XR environments.

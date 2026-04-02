@@ -4,6 +4,7 @@
   "xref": [
             "com.unity.xr.hands@1.4",
             "com.unity.xr.arfoundation@5.1",
+            "com.unity.xr.core-utils",
             "com.unity.xr.openxr"
           ]
 }

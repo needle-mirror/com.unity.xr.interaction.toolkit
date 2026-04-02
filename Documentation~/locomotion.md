@@ -39,8 +39,7 @@ The overall flow of a Locomotion request is as follows:
 
 ### XR Origin
 
-The [XR Origin](https://docs.unity3d.com/Packages/com.unity.xr.core-utils@latest?subfolder=/manual/xr-origin-reference.html) is available for transformation in a container class called [`XRMovableBody`](#xr-movable-body). The XR Movable Body can be transformed using the user's body as a frame of reference.
-
+The [XR Origin](xref:xr-core-utils-xr-origin-reference) component is available for transformation in a container class called [`XRMovableBody`](#xr-movable-body). The XR Movable Body can be transformed using the user's body as a frame of reference.
 
 ### XR Movable Body
 
@@ -50,15 +49,15 @@ Additionally, the XR Movable body utilizes a Body Position Evaluator, which dete
 
 ### Locomotion Mediator
 
-The [Locomotion Mediator](locomotion-mediator.md) component is a key part of locomotion, mediating transformation requests from Locomotion Providers, giving Locomotion Providers access to the XR Body Transformer, and managing the Locomotion State of the Locomotion Providers.
+The [Locomotion Mediator](locomotion-mediator.md) component is a key part of locomotion, mediating transformation requests from Locomotion Providers, giving Locomotion Providers access to the XR Body Transformer, and managing the Locomotion State of the Locomotion Providers. Locomotion Providers serialize a reference to the Locomotion Mediator, and if not set will automatically search up the GameObject hierarchy or across all loaded scenes to find it during their own `Awake` and `OnEnable` methods.
 
-The Locomotion Mediator gets the XR Body Transformer component on `Awake` to prepare for Locomotion Provider requests.
+The Locomotion Mediator gets the [required](https://docs.unity3d.com/ScriptReference/RequireComponent.html) XR Body Transformer component on `Awake` to prepare for Locomotion Provider requests.
 
-Locomotion Providers begin in `LocomotionState.Idle`. When Locomotion Providers call `TryPrepareLocomotion`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `LocomotionState.Preparing` in the data map. Once the provider is in `LocomotionState.Preparing` the Locomotion Mediator will transition the provider to `LocomotionState.Moving` during the next `LocomotionMediator.Update` where `LocomotionProvider.canStartMoving` is true.
+Locomotion Providers begin in `LocomotionState.Idle`. When Locomotion Providers call [`TryPrepareLocomotion`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.TryPrepareLocomotion), the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State to `LocomotionState.Preparing` in the data map. Once the provider is in `LocomotionState.Preparing` the Locomotion Mediator will transition the provider to `LocomotionState.Moving` during the next `LocomotionMediator.Update` where [`LocomotionProvider.canStartMoving`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.canStartMoving) is true.
 
-Alternatively, when Locomotion Providers call `TryStartLocomotionImmediately`, the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State directly to `Locomotion.Moving` in the data map. Note, `LocomotionProvider.TryStartLocomotionImmediately` will bypass the `LocomotionState.Preparing` state and not check `LocomotionProvider.canStartMoving`.
+Alternatively, when Locomotion Providers call [`TryStartLocomotionImmediately`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.TryStartLocomotionImmediately), the Locomotion Mediator will add the Locomotion Provider to a provider data map for future processing and update the Locomotion Provider's Locomotion State directly to `Locomotion.Moving` in the data map. Note, `LocomotionProvider.TryStartLocomotionImmediately` will bypass the `LocomotionState.Preparing` state and not check `LocomotionProvider.canStartMoving`.
 
-The Locomotion Mediator will then grant that Provider access to the XR Body Transformer once in `LocomotionState.Moving`. Lastly, when the locomotion is complete, the Locomotion Providers call `TryEndLocomotion`. The Locomotion Mediator will check if the Locomotion State of that provider is still active. If it is no longer active, the Locomotion Mediator will update the Locomotion Provider's Locomotion State to `LocomotionState.Ended`, and then finally to `LocomotionState.Idle` on the subsequent frame.
+The Locomotion Mediator will then grant that Provider access to the XR Body Transformer once in `LocomotionState.Moving`. Lastly, when the locomotion is complete, the Locomotion Providers call [`TryEndLocomotion`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.TryEndLocomotion). The Locomotion Mediator will check if the Locomotion State of that provider is still active. If it is no longer active, the Locomotion Mediator will update the Locomotion Provider's Locomotion State to `LocomotionState.Ended`, and then finally to `LocomotionState.Idle` on the subsequent frame.
 
 #### Locomotion State
 
@@ -75,7 +74,7 @@ Locomotion State is a replacement for the deprecated Locomotion Phase. It repres
 
 The [XR Body Transformer](xr-body-transformer.md) component manages user locomotion via transformations of an XR Origin.
 
-Locomotion Providers that have gained access to the XR Body Transformer via the Locomotion Mediator can call `XRBodyTransformer.TryQueueTransformation(IXRBodyTransformation)` to queue the transformation to be applied next `Update`, which happens later that same frame after the Locomotion Providers `Update`. Transformations are applied sequentially based on ascending priority and transformations with the same priority are applied in the order they were queued. Each transformation is removed from the queue after it is applied.
+Locomotion Providers that have gained access to the XR Body Transformer via the Locomotion Mediator can call [`LocomotionProvider.TryQueueTransformation(IXRBodyTransformation)`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.LocomotionProvider.TryQueueTransformation(UnityEngine.XR.Interaction.Toolkit.Locomotion.IXRBodyTransformation)) (which upon success calls into [`XRBodyTransformer.QueueTransformation(IXRBodyTransformation, int)`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.XRBodyTransformer.QueueTransformation(UnityEngine.XR.Interaction.Toolkit.Locomotion.IXRBodyTransformation,System.Int32))) to queue the transformation to be applied next `Update` of the `XRBodyTransformer`, which happens later that same frame after the Locomotion Providers `Update`. Transformations are applied sequentially based on ascending priority and transformations with the same priority are applied in the order they were queued. Each transformation is removed from the queue after it is applied.
 
 ### IXRBodyTransformation
 
@@ -92,4 +91,5 @@ Locomotion Providers that have gained access to the XR Body Transformer via the 
 | [XR Origin Up Alignment](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.XROriginUpAlignment) | Transformation that rotates the target's origin transform such that its up vector matches the specified vector. This does not maintain the world position of the user's body. |
 
 ### Gravity
-The [Gravity Provider](gravity-provider.md) is a locomotion provider that provides gravity to the player. This provider will also check if the player is grounded by using a sphere cast from the player's head in the direction gravity is being applied, either absolute or relative to the player. Gravity will be applied to the player anytime `useGravity` is true and `isGrounded` is false. See [`IGravityController`](gravity-provider.md#igravitycontroller) for external control over gravity.
+
+The [Gravity Provider](gravity-provider.md) is a locomotion provider that provides gravity to the player. This provider will also check if the player is grounded by using a sphere cast from the player's head in the direction gravity is being applied, either absolute or relative to the player. Gravity will be applied to the player anytime [`useGravity`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity.GravityProvider.useGravity) is true and [`isGrounded`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity.GravityProvider.isGrounded) is false. See [`IGravityController`](gravity-provider.md#igravitycontroller) for external control over gravity.

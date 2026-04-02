@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
 {
@@ -231,13 +232,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
         /// </summary>
         protected void Start()
         {
-            var simulator = Object.FindFirstObjectByType<XRInteractionSimulator>();
-
-            if (simulator != null)
-            {
-                m_Simulator = simulator;
-            }
-            else
+            if (!ComponentLocatorUtility<XRInteractionSimulator>.TryFindComponent(out m_Simulator))
             {
                 Debug.LogError($"Could not find the XRInteractionSimulator component, disabling simulator UI.", this);
                 gameObject.SetActive(false);

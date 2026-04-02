@@ -10,7 +10,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Target Filters.
     /// </summary>
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+    class XRTargetFiltersTreeView : TreeView<EntityId>
+#elif UNITY_6000_2_OR_NEWER
     class XRTargetFiltersTreeView : TreeView<int>
 #else
     class XRTargetFiltersTreeView : TreeView
@@ -24,7 +26,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             Count,
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        class Item : TreeViewItem<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         class Item : TreeViewItem<int>
 #else
         class Item : TreeViewItem
@@ -34,7 +38,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         [Serializable]
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        public class State : TreeViewState<EntityId>
+#elif UNITY_6000_2_OR_NEWER
         public class State : TreeViewState<int>
 #else
         public class State : TreeViewState
@@ -134,7 +140,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        protected override TreeViewItem<EntityId> BuildRoot()
+#elif UNITY_6000_2_OR_NEWER
         protected override TreeViewItem<int> BuildRoot()
 #else
         protected override TreeViewItem BuildRoot()
@@ -143,19 +151,27 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
             // Wrap root control in invisible item required by TreeView.
             return new Item
             {
+#if UNITY_6000_3_OR_NEWER
+                id = EntityId.None,
+#else
                 id = 0,
+#endif
                 children = BuildFilterTree(),
                 depth = -1,
             };
         }
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        static List<TreeViewItem<EntityId>> CreateItemsList() => new List<TreeViewItem<EntityId>>();
+#elif UNITY_6000_2_OR_NEWER
         static List<TreeViewItem<int>> CreateItemsList() => new List<TreeViewItem<int>>();
 #else
         static List<TreeViewItem> CreateItemsList() => new List<TreeViewItem>();
 #endif
 
-#if UNITY_6000_2_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+        List<TreeViewItem<EntityId>> BuildFilterTree()
+#elif UNITY_6000_2_OR_NEWER
         List<TreeViewItem<int>> BuildFilterTree()
 #else
         List<TreeViewItem> BuildFilterTree()
@@ -170,7 +186,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 
                 var rootTreeItem = new Item
                 {
+#if UNITY_6000_3_OR_NEWER
+                    id = XRInteractionDebuggerWindow.GetUniqueTreeViewEntityId(filter),
+#else
                     id = XRInteractionDebuggerWindow.GetUniqueTreeViewId(filter),
+#endif
                     displayName = XRInteractionDebuggerWindow.GetDisplayName(filter),
                     filter = filter,
                     depth = 0,
@@ -219,35 +239,48 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         }
 
         /// <inheritdoc />
-        protected override void SingleClickedItem(int id)
+#if UNITY_6000_3_OR_NEWER
+        protected override void SingleClickedItem(EntityId id)
         {
             base.SingleClickedItem(id);
 
-#if UNITY_6000_4_OR_NEWER
             var filter = EditorUtility.EntityIdToObject((EntityId)id) as XRTargetFilter;
-#else
-            var filter = EditorUtility.InstanceIDToObject(id) as XRTargetFilter;
-#endif
             if (filter == null)
                 return;
 
             m_SelectedFilter = filter;
         }
+#else
+        protected override void SingleClickedItem(int id)
+        {
+            base.SingleClickedItem(id);
+
+            var filter = EditorUtility.InstanceIDToObject(id) as XRTargetFilter;
+            if (filter == null)
+                return;
+
+            m_SelectedFilter = filter;
+        }
+#endif
 
         /// <inheritdoc />
+#if UNITY_6000_3_OR_NEWER
+        protected override void DoubleClickedItem(EntityId id)
+        {
+            base.DoubleClickedItem(id);
+
+            EditorGUIUtility.PingObject(id);
+            Selection.activeEntityId = id;
+        }
+#else
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
 
-#if UNITY_6000_4_OR_NEWER
-            var entityId = (EntityId)id;
-            EditorGUIUtility.PingObject(entityId);
-            Selection.activeEntityId = entityId;
-#else
             EditorGUIUtility.PingObject(id);
             Selection.activeInstanceID = id;
-#endif
         }
+#endif
 
         public void UpdateFilterList(List<XRTargetFilter> currentEnabledFilters)
         {

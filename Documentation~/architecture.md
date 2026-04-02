@@ -53,6 +53,32 @@ You may want different inputs to be used for a ray-based teleportation interacto
 ### Tracked Pose Driver
 This component in the Input System package is responsible for reading the position and rotation of the tracked device, and applying it to the Transform component.
 
+## Scene management considerations
+
+This section covers core concepts of scene management and the mechanism for how interaction components locate other necessary components in a project that uses XR Interaction Toolkit.
+
+### Finding components
+
+Interactors and interactables need a reference to the same XR Interaction Manager component reference to allow for interaction, which can be set with the Interaction Manager property on each component. By default, if the Interaction Manager property is not set, the interactors and interactables will attempt to find a default manager to register with during their [`OnEnable`](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnEnable.html) method. If one cannot be found, a single XR Interaction Manager component will be automatically created as needed. This behavior of automatically finding and registering with the manager component, along with creating one if needed, can be controlled by adjusting **Edit** &gt; **Project Settings** in the **XR Interaction Toolkit** tab under the [Runtime Settings](xri-settings.md#runtime-settings) section.
+
+With the default Project Settings, an interactor or interactable will attempt to find the XR Interaction Manager and create one if needed. However, those components will wait to create the manager if there is an asynchronous scene load that is ongoing, which would happen if you have another script in your scene that calls the [`SceneManager.LoadSceneAsync`](https://docs.unity3d.com/ScriptReference/SceneManagement.SceneManager.LoadSceneAsync.html) method before [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) or [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) execute their `OnEnable`. Once that scene load finishes, they will finish searching for the [`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager) component in that scene. Only after all scene loads finish and a manager could not be found will the default manager be created.
+
+> [!NOTE]
+> If you need to allow for interaction before or during an asynchronous scene load, you may want to consider adding an XR Interaction Manager component in your first scene rather than relying on one to be automatically created at runtime.
+
+Often you will need to customize the behavior of the XR Interaction Manager, such as setting global filters in the Inspector window or creating a custom derived script. The easiest way to ensure your manager component can be found by interactors and interactables when their Interaction Manager property is left unassigned is to put the manager in the main scene on an active GameObject and additively load additional scenes. The first active and enabled XR Interaction Manager will become the cached default that is automatically assigned. If there are multiple XR Interaction Manager components at runtime, you can verify which is the default by checking the [XR Interaction Debugger](xref:xri-debugger-window) window and finding "&lt;Default&gt;" appended to the default manager when there are multiple managers.
+
+<a id="dont-destroy-on-load"></a>
+### Using `DontDestroyOnLoad` to keep components through scene loading
+
+When a new scene is loaded non-additively (such as using `SceneManager.LoadSceneAsync("MySceneName", LoadSceneMode.Single)`), Unity destroys all GameObjects from the current scene before loading the new one. However, you can force some GameObjects (and all its components) from being destroyed during a scene load by using [`Object.DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html).
+
+You can ensure a GameObject is not destroyed when non-additively loading another scene by passing the GameObject to `Object.DontDestroyOnLoad`. This is done through scripting before the other scene is loaded. This would allow you to use the same XR Interaction Manager instance for any scene that you load and thus avoid complexities that could potentially arise from the manager being destroyed and requiring a new one to be created to allow interaction to function again. A simple way of achieving this is to add the following component to a root GameObject:
+
+[!code-cs [dont-destroy-on-load-sample](../DocCodeSamples.Tests/DontDestroyOnLoadSample.cs)]
+
+Interactors that enable UI Interaction search for the [XR UI Input Module](xref:xri-ui-input-module) component on the [Event System](ui-setup.md#event-system). Typically, that GameObject is also marked as `DontDestroyOnLoad` in a similar manner to the GameObject with the XR Interaction Manager component. Having these manager, input module components, or the [XR Origin](xref:xr-core-utils-xr-origin) in the main scene and marked as `DontDestroyOnLoad` is a common practice to ensure components can always find them and not need to deal with instantiating a new one with each subsequent scene load.
+
 ## Update loop
 
 The update loop of the Interaction Manager queries Interactors and Interactables, and handles the hover, focus and selection states. First, it asks Interactors for a valid list of targets (used for both hover and selection). It then checks both Interactors and Interactables to see if their existing hover, focus and selection objects are still valid. After invalid previous states have been cleared (exited via `OnSelectExiting` and `OnSelectExited`/`OnHoverExiting` and `OnHoverExited`/`OnFocusExiting` and `OnFocusExited`), it queries both objects for valid selection, focus and hover states, and the objects enter a new state via `OnSelectEntering` and `OnSelectEntered`/`OnHoverEntering` and `OnHoverEntered`/`OnFocusEntering` and `OnFocusEntered`.

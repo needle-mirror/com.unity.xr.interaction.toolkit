@@ -8,7 +8,7 @@ Locomotion Providers implement different types of locomotion.
 
 The toolkit supplies [multiple Locomotion Providers](locomotion-providers-landing.md), which implement the `LocomotionProvider` abstract class.
 
-Locomotion Providers contain a reference to the [Locomotion Mediator](locomotion-mediator.md) component, which gives the Locomotion Provider access to the [XR Body Transformer](xr-body-transformer.md) component. If the Locomotion Mediator is `null`, the Locomotion Provider will attempt to find one.
+Locomotion Providers contain a reference to the [Locomotion Mediator](locomotion-mediator.md) component, which gives the Locomotion Provider access to the [XR Body Transformer](xr-body-transformer.md) component. If the Locomotion Mediator is `null`, the Locomotion Provider will attempt to find one automatically during its `Awake` or `OnEnable`.
 
 Once the Locomotion Provider has calculated the transformation, the provider is ready to begin locomotion.
 
