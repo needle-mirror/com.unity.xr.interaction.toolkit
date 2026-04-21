@@ -21,6 +21,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// The value of the interaction in this frame.
         /// </summary>
+        /// <value>A range from 0 to 1, where 0 means fully off and 1 means fully on.</value>
+        /// <remarks>
+        /// Typically used with inputs that can be read by the input system as an analog value.
+        /// </remarks>
         public float value
         {
             get => m_Value;
@@ -44,6 +48,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Whether the interaction state activated this frame.
         /// </summary>
+        /// <value><see langword="true"/> if the associated control was activated during the current frame.</value>
         public bool activatedThisFrame
         {
             get => m_ActivatedThisFrame;
@@ -55,6 +60,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// Whether the interaction state deactivated this frame.
         /// </summary>
+        /// <value><see langword="true"/> if the associated control changed from active to deactive during the current frame.</value>
         public bool deactivatedThisFrame
         {
             get => m_DeactivatedThisFrame;
@@ -74,7 +80,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Sets the interaction state for this frame. This method should only be called once per frame.
         /// </summary>
         /// <param name="isActive">Whether the state is active (in other words, pressed).</param>
-        /// <param name="newValue">The interaction value.</param>
+        /// <param name="newValue">An interaction value between 0 to 1, where 0 means fully off and 1 means fully on.</param>
         public void SetFrameState(bool isActive, float newValue)
         {
             value = newValue;

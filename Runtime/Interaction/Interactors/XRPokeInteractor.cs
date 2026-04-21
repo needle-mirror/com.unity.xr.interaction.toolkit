@@ -17,6 +17,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// <summary>
     /// Interactor used for interacting with interactables through poking.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     /// <seealso cref="XRPokeFilter"/>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Interactors/XR Poke Interactor", 11)]

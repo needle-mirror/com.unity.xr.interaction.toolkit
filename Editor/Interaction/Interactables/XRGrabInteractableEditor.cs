@@ -111,6 +111,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         protected SerializedProperty m_ThrowAngularVelocityScale;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.forceGravityOnDetach"/>.</summary>
         protected SerializedProperty m_ForceGravityOnDetach;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.unparentTransformOnGrab"/>.</summary>
+        protected SerializedProperty m_UnparentTransformOnGrab;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
         protected SerializedProperty m_RetainTransformParent;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
@@ -215,8 +217,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             public static readonly GUIContent throwAngularVelocityScale = EditorGUIUtility.TrTextContent("Throw Angular Velocity Scale", "Scale factor applied to this object's inherited angular velocity of the Interactor when released.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.forceGravityOnDetach"/>.</summary>
             public static readonly GUIContent forceGravityOnDetach = EditorGUIUtility.TrTextContent("Force Gravity On Detach", "Force this object to have gravity when released (will still use pre-grab value if this is false).");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.unparentTransformOnGrab"/>.</summary>
+            public static readonly GUIContent unparentTransformOnGrab = EditorGUIUtility.TrTextContent("Unparent Transform On Grab", "Enable to have Unity unparent this GameObject to make it a top-level GameObject in the hierarchy when this interactable is grabbed.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.retainTransformParent"/>.</summary>
-            public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Whether to set the parent of this object back to its original parent this object was a child of after this object is dropped.");
+            public static readonly GUIContent retainTransformParent = EditorGUIUtility.TrTextContent("Retain Transform Parent", "Enable to have Unity set the parent GameObject of this object back to its original parent this object was a child of after this object is dropped.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.addDefaultGrabTransformers"/>.</summary>
             public static readonly GUIContent addDefaultGrabTransformers = EditorGUIUtility.TrTextContent("Add Default Grab Transformers", "Whether Unity will add the default set of grab transformers if either the Single or Multiple Grab Transformers lists are empty.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRGrabInteractable.startingMultipleGrabTransformers"/>.</summary>
@@ -256,7 +260,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             public static readonly GUIContent maxLinearVelocitySettingsRuntimeWarning = EditorGUIUtility.TrTextContent("Max Linear Velocity (value: {0}) of the Rigidbody will clamp this value.");
 
             /// <summary>Message for non-uniformly scaled parent.</summary>
-            public static readonly string nonUniformScaledParentWarning = "When a child object has a non-uniformly scaled parent and is rotated relative to that parent, it may appear skewed. To avoid this, use uniform scale in all parents' Transform of this object.";
+            public static readonly string nonUniformScaledParentWarning = "When a child GameObject has a non-uniformly scaled parent GameObject and is rotated relative to that parent GameObject, it might appear skewed. To avoid this, use uniform scale in all parent Transforms of this object.";
 
             /// <summary>Array of type <see cref="GUIContent"/> for the options shown in the popup for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
             public static readonly GUIContent[] attachPointCompatibilityModeOptions =
@@ -303,6 +307,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             m_ThrowVelocityScale = serializedObject.FindProperty("m_ThrowVelocityScale");
             m_ThrowAngularVelocityScale = serializedObject.FindProperty("m_ThrowAngularVelocityScale");
             m_ForceGravityOnDetach = serializedObject.FindProperty("m_ForceGravityOnDetach");
+            m_UnparentTransformOnGrab = serializedObject.FindProperty("m_UnparentTransformOnGrab");
             m_RetainTransformParent = serializedObject.FindProperty("m_RetainTransformParent");
             m_AddDefaultGrabTransformers = serializedObject.FindProperty("m_AddDefaultGrabTransformers");
             m_StartingMultipleGrabTransformers = serializedObject.FindProperty("m_StartingMultipleGrabTransformers");
@@ -490,6 +495,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
                 }
             }
 
+            EditorGUILayout.PropertyField(m_UnparentTransformOnGrab, Contents.unparentTransformOnGrab);
             EditorGUILayout.PropertyField(m_RetainTransformParent, Contents.retainTransformParent);
             DrawNonUniformScaleMessage();
         }
@@ -670,7 +676,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         /// </summary>
         protected virtual void DrawNonUniformScaleMessage()
         {
-            if (m_RetainTransformParent == null || !m_RetainTransformParent.boolValue)
+            if (m_UnparentTransformOnGrab.boolValue && !m_RetainTransformParent.boolValue)
                 return;
 
             if (m_RecalculateHasNonUniformScale)

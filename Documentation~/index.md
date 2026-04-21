@@ -74,5 +74,5 @@ If you have a question after reading the documentation, you can:
 
 * Join our [support forum](https://forum.unity.com/forums/xr-interaction-toolkit-and-input.519/).
 * Search the [issue tracker](https://issuetracker.unity3d.com/product/unity/issues?project=192&status=1&unity_version=&view=newest) for active issues.
-* View our [public roadmap](https://portal.productboard.com/brs5gbymuktquzeomnargn2u) and submit feature requests.
+* View our [public roadmap](https://unity.com/roadmap) and submit feature requests.
 * Download [example projects](https://github.com/Unity-Technologies/XR-Interaction-Toolkit-Examples) that demonstrates functionality.

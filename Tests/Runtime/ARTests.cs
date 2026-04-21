@@ -335,7 +335,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(selectionInteractable.isSelected, Is.True);
 
             // Drag
-            const float translateDelta = 200f;
+            const float translateDelta = 100f;
             yield return SimulateTouches(
                 new Vector2[] { new Vector2(Screen.width / 2, Screen.height / 2) },
                 new Vector2[] { new Vector2(Screen.width / 2 + translateDelta, Screen.height / 2 + translateDelta) },

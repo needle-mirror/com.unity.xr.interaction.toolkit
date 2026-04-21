@@ -39,6 +39,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// Interactor used for interacting with interactables at a distance. This is handled via ray casts
     /// that update the current set of valid targets for this interactor.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Ray Interactor", 11)]

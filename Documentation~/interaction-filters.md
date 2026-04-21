@@ -13,7 +13,7 @@ The current interaction filters supported in the XR Interaction Toolkit  are:
 - [Select filter](#select-filter)
 - [Interaction strength filter](#interaction-strength-filter)
 
-## Hover filter
+## Hover filter {#hover-filter}
 
 [`IXRHoverFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRHoverFilter) is an interface that allows additional filter processing between an [`IXRHoverInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRHoverInteractor) and an [`IXRHoverInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRHoverInteractable).
 
@@ -65,7 +65,7 @@ public class CustomHoverFilter : MonoBehaviour, IXRHoverFilter
 }
 ```
 
-## Select filter
+## Select filter {#select-filter}
 
 [`IXRSelectFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRSelectFilter) is an interface that allows additional filter processing between an [`IXRSelectInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRSelectInteractor) and an [`IXRSelectInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRSelectInteractable).
 
@@ -118,7 +118,7 @@ public class CustomSelectFilter : MonoBehaviour, IXRSelectFilter
 }
 ```
 
-## Interaction strength filter
+## Interaction strength filter {#interaction-strength-filter}
 
 [`IXRInteractionStrengthFilter`](xref:UnityEngine.XR.Interaction.Toolkit.Filtering.IXRInteractionStrengthFilter) is an interface used to adjust or set the interaction strength between an [`IXRInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor) and [`IXRInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.IXRInteractable).
 

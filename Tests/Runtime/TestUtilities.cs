@@ -74,7 +74,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 var scene = SceneManager.GetSceneAt(index);
                 foreach (var go in scene.GetRootGameObjects())
                 {
-                    if (go.name.Contains("tests runner"))
+                    if (go == null || go.name.Contains("tests runner"))
                         continue;
 
                     // DestroyImmediate should generally only be called during Edit mode only,

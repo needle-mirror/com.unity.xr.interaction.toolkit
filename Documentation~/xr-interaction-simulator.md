@@ -26,7 +26,6 @@ For more information about how to install and how to set it up in a scene, refer
 | **Translate Z Input** | The input used to translate in the z-axis (forward/back) while held. |
 | **Toggle Manipulate Left Input** | The input used to toggle enable manipulation of the left-hand controller when pressed. |
 | **Toggle Manipulate Right Input** | The input used to toggle enable manipulation of the right-hand controller when pressed. |
-| **Toggle Left Actions Device Input** | The input used for toggling the left-hand device's actions for buttons or hand expressions. |
 | **Toggle Manipulate Head Input** | The input used to toggle manipulation of only the head pose. |
 | **Cycle Devices Input** | The input used to cycle between the different available devices. |
 | **Keyboard Rotation Delta Input** | The keyboard input used to rotate by a scaled amount along or about the x- and y-axes. |
@@ -39,6 +38,7 @@ For more information about how to install and how to set it up in a scene, refer
 | **Reset Input** | The input used to cause the manipulated device(s) to reset position or rotation. |
 | **Cycle Quick Action Input** | The input used to toggle between input modes and hand expressions. |
 | **Toggle Perform Quick Action Input** | The input used to perform the currently active quick-action controller input mode or hand expression. |
+| **Left Device Actions Input** | The input used for controlling the left-hand device's actions for buttons or hand expressions. |
 | **Toggle Primary Axis 2D Target Input** | The input used to toggle manipulation of the `Axis2DTargets.Primary2DAxis` of the controllers when pressed. |
 | ***Toggle Secondary Axis 2D Target Input** | The input used to toggle enable manipulation of the `Axis2DTargets.Secondary2DAxis` of the controllers when pressed. |
 | **Mouse Click Input** | The input used to toggle point and click select. This input is interpreted as a trigger press when over UI objects, otherwise it is interpreted as a grip press. |
@@ -62,12 +62,14 @@ For more information about how to install and how to set it up in a scene, refer
 | **Left Controller Transform** | The Transform that contains the left controller. Automatically set to the Left Controller reference in the XR Input Modality Manager if unset. |
 | **Right Controller Transform** | The Transform that contains the right controller. Automatically set to the Right Controller reference in the XR Input Modality Manager if unset. |
 | **Device Lifecycle Manager** | The corresponding manager for this simulator that handles the lifecycle of the simulated devices. If this value is not set, the simulator will either find a lifecycle manager in the scene or create one. |
-| **Hand Expression Manager** | The corresponding manager for this simulator that handles the hand expressions. If this value is not set, the simulator will either find a hand expression manager in the scene or create one. |
+| **Hand Playback Manager** | The corresponding manager for this simulator that handles the simulated hand playback. |
 | **Translate Space** | The coordinate space in which translation should operate. |
 | &emsp;Local | Set **Translate Space** to **Local** to apply translations of a controller or HMD relative to its own coordinate space, considering its own rotations. Will translate a controller relative to itself, independent of the camera. |
 | &emsp;Parent | Set **Translate Space** to **Parent** to apply translations of a controller or HMD relative to its parent. If the object does not have a parent, meaning it is a root object, the parent coordinate space is the same as the world coordinate space. This is the same as **Local** but without considering its own rotations. |
 | &emsp;Screen | Set **Translate Space** to **Screen** to apply translations of a controller or HMD relative to the screen. Will translate a controller relative to the camera, independent of the controller's orientation. |
 | **Interaction Simulator UI** | The optional Interaction Simulator UI prefab to use along with the XR Interaction Simulator. |
+| **Use Point And Click** | Enables point-and-click mode which is active by default, otherwise falls back to mouse input for controller rotation. |
+| **Default Point And Click Handedness** | The default handedness when starting the simulator and using point-and-click in FPS mode. Note: Changing this property at runtime will not change the currently active handedness. |
 | **Sensitivity** | |
 | **Translate X Speed** | Speed of translation in the x-axis (left/right) when triggered by input. |
 | **Translate Y Speed** | Speed of translation in the y-axis (up/down) when triggered by input. |

@@ -14,7 +14,7 @@ Use the Package Manager window to install the **XR Device Simulator** sample int
 
 For more information about how to install and how to set it up in a scene, refer to the [XR Device Simulator overview](xr-device-simulator-overview.md).
 
-![XRDeviceSimulator component](images/xr-device-simulator.png)
+![XRDeviceSimulator component](images/xr-device-simulator/xr-device-simulator.png)
 
 > [!NOTE]
 > The XR Origin must read the position and rotation of the HMD and controllers by using [Input System](https://docs.unity3d.com/Manual/com.unity.inputsystem.html) actions (such as by using `ActionBasedController` and `TrackedPoseDriver`) for this simulator to work as expected. Attempting to use XR input subsystem device methods (such as by using `XRController` and `SpatialTracking.TrackedPoseDriver`) will not work as expected since this simulator depends on the Input System to drive the simulated devices.
@@ -64,9 +64,7 @@ For more information about how to install and how to set it up in a scene, refer
 | **Primary Touch Action** | The Input System Action used to control the PrimaryTouch control of the manipulated controller device(s). Must be a `ButtonControl`.<br />The prefab in the XR Device Simulator sample has this action bound to the 8 key. |
 | **Secondary Touch Action** | The Input System Action used to control the SecondaryTouch control of the manipulated controller device(s). Must be a `ButtonControl`.<br />The prefab in the XR Device Simulator sample has this action bound to the 9 key. |
 | **Hand Actions** | |
-| **Hand Action Asset** | The Input Action Asset that contains the actions used in the hand actions section. This asset is enabled/disabled automatically as needed. |
-| **Resting Hand Expression Capture** | The resting hand expression to use when no other hand expression is active. |
-| **Simulated Hand Expressions** | The list of hand expressions to simulate. The prefab in the XR Device Simulator sample has the following poses and key bindings: Poke (N), Pinch (M), Grab (K), Thumbs Up (L), Open (O), Fist (P). Each entry in the list defines:<br/><ul><li>**Name** The unique name for the hand expression.</li><li>**Toggle Action** The input action to trigger the hand expression.</li><li>**Capture** The captured hand expression to simulate when the input action is performed.</li></ul> |
+| **Hand Action Asset** | Input Action Asset containing controls for the simulated hands.  Unity will enable and disable this automatically as needed. |
 | **Simulator Settings** | |
 | **Camera Transform** | The `Transform` that contains the `Camera`. This is usually the "Head" of XR Origins. Automatically set to `Camera.main` if unset. |
 | **Keyboard Translate Space** | The coordinate space in which keyboard translation should operate. |
@@ -80,8 +78,6 @@ For more information about how to install and how to set it up in a scene, refer
 | **Desired Cursor Lock Mode** | The desired cursor lock mode to toggle to from `CursorLockMode.None`. |
 | &emsp;Locked | Set **Desired Cursor Lock Mode** to **Locked** to toggle between `CursorLockMode.None` and locking the cursor to the center of the game window. |
 | &emsp;Confined | Set **Desired Cursor Lock Mode** to **Confined** to toggle between `CursorLockMode.None` and confining the cursor to the game window. |
-| **Remove Other HMD Devices** | Whether or not to remove other XR HMD devices in this session so that they don't conflict with the XR Device Simulator. |
-| **Hand Tracking Capability** | Whether to create a simulated Hand Tracking Subsystem and provider on startup. Requires the XR Hands package. |
 | **Device Simulator UI** | The prefab containing the UI to show for the XR Device Simulator. By default, the prefab in the XR Device Simulator sample is using the `XR Device Simulator UI` prefab. Removing this field will remove the UI in the Game view.|
 | **Sensitivity** | |
 | **Keyboard X Translate Speed** | Speed of translation in the x-axis (left/right) when triggered by keyboard input. |

@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.5.0-pre.2",
+  "version": "3.5.0",
   "unity": "2022.3",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -74,15 +74,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Changed some components to no longer sort found components by instance ID when finding a component due to `FindObjectsSortMode.InstanceID` being deprecated in Unity 6.4. This may cause a different component instance to be used for unassigned references in Unity 6.4 or newer.\n\n### Fixed\n- Fixed warnings caused by APIs that were deprecated in Unity 6.4.\n- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026)"
+    "changelog": "### Added\n- Added Unparent Transform On Grab property to XR Grab Interactable to allow for disabling the default behavior which sets the interactable to a top-level GameObject in the hierarchy when grabbed. Disable that property to keep it as a child GameObject of its parent when grabbed.\n\n### Changed\n- Changed `SimulatedHandExpression` editor to hide irrelevant properties depending on the sequence type that is set.\n- Changed `DontDestroyOnLoadSample` component in the assembly used to generate code samples for documentation to no longer be `public`.\n\n### Fixed\n- Fix an issue where XR Interaction Manager was triggering a UI Toolkit update tick even when UI Toolkit support was not enabled for XRI, causing errors to be thrown in some versions of UI Toolkit. Also changed behavior so it is only updated once per frame at the dynamic `Update` phase.\n- Fixed the simulator prefab not instantiating automatically after the first run when using fast-enter play mode settings. ([UUM-139247](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139247))\n- Fixed a race condition in the `LazyFollow` component where the associated Transform position and rotation can get zeroed out when **Position Follow Mode** or **Rotation Follow Mode** are set to `None`."
   },
   "upmCi": {
-    "footprint": "9f9670a08606010fc412c3005b9507aa5be08f36"
+    "footprint": "0f80191ec06c93648d7ca8cb4b4f63f7cc822ed4"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "d2382b0a24db10561faeafcba28272cec75487a8"
+    "revision": "b4b292c1b58dea54bff99ae2c246c045877ef009"
   }
 }

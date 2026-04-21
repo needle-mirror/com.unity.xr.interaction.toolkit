@@ -9,6 +9,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// an Interactable component.
     /// </summary>
     /// <seealso cref="IXRHoverInteractable"/>
+    /// <remarks>
+    /// For more information and examples about handling interaction events, refer to
+    /// <a href="xref:xri-interaction-event-handling">Handle interaction events</a>
+    /// and <a href="xref:xri-state-events">Interaction state and events</a>.
+    /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRHoverInteractor : IXRInteractor
     {

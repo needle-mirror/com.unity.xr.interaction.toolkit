@@ -11,6 +11,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// that update the current set of valid targets for this interactor. This component must have a collision volume that is
     /// set to be a trigger to work.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Direct Interactor", 11)]

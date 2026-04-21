@@ -23,7 +23,7 @@ This XR Interactable Snap Volume will attempt to get the closest point on the **
 
 ## Configuring XR Ray Interactor
 
-See [Supporting XR Interactable Snap Volume](xr-ray-interactor.md#supporting-xr-interactable-snap-volume) in the XR Ray Interactor documentation for configuration steps to allow an XR Ray Interactor to snap to an XR Interactable Snap Volume.
+See [Supporting XR Interactable Snap Volume](xr-ray-interactor.md#support-snap-volume) in the XR Ray Interactor documentation for configuration steps to allow an XR Ray Interactor to snap to an XR Interactable Snap Volume.
 
 ## Configuring with Teleportation Anchors
 

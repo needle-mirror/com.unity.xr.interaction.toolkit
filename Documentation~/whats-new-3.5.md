@@ -13,6 +13,10 @@ Summary of changes in XR Interaction Toolkit package version 3.5:
 
 The [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) package sample has been updated to include a new prefab and scripts to demonstrate one way to trigger teleportation using the XR Hands package gesture detection. The Demo Scene for the Hands Interaction Demo sample has also been updated with a more interactive scene, which includes multiple surfaces and areas to teleport to using the hand gesture-based teleportation.
 
+### XR Interaction Simulator: Hand Interactivity
+
+The XR Interaction Simulator has been updated to support interactivity with simulated hands. This feature leverages the hand capture and playback subsystem features included as a part of XR Hands (com.unity.xr.hands) at a minimum version of 1.8.0. The initial implementation supports the following common poses: idle, poke, pinch, and grab. These capture sequences will trigger the associated OpenXR input bindings. Using custom capture sequences and poses should be considered experimental and will be supported more generally at a later date.
+
 ## Changed
 
 ### XR Interaction Simulator: Point & Click Interaction

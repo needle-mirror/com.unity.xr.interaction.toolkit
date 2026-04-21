@@ -13,9 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     ///
     /// For more information refer to:
     /// * [XR Simple Interactable component](xref:xri-simple-interactable)
-    /// * [Create a grab interactable](xref:xri-general-setup#create-grab-interactable)
+    /// * [Create a basic interaction](xref:xri-create-basic-interaction)
     /// * [UI interaction setup](xref:xri-ui-setup)
-    /// * [Interaction States](xref:xri-architecture#states)
+    /// * [Interaction state and events](xref:xri-state-events)
     /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]

@@ -45,6 +45,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// <br />
     /// This component is not designed to use input (thus does not derive from <see cref="XRBaseInputInteractor"/>)
     /// and instead will always attempt to select an interactable that it is hovering over.
+    ///
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]

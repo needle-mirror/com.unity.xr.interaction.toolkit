@@ -35473,10 +35473,16 @@ MonoBehaviour:
   m_MacLeftControllerCursor: {fileID: 2800000, guid: 0e59058df75e14acf8a78bfb0d444a24, type: 3}
   m_MacRightControllerCursor: {fileID: 2800000, guid: 3bf254484cf3e4adb959bcdadb941b11, type: 3}
   m_MacBothControllerCursor: {fileID: 2800000, guid: 13fde1adf85394ae69fab911f49e2878, type: 3}
+  m_MacLeftHandCursor: {fileID: 2800000, guid: 50baf70502b6d42f6a093af18134c883, type: 3}
+  m_MacRightHandCursor: {fileID: 2800000, guid: 8158670b4655740c88859b4e3d283bf3, type: 3}
+  m_MacBothHandCursor: {fileID: 2800000, guid: bce2114e4b4a0452e9477b81a5fc30fa, type: 3}
   m_MacHMDCursor: {fileID: 2800000, guid: 1c4801afda4ca1740b5d7426f4b43c8a, type: 3}
   m_WinLeftControllerCursor: {fileID: 2800000, guid: 8a84586cb218746c88ee0f5e20fc8a9c, type: 3}
   m_WinRightControllerCursor: {fileID: 2800000, guid: 8a2454d862d83439e9183a43a3995b41, type: 3}
   m_WinBothControllerCursor: {fileID: 2800000, guid: 37c8dad8960294ba6a908c7c8fb730b5, type: 3}
+  m_WinLeftHandCursor: {fileID: 2800000, guid: 73664a8cfa3874f65a8017811e725b7a, type: 3}
+  m_WinRightHandCursor: {fileID: 2800000, guid: cf3d50bc02ce7434594fb27df111a029, type: 3}
+  m_WinBothHandCursor: {fileID: 2800000, guid: 65f68e9f80efe412c950bc695eb74dfd, type: 3}
   m_WinHMDCursor: {fileID: 2800000, guid: bafd64bde3f804e4b986cd348dcd9ea7, type: 3}
 --- !u!1 &8651812985971655735
 GameObject:

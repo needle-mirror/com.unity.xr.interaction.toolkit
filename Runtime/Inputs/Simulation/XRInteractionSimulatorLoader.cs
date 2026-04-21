@@ -18,14 +18,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad), Preserve]
         public static void Initialize()
         {
-            // Will execute the static constructor as a side effect.
-        }
-
-        [Preserve]
-        static XRInteractionSimulatorLoader()
-        {
-            if (!XRDeviceSimulatorSettings.Instance.automaticallyInstantiateSimulatorPrefab ||
-                (XRDeviceSimulatorSettings.Instance.automaticallyInstantiateInEditorOnly && !Application.isEditor))
+            var settings = XRDeviceSimulatorSettings.Instance;
+            if (!settings.automaticallyInstantiateSimulatorPrefab ||
+                (settings.automaticallyInstantiateInEditorOnly && !Application.isEditor))
                 return;
 
 #if UNITY_INCLUDE_TESTS
@@ -57,7 +52,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
 #pragma warning restore CS0618
 
-            var simulatorPrefab = XRDeviceSimulatorSettings.Instance.simulatorPrefab;
+            var simulatorPrefab = settings.simulatorPrefab;
             if (simulatorPrefab == null)
             {
                 Debug.LogWarning("XR Interaction Simulator prefab was missing, cannot automatically instantiate." +

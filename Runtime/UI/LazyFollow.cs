@@ -365,31 +365,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             var currentPose = followInLocalSpace ? transform.GetLocalPose() : transform.GetWorldPose();
 
-            m_Vector3TweenableVariable.target = currentPose.position;
-            m_QuaternionTweenableVariable.target = currentPose.rotation;
-
-            m_BindingsGroup.AddBinding(m_Vector3TweenableVariable.SubscribeAndUpdate(UpdatePosition));
-            m_BindingsGroup.AddBinding(m_QuaternionTweenableVariable.SubscribeAndUpdate(UpdateRotation));
-
-            if (m_SnapOnEnable)
+            if (m_Vector3TweenableVariable != null)
             {
-                if (m_PositionFollowMode != PositionFollowMode.None)
-                {
-                    if (TryGetThresholdTargetPosition(out var newPositionTarget))
-                        m_Vector3TweenableVariable.target = newPositionTarget;
+                m_Vector3TweenableVariable.target = currentPose.position;
+                m_BindingsGroup.AddBinding(m_Vector3TweenableVariable.SubscribeAndUpdate(UpdatePosition));
 
-                    m_Vector3TweenableVariable.HandleTween(1f);
-                }
+                if (m_SnapOnEnable && m_PositionFollowMode != PositionFollowMode.None && TryGetThresholdTargetPosition(out var newPositionTarget))
+                    m_Vector3TweenableVariable.target = newPositionTarget;
 
-                if (m_RotationFollowMode != RotationFollowMode.None)
-                {
-                    if (TryGetThresholdTargetRotation(out var newRotationTarget))
-                        m_QuaternionTweenableVariable.target = newRotationTarget;
-
-                    m_QuaternionTweenableVariable.HandleTween(1f);
-                }
+                m_Vector3TweenableVariable.HandleTween(1f);
             }
 
+            if (m_QuaternionTweenableVariable != null)
+            {
+                m_QuaternionTweenableVariable.target = currentPose.rotation;
+                m_BindingsGroup.AddBinding(m_QuaternionTweenableVariable.SubscribeAndUpdate(UpdateRotation));
+
+                if (m_SnapOnEnable && m_RotationFollowMode != RotationFollowMode.None && TryGetThresholdTargetRotation(out var newRotationTarget))
+                    m_QuaternionTweenableVariable.target = newRotationTarget;
+
+                m_QuaternionTweenableVariable.HandleTween(1f);
+            }
         }
 
         /// <summary>

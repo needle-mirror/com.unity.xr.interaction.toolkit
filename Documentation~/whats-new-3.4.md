@@ -15,7 +15,7 @@ An additional keyboard layout was added to the [Spatial Keyboard](xref:xri-sampl
 
 ### Minor XR Interaction Debugger window improvements
 
-The [XR Interaction Debugger](xref:xri-debugger-window) window has added columns and a new tab for registered XR Interactable Snap Volumes. Interactors now display the [XR Interaction Group](xri-xr-interaction-group) they are a member of in a new column. There is also an additional column to display the full scene hierarchy path of a component, which can be revealed by right-clicking the column header and selecting **Hierarchy Path**. The XR Interaction Manager itself is now drawn greyed out when the component is no longer active and enabled instead of being removed from the window.
+The [XR Interaction Debugger](xref:xri-debugger-window) window has added columns and a new tab for registered XR Interactable Snap Volumes. Interactors now display the [XR Interaction Group](xref:xri-xr-interaction-group) they are a member of in a new column. There is also an additional column to display the full scene hierarchy path of a component, which can be revealed by right-clicking the column header and selecting **Hierarchy Path**. The XR Interaction Manager itself is now drawn greyed out when the component is no longer active and enabled instead of being removed from the window.
 
 ## Changed
 

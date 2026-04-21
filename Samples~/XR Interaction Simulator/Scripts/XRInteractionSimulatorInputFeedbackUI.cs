@@ -739,13 +739,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
                     m_IsPerformingRightInput = false;
 
                 if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
-                {
                     HighlightActiveControllerInputMode(k_SelectedColor);
-                }
                 else if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
-                {
                     HighlightActiveHandInputMode(k_SelectedColor);
-                }
             }
         }
 

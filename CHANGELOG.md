@@ -9,14 +9,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.5.0] - 2026-04-21
+
+### Added
+- Added Unparent Transform On Grab property to XR Grab Interactable to allow for disabling the default behavior which sets the interactable to a top-level GameObject in the hierarchy when grabbed. Disable that property to keep it as a child GameObject of its parent when grabbed.
+
+### Changed
+- Changed `SimulatedHandExpression` editor to hide irrelevant properties depending on the sequence type that is set.
+- Changed `DontDestroyOnLoadSample` component in the assembly used to generate code samples for documentation to no longer be `public`.
+
+### Fixed
+- Fix an issue where XR Interaction Manager was triggering a UI Toolkit update tick even when UI Toolkit support was not enabled for XRI, causing errors to be thrown in some versions of UI Toolkit. Also changed behavior so it is only updated once per frame at the dynamic `Update` phase.
+- Fixed the simulator prefab not instantiating automatically after the first run when using fast-enter play mode settings. ([UUM-139247](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139247))
+- Fixed a race condition in the `LazyFollow` component where the associated Transform position and rotation can get zeroed out when **Position Follow Mode** or **Rotation Follow Mode** are set to `None`.
+
 ## [3.5.0-pre.2] - 2026-03-26
+
+### Added
+- Added point-and-click functionality for hands in the `XRInteractionSimulator`.
 
 ### Changed
 - Changed some components to no longer sort found components by instance ID when finding a component due to `FindObjectsSortMode.InstanceID` being deprecated in Unity 6.4. This may cause a different component instance to be used for unassigned references in Unity 6.4 or newer.
 
 ### Fixed
 - Fixed warnings caused by APIs that were deprecated in Unity 6.4.
-- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026)
+- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. ([UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026))
 
 ## [3.5.0-pre.1] - 2026-03-16
 
@@ -57,7 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed obsolete warnings when accessing `activeInstanceID` in unity 6000.3.
 - Fixed `MaterialPipelineHandler` sample script causing error "Calls to AssetDatabase.SaveAssets are restricted during asset importing." upon initial import.
 
-## [3.4.0] - 2025-02-03
+## [3.4.0] - 2026-02-03
 
 ### Added
 - Added UI Toolkit world-space support to `XRRayInteractor` for Unity 6.2.0 and newer, enabling ray-based interaction with UI Toolkit panels in XR environments.
@@ -152,9 +169,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [3.3.0-pre.1] - 2025-08-11
 
 ### Added
-- Added ability to control the order that interactables are processed (`IXRInteractable.ProcessInteractable`). See [Processing interactables](xref:xri-architecture#processing-interactables) in the Interaction overview manual page for more information.
+- Added ability to control the order that interactables are processed (`IXRInteractable.ProcessInteractable`). See [Processing interactables](xref:xri-update-loop#processing-interactables) in the Interaction overview manual page for more information.
   - Added new methods to [`XRInteractionManager`](xref:UnityEngine.XR.Interaction.Toolkit.XRInteractionManager) to set parent interactable dependencies which determine which interactables must be processed before another interactable. Use `RegisterParentRelationship` to register a parent interactable and `GetParentRelationships` to query the registered parent interactables.
-  - Added Parent Interactable and Auto Find Parent Interactable properties to interactors and interactables to register the component's parent interactable dependency when the component is registered with the XR Interaction Manager. Custom components that do not derive from [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) can implement [`IXRParentInteractableLinker`](xref:UnityEngine.XR.Interaction.Toolkit.IXRParentInteractableLinker) to enable this functionality.
+  - Added Parent Interactable and Auto Find Parent Interactable properties to interactors and interactables to register the component's parent interactable dependency when the component is registered with the XR Interaction Manager. Custom components that do not derive from [`XRBaseInteractor`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor) and [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) can implement [`IXRParentInteractableLink`](xref:UnityEngine.XR.Interaction.Toolkit.IXRParentInteractableLink) to enable this functionality.
   - Added Parent Interactable column to the XR Interaction Debugger window to show registered and inherited parent interactables.
 
 ### Changed
@@ -407,8 +424,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added [XRI 3.0 upgrade guide](xref:xri-upgrade-guide-3-0) documentation.
-- Added dependency guards to the [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample to prevent compile errors if UGUI is missing in Unity 6 or if TextMesh Pro is missing in earlier editor versions.
-- Added project validation rules to the [Spatial Keyboard](../manual/samples-spatial-keyboard.html) sample for TextMesh Pro and UGUI.
+- Added dependency guards to the [Spatial Keyboard](xref:xri-samples-spatial-keyboard) sample to prevent compile errors if UGUI is missing in Unity 6 or if TextMesh Pro is missing in earlier editor versions.
+- Added project validation rules to the [Spatial Keyboard](xref:xri-samples-spatial-keyboard) sample for TextMesh Pro and UGUI.
 - Added `hideKeyboardOnDisable` property to `XRKeyboardDisplay`, which causes the display's observed keyboard to close when the `XRKeyboardDisplay` GameObject is disabled. This property is enabled by default.
 
 ### Fixed
@@ -503,7 +520,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Multi Floor Ladder` prefab to the Starter Assets sample, and added an instance of this prefab to the `Climb Sample` prefab. This prefab includes another ladder Climb Interactable and a Teleportation Multi-Anchor Volume that uses a Gaze Teleportation Anchor Filter to teleport to one of three destinations.
 - Added the interface `IXRInteractableCustomReticle`, which allows a component on an interactable's **Custom Reticle** prefab to respond to the interactable instantiating the reticle and attaching it to an instance of `IXRCustomReticleProvider`. (Backport from 3.0.0-pre.1)
   - Added an example implementation of this interface in the new `Climb Teleport Reticle` prefab in the Starter Assets sample.
-- Added a rotation threshold to [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) so that scaling is not triggered while rotating. (Backport from 3.0.0-pre.1)
+- Added a rotation threshold to `XRScreenSpaceController` so that scaling is not triggered while rotating. (Backport from 3.0.0-pre.1)
 - Added in-editor touchscreen gesture support for rotation and scaling in the starter assets. The input action map now has bindings for the related gestures. (Backport from 3.0.0-pre.1)
 - Added Climb Teleport Interactor, which enables assistance with climb locomotion by teleporting the user to a specific destination when they end a climb interaction. (Backport from 3.0.0-pre.1)
   - Added the property **Climb Assistance Teleport Volume** to Climb Interactable to enable this teleportation behavior for a specific climb interactable.
@@ -515,8 +532,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added public members `climbAnchorInteractable`, `climbAnchorInteractor`, and `climbAnchorUpdated` to `ClimbProvider`. (Backport from 3.0.0-pre.1)
 - Added public method `Angle(in Vector3, in Vector3, out float)`, which finds the angle between two vectors, to `BurstMathUtility`. (Backport from 3.0.0-pre.1)
 - Added `IAttachPointVelocityProvider`, `IAttachPointVelocityTracker`, and `AttachPointVelocityTracker` to make the attach point velocity tracking functionality accessible outside of the `XRBaseInteractor`. (Backport from 3.0.0-pre.1)
-- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging. (Backport from 3.0.0-pre.2)
-  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
+- Added public [`RequestTeleport`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationAnchor.RequestTeleport) method to [`TeleportationAnchor`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationAnchor) to allow a teleport to the anchor to be triggered manually, such as from a UI button click event, instead of only from interaction events like select exited. Teleport to anchor can also be triggered from the Inspector window in the More (&#8942;) menu during Play mode for debugging. (Backport from 3.0.0-pre.2)
+  - Added protected [`SendTeleportRequest(IXRInteractor)`](xref:UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.BaseTeleportationInteractable.SendTeleportRequest(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRInteractor)) to the base abstract class to allow the teleport to be triggered from additional contexts.
 - Added option in [`ARTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer) to filter translatable planes by the AR Foundation plane classifications. Uses either a list of `PlaneClassification` enum (for older than ARF 6.0) or `PlaneClassifications` flags enum (ARF 6.0 and newer) types. (Backport from 3.0.0-pre.2)
 - Added `ARTransformerEditor` to customize the Inspector window of the AR Transformer component. (Backport from 3.0.0-pre.2)
 - Added [Spatial Keyboard](xref:xri-samples-spatial-keyboard) sample demo scene, scripts, and prefabs. (Backport from 3.0.2)
@@ -524,7 +541,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Changed setup of the ladder and elevated teleport area in the `Climb Sample` prefab in the Starter Assets sample so that the objects are set up in a new `Single Floor Ladder` prefab. This prefab also contains a Teleportation Multi-Anchor Volume to allow teleportation to the top or bottom, whichever is furthest from the user. (Backport from 3.0.0-pre.1)
 - Changed `XRPokeInteractor` to use `IAttachPointVelocityTracker` instead of the velocity tracking that used to live in `XRBaseInteractor`. (Backport from 3.0.0-pre.1)
-- Changed [`XRScreenSpaceController`](xref:UnityEngine.XR.Interaction.Toolkit.XRScreenSpaceController) to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold. (Backport from 3.0.0-pre.1)
+- Changed `XRScreenSpaceController` to add a rotation threshold so that scaling is not triggered while rotating. This behavior can be disabled by disabling Use Rotation Threshold. (Backport from 3.0.0-pre.1)
 - Changed `XRBaseGrabTransformer` by making `Start` and `OnDestroy` methods `virtual`. (Backport from 3.0.0-pre.2)
 - Changed `GrabTransformerRotationAxisLock` by moving the script from the Hands Interaction Demo sample to the Starter Assets sample, renamed to  `RotationAxisLockGrabTransformer`, and updated namespace to match the sample. (Backport from 3.0.2)
   - Changed the Hands Interaction Demo sample `TableHandle` prefab to use the `RotationAxisLockGrabTransformer` component in Starter Assets.
@@ -792,7 +809,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [2.5.1] - 2023-09-12
 
 ### Changed
-- Split and moved [Samples](xref:xri-samples) documentation into a new area of the [Table of Contents](../manual/TableOfContents.html) to make discovery and navigation easier.
+- Split and moved [Samples](xref:xri-samples) documentation into a new area of the Table of Contents to make discovery and navigation easier.
 - Redesigned and improved [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample scene and prefabs.
   - Reworked colliders and interactions in sample scene.
   - Added new rim light material made using Shader Graph.

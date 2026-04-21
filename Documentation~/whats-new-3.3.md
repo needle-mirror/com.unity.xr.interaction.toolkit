@@ -17,7 +17,7 @@ New properties were added to interactors and interactables to explicitly set a P
 
 The [XR Interaction Debugger](xref:xri-debugger-window) window has a new column to show the parent interactable(s) for all interactors and interactables. It also now lists the interactors and interactables in the order that they are processed rather than alphabetically.
 
-For more information about how interactables are processed and how to customize the ordering, see [Processing interactables](xref:xri-architecture#processing-interactables) in the Interaction overview manual page.
+For more information about how interactables are processed and how to customize the ordering, refer to [Processing interactables](xref:xri-update-loop#processing-interactables).
 
 ## Changed
 

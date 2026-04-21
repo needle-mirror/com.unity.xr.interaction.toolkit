@@ -1738,6 +1738,221 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(rigidbody.isKinematic, Is.True);
         }
 
+        [UnityTest]
+        public IEnumerator ReparentingCanBeControlled([ValueSource(nameof(s_BooleanValues))] bool unparentTransformOnGrab, [ValueSource(nameof(s_BooleanValues))] bool retainTransformParent)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.unparentTransformOnGrab = unparentTransformOnGrab;
+            grabInteractable.retainTransformParent = retainTransformParent;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+
+            var originalParent = new GameObject().transform;
+            grabInteractable.transform.SetParent(originalParent);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return null;
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.keepSelectedTargetValid = false;
+
+            // Have the interactor grab the object
+            interactor.validTargets.Add(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+
+            if (unparentTransformOnGrab)
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+            else
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+
+            // Have the interactor drop the object
+            interactor.validTargets.Remove(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+
+            if (!unparentTransformOnGrab || retainTransformParent)
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+            else
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator ParentRestoredAfterExternalReparent([ValueSource(nameof(s_BooleanValues))] bool unparentTransformOnGrab)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.unparentTransformOnGrab = unparentTransformOnGrab;
+            grabInteractable.retainTransformParent = true;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+
+            var originalParent = new GameObject().transform;
+            grabInteractable.transform.SetParent(originalParent);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return null;
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.keepSelectedTargetValid = false;
+
+            // Have the interactor grab the object
+            interactor.validTargets.Add(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+
+            if (unparentTransformOnGrab)
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+            else
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+
+            // Manually reparent after already grabbed
+            var otherParent = new GameObject().transform;
+            grabInteractable.transform.SetParent(otherParent);
+
+            Assert.That(grabInteractable.transform.parent, Is.SameAs(otherParent));
+
+            // Have the interactor drop the object
+            interactor.validTargets.Remove(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+
+            Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+        }
+
+        [UnityTest]
+        public IEnumerator RootObjectIgnoresRetainParentAfterExternalReparent([ValueSource(nameof(s_BooleanValues))] bool unparentTransformOnGrab)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.unparentTransformOnGrab = unparentTransformOnGrab;
+            grabInteractable.retainTransformParent = true;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+
+            grabInteractable.transform.SetParent(null);
+            Assert.That(grabInteractable.transform.parent, Is.Null);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return null;
+
+            var interactor = TestUtilities.CreateMockInteractor();
+            interactor.keepSelectedTargetValid = false;
+
+            // Have the interactor grab the object
+            interactor.validTargets.Add(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor }));
+
+            Assert.That(grabInteractable.transform.parent, Is.Null);
+
+            // Manually reparent after already grabbed
+            var otherParent = new GameObject().transform;
+            grabInteractable.transform.SetParent(otherParent);
+
+            Assert.That(grabInteractable.transform.parent, Is.SameAs(otherParent));
+
+            // Have the interactor drop the object
+            interactor.validTargets.Remove(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+
+            Assert.That(grabInteractable.transform.parent, Is.SameAs(otherParent));
+        }
+
+        [UnityTest]
+        public IEnumerator ParentRestoredOnlyAfterAllInteractorsRelease([ValueSource(nameof(s_BooleanValues))] bool unparentTransformOnGrab)
+        {
+            var grabInteractable = TestUtilities.CreateGrabInteractable();
+            grabInteractable.ClearSingleGrabTransformers();
+            grabInteractable.ClearMultipleGrabTransformers();
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            grabInteractable.unparentTransformOnGrab = unparentTransformOnGrab;
+            grabInteractable.retainTransformParent = true;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+
+            var originalParent = new GameObject().transform;
+            grabInteractable.transform.SetParent(originalParent);
+
+            Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
+            Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
+
+            yield return null;
+
+            var interactor1 = TestUtilities.CreateMockInteractor();
+            var interactor2 = TestUtilities.CreateMockInteractor();
+            interactor1.keepSelectedTargetValid = false;
+            interactor2.keepSelectedTargetValid = false;
+
+            // Have the first interactor grab the object
+            interactor1.validTargets.Add(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1 }));
+
+            if (unparentTransformOnGrab)
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+            else
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+
+            // Have the second interactor grab the object
+            interactor2.validTargets.Add(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor1, interactor2 }));
+
+            if (unparentTransformOnGrab)
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+            else
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+
+            // Have the first interactor drop the object
+            interactor1.validTargets.Remove(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting, Is.EqualTo(new[] { interactor2 }));
+
+            if (unparentTransformOnGrab)
+                Assert.That(grabInteractable.transform.parent, Is.Null);
+            else
+                Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+
+            // Have the second interactor drop the object
+            interactor2.validTargets.Remove(grabInteractable);
+            yield return null;
+
+            Assert.That(grabInteractable.isSelected, Is.False);
+            Assert.That(grabInteractable.interactorsSelecting, Is.Empty);
+
+            Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
+        }
+
         class PublicAccessGrabInteractable : XRGrabInteractable
         {
             public new bool ShouldMatchAttachPosition(IXRSelectInteractor interactor) => base.ShouldMatchAttachPosition(interactor);

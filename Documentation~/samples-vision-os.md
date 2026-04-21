@@ -78,7 +78,7 @@ The `Primary Interaction Group`, and its secondary variant, are configured to ha
 The input bridge folder represents the core of the work done to make the XR Interaction Toolkit interactors compatible with visionOS.
 
 ### SpatialTouchInputReader
-[XRI 3.0](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/whats-new-3.0.html) introduced [Input Readers](architecture.md#input-readers), which are a core part of managing input events that interactors rely on to correctly handle state transitions. Because interactors poll input from an abstracted Input Reader rather than input actions directly, it is possible to write a custom implementation of input logic that can process input before they're exposed to interactors.
+[XRI 3.0](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.0/manual/whats-new-3.0.html) introduced [Input Readers](xref:xri-input-readers), which are a core part of managing input events that interactors rely on to correctly handle state transitions. Because interactors poll input from an abstracted Input Reader rather than input actions directly, it is possible to write a custom implementation of input logic that can process input before they're exposed to interactors.
 
 To handle an interactor's select state transition, we need to implement [`IXRInputButtonReader`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.Readers.IXRInputButtonReader) which exposes a bool through `ReadIsPerformed` to tell the interactor when select is active.
 

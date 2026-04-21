@@ -55,6 +55,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     /// </item>
     /// </list>
     /// </para>
+    /// <para>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </para>
     /// </remarks>
     /// <seealso cref="IXRGrabTransformer"/>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
@@ -602,11 +606,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         }
 
         [SerializeField]
+        bool m_UnparentTransformOnGrab = true;
+
+        /// <summary>
+        /// If enabled, the GameObject will be moved to the root of the scene hierarchy when this interactable is grabbed.
+        /// </summary>
+        /// <seealso cref="retainTransformParent"/>
+        /// <remarks>
+        /// Changing this value while this interactable is already selected will not apply any parenting changes.
+        /// </remarks>
+        public bool unparentTransformOnGrab
+        {
+            get => m_UnparentTransformOnGrab;
+            set => m_UnparentTransformOnGrab = value;
+        }
+
+        [SerializeField]
         bool m_RetainTransformParent = true;
 
         /// <summary>
-        /// Whether Unity sets the parent of this object back to its original parent this object was a child of after this object is dropped.
+        /// If enabled when the grab interactable is dropped, the parent GameObject will be restored to the original parent
+        /// that was cached when this interactable was selected.
+        /// The parent GameObject will not be changed if this object was originally a root GameObject when grabbed.
         /// </summary>
+        /// <seealso cref="unparentTransformOnGrab"/>
+        /// <remarks>
+        /// Changing this value while this interactable is already dropped will not apply any parenting changes.
+        /// </remarks>
         public bool retainTransformParent
         {
             get => m_RetainTransformParent;
@@ -852,6 +878,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         readonly HashSet<Collider> m_CollidersThatAllowedCharacterCollision = new HashSet<Collider>();
 
         Transform m_OriginalSceneParent;
+        bool m_HadOriginalSceneParent;
 
         // Account for teleportation to avoid throws with unintentionally high energy
         TeleportationMonitor m_TeleportationMonitor;
@@ -2500,7 +2527,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         protected virtual void Grab()
         {
             m_OriginalSceneParent = m_Transform.parent;
-            m_Transform.SetParent(null);
+            m_HadOriginalSceneParent = m_OriginalSceneParent != null;
+            if (m_UnparentTransformOnGrab)
+                m_Transform.SetParent(null);
 
             // Capture the initial pose of the visuals transform if it exists.
             if (m_PredictedVisualsTransform != null)
@@ -2543,12 +2572,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 #else
             var exitingPlayMode = false;
 #endif
-            if (!exitingPlayMode && m_RetainTransformParent && m_OriginalSceneParent != null)
+            if (!exitingPlayMode && m_RetainTransformParent && m_HadOriginalSceneParent && m_Transform.parent != m_OriginalSceneParent)
             {
-                if (!m_OriginalSceneParent.gameObject.activeInHierarchy)
+                if (m_OriginalSceneParent != null && !m_OriginalSceneParent.gameObject.activeInHierarchy)
                 {
-                    Debug.LogWarning("Retain Transform Parent is set to true, and has a non-null Original Scene Parent. " +
-                        "However, the old parent is deactivated so we are choosing not to re-parent upon dropping.", this);
+                    Debug.LogWarning("Retain Transform Parent is set to true and had an old parent GameObject. " +
+                        $"However, the old parent \"{m_OriginalSceneParent.name}\" is deactivated so we are choosing not to re-parent upon dropping.", this);
+                }
+                else if (m_OriginalSceneParent == null)
+                {
+                    Debug.LogWarning("Retain Transform Parent is set to true and had an old parent GameObject. " +
+                        "However, the old parent is destroyed so we are choosing not to re-parent upon dropping.", this);
                 }
                 else if (gameObject.activeInHierarchy)
                     m_Transform.SetParent(m_OriginalSceneParent);

@@ -20,6 +20,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
     /// hover and selection.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DisallowMultipleComponent]

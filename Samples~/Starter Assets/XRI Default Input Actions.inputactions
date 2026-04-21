@@ -1245,6 +1245,17 @@
                 },
                 {
                     "name": "",
+                    "id": "7bed2e1f-113a-4779-848d-a4f93136bb84",
+                    "path": "<XRHandDevice>{LeftHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "71d94579-1bf4-4034-ab9e-e7166842128f",
                     "path": "<XRController>{LeftHand}/{Trigger}",
                     "interactions": "",
@@ -1280,6 +1291,17 @@
                     "name": "",
                     "id": "c7b5ae56-e532-43a3-a053-8d66df507df1",
                     "path": "<HoloLensHand>{LeftHand}/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "92437f05-43d7-40d1-9e19-33cb9d5013e7",
+                    "path": "<XRHandDevice>{LeftHand}/pinchValue",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2415,6 +2437,17 @@
                 },
                 {
                     "name": "",
+                    "id": "9f9680ed-d2d2-48bc-9df6-457972fa3d52",
+                    "path": "<XRHandDevice>{RightHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "174a58ab-1be9-47d5-ab2d-0dcfb077b490",
                     "path": "<AndroidMouseInteraction>/click",
                     "interactions": "",
@@ -2461,6 +2494,17 @@
                     "name": "",
                     "id": "e2fbf204-5031-483f-beaa-abf05113dbc7",
                     "path": "<HoloLensHand>{RightHand}/select",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UI Press Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "52496581-824b-4081-94aa-9a1ab52f636d",
+                    "path": "<XRHandDevice>{RightHand}/pinchValue",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

@@ -24,7 +24,7 @@ In older Unity Editor versions, the version of the package can be upgraded using
 
 ## Namespace changes
 
-XRI 3.0 changes the namespaces of various interactable, interactor, interaction attachment, and locomotion classes, enums, structs, and interfaces. This is to better reflect their use and the organizational structure they reside in. For a full list of namespace changes, please refer to the [Changelog](../changelog/CHANGELOG.html). Most of the namespace changes can be found in the Changed section under the [3.0.0 Changelog](../changelog/CHANGELOG.html#300---2024-03-18).
+XRI 3.0 changes the namespaces of various interactable, interactor, interaction attachment, and locomotion classes, enums, structs, and interfaces. This is to better reflect their use and the organizational structure they reside in. For a full list of namespace changes, please refer to the [Changelog](xref:xri-changelog). Most of the namespace changes can be found in the Changed section under the [3.0.0 Changelog](xref:xri-changelog#300---2024-03-18).
 
 ![namespace-updater](images/upgrade-guide/namespace-updater.png)
 
@@ -97,7 +97,7 @@ The `LocomotionSystem` has been deprecated and replaced by the `LocomotionMediat
 The affordance system has also been deprecated in XRI 3.0. A new feedback system to handle visuals, audio, haptics and more will be coming in a future release of XRI.
 
 > [!NOTE]
-> For a full list of what has been deprecated in XRI 3.0 please refer to the Deprecated section in the [3.0.0-pre.1 Changelog](../changelog/CHANGELOG.html#300-pre1---2023-12-14).
+> For a full list of what has been deprecated in XRI 3.0 please refer to the Deprecated section in the [3.0.0-pre.1 Changelog](xref:xri-changelog#300-pre1---2023-12-14).
 
 ## Input actions
 

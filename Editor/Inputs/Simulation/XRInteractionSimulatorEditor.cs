@@ -62,6 +62,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_CameraTransform;
         SerializedProperty m_LeftControllerTransform;
         SerializedProperty m_RightControllerTransform;
+        SerializedProperty m_LeftHandAimTransform;
+        SerializedProperty m_RightHandAimTransform;
         SerializedProperty m_DeviceLifecycleManager;
         SerializedProperty m_HandPlaybackManager;
         SerializedProperty m_TranslateSpace;
@@ -70,6 +72,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_1_OR_NEWER
         SerializedProperty m_DefaultPointAndClickHandedness;
 #endif
+        SerializedProperty m_PointAndClickHandExpression;
 
         // Sensitivity
         bool m_SensitivityExpanded;
@@ -155,6 +158,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_CameraTransform = serializedObject.FindProperty("m_CameraTransform");
             m_LeftControllerTransform = serializedObject.FindProperty("m_LeftControllerTransform");
             m_RightControllerTransform = serializedObject.FindProperty("m_RightControllerTransform");
+            m_LeftHandAimTransform = serializedObject.FindProperty("m_LeftHandAimTransform");
+            m_RightHandAimTransform = serializedObject.FindProperty("m_RightHandAimTransform");
             m_DeviceLifecycleManager = serializedObject.FindProperty("m_DeviceLifecycleManager");
             m_HandPlaybackManager = serializedObject.FindProperty("m_HandPlaybackManager");
             m_TranslateSpace = serializedObject.FindProperty("m_TranslateSpace");
@@ -163,6 +168,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_1_OR_NEWER
             m_DefaultPointAndClickHandedness = serializedObject.FindProperty("m_DefaultPointAndClickHandedness");
 #endif
+            m_PointAndClickHandExpression = serializedObject.FindProperty("m_PointAndClickHandExpression");
 
             m_TranslateXSpeed = serializedObject.FindProperty("m_TranslateXSpeed");
             m_TranslateYSpeed = serializedObject.FindProperty("m_TranslateYSpeed");
@@ -318,6 +324,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_CameraTransform);
                 EditorGUILayout.PropertyField(m_LeftControllerTransform);
                 EditorGUILayout.PropertyField(m_RightControllerTransform);
+                EditorGUILayout.PropertyField(m_LeftHandAimTransform);
+                EditorGUILayout.PropertyField(m_RightHandAimTransform);
                 EditorGUILayout.PropertyField(m_DeviceLifecycleManager);
                 EditorGUILayout.PropertyField(m_HandPlaybackManager);
                 EditorGUILayout.PropertyField(m_TranslateSpace);
@@ -325,6 +333,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_UsePointAndClick);
 #if XR_HANDS_1_1_OR_NEWER
                 EditorGUILayout.PropertyField(m_DefaultPointAndClickHandedness);
+#endif
+#if XR_HANDS_1_8_OR_NEWER // Property only used with XR Hands 1.8 or newer
+                EditorGUILayout.PropertyField(m_PointAndClickHandExpression);
 #endif
             }
         }

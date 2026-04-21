@@ -13,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// <remarks>
     /// When scripting, you can typically write custom behaviors that derive from <see cref="XRBaseInteractor"/>
     /// or one of its derived classes rather than implementing this interface directly.
+    ///
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
     /// <seealso cref="XRBaseInteractor"/>
     /// <seealso cref="IXRActivateInteractor"/>

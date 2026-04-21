@@ -9,6 +9,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     /// an activate event in this context refers to a contextual command action, such as
     /// toggling a flashlight on and off.
     /// </summary>
+    /// <remarks>
+    /// For more information and examples about handling interaction events, refer to
+    /// <a href="xref:xri-interaction-event-handling">Handle interaction events</a>
+    /// and <a href="xref:xri-state-events">Interaction state and events</a>.
+    /// </remarks>
     /// <seealso cref="IXRActivateInteractor"/>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public interface IXRActivateInteractable : IXRInteractable

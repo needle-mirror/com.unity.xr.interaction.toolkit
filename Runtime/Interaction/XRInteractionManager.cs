@@ -31,6 +31,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <remarks>
     /// Many of the methods on the Interactors and Interactables are designed to be called by this Interaction Manager
     /// rather than being called directly in order to maintain consistency between both targets of an interaction event.
+    ///
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="IXRInteractable"/>
@@ -775,7 +778,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 interactor.PreprocessInteractor(updatePhase);
             }
 #if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
-            XRUIToolkitHandler.UpdateEventSystem();
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                XRUIToolkitHandler.UpdateEventSystem();
 #endif
         }
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
@@ -42,14 +43,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(socketInteractor.interactablesSelected, Is.Empty);
             Assert.That(socketInteractor.hasSelection, Is.False);
-            Assert.That(interactable.transform.position, Is.Not.EqualTo(socketInteractor.transform.position));
+            Assert.That(interactable.transform.position, Is.Not.EqualTo(socketInteractor.transform.position).Using(Vector3ComparerWithEqualsOperator.Instance));
 
             yield return new WaitForFixedUpdate();
             yield return null;
 
             Assert.That(socketInteractor.interactablesSelected, Is.EqualTo(new[] { interactable }));
             Assert.That(socketInteractor.hasSelection, Is.True);
-            Assert.That(interactable.transform.position, Is.EqualTo(socketInteractor.transform.position));
+            Assert.That(interactable.transform.position, Is.EqualTo(socketInteractor.transform.position).Using(Vector3ComparerWithEqualsOperator.Instance));
         }
 
         [UnityTest]

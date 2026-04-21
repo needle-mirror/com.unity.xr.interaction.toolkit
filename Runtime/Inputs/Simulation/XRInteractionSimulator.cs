@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -125,6 +125,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             get => m_RightControllerTransform;
             set => m_RightControllerTransform = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The Transform used for left hand aiming. Automatically set to the best fit Aim Pose for the left controller or hand, using the Left Hand Game Object reference from the XR Input Modality Manager if unset.")]
+        Transform m_LeftHandAimTransform;
+
+        /// <summary>
+        /// The <see cref="Transform"/> used for left hand aiming.
+        /// Automatically set to the best fit Aim Pose for the left controller or hand, using the Left Hand Game Object
+        /// reference from the <see cref="XRInputModalityManager"/> if unset.
+        /// If it is unset and there is no modality manager then it will be set to the <see cref="cameraTransform"/>.
+        /// </summary>
+        public Transform leftHandAimTransform
+        {
+            get => m_LeftHandAimTransform;
+            set => m_LeftHandAimTransform = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The Transform used for right hand aiming. Automatically set to the best fit Aim Pose for the right controller or hand, using the Right Hand Game Object reference from the XR Input Modality Manager if unset.")]
+        Transform m_RightHandAimTransform;
+
+        /// <summary>
+        /// The <see cref="Transform"/> used for right hand aiming.
+        /// Automatically set to the best fit Aim Pose for the right controller or hand, using the Right Hand Game Object
+        /// reference from the <see cref="XRInputModalityManager"/> if unset.
+        /// If it is unset and there is no modality manager then it will be set to the <see cref="cameraTransform"/>.
+        /// </summary>
+        public Transform rightHandAimTransform
+        {
+            get => m_RightHandAimTransform;
+            set => m_RightHandAimTransform = value;
         }
 
         [SerializeField]
@@ -987,6 +1019,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 #endif
 
+        [SerializeField]
+        [Tooltip("The simulated hand expression that will be used to trigger point-and-click select.")]
+        SimulatedHandExpression m_PointAndClickHandExpression;
+
+        /// <summary>
+        /// The simulated hand expression that will be used to trigger point-and-click select.
+        /// </summary>
+        public SimulatedHandExpression pointAndClickHandExpression
+        {
+            get => m_PointAndClickHandExpression;
+            set => m_PointAndClickHandExpression = value;
+        }
+
         TargetedDevices m_TargetedDeviceInput;
 
         /// <summary>
@@ -1186,7 +1231,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_OriginalInputModuleMouseValue;
         bool m_OriginalInputModuleTouchValue;
         bool m_OriginalInputModuleValuesCaptured;
-        bool m_CanUsePointAndClick;
+        bool m_InputModuleChangeLogged;
+        bool m_CanUsePointAndClickControllers;
+        bool m_CanUsePointAndClickHands;
         float m_PreviousRaycastHitDistance;
 
 #if XR_SIMULATION_AVAILABLE
@@ -1269,13 +1316,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_DeviceLifecycleManager != null)
                 m_DeviceLifecycleManager.deviceModeChanged += OnDeviceModeChanged;
 
-            if (!FindLeftRightControllers())
-            {
-                Debug.LogWarning("XR Interaction Simulator could not detect controllers. Point-and-click functionality will be disabled.", this);
-                m_CanUsePointAndClick = false;
-            }
-            else
-                m_CanUsePointAndClick = true;
+            m_CanUsePointAndClickControllers = FindLeftRightControllers();
+            if (!m_CanUsePointAndClickControllers)
+                Debug.LogWarning("XR Interaction Simulator could not detect controllers. Point-and-click functionality will be disabled for controllers. If you wish to use this functionality, please check the InputModalityManager configuration or set the LeftControllerTransform or RightControllerTransform manually.", this);
+
+            m_CanUsePointAndClickHands = FindLeftRightHands();
+            if (!m_CanUsePointAndClickHands)
+                Debug.LogWarning("XR Interaction Simulator could not detect hands. Point-and-click functionality will be disabled for hands. If you wish to use this functionality, please check the InputModalityManager configuration or set the LeftHandAimTransform or RightHandAimTransform manually.", this);
 
 #if ENABLE_VR || UNITY_GAMECORE
 #if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
@@ -1557,8 +1604,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_LeftHandState, inverseCameraParentRotation);
                     m_LeftHandState.position += deltaRotation * deltaPosition;
 
-                    m_LeftHandState.euler += anglesDelta;
-                    m_LeftHandState.rotation = Quaternion.Euler(m_LeftHandState.euler);
+                    if (!m_PointAndClickActive)
+                    {
+                        m_LeftHandState.euler += anglesDelta;
+                        m_LeftHandState.rotation = Quaternion.Euler(m_LeftHandState.euler);
+                    }
                 }
 
                 if (manipulatingRightHand)
@@ -1566,8 +1616,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_RightHandState, inverseCameraParentRotation);
                     m_RightHandState.position += deltaRotation * deltaPosition;
 
-                    m_RightHandState.euler += anglesDelta;
-                    m_RightHandState.rotation = Quaternion.Euler(m_RightHandState.euler);
+                    if (!m_PointAndClickActive)
+                    {
+                        m_RightHandState.euler += anglesDelta;
+                        m_RightHandState.rotation = Quaternion.Euler(m_RightHandState.euler);
+                    }
                 }
 
                 if (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD))
@@ -1584,7 +1637,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (m_PointAndClickActive && (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD) || manipulatingLeftController || manipulatingRightController))
+                if (m_PointAndClickActive && (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD) || manipulatingLeftDevice || manipulatingRightDevice))
                 {
                     m_CenterEyeEuler += anglesDelta;
                     m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
@@ -2183,66 +2236,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
         }
 
-        void ProcessPointAndClick()
-        {
-#if ENABLE_VR || UNITY_GAMECORE
-            if (m_PointAndClickActive && !RotationInputIsPerformed())
-            {
-                if (!XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform))
-                    return;
-
-                Vector2 screenPosition = m_MousePointInput.ReadValue();
-                m_ScreenToWorldPoint = m_CachedCamera.camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, m_CachedCamera.camera.nearClipPlane));
-                m_RaycastDirVector = (m_ScreenToWorldPoint - m_CameraTransform.position).normalized;
-
-                if (TryGetClosestRaycastHitPoint(screenPosition, m_ScreenToWorldPoint, m_RaycastDirVector, out var hitPosition, out var hitType))
-                {
-                    m_HitEndPoint = hitPosition;
-
-                    if (manipulatingLeftController && m_LeftControllerTransform != null)
-                        ConvertWorldPointToLocalAimRotation(m_HitEndPoint, m_LeftControllerTransform, ref m_LeftControllerState);
-
-                    if (manipulatingRightController && m_RightControllerTransform != null)
-                        ConvertWorldPointToLocalAimRotation(m_HitEndPoint, m_RightControllerTransform, ref m_RightControllerState);
-                }
-                else
-                {
-                    // If we don't have a previous hit distance, use a default distance instead. This prevents the controllers from locking up
-                    // when there is no previous hit (e.g. when starting point-and-click in empty space).
-                    float distance = m_PreviousRaycastHitDistance > 0f ? m_PreviousRaycastHitDistance : k_DefaultRaycastDistance;
-                    Ray screenPointToRay = m_CachedCamera.camera.ScreenPointToRay(screenPosition);
-                    Vector3 cachedDistancePoint = screenPointToRay.GetPoint(distance);
-
-                    if (manipulatingLeftController && m_LeftControllerTransform != null)
-                        ConvertWorldPointToLocalAimRotation(cachedDistancePoint, m_LeftControllerTransform, ref m_LeftControllerState);
-
-                    if (manipulatingRightController && m_RightControllerTransform != null)
-                         ConvertWorldPointToLocalAimRotation(cachedDistancePoint, m_RightControllerTransform, ref m_RightControllerState);
-                }
-
-                if (m_MouseClickInput.ReadWasPerformedThisFrame())
-                    HandlePointAndClickSelect(hitType);
-
-                if (m_MouseClickInput.ReadWasCompletedThisFrame() ||
-                    (!m_MouseClickInput.ReadIsPerformed() &&
-                        (m_PerformingLeftPointAndClickGripInteraction || m_PerformingLeftPointAndClickTriggerInteraction ||
-                            m_PerformingRightPointAndClickGripInteraction || m_PerformingRightPointAndClickTriggerInteraction)))
-                {
-                    ClearPointAndClickSelect();
-                }
-            }
-#endif
-        }
-
-#if ENABLE_VR || UNITY_GAMECORE
-        static void ConvertWorldPointToLocalAimRotation(Vector3 point, Transform referenceTransform, ref XRSimulatedControllerState controllerState)
-        {
-            var localHitPoint = referenceTransform.parent.InverseTransformPoint(point);
-            var controllerDirVector = (localHitPoint - controllerState.devicePosition).normalized;
-            controllerState.deviceRotation = Quaternion.LookRotation(controllerDirVector);
-        }
-#endif
-
         /// <summary>
         /// Checks whether rotation input is currently being performed from keyboard or mouse.
         /// </summary>
@@ -2288,6 +2281,32 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     m_RightControllerState.WithButton(ControllerButton.TriggerButton);
                     m_PerformingRightPointAndClickTriggerInteraction = true;
                 }
+            }
+#endif
+        }
+
+        void HandlePointAndClickSelectHand()
+        {
+#if XR_HANDS_1_8_OR_NEWER
+           if (m_PointAndClickHandExpression == null || m_PointAndClickHandExpression.captureSequence == null)
+                 return;
+
+            if (manipulatingLeftHand)
+            {
+                // If the previous capture sequence is different from the point-and-click capture sequence,
+                // then ToggleHandPlayback() needs to be called twice to play the clip from start to end.
+                if (m_DeviceLifecycleManager.leftHandPlayback.sourceCaptureSequence != m_PointAndClickHandExpression.captureSequence)
+                    m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Left);
+
+                m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Left);
+            }
+
+            if (manipulatingRightHand)
+            {
+                if (m_DeviceLifecycleManager.rightHandPlayback.sourceCaptureSequence != m_PointAndClickHandExpression.captureSequence)
+                    m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Right);
+
+                m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Right);
             }
 #endif
         }
@@ -2375,6 +2394,152 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             return m_UIInputModule != null;
         }
 
+        void DisableInputModuleInput()
+        {
+            // Skip capturing and setting values if already disabled.
+            if ((m_UIInputModule != null || FindUIInputModule()) && (m_UIInputModule.enableMouseInput || m_UIInputModule.enableTouchInput))
+            {
+                if (!m_OriginalInputModuleValuesCaptured)
+                {
+                    if (!m_InputModuleChangeLogged)
+                    {
+                        Debug.Log("To avoid interfering with point and click interactions, XRUIInputModule mouse and touch input will be disabled while the simulated devices are active.", this);
+                        m_InputModuleChangeLogged = true;
+                    }
+
+                    m_OriginalInputModuleMouseValue = m_UIInputModule.enableMouseInput;
+                    m_OriginalInputModuleTouchValue = m_UIInputModule.enableTouchInput;
+                    m_OriginalInputModuleValuesCaptured = true;
+                }
+
+                m_UIInputModule.enableMouseInput = false;
+                m_UIInputModule.enableTouchInput = false;
+            }
+        }
+
+        void RestoreInputModuleInput()
+        {
+            if (m_OriginalInputModuleValuesCaptured && (m_UIInputModule != null || FindUIInputModule()))
+            {
+                m_UIInputModule.enableMouseInput = m_OriginalInputModuleMouseValue;
+                m_UIInputModule.enableTouchInput = m_OriginalInputModuleTouchValue;
+                m_OriginalInputModuleValuesCaptured = false;
+            }
+        }
+
+        void HandlePointAndClickActive()
+        {
+            bool canUsePointAndClick = ((m_CanUsePointAndClickControllers && m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+                || (m_CanUsePointAndClickHands && m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand));
+
+            if (canUsePointAndClick)
+            {
+                var manipulatingDevice = manipulatingLeftDevice || manipulatingRightDevice;
+                if (m_UsePointAndClick && !m_PointAndClickActive && manipulatingDevice)
+                {
+                    m_PointAndClickActive = true;
+                    DisableInputModuleInput();
+                }
+                else if (m_PointAndClickActive && (manipulatingHMD || !m_UsePointAndClick))
+                {
+                    m_PointAndClickActive = false;
+                    RestoreInputModuleInput();
+                }
+            }
+            else if (m_PointAndClickActive)
+            {
+                m_PointAndClickActive = false;
+                RestoreInputModuleInput();
+            }
+
+            //This check covers the case in which the UIInputModule was not available in the first call in this method due to the execution order.
+            if (m_PointAndClickActive)
+                DisableInputModuleInput();
+        }
+
+        void ProcessPointAndClick()
+        {
+#if ENABLE_VR || UNITY_GAMECORE
+            if (m_PointAndClickActive && !RotationInputIsPerformed())
+            {
+                if (!XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform))
+                    return;
+
+                Vector2 screenPosition = m_MousePointInput.ReadValue();
+                m_ScreenToWorldPoint = m_CachedCamera.camera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, m_CachedCamera.camera.nearClipPlane));
+                m_RaycastDirVector = (m_ScreenToWorldPoint - m_CameraTransform.position).normalized;
+
+                if (TryGetClosestRaycastHitPoint(screenPosition, m_ScreenToWorldPoint, m_RaycastDirVector, out var hitPosition, out var hitType))
+                {
+                    m_HitEndPoint = hitPosition;
+                    ProcessAimDeviceAtWorldPoint(m_HitEndPoint);
+                }
+                else
+                {
+                    // If we don't have a previous hit distance, use a default distance instead. This prevents the controllers from locking up
+                    // when there is no previous hit (e.g. when starting point-and-click in empty space).
+                    float distance = m_PreviousRaycastHitDistance > 0f ? m_PreviousRaycastHitDistance : k_DefaultRaycastDistance;
+                    Ray screenPointToRay = m_CachedCamera.camera.ScreenPointToRay(screenPosition);
+                    Vector3 cachedDistancePoint = screenPointToRay.GetPoint(distance);
+                    ProcessAimDeviceAtWorldPoint(cachedDistancePoint);
+                }
+
+                if (m_MouseClickInput.ReadWasPerformedThisFrame())
+                {
+                    HandlePointAndClickSelect(hitType);
+#if XR_HANDS_1_8_OR_NEWER
+                    HandlePointAndClickSelectHand();
+#endif
+                }
+
+                if (m_MouseClickInput.ReadWasCompletedThisFrame() ||
+                    (!m_MouseClickInput.ReadIsPerformed() &&
+                        (m_PerformingLeftPointAndClickGripInteraction || m_PerformingLeftPointAndClickTriggerInteraction ||
+                            m_PerformingRightPointAndClickGripInteraction || m_PerformingRightPointAndClickTriggerInteraction)))
+                {
+                    ClearPointAndClickSelect();
+                }
+            }
+#endif
+        }
+
+#if ENABLE_VR || UNITY_GAMECORE
+        void ProcessAimDeviceAtWorldPoint(Vector3 endPoint)
+        {
+            if (manipulatingLeftController && m_LeftControllerTransform != null)
+                AimDeviceAtWorldPoint(endPoint, m_LeftControllerTransform, ref m_LeftControllerState);
+
+            if (manipulatingRightController && m_RightControllerTransform != null)
+                AimDeviceAtWorldPoint(endPoint, m_RightControllerTransform, ref m_RightControllerState);
+
+            if (manipulatingLeftHand && m_LeftHandAimTransform != null)
+            {
+                AimDeviceAtWorldPoint(endPoint, m_LeftHandAimTransform, ref m_LeftHandState);
+                m_LeftHandAimTransform.rotation = Quaternion.LookRotation((endPoint - m_LeftHandAimTransform.transform.position).normalized);
+            }
+
+            if (manipulatingRightHand && m_RightHandAimTransform != null)
+            {
+                AimDeviceAtWorldPoint(endPoint, m_RightHandAimTransform, ref m_RightHandState);
+                m_RightHandAimTransform.rotation = Quaternion.LookRotation((endPoint - m_RightHandAimTransform.transform.position).normalized);
+            }
+        }
+
+        static void AimDeviceAtWorldPoint(Vector3 point, Transform referenceTransform, ref XRSimulatedControllerState controllerState)
+        {
+            var localHitPoint = referenceTransform.parent.InverseTransformPoint(point);
+            var controllerDirVector = (localHitPoint - controllerState.devicePosition).normalized;
+            controllerState.deviceRotation = Quaternion.LookRotation(controllerDirVector);
+        }
+
+        static void AimDeviceAtWorldPoint(Vector3 point, Transform referenceTransform, ref XRSimulatedHandState handState)
+        {
+            var localHitPoint = referenceTransform.parent.InverseTransformPoint(point);
+            var handDirVector = (localHitPoint - handState.position).normalized;
+            handState.rotation = Quaternion.LookRotation(handDirVector);
+        }
+#endif
+
         bool FindLeftRightControllers()
         {
             if (ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out var inputModalityManager))
@@ -2400,58 +2565,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_RightControllerTransform == null)
                 m_RightControllerTransform = m_CameraTransform;
 
-            return m_LeftControllerTransform != null || m_RightControllerTransform != null;
+            return (m_LeftControllerTransform != null || m_RightControllerTransform != null);
         }
 
-        void DisableInputModuleInput()
+        bool FindLeftRightHands()
         {
-            // Skip capturing and setting values if already disabled.
-            if ((m_UIInputModule != null || FindUIInputModule()) && (m_UIInputModule.enableMouseInput || m_UIInputModule.enableTouchInput))
+            if (ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out var inputModalityManager))
             {
-                if (!m_OriginalInputModuleValuesCaptured)
+                if (m_LeftHandAimTransform == null && inputModalityManager.leftHand != null)
                 {
-                    Debug.Log("To avoid interfering with point and click interactions, XRUIInputModule mouse and touch input will be disabled while the simulated controllers are active.", this);
-
-                    m_OriginalInputModuleMouseValue = m_UIInputModule.enableMouseInput;
-                    m_OriginalInputModuleTouchValue = m_UIInputModule.enableTouchInput;
-                    m_OriginalInputModuleValuesCaptured = true;
+                    foreach (var interactor in inputModalityManager.leftHand.GetComponentsInChildren<NearFarInteractor>())
+                    {
+                        var farCaster = interactor.farInteractionCaster;
+                        if (farCaster != null && farCaster.castOrigin != null)
+                        {
+                            m_LeftHandAimTransform = farCaster.castOrigin.transform;
+                            break;
+                        }
+                    }
                 }
 
-                m_UIInputModule.enableMouseInput = false;
-                m_UIInputModule.enableTouchInput = false;
-            }
-        }
-
-        void RestoreInputModuleInput()
-        {
-            if (m_OriginalInputModuleValuesCaptured && (m_UIInputModule != null || FindUIInputModule()))
-            {
-                m_UIInputModule.enableMouseInput = m_OriginalInputModuleMouseValue;
-                m_UIInputModule.enableTouchInput = m_OriginalInputModuleTouchValue;
-                m_OriginalInputModuleValuesCaptured = false;
-            }
-        }
-
-        void HandlePointAndClickActive()
-        {
-            if (m_UsePointAndClick && m_CanUsePointAndClick)
-            {
-                var manipulatingController = manipulatingLeftController || manipulatingRightController;
-                if (!m_PointAndClickActive && manipulatingController)
+                if (m_RightHandAimTransform == null && inputModalityManager.rightHand != null)
                 {
-                    m_PointAndClickActive = true;
-                    DisableInputModuleInput();
-                }
-                else if (m_PointAndClickActive && (!manipulatingController || !usePointAndClick || !m_CanUsePointAndClick))
-                {
-                    m_PointAndClickActive = false;
-                    RestoreInputModuleInput();
+                    foreach (var interactor in inputModalityManager.rightHand.GetComponentsInChildren<NearFarInteractor>())
+                    {
+                        var farCaster = interactor.farInteractionCaster;
+                        if (farCaster != null && farCaster.castOrigin != null)
+                        {
+                            m_RightHandAimTransform = farCaster.castOrigin.transform;
+                            break;
+                        }
+                    }
                 }
             }
 
-            //This check covers the case in which the UIInputModule was not available in the first call in this method due to the execution order.
-            if (m_PointAndClickActive)
-                DisableInputModuleInput();
+            if (m_LeftHandAimTransform == null)
+                m_LeftHandAimTransform = m_CameraTransform;
+
+            if (m_RightHandAimTransform == null)
+                m_RightHandAimTransform = m_CameraTransform;
+
+            return (m_LeftHandAimTransform != null || m_RightHandAimTransform != null);
         }
     }
 }

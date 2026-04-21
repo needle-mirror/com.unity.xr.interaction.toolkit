@@ -21,6 +21,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// The near caster is simpler and not assumed to have any line based casting, while the far caster implements <see cref="ICurveInteractionCaster"/>
     /// to find valid targets, and optionally <see cref="IUIModelUpdater"/> which is used to support UI interaction and sort interaction points.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/Near-Far Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_NearFarInteractor)]

@@ -59,7 +59,7 @@ The Demo Scene in the Starter Assets sample package contains a number of simplif
 |**`Prefabs\UI Sample`**|Prefab containing interactable UI elements in a world space canvas.|
 |**`Scripts\`**|Asset folder containing scripts used for demo scene functionality.|
 
-## Typical XR Interaction configuration
+## Typical XR Interaction configuration {#hierarchy-configuration}
 
 Most typical XR interactions can be enabled by including  the following GameObjects in your scene:
 
@@ -285,7 +285,7 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
 </tbody>
 </table>
 
-## XRI Default Input Actions
+## XRI Default Input Actions {#input-actions-asset}
 
 This is a project-wide [Input Action Asset](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionAssets.html) that contains [Actions](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/Actions.html) with typical [Input Bindings](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/ActionBindings.html) for use with behaviors in the XR Interaction Toolkit that read input.
 

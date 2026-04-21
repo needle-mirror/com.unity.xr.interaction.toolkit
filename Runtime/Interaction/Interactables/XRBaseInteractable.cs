@@ -22,6 +22,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     /// This class hooks into the interaction system (via <see cref="XRInteractionManager"/>) and provides base virtual methods for handling
     /// hover, selection, and focus.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_Interactables)]

@@ -50,6 +50,8 @@ MonoBehaviour:
   m_CameraTransform: {fileID: 0}
   m_LeftControllerTransform: {fileID: 0}
   m_RightControllerTransform: {fileID: 0}
+  m_LeftHandTransform: {fileID: 0}
+  m_RightHandTransform: {fileID: 0}
   m_DeviceLifecycleManager: {fileID: 3966192772413791964}
   m_HandPlaybackManager: {fileID: 8031605675589883834}
   m_InteractionSimulatorUI: {fileID: 8640641445779114434, guid: be0c86f67bf3f46659373b3776d9ecbb, type: 3}
@@ -967,6 +969,48 @@ MonoBehaviour:
   m_QuickActionControllerInputModes: 01000000020000000300000004000000
   m_UsePointAndClick: 1
   m_DefaultPointAndClickHandedness: 2
+  m_PointAndClickHandExpression:
+    m_Name: pinch-pointandclick
+    m_ToggleInput:
+      m_InputSourceMode: 2
+      m_InputActionPerformed:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: e34af426-c604-4b58-a971-715787a19e2f
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionValue:
+        m_Name: 
+        m_Type: 0
+        m_ExpectedControlType: 
+        m_Id: e6389e05-071b-4c77-bcf8-8973a118148c
+        m_Processors: 
+        m_Interactions: 
+        m_SingletonActionBindings: []
+        m_Flags: 0
+      m_InputActionReferencePerformed: {fileID: 0}
+      m_InputActionReferenceValue: {fileID: 0}
+      m_ObjectReferenceObject: {fileID: 0}
+      m_ManualPerformed: 0
+      m_ManualValue: 0
+      m_ManualQueuePerformed: 0
+      m_ManualQueueWasPerformedThisFrame: 0
+      m_ManualQueueWasCompletedThisFrame: 0
+      m_ManualQueueValue: 0
+      m_ManualQueueTargetFrame: 0
+    m_CaptureSequence: {fileID: 11400000, guid: 149208170d63649d396a3996194c40d6, type: 2}
+    m_SequenceType: 1
+    m_SingleFrameIndex: 0
+    m_MultiFrameStartIndex: 100
+    m_MultiFrameEndIndex: 125
+    m_MultiFrameReverseStartIndex: 125
+    m_MultiFrameReverseEndIndex: 175
+    m_InBetweenKeyFrameIndexList: 
+    m_Capture: {fileID: 0}
+    m_IsQuickAction: 0
 --- !u!114 &3966192772413791964
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,6 +10,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// Interactor used for interacting with interactables via gaze. This extends <see cref="XRRayInteractor"/> and
     /// uses the same ray cast technique to update a current set of valid targets.
     /// </summary>
+    /// <remarks>
+    /// For more information about the interaction system, refer to
+    /// <a href="xref:xri-architecture">Interaction overview</a>.
+    /// </remarks>
     /// <seealso cref="XRBaseInteractable.allowGazeInteraction"/>
     /// <seealso cref="XRBaseInteractable.allowGazeSelect"/>
     /// <seealso cref="XRBaseInteractable.allowGazeAssistance"/>
