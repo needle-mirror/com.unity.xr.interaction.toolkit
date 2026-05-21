@@ -20,7 +20,7 @@ class XRInteractionManagerRegistrationEventsSample : MonoBehaviour
         // Try to find an interaction manager if necessary.
         // In Unity versions older than 2021.3.18f1, replace FindFirstObjectByType with FindObjectOfType.
         if (m_InteractionManager == null)
-            m_InteractionManager = FindFirstObjectByType<XRInteractionManager>();
+            m_InteractionManager = FindAnyObjectByType<XRInteractionManager>();
 
         // Note, the code below is creating the XRInteractionGroup, NearFarInteractor, and XRGrabInteractable before subscribing
         // to the interaction manager register/unregister events. Therefore, the initial register callback will not be logged.

@@ -24,4 +24,4 @@ The XR Interaction Toolkit package provides an example implementation for mobile
 
 In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
   * [Starter Assets](samples-starter-assets.md) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
-  * [AR Foundation (com.unity.xr.arfoundation)](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) - 4.2.8 or newer
+  * [AR Foundation (com.unity.xr.arfoundation)](https://docs.unity3d.com/Manual/com.unity.xr.arfoundation.html) - 6.0 or newer

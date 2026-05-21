@@ -255,9 +255,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
                     id = UniqueIdGenerator.GetUniqueTreeViewId(device),
                     displayName = device.name,
                     characteristics = device.characteristics.ToString(),
-#pragma warning disable 612, 618
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
                     role = device.role.ToString(),
-#pragma warning restore 612, 618
+#pragma warning restore CS0612, CS0618 // Type or member is obsolete
                     xrNodes = string.Join(", ", xrNodes),
                     manufacturer = device.manufacturer,
                     subsystem = device.subsystem.subsystemDescriptor.id,
@@ -283,6 +283,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
                         depth = 1,
                         parent = deviceItem,
                     };
+
                     featureChildren.Add(featureItem);
                 }
 
@@ -431,7 +432,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         }
 
         /// <summary>
-        /// Alternate version of <see cref="XRInteractionDebuggerWindow.GetUniqueTreeViewId"/> which works
+        /// Alternate version of ID generator in <see cref="XRInteractionDebuggerWindow"/> which works
         /// with multiple values that seed each row in this tree.
         /// </summary>
         static class UniqueIdGenerator

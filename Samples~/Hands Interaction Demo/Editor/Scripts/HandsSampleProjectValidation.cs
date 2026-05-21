@@ -26,7 +26,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
         static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.5.1");
-        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.1");
+        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.2");
+        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("1.7.3");
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
@@ -214,8 +215,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 var recommendedVersion = new PackageVersion(versions.verified);
 #endif
                 var latestCompatible = new PackageVersion(versions.latestCompatible);
-                if (recommendedVersion < s_RecommendedHandsPackageVersion && s_RecommendedHandsPackageVersion <= latestCompatible)
-                    addRequest = $"{k_HandsPackageName}@{s_RecommendedHandsPackageVersion}";
+                if (recommendedVersion < s_TargetInstallHandsPackageVersion && s_TargetInstallHandsPackageVersion <= latestCompatible)
+                    addRequest = $"{k_HandsPackageName}@{s_TargetInstallHandsPackageVersion}";
             }
 
             s_HandsPackageAddRequest = Client.Add(addRequest);

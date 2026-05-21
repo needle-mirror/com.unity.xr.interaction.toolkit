@@ -527,7 +527,8 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 interactor.PreprocessInteractor(updatePhase);
             }
 #if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
-            XRUIToolkitHandler.UpdateEventSystem();
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
+                XRUIToolkitHandler.UpdateEventSystem();
 #endif
         }
 

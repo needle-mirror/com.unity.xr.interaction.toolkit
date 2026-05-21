@@ -12,6 +12,9 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Assembly = System.Reflection.Assembly;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 #if XR_MANAGEMENT_4_0_OR_NEWER
 using UnityEditor.XR.Management;
@@ -376,7 +379,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                     {
                         try
                         {
+#if UNITY_6000_5_OR_NEWER
+                            var reflectionAssembly = CurrentAssemblies.LoadFromPath(assembly.outputPath);
+#else
                             var reflectionAssembly = Assembly.LoadFrom(assembly.outputPath);
+#endif
                             s_XRIAssemblies.Add(reflectionAssembly);
                         }
                         catch

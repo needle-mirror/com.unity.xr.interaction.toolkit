@@ -1,8 +1,8 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.3.1",
-  "unity": "2021.3",
+  "version": "3.3.2",
+  "unity": "6000.0",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
     "XR",
@@ -14,7 +14,7 @@
   "dependencies": {
     "com.unity.inputsystem": "1.8.1",
     "com.unity.mathematics": "1.2.6",
-    "com.unity.ugui": "1.0.0",
+    "com.unity.ugui": "2.0.0",
     "com.unity.xr.core-utils": "2.4.0",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
@@ -64,20 +64,20 @@
     },
     {
       "displayName": "visionOS",
-      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • Unity 2022.3 LTS or newer (minimum 2022.3.19f1)",
+      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • Unity 6000.0 LTS or newer (minimum 6000.0)",
       "path": "Samples~/visionOS"
     }
   ],
   "_upm": {
-    "changelog": "### Fixed\n- Fixed an issue with the `JumpProvider` continually being stuck in the `LocomotionState.Moving` state and never entering the `LocomotionState.Ended` state. (Backport from 3.4.0-pre.1)\n- Fixed an issue in which the `HandMenu` appears unstable or flickers between showing and hiding when it is displayed while the pose of the anchor transform remains near the angle/range in which it was initially triggered to be shown.  In order to solve the issue, the controller displaying the menu now has a separate wider range for hiding the menu than the allowable range that triggers the initial display of the menu. (Backport from 3.4.0-pre.1)\n- Fixed XR Grab Interactable not restoring the original Rigidbody settings when dropped when first grabbed by an interactor with a movement type override, such as an XR Socket Interactor. This fixes a regression introduced with version [3.2.0](#320---2025-06-30). (Backport from 3.4.0-pre.3)\n- Fixed Gravity Provider not detecting the player is grounded when the XR Origin is scaled, such as when using Two-Handed Grab Move Provider with Enable Scaling. The grounded check now automatically scales the Sphere Cast Settings properties proportionally as the XR Origin is rescaled from (1, 1, 1). This fixes movement feeling floaty due to In Air Control Modifier applying when the player should have been considered grounded. (Backport from 3.4.0-pre.3)\n- Fixed `ContinuousMoveProvider` remaining in the `LocomotionState.Moving` state for too long after the thumbstick input is released when In Air Control is allowed or when Enable Fly is enabled. This fixes the tunneling vignette for the move provider so it ends sooner when input ends while falling or flying. (Backport from 3.4.0-pre.3)\n- Fixed \"CharacterController.Move called on inactive controller\" errors caused by `CharacterControllerBodyManipulator` when the Character Controller component is disabled. Locomotion will now directly translate the XR Origin when the Character Controller component is disabled. (Backport from 3.4.0-pre.3)\n- Fixed potential `NullReferenceException` when the `GravityProvider` does not have a reference to a `CharacterController`. (Backport from 3.4.0-pre.3)\n- Fixed Gravity Provider gizmo when not grounded. (Backport from 3.4.0-pre.3)"
+    "changelog": "### Changed\n- Changed minimum supported version of the Unity Editor from 2022.3 to 6000.0 (LTS).\n- Changed minimum version of `com.unity.ugui` dependency to `2.0.0`.\n\n### Fixed\n- Fixed the size of the label for the Property Drawer for Input Readers when set to a type of `Unused`. (Backport from 3.4.0)\n- Fixed an issue in `TrackedDeviceGraphicRaycaster` where poke selection could be evaluated against the wrong UI target when multiple raycasters appended results to the same raycast list. This could prevent foreground world-space UI from being selectable if a background Canvas also received hit (in a child Dropdown for example). (Backport from 3.4.0)\n- Fixed distance based velocity scaling to take camera velocity into account when calculating attach point velocity in order to prevent physical walking from applying velocity to held grab intractable. (Backport from 3.4.0)\n- Fixed warnings in the [World Space UI sample package](xref:xri-samples-world-space-ui) sample package where the UI documents and style sheets were pointing to an out-of-date asset path. (Backport from 3.4.0)\n- Fixed warnings generated by the [Spatial Keyboard sample package](xref:xri-samples-spatial-keyboard) when importing the `KeyboardIconAtlas` asset. (Backport from 3.4.0)\n- Fixed/suppressed compiler warning triggered by deprecation of `MicrosoftHandInteraction.HoloLensHand` in OpenXR 1.16.0 and newer. (Backport from 3.4.0)\n- Fixed Editor Assembly Definition to include `Unity.InputSystem.Editor` in the references to fix script compilation on some versions of Input System (com.unity.inputsystem). (Backport from 3.5.0-pre.1)\n- Fix an issue where XR Interaction Manager was triggering a UI Toolkit update tick even when UI Toolkit support was not enabled for XRI, causing errors to be thrown in some versions of UI Toolkit. Also changed behavior so it is only updated once per frame at the dynamic `Update` phase. (Backport from 3.5.0)\n- Fixed an issue caused when the `XRDeviceSimulatorHandsProvider` attempts to register more than once with the `SubsystemDescriptorStore`. This caused a warning when using fast-enter play mode. [UUM-135026](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-135026) (Backport from 3.5.0-pre.2)\n- Fixed missing assembly reference for Unity.PolySpatial.Core in the visionOS sample package. [UUM-141554](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141554) (Backport from 3.5.1)"
   },
   "upmCi": {
-    "footprint": "1e3afcc40c2b9a37a34cebf93d8bf747df72a6fb"
+    "footprint": "1592a0dd157cb7b3680829e3fb6e298df36df61d"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.3/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "9fa8fd098ade6c402e184d86645ad873bfe7a33d"
+    "revision": "63a3b34e007b9854726854fa8ed9840b20fc4656"
   }
 }

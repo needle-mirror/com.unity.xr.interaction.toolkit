@@ -61,7 +61,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Gets the number of registered interactors.
         /// </summary>
-        public static int count => s_RegisteredInteractors.Count;
+        public static int interactorCount => s_RegisteredInteractors.Count;
 
         static readonly Dictionary<IXRInteractor, InteractorInfo> s_RegisteredInteractors = new();
         static readonly Dictionary<IXRInteractor, InteractorHitData> s_InteractorHitData = new();
@@ -115,7 +115,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (availableIndex == k_InvalidIndex)
             {
-                Debug.LogError("No available indices for pointer registration.");
+                Debug.LogError($"No available indices for interactor registration. {interactorCount}/{k_MaxInteractors} slots used. " +
+                               "This may indicate a registration leak. Check for missing Unregister calls or edit-mode registrations.");
+
+                // Log currently registered interactors
+                foreach (var kvp in s_RegisteredInteractors)
+                {
+                    Debug.LogError($"  - Slot {kvp.Value.index}: {kvp.Key}");
+                }
+
                 return k_InvalidIndex;
             }
 
@@ -416,7 +424,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public static void UpdateEventSystem()
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
-            if (count > 0)
+            if (uiToolkitSupportEnabled && interactorCount > 0)
                 UIElementsRuntimeUtility.UpdateEventSystem();
 #endif
         }

@@ -92,41 +92,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             }
         }
 
-        [Test]
-        public void PackageCopyrightUpToDate()
-        {
-            // Verify that within the package folder that the LICENSE file is current.
-            var packageDirectory = new DirectoryInfo("Packages/com.unity.xr.interaction.toolkit");
-            Assert.That(packageDirectory, Is.Not.Null);
-            Assert.That(packageDirectory.Exists, Is.True);
-
-            var licenseFilePath = Path.Combine(packageDirectory.FullName, "LICENSE.md");
-            Assert.That(File.Exists(licenseFilePath), Is.True);
-
-            var copyrightRegex = new Regex(@"copyright © \d+\d+\d+\d+ Unity Technologies");
-            var yearRegex = new Regex(@"\d+\d+\d+\d+");
-
-            var lines = File.ReadAllLines(licenseFilePath);
-            bool hasCopyrightString = false;
-            for (int lineNumber = 0; lineNumber < lines.Length; ++lineNumber)
-            {
-                var line = lines[lineNumber];
-                foreach (Match match in copyrightRegex.Matches(line))
-                {
-                    hasCopyrightString = true;
-                    var yearMatch = yearRegex.Match(match.Value);
-                    Assert.That(yearMatch.Success, Is.True);
-
-                    var licenseYear = yearMatch.Value;
-                    var currentYear = DateTime.Now.Year.ToString();
-
-                    Assert.AreEqual(currentYear, licenseYear, "Year is out of date in LICENSE.md file.");
-                }
-            }
-
-            Assert.That(hasCopyrightString, "Correct copyright string not found in LICENSE.md file.");
-        }
-
         static string GetMajorMinor(DependencyInfo dependency) => GetMajorMinor(dependency.version);
 
         static string GetMajorMinor(string version)

@@ -176,7 +176,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
         /// </summary>
         public override void Process()
         {
@@ -326,6 +326,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (eventData == null)
                 throw new ArgumentNullException(nameof(eventData));
 
+            // Note: RaycastAll has an internal sorting algorithm that should be considered
+            // when analyzing the results. Here is the order that things are sorted:
+            // - raycaster differences
+            //    - eventCamera depth
+            //    - sortOrderPriority
+            //    - renderOrderPriority
+            // - sortingLayer
+            // - sortingOrder
+            // - depth
+            // - distance
+            // - 2D physics
+            //    - sortingGroupID
+            //    - sortingGroupOrder
             eventSystem.RaycastAll(eventData, m_RaycastResultCache);
             finalizeRaycastResults?.Invoke(eventData, m_RaycastResultCache);
             var result = FindFirstRaycast(m_RaycastResultCache);

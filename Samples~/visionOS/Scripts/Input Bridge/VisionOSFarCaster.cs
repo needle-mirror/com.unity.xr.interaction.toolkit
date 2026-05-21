@@ -57,6 +57,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
         {
             if (m_HasTouchReader && isActiveAndEnabled)
                 isInitialized = true;
+
             return isInitialized;
         }
 
@@ -69,8 +70,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             m_EmptySamplePoints = new NativeArray<Vector3>(1, Allocator.Persistent);
         }
 
-        void OnEnable()
+        /// <inheritdoc />
+        protected override void OnEnable()
         {
+            base.OnEnable();
             UpdateSamplePoints(Vector3.zero, Vector3.zero);
         }
 
@@ -80,6 +83,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
             base.OnDestroy();
             if (m_SamplePoints.IsCreated)
                 m_SamplePoints.Dispose();
+
             if (m_EmptySamplePoints.IsCreated)
                 m_EmptySamplePoints.Dispose();
         }

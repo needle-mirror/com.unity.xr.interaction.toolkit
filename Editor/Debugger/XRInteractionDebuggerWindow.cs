@@ -59,7 +59,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
         static readonly List<string> s_Names = new List<string>();
 
+#if UNITY_6000_3_OR_NEWER
+        static readonly Dictionary<object, EntityId> s_GeneratedUniqueIds = new Dictionary<object, EntityId>();
+#else
         static readonly Dictionary<object, int> s_GeneratedUniqueIds = new Dictionary<object, int>();
+#endif
 
         [MenuItem("Window/Analysis/XR Interaction Debugger", false, 2100)]
         public static void Init()
@@ -331,12 +335,42 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return obj != null ? obj.GetType().Name : "<null>";
         }
 
+#if UNITY_6000_3_OR_NEWER
+        internal static EntityId GetUniqueTreeViewEntityId(object obj)
+        {
+            if (obj is Object unityObject)
+                return unityObject.GetEntityId();
+
+            // Generate an ID if the object isn't a Unity Object,
+            // making sure to not clash with an existing entity ID.
+            if (!s_GeneratedUniqueIds.TryGetValue(obj, out var id))
+            {
+                do
+                {
+                    id = CreateRandomEntityId();
+                } while (EditorUtility.EntityIdToObject(id) != null);
+
+                s_GeneratedUniqueIds.Add(obj, id);
+            }
+
+            return id;
+        }
+
+        static EntityId CreateRandomEntityId()
+        {
+#if UNITY_6000_4_OR_NEWER
+            ulong longRand = ((ulong)(uint)Random.Range(int.MinValue, int.MaxValue) << 32) | (uint)Random.Range(int.MinValue, int.MaxValue);
+            return EntityId.FromULong(longRand);
+#else
+            int randInt = Random.Range(int.MinValue, int.MaxValue);
+            return (EntityId)randInt;
+#endif
+        }
+#else
         internal static int GetUniqueTreeViewId(object obj)
         {
             if (obj is Object unityObject)
-            {
                 return unityObject.GetInstanceID();
-            }
 
             // Generate an ID if the object isn't a Unity Object,
             // making sure to not clash with an existing instance ID.
@@ -351,6 +385,19 @@ namespace UnityEditor.XR.Interaction.Toolkit
             }
 
             return id;
+        }
+#endif
+
+        internal static int[] CreateVisibleColumns(int count)
+        {
+            // Create an int[] with each column index from [0..count)
+            var visibleColumns = new int[count];
+            for (var index = 0; index < count; ++index)
+            {
+                visibleColumns[index] = index;
+            }
+
+            return visibleColumns;
         }
 
         static class Contents

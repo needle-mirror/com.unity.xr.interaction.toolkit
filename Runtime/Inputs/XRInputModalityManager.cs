@@ -670,11 +670,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         static bool IsHandInteractionXRControllerType(InputSystem.XR.XRController device)
         {
 #if OPENXR_1_10_OR_NEWER
+#pragma warning disable CS0618 // Type or member is obsolete
             if (device is HandInteractionProfile.HandInteraction ||
                 device is MicrosoftHandInteraction.HoloLensHand)
             {
                 return true;
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 #endif
 
             return false;

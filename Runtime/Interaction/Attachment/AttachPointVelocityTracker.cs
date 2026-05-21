@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Collections;
@@ -14,14 +15,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         // The number of frames over which the velocity will be calculated.
         const int k_BufferSize = 20;
 
+        // The threshold of the attach point must exceed to take into account camera velocity when applicable
+        const float k_AttachPointVelocityThreshold = 0.05f;
+
         // Minimum delta time to avoid division by zero.
         const float k_MinimumDeltaTime = 0.00001f;
 
         // Cache for storing position and time data over a series of frames.
         readonly CircularBuffer<(Vector3 position, float time)> m_PositionTimeBuffer = new CircularBuffer<(Vector3, float)>(k_BufferSize);
 
+        // Cache for storing camera position and time data over a series of frames.
+        readonly CircularBuffer<(Vector3 position, float time)> m_CameraPositionTimeBuffer = new CircularBuffer<(Vector3, float)>(k_BufferSize);
+
         // Cache for storing rotation and time data over a series of frames.
         readonly CircularBuffer<(Quaternion rotation, float time)> m_RotationTimeBuffer = new CircularBuffer<(Quaternion, float)>(k_BufferSize);
+
+        // Cache for storing reference to XR Origin
+        static readonly Dictionary<Transform, XROrigin> s_XROriginCache = new Dictionary<Transform, XROrigin>();
 
         // Calculated attach point linear and angular velocities.
         Vector3 m_AttachPointVelocity;
@@ -30,32 +40,42 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// <inheritdoc />
         public void UpdateAttachPointVelocityData(Transform attachTransform)
         {
-            UpdateAttachPointVelocityData(attachTransform, false);
+            CalculateAndUpdateAttachPointVelocity(attachTransform);
         }
 
         /// <inheritdoc />
         public void UpdateAttachPointVelocityData(Transform attachTransform, Transform xrOriginTransform)
         {
-            UpdateAttachPointVelocityData(attachTransform, true, xrOriginTransform);
+            CalculateAndUpdateAttachPointVelocity(attachTransform, xrOriginTransform);
         }
 
         /// <summary>
-        /// Updates velocity data based on the attachment point's movement over time, considering XR Origin Transform if applicable.
+        /// Updates velocity data based on the attachment point's movement over time, considering XR Origin Transform and XR Origin camera transform if applicable.
         /// </summary>
         /// <param name="attachTransform">The transform of the attachment point.</param>
-        /// <param name="useXROriginTransform">Whether to use the XR Origin Transform.</param>
         /// <param name="xrOriginTransform">The XR Origin Transform, if used.</param>
-        void UpdateAttachPointVelocityData(Transform attachTransform, bool useXROriginTransform, Transform xrOriginTransform = null)
+        /// <remarks>When useXROriginTransform is true, this function will attempt to get the <see cref="XROrigin"/> camera to use when calculating attach point velocity.</remarks>
+        void CalculateAndUpdateAttachPointVelocity(Transform attachTransform, Transform xrOriginTransform = null)
         {
+            bool canUseXROriginTransform = xrOriginTransform != null;
+            Transform cameraTransform = null;
+            if (canUseXROriginTransform)
+            {
+                // Cache XR Origin component to access camera for velocity calculations, if possible
+                if (!s_XROriginCache.TryGetValue(xrOriginTransform, out var xrOrigin) && xrOriginTransform.TryGetComponent(out xrOrigin))
+                    s_XROriginCache.Add(xrOriginTransform, xrOrigin);
+                cameraTransform = xrOrigin != null ? xrOrigin.Camera.transform : null;
+            }
+
             float currentTime = Time.unscaledTime;
-            bool canUseOriginTransform = useXROriginTransform && xrOriginTransform != null;
+            bool canUseCameraTransform = cameraTransform != null;
 
             // Calculate position and rotation in the appropriate space
             var attachPose = attachTransform.GetWorldPose();
-            Vector3 currentPosition = canUseOriginTransform
+            Vector3 currentPosition = canUseXROriginTransform
                 ? xrOriginTransform.InverseTransformPoint(attachPose.position)
                 : attachPose.position;
-            Quaternion currentRotation = canUseOriginTransform
+            Quaternion currentRotation = canUseXROriginTransform
                 ? Quaternion.Inverse(xrOriginTransform.rotation) * attachPose.rotation
                 : attachPose.rotation;
 
@@ -66,20 +86,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             m_RotationTimeBuffer.Add((currentRotation, currentTime));
 
             // Calculate linear velocity using weighted linear regression
-            m_AttachPointVelocity = m_PositionTimeBuffer.count > 1 ? CalculateVelocityWithWeightedLinearRegression() : Vector3.zero;
+            m_AttachPointVelocity = m_PositionTimeBuffer.count > 1 ? CalculateVelocityWithWeightedLinearRegression(m_PositionTimeBuffer) : Vector3.zero;
 
             // Calculate angular velocity using weighted regression
-            m_AttachPointAngularVelocity = m_RotationTimeBuffer.count > 1 ? CalculateAngularVelocityWithWeightedRegression() : Vector3.zero;
+            m_AttachPointAngularVelocity = m_RotationTimeBuffer.count > 1 ? CalculateAngularVelocityWithWeightedRegression(m_RotationTimeBuffer) : Vector3.zero;
+
+            // Calculate the camera velocity to account for physical body movement if the camera transform is provided,
+            // If the camera and the attach transform are both moving, this could be physical walking movement.
+            // The velocity of the attach transform should subtract the camera velocity to account for the offset.
+            if (canUseCameraTransform)
+            {
+                Vector3 cameraPositionWithRespectToOrigin = xrOriginTransform.InverseTransformPoint(cameraTransform.position);
+
+                // Update position and time buffer of camera with respect to the origin
+                m_CameraPositionTimeBuffer.Add((cameraPositionWithRespectToOrigin, currentTime));
+
+                // Check attach transform velocity is over threshold to prevent camera velocity from being subtracted when only head is moving.
+                if (Mathf.Abs(m_AttachPointVelocity.sqrMagnitude) > k_AttachPointVelocityThreshold)
+                {
+                    // Calculate camera linear velocity using weighted linear regression
+                    var cameraVelocity = m_CameraPositionTimeBuffer.count > 1 ? CalculateVelocityWithWeightedLinearRegression(m_CameraPositionTimeBuffer) : Vector3.zero;
+                    m_AttachPointVelocity -= cameraVelocity;
+                }
+            }
         }
 
         /// <summary>
         /// Calculates velocity using weighted linear regression on the buffered position and time data.
         /// This method gives more weight to recent samples, providing a more accurate and responsive velocity estimation.
         /// </summary>
+        /// <param name="positionTimeBuffer">Position and time buffer containing data for weighted linear regression calculation.</param>
         /// <returns>The calculated velocity vector based on recent movement history.</returns>
-        Vector3 CalculateVelocityWithWeightedLinearRegression()
+        static Vector3 CalculateVelocityWithWeightedLinearRegression(CircularBuffer<(Vector3 position, float time)> positionTimeBuffer)
         {
-            int n = m_PositionTimeBuffer.count;
+            int n = positionTimeBuffer.count;
 
             // Check if we have enough data points
             if (n < 2)
@@ -91,18 +131,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             float sumTimeSquared = 0f;
             float sumWeights = 0f;
 
-            float startTime = m_PositionTimeBuffer[0].time;
-            float endTime = m_PositionTimeBuffer[n - 1].time;
+            float startTime = positionTimeBuffer[0].time;
+            float endTime = positionTimeBuffer[n - 1].time;
             float timeRange = endTime - startTime;
 
             // Check for very small time range
             if (timeRange < k_MinimumDeltaTime)
-                return (Mathf.Approximately(timeRange, 0f)) ? Vector3.zero : (m_PositionTimeBuffer[n - 1].position - m_PositionTimeBuffer[0].position) / timeRange;
+                return (Mathf.Approximately(timeRange, 0f)) ? Vector3.zero : (positionTimeBuffer[n - 1].position - positionTimeBuffer[0].position) / timeRange;
 
             for (int i = 0; i < n; i++)
             {
-                float t = m_PositionTimeBuffer[i].time - startTime;
-                Vector3 pos = m_PositionTimeBuffer[i].position;
+                float t = positionTimeBuffer[i].time - startTime;
+                Vector3 pos = positionTimeBuffer[i].position;
 
                 // Calculate weight (more recent samples have higher weight).
                 // Weight ranges from 1 to 2.
@@ -127,10 +167,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         /// Calculates angular velocity using weighted regression on the buffered rotation and time data.
         /// This method gives more weight to recent samples, providing a more accurate and responsive angular velocity estimation.
         /// </summary>
+        /// <param name="rotationTimeBuffer">Rotation and time buffer containing data for weighted linear regression calculation.</param>
         /// <returns>The calculated angular velocity vector based on recent rotation history.</returns>
-        Vector3 CalculateAngularVelocityWithWeightedRegression()
+        static Vector3 CalculateAngularVelocityWithWeightedRegression(CircularBuffer<(Quaternion rotation, float time)> rotationTimeBuffer)
         {
-            int n = m_RotationTimeBuffer.count;
+            int n = rotationTimeBuffer.count;
 
             if (n < 2)
             {
@@ -143,19 +184,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
             float sumTimeSquared = 0f;
             float sumWeights = 0f;
 
-            float startTime = m_RotationTimeBuffer[0].time;
-            float endTime = m_RotationTimeBuffer[n - 1].time;
+            float startTime = rotationTimeBuffer[0].time;
+            float endTime = rotationTimeBuffer[n - 1].time;
             float timeRange = endTime - startTime;
 
             if (timeRange < k_MinimumDeltaTime)
                 return Vector3.zero;
 
-            Quaternion startRotation = m_RotationTimeBuffer[0].rotation;
+            Quaternion startRotation = rotationTimeBuffer[0].rotation;
 
             for (int i = 1; i < n; i++)
             {
-                float t = m_RotationTimeBuffer[i].time - startTime;
-                Quaternion rotation = m_RotationTimeBuffer[i].rotation;
+                float t = rotationTimeBuffer[i].time - startTime;
+                Quaternion rotation = rotationTimeBuffer[i].rotation;
 
                 Quaternion deltaRotation = rotation * Quaternion.Inverse(startRotation);
                 deltaRotation.ToAngleAxis(out float angle, out Vector3 axis);
@@ -188,6 +229,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
         public void ResetVelocityTracking()
         {
             m_PositionTimeBuffer.Clear();
+            m_CameraPositionTimeBuffer.Clear();
             m_RotationTimeBuffer.Clear();
             m_AttachPointVelocity = Vector3.zero;
             m_AttachPointAngularVelocity = Vector3.zero;
