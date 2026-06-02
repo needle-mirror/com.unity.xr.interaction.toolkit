@@ -103,11 +103,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             {
                 if (s_Instance == null)
                 {
-#if UNITY_2023_1_OR_NEWER
                     s_Instance = FindAnyObjectByType<ARGestureInteractor>();
-#else
-                    s_Instance = FindObjectOfType<ARGestureInteractor>();
-#endif
                     if (s_Instance == null)
                     {
                         Debug.LogError("No instance of ARGestureInteractor exists in the scene.");
@@ -425,6 +421,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (args.interactableObject is ARBaseGestureInteractable)
                 m_ValidTargets.Remove(args.interactableObject);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_Instance = null;
         }
     }
 }

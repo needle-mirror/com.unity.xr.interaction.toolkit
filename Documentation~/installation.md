@@ -6,9 +6,7 @@ uid: xri-installation
 
 To install this package, refer to the instructions that match your Unity Editor version. Keep in mind that each version of the Unity Editor will ship with a specific verified version of the XR Interaction Toolkit (XRI). To ensure you have access to the latest version of the XRI package, please update to the latest patch release of the Unity Editor for your project (if you are able to). If you are unable to update to the latest patch version of the Unity Editor, to access newer releases of the XR Interaction Toolkit, please refer to the [`Manual Installation`](#manual-installation) steps below to modify your manifest.json.
 
-## Version 2022.3 and newer
-
-To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-install.html) or click the following link to open Package Manager in your currently open project:
+To install this package, follow the [installation instructions in the Unity User Manual](https://docs.unity3d.com/Documentation/Manual/upm-ui-install.html) or click the following link to open Package Manager in your currently open project:
 [com.unity.xr.interaction.toolkit](com.unity3d.kharma:upmpackage/com.unity.xr.interaction.toolkit). This will bring up the **Add package by name** box with an optional version field. Click **Add** to install the latest verified version of the XR Interaction Toolkit for your Unity Editor version.
 
 ## Manual Installation

@@ -294,8 +294,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
         /// </remarks>
         bool m_BufferedRemoveEmpty = true;
 
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Scratch list that doesn't need to be cleared or GCed.
         static List<T> s_ScratchItems;
         static HashSet<T> s_ItemsVisited;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
         /// <summary>
         /// Whether there are buffered registration changes.

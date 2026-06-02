@@ -38,18 +38,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
                 Message = $"[{k_SampleDisplayName}] PolySpatial XR ({k_PolySpatialXRPackageName}) package must be at version {s_RecommendedVisionOSPackageVersion} or higher to use the sample.",
                 Category = k_Category,
                 CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialXRPackageName) >= s_RecommendedVisionOSPackageVersion,
-#if UNITY_2022_3_19_OR_NEWER
                 FixIt = () =>
                 {
                     if (s_PolySpatialXRPackageAddRequest == null || s_PolySpatialXRPackageAddRequest.IsCompleted)
                         s_PolySpatialXRPackageAddRequest = InstallOrUpdatePackage(k_PolySpatialXRPackageName);
                 },
                 FixItAutomatic = true,
-#else
-                FixItAutomatic = false,
-#endif
                 Error = true,
-                HelpText = "This package requires Unity 2022.3.19f1 or newer.",
             },
             new BuildValidationRule
             {
@@ -57,18 +52,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.VisionOS.Editor
                 Message = $"[{k_SampleDisplayName}] PolySpatial visionOS ({k_PolySpatialVisionOSPackageName}) package must be at version {s_RecommendedVisionOSPackageVersion} or higher to use the sample.",
                 Category = k_Category,
                 CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_PolySpatialVisionOSPackageName) >= s_RecommendedVisionOSPackageVersion,
-#if UNITY_2022_3_19_OR_NEWER
                 FixIt = () =>
                 {
                     if (s_PolySpatialVisionOSPackageAddRequest == null || s_PolySpatialVisionOSPackageAddRequest.IsCompleted)
                         s_PolySpatialVisionOSPackageAddRequest = InstallOrUpdatePackage(k_PolySpatialVisionOSPackageName);
                 },
                 FixItAutomatic = true,
-#else
-                FixItAutomatic = false,
-#endif
                 Error = true,
-                HelpText = "This package requires Unity 2022.3.19f1 or newer.",
             },
             new BuildValidationRule
             {

@@ -136,13 +136,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// <summary>
         /// Temporary list used when getting the XR module devices.
         /// </summary>
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Scratch list that doesn't need to be cleared or GCed.
         static List<InputDevice> s_XRInputDevices;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
 #if XR_HANDS_1_1_OR_NEWER
         /// <summary>
         /// Temporary list used when getting the hand subsystems.
         /// </summary>
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Scratch list that doesn't need to be cleared or GCed.
         static List<XRHandSubsystem> s_HandSubsystems;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 #endif
 
         /// <summary>

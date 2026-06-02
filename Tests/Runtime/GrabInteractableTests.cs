@@ -1570,13 +1570,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var rigidbody = grabInteractable.GetComponent<Rigidbody>();
             rigidbody.isKinematic = false;
             rigidbody.useGravity = true;
-#if UNITY_2023_3_OR_NEWER
             rigidbody.linearDamping = 0.75f;
             rigidbody.angularDamping = 0.175f;
-#else
-            rigidbody.drag = 0.75f;
-            rigidbody.angularDrag = 0.175f;
-#endif
 
             Assert.That(grabInteractable.singleGrabTransformersCount, Is.EqualTo(0));
             Assert.That(grabInteractable.multipleGrabTransformersCount, Is.EqualTo(0));
@@ -1595,13 +1590,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(rigidbody.isKinematic, Is.False);
             Assert.That(rigidbody.useGravity, Is.True);
-#if UNITY_2023_3_OR_NEWER
             Assert.That(rigidbody.linearDamping, Is.EqualTo(0.75f));
             Assert.That(rigidbody.angularDamping, Is.EqualTo(0.175f));
-#else
-            Assert.That(rigidbody.drag, Is.EqualTo(0.75f));
-            Assert.That(rigidbody.angularDrag, Is.EqualTo(0.175f));
-#endif
 
             var overrideInteractorI = TestUtilities.CreateMockMovementTypeOverrideInteractor();
             overrideInteractorI.mockMovementTypeOverride = XRBaseInteractable.MovementType.Instantaneous;
@@ -1621,13 +1611,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // The damping values are automatically cleared to 0 when selected and gravity is disabled.
             Assert.That(rigidbody.isKinematic, Is.True);
             Assert.That(rigidbody.useGravity, Is.False);
-#if UNITY_2023_3_OR_NEWER
             Assert.That(rigidbody.linearDamping, Is.EqualTo(0f));
             Assert.That(rigidbody.angularDamping, Is.EqualTo(0f));
-#else
-            Assert.That(rigidbody.drag, Is.EqualTo(0f));
-            Assert.That(rigidbody.angularDrag, Is.EqualTo(0f));
-#endif
 
             // Release with override interactor, no longer being overridden
             overrideInteractorI.validTargets.Remove(grabInteractable);
@@ -1640,13 +1625,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // The damping values and gravity are restored.
             Assert.That(rigidbody.isKinematic, Is.False);
             Assert.That(rigidbody.useGravity, Is.True);
-#if UNITY_2023_3_OR_NEWER
             Assert.That(rigidbody.linearDamping, Is.EqualTo(0.75f));
             Assert.That(rigidbody.angularDamping, Is.EqualTo(0.175f));
-#else
-            Assert.That(rigidbody.drag, Is.EqualTo(0.75f));
-            Assert.That(rigidbody.angularDrag, Is.EqualTo(0.175f));
-#endif
         }
 
         [UnityTest]

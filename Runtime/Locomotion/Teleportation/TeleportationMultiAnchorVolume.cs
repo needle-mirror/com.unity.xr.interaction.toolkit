@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
 {
@@ -113,14 +114,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
         protected override void Awake()
         {
             base.Awake();
-            m_DefaultAnchorFilterCache = DefaultDestinationFilterCache.SubscribeAndGetInstance(this);
+            m_DefaultAnchorFilterCache = ScriptableSingletonCache<FurthestTeleportationAnchorFilter>.GetInstance(this);
         }
 
         /// <inheritdoc />
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            DefaultDestinationFilterCache.Unsubscribe(this);
+            ScriptableSingletonCache<FurthestTeleportationAnchorFilter>.ReleaseInstance(this);
         }
 
         /// <inheritdoc />
@@ -241,28 +242,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             teleportRequest.destinationRotation = pose.rotation;
             ClearDestinationAnchor();
             return true;
-        }
-
-        static class DefaultDestinationFilterCache
-        {
-            static FurthestTeleportationAnchorFilter s_FilterInstance;
-            static readonly HashSet<TeleportationMultiAnchorVolume> s_Users = new HashSet<TeleportationMultiAnchorVolume>();
-
-            public static ITeleportationVolumeAnchorFilter SubscribeAndGetInstance(TeleportationMultiAnchorVolume user)
-            {
-                s_Users.Add(user);
-                if (s_FilterInstance == null)
-                    s_FilterInstance = ScriptableObject.CreateInstance<FurthestTeleportationAnchorFilter>();
-
-                return s_FilterInstance;
-            }
-
-            public static void Unsubscribe(TeleportationMultiAnchorVolume user)
-            {
-                s_Users.Remove(user);
-                if (s_Users.Count == 0)
-                    Destroy(s_FilterInstance);
-            }
         }
     }
 }

@@ -49,7 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
             m_RightHandTurnAction.EnableDirectAction();
         }
 
-        //// <inheritdoc />
+        /// <inheritdoc />
         protected override void OnDisable()
         {
             base.OnDisable();

@@ -358,7 +358,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRSingleGrabFreeTransformer = k_BaseApi + k_BaseNamespace + k_TransformersNamespace + nameof(XRSingleGrabFreeTransformer) + k_HtmlFileSuffix;
 
         /// <summary>
-        /// Scripting API URL for <see cref="XRSingleGrabOffsetPreserveTransformer"/>.
+        /// Scripting API URL for <c>XRSingleGrabOffsetPreserveTransformer</c>.
         /// </summary>
         public const string k_XRSingleGrabOffsetPreserveTransformer = k_BaseApi + k_BaseNamespace + k_TransformersNamespace + nameof(k_XRSingleGrabOffsetPreserveTransformer) + k_HtmlFileSuffix;
 

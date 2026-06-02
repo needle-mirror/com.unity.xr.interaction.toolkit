@@ -20,11 +20,6 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "com.unity.ugui",
-            "expression": "2.0.0",
-            "define": "UGUI_2_0_PRESENT"
-        },
-        {
             "name": "Unity",
             "expression": "6000.2.0a9",
             "define": "UNITY_6000_2_A9_OR_NEWER"

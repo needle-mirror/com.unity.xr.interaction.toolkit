@@ -332,7 +332,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         /// <seealso cref="SelectEnter(IXRSelectInteractor, IXRSelectInteractable)"/>
         /// <seealso cref="HoverEnter(IXRHoverInteractor, IXRHoverInteractable)"/>
-        /// <seealso cref="FocusEnter"/>
+        /// <seealso cref="FocusEnter(IXRInteractor, IXRFocusInteractable)"/>
         public bool logInteractionPreventedWarnings { get; set; } = true;
 
         static bool hasWaitlistItem =>
@@ -3240,6 +3240,19 @@ namespace UnityEngine.XR.Interaction.Toolkit
             }
 
             interactablesReordered?.Invoke();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_WaitlistGroups?.Clear();
+            s_WaitlistGroups = null;
+            s_WaitlistInteractors?.Clear();
+            s_WaitlistInteractors = null;
+            s_WaitlistInteractables?.Clear();
+            s_WaitlistInteractables = null;
+            s_WaitlistSnapVolumes?.Clear();
+            s_WaitlistSnapVolumes = null;
         }
     }
 }

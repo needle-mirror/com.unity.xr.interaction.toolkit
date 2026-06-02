@@ -148,5 +148,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             return hasCollider;
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            allowTriggerColliders = false;
+        }
     }
 }

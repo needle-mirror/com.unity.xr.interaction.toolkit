@@ -56,7 +56,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <summary>
         /// Gets or sets layer mask used for limiting ray cast targets.
         /// </summary>
-        public LayerMask raycastMask { get; set;}  = -1;
+        public LayerMask raycastMask { get; set; } = -1;
 
         /// <summary>
         /// Gets or sets type of interaction with trigger colliders via ray cast.
@@ -65,7 +65,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// When set to <see cref="QueryTriggerInteraction.UseGlobal"/>, the value of Queries Hit Triggers (<see cref="Physics.queriesHitTriggers"/>)
         /// in Edit &gt; Project Settings &gt; Physics will be used.
         /// </remarks>
-        public QueryTriggerInteraction raycastTriggerInteraction { get; set;} = QueryTriggerInteraction.Ignore;
+        public QueryTriggerInteraction raycastTriggerInteraction { get; set; } = QueryTriggerInteraction.Ignore;
 
         /// <summary>
         /// List of current active gestures.
@@ -298,6 +298,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         static class TouchConverterClosureHelper
         {
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Always reinitialized, don't need to explicitly reset in ResetStaticsOnLoad method.
 #if !XRI_LEGACY_INPUT_DISABLED
             static Func<Touch, T> s_CreateGestureFromOneTouchFunction;
             static Func<Touch, Touch, T> s_CreateGestureFromTwoTouchFunction;
@@ -307,6 +308,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             static Func<InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromOneEnhancedTouchFunction;
             // Two Touch to Gesture input argument Func
             static Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, T> s_CreateGestureFromTwoEnhancedTouchFunction;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
             // Preallocate delegates to avoid GC Alloc
 #if !XRI_LEGACY_INPUT_DISABLED
@@ -367,6 +369,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         static partial class TouchActionConverterClosureHelper
         {
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Always reinitialized, don't need to explicitly reset field in method.
 #if !XRI_LEGACY_INPUT_DISABLED
             static Action<T, Touch> s_ReinitializeGestureFromOneTouchFunction;
             static Action<T, Touch, Touch> s_ReinitializeGestureFromTwoTouchFunction;
@@ -376,6 +379,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             static Action<T, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromOneEnhancedTouchFunction;
             // Two Touch to Gesture input argument Func
             static Action<T, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> s_ReinitializeGestureFromTwoEnhancedTouchFunction;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
             // Preallocate delegates to avoid GC Alloc
 #if !XRI_LEGACY_INPUT_DISABLED

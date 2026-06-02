@@ -56,7 +56,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
 
         /// <summary>
-        /// Searches for a sample, <see cref="sampleDisplayName"/> from a specified package, <see cref="packageDisplayName"/>.
+        /// Searches for a sample, <paramref name="sampleDisplayName"/> from a specified package, <paramref name="packageDisplayName"/>.
         /// The search is done by iterating through the Samples directory, but will utilize cached data if available.
         /// This function is version agnostic and will return true if the sample is found in any version of the package's
         /// sample directory.
@@ -104,14 +104,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
 
         /// <summary>
-        /// Searches for a sample, <see cref="sampleDisplayName"/> from a specified package, <see cref="packageDisplayName"/>
+        /// Searches for a sample, <paramref name="sampleDisplayName"/> from a specified package, <paramref name="packageDisplayName"/>
         /// and compares the sample version.
         /// </summary>
         /// <param name="packageDisplayName">The name of the package directory that contains the sample.</param>
         /// <param name="sampleDisplayName">The name of the sample directory to search for.</param>
         /// <param name="minVersion">The minimum package version the sample should be imported from.</param>
         /// <returns>Returns <see langword="true"/> if the sample is found in the Samples directory of the specified
-        /// package and the imported sample's version is greater than or equal to the <see cref="minVersion"/>.</returns>
+        /// package and the imported sample's version is greater than or equal to the <paramref name="minVersion"/>.</returns>
         public static bool SampleImportMeetsMinimumVersion(string packageDisplayName, string sampleDisplayName, PackageVersion minVersion)
         {
             if (HasSampleImported(packageDisplayName, sampleDisplayName))
@@ -121,7 +121,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         }
 
         /// <summary>
-        /// Searches for a sample, <see cref="sampleDisplayName"/> from a specified package, <see cref="packageDisplayName"/>
+        /// Searches for a sample, <paramref name="sampleDisplayName"/> from a specified package, <paramref name="packageDisplayName"/>
         /// and compares the sample version to a min and max range.
         /// </summary>
         /// <param name="packageDisplayName">The name of the package directory that contains the sample.</param>
@@ -130,7 +130,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         /// <param name="maxVersion">The maximum package version the sample should be imported from, which can either include this version or only values less than this version.</param>
         /// <param name="isMaxInclusive">Whether or not the range includes the max version.</param>
         /// <returns>Returns <see langword="true"/> if the sample is found in the Samples directory of the specified
-        /// package and the imported sample's version is within the range between the <see cref="minVersion"/> and the <see cref="maxVersion"/>.</returns>
+        /// package and the imported sample's version is within the range between the <paramref name="minVersion"/> and the <paramref name="maxVersion"/>.</returns>
         public static bool SampleImportMeetsVersionRange(string packageDisplayName, string sampleDisplayName, PackageVersion minVersion, PackageVersion maxVersion, bool isMaxInclusive)
         {
             if (HasSampleImported(packageDisplayName, sampleDisplayName))
@@ -222,7 +222,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.ProjectValidation
         /// <param name="packageName">The name of the package to install (com.unity.etc...).</param>
         /// <param name="targetVersion">The target version of the package to install.</param>
         /// <param name="packageAddRequest">The <see cref="AddRequest"/> reference that will contain the result.</param>
-        /// <remarks>The <see cref="packageName"/> parameter should be provided in the com.unity.package format. Package display names will not work.</remarks>
+        /// <remarks>The <paramref name="packageName"/> parameter should be provided in the com.unity.package format. Package display names will not work.</remarks>
         public static void InstallOrUpdatePackage(string packageName, PackageVersion targetVersion, ref AddRequest packageAddRequest)
         {
             try

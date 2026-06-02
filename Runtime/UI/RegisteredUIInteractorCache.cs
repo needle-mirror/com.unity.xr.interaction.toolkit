@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -16,6 +17,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         readonly IUIInteractor m_UiInteractor;
         readonly XRBaseInteractor m_BaseInteractor;
         readonly bool m_IsBaseInteractor;
+
+        readonly List<BaseInputModule> m_InputModules = new List<BaseInputModule>();
 
         bool m_EnableUIInteraction = true;
         bool m_FindingEventSystem;
@@ -156,12 +159,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (eventSystem != null)
             {
-                // Remove the Standalone Input Module if already implemented, since it will block the XRUIInputModule
-                if (eventSystem.TryGetComponent<StandaloneInputModule>(out var standaloneInputModule))
-                    Object.Destroy(standaloneInputModule);
+                eventSystem.GetComponents<BaseInputModule>(m_InputModules);
+                foreach (var inputModule in m_InputModules)
+                {
+                    // if we find an XRUIInputModule, we can cache it, otherwise we disable any other input modules since they will block the XRUIInputModule from receiving events
+                    if (inputModule is XRUIInputModule xrUIInputModule)
+                    {
+                        m_InputModule = xrUIInputModule;
+                    }
+                    else if (inputModule.enabled)
+                    {
+                        Debug.LogWarning($"Only one UI Input Module allowed on the EventSystem GameObject. Disabling {inputModule.GetType().Name} on {eventSystem.gameObject.name} since it will block the {nameof(XRUIInputModule)} from receiving input events.");
+                        inputModule.enabled = false;
+                    }
+                }
+                m_InputModules.Clear();
 
                 // Get or add our XR UI Input Module component
-                if (m_InputModule == null && !eventSystem.TryGetComponent(out m_InputModule))
+                if (m_InputModule == null)
                     m_InputModule = eventSystem.gameObject.AddComponent<XRUIInputModule>();
             }
 

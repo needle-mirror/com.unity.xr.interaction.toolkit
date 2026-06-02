@@ -1,6 +1,5 @@
 using System.Collections;
 using Unity.Mathematics;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
@@ -84,7 +83,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
 
         Coroutine m_HoldGestureDetection;
         Transform m_ReticleTransform;
-        bool m_SelectingTeleporationAnchor;
 
         void OnEnable()
         {
@@ -141,13 +139,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
 
         void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (args.interactableObject is IXRSelectInteractable interactable)
-            {
-                // Check if the selected object is a TeleportationAnchor
-                TeleportationAnchor anchor = interactable.transform.GetComponent<TeleportationAnchor>();
-                m_SelectingTeleporationAnchor = anchor != null;
-                m_NavigatorUI.gameObject.SetActive(!m_SelectingTeleporationAnchor);
-            }
+            // Check if the selected object is a TeleportationAnchor
+            var selectingTeleportationAnchor = args.interactableObject.transform.TryGetComponent<TeleportationAnchor>(out _);
+            m_NavigatorUI.gameObject.SetActive(!selectingTeleportationAnchor);
         }
 
         IEnumerator MaintainJoystickMode()
@@ -159,64 +153,64 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
 
             while (isActiveAndEnabled)
             {
-                if (m_LatestHandData != null && m_LatestHandData.hand.isTracked)
+                // Check that the hand subsystem is still running to guard against accessing a destroyed joints
+                // array due to the hand subsystem being destroyed between the time of the joints updated callback
+                // and this coroutine executes.
+                if (m_LatestHandData != null && m_LatestHandData.subsystem.running &&
+                    m_LatestHandData.hand.isTracked && m_JoystickAttachInputJointID != XRHandJointID.Invalid &&
+                    m_LatestHandData.hand.GetJoint(m_JoystickAttachInputJointID).TryGetPose(out var pose))
                 {
-                    if (m_JoystickAttachInputJointID != XRHandJointID.Invalid && m_LatestHandData.hand.GetJoint(m_JoystickAttachInputJointID).TryGetPose(out var pose))
+                    // Store the initial palm-down rotation
+                    var initialRotation = pose.rotation;
+
+                    // Calculate and apply the palm-up rotation to invert the cylindrical scrubbing direction as opposed to palm-up
+                    Quaternion palmUpRotation = Quaternion.Inverse(initialRotation);
+                    pose.rotation = palmUpRotation;
+
+                    var joystickForward = m_LatestHandData.hand.rootPose.forward;
+                    joystickForward.y = 0f;
+
+                    var planeNormal = Vector3.up;
+                    if (!m_JoystickCenterSet)
                     {
-                        // Store the initial palm-down rotation
-                        var initialRotation = pose.rotation;
+                        m_CenterInTrackingSpace.position = pose.position;
+                        m_CenterInTrackingSpace.rotation = Quaternion.LookRotation(joystickForward, planeNormal);
+                        m_JoystickCenterSet = true;
 
-                        // Calculate and apply the palm-up rotation to invert the cylindrical scrubbing direction as opposed to palm-up
-                        Quaternion palmUpRotation = Quaternion.Inverse(initialRotation);
-                        pose.rotation = palmUpRotation;
+                        initialHandPosePosition = pose.position;
 
-                        var joystickForward = m_LatestHandData.hand.rootPose.forward;
-                        joystickForward.y = 0f;
+                        var navigatorWorldPosition = m_XROrigin.TransformPoint(pose.position);
+                        m_NavigatorUI.position = navigatorWorldPosition;
 
-                        var planeNormal = Vector3.up;
-                        if (!m_JoystickCenterSet)
-                        {
-                            m_CenterInTrackingSpace.position = pose.position;
-                            m_CenterInTrackingSpace.rotation = Quaternion.LookRotation(joystickForward, planeNormal);
-                            m_JoystickCenterSet = true;
+                        var currentDelta = pose.position - m_CenterInTrackingSpace.position;
+                        var projectedDelta = Vector3.ProjectOnPlane(currentDelta, planeNormal);
+                        var normalizedInputValue = projectedDelta / m_Radius;
+                        var rotatedInputValue = Quaternion.Inverse(m_CenterInTrackingSpace.rotation) * normalizedInputValue;
 
-                            initialHandPosePosition = pose.position;
+                        // set the initial smoothed rotation value so the reticle has a gradual initial rotation starting by pointing forward
+                        m_SmoothedRotationCurrent = rotatedInputValue;
+                    }
+                    else if (rotationProcessingThresholdExceeded)
+                    {
+                        var currentDelta = pose.position - m_CenterInTrackingSpace.position;
+                        var projectedDelta = Vector3.ProjectOnPlane(currentDelta, planeNormal);
+                        var normalizedInputValue = projectedDelta / m_Radius;
+                        var rotatedInputValue = Quaternion.Inverse(m_CenterInTrackingSpace.rotation) * normalizedInputValue;
 
-                            var navigatorWorldPosition = m_XROrigin.TransformPoint(pose.position);
-                            m_NavigatorUI.position = navigatorWorldPosition;
+                        m_SmoothedRotationCurrent = Vector3.SmoothDamp(m_SmoothedRotationCurrent, rotatedInputValue, ref m_SmoothedRotationVelocity, m_RotationSmoothingValue);
 
-                            var currentDelta = pose.position - m_CenterInTrackingSpace.position;
-                            var projectedDelta = Vector3.ProjectOnPlane(currentDelta, planeNormal);
-                            var normalizedInputValue = projectedDelta / m_Radius;
-                            var rotatedInputValue = Quaternion.Inverse(m_CenterInTrackingSpace.rotation) * normalizedInputValue;
+                        var forwardOffsetPosition = m_ReticleTransform.TransformPoint(Vector3.forward * 0.5f);
+                        m_AttachTransformRotationTarget.position = forwardOffsetPosition;
+                        m_AttachTransformRotationTarget.localPosition -= m_SmoothedRotationCurrent * 0.5f;
 
-                            // set the initial smoothed rotation value so the reticle has a gradual initial rotation starting by pointing forward
-                            m_SmoothedRotationCurrent = rotatedInputValue;
-                        }
-                        else if (rotationProcessingThresholdExceeded)
-                        {
-                            var currentDelta = pose.position - m_CenterInTrackingSpace.position;
-                            var projectedDelta = Vector3.ProjectOnPlane(currentDelta, planeNormal);
-                            var normalizedInputValue = projectedDelta / m_Radius;
-                            var rotatedInputValue = Quaternion.Inverse(m_CenterInTrackingSpace.rotation) * normalizedInputValue;
-
-                            m_SmoothedRotationCurrent = Vector3.SmoothDamp(m_SmoothedRotationCurrent, rotatedInputValue, ref m_SmoothedRotationVelocity, m_RotationSmoothingValue);
-
-                            var forwardOffsetPosition = m_ReticleTransform.TransformPoint(Vector3.forward * 0.5f);
-                            m_AttachTransformRotationTarget.position = forwardOffsetPosition;
-                            m_AttachTransformRotationTarget.localPosition -= m_SmoothedRotationCurrent * 0.5f;
-
-                            var targetPositionPose = new Pose(m_AttachTransformRotationTarget.position, quaternion.identity);
-
-                            m_AttachTransformForRotation.LookAt(targetPositionPose.position);
-                            m_NavigatorUI.rotation = m_AttachTransformForRotation.rotation;
-                        }
-                        else if (!rotationProcessingThresholdExceeded)
-                        {
-                            // Allow for rotation processing after the hand has translated greater than a minimum distance, preventing initial jerky movement
-                            // This also facilitates the ability to quickly snap/pinch quickly & repeatedly while maintaining a forward direction
-                            rotationProcessingThresholdExceeded = Vector3.SqrMagnitude(initialHandPosePosition - pose.position) > kInitialRotationTriggerDistanceThreshold;
-                        }
+                        m_AttachTransformForRotation.LookAt(m_AttachTransformRotationTarget.position);
+                        m_NavigatorUI.rotation = m_AttachTransformForRotation.rotation;
+                    }
+                    else
+                    {
+                        // Allow for rotation processing after the hand has translated greater than a minimum distance, preventing initial jerky movement
+                        // This also facilitates the ability to quickly snap/pinch quickly & repeatedly while maintaining a forward direction
+                        rotationProcessingThresholdExceeded = Vector3.SqrMagnitude(initialHandPosePosition - pose.position) > kInitialRotationTriggerDistanceThreshold;
                     }
                 }
 

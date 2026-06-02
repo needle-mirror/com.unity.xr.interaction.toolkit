@@ -88,7 +88,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             /// The <see cref="Pose"/> of the <see cref="XROrigin"/> rig before and after locomotion.
             /// Used to calculate the locomotion delta.
             /// </summary>
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Reset in `ResetStaticsOnLoad` triggered by other static class.
             protected static Dictionary<XRBodyTransformer, PoseContainer> s_OriginPoses;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
         }
 
         class ProviderMonitor<T> : ProviderMonitor
@@ -101,17 +103,44 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             /// Consists of those that are a child GameObject of the <see cref="XROrigin"/> rig.
             /// </summary>
             /// <remarks>
-            /// There will typically only ever be one <see cref="T"/> in the scene.
+            /// There will typically only ever be one <typeparamref name="T"/> in the scene.
             /// </remarks>
             Dictionary<T, List<IXRInteractor>> m_ProviderInteractors;
 
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Reset in `ResetStaticsOnLoad` triggered by other static class.
             /// <summary>
             /// References to provider instances found.
             /// </summary>
             static List<T> s_Providers;
 
+            // ReSharper disable once StaticMemberInGenericType -- The subscription is specific to each T component type
+            static bool s_SubscribedLocomotionProvidersChanged;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
+
             static readonly LinkedPool<Dictionary<T, List<IXRInteractor>>> s_ProviderInteractorsPool =
                 new LinkedPool<Dictionary<T, List<IXRInteractor>>>(() => new Dictionary<T, List<IXRInteractor>>());
+
+            static ProviderMonitor()
+            {
+                ResetStaticsUtility.AddResetCallback(ResetStaticsOnLoad);
+            }
+
+            static void ResetStaticsOnLoad()
+            {
+                if (s_OriginPoses != null)
+                {
+                    s_OriginPoses.Clear();
+                    s_OriginPoses = null;
+                }
+
+                if (s_Providers != null)
+                {
+                    s_Providers.Clear();
+                    s_Providers = null;
+                }
+
+                UnsubscribeLocomotionProvidersChanged();
+            }
 
             public static void InitializeProvidersList()
             {
@@ -129,18 +158,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                         s_Providers.Add(providerT);
                 }
 
+                SubscribeLocomotionProvidersChanged();
+            }
+
+            static void SubscribeLocomotionProvidersChanged()
+            {
+                if (s_SubscribedLocomotionProvidersChanged)
+                    return;
+
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Unsubscribed in `ResetStaticsOnLoad` triggered by other static class.
                 LocomotionProvider.locomotionProvidersChanged += OnLocomotionProvidersChanged;
-                return;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
+                s_SubscribedLocomotionProvidersChanged = true;
+            }
 
-                void OnLocomotionProvidersChanged(LocomotionProvider provider)
-                {
-                    if (provider is T providerT)
-                        s_Providers.Add(providerT);
+            static void UnsubscribeLocomotionProvidersChanged()
+            {
+                if (!s_SubscribedLocomotionProvidersChanged)
+                    return;
 
-                    // Prune the list as new locomotion providers are added so that it doesn't infinitely grow in size.
-                    // It's likely if a new locomotion provider is added, the old rig with providers may have been destroyed.
-                    s_Providers.RemoveAll(p => p == null);
-                }
+                LocomotionProvider.locomotionProvidersChanged -= OnLocomotionProvidersChanged;
+                s_SubscribedLocomotionProvidersChanged = false;
             }
 
             public override void AddInteractor(IXRInteractor interactor)
@@ -265,6 +303,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
                 var poseContainer = CaptureOriginPoseAfter(provider.mediator.bodyTransformer);
                 providerStepped?.Invoke(poseContainer);
+            }
+
+            static void OnLocomotionProvidersChanged(LocomotionProvider provider)
+            {
+                if (provider is T providerT)
+                    s_Providers.Add(providerT);
+
+                // Prune the list as new locomotion providers are added so that it doesn't infinitely grow in size.
+                // It's likely if a new locomotion provider is added, the old rig with providers may have been destroyed.
+                s_Providers.RemoveAll(p => p == null);
             }
         }
 

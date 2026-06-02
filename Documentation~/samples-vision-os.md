@@ -9,12 +9,12 @@ Importantly, a simple swap of the XR Origin (XR Rig) prefab and the introduction
 
 ## Prerequisites and setup
 
-This sample and its dependencies are configured to run with the latest [Unity 2022.3 LTS](https://unity.com/releases/editor/qa/lts-releases) or newer (minimum 2022.3.19f1). A Unity Pro license is also [required](https://unity.com/campaign/spatial) to access the PolySpatial packages.
+This sample and its dependencies are configured to run with the latest [Unity 6000.0 LTS](https://unity.com/releases/editor/qa/lts-releases) or newer. A Unity Pro license is also [required](https://unity.com/campaign/spatial) to access the PolySpatial packages.
 
 In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
   * [Starter Assets](samples-starter-assets.md) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
   * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used. PolySpatial requires the use of Shader Graph for any custom materials.
-  * [AR Foundation](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@5.1/manual/index.html) - For mixed reality support.
+  * [AR Foundation](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@latest/index.html) - For mixed reality support.
   * [PolySpatial XR](https://docs.unity3d.com/Packages/com.unity.polyspatial.xr@1.1/manual/index.html) - For PolySpatial XR functionality.
   * [PolySpatial visionOS](https://docs.unity3d.com/Packages/com.unity.polyspatial.visionos@1.1/manual/index.html) - For visionOS support with PolySpatial.
 

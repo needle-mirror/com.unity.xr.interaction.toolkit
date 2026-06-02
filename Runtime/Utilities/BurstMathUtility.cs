@@ -161,7 +161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
         /// <summary>
         /// Returns the angle in degrees between two rotations <paramref name="a"/> and <paramref name="b"/>.
-        /// Equivalent to <see cref="Quaternion.Angle"/>.
+        /// Equivalent to <see cref="Quaternion.Angle(Quaternion, Quaternion)"/>.
         /// </summary>
         /// <param name="a">The first rotation in the quaternion set.</param>
         /// <param name="b">The second rotation in the quaternion set.</param>
@@ -180,7 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
         /// <summary>
         /// Returns the angle in degrees between two vectors <paramref name="a"/> and <paramref name="b"/>.
-        /// Equivalent to <see cref="Vector3.Angle"/>.
+        /// Equivalent to <see cref="Vector3.Angle(Vector3, Vector3)"/>.
         /// </summary>
         /// <param name="a">The first vector.</param>
         /// <param name="b">The second vector.</param>

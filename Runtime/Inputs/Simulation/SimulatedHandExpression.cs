@@ -15,11 +15,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [Serializable]
     public class SimulatedHandExpression : ISerializationCallbackReceiver
     {
+#if XR_HANDS_1_8_OR_NEWER
         /// <summary>
         /// The sequence type of the capture sequence. A single-frame sequence type denotes a hand expression with a
         /// singular frame while a multi-frame type is a hand expression spanning multiple frames.
         /// </summary>
-        /// <seealso cref="captureSequence"/>
+        /// <seealso cref="SimulatedHandExpression.captureSequence"/>
+#else
+        /// <summary>
+        /// The sequence type of the capture sequence. A single-frame sequence type denotes a hand expression with a
+        /// singular frame while a multi-frame type is a hand expression spanning multiple frames.
+        /// </summary>
+#endif
         public enum SequenceType
         {
             /// <summary>

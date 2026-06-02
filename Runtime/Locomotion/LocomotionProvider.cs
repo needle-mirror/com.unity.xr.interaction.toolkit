@@ -117,7 +117,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
         public event Action<LocomotionProvider> afterStepLocomotion;
 
         /// <summary>
-        /// (Read Only) List of active Locomotion Provider component instances.
+        /// (Read Only) List of active (but not necessarily enabled) Locomotion Provider component instances.
         /// </summary>
         /// <seealso cref="locomotionProvidersChanged"/>
         internal static List<LocomotionProvider> locomotionProviders { get; } = new List<LocomotionProvider>();
@@ -406,6 +406,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
                 OnLocomotionEnding();
                 locomotionEnded?.Invoke(this);
             }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            // Since there is no OnDestroy method currently defined, we must clear it.
+            // If at some point OnDestroy is added, this can be replaced with a Remove of the destroyed instance.
+            locomotionProviders?.Clear();
         }
     }
 }

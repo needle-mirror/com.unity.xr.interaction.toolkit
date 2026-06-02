@@ -1,5 +1,3 @@
-#if ENABLE_CLOUD_SERVICES_ANALYTICS || UNITY_2023_2_OR_NEWER
-
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
@@ -337,5 +335,3 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         }
     }
 }
-
-#endif

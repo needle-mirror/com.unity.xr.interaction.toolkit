@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://?fileID=7433441132597879392&amp;guid=3245a7d03283da54db4385c49204e816&amp;type=3#XRIStyleSheet" />
+    <engine:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.75); color: rgb(255, 255, 255); padding-left: 10px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px;">
+        <engine:Label text="Input Field" style="font-size: 24px; -unity-text-align: upper-center;"/>
+        <engine:TextField label="" placeholder-text="Click here to edit text"/>
+        <engine:Label text="To use the system keyboard on Meta Quest devices, please check the Enable System Keyboard option in OpenXR settings under the Meta Quest Support feature." display-tooltip-when-elided="false" style="overflow: hidden; -unity-text-align: middle-center; white-space: normal;"/>
+    </engine:VisualElement>
+</engine:UXML>

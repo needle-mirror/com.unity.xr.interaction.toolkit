@@ -177,5 +177,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             RefreshDivisor();
         }
 #endif
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+#if UNITY_INPUT_SYSTEM_PLATFORM_SCROLL_DELTA && INPUT_SYSTEM_1_9_OR_NEWER // Project Setting was added with 6000.0.9 and 1.9.0
+            if (s_Subscribed)
+            {
+                InputSystem.InputSystem.onSettingsChange -= OnInputSystemSettingsChanged;
+                s_Subscribed = false;
+            }
+#endif
+
+            s_DivisorComputed = false;
+            s_Divisor = 0f;
+            s_ComputeDivisorBasedOnInput = false;
+        }
     }
 }

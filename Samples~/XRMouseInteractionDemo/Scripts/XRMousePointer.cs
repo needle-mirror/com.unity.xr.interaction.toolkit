@@ -1,14 +1,11 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
-#if OPEN_XR_1_17_OR_NEWER
+#if OPENXR_1_17_OR_NEWER
 using UnityEngine.XR.OpenXR.Features.Interactions;
-#endif
-#if UNITY_EDITOR
 #endif
 
 /// <summary>
@@ -29,7 +26,6 @@ using UnityEngine.XR.OpenXR.Features.Interactions;
 /// </remarks>
 public class XRMousePointer : MonoBehaviour
 {
-
     // On Unity versions before 6000.0 these warnings will show up in the console if we don't suppress them.
 #pragma warning disable CS0168
 #pragma warning disable CS0414
@@ -79,13 +75,12 @@ public class XRMousePointer : MonoBehaviour
     [SerializeField]
     [Tooltip("XRInputValueReader for Quaternion aim rotation input from the Android Mouse Interaction Profile.")]
     XRInputValueReader<Quaternion> m_AimRotationAction;
-#if UNITY_6000_0_OR_NEWER
     float m_CurrentRadius;
     bool m_HoveringScrollableUI;
 
     void Start()
     {
-#if OPEN_XR_1_17_OR_NEWER
+#if OPENXR_1_17_OR_NEWER
         // Check if the Android Mouse Interaction Profile is available in the Input System.
         // If not available or enabled, deactivate the GameObject as the component cannot function.
         var androidMouseProfile = InputSystem.GetDevice<AndroidMouseInteractionProfile.AndroidMouseInteraction>();
@@ -94,19 +89,25 @@ public class XRMousePointer : MonoBehaviour
             gameObject.SetActive(false);
             Debug.LogWarning("Android Mouse Interaction Profile is missing. Please add it through the XR Plugin-in Management panel in Project Settings.", this);
         }
-#endif // OPEN_XR_1_17_OR_NEWER
+#endif
         m_CurrentRadius = m_InitialRadius;
-        m_NearFarInteractor.uiHoverEntered.AddListener(HandleHoverEntered);
-        m_NearFarInteractor.uiHoverExited.AddListener(HandleHoverExited);
+        if (m_NearFarInteractor != null)
+        {
+            m_NearFarInteractor.uiHoverEntered.AddListener(HandleHoverEntered);
+            m_NearFarInteractor.uiHoverExited.AddListener(HandleHoverExited);
+        }
     }
 
-    void Destroy()
+    void OnDestroy()
     {
-        m_NearFarInteractor.uiHoverEntered.RemoveListener(HandleHoverEntered);
-        m_NearFarInteractor.uiHoverExited.RemoveListener(HandleHoverExited);
+        if (m_NearFarInteractor != null)
+        {
+            m_NearFarInteractor.uiHoverEntered.RemoveListener(HandleHoverEntered);
+            m_NearFarInteractor.uiHoverExited.RemoveListener(HandleHoverExited);
+        }
     }
 
-    void HandleHoverEntered(UIHoverEventArgs arg0)
+    void HandleHoverEntered(UIHoverEventArgs args)
     {
         if (m_NearFarInteractor.TryGetUIModel(out var hoveringScrollableUI))
         {
@@ -114,7 +115,7 @@ public class XRMousePointer : MonoBehaviour
         }
     }
 
-    void HandleHoverExited(UIHoverEventArgs hoverArgs)
+    void HandleHoverExited(UIHoverEventArgs args)
     {
         m_HoveringScrollableUI = false;
     }
@@ -144,10 +145,4 @@ public class XRMousePointer : MonoBehaviour
         // Update the cursor visual with the current position, direction, rotation, and radius
         m_CursorVisual.UpdateCursorPositionAndRotation(center, direction, aimRotation, m_CurrentRadius);
     }
-#else // UNITY_6000_0_OR_NEWER
-    void Awake()
-    {
-        gameObject.SetActive(false);
-    }
-#endif // UNITY_6000_0_OR_NEWER
 }

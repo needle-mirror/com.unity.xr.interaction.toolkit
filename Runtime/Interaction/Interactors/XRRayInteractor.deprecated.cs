@@ -72,7 +72,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         /// <summary>
-        /// (Obsolete) Use <see cref="ILineRenderable.GetLinePoints"/> instead.
+        /// (Obsolete) Use <see cref="GetLinePoints(ref Vector3[], out int)"/> instead.
         /// </summary>
         /// <param name="linePoints">Obsolete.</param>
         /// <param name="numPoints">Obsolete.</param>
@@ -90,7 +90,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         /// <summary>
-        /// (Obsolete) Use <see cref="ILineRenderable.TryGetHitInfo"/> instead.
+        /// (Obsolete) Use <see cref="TryGetHitInfo(out Vector3, out Vector3, out int, out bool)"/> instead.
         /// </summary>
         /// <param name="position">Obsolete.</param>
         /// <param name="normal">Obsolete.</param>

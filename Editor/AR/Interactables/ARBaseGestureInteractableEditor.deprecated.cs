@@ -16,7 +16,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         protected SerializedProperty m_XROrigin;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARBaseGestureInteractable.arSessionOrigin"/>.</summary>
         protected SerializedProperty m_ARSessionOrigin;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARBaseGestureInteractable.m_ExcludeUITouches"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>ARBaseGestureInteractable.m_ExcludeUITouches</c>.</summary>
         protected SerializedProperty m_ExcludeUITouches;
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
             public static readonly GUIContent xrOrigin = EditorGUIUtility.TrTextContent("XR Origin", "The XR Origin that this Interactable will use (such as to get the Camera or to transform from Session space). Will find one if None.");
             /// <summary><see cref="GUIContent"/> for <see cref="ARBaseGestureInteractable.arSessionOrigin"/>.</summary>
             public static readonly GUIContent arSessionOrigin = EditorGUIUtility.TrTextContent("AR Session Origin", "(Deprecated) The AR Session Origin that this Interactable will use (such as to get the Camera or to transform from Session space). Will find one if None.");
-            /// <summary><see cref="GUIContent"/> for <see cref="ARBaseGestureInteractable.excludeUITouches"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>ARBaseGestureInteractable.excludeUITouches</c>.</summary>
             public static readonly GUIContent excludeUITouches = EditorGUIUtility.TrTextContent("Exclude UI Touches", "Enable to exclude touches that are over UI. Used to make screen space canvas elements block touches from hitting planes behind it.");
 
             /// <summary>The help box message when AR Session Origin is used.</summary>

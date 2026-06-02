@@ -93,9 +93,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
         readonly Dictionary<TEntity, EntityRelationship> m_Entities = new Dictionary<TEntity, EntityRelationship>();
         readonly Dictionary<TParent, ReverseRelationship> m_ReverseEntities = new Dictionary<TParent, ReverseRelationship>();
 
-        static List<TEntity> s_EntitiesToPrune;
-        static List<TParent> s_ReverseEntitiesToPrune;
-
         public bool AddExplicitParent(TEntity entity, TParent parent)
         {
             var entityRelationship = GetOrAddRelationship(entity);

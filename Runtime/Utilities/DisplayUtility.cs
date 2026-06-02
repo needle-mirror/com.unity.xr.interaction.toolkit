@@ -4,8 +4,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     static class DisplayUtility
     {
-        static float s_ScreenDpi = 100f;
-        static float s_OneOverScreenDpi = 1f / s_ScreenDpi;
+        const float k_DefaultScreenDpi = 100f;
+
+        static float s_ScreenDpi = k_DefaultScreenDpi;
+        static float s_OneOverScreenDpi = 1f / k_DefaultScreenDpi;
         static bool s_ScreenDpiChecked;
 
         /// <summary>
@@ -62,5 +64,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="inches">The amount to convert in inches.</param>
         /// <returns>The converted amount in pixels.</returns>
         public static float InchesToPixels(float inches) => inches * screenDpi;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_ScreenDpi = k_DefaultScreenDpi;
+            s_OneOverScreenDpi = 1f / k_DefaultScreenDpi;
+            s_ScreenDpiChecked = false;
+        }
     }
 }

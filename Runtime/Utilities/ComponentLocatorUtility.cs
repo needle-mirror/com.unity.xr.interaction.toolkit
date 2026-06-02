@@ -12,13 +12,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// <typeparam name="T">The component type.</typeparam>
     static class ComponentLocatorUtility<T> where T : Component
     {
+        const int k_LastTryFindFrameDefault = -1;
+
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Reset in `ResetStaticsOnLoad` triggered by other static class.
         /// <summary>
-        /// Cached reference to a found component of type <see cref="T"/>.
+        /// Cached reference to a found component of type <typeparamref name="T"/>.
         /// </summary>
         static T s_ComponentCache;
 
         /// <summary>
-        /// Cached reference to a found component of type <see cref="T"/>.
+        /// Cached reference to a found component of type <typeparamref name="T"/>.
         /// </summary>
         internal static T componentCache => s_ComponentCache;
 
@@ -26,9 +29,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Last frame that <see cref="Find"/> was called.
         /// </summary>
         // ReSharper disable once StaticMemberInGenericType -- The frame the find was attempted is specific to each T component type
-        static int s_LastTryFindFrame = -1;
+        static int s_LastTryFindFrame = k_LastTryFindFrameDefault;
 
         static SceneLoadedCallback s_SceneLoadedCallback;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
         class SceneLoadedCallback
         {
@@ -47,11 +51,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 if (subscribed)
                     return;
 
+#pragma warning disable UDR0004 // Non-static method subscribed to static event in SubscribeSceneLoaded is not deregistered. Deregister it in OnDisable. -- Unsubscribed in `ResetStaticsOnLoad` triggered by other static class.
                 SceneManager.sceneLoaded += OnSceneLoaded;
+#pragma warning restore UDR0004 // Non-static method subscribed to static event in SubscribeSceneLoaded is not deregistered. Deregister it in OnDisable.
                 subscribed = true;
             }
 
-            void UnsubscribeSceneLoaded()
+            // This method is internal rather than private to allow it to be called from `ResetStaticsOnLoad` method
+            // to guarantee cleanup from static event.
+            internal void UnsubscribeSceneLoaded()
             {
                 if (!subscribed)
                     return;
@@ -113,6 +121,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                     // Not found and this was the last scene we were waiting on to finish loading
                     Finish(null);
                 }
+            }
+        }
+
+        static ComponentLocatorUtility()
+        {
+            ResetStaticsUtility.AddResetCallback(ResetStaticsOnLoad);
+        }
+
+        static void ResetStaticsOnLoad()
+        {
+            s_ComponentCache = null;
+            s_LastTryFindFrame = k_LastTryFindFrameDefault;
+            if (s_SceneLoadedCallback != null)
+            {
+                s_SceneLoadedCallback.UnsubscribeSceneLoaded();
+                s_SceneLoadedCallback = null;
             }
         }
 
@@ -204,7 +228,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="component">When this method returns, contains the found component, or <see langword="null"/> if one could not be found.</param>
         /// <param name="limitTryFindPerFrame">If <see langword="true"/>, this method will only perform <see cref="Find"/> if it has not already been unsuccessfully called this frame.</param>
         /// <returns>Returns <see langword="true"/> if the component exists, otherwise returns <see langword="false"/>.</returns>
-        /// <remarks>This function will return a cached component from a previous search regardless if <see cref="limitTryFindPerFrame"/> is <see langword="true"/>.</remarks>
+        /// <remarks>This function will return a cached component from a previous search regardless if <paramref name="limitTryFindPerFrame"/> is <see langword="true"/>.</remarks>
         public static bool TryFindComponent(out T component, bool limitTryFindPerFrame)
         {
             // If a search for this component has already been unsuccessfully performed this frame, don't search again.
@@ -229,7 +253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Does not include inactive GameObjects when finding the component, but if a component was previously created
         /// as a direct result of this class, it will return that component even if the GameObject is now inactive.
         /// <br />
-        /// This function will return a cached component from a previous search regardless if <see cref="limitTryFindPerFrame"/> is <see langword="true"/>.
+        /// This function will return a cached component from a previous search regardless if <paramref name="limitTryFindPerFrame"/> is <see langword="true"/>.
         /// <br />
         /// The callback to return the result of the find operation may not be invoked immediately
         /// if the component couldn't be found and there is a scene currently being loaded. A <see langword="null"/> result will not be

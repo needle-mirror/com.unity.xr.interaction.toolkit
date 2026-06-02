@@ -133,10 +133,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Handles state management of the hand playback based on input from the <see cref="XRInteractionSimulator"/>.
         /// </summary>
+        /// <param name="handExpression">The recorded hand data.</param>
         /// <param name="skipToStartOrEnd">
         /// If set to true, it will ignore any in-between keyframes and skip to the sequence end or reset to the sequence start
         /// based on the current position in the sequence. This is normally used for hotkey input from the <see cref="XRInteractionSimulator"/>.
         /// </param>
+        /// <param name="leftOrRight">Which hand to toggle.</param>
         internal void ToggleHandPlayback(SimulatedHandExpression handExpression, bool skipToStartOrEnd, Handedness leftOrRight)
         {
             if (leftOrRight == Handedness.Left)

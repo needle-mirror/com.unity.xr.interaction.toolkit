@@ -1,8 +1,8 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.5.0",
-  "unity": "2022.3",
+  "version": "3.5.1",
+  "unity": "6000.0",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
     "XR",
@@ -14,7 +14,7 @@
   "dependencies": {
     "com.unity.inputsystem": "1.8.1",
     "com.unity.mathematics": "1.2.6",
-    "com.unity.ugui": "1.0.0",
+    "com.unity.ugui": "2.0.0",
     "com.unity.xr.core-utils": "2.4.0",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
@@ -24,22 +24,22 @@
   "samples": [
     {
       "displayName": "Starter Assets",
-      "description": "Assets to streamline setup of behaviors, including a default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System. Also contains a demo scene.\n<i>Dependencies:</i>\n • Unity UI 2.0.0 / TextMeshPro\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>",
+      "description": "Assets to streamline setup of behaviors, including a default set of input actions and presets for use with XR Interaction Toolkit behaviors that use the Input System. Also contains a demo scene.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>",
       "path": "Samples~/Starter Assets"
     },
     {
       "displayName": "Hands Interaction Demo",
-      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Unity UI 2.0.0 / TextMeshPro\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
+      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
       "path": "Samples~/Hands Interaction Demo"
     },
     {
       "displayName": "XR Mouse Interaction Demo",
-      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • Hands Interaction Demo sample\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0+\n • Android XR (OpenXR) package\n • Unity 6 (6000.0) or newer",
+      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0 or newer\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.androidxr-openxr\">Unity OpenXR Android XR</a>\n • Hands Interaction Demo sample",
       "path": "Samples~/XRMouseInteractionDemo"
     },
     {
       "displayName": "AR Starter Assets",
-      "description": "Assets to streamline setup when building for Mobile AR or Mixed Reality with the XR Interaction Toolkit. This includes prefabs and a demo scene to get you started.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • Unity UI 2.0.0 / TextMeshPro\n • Starter Assets sample",
+      "description": "Assets to streamline setup when building for Mobile AR or Mixed Reality with the XR Interaction Toolkit. This includes prefabs and a demo scene to get you started.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • Starter Assets sample",
       "path": "Samples~/AR Starter Assets"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "displayName": "Spatial Keyboard",
-      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • Unity UI 2.0.0 / TextMeshPro\n • Starter Assets sample",
+      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • Starter Assets sample",
       "path": "Samples~/Spatial Keyboard"
     },
     {
@@ -69,20 +69,20 @@
     },
     {
       "displayName": "visionOS",
-      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • Unity 2022.3 LTS or newer (minimum 2022.3.19f1)",
+      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
       "path": "Samples~/visionOS"
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added Unparent Transform On Grab property to XR Grab Interactable to allow for disabling the default behavior which sets the interactable to a top-level GameObject in the hierarchy when grabbed. Disable that property to keep it as a child GameObject of its parent when grabbed.\n\n### Changed\n- Changed `SimulatedHandExpression` editor to hide irrelevant properties depending on the sequence type that is set.\n- Changed `DontDestroyOnLoadSample` component in the assembly used to generate code samples for documentation to no longer be `public`.\n\n### Fixed\n- Fix an issue where XR Interaction Manager was triggering a UI Toolkit update tick even when UI Toolkit support was not enabled for XRI, causing errors to be thrown in some versions of UI Toolkit. Also changed behavior so it is only updated once per frame at the dynamic `Update` phase.\n- Fixed the simulator prefab not instantiating automatically after the first run when using fast-enter play mode settings. ([UUM-139247](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139247))\n- Fixed a race condition in the `LazyFollow` component where the associated Transform position and rotation can get zeroed out when **Position Follow Mode** or **Rotation Follow Mode** are set to `None`."
+    "changelog": "### Changed\n- Changed minimum supported version of the Unity Editor from 2022.3 to 6000.0 (LTS).\n- Changed minimum version of `com.unity.ugui` dependency to `2.0.0`.\n\n### Added\n- Added Input Field examples to the [World Space UI sample package](xref:xri-samples-world-space-ui). This utilizes the system or software keyboard rather than the spatial keyboard.\n\n### Fixed\n- Fixed additional scripts to properly reset static fields to support fast-enter play mode settings.\n- Fixed missing assembly reference for Unity.PolySpatial.Core in the visionOS sample package. ([UUM-141554](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141554))\n- Fixed an issue in the XR Interaction Toolkit settings where cancelling the sample import dialog when attempting to enable any of the Interaction Simulator Settings would leave the settings enabled when the sample was not installed. ([UUM-140999](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-140999))\n- Fixed a UI Toolkit related issue where world-space UI would become unresponsive while playing in the Editor on Quest Link when the Game view was not focused. ([UUM-139424](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139424))\n- Fixed issue in `OneEuroFilterVector3` where speeds were occasionally negative which would cause unexpected behavior when resetting the hands in the `XRDeviceSimulator`. ([UUM-139967](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139967))\n- Fixed error from exception \"ObjectDisposedException: The Unity.Collections.NativeArray`1[UnityEngine.XR.Hands.XRHandJoint] has been deallocated, it is not allowed to access it\" when exiting Play mode in the Hands Interaction Demo sample by updating sample scripts to check that the XRHandSubsystem is still running.\n- Fixed `XRMousePointer` in XR Mouse Interaction Demo sample to remove hover event listeners on destroy.\n- Fixed `ToggleColorToggler` component in the Starter Assets sample to initialize the colors of the Toggle component during `OnEnable` to ensure the Toggle is in the correct color state to fix implicit ordering dependency with other scripts.\n- Fixed unhandled division by zero in `CurveVisualController`. ([UUM-141267](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141267))\n- Fixed issue where the `XRUIInputModule` component is automatically added to an Event System GameObject, but does not check for existing `BaseInputModule`-based components that would interfere with how XRI interacts with the Event System, such as the `InputSystemUIInputModule`. XRI will now log a warning and disable the other Input Modules. [UUM-137143](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-137143)\n- Fixed inverted logic for One Euro Filter in `OneEuroFilterVector3`."
   },
   "upmCi": {
-    "footprint": "0f80191ec06c93648d7ca8cb4b4f63f7cc822ed4"
+    "footprint": "89eb6cce73bc11ff719bd58d4b0cf63d787b08d8"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "b4b292c1b58dea54bff99ae2c246c045877ef009"
+    "revision": "b014c1bb17375a89098055a3f60cb6b57aa1883c"
   }
 }

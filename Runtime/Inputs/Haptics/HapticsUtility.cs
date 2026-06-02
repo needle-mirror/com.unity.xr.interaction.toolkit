@@ -49,6 +49,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
         static InputDevice s_LegacyRightDevice;
 
         static HapticControlActionManager s_HapticControlManager;
+
         static InputAction s_LeftHapticAction;
         static InputAction s_RightHapticAction;
 
@@ -173,6 +174,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
             }
 
             return s_RightHapticAction;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_LeftChannelGroup = null;
+            s_RightChannelGroup = null;
+
+            s_LegacyLeftChannelGroup = null;
+            s_LegacyRightChannelGroup = null;
+            s_LegacyLeftDevice = default;
+            s_LegacyRightDevice = default;
+
+            s_HapticControlManager = null;
+
+            if (s_LeftHapticAction != null)
+            {
+                s_LeftHapticAction.Disable();
+                s_LeftHapticAction.Dispose();
+                s_LeftHapticAction = null;
+            }
+
+            if (s_RightHapticAction != null)
+            {
+                s_RightHapticAction.Disable();
+                s_RightHapticAction.Dispose();
+                s_RightHapticAction = null;
+            }
         }
     }
 }

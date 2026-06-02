@@ -9,15 +9,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
     [CustomEditor(typeof(CurveInteractionCaster), true), CanEditMultipleObjects]
     class CurveInteractionCasterEditor : BaseInteractionEditor
     {
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.castOrigin"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.castOrigin"/>.</summary>
         protected SerializedProperty m_CastOrigin;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.enableStabilization"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.enableStabilization"/>.</summary>
         protected SerializedProperty m_EnableStabilization;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.positionStabilization"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.positionStabilization"/>.</summary>
         protected SerializedProperty m_PositionStabilization;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.angleStabilization"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.angleStabilization"/>.</summary>
         protected SerializedProperty m_AngleStabilization;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.aimTarget"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.aimTarget"/>.</summary>
         protected SerializedProperty m_AimTargetObject;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveInteractionCaster.raycastMask"/>.</summary>
         protected SerializedProperty m_RaycastMask;
@@ -45,15 +45,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
         /// </summary>
         protected static class Contents
         {
-            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.castOrigin"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.castOrigin"/>.</summary>
             public static readonly GUIContent castOrigin = EditorGUIUtility.TrTextContent("Cast Origin", "Source of origin and direction used when updating sample points.");
-            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.enableStabilization"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.enableStabilization"/>.</summary>
             public static readonly GUIContent enableStabilization = EditorGUIUtility.TrTextContent("Enable Stabilization", "Determines whether to stabilize the cast origin.");
-            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.positionStabilization"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.positionStabilization"/>.</summary>
             public static readonly GUIContent positionStabilization = EditorGUIUtility.TrTextContent("Position Stabilization", "Factor for stabilizing position. Larger values increase the range of stabilization, making the effect more pronounced over a greater distance.");
-            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.angleStabilization"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.angleStabilization"/>.</summary>
             public static readonly GUIContent angleStabilization = EditorGUIUtility.TrTextContent("Angle Stabilization", "Factor for stabilizing angle. Larger values increase the range of stabilization, making the effect more pronounced over a greater angle.");
-            /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.aimTarget"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.InteractionCasterBase.aimTarget"/>.</summary>
             public static readonly GUIContent aimTargetObject = EditorGUIUtility.TrTextContent("Aim Target Object", "Optional ray provider for calculating stable rotation.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastMask"/>.</summary>
             public static readonly GUIContent raycastMask = EditorGUIUtility.TrTextContent("Raycast Mask", "Gets or sets layer mask used for limiting ray cast targets.");

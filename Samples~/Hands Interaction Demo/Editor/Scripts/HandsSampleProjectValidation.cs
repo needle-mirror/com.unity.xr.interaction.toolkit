@@ -2,15 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TMPro;
 using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
-using TMPro;
-#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
 {
@@ -29,28 +27,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_HandsPackageName = "com.unity.xr.hands";
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
-#if UNITY_6000_0_OR_NEWER
-        // The s_MinimumUIPackageVersion should match the UGUI_2_0_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
-        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("2.0.0");
-        const string k_UIPackageName = "com.unity.ugui";
-        const string k_UIPackageDisplayName = "Unity UI";
-#else
-        // The s_MinimumUIPackageVersion should match the TEXT_MESH_PRO_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.SpatialKeyboard.asmdef
-        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("3.0.8");
-        const string k_UIPackageName = "com.unity.textmeshpro";
-        const string k_UIPackageDisplayName = "TextMeshPro";
-#endif
 
         static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.6.2");
         static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.2");
+        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("1.7.3");
 
         static AddRequest s_HandsPackageAddRequest;
         static AddRequest s_ShaderGraphPackageAddRequest;
-        static AddRequest s_UIPackageAddRequest;
 
         static readonly BuildTargetGroup[] s_BuildTargetGroups =
             ((BuildTargetGroup[])Enum.GetValues(typeof(BuildTargetGroup))).Distinct().ToArray();
@@ -66,7 +49,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixIt = () =>
                 {
                     if (s_HandsPackageAddRequest == null || s_HandsPackageAddRequest.IsCompleted)
-                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_RecommendedHandsPackageVersion, ref s_HandsPackageAddRequest);
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_TargetInstallHandsPackageVersion, ref s_HandsPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = true,
@@ -80,7 +63,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixIt = () =>
                 {
                     if (s_HandsPackageAddRequest == null || s_HandsPackageAddRequest.IsCompleted)
-                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_RecommendedHandsPackageVersion, ref s_HandsPackageAddRequest);
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_HandsPackageName, s_TargetInstallHandsPackageVersion, ref s_HandsPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = false,
@@ -135,34 +118,14 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
             },
             new BuildValidationRule
             {
-                IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
-                Message = $"[{k_SampleDisplayName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
-                Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_UIPackageName) >= s_MinimumUIPackageVersion,
-                FixIt = () =>
-                {
-                    if (s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted)
-                        ProjectValidationUtility.InstallOrUpdatePackage(k_UIPackageName, s_MinimumUIPackageVersion, ref s_UIPackageAddRequest);
-                },
-                FixItAutomatic = true,
-                Error = true,
-            },
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
-            new BuildValidationRule
-            {
-                IsRuleEnabled = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName),
                 Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
                 HelpText = "Can be installed using Window > TextMeshPro > Import TMP Essential Resources or by clicking this Edit button and then Import TMP Essentials in the window that appears.",
                 Category = k_Category,
-                CheckPredicate = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName) && TextMeshProEssentialsInstalled(),
-                FixIt = () =>
-                {
-                    TMP_PackageResourceImporterWindow.ShowPackageImporterWindow();
-                },
+                CheckPredicate = () => TextMeshProEssentialsInstalled(),
+                FixIt = () => TMP_PackageResourceImporterWindow.ShowPackageImporterWindow(),
                 FixItAutomatic = false,
                 Error = true,
             },
-#endif
         };
 
         [InitializeOnLoadMethod]
@@ -241,14 +204,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
             return string.IsNullOrEmpty(packageVersion) ? packageName : $"{packageName}@{packageVersion}";
         }
 
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
         static bool TextMeshProEssentialsInstalled()
         {
             // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
             // For simplicity, we don't also copy the check if the asset needs to be updated.
             return File.Exists(Path.Combine("Assets", "TextMesh Pro", "Resources", "TMP Settings.asset"));
         }
-#endif
 
         static string GetImportSampleVersionMessage(string packageFolderName, string sampleDisplayName, PackageVersion version)
         {

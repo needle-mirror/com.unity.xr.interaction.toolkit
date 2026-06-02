@@ -364,6 +364,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             return s_RetainedFingerIds.Contains(fingerId);
         }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            touchInputSource = defaultTouchInputSource;
+            s_Touches.Clear();
+#if !XRI_LEGACY_INPUT_DISABLED
+            mockTouches.Clear();
+#endif
+            s_RetainedFingerIds.Clear();
+        }
     }
 }
 

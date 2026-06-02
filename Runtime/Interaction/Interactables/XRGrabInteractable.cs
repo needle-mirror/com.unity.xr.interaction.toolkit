@@ -1365,7 +1365,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (m_StartingSingleGrabTransformers.Count != 0 || m_StartingMultipleGrabTransformers.Count != 0)
                 return;
 
-            using (Pool.ListPool<IXRGrabTransformer>.Get(out var transformerComponents))
+            using (ListPool<IXRGrabTransformer>.Get(out var transformerComponents))
             {
                 // By only searching on this GameObject, it matches the behavior of the XRBaseGrabTransformer,
                 // which only automatically registers with the XRGrabInteractable on the same GameObject.
@@ -1911,22 +1911,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (m_TrackPosition)
             {
                 // Scale initialized velocity by prediction factor
-#if UNITY_2023_3_OR_NEWER
                 var currentVelocity = m_Rigidbody.linearVelocity;
-#else
-                var currentVelocity = m_Rigidbody.velocity;
-#endif
                 currentVelocity *= (1f - m_VelocityDamping);
                 var positionDelta = m_TargetPose.position - m_Rigidbody.position;
                 var targetVelocity = currentVelocity + (positionDelta / fixedDeltaTime * m_VelocityScale);
                 var newVelocity = m_LimitLinearVelocity
                     ? Vector3.MoveTowards(currentVelocity, targetVelocity, m_MaxLinearVelocityDelta)
                     : targetVelocity;
-#if UNITY_2023_3_OR_NEWER
                 m_Rigidbody.linearVelocity = newVelocity;
-#else
-                m_Rigidbody.velocity = newVelocity;
-#endif
             }
 
             // Do angular velocity tracking
@@ -2000,11 +1992,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (m_TrackPosition)
             {
                 // Scale initialized velocity by prediction factor
-#if UNITY_2023_3_OR_NEWER
                 var currentVelocity = m_Rigidbody.linearVelocity;
-#else
-                var currentVelocity = m_Rigidbody.velocity;
-#endif
                 currentVelocity *= (1f - m_VelocityDamping);
                 var positionDelta = m_TargetPose.position - m_Rigidbody.position;
                 var targetVelocity = currentVelocity + (positionDelta / fixedDeltaTime * m_VelocityScale);
@@ -2635,11 +2623,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 if (m_LimitAngularVelocity)
                     m_DetachAngularVelocity = Vector3.ClampMagnitude(m_DetachAngularVelocity, m_MaxAngularVelocityDelta);
 
-#if UNITY_2023_3_OR_NEWER
                 m_Rigidbody.linearVelocity = m_DetachLinearVelocity;
-#else
-                m_Rigidbody.velocity = m_DetachLinearVelocity;
-#endif
                 m_Rigidbody.angularVelocity = m_DetachAngularVelocity;
             }
         }
@@ -2671,13 +2655,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             m_WasKinematic = rigidbody.isKinematic;
             m_UsedGravity = rigidbody.useGravity;
             m_InterpolationOnGrab = rigidbody.interpolation;
-#if UNITY_2023_3_OR_NEWER
             m_LinearDampingOnGrab = rigidbody.linearDamping;
             m_AngularDampingOnGrab = rigidbody.angularDamping;
-#else
-            m_LinearDampingOnGrab = rigidbody.drag;
-            m_AngularDampingOnGrab = rigidbody.angularDrag;
-#endif
             rigidbody.isKinematic = m_CurrentMovementType == MovementType.Kinematic || m_CurrentMovementType == MovementType.Instantaneous;
             rigidbody.useGravity = false;
             // Initialize the Rigidbody to not interpolate when we drive predicted visuals.
@@ -2685,13 +2664,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             if (isRigidbodyMovement && m_PredictedVisualsTransform != null)
                 rigidbody.interpolation = RigidbodyInterpolation.None;
 
-#if UNITY_2023_3_OR_NEWER
             rigidbody.linearDamping = 0f;
             rigidbody.angularDamping = 0f;
-#else
-            rigidbody.drag = 0f;
-            rigidbody.angularDrag = 0f;
-#endif
         }
 
         /// <summary>
@@ -2725,13 +2699,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // If this feature is not being used, keep whatever value the user may have set while it was selected.
             if (m_PredictedVisualsTransform != null)
                 rigidbody.interpolation = m_InterpolationOnGrab;
-#if UNITY_2023_3_OR_NEWER
             rigidbody.linearDamping = m_LinearDampingOnGrab;
             rigidbody.angularDamping = m_AngularDampingOnGrab;
-#else
-            rigidbody.drag = m_LinearDampingOnGrab;
-            rigidbody.angularDrag = m_AngularDampingOnGrab;
-#endif
 
             if (!isSelected)
                 m_Rigidbody.useGravity |= m_ForceGravityOnDetach;

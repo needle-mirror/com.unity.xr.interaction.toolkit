@@ -1,4 +1,3 @@
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 {
     /// <summary>
@@ -34,7 +33,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
         }
 
-        XRKeyboardKey [] m_Keys;
+        XRKeyboardKey[] m_Keys;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -109,4 +108,3 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
         }
     }
 }
-#endif

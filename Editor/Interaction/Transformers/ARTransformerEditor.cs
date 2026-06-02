@@ -52,7 +52,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.planeClassifications"/>.</summary>
             public static readonly GUIContent planeClassifications = EditorGUIUtility.TrTextContent("Plane Classifications", "The classifications a plane needs to match one of to allow interactable manipulation with.");
 #endif
-            /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.m_UseInteractorOrientation"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <see cref="UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.useInteractorOrientation"/>.</summary>
             public static readonly GUIContent useInteractorOrientation = EditorGUIUtility.TrTextContent("Use Interactor Orientation", "Controls whether the interactable will use the orientation of the interactor, or not.");
 
             //Scaling Properties

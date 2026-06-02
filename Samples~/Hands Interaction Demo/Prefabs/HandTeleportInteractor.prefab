@@ -1126,7 +1126,7 @@ MonoBehaviour:
   m_JoystickPinchHandGesture: {fileID: 7761066974229038758}
   m_TeleportInteractor: {fileID: 3148768504776655467}
   m_TrackedPoseDriver: {fileID: 565058670333665406}
-  m_nearFarInteractor: {fileID: 0}
+  m_NearFarInteractor: {fileID: 0}
 --- !u!114 &7761066974229038758
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -19,16 +19,6 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-          "name": "com.unity.textmeshpro",
-          "expression": "3.0.8",
-          "define": "TEXT_MESH_PRO_PRESENT"
-        },
-        {
-          "name": "com.unity.ugui",
-          "expression": "2.0.0",
-          "define": "UGUI_2_0_PRESENT"
-        },
-        {
             "name": "com.unity.xr.arfoundation",
             "expression": "4.2.7",
             "define": "AR_FOUNDATION_PRESENT"

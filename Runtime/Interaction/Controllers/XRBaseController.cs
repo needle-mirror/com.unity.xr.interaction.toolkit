@@ -79,8 +79,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <summary>
         /// (Deprecated) Defines the deadzone values for device-based input when performing translate or rotate anchor actions.
         /// </summary>
-        /// <seealso cref="XRRayInteractor.TranslateAnchor"/>
-        /// <seealso cref="XRRayInteractor.RotateAnchor"/>
         /// <remarks>
         /// <c>anchorControlDeadzone</c> has been deprecated. Please configure deadzone on the Rotate Anchor and Translate Anchor Actions.
         /// </remarks>
@@ -256,7 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Whether to hide the controller model.
         /// </summary>
         /// <seealso cref="model"/>
-        /// <seealso cref="XRBaseInputInteractor.hideControllerOnSelect"/>
+        /// <seealso cref="UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractor.hideControllerOnSelect"/>
         public bool hideControllerModel
         {
             get => m_HideControllerModel;

@@ -2,14 +2,11 @@
 using UnityEngine;
 #endif
 
-#if ENABLE_CLOUD_SERVICES_ANALYTICS || UNITY_2023_2_OR_NEWER
-
 namespace UnityEditor.XR.Interaction.Toolkit.Analytics
 {
     /// <summary>
     /// The entry point class to send XR Interaction Toolkit analytics data.
     /// </summary>
-    [InitializeOnLoad]
     static class XRIAnalytics
     {
         /// <summary>
@@ -27,21 +24,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
         /// </summary>
         public const int DefaultMaxItems = 1000; // Same default value as AnalyticInfoAttribute
 
-#if UNITY_2023_2_OR_NEWER
         const string k_PackageName = "com.unity.xr.interaction.toolkit";
-#endif
 
         static XRIPlayModeEvent playModeEvent { get; } = new XRIPlayModeEvent();
 
         static XRIBuildEvent buildEvent { get; } = new XRIBuildEvent();
-
-        static XRIAnalytics()
-        {
-#if !UNITY_2023_2_OR_NEWER
-            playModeEvent.Register();
-            buildEvent.Register();
-#endif
-        }
 
         /// <summary>
         /// Send the given parameter as payload to the analytics server.
@@ -53,14 +40,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             if (!EditorAnalytics.enabled)
                 return false;
 
-#if UNITY_2023_2_OR_NEWER
             if (!TryGetPackageVersion(k_PackageName, out var packageVersion))
                 return false;
 
             // Ensure package name and version are included in the payload
             payload.package = k_PackageName;
             payload.package_ver = packageVersion;
-#endif
 
 #if XRI_ANALYTICS_DEBUGGING_ENABLED
             Debug.Log($"{payload.GetType().FullName}\n{JsonUtility.ToJson(payload, true)}");
@@ -80,14 +65,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             if (!EditorAnalytics.enabled)
                 return false;
 
-#if UNITY_2023_2_OR_NEWER
             if (!TryGetPackageVersion(k_PackageName, out var packageVersion))
                 return false;
 
             // Ensure package name and version are included in the payload
             payload.package = k_PackageName;
             payload.package_ver = packageVersion;
-#endif
 
 #if XRI_ANALYTICS_DEBUGGING_ENABLED
             Debug.Log($"{payload.GetType().FullName}\n{JsonUtility.ToJson(payload, true)}");
@@ -97,7 +80,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
 #endif
         }
 
-#if UNITY_2023_2_OR_NEWER
         static bool TryGetPackageVersion(string packageName, out string version)
         {
             // FindForPackageName can fail and return null, even if the package is installed, if attempted too early.
@@ -114,8 +96,5 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             version = info.version;
             return true;
         }
-#endif
     }
 }
-
-#endif

@@ -19,7 +19,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="interactable">The Interactable used to process the hover filters.</param>
         /// <returns>
         /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
-        /// <see cref="filters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// <paramref name="filters"/> is empty. Otherwise, returns <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// This method will ensure that all changes are buffered when processing, the buffered changes are applied
@@ -62,7 +62,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="interactable">The Interactable used to process the select filters.</param>
         /// <returns>
         /// Returns <see langword="true"/> if all processed filters also return <see langword="true"/>, or if
-        /// <see cref="filters"/> is empty. Otherwise, returns <see langword="false"/>.
+        /// <paramref name="filters"/> is empty. Otherwise, returns <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// This method will ensure that all changes are buffered when processing, the buffered changes are applied

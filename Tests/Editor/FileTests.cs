@@ -29,7 +29,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             Assert.That(assembly, Is.Not.Null);
 
             // Get the root file path of the XRI package in the project.
-            // Example: "C:\UnitySrc\Example-Unity-3D-Project-2021.3\Library\PackageCache\com.unity.xr.interaction.toolkit@3.0.0"
+            // Example: "C:\UnitySrc\Example-Unity-3D-Project-6000.0\Library\PackageCache\com.unity.xr.interaction.toolkit@3.0.0"
             var packageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
             Assert.That(packageInfo, Is.Not.Null);
             Assert.That(packageInfo.resolvedPath, Is.Not.Null);

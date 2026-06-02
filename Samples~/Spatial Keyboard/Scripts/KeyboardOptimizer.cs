@@ -178,7 +178,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 
         void GetKeys()
         {
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
             XRKeyboardKey[] keys = GetComponentsInChildren<XRKeyboardKey>();
             foreach (var keyboardKey in keys)
             {
@@ -190,7 +189,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                     childPosition = keyboardKey.transform.GetSiblingIndex(),
                 });
             }
-#endif
         }
 
         void GetLayoutGroups()
@@ -219,7 +217,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 layoutGroup.enabled = false;
             }
 
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
             foreach (var keyData in m_KeyData)
             {
                 var key = keyData.key;
@@ -243,7 +240,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 if (keyData.batchFollow != null)
                     keyData.batchFollow.enabled = true;
             }
-#endif
         }
 
         /// <summary>
@@ -257,7 +253,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 layoutGroup.enabled = true;
             }
 
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
             foreach (var keyData in m_KeyData)
             {
                 var key = keyData.key;
@@ -283,14 +278,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 if (keyData.batchFollow != null)
                     keyData.batchFollow.enabled = false;
             }
-#endif
         }
 
         struct KeyData
         {
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
             public XRKeyboardKey key;
-#endif
             public KeyboardBatchFollow batchFollow;
             public Transform parent;
             public int childPosition;

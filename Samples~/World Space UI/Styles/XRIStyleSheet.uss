@@ -230,3 +230,7 @@ ScrollView .unity-scroll-view__horizontal-scroller #unity-dragger {
     min-height: 6px;
     max-height: 6px;
 }
+
+TextField {
+    color: rgb(0, 0, 0);
+}

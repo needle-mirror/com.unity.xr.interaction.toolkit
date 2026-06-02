@@ -117,16 +117,6 @@
             "define": "XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER"
         },
         {
-            "name": "com.unity.textmeshpro",
-            "expression": "",
-            "define": "TEXTMESHPRO_PACKAGE_PRESENT"
-        },
-        {
-            "name": "com.unity.ugui",
-            "expression": "2.0.0",
-            "define": "UGUI_2_0_OR_NEWER"
-        },
-        {
             "name": "Unity",
             "expression": "6000.0.9",
             "define": "UNITY_INPUT_SYSTEM_PLATFORM_SCROLL_DELTA"
@@ -145,6 +135,11 @@
             "name": "Unity",
             "expression": "[6000.0.57,6000.1)",
             "define": "UNITY_6000_0_57_OR_NEWER_PATCH"
+        },
+        {
+            "name": "com.unity.modules.vr",
+            "expression": "1.0.0",
+            "define": "VR_MODULE_PRESENT"
         }
     ],
     "noEngineReferences": false

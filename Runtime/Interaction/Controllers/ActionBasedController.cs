@@ -254,7 +254,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// The Input System action to use for providing a scale delta value to transformers.
         /// Must be a <see cref="Vector2Control"/> Control. Uses the y-axis as the scale input.
         /// </summary>
-        /// <seealso cref="IXRScaleValueProvider"/>
+        /// <seealso cref="UnityEngine.XR.Interaction.Toolkit.Interactors.IXRScaleValueProvider"/>
         public InputActionProperty scaleDeltaAction
         {
             get => m_ScaleDeltaAction;

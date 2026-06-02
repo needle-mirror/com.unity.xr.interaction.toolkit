@@ -1087,8 +1087,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc6980b6cb3b4f12b6b75074e4ef59f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_FilterMinCutoff: 0.1
-  m_FilterBeta: 0.2
+  m_FilterMinCutoff: 50
+  m_FilterBeta: 10
 --- !u!1 &5323647229090770512
 GameObject:
   m_ObjectHideFlags: 0

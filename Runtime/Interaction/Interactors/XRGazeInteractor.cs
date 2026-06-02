@@ -256,7 +256,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Checks to see if this <see cref="XRGazeInteractor"/> can interact with an <see cref="IXRInteractable"/>.
         /// </summary>
         /// <param name="interactable">The <see cref="IXRInteractable"/> to check if this <see cref="XRGazeInteractor"/> can interact with.</param>
-        /// <returns>Returns <see langword="true"/> if this <see cref="XRGazeInteractor"/> can interact with <see cref="interactable"/>, otherwise returns <see langword="false"/>.</returns>
+        /// <returns>Returns <see langword="true"/> if this <see cref="XRGazeInteractor"/> can interact with <paramref name="interactable"/>, otherwise returns <see langword="false"/>.</returns>
         bool CanInteract(IXRInteractable interactable)
         {
             return interactable is IXRHoverInteractable hoverInteractable && interactionManager.CanHover(this, hoverInteractable) ||

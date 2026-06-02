@@ -101,9 +101,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
             mesh.UploadMeshData(false);
         }
 
-        static List<Vector3> s_FeatheringUVs = new List<Vector3>();
+        static readonly List<Vector3> s_FeatheringUVs = new List<Vector3>();
 
-        static List<Vector3> s_Vertices = new List<Vector3>();
+        static readonly List<Vector3> s_Vertices = new List<Vector3>();
 
         ARPlaneMeshVisualizer m_PlaneMeshVisualizer;
 

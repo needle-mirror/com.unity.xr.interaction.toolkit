@@ -1227,5 +1227,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             interactorUnregistered?.Invoke(args);
         }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_WaitlistInteractors?.Clear();
+            s_WaitlistInteractors = null;
+        }
     }
 }

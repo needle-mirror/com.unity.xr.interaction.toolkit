@@ -68,6 +68,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         {
             serializedObject.Update();
 
+            var useClassicPreviousValue = m_UseClassic.boolValue;
+            var autoInstantiatePrefabPreviousValue = m_AutomaticallyInstantiateSimulatorPrefab.boolValue;
+            var simulatorPrefabPreviousValue = m_SimulatorPrefab.objectReferenceValue;
+
             using (var check = new EditorGUI.ChangeCheckScope())
             {
                 var labelWidth = EditorGUIUtility.labelWidth;
@@ -87,12 +91,20 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     if (m_AutomaticallyInstantiateSimulatorPrefab.boolValue)
                     {
+                        bool loaded;
 #pragma warning disable CS0618
                         if (m_UseClassic.boolValue)
-                            LoadXRDeviceSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName, k_SampleDisplayName);
+                            loaded = TryLoadSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName, k_SampleDisplayName);
 #pragma warning restore CS0618
                         else
-                            LoadXRDeviceSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
+                            loaded = TryLoadSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
+
+                        if (!loaded)
+                        {
+                            m_UseClassic.boolValue = useClassicPreviousValue;
+                            m_AutomaticallyInstantiateSimulatorPrefab.boolValue = autoInstantiatePrefabPreviousValue;
+                            m_SimulatorPrefab.objectReferenceValue = simulatorPrefabPreviousValue;
+                        }
                     }
                     else
                         m_SimulatorPrefab.objectReferenceValue = null;
@@ -103,13 +115,13 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             }
         }
 
-        void LoadXRDeviceSimulatorSampleAsset<T>(string simulatorPrefabName, string sampleDisplayName)
+        bool TryLoadSimulatorSampleAsset<T>(string simulatorPrefabName, string sampleDisplayName)
         {
             var packageSamples = Sample.FindByPackage(k_PackageName, string.Empty);
             if (packageSamples == null)
             {
                 Debug.LogError($"Couldn't find samples of the {k_PackageName} package for importing the {sampleDisplayName} sample; aborting.", this);
-                return;
+                return false;
             }
 
             var foundXRDeviceSimulatorSample = false;
@@ -124,14 +136,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                     string importSampleTitle = "Importing " + sampleDisplayName + " sample.";
                     string importSampleMessage = "The " + sampleDisplayName + " sample is going to be imported from the " + k_PackageDisplayName + " package, press \"Ok\" to continue.";
 
-                    if (EditorUtility.DisplayDialog(importSampleTitle, importSampleMessage, "Ok", "Cancel"))
+                    if (!EditorUtility.DisplayDialog(importSampleTitle, importSampleMessage, "Ok", "Cancel") ||
+                        !packageSample.Import(Sample.ImportOptions.OverridePreviousImports))
                     {
-                        packageSample.Import(Sample.ImportOptions.OverridePreviousImports);
-                    }
-                    else
-                    {
-                        m_AutomaticallyInstantiateSimulatorPrefab.boolValue = false;
-                        return;
+                        return false;
                     }
                 }
 
@@ -142,7 +150,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             if (!foundXRDeviceSimulatorSample)
             {
                 Debug.LogError($"Couldn't find {sampleDisplayName} sample in the {k_PackageDisplayName} package; aborting.", this);
-                return;
+                return false;
             }
 
             var searchFilter = "\"" + simulatorPrefabName + "\"";
@@ -160,8 +168,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (!foundXRDeviceSimulatorAsset)
             {
-                Debug.LogError($"Couldn't find the {simulatorPrefabName} prefab; has the asset been renamed?", this);
+                Debug.LogWarning($"Couldn't find the {simulatorPrefabName} prefab; has the asset been renamed?", this);
             }
+
+            return true;
         }
     }
 }

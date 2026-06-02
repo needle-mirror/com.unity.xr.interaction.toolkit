@@ -5,9 +5,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.UI;
-#if TEXTMESHPRO_PACKAGE_PRESENT || (UGUI_2_0_OR_NEWER && UNITY_2023_2_OR_NEWER)
 using TMPro;
-#endif
 
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
@@ -301,7 +299,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         /// <summary>
-        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
+        /// See <a href="https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/api/UnityEngine.EventSystems.BaseInputModule.html#UnityEngine_EventSystems_BaseInputModule_Process">BaseInputModule.Process()</a>.
         /// </summary>
         public override void Process()
         {
@@ -1104,10 +1102,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (selectable is Button || selectable is Toggle || selectable is InputField || selectable is Dropdown)
                 return true;
 
-#if TEXTMESHPRO_PACKAGE_PRESENT || (UGUI_2_0_OR_NEWER && UNITY_2023_2_OR_NEWER)
             if (selectable is TMP_InputField || selectable is TMP_Dropdown)
                 return true;
-#endif
 
             return false;
         }

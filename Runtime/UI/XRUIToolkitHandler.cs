@@ -1,6 +1,10 @@
 #if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
 #define UITOOLKIT_WORLDSPACE_ENABLED
 #endif
+#if ENABLE_VR && (VR_MODULE_PRESENT || UNITY_6000_5_OR_NEWER)
+#define XR_SETTINGS_AVAILABLE
+#endif
+using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
@@ -94,6 +98,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static bool s_EventSystemValidated;
         static bool s_PanelInputConfigurationValidated;
         static bool s_DidCheckPanelInputConfiguration;
+
+        // Preallocate delegate to avoid GC Alloc
+        static readonly Func<bool> s_IsEditorRemoteConnected = IsEditorRemoteConnected;
+        static bool IsEditorRemoteConnected() => true;
 
         /// <summary>
         /// Dictionary tracking which VisualElements are being manipulated by which interactors
@@ -573,7 +581,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
             if (uiToolkitSupportEnabled && interactorCount > 0)
-                UIElementsRuntimeUtility.UpdateEventSystem();
+            {
+#if UNITY_EDITOR && XR_SETTINGS_AVAILABLE
+                var previousRemoteConnectedValue = DefaultEventSystem.IsEditorRemoteConnected;
+                var deviceIsActive = XRSettings.isDeviceActive;
+                if (deviceIsActive)
+                    DefaultEventSystem.IsEditorRemoteConnected = s_IsEditorRemoteConnected;
+#endif
+
+                try
+                {
+                    UIElementsRuntimeUtility.UpdateEventSystem();
+                }
+                finally
+                {
+#if UNITY_EDITOR && XR_SETTINGS_AVAILABLE
+                    if (deviceIsActive)
+                        DefaultEventSystem.IsEditorRemoteConnected = previousRemoteConnectedValue;
+#endif
+                }
+            }
 #endif
         }
 
@@ -667,6 +694,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             {
                 s_PanelInputConfigurationValidated = true;
             }
+#endif
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            uiToolkitSupportEnabled = false;
+
+#if UITOOLKIT_WORLDSPACE_ENABLED
+            s_PanelInputConfigurationRef = null;
+            s_EventSystemValidated = false;
+            s_PanelInputConfigurationValidated = false;
+            s_DidCheckPanelInputConfiguration = false;
 #endif
         }
     }

@@ -215,7 +215,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         /// </summary>
         public static IReadOnlyBindableVariable<InputMode> currentInputMode => s_CurrentInputMode;
 
-        static BindableEnum<InputMode> s_CurrentInputMode = new BindableEnum<InputMode>(InputMode.None);
+        static readonly BindableEnum<InputMode> s_CurrentInputMode = new BindableEnum<InputMode>(InputMode.None);
 
         InputMode m_LeftInputMode;
 
@@ -934,6 +934,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
         }
 #endif
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_CurrentInputMode.SetValueWithoutNotify(InputMode.None);
+            activeModalityManagers.Clear();
+        }
+
         /// <summary>
         /// Helper class to monitor tracked devices from Input System and invoke an event
         /// when the device is tracked. Used in the behavior to keep a GameObject deactivated
@@ -999,7 +1006,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             {
                 if (!m_Subscribed && m_MonitoredDevices.Count > 0)
                 {
+#pragma warning disable UDR0004 // Non-static method subscribed to static event in Subscribe is not deregistered. Deregister it in OnDisable. -- False positive warning in Project Auditor, it is unsubscribed during XRInputModalityManager.OnDisable.
                     InputSystem.InputSystem.onAfterUpdate += OnAfterInputUpdate;
+#pragma warning restore UDR0004 // Non-static method subscribed to static event in Subscribe is not deregistered. Deregister it in OnDisable.
                     m_Subscribed = true;
                 }
             }
@@ -1102,7 +1111,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
             {
                 if (!m_Subscribed && m_MonitoredDevices.Count > 0)
                 {
+#pragma warning disable UDR0004 // Non-static method subscribed to static event in Subscribe is not deregistered. Deregister it in OnDisable. -- False positive warning in Project Auditor, it is unsubscribed during XRInputModalityManager.OnDisable.
                     InputTracking.trackingAcquired += OnTrackingAcquired;
+#pragma warning restore UDR0004 // Non-static method subscribed to static event in Subscribe is not deregistered. Deregister it in OnDisable.
                     m_Subscribed = true;
                 }
             }

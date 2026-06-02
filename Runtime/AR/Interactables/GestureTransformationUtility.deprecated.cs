@@ -764,6 +764,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                 fallbackLayerMask: fallbackLayerMask);
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_XROrigin = null;
+            s_ARSessionOrigin = null;
+            s_ARRaycastManager = null;
+            s_ARPlaneManager = null;
+            s_Hits.Clear();
+        }
+
         public partial struct Placement
         {
 #pragma warning disable IDE1006 // Naming Styles

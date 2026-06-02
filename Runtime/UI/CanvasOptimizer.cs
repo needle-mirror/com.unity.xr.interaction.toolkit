@@ -343,10 +343,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Canvases cannot auto-register, so collect all canvases in the scene at start
 #if UNITY_6000_4_OR_NEWER
             var canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
-#elif UNITY_2023_1_OR_NEWER
-            var canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 #else
-            var canvases = FindObjectsOfType<Canvas>(true);
+            var canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 #endif
             for (var index = 0; index < canvases.Length; ++index)
             {

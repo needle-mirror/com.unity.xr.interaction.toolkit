@@ -1,4 +1,3 @@
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -494,7 +493,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
         }
 
-#region Process Key Functions
+        #region Process Key Functions
 
         /// <summary>
         /// Updates the keyboard text by inserting the <see cref="newText"/> string into the existing <see cref="text"/>.
@@ -636,9 +635,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             return false;
         }
 
-#endregion
+        #endregion
 
-#region Open Functions
+        #region Open Functions
 
         /// <summary>
         /// Opens the keyboard with a <see cref="TMP_InputField"/> parameter as the active input field.
@@ -697,9 +696,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             m_IsOpen = true;
         }
 
-#endregion
+        #endregion
 
-#region Close Functions
+        #region Close Functions
 
         /// <summary>
         /// Process close command for keyboard.
@@ -762,9 +761,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
         }
 
-#endregion
+        #endregion
 
-#region Input Field Handling
+        #region Input Field Handling
 
         protected virtual void StopObservingInputField(TMP_InputField inputField)
         {
@@ -792,7 +791,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             text = updatedText;
         }
 
-#endregion
+        #endregion
     }
 }
-#endif

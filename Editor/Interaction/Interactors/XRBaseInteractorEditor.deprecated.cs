@@ -8,51 +8,51 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 {
     public partial class XRBaseInteractorEditor
     {
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>XRBaseInteractor.interactionLayerMask</c>.</summary>
         [Obsolete("m_InteractionLayerMask property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_InteractionLayers instead.", true)]
         protected SerializedProperty m_InteractionLayerMask;
 
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>XRBaseInteractor.onHoverEntered</c>.</summary>
         [Obsolete("m_OnHoverEntered property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_HoverEntered instead.", true)]
         protected SerializedProperty m_OnHoverEntered;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>XRBaseInteractor.onHoverExited</c>.</summary>
         [Obsolete("m_OnHoverExited property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_HoverExited instead.", true)]
         protected SerializedProperty m_OnHoverExited;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>XRBaseInteractor.onSelectEntered</c>.</summary>
         [Obsolete("m_OnSelectEntered property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_SelectEntered instead.", true)]
         protected SerializedProperty m_OnSelectEntered;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>XRBaseInteractor.onSelectExited</c>.</summary>
         [Obsolete("m_OnSelectExited property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_SelectExited instead.", true)]
         protected SerializedProperty m_OnSelectExited;
 
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <c>XRBaseInteractor.onHoverEntered</c>.</summary>
         [Obsolete("m_HoverEnteredCalls property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_HoverEntered instead.", true)]
         protected SerializedProperty m_OnHoverEnteredCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <c>XRBaseInteractor.onHoverExited</c>.</summary>
         [Obsolete("m_OnHoverExitedCalls property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_HoverExitedCalls instead.", true)]
         protected SerializedProperty m_OnHoverExitedCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <c>XRBaseInteractor.onSelectEntered</c>.</summary>
         [Obsolete("m_OnSelectEnteredCalls property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_SelectEnteredCalls instead.", true)]
         protected SerializedProperty m_OnSelectEnteredCalls;
-        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
+        /// <summary><see cref="SerializedProperty"/> of the persistent calls backing <c>XRBaseInteractor.onSelectExited</c>.</summary>
         [Obsolete("m_OnSelectExitedCalls property was deprecated from XRBaseInteractor and will be removed in a future version of XRI. Use the m_SelectExitedCalls instead.", true)]
         protected SerializedProperty m_OnSelectExitedCalls;
 
         protected static partial class BaseContents
         {
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.interactionLayerMask"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>XRBaseInteractor.interactionLayerMask</c>.</summary>
             [Obsolete("interactionLayerMask property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent interactionLayerMask = EditorGUIUtility.TrTextContent("Deprecated Interaction Layer Mask", "Deprecated Interaction Layer Mask that uses the Unity physics Layers. Hide this property by disabling \'Show Old Interaction Layer Mask In Inspector\' in the XR Interaction Toolkit project settings.");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverEntered"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>XRBaseInteractor.onHoverEntered</c>.</summary>
             [Obsolete("onHoverEntered property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent onHoverEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Entered");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onHoverExited"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>XRBaseInteractor.onHoverExited</c>.</summary>
             [Obsolete("onHoverExited property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent onHoverExited = EditorGUIUtility.TrTextContent("(Deprecated) On Hover Exited");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onSelectEntered"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>XRBaseInteractor.onSelectEntered</c>.</summary>
             [Obsolete("onSelectEntered property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent onSelectEntered = EditorGUIUtility.TrTextContent("(Deprecated) On Select Entered");
-            /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractor.onSelectExited"/>.</summary>
+            /// <summary><see cref="GUIContent"/> for <c>XRBaseInteractor.onSelectExited</c>.</summary>
             [Obsolete("onSelectExited property was deprecated from XRBaseInteractor and will be removed in a future version of XRI.", true)]
             public static readonly GUIContent onSelectExited = EditorGUIUtility.TrTextContent("(Deprecated) On Select Exited");
 
@@ -73,7 +73,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
         /// <summary>
         /// Migrate the persistent listeners from the deprecated <see cref="UnityEvent"/>
-        /// properties to the new events on an <see cref="XRBaseInteractor"/>.
+        /// properties to the new events on an <c>XRBaseInteractor</c>.
         /// </summary>
         /// <param name="serializedObject">The object to upgrade.</param>
         [Obsolete("MigrateEvents is marked for deprecation and will be removed in a future version. It is only used for migrating deprecated events.", true)]
@@ -83,7 +83,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
         /// <summary>
         /// Migrate the persistent listeners from the deprecated <see cref="UnityEvent"/>
-        /// properties to the new events on an <see cref="XRBaseInteractor"/>.
+        /// properties to the new events on an <c>XRBaseInteractor</c>.
         /// </summary>
         /// <param name="targets">An array of all the objects to upgrade.</param>
         [Obsolete("MigrateEvents is marked for deprecation and will be removed in a future version. It is only used for migrating deprecated events.", true)]

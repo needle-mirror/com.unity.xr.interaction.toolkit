@@ -1,5 +1,3 @@
-#if ENABLE_CLOUD_SERVICES_ANALYTICS || UNITY_2023_2_OR_NEWER
-
 using System;
 using UnityEngine;
 
@@ -43,5 +41,3 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
         public float motionControllerDurationSeconds;
     }
 }
-
-#endif

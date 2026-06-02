@@ -1026,7 +1026,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #endif
         static void GetAdjustedEndPointForMaxDistance(in float3 origin, in float3 endPoint, float maxDistance, out float3 newEndPoint)
         {
-            float3 normalizedDirection = math.normalize(endPoint - origin);
+            float3 normalizedDirection = math.normalizesafe(endPoint - origin, float3.zero);
             newEndPoint = origin + normalizedDirection * maxDistance;
         }
 

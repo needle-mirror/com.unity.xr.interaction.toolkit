@@ -45,7 +45,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <seealso cref="XRGrabInteractable.movementType"/>
         public enum MovementType
         {
-#if UNITY_2023_3_OR_NEWER // Change between Rigidbody.linearVelocity and Rigidbody.velocity
             /// <summary>
             /// Move the Interactable object by setting the linear velocity and angular velocity of the Rigidbody.
             /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody
@@ -65,27 +64,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             /// </remarks>
             /// <seealso cref="Rigidbody.linearVelocity"/>
             /// <seealso cref="Rigidbody.angularVelocity"/>
-#else
-            /// <summary>
-            /// Move the Interactable object by setting the linear velocity and angular velocity of the Rigidbody.
-            /// Use this if you don't want the object to be able to move through other Colliders without a Rigidbody
-            /// as it follows the Interactor.
-            /// </summary>
-            /// <remarks>
-            /// Unity sets the Rigidbody velocity values during the FixedUpdate function. This Rigidbody will move at the
-            /// framerate-independent interval of the Physics update, which may be slower than the Update rate.
-            /// If the Rigidbody is not set to use interpolation or extrapolation, as the Interactable
-            /// follows the Interactor, it may not visually update position each frame and be a slight distance
-            /// behind the Interactor or controller due to the difference between the Physics update rate
-            /// and the render update rate.
-            /// <br />
-            /// The visuals can be driven separately from the Rigidbody if <see cref="XRGrabInteractable.predictedVisualsTransform"/>
-            /// is assigned in order to keep the appearance smooth while also minimizing latency as compared to
-            /// the Rigidbody interpolation settings.
-            /// </remarks>
-            /// <seealso cref="Rigidbody.velocity"/>
-            /// <seealso cref="Rigidbody.angularVelocity"/>
-#endif
             VelocityTracking,
 
             /// <summary>

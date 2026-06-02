@@ -13,6 +13,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         static DisposableManagerSingleton instance => Initialize();
 
         static DisposableManagerSingleton s_DisposableManagerSingleton;
+        static bool s_CreatedGameObject;
 
         readonly HashSetList<IDisposable> m_Disposables = new HashSetList<IDisposable>();
 
@@ -24,6 +25,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 DontDestroyOnLoad(singleton);
 
                 s_DisposableManagerSingleton = singleton.AddComponent<DisposableManagerSingleton>();
+                s_CreatedGameObject = true;
             }
 
             return s_DisposableManagerSingleton;
@@ -38,14 +40,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             }
 
             if (s_DisposableManagerSingleton == null)
-            {
                 s_DisposableManagerSingleton = this;
-            }
         }
 
         void OnDestroy()
         {
             DisposeAll();
+
+            if (s_DisposableManagerSingleton == this)
+            {
+                if (s_CreatedGameObject)
+                {
+                    Destroy(s_DisposableManagerSingleton.gameObject);
+                    s_CreatedGameObject = false;
+                }
+
+                s_DisposableManagerSingleton = null;
+            }
         }
 
         void OnApplicationQuit()
@@ -70,6 +81,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         public static void RegisterDisposable(IDisposable disposableToRegister)
         {
             instance.m_Disposables.Add(disposableToRegister);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            s_DisposableManagerSingleton = null;
+            s_CreatedGameObject = false;
         }
     }
 }

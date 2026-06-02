@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -299,6 +301,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             inputModule.RegisterWaitlistInteractors();
             inputModule.GetRegisteredInteractors(interactors);
 
+            Assert.That(interactors, Is.EqualTo(new[] { interactor }));
+        }
+
+        [UnityTest]
+        public IEnumerator InputModulesDisabledOnFindEventSystem([ValueSource(nameof(s_RuntimeBehaviorTypes))] Type type)
+        {
+            Assume.That(ComponentLocatorUtility<XRUIInputModule>.componentCache, Is.Null);
+
+            var eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(StandaloneInputModule), typeof(InputSystemUIInputModule));
+            var standaloneInputModule = eventSystemGo.GetComponent<StandaloneInputModule>();
+            var inputSystemUIInputModule = eventSystemGo.GetComponent<InputSystemUIInputModule>();
+
+            Assume.That(standaloneInputModule != null, Is.True);
+            Assume.That(standaloneInputModule.enabled, Is.True);
+
+            Assume.That(inputSystemUIInputModule != null, Is.True);
+            Assume.That(inputSystemUIInputModule.enabled, Is.True);
+
+            LogAssert.Expect(LogType.Warning, new Regex("Disabling StandaloneInputModule"));
+            LogAssert.Expect(LogType.Warning, new Regex("Disabling InputSystemUIInputModule"));
+
+            var interactor = CreateUIInteractor(type);
+
+            Assert.That(standaloneInputModule.enabled, Is.False);
+            Assert.That(inputSystemUIInputModule.enabled, Is.False);
+
+            yield return null;
+
+            var inputModule = eventSystemGo.GetComponent<XRUIInputModule>();
+            Assert.That(inputModule != null, Is.True);
+
+            var interactors = new List<IUIInteractor>();
+            inputModule.GetRegisteredInteractors(interactors);
             Assert.That(interactors, Is.EqualTo(new[] { interactor }));
         }
 

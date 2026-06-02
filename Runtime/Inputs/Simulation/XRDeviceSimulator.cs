@@ -1438,7 +1438,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Intended to be used by analytics.
         /// </remarks>
         /// <seealso cref="instance"/>
-        internal static Action<bool> instanceChanged;
+        internal static event Action<bool> instanceChanged;
 
         TargetedDevices m_TargetedDeviceInput = TargetedDevices.FPS;
 
@@ -1791,7 +1791,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void OnDestroy()
         {
             if (instance == this)
+            {
                 instanceChanged?.Invoke(false);
+                instance = null;
+            }
         }
 
         /// <summary>
@@ -2680,6 +2683,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void OnSecondaryTouchPerformed(InputAction.CallbackContext context) => m_SecondaryTouchInput = true;
         void OnSecondaryTouchCanceled(InputAction.CallbackContext context) => m_SecondaryTouchInput = false;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            instance = null;
+        }
     }
 
     /// <summary>

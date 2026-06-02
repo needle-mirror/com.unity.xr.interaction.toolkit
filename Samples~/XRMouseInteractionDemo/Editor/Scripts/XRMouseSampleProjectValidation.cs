@@ -7,10 +7,6 @@ using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
-#if OPEN_XR_1_17_OR_NEWER
-using UnityEngine.XR.OpenXR;
-using UnityEngine.XR.OpenXR.Features.Interactions;
-#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
 {
@@ -30,6 +26,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
         const string k_ProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
 
         static readonly PackageVersion s_MinimumOpenXRPackageVersion = new PackageVersion("1.17.0-pre.2");
+        static readonly PackageVersion s_TargetInstallOpenXRPackageVersion = new PackageVersion("1.17.0");
 
         static AddRequest s_OpenXRPackageAddRequest;
         static AddRequest s_AndroidXRPackageAddRequest;
@@ -56,17 +53,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
             },
             new BuildValidationRule
             {
-                IsRuleEnabled = () => true,
-                Message = $"[{k_SampleDisplayName}] Unity 6 (6000.0) or newer is required to use the XRMousePointer.",
-                HelpText = "The XRMousePointer requires Unity 6 or later. To use this component, please upgrade to Unity 6 or newer.",
-                Category = k_Category,
-                CheckPredicate = () => IsUnity6OrNewer(),
-                FixItAutomatic = false,
-                Error = true,
-            },
-#if UNITY_6000_0_OR_NEWER
-            new BuildValidationRule
-            {
                 IsRuleEnabled = () => (s_OpenXRPackageAddRequest == null || s_OpenXRPackageAddRequest.IsCompleted),
                 Message = $"[{k_SampleDisplayName}] OpenXR Plugin ({k_OpenXRPackageName}) package must be at version {s_MinimumOpenXRPackageVersion} or higher to use the XRMousePointer.",
                 HelpText = "The XRMousePointer requires OpenXR 1.17.0 or later for Android Mouse Interaction Profile support.",
@@ -75,7 +61,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
                 FixIt = () =>
                 {
                     if (s_OpenXRPackageAddRequest == null || s_OpenXRPackageAddRequest.IsCompleted)
-                        ProjectValidationUtility.InstallOrUpdatePackage(k_OpenXRPackageName, s_MinimumOpenXRPackageVersion, ref s_OpenXRPackageAddRequest);
+                        ProjectValidationUtility.InstallOrUpdatePackage(k_OpenXRPackageName, s_TargetInstallOpenXRPackageVersion, ref s_OpenXRPackageAddRequest);
                 },
                 FixItAutomatic = true,
                 Error = true,
@@ -101,7 +87,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
                 FixItAutomatic = true,
                 Error = true,
             },
-#endif
         };
 
         [InitializeOnLoadMethod]
@@ -186,19 +171,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.XRMouse.Editor
                 return string.Empty;
 
             return $"An older version of {sampleDisplayName} has been found. This may cause errors.";
-        }
-
-        /// <summary>
-        /// Checks if the current Unity Editor version is Unity 6 (6000.0) or newer.
-        /// </summary>
-        /// <returns>True if Unity 6 or newer is being used.</returns>
-        static bool IsUnity6OrNewer()
-        {
-#if UNITY_6000_0_OR_NEWER
-            return true;
-#else
-            return false;
-#endif
         }
     }
 }

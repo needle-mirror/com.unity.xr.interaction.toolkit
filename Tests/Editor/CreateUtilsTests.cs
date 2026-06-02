@@ -178,11 +178,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 
         static T FindByType<T>() where T : Object
         {
-#if UNITY_2023_1_OR_NEWER
             return Object.FindAnyObjectByType<T>();
-#else
-            return Object.FindObjectOfType<T>();
-#endif
         }
     }
 }

@@ -24,6 +24,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
     [Preserve]
     public class SectorInteraction : IInputInteraction<Vector2>
     {
+        const float k_DefaultPressPoint = 0.5f;
+
         /// <summary>
         /// Sets which cardinal directions to use when determining valid directions to perform the action.
         /// </summary>
@@ -147,7 +149,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         /// The default magnitude threshold that an actuated control must cross for the control to
         /// be considered pressed.
         /// </summary>
-        public static float defaultPressPoint { get; set; } = 0.5f;
+        public static float defaultPressPoint { get; set; } = k_DefaultPressPoint;
 
         State m_State;
 
@@ -283,11 +285,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad), Preserve]
-#pragma warning disable IDE0051 // Remove unused private members
         static void Initialize()
-#pragma warning restore IDE0051 // Remove unused private members
         {
             // Will execute the static constructor as a side effect.
+
+            // Reset static property back to the default for consistent results when domain reload is disabled.
+            defaultPressPoint = k_DefaultPressPoint;
         }
     }
 }

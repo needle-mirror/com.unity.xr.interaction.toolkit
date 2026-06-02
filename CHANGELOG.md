@@ -9,6 +9,29 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+
+## [3.5.1] - 2026-06-02
+
+### Changed
+- Changed minimum supported version of the Unity Editor from 2022.3 to 6000.0 (LTS).
+- Changed minimum version of `com.unity.ugui` dependency to `2.0.0`.
+
+### Added
+- Added Input Field examples to the [World Space UI sample package](xref:xri-samples-world-space-ui). This utilizes the system or software keyboard rather than the spatial keyboard.
+
+### Fixed
+- Fixed additional scripts to properly reset static fields to support fast-enter play mode settings.
+- Fixed missing assembly reference for Unity.PolySpatial.Core in the visionOS sample package. ([UUM-141554](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141554))
+- Fixed an issue in the XR Interaction Toolkit settings where cancelling the sample import dialog when attempting to enable any of the Interaction Simulator Settings would leave the settings enabled when the sample was not installed. ([UUM-140999](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-140999))
+- Fixed a UI Toolkit related issue where world-space UI would become unresponsive while playing in the Editor on Quest Link when the Game view was not focused. ([UUM-139424](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139424))
+- Fixed issue in `OneEuroFilterVector3` where speeds were occasionally negative which would cause unexpected behavior when resetting the hands in the `XRDeviceSimulator`. ([UUM-139967](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139967))
+- Fixed error from exception "ObjectDisposedException: The Unity.Collections.NativeArray`1[UnityEngine.XR.Hands.XRHandJoint] has been deallocated, it is not allowed to access it" when exiting Play mode in the Hands Interaction Demo sample by updating sample scripts to check that the XRHandSubsystem is still running.
+- Fixed `XRMousePointer` in XR Mouse Interaction Demo sample to remove hover event listeners on destroy.
+- Fixed `ToggleColorToggler` component in the Starter Assets sample to initialize the colors of the Toggle component during `OnEnable` to ensure the Toggle is in the correct color state to fix implicit ordering dependency with other scripts.
+- Fixed unhandled division by zero in `CurveVisualController`. ([UUM-141267](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141267))
+- Fixed issue where the `XRUIInputModule` component is automatically added to an Event System GameObject, but does not check for existing `BaseInputModule`-based components that would interfere with how XRI interacts with the Event System, such as the `InputSystemUIInputModule`. XRI will now log a warning and disable the other Input Modules. [UUM-137143](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-137143)
+- Fixed inverted logic for One Euro Filter in `OneEuroFilterVector3`.
+
 ## [3.5.0] - 2026-04-21
 
 ### Added
@@ -1272,7 +1295,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the simulated controllers not working in projects where the Scripting Backend was set to IL2CPP.
 - Fixed the simulated HMD `deviceRotation` not being set. It now matches the `centerEyeRotation`.
 - Fixed the **GameObject &gt; XR &gt; AR Annotation Interactable** menu item when AR Foundation is installed to add the correct component.
-- Fixed **UIInputModule** so it uses and resets [`PointerEventData.useDragThreshold`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.PointerEventData.html#UnityEngine_EventSystems_PointerEventData_useDragThreshold) to allow users to ignore the drag threshold by implementing [`IInitializePotentialDragHandler`](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/api/UnityEngine.EventSystems.IInitializePotentialDragHandler.html). It was previously being ignored and causing sliders and scrollbars to incorrectly use a drag threshold.
+- Fixed **UIInputModule** so it uses and resets [`PointerEventData.useDragThreshold`](https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/api/UnityEngine.EventSystems.PointerEventData.html#UnityEngine_EventSystems_PointerEventData_useDragThreshold) to allow users to ignore the drag threshold by implementing [`IInitializePotentialDragHandler`](https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/api/UnityEngine.EventSystems.IInitializePotentialDragHandler.html). It was previously being ignored and causing sliders and scrollbars to incorrectly use a drag threshold.
 
 ## [2.0.1] - 2022-03-04
 

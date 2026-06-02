@@ -170,7 +170,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>The help box message when <see cref="XRBaseController"/> is missing.</summary>
             public static readonly string missingRequiredController = "This component requires the GameObject to have an XR Controller component. Add one to ensure this component can respond to user input.";
-            /// <summary>The help box message when the <see cref="XRBaseInteractor.startingSelectedInteractable"/> will be instantly deselected due to the value of <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
+            /// <summary>The help box message when the <see cref="UnityEngine.XR.Interaction.Toolkit.Interactors.XRBaseInteractor.startingSelectedInteractable"/> will be instantly deselected due to the value of <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
             public static readonly string selectActionTriggerWarning = "A Starting Selected Interactable will be instantly deselected unless Select Action Trigger is set to Toggle or Sticky.";
         }
 

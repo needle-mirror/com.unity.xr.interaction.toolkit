@@ -86,11 +86,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// This is intended to be used by unit tests to bypass the Unity project's settings.
         /// </summary>
         /// <seealso cref="ScriptableSettings{T}.Instance"/>
+#pragma warning disable UDR0002 // Static field/property is not assigned in a method with the RuntimeInitializeOnLoadMethod attribute -- BaseInstance is assigned instead.
         internal static XRInteractionRuntimeSettings InstanceInternal
         {
             get => BaseInstance;
             set => BaseInstance = value;
         }
+#pragma warning restore UDR0002 // Static field/property is not assigned in a method with the RuntimeInitializeOnLoadMethod attribute
 
         /// <summary>
         /// Returns the singleton settings instance or loads the settings asset if it exists.
@@ -163,6 +165,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
         {
             get => m_UIModuleRegistrationMode;
             set => m_UIModuleRegistrationMode = value;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            BaseInstance = null;
         }
     }
 }

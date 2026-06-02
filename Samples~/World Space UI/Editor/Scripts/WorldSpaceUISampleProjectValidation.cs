@@ -8,7 +8,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 
-#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+#if UNITY_6000_2_A9_OR_NEWER
 using System.IO;
 using TMPro;
 #endif
@@ -96,7 +96,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
                 FixItAutomatic = true,
                 Error = true,
             },
-#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+#if UNITY_6000_2_A9_OR_NEWER
             new BuildValidationRule
             {
                 Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
@@ -202,7 +202,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
             return $"An older version of {sampleDisplayName} has been found. This may cause errors.";
         }
 
-#if UGUI_2_0_PRESENT && UNITY_6000_2_A9_OR_NEWER
+#if UNITY_6000_2_A9_OR_NEWER
         static bool TextMeshProEssentialsInstalled()
         {
             // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.

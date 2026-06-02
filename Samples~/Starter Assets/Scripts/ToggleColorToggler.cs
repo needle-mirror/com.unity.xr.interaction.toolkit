@@ -50,6 +50,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
         void OnEnable()
         {
             m_TargetToggle.onValueChanged.AddListener(OnToggleValueChanged);
+            OnToggleValueChanged(m_TargetToggle.isOn);
         }
 
         /// <summary>

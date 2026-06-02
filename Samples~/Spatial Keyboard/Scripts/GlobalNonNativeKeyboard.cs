@@ -1,4 +1,3 @@
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
 using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -125,6 +124,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             }
         }
 
+        /// <summary>
+        /// See <see cref="MonoBehaviour"/>.
+        /// </summary>
+        void OnDestroy()
+        {
+            if (instance == this)
+                instance = null;
+        }
 
         /// <summary>
         /// Opens the global keyboard with a <see cref="TMP_InputField"/> to monitor.
@@ -238,6 +245,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             var dotProduct = Vector3.Dot(m_CameraTransform.forward, (keyboard.transform.position - m_CameraTransform.position).normalized);
             return dotProduct < m_FacingKeyboardThreshold;
         }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            instance = null;
+        }
     }
 }
-#endif

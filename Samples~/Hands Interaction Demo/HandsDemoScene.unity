@@ -30247,7 +30247,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3205640160985484538, guid: 5af200a2ddec1634fa8bb1fac97c1169, type: 3}
-      propertyPath: m_nearFarInteractor
+      propertyPath: m_NearFarInteractor
       value: 
       objectReference: {fileID: 1543608518}
     - target: {fileID: 7761066974229038758, guid: 5af200a2ddec1634fa8bb1fac97c1169, type: 3}

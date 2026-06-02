@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
     /// Interactor helper object that draws a targeting <see cref="reticlePrefab"/> over a ray casted point in front of the Interactor.
     /// </summary>
     /// <remarks>
-    /// When attached to an <see cref="XRRayInteractor"/>, the <see cref="XRRayInteractor.TryGetCurrentRaycast"/>
+    /// When attached to an <see cref="XRRayInteractor"/>, the <see cref="XRRayInteractor.TryGetCurrentRaycast(out UnityEngine.RaycastHit?, out int, out UnityEngine.EventSystems.RaycastResult?, out int, out bool)"/>
     /// method will be used instead of the internal ray cast function of this behavior.
     /// </remarks>
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]

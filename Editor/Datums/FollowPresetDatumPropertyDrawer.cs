@@ -12,6 +12,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Datums.Editor
     [Obsolete("The Affordance System namespace and all associated classes have been deprecated. The existing affordance system will be moved, replaced and updated with a new interaction feedback system in a future version of XRI.")]
     public class FollowPresetDatumPropertyDrawer : DatumPropertyDrawer
     {
+        /// <inheritdoc />
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             SerializedProperty selectedValue = GetSelectedProperty(property);

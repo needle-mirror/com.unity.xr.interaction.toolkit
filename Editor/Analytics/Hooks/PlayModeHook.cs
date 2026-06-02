@@ -1,5 +1,3 @@
-#if ENABLE_CLOUD_SERVICES_ANALYTICS || UNITY_2023_2_OR_NEWER
-
 using System;
 using Unity.Profiling;
 using UnityEngine;
@@ -227,5 +225,3 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         }
     }
 }
-
-#endif

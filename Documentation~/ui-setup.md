@@ -16,9 +16,9 @@ The XR Interaction Toolkit package comes with menu items that perform basic setu
 
 ## Event System
 
-The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module component to process input. Use the default configuration, pictured in the [XR UI Input Module](xref:xri-ui-input-module) component documentation, as a starting point. Only one Event System can be active at one time in your scene, and only one Input Module component should be enabled at one time on the Event System GameObject. Since XR interactor components that support UI Interaction, such as the [Near-Far Interactor](xref:xri-near-far-interactor) or [XR Poke Interactor](xref:xri-xr-poke-interactor), need to register with the XR UI Input Module to interact with uGUI (Unity UI) components, the EventSystem GameObject is typically set to [`Object.DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html) to make it always available, easily findable, and kept to a single instance. Refer to [Scene management considerations](xref:xri-scene-management#dont-destroy-on-load) for a sample script to set a GameObject to not be destroyed when loading another scene.
+The [Event System](https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/manual/EventSystem.html) component acts as a central dispatch for UI events to process input, and update individual active canvases. Additionally, each Event System needs an Input Module component to process input. Use the default configuration, pictured in the [XR UI Input Module](xref:xri-ui-input-module) component documentation, as a starting point. Only one Event System can be active at one time in your scene, and only one Input Module component should be enabled at one time on the Event System GameObject. Since XR interactor components that support UI Interaction, such as the [Near-Far Interactor](xref:xri-near-far-interactor) or [XR Poke Interactor](xref:xri-xr-poke-interactor), need to register with the XR UI Input Module to interact with uGUI (Unity UI) components, the EventSystem GameObject is typically set to [`Object.DontDestroyOnLoad`](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html) to make it always available, easily findable, and kept to a single instance. Refer to [Scene management considerations](xref:xri-scene-management#dont-destroy-on-load) for a sample script to set a GameObject to not be destroyed when loading another scene.
 
-The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to receive Event System events from tracked devices. This component functions in a similar way to the [Physics Raycaster](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/script-PhysicsRaycaster.html) component from uGUI (Unity UI) to send messages to 3D physics objects that implement event interfaces.
+The Tracked Device Physics Raycaster can also be added to a scene so that objects with physics colliders are able to receive Event System events from tracked devices. This component functions in a similar way to the [Physics Raycaster](https://docs.unity3d.com/Packages/com.unity.ugui@latest?subfolder=/manual/script-PhysicsRaycaster.html) component from uGUI (Unity UI) to send messages to 3D physics objects that implement event interfaces.
 
 ## Canvas
 
@@ -41,6 +41,16 @@ Add this component to a scene, such as on the EventSystem GameObject, to allow t
 
 > [!NOTE]
 > If you instantiate a UI element with a Canvas at runtime, you will need to manually register it with the Canvas Optimizer by calling `CanvasOptimizer.RegisterCanvas(Canvas)`.
+
+## Input field support
+
+Input Fields are supported by using either the Spatial Keyboard sample package or by using the software/system keyboard built into the appropriate device. To use the system or software keyboard on Meta Quest platforms, you will need to install a minimum version of 1.17.0 of OpenXR and then enable the appropriate feature by navigating to **Project Settings &gt; XR Plugin Management &gt; OpenXR &gt; OpenXR Feature Groups &gt; Meta Quest &gt; Meta Quest Support settings** and checking the box for **Enable System Keyboard**.
+
+![project-settings-enable-system-keyboard](images/project-settings-enable-system-keyboard.png)
+
+Additionally, the **TextMeshPro - Input Field** will need to be appropriately configured for the correct keyboard type. If you choose to use the system or software keyboard, the **Hide Soft Keyboard** and **Hide Mobile Input** checkboxes will need to be `unchecked`. If you choose to use the Spatial Keyboard sample or another virtual keyboard from within your game, you will want to `check` those boxes to prevent the system or software keyboard from popping up.
+
+![tmp-input-field-keyboard-settings](images/tmp-input-field-keyboard-settings.png)
 
 ## Known Issues with Input Fields
 

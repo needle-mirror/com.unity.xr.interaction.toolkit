@@ -1161,7 +1161,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Intended to be used by analytics.
         /// </remarks>
         /// <seealso cref="instance"/>
-        internal static Action<bool> instanceChanged;
+        internal static event Action<bool> instanceChanged;
 
         (Transform transform, Camera camera) m_CachedCamera;
 
@@ -1313,8 +1313,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform);
 
+#if XR_HANDS_1_1_OR_NEWER
             if (m_DeviceLifecycleManager != null)
                 m_DeviceLifecycleManager.deviceModeChanged += OnDeviceModeChanged;
+#endif
 
             m_CanUsePointAndClickControllers = FindLeftRightControllers();
             if (!m_CanUsePointAndClickControllers)
@@ -1371,8 +1373,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnDisable()
         {
+#if XR_HANDS_1_1_OR_NEWER
             if (m_DeviceLifecycleManager != null)
                 m_DeviceLifecycleManager.deviceModeChanged -= OnDeviceModeChanged;
+#endif
 
 #if ENABLE_VR || UNITY_GAMECORE
 #if XR_SIMULATION_AVAILABLE
@@ -2199,9 +2203,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
         }
 
+#if XR_HANDS_1_1_OR_NEWER
         void OnDeviceModeChanged(SimulatedDeviceLifecycleManager.DeviceMode mode)
         {
-#if XR_HANDS_1_1_OR_NEWER
             if (m_DeviceLifecycleManager == null || m_DeviceLifecycleManager.handSubsystem == null || m_HandPlaybackManager.restingHandExpression == null)
                 return;
 
@@ -2233,8 +2237,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     playbackRight.sourceCaptureSequence = null;
 #endif
             }
-#endif
         }
+#endif
 
         /// <summary>
         /// Checks whether rotation input is currently being performed from keyboard or mouse.
@@ -2606,6 +2610,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_RightHandAimTransform = m_CameraTransform;
 
             return (m_LeftHandAimTransform != null || m_RightHandAimTransform != null);
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            instance = null;
         }
     }
 }

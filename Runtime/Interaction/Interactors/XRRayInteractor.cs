@@ -1113,7 +1113,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// Reusable list to hold the current sample points.
         /// </summary>
+#pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Scratch list that doesn't need to be cleared or GCed.
         static List<SamplePoint> s_ScratchSamplePoints;
+#pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
 
         /// <summary>
         /// Reusable array to hold the current control points for a quadratic Bezier curve.

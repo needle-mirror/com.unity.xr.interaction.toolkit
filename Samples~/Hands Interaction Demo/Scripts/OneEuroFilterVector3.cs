@@ -1,5 +1,3 @@
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
-
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 {
     /// <summary>
@@ -22,6 +20,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     /// </remarks>
     public class OneEuroFilterVector3
     {
+        const float k_DeltaTimeThreshold = 0.001f;
+        const float k_TwoPi = 2f * Mathf.PI;
+
         Vector3 m_LastRawValue;
         Vector3 m_LastFilteredValue;
         readonly float m_MinCutoff;
@@ -31,8 +32,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// Initializes a new instance of the <see cref="OneEuroFilterVector3"/> with specified cutoff and beta values.
         /// </summary>
         /// <param name="initialRawValue">The initial raw value for the filter.</param>
-        /// <param name="minCutoff">The minimum cutoff value for the filter. Default is 0.1f.</param>
-        /// <param name="beta">The beta value for the filter. Default is 0.02f.</param>
+        /// <param name="minCutoff">The minimum cutoff frequency in Hz. Default is 50f.</param>
+        /// <param name="beta">The speed coefficient for the filter. Default is 10f.</param>
         /// <remarks>
         /// Filter parameters:
         /// <list type="bullet">
@@ -41,23 +42,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// <description>
         /// Controls the amount of smoothing at low speeds. A smaller value will introduce
         /// more smoothing and potential lag, helping to reduce low-frequency jitter. A larger value
-        /// may feel more responsive but can let through more jitter. It's advised to start with a
-        /// value around 0.1 for masking jitter in movements of about 1 cm.
+        /// may feel more responsive but can let through more jitter. A starting value of 50 Hz
+        /// provides light smoothing suitable for hand tracking.
         /// </description>
         /// </item>
         /// <item>
         /// <term><paramref name="beta"/></term>
         /// <description>
         /// Determines the filter's adjustment to speed changes. A smaller value provides consistent
-        /// smoothing, while a larger one introduces more aggressive adjustments for speed changes, offering
-        /// responsive filtering at high speeds. A starting value of 0.02 is recommended, but fine-tuning
+        /// smoothing, while a larger one reduces smoothing during fast motion for lower latency.
+        /// A starting value of 10 is recommended, but fine-tuning
         /// might be necessary based on specific use cases.
         /// </description>
         /// </item>
         /// </list>
         /// </remarks>
         /// <seealso cref="Initialize"/>
-        public OneEuroFilterVector3(Vector3 initialRawValue, float minCutoff = 0.1f, float beta = 0.02f)
+        public OneEuroFilterVector3(Vector3 initialRawValue, float minCutoff = 50f, float beta = 10f)
         {
             m_LastRawValue = initialRawValue;
             m_LastFilteredValue = initialRawValue;
@@ -98,29 +99,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         /// <returns>The filtered <see cref="Vector3"/> value.</returns>
         public Vector3 Filter(Vector3 rawValue, float deltaTime, float minCutoff, float beta)
         {
-            // Calculate speed as a Vector3
-            Vector3 speed = (rawValue - m_LastRawValue) / deltaTime;
+            // Guard against division by zero or invalid parameters.
+            if (deltaTime < k_DeltaTimeThreshold || minCutoff < 0f || beta < 0f)
+                return m_LastFilteredValue;
 
-            // Compute cutoffs for x, y, and z
-            Vector3 cutoffs = new Vector3(minCutoff, minCutoff, minCutoff);
-            Vector3 betaValues = new Vector3(beta, beta, beta);
+            // Finite-difference derivative: how fast the signal is moving (units/sec).
+            // Use Euclidean magnitude so diagonal motion gets uniform smoothing across all axes,
+            // preserving straight-line trajectories.
+            float speed = ((rawValue - m_LastRawValue) / deltaTime).magnitude;
 
-            // Incorporate speed into the cutoffs
-            Vector3 combinedCutoffs = cutoffs + Vector3.Scale(betaValues, speed);
+            // Adaptive cutoff: cutoff = minCutoff + beta * |speed|.
+            // At rest → heavy smoothing (removes jitter). Fast motion → light smoothing (reduces lag).
+            float alpha = ComputeAlpha(minCutoff + beta * speed, deltaTime);
 
-            // Compute alpha for x, y, and z
-            BurstMathUtility.FastSafeDivide(Vector3.one, Vector3.one + combinedCutoffs, out Vector3 alpha);
-
-            Vector3 rawFiltered = Vector3.Scale(alpha, rawValue);
-            Vector3 lastFiltered = Vector3.Scale(Vector3.one - alpha, m_LastFilteredValue);
-
-            // Calculate the final filtered value
-            Vector3 filteredValue = rawFiltered + lastFiltered;
+            // First-order low-pass filter. Same alpha for all axes preserves movement direction.
+            Vector3 filteredValue = Vector3.Lerp(m_LastFilteredValue, rawValue, alpha);
 
             m_LastRawValue = rawValue;
             m_LastFilteredValue = filteredValue;
 
             return filteredValue;
+        }
+
+        static float ComputeAlpha(float cutoffFrequency, float deltaTime)
+        {
+            // Convert cutoff frequency (Hz) to a smoothing factor in [0,1].
+            // Higher cutoff → smaller tau → alpha closer to 1 → less smoothing.
+            if (cutoffFrequency <= 0f)
+                return 0f;
+
+            float tau = 1f / (k_TwoPi * cutoffFrequency);
+            return 1f / (1f + tau / deltaTime);
         }
     }
 }

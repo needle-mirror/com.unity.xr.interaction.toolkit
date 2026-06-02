@@ -94,7 +94,7 @@ The target pose is determined by the linked [`IXRGrabTransformer`](xref:UnityEng
 Refer to [Reducing stutter from physics update rate](#stutter) for more information about the **Movement Type** and associated properties can affect the visual aspects of the interactable while it is being moved by an interactor.
 
 > [!NOTE]
-> If an interactable does not have a linked grab transformer, then it cannot be moved with an interaction. Always [configure grab transformers](#grab-transformer-config) for the interactable or enable **Add Default Grab Transformers** to use the default behavior provided by [XRGeneralGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRGeneralGrabTransformer).
+> If an interactable does not have a linked grab transformer, then it cannot be moved with an interaction. Always [configure grab transformers](#grab-transformers-config) for the interactable or enable **Add Default Grab Transformers** to use the default behavior provided by [XRGeneralGrabTransformer](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRGeneralGrabTransformer).
 
 ### Instantaneous movement {#instantaneous-movement}
 
@@ -106,7 +106,7 @@ The tradeoff with using instantaneous movement is that it doesn't take physics i
 
 ### Kinematic movement {#kinematic-movement}
 
-Moves the grabbable object to the target pose using kinematic physics in the [FixedUpdate](xref:um-fixed-updates) phase of the Unity frame. Refer to [Rigid body GameObjects without physics-based movement](xref:um-rigidbodiesoverview) for more information.
+Moves the grabbable object to the target pose using kinematic physics in the [FixedUpdate](xref:um-fixed-updates) phase of the Unity frame. Refer to [Rigid body GameObjects without physics-based movement](xref:um-rigidbodies-overview) for more information.
 
 > [!NOTE]
 > When selected, the interactable sets the `isKinematic` property of its Rigidbody to `true`. It restores the property to its previous value when deselected.

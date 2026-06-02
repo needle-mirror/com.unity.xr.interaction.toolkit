@@ -20,7 +20,7 @@
         {
           "name": "com.unity.xr.openxr",
           "expression": "1.17.0-pre.2",
-          "define": "OPEN_XR_1_17_OR_NEWER"
+          "define": "OPENXR_1_17_OR_NEWER"
         }
     ],
     "noEngineReferences": false

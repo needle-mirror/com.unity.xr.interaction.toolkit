@@ -1,5 +1,3 @@
-#if ENABLE_CLOUD_SERVICES_ANALYTICS || UNITY_2023_2_OR_NEWER
-
 using System;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -9,9 +7,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
     /// <summary>
     /// The analytics event for play mode.
     /// </summary>
-#if UNITY_2023_2_OR_NEWER
     [AnalyticInfo(k_EventName, XRIAnalytics.VendorKey, k_EventVersion, k_MaxEventsPerHour, k_MaxItems)]
-#endif
     class XRIPlayModeEvent : XRIBaseAnalyticsEvent<XRIPlayModeEvent.Payload>
     {
         const string k_EventName = "xrinteractiontoolkit_playmode";
@@ -23,10 +19,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
         /// The analytics payload for play mode.
         /// </summary>
         [Serializable]
-        public struct Payload
-#if UNITY_2023_2_OR_NEWER
-            : IAnalytic.IData
-#endif
+        public struct Payload : IAnalytic.IData
         {
             // Do not rename any field, the field names are used to identify the table/event column of this event payload.
 
@@ -244,7 +237,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             [SerializeField]
             public bool locomotionComfortWasUsed;
 
-#if UNITY_2023_2_OR_NEWER
             /// <summary>
             /// The package name of the XR Interaction Toolkit, i.e. com.unity.xr.interaction.toolkit.
             /// </summary>
@@ -256,16 +248,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
             /// </summary>
             [SerializeField]
             public string package_ver;
-#endif
         }
-
-#if !UNITY_2023_2_OR_NEWER
-        /// <inheritdoc />
-        public XRIPlayModeEvent() : base(k_EventName, k_EventVersion, k_MaxEventsPerHour, k_MaxItems)
-        {
-        }
-#endif
     }
 }
-
-#endif

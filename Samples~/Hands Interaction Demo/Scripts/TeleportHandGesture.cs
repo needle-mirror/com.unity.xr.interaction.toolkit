@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using Unity.XR.CoreUtils;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -17,11 +19,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
     /// </summary>
     public class TeleportHandGesture : MonoBehaviour
     {
-        [Header("Activate Teleport Mode")]
 #if XR_HANDS_1_5_OR_NEWER
         /// <summary>
         /// The XRHandshape used to activate the display of the teleport visuals
         /// </summary>
+        [Header("Activate Teleport Mode")]
         [SerializeField]
         XRHandShape m_ActivateHandShape;
 
@@ -63,8 +65,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
         /// <summary>
         /// The hand's NearFarInteractor that is disabled when teleport mode is active, and reactivated when teleport mode is deactivated
         /// </summary>
-        [SerializeField]
-        NearFarInteractor m_nearFarInteractor;
+        [SerializeField, FormerlySerializedAs("m_nearFarInteractor")]
+        NearFarInteractor m_NearFarInteractor;
 
         Transform m_HandTrackingOrigin;
 #if XR_HANDS_1_5_OR_NEWER
@@ -98,9 +100,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
 
         void OnDisable()
         {
-#if XR_HANDS_1_5_OR_NEWER
-            m_LatestHandData = null;
-#endif
             m_TeleportInteractor.selectEntered.RemoveListener(OnTeleportSelectEntered);
             m_TeleportInteractor.selectExited.RemoveListener(OnTeleportSelectExited);
         }
@@ -113,7 +112,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
             m_TeleportInteractor.gameObject.SetActive(true);
             m_HoldGestureDetection = StartCoroutine(MaintainTeleportMode());
 
-            m_nearFarInteractor.enabled = false;
+            m_NearFarInteractor.enabled = false;
         }
 
         void OnCancelDetected()
@@ -124,7 +123,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
                 StopCoroutine(m_HoldGestureDetection);
                 m_ActivateGestureDetection = StartCoroutine(ActivateGestureDetection());
 
-                m_nearFarInteractor.enabled = true;
+                m_NearFarInteractor.enabled = true;
             }
         }
 #endif
@@ -156,7 +155,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
             var shapeDetected = false;
             while (isActiveAndEnabled)
             {
-                if (m_LatestHandData != null && m_LatestHandData.hand.isTracked)
+                // Check that the hand subsystem is still running to guard against accessing a destroyed joints
+                // array due to the hand subsystem being destroyed between the time of the joints updated callback
+                // and this coroutine executes.
+                if (m_LatestHandData != null && m_LatestHandData.subsystem.running && m_LatestHandData.hand.isTracked)
                 {
                     var newState = m_ActivateHandShape.CheckConditions(m_LatestHandData);
                     newState &= m_ActivateHandOrientation.CheckConditions(m_LatestHandData.hand.rootPose, m_LatestHandData.hand.handedness);
@@ -178,7 +180,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
         {
             while (isActiveAndEnabled)
             {
-                if (m_LatestHandData != null && m_LatestHandData.hand.isTracked)
+                // Check that the hand subsystem is still running to guard against accessing a destroyed joints
+                // array due to the hand subsystem being destroyed between the time of the joints updated callback
+                // and this coroutine executes.
+                if (m_LatestHandData != null && m_LatestHandData.subsystem.running && m_LatestHandData.hand.isTracked)
                 {
                     var shapeDetected = m_CancelHandShape.CheckConditions(m_LatestHandData);
                     if (shapeDetected)

@@ -140,12 +140,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_RightHandPlayback = value;
         }
 #endif
-#endif
 
         /// <summary>
         /// Calls the methods in its invocation when the <see cref="deviceMode"/> has changed.
         /// </summary>
         internal event Action<DeviceMode> deviceModeChanged;
+#endif
 
         bool m_DeviceModeDirty;
         bool m_StartedDeviceModeChange;
@@ -269,6 +269,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_HandSubsystem = null;
             }
 #endif
+
+            if (instance == this)
+                instance = null;
         }
 
         /// <summary>
@@ -605,6 +608,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     Assert.IsTrue(false, $"Unhandled {nameof(mode)}={mode}.");
                     return DeviceMode.Controller;
             }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticsOnLoad()
+        {
+            instance = null;
         }
     }
 }

@@ -2,17 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TMPro;
 using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
-
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
-using TMPro;
-#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples
 {
@@ -39,23 +35,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
 
         static AddRequest s_ShaderGraphPackageAddRequest;
         static AddRequest s_InputSystemPackageAddRequest;
-        static AddRequest s_UIPackageAddRequest;
-
-#if UNITY_6000_0_OR_NEWER
-        // The s_MinimumUIPackageVersion should match the UGUI_2_0_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
-        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("2.0.0");
-        const string k_UIPackageName = "com.unity.ugui";
-        const string k_UIPackageDisplayName = "Unity UI";
-#else
-        // The s_MinimumUIPackageVersion should match the TEXT_MESH_PRO_PRESENT version in the
-        // Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.asmdef
-        // and the Unity.XR.Interaction.Toolkit.Samples.StarterAssets.asmdef
-        static readonly PackageVersion s_MinimumUIPackageVersion = new PackageVersion("3.0.8");
-        const string k_UIPackageName = "com.unity.textmeshpro";
-        const string k_UIPackageDisplayName = "TextMeshPro";
-#endif
 
         [InitializeOnLoadMethod]
         static void RegisterProjectValidationRules()
@@ -125,39 +104,16 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                     });
 
                 s_BuildValidationRules.Add(
-                // Is appropriate UI package installed
-                new BuildValidationRule
-                {
-                    IsRuleEnabled = () => s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted,
-                    Message = $"[{k_StarterAssetsSampleName}] {k_UIPackageDisplayName} ({k_UIPackageName}) package must be installed and at minimum version {s_MinimumUIPackageVersion}.",
-                    Category = k_Category,
-                    CheckPredicate = () => PackageVersionUtility.GetPackageVersion(k_UIPackageName) >= s_MinimumUIPackageVersion,
-                    FixIt = () =>
-                    {
-                        if (s_UIPackageAddRequest == null || s_UIPackageAddRequest.IsCompleted)
-                            ProjectValidationUtility.InstallOrUpdatePackage(k_UIPackageName, s_MinimumUIPackageVersion, ref s_UIPackageAddRequest);
-                    },
-                    FixItAutomatic = true,
-                    Error = true,
-                });
-
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
-                s_BuildValidationRules.Add(
                     new BuildValidationRule
                     {
-                        IsRuleEnabled = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName),
                         Message = $"[{k_StarterAssetsSampleName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
                         HelpText = "Can be installed using Window > TextMeshPro > Import TMP Essential Resources or by clicking this Edit button and then Import TMP Essentials in the window that appears.",
                         Category = k_Category,
-                        CheckPredicate = () => PackageVersionUtility.IsPackageInstalled(k_UIPackageName) && TextMeshProEssentialsInstalled(),
-                        FixIt = () =>
-                        {
-                            TMP_PackageResourceImporterWindow.ShowPackageImporterWindow();
-                        },
+                        CheckPredicate = () => TextMeshProEssentialsInstalled(),
+                        FixIt = () => TMP_PackageResourceImporterWindow.ShowPackageImporterWindow(),
                         FixItAutomatic = false,
                         Error = true,
-                });
-#endif
+                    });
             }
 
             foreach (var buildTargetGroup in s_BuildTargetGroups)
@@ -190,14 +146,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
             };
         }
 
-#if TEXT_MESH_PRO_PRESENT || (UGUI_2_0_PRESENT && UNITY_6000_0_OR_NEWER)
         static bool TextMeshProEssentialsInstalled()
         {
             // Matches logic in Project Settings window, see TMP_PackageResourceImporter.cs.
             // For simplicity, we don't also copy the check if the asset needs to be updated.
             return File.Exists("Assets/TextMesh Pro/Resources/TMP Settings.asset");
         }
-#endif
 
         static bool IsInteractionLayerTeleport()
         {
