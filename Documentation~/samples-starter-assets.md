@@ -195,8 +195,8 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
     <td>
       <a href="near-far-interactor.md">Near-Far Interactor</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="interaction-attach-controller.md">Interaction Attach Controller</a><hr style="margin-top: 7px; margin-bottom: 7px;">
-      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.SphereInteractionCaster.html">Sphere Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
-      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster.html">Curve Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@latest/index.html?subfolder=/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.SphereInteractionCaster.html">Sphere Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
+      <a href="https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@latest/index.html?subfolder=/api/UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster.html">Curve Interaction Caster</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="simple-haptic-feedback.md">Simple Haptic Feedback</a>
     </td>
     <td>The Near-Far Interactor enables grabbing interactables at close range, as well as grabbing from a distance via ray casts.

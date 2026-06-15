@@ -34,6 +34,11 @@
             "name": "com.unity.xr.legacyinputhelpers",
             "expression": "2.1.10",
             "define": "XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER"
+        },
+        {
+            "name": "Unity",
+            "expression": "6000.0.50f1",
+            "define": "UNITY_6000_0_50_OR_NEWER"
         }
     ],
     "noEngineReferences": false

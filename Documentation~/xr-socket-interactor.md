@@ -5,13 +5,13 @@ uid: xri-xr-socket-interactor
 
 Interactor that automatically selects any interactable that it hovers.
 
-You can use this interactor to recieve interactables that the user moves into its hover range. For example, as a keyhole in which the user can insert a key or as a pedestal on which the user can place objects.
+You can use this interactor to receive interactables that the user moves into its hover range. For example, as a keyhole in which the user can insert a key or as a pedestal on which the user can place objects.
 
 By default, a socket will select any interactable. You can use [Interaction Layer Masks](interaction-layers.md) and [Interactor Filters](#interactor-filters) to limit interaction to specific interactables.
 
 ## Supporting components
 
-* [Collider](xref:UnityEngine.Collider): a Collider instance set to [isTrigger](xref:UnityEngine.Collider.isTrigger) must be present on the same GameObject.
+[!INCLUDE [interactor-trigger-collider](snippets/interactor-trigger-collider.md)]
 
 ## Base properties
 

@@ -33,8 +33,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// Cannot change this value at runtime after <c>Awake</c>.
         /// Enabling this property can improve inter-frame reliability during fast motion when the requirements for optimization are met
         /// by running on each Update instead of Fixed Update and using a sphere cast to determine valid targets.
-        /// Disable to force the use of trigger events, such as the <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTriggerStay.html"><c>OnTriggerStay</c></a>
-        /// and <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.FixedUpdate.html"><c>FixedUpdate</c></a> methods.
+        /// Disable to force the use of <a href="https://docs.unity3d.com/Manual/collider-interactions-ontrigger.html">OnTrigger events</a>,
+        /// such as <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTriggerEnter.html"><c>OnTriggerEnter</c></a>
+        /// and <a href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnTriggerExit.html"><c>OnTriggerExit</c></a> methods.
         /// </remarks>
         /// <seealso cref="usingSphereColliderAccuracyImprovement"/>
         public bool improveAccuracyWithSphereCollider
@@ -88,22 +89,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         protected List<IXRInteractable> unsortedValidTargets { get; } = new List<IXRInteractable>();
 
         /// <summary>
-        /// The set of Colliders that stayed in touch with this Interactor on fixed updated.
-        /// This list will be populated by colliders in <c>OnTriggerStay</c>.
+        /// The set of Colliders that stayed in touch with this Interactor.
+        /// This list will be populated either during <see cref="OnTriggerStay"/> or while
+        /// evaluating sphere overlap depending on the <see cref="improveAccuracyWithSphereCollider"/> option.
         /// </summary>
         readonly HashSet<Collider> m_StayedColliders = new HashSet<Collider>();
 
         readonly TriggerContactMonitor m_TriggerContactMonitor = new TriggerContactMonitor();
+        readonly TriggerColliderMonitor m_TriggerColliderMonitor = new TriggerColliderMonitor();
+
         /// <summary>
         /// Reusable value of <see cref="WaitForFixedUpdate"/> to reduce allocations.
         /// </summary>
         static readonly WaitForFixedUpdate s_WaitForFixedUpdate = new WaitForFixedUpdate();
 
         /// <summary>
-        /// Reference to Coroutine that updates the trigger contact monitor with the current
-        /// stayed colliders.
+        /// Reference to Coroutine that updates the trigger contact monitor after all OnTrigger events
+        /// have been invoked.
         /// </summary>
-        IEnumerator m_UpdateCollidersAfterTriggerStay;
+        IEnumerator m_UpdateCollidersAfterTriggerEvents;
 
         bool m_UsingSphereColliderAccuracyImprovement;
         SphereCollider m_SphereCollider;
@@ -115,13 +119,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         bool m_ContactsSortedThisFrame;
         readonly List<IXRInteractable> m_SortedValidTargets = new List<IXRInteractable>();
 
+        bool m_HasOnTriggerStayEverInvoked;
+        bool m_PauseOnTriggerStay = true;
+        bool m_WaitForNextFixedUpdate;
+        bool m_ReinitializeValidTargetsFromContacts;
+
         /// <inheritdoc />
         protected override void Awake()
         {
             base.Awake();
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
             m_TriggerContactMonitor.interactionManager = interactionManager;
-            m_UpdateCollidersAfterTriggerStay = UpdateCollidersAfterOnTriggerStay();
+            m_UpdateCollidersAfterTriggerEvents = UpdateCollidersAfterOnTriggerEvents();
             ValidateColliderConfiguration();
         }
 
@@ -132,9 +141,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_TriggerContactMonitor.contactAdded += OnContactAdded;
             m_TriggerContactMonitor.contactRemoved += OnContactRemoved;
             ResetCollidersAndValidTargets();
+            m_PauseOnTriggerStay = false;
+            m_TriggerColliderMonitor.FindColliders(gameObject);
+            m_TriggerColliderMonitor.CaptureEnabledState();
+
+            // Schedule to initialize the valid targets list from the contacts. We would have missed
+            // collider-to-interactable association updates while not subscribed to the monitor,
+            // and we need to keep the valid targets list empty until the next process (either physics tick or sphere overlap).
+            m_ReinitializeValidTargetsFromContacts = true;
 
             if (!m_UsingSphereColliderAccuracyImprovement)
-                StartCoroutine(m_UpdateCollidersAfterTriggerStay);
+                StartCoroutine(m_UpdateCollidersAfterTriggerEvents);
         }
 
         /// <inheritdoc />
@@ -144,9 +161,28 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_TriggerContactMonitor.contactAdded -= OnContactAdded;
             m_TriggerContactMonitor.contactRemoved -= OnContactRemoved;
             ResetCollidersAndValidTargets();
+            // The `m_StayedColliders` list is only consumed in the coroutine. Since the coroutine is stopped
+            // when this component is disabled, pause writing into that list until re-enabled and the coroutine
+            // can be started again.
+            m_PauseOnTriggerStay = true;
+
+            // If the GameObject is deactivated, the Collider will no longer receive OnTriggerExit calls.
+            // If we detect that Generate On Trigger Stay Events is disabled, we must invalidate all
+            // touched colliders since we will miss the exit events.
+            // Note: Ideally we would only do this if the Collider is disabled (either the component or from the GameObject
+            // being deactivated), but there is no signal for that so we can only apply this if the GameObject is
+            // deactivated.
+            if (!m_HasOnTriggerStayEverInvoked && !gameObject.activeInHierarchy)
+                m_TriggerContactMonitor.RemoveAllCollidersWithoutNotify();
 
             if (!m_UsingSphereColliderAccuracyImprovement)
-                StopCoroutine(m_UpdateCollidersAfterTriggerStay);
+            {
+                StopCoroutine(m_UpdateCollidersAfterTriggerEvents);
+
+                // Starting the coroutine when re-enabled will resume it immediately. Set a flag to avoid processing
+                // the stayed collider list until the next physics tick and keep the valid targets cleared until then.
+                m_WaitForNextFixedUpdate = true;
+            }
         }
 
         /// <summary>
@@ -158,6 +194,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             if (m_UsingSphereColliderAccuracyImprovement)
                 return;
 
+            // Capture the enabled state of the trigger colliders once this begins touching another collider.
+            // This allows users the freedom to enable or disable colliders until we need to start caring.
+            if (!m_HasOnTriggerStayEverInvoked && m_TriggerContactMonitor.enteredCollidersCount == 0)
+                m_TriggerColliderMonitor.CaptureEnabledState();
+
             m_TriggerContactMonitor.AddCollider(other);
         }
 
@@ -167,7 +208,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <param name="other">The other <see cref="Collider"/> involved in this collision.</param>
         protected void OnTriggerStay(Collider other)
         {
-            if (m_UsingSphereColliderAccuracyImprovement)
+            m_HasOnTriggerStayEverInvoked = true;
+
+            if (m_PauseOnTriggerStay || m_UsingSphereColliderAccuracyImprovement)
                 return;
 
             m_StayedColliders.Add(other);
@@ -189,7 +232,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// This coroutine functions like a LateFixedUpdate method that executes after OnTriggerXXX.
         /// </summary>
         /// <returns>Returns enumerator for coroutine.</returns>
-        IEnumerator UpdateCollidersAfterOnTriggerStay()
+        IEnumerator UpdateCollidersAfterOnTriggerEvents()
         {
             while (true)
             {
@@ -197,7 +240,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 // See https://docs.unity3d.com/Manual/ExecutionOrder.html
                 yield return s_WaitForFixedUpdate;
 
-                m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
+                if (m_WaitForNextFixedUpdate)
+                {
+                    m_WaitForNextFixedUpdate = false;
+                    continue;
+                }
+
+                if (m_HasOnTriggerStayEverInvoked)
+                    m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
+                else if (m_TriggerContactMonitor.enteredCollidersCount > 0)
+                {
+                    if (m_TriggerColliderMonitor.HasTriggerableColliderBeenDisabled())
+                    {
+                        if (m_TriggerColliderMonitor.triggerableColliders.Count > 1)
+                        {
+                            Debug.LogWarning("A trigger collider on this interactor was disabled." +
+                                " Need to invalidate all touched colliders to guarantee no colliders are stuck hovering" +
+                                " since trigger exit events are not invoked for disabled colliders.", this);
+                        }
+
+                        ResetCollidersAndValidTargets();
+                        m_TriggerContactMonitor.RemoveAllCollidersWithoutNotify();
+                        m_TriggerColliderMonitor.CaptureEnabledState();
+
+                    }
+                    else
+                    {
+                        m_TriggerContactMonitor.RemoveDisabledOrDestroyedColliders();
+                    }
+                }
+
+                m_StayedColliders.Clear();
+
+                if (m_ReinitializeValidTargetsFromContacts)
+                    ReinitializeValidTargetsFromContacts();
             }
             // ReSharper disable once IteratorNeverReturns -- stopped when behavior is destroyed.
         }
@@ -208,22 +284,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.PreprocessInteractor(updatePhase);
             if (m_UsingSphereColliderAccuracyImprovement && updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
                 EvaluateSphereOverlap();
-        }
-
-        /// <inheritdoc />
-        public override void ProcessInteractor(XRInteractionUpdateOrder.UpdatePhase updatePhase)
-        {
-            base.ProcessInteractor(updatePhase);
-
-            if (!m_UsingSphereColliderAccuracyImprovement && updatePhase == XRInteractionUpdateOrder.UpdatePhase.Fixed)
-            {
-                // Clear stayed Colliders at the beginning of the physics cycle before
-                // the OnTriggerStay method populates this list.
-                // Then the UpdateCollidersAfterOnTriggerStay coroutine will use this list to remove Colliders
-                // that no longer stay in this frame after previously entered and add any stayed Colliders
-                // that are not currently tracked by the TriggerContactMonitor.
-                m_StayedColliders.Clear();
-            }
         }
 
         void EvaluateSphereOverlap()
@@ -270,6 +330,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             }
 
             m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
+            m_StayedColliders.Clear();
+
+            if (m_ReinitializeValidTargetsFromContacts)
+                ReinitializeValidTargetsFromContacts();
 
             m_LastSphereCastOrigin = interactorPosition;
             m_FirstFrame = false;
@@ -291,7 +355,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 {
                     m_SphereCollider = sphereCollider;
 
-                    // Disable collider as only its radius is used.
+                    // Disable collider as only its properties are used to drive parameters to the sphere overlap.
                     m_SphereCollider.enabled = false;
                     m_UsingSphereColliderAccuracyImprovement = true;
                     return;
@@ -415,7 +479,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             m_ContactsSortedThisFrame = false;
             m_FirstFrame = true;
             m_StayedColliders.Clear();
-            m_TriggerContactMonitor.UpdateStayedColliders(m_StayedColliders);
+        }
+
+        void ReinitializeValidTargetsFromContacts()
+        {
+            m_ReinitializeValidTargetsFromContacts = false;
+            m_TriggerContactMonitor.GetContactInteractables(unsortedValidTargets);
+            XRInteractionManager.RemoveAllUnregistered(m_TriggerContactMonitor.interactionManager, unsortedValidTargets);
+            m_ContactsSortedThisFrame = false;
         }
     }
 }

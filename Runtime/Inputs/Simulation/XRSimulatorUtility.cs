@@ -87,6 +87,78 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     }
 
     /// <summary>
+    /// Controller button inputs that can be held as direct hotkeys during simulation.
+    /// </summary>
+    /// <remarks>
+    /// Uses <see cref="FlagsAttribute"/> to support detecting multiple simultaneous button
+    /// presses (e.g. grip and trigger held at the same time).
+    /// </remarks>
+    /// <seealso cref="ControllerInputMode"/>
+    [Flags]
+    public enum HeldHotkeyButtons
+    {
+        /// <summary>
+        /// No buttons are currently held.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The trigger button on a simulated controller.
+        /// </summary>
+        Trigger = 1 << 0,
+
+        /// <summary>
+        /// The grip button on a simulated controller.
+        /// </summary>
+        Grip = 1 << 1,
+
+        /// <summary>
+        /// The primary face button on a simulated controller.
+        /// </summary>
+        PrimaryButton = 1 << 2,
+
+        /// <summary>
+        /// The secondary face button on a simulated controller.
+        /// </summary>
+        SecondaryButton = 1 << 3,
+
+        /// <summary>
+        /// The menu button on a simulated controller.
+        /// </summary>
+        Menu = 1 << 4,
+
+        /// <summary>
+        /// The click of the primary thumbstick or touchpad on a simulated controller.
+        /// </summary>
+        Primary2DAxisClick = 1 << 5,
+
+        /// <summary>
+        /// The click of the secondary thumbstick or touchpad on a simulated controller.
+        /// </summary>
+        Secondary2DAxisClick = 1 << 6,
+
+        /// <summary>
+        /// The touch of the primary thumbstick or touchpad on a simulated controller.
+        /// </summary>
+        Primary2DAxisTouch = 1 << 7,
+
+        /// <summary>
+        /// The touch of the secondary thumbstick or touchpad on a simulated controller.
+        /// </summary>
+        Secondary2DAxisTouch = 1 << 8,
+
+        /// <summary>
+        /// The touch sensor on the primary face button of a simulated controller.
+        /// </summary>
+        PrimaryTouch = 1 << 9,
+
+        /// <summary>
+        /// The touch sensor on the secondary face button of a simulated controller.
+        /// </summary>
+        SecondaryTouch = 1 << 10,
+    }
+
+    /// <summary>
     /// The device input mode of the left and right controller.
     /// </summary>
     public enum ControllerInputMode
@@ -474,6 +546,37 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         public static bool HasDevice(this TargetedDevices devices, TargetedDevices device)
         {
             return (devices & device) == device;
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for <see cref="ControllerInputMode"/>.
+    /// </summary>
+    static class ControllerInputModeExtensions
+    {
+        /// <summary>
+        /// Returns the flags enum with the given corresponding mode value set.
+        /// </summary>
+        /// <param name="mode">The enum instance.</param>
+        /// <returns>Returns the equivalent <see cref="HeldHotkeyButtons"/> with the corresponding flag set.</returns>
+        public static HeldHotkeyButtons AsHeldHotkeyButton(this ControllerInputMode mode)
+        {
+            return mode switch
+            {
+                ControllerInputMode.None => HeldHotkeyButtons.None,
+                ControllerInputMode.Trigger => HeldHotkeyButtons.Trigger,
+                ControllerInputMode.Grip => HeldHotkeyButtons.Grip,
+                ControllerInputMode.PrimaryButton => HeldHotkeyButtons.PrimaryButton,
+                ControllerInputMode.SecondaryButton => HeldHotkeyButtons.SecondaryButton,
+                ControllerInputMode.Menu => HeldHotkeyButtons.Menu,
+                ControllerInputMode.Primary2DAxisClick => HeldHotkeyButtons.Primary2DAxisClick,
+                ControllerInputMode.Secondary2DAxisClick => HeldHotkeyButtons.Secondary2DAxisClick,
+                ControllerInputMode.Primary2DAxisTouch => HeldHotkeyButtons.Primary2DAxisTouch,
+                ControllerInputMode.Secondary2DAxisTouch => HeldHotkeyButtons.Secondary2DAxisTouch,
+                ControllerInputMode.PrimaryTouch => HeldHotkeyButtons.PrimaryTouch,
+                ControllerInputMode.SecondaryTouch => HeldHotkeyButtons.SecondaryTouch,
+                _ => throw new NotImplementedException($"Unhandled ControllerInputMode={mode}"),
+            };
         }
     }
 }

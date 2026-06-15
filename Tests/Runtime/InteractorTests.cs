@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+#if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
+using UnityEditor;
+#endif
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -12,11 +15,62 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class InteractorTests
     {
+#if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
+        const string k_DynamicsPath = "ProjectSettings/DynamicsManager.asset";
+        const bool k_DefaultGenerateOnTriggerStayEvents = true;
+
+        // Used for setting the Generate On Trigger Stay Events property in the Physics settings
+        // since there is no public API for it.
+        SerializedObject m_PhysicsManager;
+        SerializedProperty m_GenerateOnTriggerStayEvents;
+        bool m_OriginalGenerateOnTriggerStayEvents;
+#endif
+
         static readonly Type[] s_ContactInteractors =
         {
             typeof(XRDirectInteractor),
             typeof(XRSocketInteractor),
         };
+
+        static readonly bool[] s_BooleanValues = { false, true };
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+#if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
+            var found = AssetDatabase.LoadAllAssetsAtPath(k_DynamicsPath);
+            if (found == null)
+            {
+                Assert.Fail($"Failed to load asset {k_DynamicsPath} containing data for the PhysicsManager.");
+                return;
+            }
+
+            m_PhysicsManager = new SerializedObject(found[0]);
+            m_GenerateOnTriggerStayEvents = m_PhysicsManager.FindProperty("m_GenerateOnTriggerStayEvents");
+            if (m_GenerateOnTriggerStayEvents == null)
+            {
+                Assert.Fail("Failed to find property m_GenerateOnTriggerStayEvents in the PhysicsManager. Has it been renamed or removed in this version of Unity?");
+                return;
+            }
+
+            // Capture Physics Project Setting value and set to known default
+            m_OriginalGenerateOnTriggerStayEvents = m_GenerateOnTriggerStayEvents.boolValue;
+            m_GenerateOnTriggerStayEvents.boolValue = k_DefaultGenerateOnTriggerStayEvents;
+            m_PhysicsManager.ApplyModifiedProperties();
+#endif
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+#if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
+            if (m_GenerateOnTriggerStayEvents != null)
+            {
+                m_GenerateOnTriggerStayEvents.boolValue = k_DefaultGenerateOnTriggerStayEvents;
+                m_PhysicsManager.ApplyModifiedProperties();
+            }
+#endif
+        }
 
         [TearDown]
         public void TearDown()
@@ -24,18 +78,38 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.DestroyAllSceneObjects();
         }
 
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+#if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
+            if (m_PhysicsManager != null)
+            {
+                if (m_GenerateOnTriggerStayEvents != null)
+                {
+                    // Restore Physics Project Setting value back to the original
+                    m_GenerateOnTriggerStayEvents.boolValue = m_OriginalGenerateOnTriggerStayEvents;
+                    m_PhysicsManager.ApplyModifiedProperties();
+                }
+
+                m_PhysicsManager.Dispose();
+                m_PhysicsManager = null;
+            }
+#endif
+        }
+
         [UnityTest]
-        public IEnumerator ContactInteractorTargetStaysValidWhenTouchingAnyCollider([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorTargetStaysValidWhenTouchingAnyCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This tests that an Interactable will stay as a valid target as long as
             // the Direct and Socket Interactor is touching any Collider associated with the Interactable,
             // and remains so if only some (but not all) of the Interactable colliders leaves.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
             var manager = TestUtilities.CreateInteractionManager();
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -134,16 +208,289 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorCullsValidTargetsWhenInteractableUnregistered([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorTargetStaysValidWhenTouchingAnyTriggerCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            // This tests that an Interactable will stay as a valid target as long as
+            // the Direct and Socket Interactor with multiple trigger colliders is touching
+            // the collider associated with the Interactable, and remains so if only some
+            // (but not all) of the Interactor trigger colliders leaves.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            // Create an interactable offset to the right
+            TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = Vector3.right * 10f;
+
+            // Setup collider on the interactable
+            Assert.That(interactable.GetComponent<Rigidbody>(), Is.Not.Null);
+            var interactableCollider = interactable.GetComponent<SphereCollider>();
+            Assert.That(interactableCollider, Is.Not.Null);
+            Assert.That(interactableCollider.isTrigger, Is.False);
+            interactableCollider.center = Vector3.zero;
+            interactableCollider.radius = 0.5f;
+
+            var interactor = CreateContactInteractor(interactorType);
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Setup both trigger colliders on the interactor.
+            // Create a box and sphere, and position them such that the box overlaps the left half of the sphere.
+            var sphereTrigger = interactor.GetComponent<SphereCollider>();
+            Assert.That(sphereTrigger, Is.Not.Null);
+            Assert.That(sphereTrigger.isTrigger, Is.True);
+            sphereTrigger.center = Vector3.zero;
+            sphereTrigger.radius = 0.5f;
+
+            var boxTrigger = interactor.gameObject.AddComponent<BoxCollider>();
+            boxTrigger.isTrigger = true;
+            boxTrigger.center = new Vector3(-0.5f, 0f, 0f);
+            boxTrigger.size = Vector3.one;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider }));
+
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            // Move the interactable to the interactor so that it overlaps one collider
+            interactable.transform.position = new Vector3(0.75f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Move the interactable some more so it overlaps both trigger colliders
+            interactable.transform.position = new Vector3(0.25f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger, boxTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Move the interactable back so it exits the box but remain entered on the sphere.
+            // This tests that the interactable remains hovered while still touching one of the interactor's colliders.
+            interactable.transform.position = new Vector3(0.75f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Move the interactable so it exits all trigger colliders of the interactor
+            interactable.transform.position = Vector3.right * 10f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorTargetConvertsColliderToInteractableWhileTouchingMultipleTriggers(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            // This tests that an Interactable will stay as a valid target as long as
+            // the Direct and Socket Interactor with multiple trigger colliders is touching
+            // the collider associated with the Interactable, and remains so if only some
+            // (but not all) of the Interactor trigger colliders leaves. This test verifies
+            // the conversion logic from being an unassociated collider to one associated with
+            // an interactable keeps the count of trigger enters of that collider.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            // Create an interactable offset to the right
+            TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = Vector3.right * 10f;
+
+            // Disable so the manager does not have an association mapping the collider
+            // to the interactable.
+            interactable.enabled = false;
+
+            // Setup collider on the interactable
+            Assert.That(interactable.GetComponent<Rigidbody>(), Is.Not.Null);
+            var interactableCollider = interactable.GetComponent<SphereCollider>();
+            Assert.That(interactableCollider, Is.Not.Null);
+            Assert.That(interactableCollider.isTrigger, Is.False);
+            interactableCollider.center = Vector3.zero;
+            interactableCollider.radius = 0.5f;
+
+            var interactor = CreateContactInteractor(interactorType);
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Setup both trigger colliders on the interactor.
+            // Create a box and sphere, and position them such that the box overlaps the left half of the sphere.
+            var sphereTrigger = interactor.GetComponent<SphereCollider>();
+            Assert.That(sphereTrigger, Is.Not.Null);
+            Assert.That(sphereTrigger.isTrigger, Is.True);
+            sphereTrigger.center = Vector3.zero;
+            sphereTrigger.radius = 0.5f;
+
+            var boxTrigger = interactor.gameObject.AddComponent<BoxCollider>();
+            boxTrigger.isTrigger = true;
+            boxTrigger.center = new Vector3(-0.5f, 0f, 0f);
+            boxTrigger.size = Vector3.one;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider }));
+
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            // Move the interactable to the interactor so that it overlaps one collider
+            interactable.transform.position = new Vector3(0.75f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            // Move the interactable some more so it overlaps both trigger colliders
+            interactable.transform.position = new Vector3(0.25f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger, boxTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            // Enable the interactable so the collider becomes associated with the interactable
+            interactable.enabled = true;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            yield return null;
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Move the interactable back so it exits the box but remain entered on the sphere.
+            // This tests that the interactable remains hovered while still touching one of the interactor's colliders
+            // after being converted from an unassociated collider.
+            interactable.transform.position = new Vector3(0.75f, 0f, 0f);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider, sphereTrigger }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            Assert.That(interactable.isHovered, Is.True);
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+
+            // Move the interactable so it exits all trigger colliders of the interactor
+            interactable.transform.position = Vector3.right * 10f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            overlaps = Physics.OverlapSphere(
+                interactableCollider.transform.position, interactableCollider.radius, -1,
+                QueryTriggerInteraction.Collide);
+            Assert.That(overlaps, Is.EquivalentTo(new Collider[] { interactableCollider }));
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            Assert.That(interactable.isHovered, Is.False);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorCullsValidTargetsWhenInteractableUnregistered(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will remove an unregistered Interactable
             // from its valid targets list.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
             TestUtilities.CreateInteractionManager();
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -162,17 +509,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorCullsValidTargetsUponRegistering([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorCullsValidTargetsUponRegistering(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will update the list of valid targets
             // to exclude those that have been unregistered during the time when the Interactor
             // was not subscribed to the unregister event.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
             TestUtilities.CreateInteractionManager();
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -196,11 +544,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorUpdatesValidTargetsForPreviouslyUnassociatedCollidersWhenInteractableRegistered([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorUpdatesValidTargetsForPreviouslyUnassociatedCollidersWhenInteractableRegistered(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will maintain the list of all entered Colliders
             // so that if any of them later become associated with a registered Interactable,
             // that Interactable will become a valid target.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
             TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = Vector3.forward * 10f;
@@ -208,11 +561,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -234,11 +583,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorUpdatesValidTargetsForPreviouslyUnassociatedCollidersUponRegistering([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorUpdatesValidTargetsForPreviouslyUnassociatedCollidersUponRegistering(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will later associate the collider when
             // the Interactable is registered during the time when the Interactor
             // was not subscribed to the register event.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
             TestUtilities.CreateInteractionManager();
             var interactable = TestUtilities.CreateGrabInteractable();
             interactable.transform.position = Vector3.forward * 10f;
@@ -246,11 +600,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -272,10 +622,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorIgnoresDisabledCollidersWhenSortingValidTargets([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorIgnoresDisabledCollidersWhenSortingValidTargets(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will ignore disabled colliders
             // when sorting to find the closest interactable to select.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
 
             // Create Interaction Manager
             TestUtilities.CreateInteractionManager();
@@ -297,11 +651,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             yield return new WaitForFixedUpdate();
 
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-                interactor = TestUtilities.CreateSocketInteractor();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -325,20 +675,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorValidTargetsListEmptyWhenInteractorDisabled([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorValidTargetsListEmptyWhenInteractorDisabled(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will clear valid targets
             // and stayed colliders when the interactor or its GameObject is disabled and
             // the targets will be correctly added back in when the interactor is enabled again.
-            var interactionManager = TestUtilities.CreateInteractionManager();
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-            {
-                interactor = TestUtilities.CreateSocketInteractor();
-                ((XRSocketInteractor)interactor).recycleDelayTime = 0f;
-            }
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -390,21 +738,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactInteractorValidTargetsRemainClearWhenEnabledWithNoContact([ValueSource(nameof(s_ContactInteractors))] Type interactorType)
+        public IEnumerator ContactInteractorValidTargetsRemainClearWhenEnabledWithNoContact(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
         {
             // This will test that the Direct and Socket Interactor will clear valid targets
             // and colliders when the interactor is disabled during contact and the valid
             // targets and colliders will remain clear when the interactor is enabled again
             // while not touching any colliders.
-            var interactionManager = TestUtilities.CreateInteractionManager();
-            XRBaseInteractor interactor = null;
-            if (interactorType == typeof(XRDirectInteractor))
-                interactor = TestUtilities.CreateDirectInteractor();
-            else if (interactorType == typeof(XRSocketInteractor))
-            {
-                interactor = TestUtilities.CreateSocketInteractor();
-                ((XRSocketInteractor)interactor).recycleDelayTime = 0f;
-            }
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
 
             Assert.That(interactor, Is.Not.Null);
 
@@ -481,7 +827,226 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator InteractableCanProcessHoverFilters()
+        public IEnumerator ContactInteractorUpdatesStayedCollidersOnDisablingInteractorCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(interactor, Is.Not.Null);
+            Assert.That(interactable, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Disable the interactor's collider component.
+            interactor.GetComponent<Collider>().enabled = false;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactor's collider is disabled, it should not allow the interactable to show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            yield return new WaitForFixedUpdate();
+
+            // Re-enable the collider component, the interactor should re-hover the interactable.
+            interactor.GetComponent<Collider>().enabled = true;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorUpdatesStayedCollidersOnDisablingInteractableCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(interactor, Is.Not.Null);
+            Assert.That(interactable, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Disable the interactable's collider component.
+            interactable.GetComponent<Collider>().enabled = false;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactable's collider is disabled, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.interactablesHovered, Is.Empty);
+
+            yield return new WaitForFixedUpdate();
+
+            // Re-enable the collider component, the interactor should re-hover it.
+            interactable.GetComponent<Collider>().enabled = true;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorUpdatesStayedCollidersOnDeactivatingInteractableObject(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(interactor, Is.Not.Null);
+            Assert.That(interactable, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Deactivate the interactable's gameObject.
+            interactable.gameObject.SetActive(false);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactable's collider is effectively disabled, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+
+            yield return new WaitForFixedUpdate();
+
+            // Activating the interactable's gameObject should cause the interactor to re-hover it.
+            interactable.gameObject.SetActive(true);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorUpdatesStayedCollidersOnDestroyingInteractableCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(interactor, Is.Not.Null);
+            Assert.That(interactable, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Destroy the interactable's collider.
+            Object.Destroy(interactable.GetComponent<Collider>());
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactable's collider is destroyed, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorUpdatesStayedCollidersOnDestroyingInteractableObject(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+            var interactable = TestUtilities.CreateGrabInteractable();
+
+            Assert.That(interactor, Is.Not.Null);
+            Assert.That(interactable, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Check that the interactable is a valid target of and can be hovered by the interactor.
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.interactablesHovered, Is.EqualTo(new[] { interactable }));
+            Assert.That(interactor.hasHover, Is.True);
+
+            // Destroy the interactable's gameObject.
+            Object.Destroy(interactable.gameObject);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // Since interactable's gameObject is destroyed, it should not show up in the list of valid targets.
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+            Assert.That(interactor.hasHover, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator InteractorCanProcessHoverFilters()
         {
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateMockInteractor();
@@ -526,7 +1091,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 
         [UnityTest]
-        public IEnumerator InteractableCanProcessSelectFilters()
+        public IEnumerator InteractorCanProcessSelectFilters()
         {
             TestUtilities.CreateInteractionManager();
             var interactor = TestUtilities.CreateMockInteractor();
@@ -670,6 +1235,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.isPerformingManualInteraction, Is.False);
             Assert.That(interactor.isSelectActive, Is.False);
+        }
+
+        static XRBaseInteractor CreateContactInteractor(Type interactorType)
+        {
+            if (interactorType == typeof(XRDirectInteractor))
+                return TestUtilities.CreateDirectInteractor();
+
+            if (interactorType == typeof(XRSocketInteractor))
+            {
+                var interactor = TestUtilities.CreateSocketInteractor();
+
+                // Set the socket's recycleDelayTime to 0 instead of the default 1s.
+                interactor.recycleDelayTime = 0f;
+
+                return interactor;
+            }
+
+            Assert.Fail($"Unhandled interactor type: {interactorType}");
+            return null;
+        }
+
+        void ApplyTriggerStaySetting(bool generateOnTriggerStayEvents)
+        {
+#if UNITY_EDITOR
+#if UNITY_6000_0_50_OR_NEWER
+            Assume.That(m_PhysicsManager, Is.Not.Null);
+            Assume.That(m_GenerateOnTriggerStayEvents, Is.Not.Null);
+            m_GenerateOnTriggerStayEvents.boolValue = generateOnTriggerStayEvents;
+            m_PhysicsManager.ApplyModifiedProperties();
+#else
+            if (!generateOnTriggerStayEvents)
+                Assert.Ignore("Generate On Trigger Stay Events project setting only available with Unity 6 or newer (at patch version 6000.0.50f1).");
+#endif
+#endif
         }
     }
 }

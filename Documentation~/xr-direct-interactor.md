@@ -10,7 +10,7 @@ Interactor used for directly interacting with Interactables that are touching. T
 
 ## Supporting components
 
-* [Collider](xref:UnityEngine.Collider): a Collider instance set to [isTrigger](xref:UnityEngine.Collider.isTrigger) must be present on the same GameObject.
+[!INCLUDE [interactor-trigger-collider](snippets/interactor-trigger-collider.md)]
 
 ## Base properties
 

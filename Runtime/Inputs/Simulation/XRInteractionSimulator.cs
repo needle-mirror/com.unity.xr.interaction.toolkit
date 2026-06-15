@@ -1092,6 +1092,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </remarks>
         public bool pointAndClickActive => m_PointAndClickActive;
 
+        XRInteractionSimulatorState m_CurrentState = new XRInteractionSimulatorState();
+
+        /// <summary>
+        /// The current simulator state.
+        /// </summary>
+        /// <remarks>
+        /// The returned instance has its state only valid for the current frame. The <see cref="currentState"/>
+        /// instance is swapped with the <see cref="previousState"/> each frame in a double-buffered way and thus a
+        /// held reference from a previous frame will not be correct for the current frame.
+        /// </remarks>
+        public XRInteractionSimulatorState currentState => m_CurrentState;
+
+        XRInteractionSimulatorState m_PreviousState = new XRInteractionSimulatorState();
+
+        /// <summary>
+        /// The simulator state for the previous frame.
+        /// </summary>
+        /// <remarks>
+        /// The returned instance has its state only valid for the current frame. The <see cref="currentState"/>
+        /// instance is swapped with the <see cref="previousState"/> each frame in a double-buffered way and thus a
+        /// held reference from a previous frame will not be correct for the current frame.
+        /// </remarks>
+        public XRInteractionSimulatorState previousState => m_PreviousState;
+
         /// <summary>
         /// One or more 2D Axis controls that keyboard input should apply to (or none).
         /// </summary>
@@ -1180,6 +1204,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         float m_TranslateZValue;
 
+        bool m_ToggleMouseValue;
         Vector2 m_RotationDeltaValue;
         Vector2 m_MouseScrollValue;
 
@@ -1228,12 +1253,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_PerformingRightPointAndClickGripInteraction;
         bool m_PerformingLeftPointAndClickTriggerInteraction;
         bool m_PerformingRightPointAndClickTriggerInteraction;
+        bool m_PerformingLeftQuickAction;
+        bool m_PerformingRightQuickAction;
         bool m_OriginalInputModuleMouseValue;
         bool m_OriginalInputModuleTouchValue;
         bool m_OriginalInputModuleValuesCaptured;
         bool m_InputModuleChangeLogged;
         bool m_CanUsePointAndClickControllers;
         bool m_CanUsePointAndClickHands;
+        bool m_MouseRotationActive;
         float m_PreviousRaycastHitDistance;
 
 #if XR_SIMULATION_AVAILABLE
@@ -1447,11 +1475,91 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_DeviceLifecycleManager.ApplyHandState(m_LeftHandState, m_RightHandState);
             m_DeviceLifecycleManager.ApplyHMDState(m_HMDState);
             m_DeviceLifecycleManager.ApplyControllerState(m_LeftControllerState, m_RightControllerState);
+
+            UpdateSimulatorState();
 #endif
 
 #if XR_SIMULATION_AVAILABLE
             if (m_SimulationCameraPoseProvider != null)
                 m_SimulationCameraPoseProvider.transform.SetWorldPose(m_CameraTransform.GetWorldPose());
+#endif
+        }
+
+        // All settable properties on XRInteractionSimulatorState must be assigned below.
+        void UpdateSimulatorState()
+        {
+#if ENABLE_VR || UNITY_GAMECORE
+            (m_CurrentState, m_PreviousState) = (m_PreviousState, m_CurrentState);
+
+            // Active device state
+            m_CurrentState.deviceMode = m_DeviceLifecycleManager.deviceMode;
+            m_CurrentState.targetedDeviceInput = targetedDeviceInput;
+
+            // Scroll drives forward/backward and suppresses everything else.
+            // Mouse rotation suppresses keyboard translation
+            var hasScroll = m_ToggleMouseValue && m_MouseScrollValue != Vector2.zero;
+
+            // Translation
+            m_CurrentState.isTranslatingForward = hasScroll ? m_MouseScrollValue.y > 0f : (!m_MouseRotationActive && m_TranslateZValue > 0f);
+            m_CurrentState.isTranslatingBackward = hasScroll ? m_MouseScrollValue.y < 0f : (!m_MouseRotationActive && m_TranslateZValue < 0f);
+            m_CurrentState.isTranslatingRight = !hasScroll && !m_MouseRotationActive && m_TranslateXValue > 0f;
+            m_CurrentState.isTranslatingLeft = !hasScroll && !m_MouseRotationActive && m_TranslateXValue < 0f;
+            m_CurrentState.isTranslatingUp = !hasScroll && !m_MouseRotationActive && m_TranslateYValue > 0f;
+            m_CurrentState.isTranslatingDown = !hasScroll && !m_MouseRotationActive && m_TranslateYValue < 0f;
+
+            // Rotation
+            m_CurrentState.isRotatingRight = !hasScroll && m_RotationDeltaValue.x > 0f;
+            m_CurrentState.isRotatingLeft = !hasScroll && m_RotationDeltaValue.x < 0f;
+            m_CurrentState.isRotatingUp = !hasScroll && m_RotationDeltaValue.y > 0f;
+            m_CurrentState.isRotatingDown = !hasScroll && m_RotationDeltaValue.y < 0f;
+
+            // Action State
+            m_CurrentState.performingLeftQuickAction = m_PerformingLeftQuickAction;
+            m_CurrentState.performingRightQuickAction = m_PerformingRightQuickAction;
+            m_CurrentState.leftDeviceHotkeyModifierPressed = m_LeftDeviceActionsInput.ReadIsPerformed();
+
+            // Controllers
+            m_CurrentState.leftControllerInputMode = m_LeftControllerInputMode;
+            m_CurrentState.rightControllerInputMode = m_RightControllerInputMode;
+
+            var hotkeys = HeldHotkeyButtons.None;
+            if (m_TriggerInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Trigger;
+            if (m_GripInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Grip;
+            if (m_PrimaryButtonInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.PrimaryButton;
+            if (m_SecondaryButtonInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.SecondaryButton;
+            if (m_MenuInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Menu;
+            if (m_Primary2DAxisClickInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Primary2DAxisClick;
+            if (m_Secondary2DAxisClickInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Secondary2DAxisClick;
+            if (m_Primary2DAxisTouchInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Primary2DAxisTouch;
+            if (m_Secondary2DAxisTouchInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Secondary2DAxisTouch;
+            if (m_PrimaryTouchInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.PrimaryTouch;
+            if (m_SecondaryTouchInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.SecondaryTouch;
+            m_CurrentState.activeControllerHotkeyButtons = hotkeys;
+
+            // If the hotkey for the active quick action is pressed directly, clear the toggle state
+            if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+            {
+                if (m_PerformingLeftQuickAction && (hotkeys & m_LeftControllerInputMode.AsHeldHotkeyButton()) != 0)
+                    m_PerformingLeftQuickAction = false;
+                if (m_PerformingRightQuickAction && (hotkeys & m_RightControllerInputMode.AsHeldHotkeyButton()) != 0)
+                    m_PerformingRightQuickAction = false;
+                m_CurrentState.performingLeftQuickAction = m_PerformingLeftQuickAction;
+                m_CurrentState.performingRightQuickAction = m_PerformingRightQuickAction;
+            }
+
+            // Hands
+            m_CurrentState.leftHandExpression = m_LeftCurrentHandExpression;
+            m_CurrentState.rightHandExpression = m_RightCurrentHandExpression;
+
+            m_CurrentState.handExpressionToggleHeld = false;
+            foreach (var expression in m_HandPlaybackManager.simulatedHandExpressions)
+            {
+                if (expression.toggleInput.ReadIsPerformed())
+                {
+                    m_CurrentState.handExpressionToggleHeld = true;
+                    break;
+                }
+            }
 #endif
         }
 
@@ -1924,14 +2032,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_TranslateZValue = m_TranslateZInput.ReadValue();
             m_RotationDeltaValue = m_KeyboardRotationDeltaInput.ReadValue();
 
-            if (m_ToggleMouseInput.ReadIsPerformed())
+            m_ToggleMouseValue = m_ToggleMouseInput.ReadIsPerformed();
+            if (m_ToggleMouseValue)
             {
-                Vector2 mouseRotationValue = m_MouseRotationDeltaInput.ReadValue();
+                var mouseRotationValue = m_MouseRotationDeltaInput.ReadValue();
+                m_MouseRotationActive = mouseRotationValue != Vector2.zero;
 
-                if (mouseRotationValue != Vector2.zero)
+                if (m_MouseRotationActive)
                     m_RotationDeltaValue = mouseRotationValue;
 
                 m_MouseScrollValue = ScrollUtility.GetNormalized(m_MouseScrollInput.ReadValue());
+            }
+            else
+            {
+                m_MouseRotationActive = false;
+                m_MouseScrollValue = Vector2.zero;
             }
 
             m_XConstraintValue = m_XConstraintInput.ReadIsPerformed();
@@ -1964,6 +2079,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void CycleQuickAction()
         {
 #if ENABLE_VR || UNITY_GAMECORE
+            m_PerformingLeftQuickAction = false;
+            m_PerformingRightQuickAction = false;
+
             if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
             {
                 if (m_QuickActionControllerInputModes.Count == 0)
@@ -1995,6 +2113,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void PerformQuickAction()
         {
 #if ENABLE_VR || UNITY_GAMECORE
+            if (manipulatingLeftDevice)
+                m_PerformingLeftQuickAction = !m_PerformingLeftQuickAction;
+            if (manipulatingRightDevice)
+                m_PerformingRightQuickAction = !m_PerformingRightQuickAction;
+
             if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
             {
                 if (manipulatingLeftController)
@@ -2206,6 +2329,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_1_OR_NEWER
         void OnDeviceModeChanged(SimulatedDeviceLifecycleManager.DeviceMode mode)
         {
+            m_PerformingLeftQuickAction = false;
+            m_PerformingRightQuickAction = false;
+
             if (m_DeviceLifecycleManager == null || m_DeviceLifecycleManager.handSubsystem == null || m_HandPlaybackManager.restingHandExpression == null)
                 return;
 

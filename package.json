@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.5.1",
+  "version": "3.6.0-pre.1",
   "unity": "6000.0",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -74,15 +74,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Changed minimum supported version of the Unity Editor from 2022.3 to 6000.0 (LTS).\n- Changed minimum version of `com.unity.ugui` dependency to `2.0.0`.\n\n### Added\n- Added Input Field examples to the [World Space UI sample package](xref:xri-samples-world-space-ui). This utilizes the system or software keyboard rather than the spatial keyboard.\n\n### Fixed\n- Fixed additional scripts to properly reset static fields to support fast-enter play mode settings.\n- Fixed missing assembly reference for Unity.PolySpatial.Core in the visionOS sample package. ([UUM-141554](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141554))\n- Fixed an issue in the XR Interaction Toolkit settings where cancelling the sample import dialog when attempting to enable any of the Interaction Simulator Settings would leave the settings enabled when the sample was not installed. ([UUM-140999](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-140999))\n- Fixed a UI Toolkit related issue where world-space UI would become unresponsive while playing in the Editor on Quest Link when the Game view was not focused. ([UUM-139424](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139424))\n- Fixed issue in `OneEuroFilterVector3` where speeds were occasionally negative which would cause unexpected behavior when resetting the hands in the `XRDeviceSimulator`. ([UUM-139967](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-139967))\n- Fixed error from exception \"ObjectDisposedException: The Unity.Collections.NativeArray`1[UnityEngine.XR.Hands.XRHandJoint] has been deallocated, it is not allowed to access it\" when exiting Play mode in the Hands Interaction Demo sample by updating sample scripts to check that the XRHandSubsystem is still running.\n- Fixed `XRMousePointer` in XR Mouse Interaction Demo sample to remove hover event listeners on destroy.\n- Fixed `ToggleColorToggler` component in the Starter Assets sample to initialize the colors of the Toggle component during `OnEnable` to ensure the Toggle is in the correct color state to fix implicit ordering dependency with other scripts.\n- Fixed unhandled division by zero in `CurveVisualController`. ([UUM-141267](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-141267))\n- Fixed issue where the `XRUIInputModule` component is automatically added to an Event System GameObject, but does not check for existing `BaseInputModule`-based components that would interfere with how XRI interacts with the Event System, such as the `InputSystemUIInputModule`. XRI will now log a warning and disable the other Input Modules. [UUM-137143](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-137143)\n- Fixed inverted logic for One Euro Filter in `OneEuroFilterVector3`."
+    "changelog": "### Added\n- Added the `XRInteractionSimulatorState` class that keeps track of the current state in the `XRInteractionSimulator`.\n\n### Fixed\n- Fixed XR Direct Interactor and XR Socket Interactor so they can be used when Edit &gt; Project Settings &gt; Physics &gt; Settings has Generate On Trigger Stay Events disabled.\n- Fixed the XR Interaction Simulator unintentionally causing persistent mouse scroll behavior when releasing the right mouse button while scrolling."
   },
   "upmCi": {
-    "footprint": "89eb6cce73bc11ff719bd58d4b0cf63d787b08d8"
+    "footprint": "f7b2a4a944a95a5ff29f2fa946f2f7d90519c40b"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.5/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.6/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "b014c1bb17375a89098055a3f60cb6b57aa1883c"
+    "revision": "68fb00ec3bbb0451c584807b0d1014daf1dbb341"
   }
 }

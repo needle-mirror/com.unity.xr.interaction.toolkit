@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.6.0-pre.1] - 2026-06-15
+
+### Added
+- Added the `XRInteractionSimulatorState` class that keeps track of the current state in the `XRInteractionSimulator`.
+
+### Fixed
+- Fixed XR Direct Interactor and XR Socket Interactor so they can be used when Edit &gt; Project Settings &gt; Physics &gt; Settings has Generate On Trigger Stay Events disabled.
+- Fixed the XR Interaction Simulator unintentionally causing persistent mouse scroll behavior when releasing the right mouse button while scrolling.
+
 ## [3.5.1] - 2026-06-02
 
 ### Changed
