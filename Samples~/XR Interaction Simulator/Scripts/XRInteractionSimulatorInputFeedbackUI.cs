@@ -313,6 +313,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
             InitializeUIDictionaries();
             ActivateControllerPanels();
             ActivateHandPanels();
+
+            var initialState = m_Simulator.currentState;
+            UpdateActiveDeviceModePanel(initialState);
+            UpdateOtherDeviceModePanel(initialState);
         }
 
         /// <summary>
@@ -357,21 +361,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
                 current.targetedDeviceInput == previous.targetedDeviceInput)
                 return;
 
+            UpdateActiveDeviceModePanel(current);
+        }
+
+        void UpdateActiveDeviceModePanel(XRInteractionSimulatorState state)
+        {
             ClearActiveInputModePanels();
 
-            if (current.manipulatingFPS || current.manipulatingHMD)
+            if (state.manipulatingFPS || state.manipulatingHMD)
                 m_HMDPanel.SetActive(true);
-            else if (current.manipulatingLeftController && current.manipulatingRightController)
+            else if (state.manipulatingLeftController && state.manipulatingRightController)
                 m_BothControllersPanel.SetActive(true);
-            else if (current.manipulatingLeftController)
+            else if (state.manipulatingLeftController)
                 m_LeftControllerPanel.SetActive(true);
-            else if (current.manipulatingRightController)
+            else if (state.manipulatingRightController)
                 m_RightControllerPanel.SetActive(true);
-            else if (current.manipulatingLeftHand && current.manipulatingRightHand)
+            else if (state.manipulatingLeftHand && state.manipulatingRightHand)
                 m_BothHandsPanel.SetActive(true);
-            else if (current.manipulatingLeftHand)
+            else if (state.manipulatingLeftHand)
                 m_LeftHandPanel.SetActive(true);
-            else if (current.manipulatingRightHand)
+            else if (state.manipulatingRightHand)
                 m_RightHandPanel.SetActive(true);
         }
 
@@ -384,15 +393,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
                 current.targetedDeviceInput == previous.targetedDeviceInput)
                 return;
 
+            UpdateOtherDeviceModePanel(current);
+        }
+
+        void UpdateOtherDeviceModePanel(XRInteractionSimulatorState state)
+        {
             ClearOtherInputModePanels();
 
-            if (current.manipulatingLeftController && !current.manipulatingRightController)
+            if (state.manipulatingLeftController && !state.manipulatingRightController)
                 m_RightOtherControllerPanel.SetActive(true);
-            else if (current.manipulatingRightController && !current.manipulatingLeftController)
+            else if (state.manipulatingRightController && !state.manipulatingLeftController)
                 m_LeftOtherControllerPanel.SetActive(true);
-            else if (current.manipulatingLeftHand && !current.manipulatingRightHand)
+            else if (state.manipulatingLeftHand && !state.manipulatingRightHand)
                 m_RightOtherHandPanel.SetActive(true);
-            else if (current.manipulatingRightHand && !current.manipulatingLeftHand)
+            else if (state.manipulatingRightHand && !state.manipulatingLeftHand)
                 m_LeftOtherHandPanel.SetActive(true);
         }
 

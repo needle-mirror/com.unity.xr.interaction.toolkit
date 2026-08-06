@@ -89,8 +89,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             TestUtilities.DisableAllInputSystemActions();
             Assume.That(SceneManager.sceneCount, Is.EqualTo(1));
             Assume.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(true), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(true), Is.Null);
         }
 
         [TearDown]
@@ -114,8 +114,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assume.That(SceneManager.sceneCount, Is.EqualTo(2));
             Assume.That(SceneManager.GetSceneAt(1).isLoaded, Is.False);
             Assume.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(true), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(true), Is.Null);
 
             // Attempt to find the component using the deferred method, which handles detecting an in-progress scene loading.
             var callbackCalled = false;
@@ -134,8 +134,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             var manager = ComponentLocatorUtility<XRInteractionManager>.FindComponent();
             Assert.That(manager, Is.Not.Null);
             Assert.That(manager.gameObject.scene, Is.EqualTo(scene));
-            Assert.That(FindFirstObjectByType<XRInteractionManager>(), Is.SameAs(manager));
-            Assert.That(FindFirstObjectByType<XRInteractionManager>(true), Is.SameAs(manager));
+            Assert.That(FindAnyObjectByType<XRInteractionManager>(), Is.SameAs(manager));
+            Assert.That(FindAnyObjectByType<XRInteractionManager>(true), Is.SameAs(manager));
 
             Assert.That(callbackCalled, Is.True);
             Assert.That(callbackResult, Is.SameAs(manager));
@@ -173,8 +173,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assume.That(SceneManager.sceneCount, Is.EqualTo(2));
             Assume.That(SceneManager.GetSceneAt(1).isLoaded, Is.False);
             Assume.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
-            Assume.That(FindFirstObjectByType<XRInteractionManager>(true), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(), Is.Null);
+            Assume.That(FindAnyObjectByType<XRInteractionManager>(true), Is.Null);
 
             // Attempt to find the component using the deferred method, which handles detecting an in-progress scene loading.
             var callbackCalled = false;
@@ -244,8 +244,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(scene.rootCount, Is.Not.EqualTo(0));
 
             Assert.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
-            Assert.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
-            var manager = FindFirstObjectByType<XRInteractionManager>(true);
+            Assert.That(FindAnyObjectByType<XRInteractionManager>(), Is.Null);
+            var manager = FindAnyObjectByType<XRInteractionManager>(true);
             Assert.That(manager, Is.Not.Null);
             Assert.That(manager.gameObject.scene, Is.EqualTo(scene));
 
@@ -288,8 +288,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(scene.rootCount, Is.Not.EqualTo(0));
 
             Assert.That(ComponentLocatorUtility<XRInteractionManager>.FindComponent(), Is.Null);
-            Assert.That(FindFirstObjectByType<XRInteractionManager>(), Is.Null);
-            var manager = FindFirstObjectByType<XRInteractionManager>(true);
+            Assert.That(FindAnyObjectByType<XRInteractionManager>(), Is.Null);
+            var manager = FindAnyObjectByType<XRInteractionManager>(true);
             Assert.That(manager, Is.Not.Null);
             Assert.That(manager.gameObject.scene, Is.EqualTo(scene));
 
@@ -1315,14 +1315,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         }
 #endif
 
-        static T FindFirstObjectByType<T>(bool includeInactive = false) where T : Object
+        static T FindAnyObjectByType<T>(bool includeInactive = false) where T : Object
         {
-            return Object.FindFirstObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
+            return Object.FindAnyObjectByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
         }
 
         static T[] FindAllObjectByType<T>(bool includeInactive = false) where T : Object
         {
+#if UNITY_6000_4_OR_NEWER
+            return Object.FindObjectsByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude);
+#else
             return Object.FindObjectsByType<T>(includeInactive ? FindObjectsInactive.Include : FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+#endif
         }
     }
 }

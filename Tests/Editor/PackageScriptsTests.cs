@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -25,6 +26,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         static readonly (string, string)[] s_NamespaceExceptionList =
         {
             ("All", "UnityEditor.XR.Interaction.Toolkit.Utilities.EditorComponentLocatorUtility"),
+#if UNITY_6000_7_OR_NEWER && BURST_PRESENT
+            ("All", "System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute"),
+#endif
         };
 
         static readonly (string, string)[] s_InternalPropertyExceptionList =
@@ -79,6 +83,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedHandPlaybackManager.ToggleHandPlayback has internal."),
 #endif
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.XRInteractionSimulator.RotationInputIsPerformed has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.XRInteractionSimulatorState.CopyFrom has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals.XRInteractorLineVisual.UpdateLineVisual has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Interactors.XRInteractionGroup.RemoveMissingMembersFromStartingOverridesMap has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort.TunnelingVignetteController.PreviewInEditor has internal."),

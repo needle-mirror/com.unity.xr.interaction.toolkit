@@ -389,6 +389,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
 
 #if XR_HANDS_1_1_OR_NEWER
+#if !XR_HANDS_1_8_OR_NEWER
+            // The playback-based hand simulation path (used by XRInteractionSimulator)
+            // requires XR Hands 1.8+. Block switching to hands if it's not available.
+            if (!m_UseSimulatedHandSubsystem && m_DeviceMode == DeviceMode.Controller)
+            {
+                Debug.LogWarning("Switching to hand mode requires XR Hands 1.8.0 or newer. " +
+                    "Please update the com.unity.xr.hands package to enable hand simulation.", this);
+                return;
+            }
+#endif
+
             // Disallow switching device mode if the modality manager is being used
             // and the opposite set of GameObjects are not assigned.
             if (m_InputModalityManager != null || ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager))

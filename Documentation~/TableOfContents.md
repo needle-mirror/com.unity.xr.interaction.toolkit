@@ -1,7 +1,8 @@
 * [XR Interaction Toolkit](index.md)
-* [What's new in 3.5](xref:xri-whats-new-3-5)
+* [What's new in 3.6](xref:xri-whats-new-3-6)
   * [XRI 3.0 upgrade guide](upgrade-guide-3.0.md)
   * Previous releases
+    * [What's new in 3.5](xref:xri-whats-new-3-5)
     * [What's new in 3.4](xref:xri-whats-new-3-4)
     * [What's new in 3.3](whats-new-3.3.md)
     * [What's new in 3.2](whats-new-3.2.md)

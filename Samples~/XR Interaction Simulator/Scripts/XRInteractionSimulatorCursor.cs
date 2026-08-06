@@ -175,19 +175,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
             }
             else
             {
+                var state = m_Simulator.currentState;
                 if (RotationInputIsPerformed())
                     SetCursor(CursorIcon.HMD);
-                else if (m_Simulator.manipulatingLeftController && m_Simulator.manipulatingRightController)
+                else if (state.manipulatingLeftController && state.manipulatingRightController)
                     SetCursor(CursorIcon.BothControllers);
-                else if (m_Simulator.manipulatingLeftController)
+                else if (state.manipulatingLeftController)
                     SetCursor(CursorIcon.LeftController);
-                else if (m_Simulator.manipulatingRightController)
+                else if (state.manipulatingRightController)
                     SetCursor(CursorIcon.RightController);
-                else if (m_Simulator.manipulatingLeftHand && m_Simulator.manipulatingRightHand)
+                else if (state.manipulatingLeftHand && state.manipulatingRightHand)
                     SetCursor(CursorIcon.BothHands);
-                else if (m_Simulator.manipulatingLeftHand)
+                else if (state.manipulatingLeftHand)
                     SetCursor(CursorIcon.LeftHand);
-                else if (m_Simulator.manipulatingRightHand)
+                else if (state.manipulatingRightHand)
                     SetCursor(CursorIcon.RightHand);
             }
         }

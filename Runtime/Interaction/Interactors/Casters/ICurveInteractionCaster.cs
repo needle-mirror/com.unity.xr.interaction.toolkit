@@ -11,6 +11,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
     public interface ICurveInteractionCaster : IInteractionCaster
     {
         /// <summary>
+        /// Gets or sets the layer mask used for limiting ray cast targets.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Implemented as a default interface member to avoid a breaking change
+        /// since this property was introduced after the interface was public.
+        /// Implementers of this interface should typically implement this property as:
+        /// </para>
+        /// <code>
+        /// [SerializeField]
+        /// LayerMask m_RaycastMask = -1;
+        ///
+        /// public LayerMask raycastMask
+        /// {
+        ///     get => m_RaycastMask;
+        ///     set => m_RaycastMask = value;
+        /// }
+        /// </code>
+        /// </remarks>
+        LayerMask raycastMask
+        {
+            get => -1;
+            set
+            {
+            }
+        }
+
+        /// <summary>
         /// Gets the curve sample points used to determine interaction results.
         /// </summary>
         NativeArray<Vector3> samplePoints { get; }

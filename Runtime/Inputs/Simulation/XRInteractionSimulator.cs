@@ -8,10 +8,12 @@ using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.XR;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 #if XR_HANDS_1_1_OR_NEWER
@@ -22,9 +24,7 @@ using UnityEngine.XR.Hands;
 using UnityEngine.XR.Hands.Capture.Playback;
 #endif
 
-
 #if XR_SIMULATION_AVAILABLE
-using Unity.XR.CoreUtils;
 using UnityEngine.XR.Simulation;
 #endif
 
@@ -81,7 +81,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         const float k_DeviceForwardOffsetAmount = 0.3f;
         const float k_DeviceDownOffsetAmount = 0.045f;
         const float k_DefaultRaycastDistance = 10f;
-        const int k_MaxRaycastHits = 10;
+        const int k_MaxRaycastHits = 16;
 
         [SerializeField]
         [Tooltip("The Transform that contains the Camera. This is usually the \"Head\" of XR Origins. Automatically set to the first enabled camera tagged MainCamera if unset.")]
@@ -1003,6 +1003,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_UsePointAndClick = value;
         }
 
+        [SerializeField, Range(0f, 1f)]
+        [Tooltip("The radius around the camera, in meters, used when filtering point-and-click raycast hits so a simulated device does not aim at geometry too close to the camera.")]
+        float m_DeviceAimCameraRadius = 0.5f;
+
+        /// <summary>
+        /// The radius around the camera, in meters, used when filtering point-and-click raycast hits so a
+        /// simulated device does not aim at geometry too close to the camera.
+        /// </summary>
+        public float deviceAimCameraRadius
+        {
+            get => m_DeviceAimCameraRadius;
+            set => m_DeviceAimCameraRadius = value;
+        }
+
 #if XR_HANDS_1_1_OR_NEWER
         [SerializeField]
         [Tooltip("The default handedness when starting the simulator and using point-and-click in FPS mode. Note: Changing this property at runtime will not change the currently active handedness.")]
@@ -1032,54 +1046,61 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_PointAndClickHandExpression = value;
         }
 
-        TargetedDevices m_TargetedDeviceInput;
+        TargetedDevices m_RequestedTargetedDeviceInput;
+        bool m_TargetedDeviceInputRequested;
 
         /// <summary>
         /// The currently active/targeted devices in the interaction simulator.
         /// </summary>
+        /// <remarks>
+        /// Values set through this property are buffered and applied at the start of the next frame.
+        /// </remarks>
+        [Obsolete("targetedDeviceInput has been deprecated in XRI 3.6.0. Use currentState.targetedDeviceInput instead.")]
         public TargetedDevices targetedDeviceInput
         {
-            get => m_TargetedDeviceInput;
-            set => m_TargetedDeviceInput = value;
+            get => m_TargetedDeviceInputRequested ? m_RequestedTargetedDeviceInput : m_CurrentState.targetedDeviceInput;
+            set
+            {
+                m_RequestedTargetedDeviceInput = value;
+                m_TargetedDeviceInputRequested = true;
+            }
         }
 
         /// <summary>
         /// The controller input mode which the controller should currently simulate.
         /// </summary>
-        public ControllerInputMode controllerInputMode => manipulatingLeftController ? m_LeftControllerInputMode : m_RightControllerInputMode;
-
-        ControllerInputMode m_LeftControllerInputMode = ControllerInputMode.Trigger;
+        [Obsolete("controllerInputMode has been deprecated in XRI 3.6.0. Use currentState.currentControllerInputMode instead.")]
+        public ControllerInputMode controllerInputMode => m_CurrentState.currentControllerInputMode;
 
         /// <summary>
         /// The left controller input mode which the controller should currently simulate.
         /// </summary>
-        public ControllerInputMode leftControllerInputMode => m_LeftControllerInputMode;
-
-        ControllerInputMode m_RightControllerInputMode = ControllerInputMode.Trigger;
+        [Obsolete("leftControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.leftControllerInputMode instead.")]
+        public ControllerInputMode leftControllerInputMode => m_CurrentState.leftControllerInputMode;
 
         /// <summary>
         /// The right controller input mode which the controller should currently simulate.
         /// </summary>
-        public ControllerInputMode rightControllerInputMode => m_RightControllerInputMode;
+        [Obsolete("rightControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.rightControllerInputMode instead.")]
+        public ControllerInputMode rightControllerInputMode => m_CurrentState.rightControllerInputMode;
 
         /// <summary>
         /// The hand expression which the simulated hands should currently simulate.
         /// </summary>
-        public SimulatedHandExpression currentHandExpression => manipulatingLeftDevice ? m_LeftCurrentHandExpression : m_RightCurrentHandExpression;
-
-        SimulatedHandExpression m_LeftCurrentHandExpression = new SimulatedHandExpression();
+        [Obsolete("currentHandExpression has been deprecated in XRI 3.6.0. Use currentState.currentHandExpression instead.")]
+        public SimulatedHandExpression currentHandExpression => m_CurrentState.currentHandExpression;
 
         /// <summary>
         /// The left hand expression which the simulated hands should currently simulate.
         /// </summary>
-        public SimulatedHandExpression leftCurrentHandExpression => m_LeftCurrentHandExpression;
-
-        SimulatedHandExpression m_RightCurrentHandExpression = new SimulatedHandExpression();
+        [Obsolete("leftCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.leftHandExpression instead.")]
+        public SimulatedHandExpression leftCurrentHandExpression => m_CurrentState.leftHandExpression;
 
         /// <summary>
         /// The right hand expression which the simulated hands should currently simulate.
         /// </summary>
-        public SimulatedHandExpression rightCurrentHandExpression => m_RightCurrentHandExpression;
+        [Obsolete("rightCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.rightHandExpression instead.")]
+        public SimulatedHandExpression rightCurrentHandExpression => m_CurrentState.rightHandExpression;
 
         bool m_PointAndClickActive;
 
@@ -1092,28 +1113,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </remarks>
         public bool pointAndClickActive => m_PointAndClickActive;
 
-        XRInteractionSimulatorState m_CurrentState = new XRInteractionSimulatorState();
+        readonly XRInteractionSimulatorState m_CurrentState = new XRInteractionSimulatorState();
 
         /// <summary>
         /// The current simulator state.
         /// </summary>
-        /// <remarks>
-        /// The returned instance has its state only valid for the current frame. The <see cref="currentState"/>
-        /// instance is swapped with the <see cref="previousState"/> each frame in a double-buffered way and thus a
-        /// held reference from a previous frame will not be correct for the current frame.
-        /// </remarks>
         public XRInteractionSimulatorState currentState => m_CurrentState;
 
-        XRInteractionSimulatorState m_PreviousState = new XRInteractionSimulatorState();
+        readonly XRInteractionSimulatorState m_PreviousState = new XRInteractionSimulatorState();
 
         /// <summary>
         /// The simulator state for the previous frame.
         /// </summary>
-        /// <remarks>
-        /// The returned instance has its state only valid for the current frame. The <see cref="currentState"/>
-        /// instance is swapped with the <see cref="previousState"/> each frame in a double-buffered way and thus a
-        /// held reference from a previous frame will not be correct for the current frame.
-        /// </remarks>
         public XRInteractionSimulatorState previousState => m_PreviousState;
 
         /// <summary>
@@ -1133,43 +1144,51 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Whether the simulator is manipulating the Left device (controller or hand).
         /// </summary>
-        public bool manipulatingLeftDevice => m_TargetedDeviceInput.HasDevice(TargetedDevices.LeftDevice);
+        [Obsolete("manipulatingLeftDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftDevice instead.")]
+        public bool manipulatingLeftDevice => m_CurrentState.manipulatingLeftDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right device (controller or hand).
         /// </summary>
-        public bool manipulatingRightDevice => m_TargetedDeviceInput.HasDevice(TargetedDevices.RightDevice);
+        [Obsolete("manipulatingRightDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightDevice instead.")]
+        public bool manipulatingRightDevice => m_CurrentState.manipulatingRightDevice;
 
         /// <summary>
         /// Whether the simulator is manipulating the Left Controller.
         /// </summary>
-        public bool manipulatingLeftController => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller && manipulatingLeftDevice;
+        [Obsolete("manipulatingLeftController has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftController instead.")]
+        public bool manipulatingLeftController => m_CurrentState.manipulatingLeftController;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Controller.
         /// </summary>
-        public bool manipulatingRightController => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller && manipulatingRightDevice;
+        [Obsolete("manipulatingRightController has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightController instead.")]
+        public bool manipulatingRightController => m_CurrentState.manipulatingRightController;
 
         /// <summary>
         /// Whether the simulator is manipulating the Left Hand.
         /// </summary>
-        public bool manipulatingLeftHand => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand && manipulatingLeftDevice;
+        [Obsolete("manipulatingLeftHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftHand instead.")]
+        public bool manipulatingLeftHand => m_CurrentState.manipulatingLeftHand;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Hand.
         /// </summary>
-        public bool manipulatingRightHand => m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand && manipulatingRightDevice;
+        [Obsolete("manipulatingRightHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightHand instead.")]
+        public bool manipulatingRightHand => m_CurrentState.manipulatingRightHand;
 
         /// <summary>
         /// Whether the simulator is manipulating the HMD.
         /// </summary>
-        public bool manipulatingHMD => m_TargetedDeviceInput == TargetedDevices.HMD;
+        [Obsolete("manipulatingHMD has been deprecated in XRI 3.6.0. Use currentState.manipulatingHMD instead.")]
+        public bool manipulatingHMD => m_CurrentState.manipulatingHMD;
 
         /// <summary>
         /// Whether the simulator is manipulating the HMD, Left Controller, and Right Controller as if the whole player was turning their torso,
         /// similar to a typical FPS style.
         /// </summary>
-        public bool manipulatingFPS => m_TargetedDeviceInput.HasDevice(TargetedDevices.FPS);
+        [Obsolete("manipulatingFPS has been deprecated in XRI 3.6.0. Use currentState.manipulatingFPS instead.")]
+        public bool manipulatingFPS => m_CurrentState.manipulatingFPS;
 
         /// <summary>
         /// The runtime instance of the XR Interaction Simulator.
@@ -1264,8 +1283,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_MouseRotationActive;
         float m_PreviousRaycastHitDistance;
 
-#if XR_SIMULATION_AVAILABLE
+        ISimulatorDeviceAimRaycastFilter m_DeviceAimRaycastFilter;
+
+        XRInputModalityManager m_InputModalityManager;
+
         XROrigin m_XROrigin;
+        bool m_CameraTransformUserConfigured;
+
+#if XR_SIMULATION_AVAILABLE
         SimulationCameraPoseProvider m_SimulationCameraPoseProvider;
         Vector3 m_OriginalCameraOffsetObjectPosition;
         float m_OriginalCameraYOffset;
@@ -1303,6 +1328,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_HandPlaybackManager == null)
                 m_HandPlaybackManager = XRSimulatorUtility.FindCreateSimulatedHandPlaybackManager(gameObject);
 
+            m_CameraTransformUserConfigured = m_CameraTransform != null;
             m_LocalPhysicsScene = gameObject.scene.GetPhysicsScene();
 
 #if ENABLE_VR || UNITY_GAMECORE
@@ -1319,12 +1345,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_RightHandState.position = XRSimulatorUtility.rightDeviceDefaultInitialPosition;
 
 #if XR_HANDS_1_1_OR_NEWER
-            if(m_DefaultPointAndClickHandedness == Handedness.Left)
-                m_TargetedDeviceInput = TargetedDevices.FPS | TargetedDevices.LeftDevice;
+            if (m_DefaultPointAndClickHandedness == Handedness.Left)
+                m_CurrentState.targetedDeviceInput = TargetedDevices.FPS | TargetedDevices.LeftDevice;
             else
-                m_TargetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
+                m_CurrentState.targetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
 #else
-            m_TargetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
+            m_CurrentState.targetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
 #endif
 
             if (m_InteractionSimulatorUI != null)
@@ -1339,12 +1365,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnEnable()
         {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform);
+            ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
+            ResolveCameraFallback();
 
 #if XR_HANDS_1_1_OR_NEWER
             if (m_DeviceLifecycleManager != null)
                 m_DeviceLifecycleManager.deviceModeChanged += OnDeviceModeChanged;
 #endif
+
+            ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager);
 
             m_CanUsePointAndClickControllers = FindLeftRightControllers();
             if (!m_CanUsePointAndClickControllers)
@@ -1354,40 +1386,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (!m_CanUsePointAndClickHands)
                 Debug.LogWarning("XR Interaction Simulator could not detect hands. Point-and-click functionality will be disabled for hands. If you wish to use this functionality, please check the InputModalityManager configuration or set the LeftHandAimTransform or RightHandAimTransform manually.", this);
 
+            m_DeviceAimRaycastFilter = new XRSimulatorDeviceAimRaycastFilter(
+                () => new SimulatorDeviceAimState(m_DeviceAimCameraRadius, m_CameraTransform != null ? Vector3.Distance(m_ScreenToWorldPoint, m_CameraTransform.position) : 0f, currentState.manipulatingLeftController, currentState.manipulatingRightController, currentState.manipulatingLeftHand, currentState.manipulatingRightHand, m_InputModalityManager));
+
 #if ENABLE_VR || UNITY_GAMECORE
 #if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
-            if (XRSimulatorUtility.XRSimulationLoaderEnabledForEditorPlayMode())
-            {
-                if (m_XROrigin != null || ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin))
-                {
-                    if (m_XROrigin.CameraYOffset != 0)
-                    {
-                        var offset = new Vector3(0f, m_XROrigin.CameraYOffset, 0f);
-                        m_HMDState.centerEyePosition += offset;
-                        m_LeftControllerState.devicePosition += offset;
-                        m_RightControllerState.devicePosition += offset;
-
-                        m_LeftHandState.position += offset;
-                        m_RightHandState.position += offset;
-
-                        m_OriginalCameraYOffset = m_XROrigin.CameraYOffset;
-                        m_XROrigin.CameraYOffset = 0f;
-                    }
-
-                    if (m_XROrigin.CameraFloorOffsetObject != null && m_XROrigin.CameraFloorOffsetObject.transform.position != Vector3.zero)
-                    {
-                        m_OriginalCameraOffsetObjectPosition = m_XROrigin.CameraFloorOffsetObject.transform.position;
-                        m_XROrigin.CameraFloorOffsetObject.transform.position = Vector3.zero;
-                    }
-
-                    Debug.LogWarning("Override XR Simulation Input is enabled and either the XR Origin's Camera Y Offset or the XR Origin's" +
-                        " Camera Floor Offset Object's position is set to a non-zero value. Due to the way XR Simulation applies its transformations," +
-                        " the offsets will be set to zero and the Camera Y Offset will be applied directly to the simulated camera and devices during Play mode.", this);
-                }
-
-                if (m_SimulationCameraPoseProvider != null || ComponentLocatorUtility<SimulationCameraPoseProvider>.TryFindComponent(out m_SimulationCameraPoseProvider))
-                    m_SimulationCameraPoseProvider.enabled = false;
-            }
+            ApplyXRSimulationOffsets();
 #endif
 #endif
             InitializeControllerHandActions();
@@ -1401,6 +1405,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnDisable()
         {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+
 #if XR_HANDS_1_1_OR_NEWER
             if (m_DeviceLifecycleManager != null)
                 m_DeviceLifecycleManager.deviceModeChanged -= OnDeviceModeChanged;
@@ -1408,30 +1414,115 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
 #if ENABLE_VR || UNITY_GAMECORE
 #if XR_SIMULATION_AVAILABLE
+            RestoreXRSimulationOffsets();
+#endif
+#endif
+        }
+
+        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform);
+
+            ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out m_InputModalityManager);
+
+#if (ENABLE_VR || UNITY_GAMECORE) && XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
+            RestoreXRSimulationOffsets();
+#endif
+
+            ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
+            ResolveCameraFallback();
+
+            m_CanUsePointAndClickControllers = FindLeftRightControllers();
+            m_CanUsePointAndClickHands = FindLeftRightHands();
+
+#if ENABLE_VR || UNITY_GAMECORE
+#if XR_SIMULATION_AVAILABLE && XR_MANAGEMENT_4_0_OR_NEWER
+            ApplyXRSimulationOffsets();
+#endif
+#endif
+        }
+
+        void ResolveCameraFallback()
+        {
+            if (!m_CameraTransformUserConfigured && m_CameraTransform != null && m_CameraTransform.parent == null &&
+                m_XROrigin != null && m_XROrigin.Camera != null)
+            {
+                m_CameraTransform = m_XROrigin.Camera.transform;
+                m_CachedCamera = (m_CameraTransform, m_XROrigin.Camera);
+            }
+        }
+
+#if ENABLE_VR || UNITY_GAMECORE
+        void OffsetAllDevicePositions(Vector3 offset)
+        {
+            m_HMDState.centerEyePosition += offset;
+            m_LeftControllerState.devicePosition += offset;
+            m_RightControllerState.devicePosition += offset;
+            m_LeftHandState.position += offset;
+            m_RightHandState.position += offset;
+        }
+
+#if XR_SIMULATION_AVAILABLE
+        void RestoreXRSimulationOffsets()
+        {
             if (m_SimulationCameraPoseProvider != null)
                 m_SimulationCameraPoseProvider.enabled = true;
 
+            if (m_OriginalCameraYOffset != 0f)
+                OffsetAllDevicePositions(new Vector3(0f, -m_OriginalCameraYOffset, 0f));
+
             if (m_XROrigin != null)
             {
-                if (m_OriginalCameraYOffset != 0f)
-                {
-                    var offset = new Vector3(0f, m_OriginalCameraYOffset, 0f);
-                    m_HMDState.centerEyePosition -= offset;
-                    m_LeftControllerState.devicePosition -= offset;
-                    m_RightControllerState.devicePosition -= offset;
-
-                    m_LeftHandState.position -= offset;
-                    m_RightHandState.position -= offset;
-                }
-
                 if (m_XROrigin.CameraFloorOffsetObject != null)
                     m_XROrigin.CameraFloorOffsetObject.transform.position = m_OriginalCameraOffsetObjectPosition;
 
                 m_XROrigin.CameraYOffset = m_OriginalCameraYOffset;
             }
-#endif
-#endif
+
+            m_OriginalCameraYOffset = 0f;
+            m_OriginalCameraOffsetObjectPosition = Vector3.zero;
         }
+
+#if XR_MANAGEMENT_4_0_OR_NEWER
+        void ApplyXRSimulationOffsets()
+        {
+            if (!XRSimulatorUtility.XRSimulationLoaderEnabledForEditorPlayMode())
+                return;
+
+            if (m_XROrigin != null)
+            {
+                var appliedOffsets = false;
+
+                if (m_XROrigin.CameraYOffset != 0)
+                {
+                    OffsetAllDevicePositions(new Vector3(0f, m_XROrigin.CameraYOffset, 0f));
+                    m_OriginalCameraYOffset = m_XROrigin.CameraYOffset;
+                    m_XROrigin.CameraYOffset = 0f;
+                    appliedOffsets = true;
+                }
+
+                if (m_XROrigin.CameraFloorOffsetObject != null && m_XROrigin.CameraFloorOffsetObject.transform.position != Vector3.zero)
+                {
+                    m_OriginalCameraOffsetObjectPosition = m_XROrigin.CameraFloorOffsetObject.transform.position;
+                    m_XROrigin.CameraFloorOffsetObject.transform.position = Vector3.zero;
+                    appliedOffsets = true;
+                }
+
+                if (appliedOffsets)
+                {
+                    Debug.LogWarning("Override XR Simulation Input is enabled and either the XR Origin's Camera Y Offset or the XR Origin's" +
+                        " Camera Floor Offset Object's position is set to a non-zero value. Due to the way XR Simulation applies its transformations," +
+                        " the offsets will be set to zero and the Camera Y Offset will be applied directly to the simulated camera and devices during Play mode.", this);
+                }
+            }
+
+            m_SimulationCameraPoseProvider = null;
+            if (ComponentLocatorUtility<SimulationCameraPoseProvider>.TryFindComponent(out m_SimulationCameraPoseProvider))
+                m_SimulationCameraPoseProvider.enabled = false;
+        }
+#endif
+#endif
+#endif
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
@@ -1447,6 +1538,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void Update()
         {
+#if ENABLE_VR || UNITY_GAMECORE
+            PreprocessSimulatorState();
+#endif
             ReadInputValues();
 
             HandleLeftOrRightDeviceToggle();
@@ -1454,7 +1548,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_CycleDevicesInput.ReadWasPerformedThisFrame())
                 CycleTargetDevices();
 
-            if (m_CycleQuickActionInput.ReadWasPerformedThisFrame() && !manipulatingFPS && !manipulatingHMD)
+            if (m_CycleQuickActionInput.ReadWasPerformedThisFrame() && !m_CurrentState.manipulatingFPS && !m_CurrentState.manipulatingHMD)
                 CycleQuickAction();
 
             if (m_ToggleManipulateHeadInput.ReadWasPerformedThisFrame())
@@ -1485,16 +1579,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
         }
 
-        // All settable properties on XRInteractionSimulatorState must be assigned below.
+        void PreprocessSimulatorState()
+        {
+#if ENABLE_VR || UNITY_GAMECORE
+            m_PreviousState.CopyFrom(m_CurrentState);
+
+            if (m_TargetedDeviceInputRequested)
+            {
+                m_CurrentState.targetedDeviceInput = m_RequestedTargetedDeviceInput;
+                m_TargetedDeviceInputRequested = false;
+            }
+
+            m_CurrentState.deviceMode = m_DeviceLifecycleManager.deviceMode;
+#endif
+        }
+
         void UpdateSimulatorState()
         {
 #if ENABLE_VR || UNITY_GAMECORE
-            (m_CurrentState, m_PreviousState) = (m_PreviousState, m_CurrentState);
-
-            // Active device state
-            m_CurrentState.deviceMode = m_DeviceLifecycleManager.deviceMode;
-            m_CurrentState.targetedDeviceInput = targetedDeviceInput;
-
             // Scroll drives forward/backward and suppresses everything else.
             // Mouse rotation suppresses keyboard translation
             var hasScroll = m_ToggleMouseValue && m_MouseScrollValue != Vector2.zero;
@@ -1519,9 +1621,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_CurrentState.leftDeviceHotkeyModifierPressed = m_LeftDeviceActionsInput.ReadIsPerformed();
 
             // Controllers
-            m_CurrentState.leftControllerInputMode = m_LeftControllerInputMode;
-            m_CurrentState.rightControllerInputMode = m_RightControllerInputMode;
-
             var hotkeys = HeldHotkeyButtons.None;
             if (m_TriggerInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Trigger;
             if (m_GripInput.ReadIsPerformed()) hotkeys |= HeldHotkeyButtons.Grip;
@@ -1537,20 +1636,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_CurrentState.activeControllerHotkeyButtons = hotkeys;
 
             // If the hotkey for the active quick action is pressed directly, clear the toggle state
-            if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+            if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
             {
-                if (m_PerformingLeftQuickAction && (hotkeys & m_LeftControllerInputMode.AsHeldHotkeyButton()) != 0)
+                if (m_PerformingLeftQuickAction && (hotkeys & m_CurrentState.leftControllerInputMode.AsHeldHotkeyButton()) != 0)
                     m_PerformingLeftQuickAction = false;
-                if (m_PerformingRightQuickAction && (hotkeys & m_RightControllerInputMode.AsHeldHotkeyButton()) != 0)
+                if (m_PerformingRightQuickAction && (hotkeys & m_CurrentState.rightControllerInputMode.AsHeldHotkeyButton()) != 0)
                     m_PerformingRightQuickAction = false;
                 m_CurrentState.performingLeftQuickAction = m_PerformingLeftQuickAction;
                 m_CurrentState.performingRightQuickAction = m_PerformingRightQuickAction;
             }
 
             // Hands
-            m_CurrentState.leftHandExpression = m_LeftCurrentHandExpression;
-            m_CurrentState.rightHandExpression = m_RightCurrentHandExpression;
-
             m_CurrentState.handExpressionToggleHeld = false;
             foreach (var expression in m_HandPlaybackManager.simulatedHandExpressions)
             {
@@ -1582,7 +1678,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if ENABLE_VR || UNITY_GAMECORE
             SetTrackedStates();
 
-            if (m_TargetedDeviceInput == TargetedDevices.None)
+            if (m_CurrentState.targetedDeviceInput == TargetedDevices.None)
                 return;
 
             if (!XRSimulatorUtility.FindCameraTransform(ref m_CachedCamera, ref m_CameraTransform))
@@ -1596,7 +1692,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // It allows the player to translate along the ground and rotate while keeping the controllers in front,
             // essentially rotating the HMD and both controllers around a common pivot rather than local to each.
             // Time delay as a workaround to avoid large mouse deltas on the first frame.
-            if (manipulatingFPS && Time.time > 1f)
+            if (m_CurrentState.manipulatingFPS && Time.time > 1f)
             {
                 // Translation, with scroll contribution to the forward direction
                 var xTranslateInput = m_TranslateXValue * m_TranslateXSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
@@ -1659,7 +1755,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_LeftHandState.euler = m_LeftHandState.rotation.eulerAngles;
                 m_RightHandState.euler = m_RightHandState.rotation.eulerAngles;
             }
-            else if (!manipulatingFPS)
+            else if (!m_CurrentState.manipulatingFPS)
             {
                 var xTranslateInput = m_TranslateXValue * m_TranslateXSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
                 var yTranslateInput = m_TranslateYValue * m_TranslateYSpeed * m_BodyTranslateMultiplier * Time.deltaTime;
@@ -1687,7 +1783,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 // Scroll contribution
                 anglesDelta += new Vector3(0f, 0f, m_MouseScrollValue.y * k_MouseScrollSensitivity * m_MouseScrollRotateSensitivity);
 
-                if (manipulatingLeftController)
+                if (m_CurrentState.manipulatingLeftController)
                 {
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_LeftControllerState, inverseCameraParentRotation);
                     m_LeftControllerState.devicePosition += deltaRotation * deltaPosition;
@@ -1699,7 +1795,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (manipulatingRightController)
+                if (m_CurrentState.manipulatingRightController)
                 {
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_RightControllerState, inverseCameraParentRotation);
                     m_RightControllerState.devicePosition += deltaRotation * deltaPosition;
@@ -1711,7 +1807,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (manipulatingLeftHand)
+                if (m_CurrentState.manipulatingLeftHand)
                 {
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_LeftHandState, inverseCameraParentRotation);
                     m_LeftHandState.position += deltaRotation * deltaPosition;
@@ -1723,7 +1819,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (manipulatingRightHand)
+                if (m_CurrentState.manipulatingRightHand)
                 {
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_RightHandState, inverseCameraParentRotation);
                     m_RightHandState.position += deltaRotation * deltaPosition;
@@ -1735,7 +1831,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD))
+                if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD))
                 {
                     var deltaRotation = XRSimulatorUtility.GetDeltaRotation(m_TranslateSpace, m_HMDState, inverseCameraParentRotation);
                     m_HMDState.centerEyePosition += deltaRotation * deltaPosition;
@@ -1749,7 +1845,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (m_PointAndClickActive && (m_TargetedDeviceInput.HasDevice(TargetedDevices.HMD) || manipulatingLeftDevice || manipulatingRightDevice))
+                if (m_PointAndClickActive && (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD) || m_CurrentState.manipulatingLeftDevice || m_CurrentState.manipulatingRightDevice))
                 {
                     m_CenterEyeEuler += anglesDelta;
                     m_HMDState.centerEyeRotation = Quaternion.Euler(m_CenterEyeEuler);
@@ -1796,7 +1892,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void ProcessControlInput()
         {
 #if ENABLE_VR || UNITY_GAMECORE
-            if (m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+            if (m_CurrentState.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Controller)
                 return;
 
             if (m_LeftDeviceActionsInput.ReadIsPerformed())
@@ -1810,10 +1906,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 ProcessAxis2DControlInput(ref m_RightControllerState);
             }
 
-            if (!manipulatingLeftController)
+            if (!m_CurrentState.manipulatingLeftController)
                 ProcessAnalogButtonControlInput(ref m_LeftControllerState);
 
-            if (!manipulatingRightController)
+            if (!m_CurrentState.manipulatingRightController)
                 ProcessAnalogButtonControlInput(ref m_RightControllerState);
 #endif
         }
@@ -1821,7 +1917,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void ProcessHandExpressionInput()
         {
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_DeviceLifecycleManager == null || m_DeviceLifecycleManager.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Hand)
+            if (m_DeviceLifecycleManager == null || m_CurrentState.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Hand)
                 return;
 
             if (m_HandPlaybackManager.restingHandExpression != null && m_HandPlaybackManager.restingHandExpression.toggleInput != null &&
@@ -1847,7 +1943,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_8_OR_NEWER
                 m_LeftHandHotkeyToggled = true;
 #endif
-                m_LeftCurrentHandExpression = handExpression;
+                m_CurrentState.leftHandExpression = handExpression;
                 m_LeftHandExpressionIndex = index;
                 ToggleHandExpression(true, false);
             }
@@ -1856,7 +1952,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if XR_HANDS_1_8_OR_NEWER
                 m_RightHandHotkeyToggled = true;
 #endif
-                m_RightCurrentHandExpression = handExpression;
+                m_CurrentState.rightHandExpression = handExpression;
                 m_RightHandExpressionIndex = index;
                 ToggleHandExpression(false, true);
             }
@@ -1882,13 +1978,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (leftHand)
             {
-                m_HandPlaybackManager.ToggleHandPlayback(m_LeftCurrentHandExpression, m_LeftHandHotkeyToggled, Handedness.Left);
+                m_HandPlaybackManager.ToggleHandPlayback(m_CurrentState.leftHandExpression, m_LeftHandHotkeyToggled, Handedness.Left);
                 m_LeftHandHotkeyToggled = false;
             }
 
             if (rightHand)
             {
-                m_HandPlaybackManager.ToggleHandPlayback(m_RightCurrentHandExpression, m_RightHandHotkeyToggled, Handedness.Right);
+                m_HandPlaybackManager.ToggleHandPlayback(m_CurrentState.rightHandExpression, m_RightHandHotkeyToggled, Handedness.Right);
                 m_RightHandHotkeyToggled = false;
             }
 #endif
@@ -2068,12 +2164,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
             if (m_QuickActionControllerInputModes.Count > 0)
             {
-                m_LeftControllerInputMode = m_QuickActionControllerInputModes[0];
-                m_RightControllerInputMode = m_QuickActionControllerInputModes[0];
+                m_CurrentState.leftControllerInputMode = m_QuickActionControllerInputModes[0];
+                m_CurrentState.rightControllerInputMode = m_QuickActionControllerInputModes[0];
             }
 
-            m_LeftCurrentHandExpression = m_HandPlaybackManager.restingHandExpression;
-            m_RightCurrentHandExpression = m_HandPlaybackManager.restingHandExpression;
+            m_CurrentState.leftHandExpression = m_HandPlaybackManager.restingHandExpression;
+            m_CurrentState.rightHandExpression = m_HandPlaybackManager.restingHandExpression;
         }
 
         void CycleQuickAction()
@@ -2082,7 +2178,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_PerformingLeftQuickAction = false;
             m_PerformingRightQuickAction = false;
 
-            if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+            if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
             {
                 if (m_QuickActionControllerInputModes.Count == 0)
                 {
@@ -2091,19 +2187,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     return;
                 }
 
-                if (manipulatingLeftController)
+                if (m_CurrentState.manipulatingLeftController)
                 {
                     m_LeftControllerInputModeIndex = (m_LeftControllerInputModeIndex < (m_QuickActionControllerInputModes.Count - 1)) ? (m_LeftControllerInputModeIndex + 1) : 0;
-                    m_LeftControllerInputMode = m_QuickActionControllerInputModes[m_LeftControllerInputModeIndex];
+                    m_CurrentState.leftControllerInputMode = m_QuickActionControllerInputModes[m_LeftControllerInputModeIndex];
                 }
 
-                if (manipulatingRightController)
+                if (m_CurrentState.manipulatingRightController)
                 {
                     m_RightControllerInputModeIndex = (m_RightControllerInputModeIndex < (m_QuickActionControllerInputModes.Count - 1)) ? (m_RightControllerInputModeIndex + 1) : 0;
-                    m_RightControllerInputMode = m_QuickActionControllerInputModes[m_RightControllerInputModeIndex];
+                    m_CurrentState.rightControllerInputMode = m_QuickActionControllerInputModes[m_RightControllerInputModeIndex];
                 }
             }
-            else if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
+            else if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
             {
                 CycleQuickActionHandExpression();
             }
@@ -2113,21 +2209,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void PerformQuickAction()
         {
 #if ENABLE_VR || UNITY_GAMECORE
-            if (manipulatingLeftDevice)
+            if (m_CurrentState.manipulatingLeftDevice)
                 m_PerformingLeftQuickAction = !m_PerformingLeftQuickAction;
-            if (manipulatingRightDevice)
+            if (m_CurrentState.manipulatingRightDevice)
                 m_PerformingRightQuickAction = !m_PerformingRightQuickAction;
 
-            if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+            if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
             {
-                if (manipulatingLeftController)
-                    ToggleControllerButtonInput(ref m_LeftControllerState, m_LeftControllerInputMode);
-                if (manipulatingRightController)
-                    ToggleControllerButtonInput(ref m_RightControllerState, m_RightControllerInputMode);
+                if (m_CurrentState.manipulatingLeftController)
+                    ToggleControllerButtonInput(ref m_LeftControllerState, m_CurrentState.leftControllerInputMode);
+                if (m_CurrentState.manipulatingRightController)
+                    ToggleControllerButtonInput(ref m_RightControllerState, m_CurrentState.rightControllerInputMode);
             }
-            else if (m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
+            else if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
             {
-                ToggleHandExpression(manipulatingLeftHand, manipulatingRightHand);
+                ToggleHandExpression(m_CurrentState.manipulatingLeftHand, m_CurrentState.manipulatingRightHand);
             }
 #endif
         }
@@ -2202,20 +2298,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void CycleTargetDevices()
         {
-            if (targetedDeviceInput.HasDevice(TargetedDevices.HMD))
-                targetedDeviceInput = targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
+            if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD))
+                m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
 
-            if (targetedDeviceInput == TargetedDevices.None)
-                targetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
-            else if (targetedDeviceInput.HasDevice(TargetedDevices.FPS))
+            if (m_CurrentState.targetedDeviceInput == TargetedDevices.None)
+                m_CurrentState.targetedDeviceInput = TargetedDevices.FPS | TargetedDevices.RightDevice;
+            else if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.FPS))
             {
-                targetedDeviceInput = targetedDeviceInput.WithoutDevice(TargetedDevices.FPS);
+                m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithoutDevice(TargetedDevices.FPS);
 
-                if (!targetedDeviceInput.HasDevice(TargetedDevices.LeftDevice) && !targetedDeviceInput.HasDevice(TargetedDevices.RightDevice))
-                    targetedDeviceInput = TargetedDevices.LeftDevice | TargetedDevices.RightDevice;
+                if (!m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.LeftDevice) && !m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.RightDevice))
+                    m_CurrentState.targetedDeviceInput = TargetedDevices.LeftDevice | TargetedDevices.RightDevice;
             }
-            else if (targetedDeviceInput.HasDevice(TargetedDevices.LeftDevice) || targetedDeviceInput.HasDevice(TargetedDevices.RightDevice))
-                targetedDeviceInput = targetedDeviceInput.WithDevice(TargetedDevices.FPS);
+            else if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.LeftDevice) || m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.RightDevice))
+                m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithDevice(TargetedDevices.FPS);
         }
 
         void HandleLeftOrRightDeviceToggle()
@@ -2232,53 +2328,53 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // when the user wants to activate the simultaneous gesture.
             if (m_ToggleManipulateLeftInput.ReadIsPerformed() && m_ToggleManipulateRightInput.ReadIsPerformed())
             {
-                if (targetedDeviceInput.HasDevice(TargetedDevices.HMD))
-                    targetedDeviceInput = targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
+                if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD))
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
 
                 // Once both are pressed simultaneously,
                 // prevent further toggling until both buttons are released.
                 m_ToggleManipulateWaitingForReleaseBoth = true;
 
-                if (targetedDeviceInput == (TargetedDevices.LeftDevice | TargetedDevices.RightDevice))
+                if (m_CurrentState.targetedDeviceInput == (TargetedDevices.LeftDevice | TargetedDevices.RightDevice))
                     m_DeviceLifecycleManager.SwitchDeviceMode();
                 else
-                    targetedDeviceInput = targetedDeviceInput.WithDevice(TargetedDevices.LeftDevice).WithDevice(TargetedDevices.RightDevice)
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithDevice(TargetedDevices.LeftDevice).WithDevice(TargetedDevices.RightDevice)
                         .WithoutDevice(TargetedDevices.FPS);
             }
             else if (m_ToggleManipulateLeftInput.ReadWasCompletedThisFrame())
             {
-                if (targetedDeviceInput.HasDevice(TargetedDevices.HMD))
-                    targetedDeviceInput = targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
+                if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD))
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
 
-                if (targetedDeviceInput == TargetedDevices.LeftDevice)
+                if (m_CurrentState.targetedDeviceInput == TargetedDevices.LeftDevice)
                     m_DeviceLifecycleManager.SwitchDeviceMode();
                 else
-                    targetedDeviceInput = targetedDeviceInput.WithDevice(TargetedDevices.LeftDevice)
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithDevice(TargetedDevices.LeftDevice)
                         .WithoutDevice(TargetedDevices.RightDevice).WithoutDevice(TargetedDevices.FPS);
             }
             else if (m_ToggleManipulateRightInput.ReadWasCompletedThisFrame())
             {
-                if (targetedDeviceInput.HasDevice(TargetedDevices.HMD))
-                    targetedDeviceInput = targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
+                if (m_CurrentState.targetedDeviceInput.HasDevice(TargetedDevices.HMD))
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithoutDevice(TargetedDevices.HMD);
 
-                if (targetedDeviceInput == TargetedDevices.RightDevice)
+                if (m_CurrentState.targetedDeviceInput == TargetedDevices.RightDevice)
                     m_DeviceLifecycleManager.SwitchDeviceMode();
                 else
-                    targetedDeviceInput = targetedDeviceInput.WithDevice(TargetedDevices.RightDevice)
+                    m_CurrentState.targetedDeviceInput = m_CurrentState.targetedDeviceInput.WithDevice(TargetedDevices.RightDevice)
                         .WithoutDevice(TargetedDevices.LeftDevice).WithoutDevice(TargetedDevices.FPS);
             }
         }
 
         void HandleHMDToggle()
         {
-            if (targetedDeviceInput != TargetedDevices.HMD)
+            if (m_CurrentState.targetedDeviceInput != TargetedDevices.HMD)
             {
-                m_PreviousTargetedDevices = targetedDeviceInput;
-                targetedDeviceInput = TargetedDevices.HMD;
+                m_PreviousTargetedDevices = m_CurrentState.targetedDeviceInput;
+                m_CurrentState.targetedDeviceInput = TargetedDevices.HMD;
             }
             else
             {
-                targetedDeviceInput = m_PreviousTargetedDevices;
+                m_CurrentState.targetedDeviceInput = m_PreviousTargetedDevices;
             }
         }
 
@@ -2290,35 +2386,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             var handExpressions = m_HandPlaybackManager.simulatedHandExpressions;
 
-            if (manipulatingLeftHand)
+            if (m_CurrentState.manipulatingLeftHand)
             {
-                int index = (m_LeftCurrentHandExpression == m_HandPlaybackManager.restingHandExpression) ? -1 : m_LeftHandExpressionIndex;
+                int index = (m_CurrentState.leftHandExpression == m_HandPlaybackManager.restingHandExpression) ? -1 : m_LeftHandExpressionIndex;
                 for (var i = 0; i < handExpressions.Count; ++i)
                 {
                     index = (index < (handExpressions.Count - 1)) ? (index + 1) : 0;
                     if (handExpressions[index].isQuickAction)
                     {
                         m_LeftHandExpressionIndex = index;
-                        m_LeftCurrentHandExpression = handExpressions[index];
+                        m_CurrentState.leftHandExpression = handExpressions[index];
                         m_LeftHandHotkeyToggled = false;
-                        m_HandPlaybackManager.ToggleHandPlayback(m_LeftCurrentHandExpression, false, Handedness.Left);
+                        m_HandPlaybackManager.ToggleHandPlayback(m_CurrentState.leftHandExpression, false, Handedness.Left);
                         break;
                     }
                 }
             }
 
-            if (manipulatingRightHand)
+            if (m_CurrentState.manipulatingRightHand)
             {
-                int index = (m_RightCurrentHandExpression == m_HandPlaybackManager.restingHandExpression) ? -1 : m_RightHandExpressionIndex;
+                int index = (m_CurrentState.rightHandExpression == m_HandPlaybackManager.restingHandExpression) ? -1 : m_RightHandExpressionIndex;
                 for (var i = 0; i < handExpressions.Count; ++i)
                 {
                     index = (index < (handExpressions.Count - 1)) ? (index + 1) : 0;
                     if (handExpressions[index].isQuickAction)
                     {
                         m_RightHandExpressionIndex = index;
-                        m_RightCurrentHandExpression = handExpressions[index];
+                        m_CurrentState.rightHandExpression = handExpressions[index];
                         m_RightHandHotkeyToggled = false;
-                        m_HandPlaybackManager.ToggleHandPlayback(m_RightCurrentHandExpression, false, Handedness.Right);
+                        m_HandPlaybackManager.ToggleHandPlayback(m_CurrentState.rightHandExpression, false, Handedness.Right);
                         break;
                     }
                 }
@@ -2346,8 +2442,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     m_HandPlaybackManager.ToggleHandPlayback(m_HandPlaybackManager.restingHandExpression, false, Handedness.Left);
                     m_HandPlaybackManager.ToggleHandPlayback(m_HandPlaybackManager.restingHandExpression, false, Handedness.Right);
-                    m_LeftCurrentHandExpression = m_HandPlaybackManager.restingHandExpression;
-                    m_RightCurrentHandExpression = m_HandPlaybackManager.restingHandExpression;
+                    m_CurrentState.leftHandExpression = m_HandPlaybackManager.restingHandExpression;
+                    m_CurrentState.rightHandExpression = m_HandPlaybackManager.restingHandExpression;
                 }
 #endif
             }
@@ -2382,14 +2478,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             // Do nothing if hitting screen-space UI.
             if (hitType == HitType.Object || hitType == HitType.None)
             {
-                if (manipulatingLeftController)
+                if (m_CurrentState.manipulatingLeftController)
                 {
                     m_LeftControllerState.grip = m_GripAmount;
                     m_LeftControllerState.WithButton(ControllerButton.GripButton);
                     m_PerformingLeftPointAndClickGripInteraction = true;
                 }
 
-                if (manipulatingRightController)
+                if (m_CurrentState.manipulatingRightController)
                 {
                     m_RightControllerState.grip = m_GripAmount;
                     m_RightControllerState.WithButton(ControllerButton.GripButton);
@@ -2398,14 +2494,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             }
             else if (hitType == HitType.WorldUI)
             {
-                if (manipulatingLeftController)
+                if (m_CurrentState.manipulatingLeftController)
                 {
                     m_LeftControllerState.trigger = m_TriggerAmount;
                     m_LeftControllerState.WithButton(ControllerButton.TriggerButton);
                     m_PerformingLeftPointAndClickTriggerInteraction = true;
                 }
 
-                if (manipulatingRightController)
+                if (m_CurrentState.manipulatingRightController)
                 {
                     m_RightControllerState.trigger = m_TriggerAmount;
                     m_RightControllerState.WithButton(ControllerButton.TriggerButton);
@@ -2421,7 +2517,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
            if (m_PointAndClickHandExpression == null || m_PointAndClickHandExpression.captureSequence == null)
                  return;
 
-            if (manipulatingLeftHand)
+            if (m_CurrentState.manipulatingLeftHand)
             {
                 // If the previous capture sequence is different from the point-and-click capture sequence,
                 // then ToggleHandPlayback() needs to be called twice to play the clip from start to end.
@@ -2431,7 +2527,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Left);
             }
 
-            if (manipulatingRightHand)
+            if (m_CurrentState.manipulatingRightHand)
             {
                 if (m_DeviceLifecycleManager.rightHandPlayback.sourceCaptureSequence != m_PointAndClickHandExpression.captureSequence)
                     m_HandPlaybackManager.ToggleHandPlayback(m_PointAndClickHandExpression, true, Handedness.Right);
@@ -2449,6 +2545,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_LeftControllerState.grip = 0f;
                 m_LeftControllerState.WithButton(ControllerButton.GripButton, false);
                 m_PerformingLeftPointAndClickGripInteraction = false;
+                if (m_CurrentState.leftControllerInputMode == ControllerInputMode.Grip)
+                    m_PerformingLeftQuickAction = false;
             }
 
             if (m_PerformingLeftPointAndClickTriggerInteraction)
@@ -2456,6 +2554,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_LeftControllerState.trigger = 0f;
                 m_LeftControllerState.WithButton(ControllerButton.TriggerButton, false);
                 m_PerformingLeftPointAndClickTriggerInteraction = false;
+                if (m_CurrentState.leftControllerInputMode == ControllerInputMode.Trigger)
+                    m_PerformingLeftQuickAction = false;
             }
 
             if (m_PerformingRightPointAndClickGripInteraction)
@@ -2463,6 +2563,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_RightControllerState.grip = 0f;
                 m_RightControllerState.WithButton(ControllerButton.GripButton, false);
                 m_PerformingRightPointAndClickGripInteraction = false;
+                if (m_CurrentState.rightControllerInputMode == ControllerInputMode.Grip)
+                    m_PerformingRightQuickAction = false;
             }
 
             if (m_PerformingRightPointAndClickTriggerInteraction)
@@ -2470,6 +2572,16 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_RightControllerState.trigger = 0f;
                 m_RightControllerState.WithButton(ControllerButton.TriggerButton, false);
                 m_PerformingRightPointAndClickTriggerInteraction = false;
+                if (m_CurrentState.rightControllerInputMode == ControllerInputMode.Trigger)
+                    m_PerformingRightQuickAction = false;
+            }
+
+            if (m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand)
+            {
+                if (m_CurrentState.manipulatingLeftHand)
+                    m_PerformingLeftQuickAction = false;
+                if (m_CurrentState.manipulatingRightHand)
+                    m_PerformingRightQuickAction = false;
             }
 #endif
         }
@@ -2483,14 +2595,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (raycastHitCount > 0)
             {
                 SortingHelpers.SortRaycastHitsByDistance(m_RaycastHits, raycastHitCount);
-                var raycastHit = m_RaycastHits[0];
 
-                if (!uiRaycastResult.isValid || (raycastHit.distance < uiRaycastResult.distance))
+                for (var i = 0; i < raycastHitCount; i++)
                 {
-                    hitPosition = raycastHit.point;
-                    hitType = HitType.Object;
-                    m_PreviousRaycastHitDistance = raycastHit.distance;
-                    return true;
+                    var raycastHit = m_RaycastHits[i];
+
+                    if (m_DeviceAimRaycastFilter.DiscardRaycastHit(raycastHit))
+                        continue;
+
+                    if (!uiRaycastResult.isValid || (raycastHit.distance < uiRaycastResult.distance))
+                    {
+                        hitPosition = raycastHit.point;
+                        hitType = HitType.Object;
+                        m_PreviousRaycastHitDistance = raycastHit.distance;
+                        return true;
+                    }
+
+                    break;
                 }
             }
 
@@ -2559,18 +2680,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void HandlePointAndClickActive()
         {
-            bool canUsePointAndClick = ((m_CanUsePointAndClickControllers && m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
-                || (m_CanUsePointAndClickHands && m_DeviceLifecycleManager.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand));
+            bool canUsePointAndClick = ((m_CanUsePointAndClickControllers && m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Controller)
+                || (m_CanUsePointAndClickHands && m_CurrentState.deviceMode == SimulatedDeviceLifecycleManager.DeviceMode.Hand));
 
             if (canUsePointAndClick)
             {
-                var manipulatingDevice = manipulatingLeftDevice || manipulatingRightDevice;
+                var manipulatingDevice = m_CurrentState.manipulatingLeftDevice || m_CurrentState.manipulatingRightDevice;
                 if (m_UsePointAndClick && !m_PointAndClickActive && manipulatingDevice)
                 {
                     m_PointAndClickActive = true;
                     DisableInputModuleInput();
                 }
-                else if (m_PointAndClickActive && (manipulatingHMD || !m_UsePointAndClick))
+                else if (m_PointAndClickActive && (m_CurrentState.manipulatingHMD || !m_UsePointAndClick))
                 {
                     m_PointAndClickActive = false;
                     RestoreInputModuleInput();
@@ -2636,19 +2757,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if ENABLE_VR || UNITY_GAMECORE
         void ProcessAimDeviceAtWorldPoint(Vector3 endPoint)
         {
-            if (manipulatingLeftController && m_LeftControllerTransform != null)
+            if (m_CurrentState.manipulatingLeftController && m_LeftControllerTransform != null)
                 AimDeviceAtWorldPoint(endPoint, m_LeftControllerTransform, ref m_LeftControllerState);
 
-            if (manipulatingRightController && m_RightControllerTransform != null)
+            if (m_CurrentState.manipulatingRightController && m_RightControllerTransform != null)
                 AimDeviceAtWorldPoint(endPoint, m_RightControllerTransform, ref m_RightControllerState);
 
-            if (manipulatingLeftHand && m_LeftHandAimTransform != null)
+            if (m_CurrentState.manipulatingLeftHand && m_LeftHandAimTransform != null)
             {
                 AimDeviceAtWorldPoint(endPoint, m_LeftHandAimTransform, ref m_LeftHandState);
                 m_LeftHandAimTransform.rotation = Quaternion.LookRotation((endPoint - m_LeftHandAimTransform.transform.position).normalized);
             }
 
-            if (manipulatingRightHand && m_RightHandAimTransform != null)
+            if (m_CurrentState.manipulatingRightHand && m_RightHandAimTransform != null)
             {
                 AimDeviceAtWorldPoint(endPoint, m_RightHandAimTransform, ref m_RightHandState);
                 m_RightHandAimTransform.rotation = Quaternion.LookRotation((endPoint - m_RightHandAimTransform.transform.position).normalized);
@@ -2657,6 +2778,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         static void AimDeviceAtWorldPoint(Vector3 point, Transform referenceTransform, ref XRSimulatedControllerState controllerState)
         {
+            if (referenceTransform.parent == null)
+            {
+                Debug.LogWarning("Skipping point-and-click device aiming because an XR Origin with a camera does not seem to be configured in the scene.", referenceTransform);
+                return;
+            }
+
             var localHitPoint = referenceTransform.parent.InverseTransformPoint(point);
             var controllerDirVector = (localHitPoint - controllerState.devicePosition).normalized;
             controllerState.deviceRotation = Quaternion.LookRotation(controllerDirVector);
@@ -2664,6 +2791,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         static void AimDeviceAtWorldPoint(Vector3 point, Transform referenceTransform, ref XRSimulatedHandState handState)
         {
+            if (referenceTransform.parent == null)
+            {
+                Debug.LogWarning("Skipping point-and-click device aiming because an XR Origin with a camera does not seem to be configured in the scene.", referenceTransform);
+                return;
+            }
+
             var localHitPoint = referenceTransform.parent.InverseTransformPoint(point);
             var handDirVector = (localHitPoint - handState.position).normalized;
             handState.rotation = Quaternion.LookRotation(handDirVector);
@@ -2672,18 +2805,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         bool FindLeftRightControllers()
         {
-            if (ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out var inputModalityManager))
+            if (m_InputModalityManager != null)
             {
-                if (m_LeftControllerTransform == null && inputModalityManager.leftController != null)
+                if (m_LeftControllerTransform == null && m_InputModalityManager.leftController != null)
                 {
-                    var trackedPoseDriver = inputModalityManager.leftController.transform.GetComponentInChildren<TrackedPoseDriver>();
+                    var trackedPoseDriver = m_InputModalityManager.leftController.transform.GetComponentInChildren<TrackedPoseDriver>();
                     if (trackedPoseDriver != null)
                         m_LeftControllerTransform = trackedPoseDriver.transform;
                 }
 
-                if (m_RightControllerTransform == null && inputModalityManager.rightController != null)
+                if (m_RightControllerTransform == null && m_InputModalityManager.rightController != null)
                 {
-                    var trackedPoseDriver = inputModalityManager.rightController.transform.GetComponentInChildren<TrackedPoseDriver>();
+                    var trackedPoseDriver = m_InputModalityManager.rightController.transform.GetComponentInChildren<TrackedPoseDriver>();
                     if (trackedPoseDriver != null)
                         m_RightControllerTransform = trackedPoseDriver.transform;
                 }
@@ -2700,11 +2833,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         bool FindLeftRightHands()
         {
-            if (ComponentLocatorUtility<XRInputModalityManager>.TryFindComponent(out var inputModalityManager))
+            if (m_InputModalityManager != null)
             {
-                if (m_LeftHandAimTransform == null && inputModalityManager.leftHand != null)
+                if (m_LeftHandAimTransform == null && m_InputModalityManager.leftHand != null)
                 {
-                    foreach (var interactor in inputModalityManager.leftHand.GetComponentsInChildren<NearFarInteractor>())
+                    foreach (var interactor in m_InputModalityManager.leftHand.GetComponentsInChildren<NearFarInteractor>())
                     {
                         var farCaster = interactor.farInteractionCaster;
                         if (farCaster != null && farCaster.castOrigin != null)
@@ -2715,9 +2848,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     }
                 }
 
-                if (m_RightHandAimTransform == null && inputModalityManager.rightHand != null)
+                if (m_RightHandAimTransform == null && m_InputModalityManager.rightHand != null)
                 {
-                    foreach (var interactor in inputModalityManager.rightHand.GetComponentsInChildren<NearFarInteractor>())
+                    foreach (var interactor in m_InputModalityManager.rightHand.GetComponentsInChildren<NearFarInteractor>())
                     {
                         var farCaster = interactor.farInteractionCaster;
                         if (farCaster != null && farCaster.castOrigin != null)

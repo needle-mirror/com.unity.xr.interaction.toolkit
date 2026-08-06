@@ -10,14 +10,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [3.6.0] - 2026-08-06
+
+### Changed
+- Changed [`ICurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster) to add a [`raycastMask`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster.raycastMask) property to allow getting and setting the raycast layer mask without casting to the concrete [`CurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster) type.
+  - This is implemented as a [default interface member](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface#default-interface-members), so users implementing their own custom class implementing this interface may need to implement that property redirecting to its equivalent `LayerMask` property if the property name differs.
+
+### Fixed
+- Fixed [`UIInputModule`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule) to prioritize the event camera from the canvas's raycaster over the main camera (`Camera.main`). This fixes incorrect screen-space coordinate conversions for world space canvases that use a camera other than the main camera, such as composition layer canvases.
+- Fixed `XRInteractionSimulator` throwing a `NullReferenceException` when the scene contains a Main Camera at the hierarchy root.
+- Fixed deprecated API compiler warning when importing the visionOS sample in Unity 6.4 or newer.
+
 ## [3.6.0-pre.1] - 2026-06-15
 
 ### Added
+- Added a `Device Aim Camera Radius` property, in meters, which will affect how closely a manipulated device can face the camera when running with the `XRInteractorSimulator`.
 - Added the `XRInteractionSimulatorState` class that keeps track of the current state in the `XRInteractionSimulator`.
 
+### Deprecated
+- Deprecated the following properties on `XRInteractionSimulator` in favor of reading from `currentState`: `targetedDeviceInput`, `manipulatingLeftDevice`, `manipulatingRightDevice`, `manipulatingLeftController`, `manipulatingRightController`, `manipulatingLeftHand`, `manipulatingRightHand`, `manipulatingHMD`, `manipulatingFPS`, `controllerInputMode`, `leftControllerInputMode`, `rightControllerInputMode`, `currentHandExpression`, `leftCurrentHandExpression`, and `rightCurrentHandExpression`.
+
 ### Fixed
+- Fixed the `XRInteractionSimulator` to not erratically spin controller objects when grabbing certain types of interactables whose colliders intersect with the camera while mouse-looking.
 - Fixed XR Direct Interactor and XR Socket Interactor so they can be used when Edit &gt; Project Settings &gt; Physics &gt; Settings has Generate On Trigger Stay Events disabled.
 - Fixed the XR Interaction Simulator unintentionally causing persistent mouse scroll behavior when releasing the right mouse button while scrolling.
+- Fixed `XRInteractionSimulator` allowing switching to hand mode when XR Hands 1.8.0+ is not installed, causing controllers to disappear without hands appearing.
+- Fixed `XRInteractionSimulator` not refreshing scene-dependent references (camera, controllers, hands, XR Origin) after scene changes when persisting via `DontDestroyOnLoad`, causing simulated devices to appear offset from the camera.
 
 ## [3.5.1] - 2026-06-02
 

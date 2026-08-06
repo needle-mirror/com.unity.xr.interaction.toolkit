@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.6.0-pre.1",
+  "version": "3.6.0",
   "unity": "6000.0",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -74,15 +74,15 @@
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added the `XRInteractionSimulatorState` class that keeps track of the current state in the `XRInteractionSimulator`.\n\n### Fixed\n- Fixed XR Direct Interactor and XR Socket Interactor so they can be used when Edit &gt; Project Settings &gt; Physics &gt; Settings has Generate On Trigger Stay Events disabled.\n- Fixed the XR Interaction Simulator unintentionally causing persistent mouse scroll behavior when releasing the right mouse button while scrolling."
+    "changelog": "### Changed\n- Changed [`ICurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster) to add a [`raycastMask`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster.raycastMask) property to allow getting and setting the raycast layer mask without casting to the concrete [`CurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster) type.\n  - This is implemented as a [default interface member](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface#default-interface-members), so users implementing their own custom class implementing this interface may need to implement that property redirecting to its equivalent `LayerMask` property if the property name differs.\n\n### Fixed\n- Fixed [`UIInputModule`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule) to prioritize the event camera from the canvas's raycaster over the main camera (`Camera.main`). This fixes incorrect screen-space coordinate conversions for world space canvases that use a camera other than the main camera, such as composition layer canvases.\n- Fixed `XRInteractionSimulator` throwing a `NullReferenceException` when the scene contains a Main Camera at the hierarchy root.\n- Fixed deprecated API compiler warning when importing the visionOS sample in Unity 6.4 or newer."
   },
   "upmCi": {
-    "footprint": "f7b2a4a944a95a5ff29f2fa946f2f7d90519c40b"
+    "footprint": "d2e97d18dfbf2c51899ac89dd275e61b63783ee8"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.6/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "68fb00ec3bbb0451c584807b0d1014daf1dbb341"
+    "revision": "47d8111c4b582d4b33a59a1dbf962f72e0f45a33"
   }
 }

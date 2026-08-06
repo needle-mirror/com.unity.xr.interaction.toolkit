@@ -901,19 +901,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         bool TryGetCamera(PointerEventData eventData, out Camera screenPointCamera)
         {
-            // Get associated Camera, or Main Camera, or Camera from ray cast, and if *nothing* exists, then abort processing this frame.
-            screenPointCamera = uiCamera;
-            if (screenPointCamera != null)
+            if (m_UICamera != null)
+            {
+                screenPointCamera = m_UICamera;
                 return true;
+            }
 
             var module = eventData.pointerCurrentRaycast.module;
             if (module != null)
             {
                 screenPointCamera = module.eventCamera;
-                return screenPointCamera != null;
+                if (screenPointCamera != null)
+                    return true;
             }
 
-            return false;
+            screenPointCamera = uiCamera;
+            return screenPointCamera != null;
         }
 
         /// <summary>

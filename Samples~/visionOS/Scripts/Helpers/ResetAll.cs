@@ -15,7 +15,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.VisionOS
 
         void Awake()
         {
+#if UNITY_6000_4_OR_NEWER
+            m_Resetables.AddRange(FindObjectsByType<Resetable>());
+#else
             m_Resetables.AddRange(FindObjectsByType<Resetable>(FindObjectsSortMode.None));
+#endif
             m_Interactable = GetComponent<XRBaseInteractable>();
             m_Interactable.selectExited.AddListener(OnSelectExited);
         }

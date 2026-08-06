@@ -141,8 +141,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(inputModule != null, Is.True);
             Assert.That(ComponentLocatorUtility<XRUIInputModule>.componentCache, Is.SameAs(inputModule));
 
+#if UNITY_6000_4_OR_NEWER
+            Assert.That(Object.FindObjectsByType<EventSystem>(), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<XRUIInputModule>(), Has.Length.EqualTo(1));
+#else
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<XRUIInputModule>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+#endif
 
             var interactors = new List<IUIInteractor>();
             inputModule.GetRegisteredInteractors(interactors);
@@ -163,8 +168,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(inputModule != null, Is.True);
             Assert.That(ComponentLocatorUtility<XRUIInputModule>.componentCache, Is.SameAs(inputModule));
 
+#if UNITY_6000_4_OR_NEWER
+            Assert.That(Object.FindObjectsByType<EventSystem>(), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<XRUIInputModule>(), Has.Length.EqualTo(1));
+#else
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
             Assert.That(Object.FindObjectsByType<XRUIInputModule>(FindObjectsSortMode.None), Has.Length.EqualTo(1));
+#endif
 
             var interactors = new List<IUIInteractor>();
             inputModule.GetRegisteredInteractors(interactors);
@@ -192,8 +202,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             //Assert.That(XRInteractionManager.activeInteractionManagers, Is.Empty);
             //Assert.That(interactor.isRegistered, Is.False);
             Assert.That(EventSystem.current == null, Is.True);
+#if UNITY_6000_4_OR_NEWER
+            Assert.That(Object.FindObjectsByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assert.That(Object.FindObjectsByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+#else
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
             Assert.That(Object.FindObjectsByType<XRUIInputModule>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
+#endif
             Assert.That(interactor.registeredInputModule, Is.Null);
 
             // Use API to add the custom interactor to the waitlist
@@ -236,8 +251,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // The module should not be automatically created when set to Manual
             Assert.That(EventSystem.current == null, Is.True);
+#if UNITY_6000_4_OR_NEWER
+            Assert.That(Object.FindObjectsByType<EventSystem>(), Has.Length.EqualTo(0));
+            Assert.That(Object.FindObjectsByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+#else
             Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
             Assert.That(Object.FindObjectsByType<XRUIInputModule>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
+#endif
 
             var interactors = new List<IUIInteractor>();
             var eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(XRUIInputModule));
@@ -277,9 +297,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             if (creationMode == XRInteractionRuntimeSettings.ManagerCreationMode.Manual)
             {
                 Assert.That(EventSystem.current == null, Is.True);
+#if UNITY_6000_4_OR_NEWER
+                Assert.That(Object.FindObjectsByType<EventSystem>(), Has.Length.EqualTo(0));
+                Assert.That(Object.FindObjectsByType<XRUIInputModule>(), Has.Length.EqualTo(0));
+#else
                 Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
                 Assert.That(Object.FindObjectsByType<XRUIInputModule>(FindObjectsSortMode.None), Has.Length.EqualTo(0));
-
+#endif
                 var eventSystemGo = new GameObject("EventSystem", typeof(TestEventSystem), typeof(XRUIInputModule));
                 inputModule = eventSystemGo.GetComponent<XRUIInputModule>();
             }

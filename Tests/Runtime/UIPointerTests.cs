@@ -10,7 +10,6 @@ using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEditor;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -195,7 +194,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             IPointerExitHandler, IPointerUpHandler, IMoveHandler, ISelectHandler, IDeselectHandler, IInitializePotentialDragHandler,
             IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, ISubmitHandler, ICancelHandler, IScrollHandler, IPointerMoveHandler
         {
-            public List<Event> events = new List<Event>();
+            public List<Event> events { get; } = new List<Event>();
 
             public void Reset()
             {
@@ -290,7 +289,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         class GlobalUIReceiver
         {
-            public List<Event> events = new List<Event>();
+            public List<Event> events { get; } = new List<Event>();
 
             public GlobalUIReceiver(UIInputModule module)
             {
@@ -343,7 +342,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 events.Add(new Event(EventType.Click, CloneEventData(eventData), target));
             }
 
-            public void OnPointerMove(GameObject target, BaseEventData eventData)
+            void OnPointerMove(GameObject target, BaseEventData eventData)
             {
                 events.Add(new Event(EventType.PointerMove, CloneEventData(eventData)));
             }

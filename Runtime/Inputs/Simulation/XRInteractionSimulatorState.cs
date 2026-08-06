@@ -4,12 +4,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// State class for the <see cref="XRInteractionSimulator"/>.
     /// </summary>
     /// <remarks>
-    /// Settable properties are assigned each frame in <see cref="XRInteractionSimulator"/>.
+    /// Represents the current input and device state of the <see cref="XRInteractionSimulator"/>.
     /// </remarks>
     /// <seealso cref="XRInteractionSimulator.currentState"/>
     /// <seealso cref="XRInteractionSimulator.previousState"/>
     public class XRInteractionSimulatorState
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XRInteractionSimulatorState"/> class.
+        /// </summary>
+        internal XRInteractionSimulatorState()
+        {
+            leftControllerInputMode = ControllerInputMode.Trigger;
+            rightControllerInputMode = ControllerInputMode.Trigger;
+        }
+
         /// <summary>
         /// Whether the simulator is in controller mode or tracked hand mode.
         /// </summary>
@@ -115,6 +124,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         /// <seealso cref="SimulatedHandExpression.toggleInput"/>
         public bool handExpressionToggleHeld { get; internal set; }
+
+        /// <summary>
+        /// Copies all settable property values from another state instance.
+        /// </summary>
+        /// <param name="other">The state instance to copy from.</param>
+        internal void CopyFrom(XRInteractionSimulatorState other)
+        {
+            deviceMode = other.deviceMode;
+            targetedDeviceInput = other.targetedDeviceInput;
+            isTranslatingRight = other.isTranslatingRight;
+            isTranslatingLeft = other.isTranslatingLeft;
+            isTranslatingUp = other.isTranslatingUp;
+            isTranslatingDown = other.isTranslatingDown;
+            isTranslatingForward = other.isTranslatingForward;
+            isTranslatingBackward = other.isTranslatingBackward;
+            isRotatingRight = other.isRotatingRight;
+            isRotatingLeft = other.isRotatingLeft;
+            isRotatingUp = other.isRotatingUp;
+            isRotatingDown = other.isRotatingDown;
+            performingLeftQuickAction = other.performingLeftQuickAction;
+            performingRightQuickAction = other.performingRightQuickAction;
+            leftDeviceHotkeyModifierPressed = other.leftDeviceHotkeyModifierPressed;
+            leftControllerInputMode = other.leftControllerInputMode;
+            rightControllerInputMode = other.rightControllerInputMode;
+            activeControllerHotkeyButtons = other.activeControllerHotkeyButtons;
+            leftHandExpression = other.leftHandExpression;
+            rightHandExpression = other.rightHandExpression;
+            handExpressionToggleHeld = other.handExpressionToggleHeld;
+        }
 
         /// <summary>
         /// Whether the simulator is manipulating the Left device (controller or hand).

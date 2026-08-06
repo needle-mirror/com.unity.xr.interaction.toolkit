@@ -69,6 +69,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_TranslateSpace;
         SerializedProperty m_InteractionSimulatorUI;
         SerializedProperty m_UsePointAndClick;
+        SerializedProperty m_DeviceAimCameraRadius;
 #if XR_HANDS_1_1_OR_NEWER
         SerializedProperty m_DefaultPointAndClickHandedness;
 #endif
@@ -165,6 +166,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
             m_TranslateSpace = serializedObject.FindProperty("m_TranslateSpace");
             m_InteractionSimulatorUI = serializedObject.FindProperty("m_InteractionSimulatorUI");
             m_UsePointAndClick = serializedObject.FindProperty("m_UsePointAndClick");
+            m_DeviceAimCameraRadius = serializedObject.FindProperty("m_DeviceAimCameraRadius");
 #if XR_HANDS_1_1_OR_NEWER
             m_DefaultPointAndClickHandedness = serializedObject.FindProperty("m_DefaultPointAndClickHandedness");
 #endif
@@ -331,6 +333,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 EditorGUILayout.PropertyField(m_TranslateSpace);
                 EditorGUILayout.PropertyField(m_InteractionSimulatorUI);
                 EditorGUILayout.PropertyField(m_UsePointAndClick);
+                EditorGUILayout.PropertyField(m_DeviceAimCameraRadius);
 #if XR_HANDS_1_1_OR_NEWER
                 EditorGUILayout.PropertyField(m_DefaultPointAndClickHandedness);
 #endif

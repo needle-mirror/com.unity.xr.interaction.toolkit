@@ -199,6 +199,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
 
         static readonly Color k_DisabledColor = new Color(0x70 / 255f, 0x70 / 255f, 0x70 / 255f);
 
+        const string k_HandsPackageMissingWarning = "Install XR Hands 1.8.0+ to enable Hands.";
+        const string k_HandsPackageUpdateWarning = "Update XR Hands to 1.8.0+ to enable Hands.";
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -221,17 +224,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
             InitializeQuickActionPanels();
 
 #if XR_HANDS_1_1_OR_NEWER
-            CheckInputModalityManager();
+#if !XR_HANDS_1_8_OR_NEWER
+            SetHandPackageWarning(k_HandsPackageUpdateWarning);
 #else
-            m_HandPackageWarningPanel.SetActive(true);
-            m_LeftHandIcon.color = k_DisabledColor;
-            m_RightHandIcon.color = k_DisabledColor;
+            CheckInputModalityManager();
+#endif
+#else
+            SetHandPackageWarning(k_HandsPackageMissingWarning);
 #endif
 
 #if XR_HANDS_1_2_OR_NEWER
             if (!m_HandPackageWarningPanel.activeSelf && !m_InputModalityManagerWarningPanel.activeSelf)
                 CheckHandVisualizer();
 #endif
+        }
+
+        void SetHandPackageWarning(string message)
+        {
+            m_HandPackageWarningPanel.SetActive(true);
+            m_LeftHandIcon.color = k_DisabledColor;
+            m_RightHandIcon.color = k_DisabledColor;
+
+            var warningText = m_HandPackageWarningPanel.GetComponentInChildren<Text>();
+            if (warningText != null)
+                warningText.text = message;
         }
 
         void CheckInputModalityManager()
@@ -559,7 +575,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.InteractionSimulator
             var current = m_Simulator.currentState;
             var previous = m_Simulator.previousState;
 
-            if (current.manipulatingFPS || current.currentControllerInputMode == previous.currentControllerInputMode)
+            if (current.manipulatingFPS)
+                return;
+
+            if (current.currentControllerInputMode == previous.currentControllerInputMode &&
+                current.targetedDeviceInput == previous.targetedDeviceInput &&
+                current.deviceMode == previous.deviceMode)
                 return;
 
             bool hasPanel = m_ControllerInputRow.ContainsKey(current.currentControllerInputMode);
