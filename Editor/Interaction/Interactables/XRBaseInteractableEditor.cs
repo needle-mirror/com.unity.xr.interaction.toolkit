@@ -152,6 +152,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             /// <summary>The help box message when the distance calculation is being overridden.</summary>
             public static readonly GUIContent distanceCalculationOverride = EditorGUIUtility.TrTextContent("The distance calculation is being overridden and driven by another method.");
 
+            /// <summary>The help box message when the colliders list is disabled during play mode.</summary>
+            public static readonly GUIContent collidersDisabledPlayMode = EditorGUIUtility.TrTextContent("Colliders cannot be modified while the interactable is active and enabled during Play mode. Disable the component to edit the list or use RegisterCollider, UnregisterCollider, or RefreshColliders in code.");
+
             /// <summary>The gaze configuration foldout.</summary>
             public static readonly GUIContent gazeConfiguration = EditorGUIUtility.TrTextContent("Gaze Configuration", "Settings for gaze interactions.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseInteractable.allowGazeInteraction"/>.</summary>
@@ -469,7 +472,30 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
         {
             EditorGUILayout.PropertyField(m_InteractionManager, BaseContents.interactionManager);
             EditorGUILayout.PropertyField(m_InteractionLayers, BaseContents.interactionLayers);
-            EditorGUILayout.PropertyField(m_Colliders, BaseContents.colliders, true);
+
+            // Disable collider editing during play mode when any target is active and enabled.
+            // The collider-to-interactable mapping in the Interaction Manager cannot be updated
+            // through Inspector modifications. Use RegisterCollider, UnregisterCollider, or
+            // RefreshColliders in code, or disable the component to edit the list.
+            var disableColliders = Application.isPlaying && IsAnyTargetActiveAndEnabled();
+            using (new EditorGUI.DisabledScope(disableColliders))
+            {
+                EditorGUILayout.PropertyField(m_Colliders, BaseContents.colliders, true);
+            }
+
+            if (disableColliders && m_Colliders.isExpanded)
+                EditorGUILayout.HelpBox(BaseContents.collidersDisabledPlayMode.text, MessageType.Info);
+        }
+
+        bool IsAnyTargetActiveAndEnabled()
+        {
+            foreach (var targetObject in targets)
+            {
+                if (targetObject is XRBaseInteractable interactable && interactable.isActiveAndEnabled)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

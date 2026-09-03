@@ -10,6 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     /// Filter component that allows for basic poke functionality
     /// and to define constraints for when the interactable will be selected.
     /// </summary>
+    /// <seealso cref="XRBaseInteractable.collidersChanged"/>
     [AddComponentMenu("XR/XR Poke Filter", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeFilter)]
     public class XRPokeFilter : MonoBehaviour, IXRPokeFilter, IPokeStateDataProvider
@@ -26,7 +27,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             get => m_Interactable;
             set
             {
+                if (ReferenceEquals(m_Interactable, value))
+                    return;
+
+                Unsubscribe();
                 m_Interactable = value;
+                m_PokeCollider = null;
                 Setup();
             }
         }
@@ -126,7 +132,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 if (m_Interactable == null)
                 {
                     Debug.LogWarning($"Could not find associated {nameof(XRBaseInteractable)} in scene." +
-                        $"This {nameof(XRPokeFilter)} will be disabled.", this);
+                        $" This {nameof(XRPokeFilter)} will be disabled.", this);
                     incomplete = true;
                 }
             }
@@ -137,7 +143,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
                 if (m_PokeCollider == null)
                 {
                     Debug.LogWarning($"Could not find a {nameof(Collider)} associated with this filter in the scene." +
-                        $"This {nameof(XRPokeFilter)} will be disabled.", this);
+                        $" This {nameof(XRPokeFilter)} will be disabled until a collider is added to the interactable.", this);
                     incomplete = true;
                 }
             }
@@ -149,8 +155,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             }
 
             // Incomplete configuration, disable self to indicate this filter should not be processed.
+            // Subscribe even when incomplete so collidersChanged can trigger recovery
+            // (e.g. UI Toolkit panels that create colliders dynamically after Start).
             if (incomplete)
             {
+                if (m_Interactable != null)
+                    Subscribe(m_Interactable);
+
                 enabled = false;
                 return;
             }
@@ -166,6 +177,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             Unsubscribe();
 
             m_PokeLogic?.Dispose();
+        }
+
+        void OnInteractableCollidersChanged(CollidersChangedEventArgs args)
+        {
+            m_PokeCollider = FindPokeCollider();
+
+            if (m_PokeCollider == null)
+            {
+                enabled = false;
+                return;
+            }
+
+            if (!enabled)
+            {
+                enabled = true;
+                Setup();
+            }
         }
 
         /// <summary>
@@ -219,6 +247,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
         {
             if (m_PokeLogic == null)
                 return;
+
+            // Reinitialize poke logic to sync with current collider bounds.
+            // This handles colliders that were resized or recreated since the last poke
+            // (e.g. dynamically created UI Toolkit colliders).
+            var colliderValue = FindPokeCollider();
+            if (colliderValue != null)
+            {
+                m_PokeCollider = colliderValue;
+                var interactableValue = FindPokeInteractable();
+                var thresholdValue = m_PokeConfiguration.Value;
+                if (interactableValue != null && thresholdValue != null)
+                    m_PokeLogic.Initialize(interactableValue.GetAttachTransform(null), thresholdValue, colliderValue);
+            }
 
             var interactor = args.interactorObject;
             var interactable = args.interactableObject;
@@ -278,6 +319,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             interactable.interactionStrengthFilters.Add(this);
             interactable.hoverEntered.AddListener(OnHoverEntered);
             interactable.hoverExited.AddListener(OnHoverExited);
+            interactable.collidersChanged += OnInteractableCollidersChanged;
 
             m_SubscribedInteractable = interactable;
         }
@@ -291,6 +333,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             m_SubscribedInteractable.interactionStrengthFilters.Remove(this);
             m_SubscribedInteractable.hoverEntered.RemoveListener(OnHoverEntered);
             m_SubscribedInteractable.hoverExited.RemoveListener(OnHoverExited);
+            m_SubscribedInteractable.collidersChanged -= OnInteractableCollidersChanged;
 
             m_SubscribedInteractable = null;
         }

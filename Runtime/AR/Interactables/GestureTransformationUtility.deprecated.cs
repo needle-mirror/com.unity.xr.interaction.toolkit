@@ -20,6 +20,9 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
@@ -35,6 +38,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Provides helper functions for common functionality to transform objects in AR.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [Obsolete("GestureTransformationUtility has been replaced in function by the ARTransformer. Please use the ARTransformer instead.")]
     public static class GestureTransformationUtility
     {

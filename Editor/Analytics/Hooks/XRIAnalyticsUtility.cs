@@ -9,6 +9,9 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Assembly = System.Reflection.Assembly;
 #if UNITY_6000_5_OR_NEWER
 using UnityEngine.Assemblies;
@@ -36,6 +39,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
     /// Some data is included in both the build and play mode analytics payloads, so this class contains common code
     /// for getting data for either.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class XRIAnalyticsUtility
     {
         const string k_PackageDisplayName = "XR Interaction Toolkit";

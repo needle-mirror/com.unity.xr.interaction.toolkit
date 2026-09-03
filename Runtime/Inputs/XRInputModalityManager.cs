@@ -11,6 +11,9 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 #endif
@@ -36,6 +39,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     /// this component will keep them deactivated until the controllers become tracked to avoid showing the controllers at the default
     /// origin position.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/XR Input Modality Manager", 11)]
     [HelpURL(XRHelpURLConstants.k_XRInputModalityManager)]
     public class XRInputModalityManager : MonoBehaviour

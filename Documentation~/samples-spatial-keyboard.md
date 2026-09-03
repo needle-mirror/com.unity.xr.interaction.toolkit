@@ -24,9 +24,16 @@ This sample is installed into the default location for package samples, in the `
 |**`Sprites\`**|Contains keyboard icon sprites.|
 |**`KeyboardDemo`**|Scene that demonstrates use of the keyboard prefabs.<br />See [Demo scene](#demo-scene) below.|
 
+## Prerequisites and setup
+
+In order for this sample to function properly, a few additional packages and samples are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
+  * [Starter Assets](xref:xri-samples-starter-assets) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
+  * [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
+  * TextMesh Pro - TMP Essential Resources must be installed. Import TMP Essential Resources by navigating to **Window** &gt; **TextMeshPro** &gt; **Import TMP Essential Resources**.
+
 ## Demo scene
 
-The `KeyboardDemo` demo scene contains some demonstrations of global keyboard and world space keyboard use cases in conjunction with a few different configurations of the `XRKeyboardDisplay` and input fields.
+The `KeyboardDemo` demo scene contains some demonstrations of global keyboard and world space keyboard use cases in conjunction with a few different configurations of the `XRKeyboardDisplay` and input fields. The scene includes the `XR Origin Hands (XR Rig)` prefab from the [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample, enabling hand tracking support for keyboard interaction via poke and pinch gestures.
 
 ### Global Keyboard Example
 

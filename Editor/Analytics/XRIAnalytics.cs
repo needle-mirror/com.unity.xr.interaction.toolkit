@@ -1,3 +1,6 @@
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if XRI_ANALYTICS_DEBUGGING_ENABLED
 using UnityEngine;
 #endif
@@ -7,6 +10,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics
     /// <summary>
     /// The entry point class to send XR Interaction Toolkit analytics data.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class XRIAnalytics
     {
         /// <summary>

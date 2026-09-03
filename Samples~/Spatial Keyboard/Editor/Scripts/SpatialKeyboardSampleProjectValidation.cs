@@ -7,6 +7,9 @@ using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
 {
@@ -14,11 +17,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
     /// Unity Editor class which registers Project Validation rules for the Spatial Keyboard sample,
     /// checking that required samples and packages are installed.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class SpatialKeyboardSampleProjectValidation
     {
         const string k_SampleDisplayName = "Spatial Keyboard";
         const string k_Category = "XR Interaction Toolkit";
         const string k_StarterAssetsSampleName = "Starter Assets";
+        const string k_HandsInteractionDemoSampleName = "Hands Interaction Demo";
         const string k_ProjectValidationSettingsPath = "Project/XR Plug-in Management/Project Validation";
         const string k_XRIPackageName = "com.unity.xr.interaction.toolkit";
 
@@ -41,6 +48,21 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.SpatialKeyboard.Editor
                 },
                 FixItAutomatic = true,
                 Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_StarterAssetsSampleName),
+            },
+            new BuildValidationRule
+            {
+                Message = $"[{k_SampleDisplayName}] {k_HandsInteractionDemoSampleName} sample from XR Interaction Toolkit ({k_XRIPackageName}) package must be imported or updated to use this sample. {GetImportSampleVersionMessage(k_Category, k_HandsInteractionDemoSampleName, ProjectValidationUtility.minimumXRIStarterAssetsSampleVersion)}",
+                Category = k_Category,
+                CheckPredicate = () => ProjectValidationUtility.SampleImportMeetsMinimumVersion(k_Category, k_HandsInteractionDemoSampleName, ProjectValidationUtility.minimumXRIStarterAssetsSampleVersion),
+                FixIt = () =>
+                {
+                    if (TryFindSample(k_XRIPackageName, string.Empty, k_HandsInteractionDemoSampleName, out var sample))
+                    {
+                        sample.Import(Sample.ImportOptions.OverridePreviousImports);
+                    }
+                },
+                FixItAutomatic = true,
+                Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_HandsInteractionDemoSampleName),
             },
             new BuildValidationRule
             {

@@ -297,28 +297,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
             Vector3 center = m_InitialTransform.position;
 
             float lengthOfInteractionAxis = 0f;
+            float halfAxisSize = 0f;
             float centerOffsetLength;
 
             switch (m_PokeThresholdData.pokeDirection)
             {
                 case PokeAxis.X:
                 case PokeAxis.NegativeX:
+                    halfAxisSize = boundsSize.x / 2f;
                     centerOffsetLength = bounds.center.x - center.x;
-                    lengthOfInteractionAxis = boundsSize.x / 2f + centerOffsetLength;
+                    lengthOfInteractionAxis = halfAxisSize + centerOffsetLength;
                     break;
                 case PokeAxis.Y:
                 case PokeAxis.NegativeY:
+                    halfAxisSize = boundsSize.y / 2f;
                     centerOffsetLength = bounds.center.y - center.y;
-                    lengthOfInteractionAxis = boundsSize.y / 2f + centerOffsetLength;
+                    lengthOfInteractionAxis = halfAxisSize + centerOffsetLength;
                     break;
                 case PokeAxis.Z:
                 case PokeAxis.NegativeZ:
+                    halfAxisSize = boundsSize.z / 2f;
                     centerOffsetLength = bounds.center.z - center.z;
-                    lengthOfInteractionAxis = boundsSize.z / 2f + centerOffsetLength;
+                    lengthOfInteractionAxis = halfAxisSize + centerOffsetLength;
                     break;
             }
 
-            return lengthOfInteractionAxis;
+            // Ensure the axis length is at least the half-size of the collider along the poke axis.
+            // This prevents a zero or negative axis when the collider center offset relative to the
+            // interactable's transform cancels out the half-size (e.g. thin dynamically-created colliders
+            // where the transform position doesn't align with the collider center).
+            return Mathf.Max(lengthOfInteractionAxis, halfAxisSize);
         }
 
         /// <summary>

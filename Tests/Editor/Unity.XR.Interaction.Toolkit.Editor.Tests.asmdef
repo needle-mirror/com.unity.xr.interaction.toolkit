@@ -35,9 +35,19 @@
             "define": "XR_HANDS_1_8_OR_NEWER"
         },
         {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "UIELEMENTS_MODULE_PRESENT"
+        },
+        {
             "name": "com.unity.burst",
             "expression": "1.6.6",
             "define": "BURST_PRESENT"
+        },
+        {
+            "name": "Unity",
+            "expression": "6000.6.0b1",
+            "define": "UNITY_6000_6_B1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

@@ -7,6 +7,9 @@ using UnityEngine.InputSystem.Controls;
 using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -107,6 +110,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// <summary>
     /// Custom class for input modules that send UI input in XR.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("Event/XR UI Input Module", 11)]
     [HelpURL(XRHelpURLConstants.k_XRUIInputModule)]
     public partial class XRUIInputModule : UIInputModule

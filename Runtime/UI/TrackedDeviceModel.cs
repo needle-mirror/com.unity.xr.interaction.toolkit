@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -25,6 +28,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// <summary>
     /// Models a tracked device.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public partial struct TrackedDeviceModel
     {
         internal struct ImplementationData

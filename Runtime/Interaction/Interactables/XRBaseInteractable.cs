@@ -5,6 +5,8 @@ using Unity.Profiling;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.XR.CoreUtils.Collections;
+using UnityEngine.Events;
+using UnityEngine.Pool;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Gaze;
@@ -184,6 +186,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             }
         }
 
+        // The colliders list is grayed out in the Inspector during play mode when the interactable
+        // is active (see XRBaseInteractableEditor.DrawInteractionManagement). Use
+        // RegisterCollider/UnregisterCollider/RefreshColliders to modify colliders at runtime,
+        // or disable the component to edit the list in the Inspector.
         [SerializeField]
 #pragma warning disable IDE0044 // Add readonly modifier -- readonly fields cannot be serialized by Unity
         List<Collider> m_Colliders = new List<Collider>();
@@ -192,7 +198,30 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         /// <summary>
         /// (Read Only) Colliders to use for interaction with this Interactable (if empty, will use any child Colliders).
         /// </summary>
+        /// <remarks>
+        /// Colliders are discovered automatically during <see cref="Awake"/>. If colliders are added or removed
+        /// after registration, call <see cref="RegisterCollider"/>, <see cref="UnregisterCollider"/>, or
+        /// <see cref="RefreshColliders"/> to update the <see cref="XRInteractionManager"/> collider-to-interactable
+        /// mapping. Modifying this list directly will not update the mapping.
+        /// </remarks>
         public List<Collider> colliders => m_Colliders;
+
+        /// <summary>
+        /// Event invoked when the collider list changes after initialization. Fired by <see cref="RegisterCollider"/>,
+        /// <see cref="UnregisterCollider"/>, and <see cref="RefreshColliders"/> when the collider list
+        /// actually changed. Other components (such as <see cref="XRPokeFilter"/>) can subscribe to this
+        /// event to recover when colliders are added dynamically after initial registration.
+        /// </summary>
+        /// <seealso cref="RegisterCollider"/>
+        /// <seealso cref="UnregisterCollider"/>
+        /// <seealso cref="RefreshColliders"/>
+        public event UnityAction<CollidersChangedEventArgs> collidersChanged;
+
+        // Reusable list used by RefreshColliders to snapshot the previous collider state.
+        readonly List<Collider> m_PreviousColliders = new List<Collider>();
+
+        readonly LinkedPool<CollidersChangedEventArgs> m_CollidersChangedEventArgs =
+            new LinkedPool<CollidersChangedEventArgs>(() => new CollidersChangedEventArgs(), collectionCheck: false);
 
         [SerializeField]
         InteractionLayerMask m_InteractionLayers = 1;
@@ -739,6 +768,148 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
             // Don't need to do anything; method kept for backwards compatibility.
         }
 
+        /// <summary>
+        /// Re-scans child colliders and updates the <see cref="XRInteractionManager"/>'s collider-to-interactable
+        /// mapping without canceling hover, select, or focus state. Call this when colliders are added to or
+        /// removed from the interactable's hierarchy after initial registration.
+        /// </summary>
+        /// <param name="includeTriggerColliders">When <see langword="false"/> (default), trigger colliders are
+        /// excluded from the scan, mirroring the behavior of <see cref="Awake"/>. Set to <see langword="true"/>
+        /// to include trigger colliders in the refreshed list.</param>
+        /// <remarks>
+        /// This method clears the collider list and repopulates it using <see cref="Component.GetComponentsInChildren{T}()"/>.
+        /// Colliders that are not on this GameObject or its children will not be included in the refreshed list.
+        /// Use <see cref="RegisterCollider"/> instead to add colliders that are outside the hierarchy.
+        /// Colliders that are already registered with a different interactable are excluded to prevent
+        /// a parent interactable from claiming colliders that belong to a child interactable.
+        /// After updating, the <see cref="collidersChanged"/> event is invoked only if the collider list changed.
+        /// </remarks>
+        /// <seealso cref="collidersChanged"/>
+        /// <seealso cref="RegisterCollider"/>
+        public void RefreshColliders(bool includeTriggerColliders = false)
+        {
+            // Snapshot the previous colliders so the manager can diff old vs new.
+            m_PreviousColliders.Clear();
+            m_PreviousColliders.AddRange(m_Colliders);
+
+            // Re-scan, mirroring the logic in Awake().
+            m_Colliders.Clear();
+            GetComponentsInChildren(m_Colliders);
+            if (!includeTriggerColliders)
+                m_Colliders.RemoveAll(col => col.isTrigger);
+
+            // Skip colliders that are already registered with a different interactable.
+            // This prevents a parent interactable from claiming colliders that belong to
+            // a child interactable (e.g. a grab interactable with a nested UI Document).
+            if (m_RegisteredInteractionManager != null)
+            {
+                m_Colliders.RemoveAll(col =>
+                    m_RegisteredInteractionManager.TryGetInteractableForCollider(col, out var associatedInteractable) &&
+                    !ReferenceEquals(associatedInteractable, this));
+            }
+
+            // Only update the manager and fire the event if the collider list actually changed.
+            if (!CollidersListEquivalent(m_PreviousColliders, m_Colliders))
+            {
+                if (m_RegisteredInteractionManager != null)
+                    m_RegisteredInteractionManager.UpdateInteractableColliderMappings(this, m_PreviousColliders);
+
+                using (m_CollidersChangedEventArgs.Get(out var args))
+                {
+                    args.interactable = this;
+                    args.updateType = ColliderUpdateType.Refreshed;
+                    args.collider = null;
+                    collidersChanged?.Invoke(args);
+                }
+            }
+
+            m_PreviousColliders.Clear();
+
+            // Order independent comparison of the contents of the lists
+            static bool CollidersListEquivalent(List<Collider> a, List<Collider> b)
+            {
+                if (a.Count != b.Count)
+                    return false;
+
+                // For typical interactable collider lists (1-3 items),
+                // a linear Contains check is faster than allocating a HashSet.
+                foreach (var collider in b)
+                {
+                    if (!a.Contains(collider))
+                        return false;
+                }
+
+                // Since a List type can contain multiple entries, we also need to rule out duplicate entries causing a equal count.
+                foreach (var collider in a)
+                {
+                    if (!b.Contains(collider))
+                        return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Registers a collider with this interactable and updates the <see cref="XRInteractionManager"/>'s
+        /// collider-to-interactable mapping. Use this to add a collider after initial registration without
+        /// re-scanning the entire hierarchy.
+        /// </summary>
+        /// <param name="col">The collider to register. May be a trigger collider.</param>
+        /// <returns><see langword="true"/> if the collider was added; <see langword="false"/> if it was
+        /// <see langword="null"/> or already in the list.</returns>
+        /// <seealso cref="UnregisterCollider"/>
+        /// <seealso cref="RefreshColliders"/>
+        public bool RegisterCollider(Collider col)
+        {
+            if (col == null || m_Colliders.Contains(col))
+                return false;
+
+            m_Colliders.Add(col);
+
+            if (m_RegisteredInteractionManager != null)
+                m_RegisteredInteractionManager.RegisterColliderMapping(col, this);
+
+            using (m_CollidersChangedEventArgs.Get(out var args))
+            {
+                args.interactable = this;
+                args.updateType = ColliderUpdateType.Added;
+                args.collider = col;
+                collidersChanged?.Invoke(args);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Unregisters a collider from this interactable and removes it from the <see cref="XRInteractionManager"/>'s
+        /// collider-to-interactable mapping. Interaction state (hover, select) will be re-evaluated on the next frame
+        /// through the normal validation cycle.
+        /// </summary>
+        /// <param name="col">The collider to unregister.</param>
+        /// <returns><see langword="true"/> if the collider was removed; <see langword="false"/> if it was
+        /// <see langword="null"/> or not in the list.</returns>
+        /// <seealso cref="RegisterCollider"/>
+        /// <seealso cref="RefreshColliders"/>
+        public bool UnregisterCollider(Collider col)
+        {
+            if (col == null || !m_Colliders.Remove(col))
+                return false;
+
+            if (m_RegisteredInteractionManager != null)
+                m_RegisteredInteractionManager.UnregisterColliderMapping(col, this);
+
+            using (m_CollidersChangedEventArgs.Get(out var args))
+            {
+                args.interactable = this;
+                args.updateType = ColliderUpdateType.Removed;
+                args.collider = col;
+                collidersChanged?.Invoke(args);
+            }
+
+            return true;
+        }
+
         void RegisterWithInteractionManager(XRInteractionManager manager)
         {
             if (!isActiveAndEnabled)
@@ -962,7 +1133,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 return;
 
             // Try and find any attached reticle and swap it
-            var reticleProvider = interactorTransform.GetComponent<IXRCustomReticleProvider>();
+            var reticleProvider = interactorTransform.GetComponentInChildren<IXRCustomReticleProvider>(true);
             if (reticleProvider != null)
             {
                 if (m_ReticleCache.TryGetValue(interactor, out var prevReticle))
@@ -999,7 +1170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
                 return;
 
             // Try and find any attached reticle and swap it
-            var reticleProvider = interactorTransform.GetComponent<IXRCustomReticleProvider>();
+            var reticleProvider = interactorTransform.GetComponentInChildren<IXRCustomReticleProvider>(true);
             if (reticleProvider != null)
             {
                 if (m_ReticleCache.TryGetValue(interactor, out var reticleInstance))

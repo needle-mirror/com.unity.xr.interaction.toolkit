@@ -9,6 +9,41 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.7.0-pre.1] - 2026-09-03
+
+### Added
+- Added support for dynamically adding and removing colliders on interactables after registration. `XRBaseInteractable` now provides `RegisterCollider`, `UnregisterCollider`, `RefreshColliders`, and a `collidersChanged` event (with `CollidersChangedEventArgs`) for managing colliders at runtime. For UI Toolkit world space panels, colliders created dynamically by `UIDocument` are automatically registered when the `XRUIToolkitManager` is present in the scene.
+- Added `XRPokeFilter` recovery path that automatically re-enables the filter when colliders are added to an interactable after the filter initially disabled itself due to missing colliders.
+- Added editor restriction to prevent modifying the **Colliders** list in the Inspector during Play mode while the interactable is active. A help box directs users to the runtime API (`RegisterCollider`, `UnregisterCollider`, `RefreshColliders`) or to disable the component to edit the list.
+- Added support for hands in the Spatial Keyboard sample. Adds a dependency on the Hands Interaction Demo sample which contains the XR Origin prefab configured for hands.
+- Added UI buttons to teleport pads in Starter Assets, Spatial Keyboard, and World Space UI Samples.
+- Added reticle support to [`CurveVisualController`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals.CurveVisualController). The component also now implements [`IXRCustomReticleProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals.IXRCustomReticleProvider) to be able to receive reticles from interactables.
+- Added `BlockedReticleSwapper` sample component to Starter Assets that swaps the reticle on a `CurveVisualController` when the interactor is hovering but cannot select.
+
+### Changed
+- Changed `XRUIToolkitManager` to add a `MonoBehaviour.Update` method implementation for monitoring dynamic collider registrations. The manager detects externally destroyed colliders (e.g. `UIDocument` disable/re-enable) and re-registers them when they return. Panels with **Collider Update Mode** set to **Keep existing colliders (if any)** in Panel Settings are skipped. Users who have a derived class that implements `Update` will need to call `base.Update()` for dynamic collider registration to function.
+- Changed `XRPokeFilter` to stay subscribed to `collidersChanged` and update its collider reference when colliders are replaced at runtime.
+- Changed `XRPokeFilter` to recompute poke interaction depth at the start of each poke to account for collider bounds changes.
+- Changed `XRPokeLogic` interaction axis length calculation to ensure thin colliders with center offsets produce a valid poke depth. The axis length is now clamped to at least half the collider's size along the poke direction. Colliders with zero depth along the poke direction will still return 0.
+- Changed script assets Hands Interaction Demo sample by moving `CalloutGazeController` and `UIComponentToggler` to the Starter Asserts sample to support Starter Assets UI Button teleport.
+
+### Fixed
+- Fixed UI Toolkit world space panels with dynamically created colliders not working with poke interactors. ([UUM-143724](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-143724))
+- Fixed `ButtonEventSample` in the World Space UI sample not rebinding UI element references when the `UIDocument` component is disabled and re-enabled independently of the GameObject.
+- Fixed [`XRBaseInteractable`](xref:UnityEngine.XR.Interaction.Toolkit.Interactables.XRBaseInteractable) custom reticle injection to search child GameObjects for [`IXRCustomReticleProvider`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals.IXRCustomReticleProvider), allowing it to work when the provider is on a child GameObject.
+
+<!-- Unreleased -->
+## [3.6.1] - 2026-08-24
+
+### Added
+- Added sticky hotkey behavior to `XRInteractionSimulator` so that controller button state persists when switching the targeted device. Pressing the same hotkey again while on the other controller cancels the sticky state.
+- Added prerequisite information to the [World Space UI sample package](xref:xri-samples-world-space-ui) and [Spatial Keyboard sample package](xref:xri-samples-spatial-keyboard) manual pages. [UUM-149121](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149121)
+
+### Fixed
+- Fixed the Hands Interaction Demo sample throwing two `CS0414` compiler warnings with the `JoystickPinchHandGesture` class when `XR Hands` package has not been installed.
+- Fixed the custom parameter editor for the [`SectorInteraction`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions.SectorInteraction) drawing its parameters (Directions, Sweep Behavior, and Press Point) twice in the UI Toolkit-based Input Actions editor, which caused duplicated fields to appear for bindings that use the Sector interaction. Note that in com.unity.inputsystem versions 1.17.0 and 1.18.0, the Sector interaction will not show any editable properties when viewing an Input Action in the Inspector window. We recommend updating Input System to version 1.20.0 to resolve that issue.
+- Fixed static-cleanup analyzer warnings when importing samples in Unity 6.5 or newer by adding the `[NoAutoStaticsCleanup]` attribute to sample types that hold static fields. [UUM-149128](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149128)
+- Fixed an API deprecation error caused by the removal of  `SetUITookitEventSystemOverride` from the EventSystem class.
 
 ## [3.6.0] - 2026-08-06
 

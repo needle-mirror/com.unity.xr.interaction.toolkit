@@ -4,6 +4,9 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEditor.SceneManagement;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 {
@@ -15,6 +18,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// in the filter to properly trigger the evaluator callbacks when needed.
     /// </remarks>
     /// <seealso cref="XRTargetEvaluator"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class XRTargetEvaluatorEditorUtility
     {
         /// <summary>

@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Collections;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 {
@@ -9,6 +12,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
     /// Tracks the velocity and angular velocity of an attachment point in an XR interaction context.
     /// It uses weighted linear regression to calculate velocities over a series of frames, providing smooth and accurate results.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit.Interaction")]
     public class AttachPointVelocityTracker : IAttachPointVelocityTracker
     {

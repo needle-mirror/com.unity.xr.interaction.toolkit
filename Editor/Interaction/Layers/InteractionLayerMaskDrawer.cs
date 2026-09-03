@@ -2,12 +2,18 @@ using System.Collections.Generic;
 using UnityEditor.XR.Interaction.Toolkit.Utilities;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Class used to draw an <see cref="InteractionLayerMask"/>.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomPropertyDrawer(typeof(InteractionLayerMask))]
     class InteractionLayerMaskDrawer : PropertyDrawer
     {

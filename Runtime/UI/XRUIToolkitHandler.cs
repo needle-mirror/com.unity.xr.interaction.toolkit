@@ -12,6 +12,9 @@ using UnityEngine.Pool;
 using UnityEngine.UIElements;
 #endif
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -58,6 +61,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// <summary>
     /// Static utility class to assist with processing UI Toolkit events and registration.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     internal static class XRUIToolkitHandler
     {
         const int k_MaxInteractors = 8;

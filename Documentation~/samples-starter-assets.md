@@ -32,9 +32,6 @@ This sample contains:
 
 In order for this sample to function properly, the [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) package is required. Install this by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
 
-> [!IMPORTANT]
-> There is a known issue when upgrading from an older version of the Starter Assets to a newer version. Script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` folder from your `Samples` directory before importing the new Starter Assets sample package.
-
 <a name="demo-scene"></a>
 ## Demo Scene
 
@@ -318,6 +315,7 @@ For a complete example of configuring input actions for each controller, and usi
 |**`Interactors\`**|Folder containing individual interactors for constructing an XR Interaction rig.|
 |**`Permissions Manager`**|Prefab that makes your app prompt the user for permissions to use Mixed Reality headsets features such as eye tracking, hand tracking, and scene understanding in your app.|
 |**`Teleport\`**|Folder containing prefabs for common teleportation reticles.|
+|**`Teleport UI Button`**|Prefab containing a world-space UI button that triggers teleportation when pressed. Configured with a `UIComponentToggler` to show and hide the button based on gaze alignment.|
 |**`XR Origin (XR Rig)`**|Prefab representing the camera rig. It is configured for various modes of locomotion and interaction, as described in detail under Typical XR Interaction configuration above.|
 
 ## Tunneling vignette
@@ -370,6 +368,7 @@ The following scripts are included to support the prefabs and `DemoScene`.
 
 |**Script**|**Description**|
 |---|---|
+|**`CalloutGazeController`**|Performs events when this object is within the field of view of the gaze transform. Used to hide and show UI elements based on gaze alignment.|
 |**`ClimbTeleportDestinationIndicator`**|Affordance component used in conjunction with a [Climb Teleport Interactor](climb-teleport-interactor.md) to display an object pointing at the target teleport destination while climbing.|
 |**`ControllerInputActionManager`**|Component used to mediate the interactors for a controller under different interaction states and the input actions used by them.|
 |**`DestroySelf`**|Destroys the GameObject it is attached to after a specified amount of time.|
@@ -378,6 +377,7 @@ The following scripts are included to support the prefabs and `DemoScene`.
 |**`ObjectSpawner`**|Component with an API for spawning objects from a given set of prefabs. This component has additional options to constrain when spawning happens and behavior of object when spawned.|
 |**`RotationAxisLockGrabTransformer`**|An XR grab transformer that allows for the locking of specific rotation axes.|
 |**`ToggleComponentZone`**|Component used to enable/disable components or activate/deactivate GameObjects upon entry into a trigger collider.|
+|**`UIComponentToggler`**|Show and hide UI components and GameObjects based on gaze alignment, with support for fading via a CanvasGroup. Extends `CalloutGazeController` with distance-based threshold and fade animation.|
 |**`XRPokeFollowAffordance`**|Component used to animate a Transform to follow the poke position. Used by poke buttons in the `DemoScene`. Note, when configuring a UI button with `XRPokeFollowAffordance`, ensure there is a component on that same GameObject which can be a raycast target (i.e. `Image`, `Raw Image`, `Text`) and have `Raycast Target` set to `true`. Additionally, ensure `Raycast Target` is set to `false` on any `Text` or `Image` components on children GameObjects under the `XRPokeFollowAffordance` GameObject. See the touchpad in the [Hands Demo](samples-hands-interaction-demo.md) scene for an example.|
 
 ## Known issues

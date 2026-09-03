@@ -10,6 +10,9 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Assembly = System.Reflection.Assembly;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
@@ -24,6 +27,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
     /// to analyze a scene passed in from the Editor when not playing, but we currently only use it during the build.
     /// </remarks>
     /// <seealso cref="UpdateEventPayload"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class XRISceneAnalyzer
     {
         /// <summary>

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Scripting.APIUpdating;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
 {
@@ -143,6 +146,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
         /// <summary>
         /// Provides default values for <see cref="VignetteParameters"/>.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         internal static class Defaults
         {
             /// <summary>
@@ -380,6 +386,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort
     /// <summary>
     /// Provides methods for <see cref="ITunnelingVignetteProvider"/> components to control the tunneling vignette material.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/Locomotion/Tunneling Vignette Controller", 11)]
     [HelpURL((XRHelpURLConstants.k_TunnelingVignetteController))]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]

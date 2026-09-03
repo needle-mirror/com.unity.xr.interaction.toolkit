@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Profiling;
 using Unity.XR.CoreUtils.Collections;
+using UnityEngine.Events;
 #if UNITY_EDITOR
 using UnityEditor.Search;
 #endif
@@ -15,6 +16,9 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
 #endif
@@ -37,6 +41,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="IXRInteractable"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/XR Interaction Manager", 11)]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionManager)]
@@ -238,6 +245,17 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Calls the methods in its invocation list when an <see cref="IXRInteractionGroup"/> loses focus.
         /// </summary>
         public event Action<FocusExitEventArgs> focusLost;
+
+        /// <summary>
+        /// Event invoked when collider mappings are changed for an already registered interactable via
+        /// <see cref="UpdateInteractableColliderMappings"/>, <see cref="RegisterColliderMapping"/>,
+        /// or <see cref="UnregisterColliderMapping"/>.
+        /// </summary>
+        /// <remarks>
+        /// This event is internal. It may be made public in a future release for users who need
+        /// to react to collider map changes on registered interactables.
+        /// </remarks>
+        internal event UnityAction<IXRInteractable> interactableColliderMappingsChanged;
 
         /// <summary>
         /// Calls the methods in its invocation list when the process order of registered <see cref="IXRInteractable"/>
@@ -1270,31 +1288,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (interactableCollider == null)
-                        continue;
-
-                    // Add the association for a fast lookup which maps from Collider to Interactable.
-                    // Warn if the same Collider is already used by another registered Interactable
-                    // since the lookup will only return the earliest registered rather than a list of all.
-                    // The warning is suppressed in the case of gesture interactables since it's common
-                    // to compose multiple on the same GameObject.
-                    if (!m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable))
-                    {
-                        m_ColliderToInteractableMap.Add(interactableCollider, interactable);
-                    }
-#if AR_FOUNDATION_PRESENT
-#pragma warning disable 618
-                    else if (!(interactable is ARBaseGestureInteractable && associatedInteractable is ARBaseGestureInteractable))
-#pragma warning restore 618
-#else
-                    else
-#endif
-                    {
-                        Debug.LogWarning("A collider used by an Interactable object is already registered with another Interactable object." +
-                            $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
-                            " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
-                            interactable as Object);
-                    }
+                    RegisterColliderMappingInternal(interactableCollider, interactable);
                 }
 
                 using (m_InteractableRegisteredEventArgs.Get(out var args))
@@ -1304,6 +1298,142 @@ namespace UnityEngine.XR.Interaction.Toolkit
                     OnRegistered(args);
                 }
             }
+        }
+
+        /// <summary>
+        /// Updates the collider-to-interactable mapping for a registered interactable without canceling
+        /// hover, select, or focus state. Call this when colliders are added to or removed from an
+        /// interactable after initial registration.
+        /// </summary>
+        /// <param name="interactable">The interactable whose collider list has changed.</param>
+        /// <param name="previousColliders">The colliders that were associated with the interactable before the change.
+        /// These will be removed from the mapping and replaced with the interactable's current colliders.</param>
+        /// <seealso cref="RegisterInteractable(IXRInteractable)"/>
+        internal void UpdateInteractableColliderMappings(IXRInteractable interactable, List<Collider> previousColliders)
+        {
+            if (!IsRegistered(interactable))
+                return;
+
+            var changed = false;
+
+            // Remove previous collider mappings, but only if they still point to this interactable.
+            if (previousColliders != null && previousColliders.Count > 0)
+            {
+                foreach (var interactableCollider in previousColliders)
+                {
+                    if (UnregisterColliderMappingInternal(interactableCollider, interactable))
+                        changed = true;
+                }
+            }
+
+            // Add current collider mappings using the same logic as RegisterInteractable
+            foreach (var interactableCollider in interactable.colliders)
+            {
+                if (RegisterColliderMappingInternal(interactableCollider, interactable))
+                    changed = true;
+            }
+
+            if (changed)
+                interactableColliderMappingsChanged?.Invoke(interactable);
+        }
+
+        /// <summary>
+        /// Registers a single collider-to-interactable mapping without affecting the interactable's registration state.
+        /// Does not invoke an event.
+        /// </summary>
+        /// <param name="interactableCollider">The collider to map.</param>
+        /// <param name="interactable">The interactable to associate with the collider.</param>
+        /// <returns>Returns <see langword="true"/> if the collider was newly registered with the interactable.</returns>
+        /// <seealso cref="UnregisterColliderMappingInternal"/>
+        bool RegisterColliderMappingInternal(Collider interactableCollider, IXRInteractable interactable)
+        {
+            if (interactableCollider == null)
+                return false;
+
+            // Warn if the same Collider is already used by another registered Interactable
+            // since the lookup will only return the earliest registered rather than a list of all.
+            // The warning is suppressed in the case of gesture interactables since it's common
+            // to compose multiple on the same GameObject.
+            var registered = false;
+            if (!m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable))
+            {
+                m_ColliderToInteractableMap.Add(interactableCollider, interactable);
+                registered = true;
+            }
+#if AR_FOUNDATION_PRESENT
+#pragma warning disable 618
+            else if (associatedInteractable != interactable &&
+                     !(interactable is ARBaseGestureInteractable && associatedInteractable is ARBaseGestureInteractable))
+#pragma warning restore 618
+#else
+            else if (associatedInteractable != interactable)
+#endif
+            {
+                Debug.LogWarning("A collider used by an Interactable object is already registered with another Interactable object." +
+                    $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +
+                    " The value returned by XRInteractionManager.TryGetInteractableForCollider will be the first association.",
+                    interactable as Object);
+            }
+
+            return registered;
+        }
+
+        /// <summary>
+        /// Unregisters a single collider-to-interactable mapping without affecting the interactable's registration state.
+        /// Does not invoke an event.
+        /// </summary>
+        /// <param name="interactableCollider">The collider to remove if it is associated with the interactable.</param>
+        /// <param name="interactable">The interactable that must be associated with the collider for it to be actually removed.</param>
+        /// <returns>Returns <see langword="true"/> if the collider was registered with the interactable and was newly removed.</returns>
+        /// <seealso cref="UnregisterColliderMappingInternal"/>
+        bool UnregisterColliderMappingInternal(Collider interactableCollider, IXRInteractable interactable)
+        {
+#pragma warning disable UNT0029 // Pattern matching with null on Unity objects -- Allow destroyed colliders to be removed from Dictionary
+            if (interactableCollider is null)
+                return false;
+#pragma warning restore UNT0029
+
+            var unregistered = false;
+            if (m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable) && associatedInteractable == interactable)
+            {
+                m_ColliderToInteractableMap.Remove(interactableCollider);
+                unregistered = true;
+            }
+
+            return unregistered;
+        }
+
+        /// <summary>
+        /// Registers a single collider-to-interactable mapping without affecting the interactable's registration state.
+        /// Call this when a collider is added to an already-registered interactable.
+        /// </summary>
+        /// <param name="interactableCollider">The collider to map.</param>
+        /// <param name="interactable">The interactable to associate with the collider.</param>
+        /// <seealso cref="UnregisterColliderMapping"/>
+        internal void RegisterColliderMapping(Collider interactableCollider, IXRInteractable interactable)
+        {
+            if (!IsRegistered(interactable))
+                return;
+
+            if (RegisterColliderMappingInternal(interactableCollider, interactable))
+                interactableColliderMappingsChanged?.Invoke(interactable);
+        }
+
+        /// <summary>
+        /// Removes a single collider-to-interactable mapping without affecting the interactable's registration state.
+        /// Call this when a collider is removed from an already-registered interactable.
+        /// </summary>
+        /// <param name="interactableCollider">The collider to unmap.</param>
+        /// <param name="interactable">The interactable that was associated with the collider.
+        /// The mapping is only removed if it points to this interactable.</param>
+        /// <seealso cref="RegisterColliderMapping"/>
+        internal void UnregisterColliderMapping(Collider interactableCollider, IXRInteractable interactable)
+        {
+            if (!IsRegistered(interactable))
+                return;
+
+            if (UnregisterColliderMappingInternal(interactableCollider, interactable))
+                interactableColliderMappingsChanged?.Invoke(interactable);
         }
 
         /// <summary>
@@ -1353,11 +1483,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 // in the dictionary.
                 foreach (var interactableCollider in interactable.colliders)
                 {
-                    if (interactableCollider == null)
-                        continue;
-
-                    if (m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable) && associatedInteractable == interactable)
-                        m_ColliderToInteractableMap.Remove(interactableCollider);
+                    UnregisterColliderMappingInternal(interactableCollider, interactable);
                 }
 
                 m_RecentlyUnregisteredInteractables.Add((interactable, Time.frameCount));

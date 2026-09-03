@@ -28,13 +28,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.XRHandLocomotion
         /// The radius used to normalize the projected planar pose data
         /// </summary>
         [SerializeField]
+#pragma warning disable CS0414 // Field assigned but its value is never used -- Keep to retain serialized value when XR Hands is not installed
         float m_Radius = 0.02f;
+#pragma warning restore CS0414
 
         /// <summary>
         /// The amount by which the reticle rotation is smoothed.  Prevents input jitter
         /// </summary>
         [SerializeField]
+#pragma warning disable CS0414 // Field assigned but its value is never used -- Keep to retain serialized value when XR Hands is not installed
         float m_RotationSmoothingValue = 0.2f;
+#pragma warning restore CS0414
 
         /// <summary>
         /// The XRInteractorLineVisual that draws the teleport line and reticle visuals

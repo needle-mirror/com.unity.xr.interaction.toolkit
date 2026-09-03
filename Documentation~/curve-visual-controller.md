@@ -25,7 +25,8 @@ This component also has many advanced configuration options, including:
 | **Curve Visual Object**                 | Curve data source used to generate the visual curve. |
 | **Override Line Origin**                | Indicates whether to override the line origin with a custom transform. |
 | **Line Origin Transform**               | The transform that determines the origin position and direction of the line when overriding. |
-| **Customize Line Properties For State** | Indicates whether to customize line properties for different endpoint type states. |
+| **Default Reticle**                     | The default reticle GameObject to show at the endpoint for valid hit states. If a prefab, it will be instantiated at runtime. |
+| **Customize Line Properties For State** | Indicates whether to customize line and reticle properties for different endpoint type states, including per-state line width, gradient, and reticle scale, color, and prefab overrides. |
 | **Line Property Animation Speed**       | Speed at which the line width changes when transitioning between states. |
 | **No Valid Hit Properties**             | Line properties when no hit is detected or when over an object that cannot be interacted with. |
 | **UI Hit Properties**                   | Line properties when a valid UI hit is detected. |
@@ -45,6 +46,10 @@ This component also has many advanced configuration options, including:
 | **Gradient**                           | Color gradient to use when this state property is active. |
 | **Customize Expand Line Draw Percent** | Determine if the line mode expansion should be customized from defaults. |
 | **Expand Mode Line Draw Percent**      | Percent of the line to draw when using the expand from hit point mode when this state property is active. |
+| **Reticle Enabled**                    | Whether the reticle is visible when this state is active. |
+| **Reticle Scale**                      | Scale multiplier applied to the reticle when this state is active. |
+| **Reticle Color**                      | Color and opacity applied to the reticle via MaterialPropertyBlock when this state is active. |
+| **Reticle Override**                   | Optional reticle prefab override for this state. If not set, the default reticle is used. |
 
 | **Advanced Properties**                   | **Description** |
 |-------------------------------------------|---|

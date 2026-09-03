@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
@@ -40,6 +43,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         protected static class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="XRController.controllerNode"/>.</summary>

@@ -942,4 +942,48 @@ namespace UnityEngine.XR.Interaction.Toolkit
     }
 
     #endregion
+
+    #region Collider Events
+
+    /// <summary>
+    /// Describes the type of change to an interactable's collider list.
+    /// </summary>
+    /// <seealso cref="CollidersChangedEventArgs"/>
+    /// <seealso cref="XRBaseInteractable.collidersChanged"/>
+    public enum ColliderUpdateType
+    {
+        /// <summary>A single collider was added via <see cref="XRBaseInteractable.RegisterCollider"/>.</summary>
+        Added,
+
+        /// <summary>A single collider was removed via <see cref="XRBaseInteractable.UnregisterCollider"/>.</summary>
+        Removed,
+
+        /// <summary>The full collider list was refreshed via <see cref="XRBaseInteractable.RefreshColliders"/>.</summary>
+        Refreshed,
+    }
+
+    /// <summary>
+    /// Event data associated with an interactable's collider list changing.
+    /// </summary>
+    /// <seealso cref="XRBaseInteractable.collidersChanged"/>
+    public sealed class CollidersChangedEventArgs
+    {
+        /// <summary>
+        /// The interactable whose collider list changed.
+        /// </summary>
+        public IXRInteractable interactable { get; set; }
+
+        /// <summary>
+        /// The type of update that occurred.
+        /// </summary>
+        public ColliderUpdateType updateType { get; set; }
+
+        /// <summary>
+        /// The specific collider that was added or removed.
+        /// <c>null</c> when <see cref="updateType"/> is <see cref="ColliderUpdateType.Refreshed"/>.
+        /// </summary>
+        public Collider collider { get; set; }
+    }
+
+    #endregion
 }

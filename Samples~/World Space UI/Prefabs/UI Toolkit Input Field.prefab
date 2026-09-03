@@ -54,8 +54,8 @@ MonoBehaviour:
   m_SortingOrder: 0
   m_Position: 0
   m_WorldSpaceSizeMode: 1
-  m_WorldSpaceWidth: 300
-  m_WorldSpaceHeight: 135
+  m_WorldSpaceWidth: 325
+  m_WorldSpaceHeight: 180
   m_PivotReferenceSize: 0
   m_Pivot: 1
   m_WorldSpaceCollider: {fileID: 0}
@@ -174,8 +174,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3, y: 1.35, z: 0}
-  m_Center: {x: 1.5, y: -0.675, z: 0}
+  m_Size: {x: 3.3000002, y: 1.8, z: 0.39844275}
+  m_Center: {x: 1.6000001, y: -0.91, z: 0}
 --- !u!114 &4902183318873881275
 MonoBehaviour:
   m_ObjectHideFlags: 0

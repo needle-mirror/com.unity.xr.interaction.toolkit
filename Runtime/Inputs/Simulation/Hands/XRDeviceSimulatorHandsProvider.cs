@@ -1,3 +1,6 @@
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if XR_HANDS_1_1_OR_NEWER
 using System;
 using System.Collections.Generic;
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
     /// <summary>
     /// Hand tracking provider for the XR Device Simulator
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class XRDeviceSimulatorHandsProvider : XRHandSubsystemProvider
     {
         class HandState

@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 {
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
     /// <see cref="LocomotionMediator"/> to gain access to the mediator's <see cref="XRBodyTransformer"/>, which the
     /// provider can use to queue <see cref="IXRBodyTransformation"/>s that move the user.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_LocomotionProviders)]
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public abstract partial class LocomotionProvider : MonoBehaviour

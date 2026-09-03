@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
@@ -135,6 +136,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
         protected SerializedProperty m_HoverHitProperties;
 
         /// <summary>
+        /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveVisualController.defaultReticle"/>.
+        /// </summary>
+        protected SerializedProperty m_DefaultReticle;
+
+        /// <summary>
         /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveVisualController.renderLineInWorldSpace"/>.
         /// </summary>
         protected SerializedProperty m_RenderLineInWorldSpace;
@@ -153,6 +159,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
         /// <see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="CurveVisualController.emptyHitMaterial"/>.
         /// </summary>
         protected SerializedProperty m_EmptyHitMaterial;
+
+        /// <summary>
+        /// <see cref="SerializeField"/> names of reticle fields in <see cref="LineProperties"/>.
+        /// </summary>
+        /// <seealso cref="LineProperties.reticleEnabled"/>
+        /// <seealso cref="LineProperties.reticleScale"/>
+        /// <seealso cref="LineProperties.reticleColor"/>
+        /// <seealso cref="LineProperties.reticleOverride"/>
+        static readonly string[] k_ReticlePropertyNames = { "m_ReticleEnabled", "m_ReticleScale", "m_ReticleColor", "m_ReticleOverride" };
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -196,7 +211,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.curveEndOffset"/>.</summary>
             public static readonly GUIContent curveEndOffset = EditorGUIUtility.TrTextContent("Curve End Offset", "Offset at the end of the curve in meters to avoid overlap with the target.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.customizeLinePropertiesForState"/>.</summary>
-            public static readonly GUIContent customizeLinePropertiesForState = EditorGUIUtility.TrTextContent("Customize Line Properties For State", "Indicates whether to customize line properties for different endpoint type states.");
+            public static readonly GUIContent customizeLinePropertiesForState = EditorGUIUtility.TrTextContent("Customize Line Properties For State", "Indicates whether to customize line and reticle properties for different endpoint type states.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.linePropertyAnimationSpeed"/>.</summary>
             public static readonly GUIContent linePropertyAnimationSpeed = EditorGUIUtility.TrTextContent("Line Property Animation Speed", "Speed at which the line width changes when transitioning between states.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.noValidHitProperties"/>.</summary>
@@ -209,6 +224,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
             public static readonly GUIContent selectHitProperties = EditorGUIUtility.TrTextContent("Select Hit Properties", "Line properties when a valid selection is detected.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.hoverHitProperties"/>.</summary>
             public static readonly GUIContent hoverHitProperties = EditorGUIUtility.TrTextContent("Hover Hit Properties", "Line properties when a valid non-UI hit is detected.");
+            /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.defaultReticle"/>.</summary>
+            public static readonly GUIContent defaultReticle = EditorGUIUtility.TrTextContent("Default Reticle", "The default reticle GameObject to show at the endpoint for valid hit states.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.renderLineInWorldSpace"/>.</summary>
             public static readonly GUIContent renderLineInWorldSpace = EditorGUIUtility.TrTextContent("Render Line In World Space", "If true the line will be rendered in world space, otherwise it will be rendered in local space. Set this to false in the event that high speed locomotion causes some visual artifacts with the line renderer.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.swapMaterials"/>.</summary>
@@ -217,6 +234,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
             public static readonly GUIContent baseLineMaterial = EditorGUIUtility.TrTextContent("Base Line Material", "Material to use in all cases other than when over 3D geometry that is not a valid interactable target.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveVisualController.emptyHitMaterial"/>.</summary>
             public static readonly GUIContent emptyHitMaterial = EditorGUIUtility.TrTextContent("Empty Hit Material", "Material to use when over 3D geometry that is not a valid interactable target.");
+
+            /// <summary><see cref="GUIContent"/> for the Reticle Settings header label.</summary>
+            public static readonly GUIContent reticleSettingsHeader = EditorGUIUtility.TrTextContent("Reticle Settings");
+            /// <summary>The help box message when there are no reticle settings properties.</summary>
+            public static readonly GUIContent noReticlePropertiesMessage = EditorGUIUtility.TrTextContent("Reticle properties are not available for this state because the reticle is not shown when there is no valid hit.");
         }
 
         /// <summary>
@@ -249,6 +271,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
             m_UIPressHitProperties = serializedObject.FindProperty("m_UIPressHitProperties");
             m_SelectHitProperties = serializedObject.FindProperty("m_SelectHitProperties");
             m_HoverHitProperties = serializedObject.FindProperty("m_HoverHitProperties");
+            m_DefaultReticle = serializedObject.FindProperty("m_DefaultReticle");
             m_RenderLineInWorldSpace = serializedObject.FindProperty("m_RenderLineInWorldSpace");
             m_SwapMaterials = serializedObject.FindProperty("m_SwapMaterials");
             m_BaseLineMaterial = serializedObject.FindProperty("m_BaseLineMaterial");
@@ -313,7 +336,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// Draws the object reference properties in the custom inspector.
         /// This includes fields like Line Renderer, Curve Visual Object, Override Line Origin,
-        /// and Line Origin Transform.
+        /// Line Origin Transform, and Reticle.
         /// </summary>
         protected virtual void DrawObjectReferences()
         {
@@ -328,6 +351,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
                     EditorGUILayout.PropertyField(m_LineOriginTransform, Contents.lineOriginTransform);
                 }
             }
+
+            EditorGUILayout.PropertyField(m_DefaultReticle, Contents.defaultReticle);
         }
 
         /// <summary>
@@ -392,26 +417,53 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Visuals
 
         /// <summary>
         /// Draws the line properties configuration section in the custom inspector.
-        /// This includes settings for customizing line properties for different states and
-        /// various line property configurations.
+        /// This includes settings for customizing line and reticle properties for different states
+        /// and various line property configurations.
         /// </summary>
         protected virtual void DrawEndPointTypeLineConfiguration()
         {
             EditorGUILayout.LabelField("Line Properties Configuration", EditorStyles.boldLabel);
 
             EditorGUILayout.PropertyField(m_CustomizeLinePropertiesForState, Contents.customizeLinePropertiesForState);
+
             if (m_CustomizeLinePropertiesForState.boolValue)
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(m_LinePropertyAnimationSpeed, Contents.linePropertyAnimationSpeed);
-
-                    EditorGUILayout.PropertyField(m_NoValidHitProperties, Contents.noValidHitProperties);
+                    DrawLinePropertiesWithoutReticle(m_NoValidHitProperties, Contents.noValidHitProperties);
                     EditorGUILayout.PropertyField(m_UIHitProperties, Contents.uiHitProperties);
                     EditorGUILayout.PropertyField(m_UIPressHitProperties, Contents.uiPressHitProperties);
                     EditorGUILayout.PropertyField(m_HoverHitProperties, Contents.hoverHitProperties);
                     EditorGUILayout.PropertyField(m_SelectHitProperties, Contents.selectHitProperties);
                 }
+            }
+        }
+
+        static void DrawLinePropertiesWithoutReticle(SerializedProperty property, GUIContent label)
+        {
+            property.isExpanded = EditorGUILayout.Foldout(property.isExpanded, label, true);
+            if (!property.isExpanded)
+                return;
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                var iterator = property.Copy();
+                var endProperty = property.GetEndProperty();
+                iterator.NextVisible(true);
+
+                while (!SerializedProperty.EqualContents(iterator, endProperty))
+                {
+                    if (Array.IndexOf(k_ReticlePropertyNames, iterator.name) < 0)
+                        EditorGUILayout.PropertyField(iterator, true);
+
+                    if (!iterator.NextVisible(false))
+                        break;
+                }
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(Contents.reticleSettingsHeader, EditorStyles.boldLabel);
+                EditorGUILayout.HelpBox(Contents.noReticlePropertiesMessage.text, MessageType.Info);
             }
         }
 

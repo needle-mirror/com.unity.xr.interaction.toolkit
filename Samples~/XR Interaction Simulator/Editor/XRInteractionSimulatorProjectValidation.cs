@@ -5,9 +5,15 @@ using Unity.XR.CoreUtils.Editor;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.InteractionSimulator.Editor
 {
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class XRInteractionSimulatorProjectValidation
     {
         const string k_SampleDisplayName = "XR Interaction Simulator";

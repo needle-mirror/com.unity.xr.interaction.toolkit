@@ -1,0 +1,17 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://?fileID=7433441132597879392&amp;guid=3245a7d03283da54db4385c49204e816&amp;type=3#XRIStyleSheet"/>
+    <engine:VisualElement picking-mode="Ignore" style="flex-grow: 1; color: rgb(255, 255, 255); padding-left: 10px; padding-top: 10px; padding-right: 10px; padding-bottom: 10px; background-color: rgba(0, 0, 0, 0.75);">
+        <engine:Label text="Dyanmic Collider" style="-unity-text-align: upper-center; font-size: 24px;"/>
+        <engine:Label text="This panel demonstrates UI Toolkit&apos;s automatic collider creation for world space UI when Update Collider Mode is set to Match 3-D bounding box." style="-unity-text-align: upper-center; white-space: normal;"/>
+        <engine:VisualElement style="flex-grow: 0; flex-shrink: 0; height: 10px;"/>
+        <engine:VisualElement style="flex-grow: 0; flex-direction: column;">
+            <engine:Toggle text="Text Toggle" style="color: rgb(255, 255, 255); min-height: 60px; min-width: 50%;"/>
+        </engine:VisualElement>
+        <engine:VisualElement style="flex-grow: 0; flex-shrink: 0; height: 10px;"/>
+        <engine:Label text="Disabling Panel" style="-unity-text-align: upper-center; font-size: 18px; -unity-font-style: normal;"/>
+        <engine:Label text="The generated colliders are removed when the UI Document is disabled and recreated when the panel is enabled." style="-unity-text-align: upper-center; white-space: normal;"/>
+        <engine:VisualElement style="flex-grow: 0; flex-direction: row;">
+            <engine:Button text="Close Panel" name="EventButton" style="flex-grow: 1;"/>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

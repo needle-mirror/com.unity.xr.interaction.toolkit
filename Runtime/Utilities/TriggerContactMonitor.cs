@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -13,8 +16,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// it is coming in contact with. For Interactables with multiple Colliders, this will help handle the
     /// bookkeeping to know if any of the colliders are still being touched.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class TriggerContactMonitor
     {
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         class ReferenceCounter<T> where T : Collider
         {
             public int Count => m_Items.Count;
@@ -410,6 +419,68 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
                 s_ExitedColliders.ForEach(RemoveCollider);
                 s_ExitedColliders.Clear();
             }
+        }
+
+        /// <summary>
+        /// Re-validates associated colliders against the current collider-to-interactable mapping.
+        /// Any associated collider whose mapping has changed or been removed will be moved back to the
+        /// unassociated set, and the corresponding interactable's contact state will be updated.
+        /// </summary>
+        /// <remarks>
+        /// Call this when collider mappings are changed on an already-registered interactable
+        /// (e.g. after <see cref="XRBaseInteractable.UnregisterCollider"/> or <see cref="XRBaseInteractable.RefreshColliders"/>)
+        /// to ensure stale associations are cleaned up.
+        /// </remarks>
+        public void RevalidateAssociatedColliders()
+        {
+            if (m_EnteredAssociatedColliders.Count == 0 || interactionManager == null)
+                return;
+
+            s_ScratchColliders.Clear();
+            foreach (var collider in m_EnteredAssociatedColliders.items)
+            {
+                if (collider == null)
+                    continue;
+
+                // Check if this collider's mapping still matches what we have cached.
+                var hasMapping = interactionManager.TryGetInteractableForCollider(collider, out var currentInteractable);
+
+                if (m_EnteredInteractableColliders.TryGetValue(collider, out var cachedInteractable) &&
+                    (!hasMapping || currentInteractable != cachedInteractable))
+                {
+                    // Mapping changed or was removed — mark for removal from associated set.
+                    s_ScratchColliders.Add(collider);
+                }
+            }
+
+            if (s_ScratchColliders.Count == 0)
+                return;
+
+            foreach (var collider in s_ScratchColliders)
+            {
+                // Move from associated back to unassociated (collider is still physically in the trigger).
+                if (m_EnteredAssociatedColliders.Remove(collider, out var counter))
+                    m_EnteredUnassociatedColliders.Add(collider, counter);
+
+                if (m_EnteredInteractableColliders.Remove(collider, out var interactable) && interactable != null)
+                {
+                    // Check if any other colliders of this interactable are still associated.
+                    var stillContacting = false;
+                    foreach (var kvp in m_EnteredInteractableColliders)
+                    {
+                        if (kvp.Value == interactable && kvp.Key != null)
+                        {
+                            stillContacting = true;
+                            break;
+                        }
+                    }
+
+                    if (!stillContacting && m_UnorderedInteractables.Remove(interactable))
+                        contactRemoved?.Invoke(interactable);
+                }
+            }
+
+            s_ScratchColliders.Clear();
         }
 
         /// <summary>

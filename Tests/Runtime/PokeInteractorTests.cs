@@ -555,5 +555,145 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             Assert.That(interactor.hasHover, Is.True);
         }
+
+        [UnityTest]
+        public IEnumerator PokeFilterReinitializesWhenColliderBoundsChange()
+        {
+            // Verifies that when a collider's bounds change between poke interactions,
+            // the poke filter reinitializes on the next hover to use the updated depth.
+            // A larger collider requires the interactor to travel further to reach select depth.
+            TestUtilities.CreateInteractionManager();
+            var interactor = TestUtilities.CreatePokeInteractor();
+            interactor.transform.position = Vector3.back * 2f;
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.transform.position = Vector3.zero;
+
+            // Remove the default SphereCollider and replace with a thin BoxCollider.
+            Object.DestroyImmediate(interactable.GetComponent<SphereCollider>());
+
+            var collider = interactable.gameObject.AddComponent<BoxCollider>();
+            collider.size = new Vector3(1f, 1f, 1f);
+            collider.center = Vector3.zero;
+
+            // Register the new collider with the interactable.
+            interactable.RefreshColliders();
+
+            var filter = interactable.gameObject.AddComponent<XRPokeFilter>();
+            filter.pokeConfiguration.Value.pokeDirection = PokeAxis.Z;
+
+            yield return null;
+
+            // Poke through the collider — should reach select.
+            for (int i = 0, frames = 7; i <= frames; i++)
+            {
+                interactor.transform.position = Vector3.Lerp(Vector3.back * 2f, Vector3.zero, (float)i / frames);
+                yield return new WaitForFixedUpdate();
+                yield return null;
+            }
+
+            Assert.That(interactor.hasSelection, Is.True, "Should select through collider");
+
+            // Pull back out to exit hover.
+            interactor.transform.position = Vector3.back * 2f;
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            Assert.That(interactor.hasHover, Is.False);
+            Assert.That(interactor.hasSelection, Is.False);
+
+            // Make the collider much deeper — poke should now require more travel.
+            collider.size = new Vector3(1f, 1f, 4f);
+
+            // Poke again but only travel partway — should NOT reach select
+            // with the deeper collider, whereas it would have with the original.
+            for (int i = 0, frames = 7; i <= frames; i++)
+            {
+                interactor.transform.position = Vector3.Lerp(Vector3.back * 3f, Vector3.back * 1.5f, (float)i / frames);
+                yield return new WaitForFixedUpdate();
+                yield return null;
+            }
+
+            Assert.That(interactor.hasSelection, Is.False,
+                "Should NOT select partway — poke filter should have reinitialized with deeper collider bounds");
+        }
+
+        [UnityTest]
+        public IEnumerator PokeFilterCleansUpCollidersChangedWhenInteractableChanged()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create interactable A with filter on the same GameObject (normal usage).
+            var goA = new GameObject("Interactable A");
+            goA.AddComponent<BoxCollider>();
+            goA.AddComponent<Rigidbody>().isKinematic = true;
+            var interactableA = goA.AddComponent<XRSimpleInteractable>();
+            var filter = goA.AddComponent<XRPokeFilter>();
+
+            yield return null; // Start() subscribes to A
+
+            Assert.That(filter.enabled, Is.True);
+
+            // Create interactable B.
+            var goB = new GameObject("Interactable B");
+            goB.AddComponent<BoxCollider>();
+            goB.AddComponent<Rigidbody>().isKinematic = true;
+            var interactableB = goB.AddComponent<XRSimpleInteractable>();
+
+            yield return null;
+
+            // Switch to interactable B. The setter clears pokeCollider.
+            filter.pokeInteractable = interactableB;
+
+            Assert.That(filter.pokeCollider, Is.Null);
+
+            // Fire collidersChanged on old interactable A.
+            // If the old subscription leaked, the handler would run and set pokeCollider.
+            var extraGO = new GameObject("Extra Collider");
+            interactableA.RegisterCollider(extraGO.AddComponent<BoxCollider>());
+
+            Assert.That(filter.pokeCollider, Is.Null, "collidersChanged from old interactable should not trigger the handler");
+
+            // Fire collidersChanged on new interactable B.
+            // The handler should run and re-discover the collider via GetComponentInChildren.
+            interactableB.RegisterCollider(goB.AddComponent<SphereCollider>());
+
+            Assert.That(filter.pokeCollider, Is.Not.Null, "collidersChanged from new interactable should trigger the handler");
+        }
+
+        [UnityTest]
+        public IEnumerator PokeFilterCleansUpCollidersChangedWhenInteractableSetToNull()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create interactable on a separate GameObject so setting pokeInteractable to null
+            // won't fall back to auto-discovery via GetComponentInParent.
+            var interactableGO = new GameObject("Interactable");
+            interactableGO.AddComponent<BoxCollider>();
+            interactableGO.AddComponent<Rigidbody>().isKinematic = true;
+            var interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+
+            var filterGO = new GameObject("Poke Filter");
+            var filter = filterGO.AddComponent<XRPokeFilter>();
+            filter.pokeInteractable = interactable;
+            filter.pokeCollider = interactableGO.GetComponent<BoxCollider>();
+
+            yield return null; // Start() subscribes
+
+            Assert.That(filter.enabled, Is.True);
+
+            // Set to null — should unsubscribe from the old interactable.
+            filter.pokeInteractable = null;
+
+            // Fire collidersChanged on the old interactable.
+            // If the subscription leaked, the handler would set pokeCollider.
+            filter.pokeCollider = null; // Clear so we can detect if the handler runs
+            interactable.RegisterCollider(interactableGO.AddComponent<SphereCollider>());
+
+            Assert.That(filter.pokeCollider, Is.Null, "collidersChanged should not trigger after setting pokeInteractable to null");
+        }
     }
 }

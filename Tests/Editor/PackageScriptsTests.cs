@@ -26,7 +26,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         static readonly (string, string)[] s_NamespaceExceptionList =
         {
             ("All", "UnityEditor.XR.Interaction.Toolkit.Utilities.EditorComponentLocatorUtility"),
-#if UNITY_6000_7_OR_NEWER && BURST_PRESENT
+#if (UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER) || (UNITY_6000_6_B1_OR_NEWER && BURST_PRESENT)
             ("All", "System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute"),
 #endif
         };
@@ -95,6 +95,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer.GetRegistrationMode has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule.PerformRaycast has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRControllerRecording.SetFrameDependentData has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.RegisterColliderMapping has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.UnregisterColliderMapping has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.UpdateInteractableColliderMappings has internal."),
         };
 
         static readonly (string, string)[] s_PrivatePropertyExceptionList =
@@ -433,9 +436,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             {
                 if (exception.Item1 == "All" || exception.Item1 == m_MajorMinorVersion)
                 {
-                    // Ignore AR types for now since those are optionally included with AR Foundation,
-                    // so this avoids failing the test when that package is not installed.
-                    if (!outputList.Contains(exception.Item2) && !exception.Item2.Contains(".AR"))
+                    // Skip AR types (optionally included with AR Foundation) and compiler-generated
+                    // System.Runtime.CompilerServices types (conditionally emitted by the compiler
+                    // depending on platform and cross-assembly internal access patterns).
+                    if (!outputList.Contains(exception.Item2) &&
+                        !exception.Item2.Contains(".AR") &&
+                        !exception.Item2.Contains("System.Runtime.CompilerServices"))
                     {
                         Debug.LogWarning($"Stale exception not found in source list: {exception.Item2}");
                         hasStaleException = true;

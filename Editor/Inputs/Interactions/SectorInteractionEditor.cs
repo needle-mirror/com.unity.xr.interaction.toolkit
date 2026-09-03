@@ -1,10 +1,10 @@
+#if UIELEMENTS_MODULE_PRESENT && INPUT_SYSTEM_1_12_OR_NEWER
 using System;
-#if UIELEMENTS_MODULE_PRESENT
 using UnityEditor.UIElements;
 #endif
 using UnityEngine;
 using UnityEngine.InputSystem.Editor;
-#if UIELEMENTS_MODULE_PRESENT
+#if UIELEMENTS_MODULE_PRESENT && INPUT_SYSTEM_1_12_OR_NEWER
 using UnityEngine.UIElements;
 #endif
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions;
@@ -34,6 +34,20 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Interactions
         /// <inheritdoc />
         public override void OnGUI()
         {
+#if UIELEMENTS_MODULE_PRESENT && INPUT_SYSTEM_1_12_OR_NEWER
+            // The UI Toolkit Input Actions editor renders parameters via OnDrawVisualElements but also
+            // adds an IMGUIContainer that calls this OnGUI as a fallback for editors without a UITK path,
+            // which would draw these fields a second time. Skip IMGUI when that editor is active so the
+            // fields aren't duplicated; the legacy IMGUI editor still calls OnGUI when it is in use.
+            // useIMGUIEditorForAssets was added in Input System 1.12.0. It was marked [Obsolete]
+            // in Input System 1.17-1.18 (ISX-2397) then un-deprecated in 1.19; suppress CS0618 so
+            // this still compiles clean against 1.17/1.18. While obsolete the property returns false,
+            // so this early-return still prevents the fields from being drawn twice.
+#pragma warning disable CS0618 // Type or member is obsolete -- Obsolete in Input System 1.17-1.18, un-deprecated in 1.19.
+            if (!UnityEngine.InputSystem.InputSystem.settings.useIMGUIEditorForAssets)
+                return;
+#pragma warning restore CS0618
+#endif
             target.directions = (SectorInteraction.Directions)EditorGUILayout.EnumFlagsField(Contents.directionsLabel, target.directions);
 
             target.sweepBehavior = (SectorInteraction.SweepBehavior)EditorGUILayout.EnumPopup(Contents.sweepBehaviorLabel, target.sweepBehavior);
@@ -61,7 +75,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Interactions
             EditorGUILayout.EndHorizontal();
         }
 
-#if UIELEMENTS_MODULE_PRESENT
+#if UIELEMENTS_MODULE_PRESENT && INPUT_SYSTEM_1_12_OR_NEWER
         /// <inheritdoc />
         public override void OnDrawVisualElements(VisualElement root, Action onChangedCallback)
         {

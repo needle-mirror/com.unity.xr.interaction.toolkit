@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
@@ -15,6 +18,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// For more information about the interaction system, refer to
     /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Direct Interactor", 11)]
@@ -422,6 +428,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnRegistered(args);
             args.manager.interactableRegistered += OnInteractableRegistered;
             args.manager.interactableUnregistered += OnInteractableUnregistered;
+            args.manager.interactableColliderMappingsChanged += OnInteractableColliderMappingsChanged;
             m_TriggerContactMonitor.interactionManager = args.manager;
 
             if (!m_UsingSphereColliderAccuracyImprovement)
@@ -439,11 +446,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnUnregistered(args);
             args.manager.interactableRegistered -= OnInteractableRegistered;
             args.manager.interactableUnregistered -= OnInteractableUnregistered;
+            args.manager.interactableColliderMappingsChanged -= OnInteractableColliderMappingsChanged;
         }
 
         void OnInteractableRegistered(InteractableRegisteredEventArgs args)
         {
             var interactable = args.interactableObject;
+            m_TriggerContactMonitor.ResolveUnassociatedColliders(interactable);
+            if (m_TriggerContactMonitor.IsContacting(interactable))
+                OnContactAdded(interactable);
+        }
+
+        void OnInteractableColliderMappingsChanged(IXRInteractable interactable)
+        {
+            // Re-validate existing associations first to clean up any stale mappings
+            // (e.g. a collider was unregistered from the interactable while still touching).
+            m_TriggerContactMonitor.RevalidateAssociatedColliders();
+
+            // Then resolve any unassociated colliders that may now have valid mappings.
             m_TriggerContactMonitor.ResolveUnassociatedColliders(interactable);
             if (m_TriggerContactMonitor.IsContacting(interactable))
                 OnContactAdded(interactable);

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// Utility methods for locating component instances.
     /// </summary>
     /// <typeparam name="T">The component type.</typeparam>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class ComponentLocatorUtility<T> where T : Component
     {
         const int k_LastTryFindFrameDefault = -1;

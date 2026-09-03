@@ -1256,6 +1256,144 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             return null;
         }
 
+        [UnityTest]
+        public IEnumerator ContactInteractorResolvesNewColliderAfterRegisterCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            // Tests that when a collider enters a contact interactor's trigger as unassociated
+            // (not yet in the collider map), then RegisterCollider is called, the interactable
+            // becomes a valid target.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+
+            Assert.That(interactor, Is.Not.Null);
+
+            // Create an interactable with no colliders at registration time.
+            // Position it away so nothing overlaps yet.
+            var interactableGO = new GameObject("Dynamic Collider Interactable");
+            interactableGO.AddComponent<Rigidbody>().isKinematic = true;
+            interactableGO.transform.position = Vector3.forward * 10f;
+            var interactable = interactableGO.AddComponent<XRSimpleInteractable>();
+            interactable.interactionLayers = 0; // Prevent selection
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(0));
+
+            // Wait a frame to ensure the interactable has fully registered before we proceed.
+            yield return null;
+
+            // Now add a collider and move the interactable to overlap the interactor's trigger.
+            // The collider is NOT registered with the interactable yet.
+            var boxCollider = interactableGO.AddComponent<BoxCollider>();
+            boxCollider.size = Vector3.one;
+            interactableGO.transform.position = Vector3.zero;
+
+            // Wait for physics to detect the overlap
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            // The collider is in the trigger but unassociated — interactable should NOT be a valid target yet
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+
+            // Now register the collider — this should resolve the unassociated collider
+            interactable.RegisterCollider(boxCollider);
+
+            // Wait for the interactor to process
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorDropsInteractableAfterUnregisterCollider(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            // Tests that when UnregisterCollider is called on the only collider an interactable
+            // has in a contact interactor's trigger, the interactable drops from valid targets.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+
+            Assert.That(interactor, Is.Not.Null);
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.interactionLayers = 0; // Prevent selection
+            interactable.transform.position = Vector3.zero;
+
+            var collider = interactable.GetComponent<SphereCollider>();
+            Assert.That(collider, Is.Not.Null);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            // Unregister the collider — interactable should drop from valid targets
+            interactable.UnregisterCollider(collider);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.Empty);
+        }
+
+        [UnityTest]
+        public IEnumerator ContactInteractorKeepsInteractableWhenOneOfMultipleCollidersUnregistered(
+            [ValueSource(nameof(s_ContactInteractors))] Type interactorType,
+            [ValueSource(nameof(s_BooleanValues))] bool generateOnTriggerStayEvents)
+        {
+            // Tests that when an interactable has two colliders touching a contact interactor
+            // and one is unregistered, the interactable remains a valid target.
+
+            ApplyTriggerStaySetting(generateOnTriggerStayEvents);
+
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactor = CreateContactInteractor(interactorType);
+
+            Assert.That(interactor, Is.Not.Null);
+
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            interactable.interactionLayers = 0;
+            interactable.transform.position = Vector3.zero;
+
+            var sphereCollider = interactable.GetComponent<SphereCollider>();
+            Assert.That(sphereCollider, Is.Not.Null);
+
+            // Add a second collider overlapping the interactor
+            var boxCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            boxCollider.size = Vector3.one;
+            interactable.RegisterCollider(boxCollider);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            var validTargets = new List<IXRInteractable>();
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+
+            // Unregister one collider — interactable should remain because the other is still touching
+            interactable.UnregisterCollider(sphereCollider);
+
+            yield return new WaitForFixedUpdate();
+            yield return null;
+
+            interactor.GetValidTargets(validTargets);
+            Assert.That(validTargets, Is.EqualTo(new[] { interactable }));
+        }
+
         void ApplyTriggerStaySetting(bool generateOnTriggerStayEvents)
         {
 #if UNITY_EDITOR

@@ -9,6 +9,9 @@ using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets.Editor
 {
@@ -16,6 +19,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets.Editor
     /// Unity Editor class which registers Project Validation rules for the AR Starter Assets sample,
     /// checking that other required samples are installed.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class ARStarterAssetsSampleProjectValidation
     {
         const string k_SampleDisplayName = "AR Starter Assets";

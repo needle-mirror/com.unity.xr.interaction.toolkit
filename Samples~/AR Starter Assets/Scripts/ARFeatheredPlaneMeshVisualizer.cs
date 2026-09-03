@@ -1,3 +1,6 @@
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.ARStarterAssets
     /// at the edge of the detected plane, which reduces the visual impression
     /// of a hard edge.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [RequireComponent(typeof(ARPlaneMeshVisualizer), typeof(MeshRenderer), typeof(ARPlane))]
     public class ARFeatheredPlaneMeshVisualizer : MonoBehaviour
     {

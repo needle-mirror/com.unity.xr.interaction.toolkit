@@ -7,6 +7,9 @@ using UnityEngine.Pool;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
@@ -16,6 +19,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     /// at all Graphics on the canvas and determines if any of them have been hit by a ray
     /// from a tracked device.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("Event/Tracked Device Graphic Raycaster", 11)]
     [HelpURL(XRHelpURLConstants.k_TrackedDeviceGraphicRaycaster)]
     public class TrackedDeviceGraphicRaycaster : BaseRaycaster, IPokeStateDataProvider, IMultiPokeStateDataProvider

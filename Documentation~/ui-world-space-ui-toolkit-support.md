@@ -60,6 +60,19 @@ Additionally, the **Collider Update Mode** defines if the UI Document will creat
 > [!NOTE]
 > An example of a nested interactable using UI Documents can be found in the UI Toolkit Grab Interactable prefab in the XRI World Space UI sample demo scene.
 
+#### Dynamic collider registration with XRI
+
+When using **Match 2-D document rect** or **Match 3-D bounding box**, UI Toolkit creates the collider dynamically during `LateUpdate` after the panel's first render. This means the collider does not exist when `XRBaseInteractable` discovers colliders during `Awake`. When the [XR UI Toolkit Manager](xref:xri-xr-ui-toolkit-manager) is present in the scene, it monitors for colliders created by `UIDocument` and registers them with the interactable. If an `XRPokeFilter` component is present, it will also automatically recover when the collider is detected, re-enabling itself and initializing poke interaction. No manual intervention is required.
+
+The manager also handles `UIDocument` disable/re-enable: when the component is disabled, `UIDocument` destroys its collider. The manager monitors known UI Toolkit panels each frame to detect externally destroyed colliders, clears the stale reference, and re-registers the new collider when the `UIDocument` is re-enabled.
+
+Panels with **Collider Update Mode** set to **Keep existing colliders (if any)** are skipped by the manager since their colliders are manually managed and will not be created or destroyed by `UIDocument`.
+
+The `UIDocument` component must be present on the GameObject before the interactable registers with the Interaction Manager. The manager discovers UI Toolkit panels at registration time. Adding a `UIDocument` component after the interactable has already registered will not be detected. Changing the **Collider Update Mode** in Panel Settings at runtime is also not supported for dynamic collider registration — the manager determines whether to monitor a panel based on the mode at the time of discovery.
+
+> [!NOTE]
+> When using **Match 2-D document rect**, the generated collider has zero thickness along the poke axis. Poke interaction will still function, but the poke press will complete instantly with no depth animation. To enable smooth poke depth animation, use **Match 3-D bounding box** which creates a collider with depth along the poke axis.
+
 ![Panel Settings](images/xr-ui-toolkit-panel-settings.png)
 
 ### Source Asset

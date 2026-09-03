@@ -7,4 +7,10 @@ The Interaction Manager acts as an intermediary between Interactors and Interact
 
 Many of the methods on the Interactors and Interactables are designed to be called by this Interaction Manager rather than being called directly in order to maintain consistency between both targets of an interaction event.
 
+## Collider-to-interactable mapping
+
+The Interaction Manager maintains an internal collider-to-interactable mapping that allows interactors to determine which interactable a collider belongs to. This mapping is built when an interactable registers with the manager during `OnEnable` and is used by interactors during hover, select, and poke evaluation.
+
+By default, an interactable discovers its colliders during `Awake`. Colliders added via code after registration must be explicitly registered with the interactable for the mapping to be updated. Refer to [Managing colliders at runtime](xref:xri-interactable-components#managing-colliders-at-runtime) for details.
+
 ![XRInteractionManager component](images/xr-interaction-manager.png)

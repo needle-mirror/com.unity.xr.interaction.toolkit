@@ -9,12 +9,18 @@ using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples
 {
     /// <summary>
     /// Unity Editor class which registers Project Validation rules for the Starter Assets sample package.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class StarterAssetsSampleProjectValidation
     {
         const string k_Category = "XR Interaction Toolkit";

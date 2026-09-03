@@ -1,10 +1,17 @@
 using System;
+using System.Collections.Generic;
 #if BURST_PRESENT
 using Unity.Burst;
 #endif
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.XR.CoreUtils;
+using UnityEngine.Rendering;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.Serialization;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
@@ -181,6 +188,61 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             get => m_ExpandModeLineDrawPercent;
             set => m_ExpandModeLineDrawPercent = value;
         }
+
+        [Header("Reticle Settings")]
+        [SerializeField]
+        [Tooltip("Whether the reticle is visible when this state is active.")]
+        bool m_ReticleEnabled = true;
+
+        /// <summary>
+        /// Whether the reticle is visible when this state is active.
+        /// </summary>
+        public bool reticleEnabled
+        {
+            get => m_ReticleEnabled;
+            set => m_ReticleEnabled = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Scale multiplier applied to the reticle when this state is active.")]
+        float m_ReticleScale = 1f;
+
+        /// <summary>
+        /// Scale multiplier applied to the reticle when this state is active.
+        /// </summary>
+        public float reticleScale
+        {
+            get => m_ReticleScale;
+            set => m_ReticleScale = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Color and opacity applied to the reticle when this state is active.")]
+        Color m_ReticleColor = Color.white;
+
+        /// <summary>
+        /// Color and opacity applied to the reticle via MaterialPropertyBlock when this state is active.
+        /// </summary>
+        public Color reticleColor
+        {
+            get => m_ReticleColor;
+            set => m_ReticleColor = value;
+        }
+
+        [SerializeField]
+        [Tooltip("Optional reticle prefab override for this state. If not set, the default reticle is used.")]
+        GameObject m_ReticleOverride;
+
+        /// <summary>
+        /// Optional reticle prefab override for this state. If not set, the default reticle from
+        /// <see cref="CurveVisualController.defaultReticle"/> is used.
+        /// </summary>
+        public GameObject reticleOverride
+        {
+            get => m_ReticleOverride;
+            set => m_ReticleOverride = value;
+        }
+
     }
 
     /// <summary>
@@ -197,8 +259,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
     [BurstCompile]
 #endif
-    public class CurveVisualController : MonoBehaviour
+    public class CurveVisualController : MonoBehaviour, IXRCustomReticleProvider
     {
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        struct ShaderPropertyLookup
+        {
+            public static readonly int baseColor = Shader.PropertyToID("_BaseColor");
+            public static readonly int color = Shader.PropertyToID("_Color");
+        }
+
         [SerializeField]
         LineRenderer m_LineRenderer;
 
@@ -427,12 +498,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         bool m_CustomizeLinePropertiesForState;
 
         /// <summary>
-        /// Indicates whether to customize line properties for different endpoint type states.
+        /// Indicates whether to customize line and reticle properties for different endpoint type states.
         /// </summary>
         public bool customizeLinePropertiesForState
         {
             get => m_CustomizeLinePropertiesForState;
-            set => m_CustomizeLinePropertiesForState = value;
+            set
+            {
+                m_CustomizeLinePropertiesForState = value;
+                if (Application.isPlaying && value)
+                    ProcessAllLineProperties(SetupReticlesForProperties);
+            }
         }
 
         [SerializeField]
@@ -505,6 +581,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         {
             get => m_HoverHitProperties;
             set => m_HoverHitProperties = value;
+        }
+
+        [SerializeField]
+        [Tooltip("The default reticle GameObject to show at the endpoint for valid hit states.")]
+        GameObject m_DefaultReticle;
+
+        /// <summary>
+        /// The default reticle GameObject shown at the endpoint for valid hit states (ValidCastHit, AttachPoint, UI).
+        /// Assign a prefab or scene object. If a prefab, it will be instantiated at runtime.
+        /// </summary>
+        public GameObject defaultReticle
+        {
+            get => m_DefaultReticle;
+            set
+            {
+                var oldReticle = m_DefaultReticle;
+                m_DefaultReticle = value;
+                if (Application.isPlaying)
+                {
+                    if (value != null && !value.scene.IsValid())
+                        DestroyReticleIfInstance(oldReticle);
+
+                    m_DefaultReticle = SetupReticleGameObject(m_DefaultReticle);
+                }
+            }
         }
 
         [SerializeField]
@@ -588,6 +689,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         bool m_LastValidSelectState;
         Gradient m_LerpGradient;
 
+        // Reticle runtime state
+        GameObject m_ReticleToUse;
+        GameObject m_CustomReticle;
+        bool m_CustomReticleAttached;
+        Renderer m_ActiveReticleRenderer;
+        MaterialPropertyBlock m_ReticlePropertyBlock;
+        Vector3 m_ReticleLocalScale;
+        bool m_ReticleScaleCaptured;
+        readonly HashSet<GameObject> m_InstantiatedReticles = new HashSet<GameObject>();
+
+        // Interactor interface caches resolved from the same m_CurveVisualObject
+        readonly UnityObjectReferenceCache<IXRHoverInteractor, Object> m_HoverInteractorObjectRef =
+            new UnityObjectReferenceCache<IXRHoverInteractor, Object>();
+
+        readonly UnityObjectReferenceCache<IXRInteractor, Object> m_InteractorObjectRef =
+            new UnityObjectReferenceCache<IXRInteractor, Object>();
+
+        IXRHoverInteractor hoverInteractorFromProvider => m_HoverInteractorObjectRef.Get(m_CurveVisualObject);
+        IXRInteractor interactorFromProvider => m_InteractorObjectRef.Get(m_CurveVisualObject);
+
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
@@ -623,6 +744,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             m_LastLineStartWidth = m_LineRenderer.startWidth;
             m_LastLineEndWidth = m_LineRenderer.endWidth;
             m_LerpGradient = m_LineRenderer.colorGradient;
+
+            SetupAllReticles();
         }
 
         /// <summary>
@@ -639,6 +762,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         protected void OnDisable()
         {
             Application.onBeforeRender -= OnBeforeRenderLineVisual;
+            ClearReticle();
         }
 
         /// <summary>
@@ -650,6 +774,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 m_FallBackSamplePoints.Dispose();
             if (m_InternalSamplePoints.IsCreated)
                 m_InternalSamplePoints.Dispose();
+
+            DestroyReticleIfInstance(m_DefaultReticle);
+            ProcessAllLineProperties(DestroyReticlesForProperties);
         }
 
         /// <summary>
@@ -658,6 +785,186 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         protected void LateUpdate()
         {
             // Don't need to do anything; method kept for backwards compatibility.
+        }
+
+        GameObject SetupReticleGameObject(GameObject reticle)
+        {
+            if (reticle == null)
+                return null;
+
+            if (!reticle.scene.IsValid())
+            {
+                reticle = Instantiate(reticle);
+                m_InstantiatedReticles.Add(reticle);
+            }
+
+            reticle.SetActive(false);
+            return reticle;
+        }
+
+        void SetupAllReticles()
+        {
+            m_DefaultReticle = SetupReticleGameObject(m_DefaultReticle);
+
+            if (!m_CustomizeLinePropertiesForState)
+                return;
+
+            ProcessAllLineProperties(SetupReticlesForProperties);
+        }
+
+        void ProcessAllLineProperties(Action<LineProperties> action)
+        {
+            action(m_NoValidHitProperties);
+            action(m_UIHitProperties);
+            action(m_UIPressHitProperties);
+            action(m_SelectHitProperties);
+            action(m_HoverHitProperties);
+        }
+
+        void SetupReticlesForProperties(LineProperties properties)
+        {
+            if (properties == null)
+                return;
+
+            properties.reticleOverride = SetupReticleGameObject(properties.reticleOverride);
+        }
+
+        void DestroyReticleIfInstance(GameObject reticle)
+        {
+            if (reticle != null && m_InstantiatedReticles.Remove(reticle))
+                Destroy(reticle);
+        }
+
+        void DestroyReticlesForProperties(LineProperties properties)
+        {
+            if (properties == null)
+                return;
+
+            DestroyReticleIfInstance(properties.reticleOverride);
+        }
+
+        void ClearReticle()
+        {
+            if (m_ReticleToUse != null)
+            {
+                if (m_ReticleScaleCaptured)
+                    m_ReticleToUse.transform.localScale = m_ReticleLocalScale;
+
+                m_ReticleToUse.SetActive(false);
+                m_ReticleToUse = null;
+            }
+
+            m_ActiveReticleRenderer = null;
+            m_ReticleScaleCaptured = false;
+        }
+
+        void UpdateReticle(EndPointType endPointType, Vector3 endPoint, Vector3 endNormal)
+        {
+            bool shouldShowReticle = endPointType is EndPointType.ValidCastHit
+                or EndPointType.AttachPoint
+                or EndPointType.UI;
+
+            if (!shouldShowReticle)
+            {
+                ClearReticle();
+                return;
+            }
+
+            // Determine which reticle to use: custom > per-state override > default
+            LineProperties properties = null;
+
+            GameObject nextReticle;
+            if (m_CustomReticleAttached)
+            {
+                nextReticle = m_CustomReticle;
+            }
+            else if (m_CustomizeLinePropertiesForState)
+            {
+                properties = GetLinePropertiesForState(endPointType);
+                if (!properties.reticleEnabled)
+                {
+                    ClearReticle();
+                    return;
+                }
+
+                nextReticle = properties.reticleOverride != null ? properties.reticleOverride : m_DefaultReticle;
+            }
+            else
+            {
+                nextReticle = m_DefaultReticle;
+            }
+
+            // Clean up previous reticle if switching
+            var previousReticle = m_ReticleToUse;
+            if (previousReticle != nextReticle)
+            {
+                if (previousReticle != null)
+                {
+                    if (m_ReticleScaleCaptured)
+                        previousReticle.transform.localScale = m_ReticleLocalScale;
+
+                    previousReticle.SetActive(false);
+                }
+
+                m_ActiveReticleRenderer = null;
+                m_ReticleScaleCaptured = false;
+            }
+
+            m_ReticleToUse = nextReticle;
+
+            if (m_ReticleToUse == null)
+                return;
+
+            // Apply per-state visual properties when toggle is on and no custom reticle
+            if (m_CustomizeLinePropertiesForState && !m_CustomReticleAttached)
+            {
+                properties ??= GetLinePropertiesForState(endPointType);
+
+                if (!m_ReticleScaleCaptured)
+                {
+                    m_ReticleLocalScale = m_ReticleToUse.transform.localScale;
+                    m_ReticleScaleCaptured = true;
+                }
+
+                m_ReticleToUse.transform.localScale = m_ReticleLocalScale * properties.reticleScale;
+
+                if (m_ActiveReticleRenderer == null)
+                    m_ActiveReticleRenderer = m_ReticleToUse.GetComponentInChildren<Renderer>();
+
+                if (m_ActiveReticleRenderer != null)
+                {
+                    m_ReticlePropertyBlock ??= new MaterialPropertyBlock();
+                    m_ActiveReticleRenderer.GetPropertyBlock(m_ReticlePropertyBlock);
+                    var colorProperty = GraphicsSettings.currentRenderPipeline != null ? ShaderPropertyLookup.baseColor : ShaderPropertyLookup.color;
+                    m_ReticlePropertyBlock.SetColor(colorProperty, properties.reticleColor);
+                    m_ActiveReticleRenderer.SetPropertyBlock(m_ReticlePropertyBlock);
+                }
+            }
+
+            // Position and orient
+            var hoverInteractor = hoverInteractorFromProvider;
+            if (hoverInteractor != null &&
+                hoverInteractor.GetOldestInteractableHovered() is IXRReticleDirectionProvider directionProvider)
+            {
+                directionProvider.GetReticleDirection(interactorFromProvider, endNormal,
+                    out var reticleUp, out var reticleForward);
+
+                Quaternion lookRotation;
+                if (reticleForward.HasValue)
+                    BurstMathUtility.LookRotationWithForwardProjectedOnPlane(reticleForward.Value, reticleUp, out lookRotation);
+                else
+                    BurstMathUtility.LookRotationWithForwardProjectedOnPlane(m_ReticleToUse.transform.forward, reticleUp, out lookRotation);
+
+                m_ReticleToUse.transform.SetWorldPose(new Pose(endPoint, lookRotation));
+            }
+            else
+            {
+                var fallbackNormal = endNormal != Vector3.zero ? endNormal : Vector3.up;
+                var up = Mathf.Abs(Vector3.Dot(fallbackNormal, Vector3.up)) > 0.99f ? Vector3.forward : Vector3.up;
+                m_ReticleToUse.transform.SetWorldPose(new Pose(endPoint, Quaternion.LookRotation(-fallbackNormal, up)));
+            }
+
+            m_ReticleToUse.SetActive(true);
         }
 
         [BeforeRenderOrder(XRInteractionUpdateOrder.k_BeforeRenderLineVisual)]
@@ -672,6 +979,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             if (!curveData.isActive)
             {
                 m_LineRenderer.enabled = false;
+                ClearReticle();
                 return;
             }
 
@@ -683,6 +991,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 
             float validHitDistance = m_MaxVisualCurveDistance;
             EndPointType endPointType = GetEndpointInformation(worldOrigin, worldDirection, ref validHitDistance, out Vector3 worldEndPoint);
+            var rawHitEndPoint = worldEndPoint;
 
             float newLineDistance = UpdateTargetDistance(endPointType, validHitDistance, m_RestingVisualLineLength, m_MaxVisualCurveDistance,
                 m_LineDynamicsMode == LineDynamicsMode.RetractOnHitLoss,
@@ -703,6 +1012,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             UpdateLineWidth(endPointType, newLineDistance);
             UpdateGradient(endPointType);
             UpdateLinePoints(endPointType, worldOrigin, worldEndPoint, worldDirection, newOffsetStart, targetEndOffset);
+
+            curveData.TryGetCurveEndNormal(out var endNormal, m_SnapToSelectedAttachIfAvailable);
+            UpdateReticle(endPointType, rawHitEndPoint, endNormal);
         }
 
         bool CheckIfVisualStateChanged(EndPointType newPointType, bool hasValidSelect)
@@ -792,6 +1104,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             SetLinePositions(m_InternalSamplePoints, m_VisualPointCount);
         }
 
+        /// <inheritdoc />
+        public bool AttachCustomReticle(GameObject reticleInstance)
+        {
+            m_CustomReticle = reticleInstance;
+            m_CustomReticleAttached = true;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool RemoveCustomReticle()
+        {
+            m_CustomReticle = null;
+            m_CustomReticleAttached = false;
+            return true;
+        }
+
         static bool TryGetMidPointFromCurveSamples(in ICurveInteractionDataProvider curveInteractionDataProvider, out Vector3 midPoint)
         {
             var length = curveInteractionDataProvider.samplePoints.Length;
@@ -812,15 +1140,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
             return false;
         }
 
-        bool TryGetLineProperties(EndPointType endPointType, out LineProperties properties)
+        LineProperties GetLinePropertiesForState(EndPointType endPointType)
         {
-            if (!m_CustomizeLinePropertiesForState)
-            {
-                properties = default;
-                return false;
-            }
-
-            properties = endPointType switch
+            return endPointType switch
             {
                 EndPointType.None => m_NoValidHitProperties,
                 EndPointType.EmptyCastHit => m_NoValidHitProperties,
@@ -829,6 +1151,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
                 EndPointType.UI => curveInteractionDataProvider.hasValidSelect ? m_UIPressHitProperties : m_UIHitProperties,
                 _ => m_NoValidHitProperties
             };
+        }
+
+        bool TryGetLineProperties(EndPointType endPointType, out LineProperties properties)
+        {
+            if (!m_CustomizeLinePropertiesForState)
+            {
+                properties = default;
+                return false;
+            }
+
+            properties = GetLinePropertiesForState(endPointType);
             return true;
         }
 

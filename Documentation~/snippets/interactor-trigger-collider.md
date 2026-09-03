@@ -19,3 +19,9 @@ If any of the trigger colliders on this interactor becomes disabled after touchi
 > The list of trigger colliders is captured during `OnEnable` of the interactor. If you add colliders to the interactor during runtime after that method, you will need to toggle the enabled state of the component to retrigger `OnEnable` for the list to be updated to support that behavior.
 
 This component will similarly check if any of the touching interactable colliders have been disabled and treat it like an exit event with that collider. Unlike disabling the interactor's trigger colliders, this will only remove that collider rather than fully clearing the valid targets. Both of these checks of the enabled state of colliders are done during the `yield WaitForFixedUpdate` execution phase. Refer to [Event function execution order](xref:um-execution-order) for more information.
+
+### Dynamic interactable colliders
+
+Interactors that use trigger-based contact detection support interactables whose colliders are added or removed at runtime using `RegisterCollider`, `UnregisterCollider`, or `RefreshColliders` on `XRBaseInteractable`. If a collider enters the trigger volume before being registered with an interactable, it is tracked as unassociated. Once the collider is registered, the association is resolved and the interactable becomes a valid target. Similarly, if a collider is unregistered from an interactable while still inside the trigger volume, the association is removed and the interactable's validity is re-evaluated based on any remaining associated colliders.
+
+Refer to [Managing colliders at runtime](xref:xri-interactable-components#managing-colliders-at-runtime) for more information.

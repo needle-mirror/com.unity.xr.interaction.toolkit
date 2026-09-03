@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if UIELEMENTS_MODULE_PRESENT || PACKAGE_DOCS_GENERATION
 using UnityEngine.UIElements;
@@ -9,6 +12,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
 {
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public abstract partial class UIInputModule
     {
         /// <summary>

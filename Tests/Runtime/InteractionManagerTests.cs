@@ -2180,5 +2180,478 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
                 return interactable;
             }
         }
+
+        [Test]
+        public void RegisterColliderMappingAddsColliderToMap()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+
+            // New collider is not in the map since it was added after registration
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out _), Is.False);
+
+            manager.RegisterColliderMapping(newCollider, (IXRInteractable)interactable);
+
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void UnregisterColliderMappingRemovesColliderFromMap()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var collider = interactable.colliders.First();
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.True);
+
+            manager.UnregisterColliderMapping(collider, (IXRInteractable)interactable);
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.False);
+        }
+
+        [Test]
+        public void UnregisterColliderMappingDoesNotRemoveOtherInteractableMapping()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateSimpleInteractable();
+            var collider = firstInteractable.colliders.First();
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(firstInteractable));
+
+            // Attempting to unregister the mapping with a different interactable should not remove it
+            manager.UnregisterColliderMapping(collider, (IXRInteractable)secondInteractable);
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(firstInteractable));
+        }
+
+        [Test]
+        public void RegisterColliderMappingWarnsOnDuplicateCollider()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var firstInteractable = TestUtilities.CreateSimpleInteractable();
+            var secondInteractable = TestUtilities.CreateSimpleInteractable();
+            var collider = firstInteractable.colliders.First();
+
+            LogAssert.Expect(LogType.Warning, new Regex("A collider used by an Interactable object is already registered with another Interactable object*"));
+            manager.RegisterColliderMapping(collider, (IXRInteractable)secondInteractable);
+
+            // Original mapping should be preserved
+            Assert.That(manager.TryGetInteractableForCollider(collider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(firstInteractable));
+        }
+
+        [Test]
+        public void UpdateInteractableColliderMappingsDiffsPreviousAndCurrent()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var originalCollider = interactable.colliders.First();
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+
+            // Snapshot previous, then swap colliders
+            var previousColliders = new List<Collider>(interactable.colliders);
+            interactable.colliders.Clear();
+            interactable.colliders.Add(newCollider);
+
+            manager.UpdateInteractableColliderMappings((IXRInteractable)interactable, previousColliders);
+
+            // Old collider removed, new collider added
+            Assert.That(manager.TryGetInteractableForCollider(originalCollider, out _), Is.False);
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableRegisterColliderAddsToMapAndList()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(1));
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out _), Is.False);
+
+            var result = interactable.RegisterCollider(newCollider);
+
+            Assert.That(result, Is.True);
+            Assert.That(interactable.colliders, Has.Count.EqualTo(2));
+            Assert.That(interactable.colliders, Contains.Item(newCollider));
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableRegisterColliderReturnsFalseForDuplicate()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var existingCollider = interactable.colliders.First();
+
+            var result = interactable.RegisterCollider(existingCollider);
+
+            Assert.That(result, Is.False);
+            Assert.That(interactable.colliders, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public void InteractableRegisterColliderReturnsFalseForNull()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+
+            var result = interactable.RegisterCollider(null);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void InteractableRegisterColliderAllowsTriggerColliders()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var triggerCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            triggerCollider.isTrigger = true;
+
+            var result = interactable.RegisterCollider(triggerCollider);
+
+            Assert.That(result, Is.True);
+            Assert.That(interactable.colliders, Contains.Item(triggerCollider));
+            Assert.That(manager.TryGetInteractableForCollider(triggerCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableUnregisterColliderRemovesFromMapAndList()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var collider = interactable.colliders.First();
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.True);
+
+            var result = interactable.UnregisterCollider(collider);
+
+            Assert.That(result, Is.True);
+            Assert.That(interactable.colliders, Has.Count.EqualTo(0));
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.False);
+        }
+
+        [Test]
+        public void InteractableUnregisterColliderReturnsFalseForUnknownCollider()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var otherGO = new GameObject("Other");
+            var otherCollider = otherGO.AddComponent<BoxCollider>();
+
+            var result = interactable.UnregisterCollider(otherCollider);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void InteractableCollidersChangedEventFiresOnRegisterCollider()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            CollidersChangedEventArgs receivedArgs = null;
+            interactable.collidersChanged += (args) => receivedArgs = args;
+
+            interactable.RegisterCollider(newCollider);
+
+            Assert.That(receivedArgs, Is.Not.Null);
+            Assert.That(receivedArgs.interactable, Is.EqualTo(interactable));
+            Assert.That(receivedArgs.updateType, Is.EqualTo(ColliderUpdateType.Added));
+            Assert.That(receivedArgs.collider, Is.EqualTo(newCollider));
+        }
+
+        [Test]
+        public void InteractableCollidersChangedEventFiresOnUnregisterCollider()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var existingCollider = interactable.colliders.First();
+            CollidersChangedEventArgs receivedArgs = null;
+            interactable.collidersChanged += (args) => receivedArgs = args;
+
+            interactable.UnregisterCollider(existingCollider);
+
+            Assert.That(receivedArgs, Is.Not.Null);
+            Assert.That(receivedArgs.interactable, Is.EqualTo(interactable));
+            Assert.That(receivedArgs.updateType, Is.EqualTo(ColliderUpdateType.Removed));
+            Assert.That(receivedArgs.collider, Is.EqualTo(existingCollider));
+        }
+
+        [Test]
+        public void InteractableRefreshCollidersUpdatesMap()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var originalCollider = interactable.colliders.First();
+
+            // Add a new collider to the hierarchy (not yet in the interactable's list)
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out _), Is.False);
+
+            interactable.RefreshColliders();
+
+            // Both colliders should now be in the map
+            Assert.That(interactable.colliders, Has.Count.EqualTo(2));
+            Assert.That(manager.TryGetInteractableForCollider(originalCollider, out _), Is.True);
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [Test]
+        public void InteractableRefreshCollidersExcludesTriggersByDefault()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var triggerCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            triggerCollider.isTrigger = true;
+
+            interactable.RefreshColliders();
+
+            Assert.That(interactable.colliders, Has.No.Member(triggerCollider));
+        }
+
+        [Test]
+        public void InteractableRefreshCollidersIncludesTriggersWhenFlagged()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var triggerCollider = interactable.gameObject.AddComponent<BoxCollider>();
+            triggerCollider.isTrigger = true;
+
+            interactable.RefreshColliders(includeTriggerColliders: true);
+
+            Assert.That(interactable.colliders, Contains.Item(triggerCollider));
+        }
+
+        [UnityTest]
+        public IEnumerator PokeFilterRecoversWhenCollidersRefreshed()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create interactable without a collider so XRPokeFilter disables itself at Start
+            var go = new GameObject("Poke Interactable");
+            var interactable = go.AddComponent<XRSimpleInteractable>();
+            var filter = go.AddComponent<XRPokeFilter>();
+
+            yield return null; // Let Start() run
+
+            // Filter should be disabled since no collider was found
+            Assert.That(filter.enabled, Is.False);
+
+            // Add a collider and refresh
+            go.AddComponent<BoxCollider>();
+            interactable.RefreshColliders();
+
+            Assert.That(filter.enabled, Is.True);
+            Assert.That(filter.pokeCollider, Is.Not.Null);
+        }
+
+        [Test]
+        public void InteractableRefreshCollidersDoesNotFireEventWhenUnchanged()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            CollidersChangedEventArgs receivedArgs = null;
+            interactable.collidersChanged += (args) => receivedArgs = args;
+
+            // Refresh without any changes — event should not fire
+            interactable.RefreshColliders();
+
+            Assert.That(receivedArgs, Is.Null);
+        }
+
+        [Test]
+        public void InteractableRefreshCollidersSkipsCollidersRegisteredWithOtherInteractable()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create a parent interactable with no serialized colliders so Awake auto-discovers children.
+            var parentGO = new GameObject("Parent Interactable");
+            parentGO.AddComponent<Rigidbody>().isKinematic = true;
+            var parentInteractable = parentGO.AddComponent<XRSimpleInteractable>();
+
+            // Create a child with its own interactable and collider.
+            var childGO = new GameObject("Child Interactable");
+            childGO.transform.SetParent(parentGO.transform);
+            childGO.AddComponent<Rigidbody>().isKinematic = true;
+            var childCollider = childGO.AddComponent<SphereCollider>();
+            var childInteractable = childGO.AddComponent<XRSimpleInteractable>();
+
+            // Child collider is registered with the child interactable.
+            Assert.That(manager.TryGetInteractableForCollider(childCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(childInteractable));
+
+            // RefreshColliders on the parent should skip the child's collider
+            // since it is already registered with the child interactable.
+            parentInteractable.RefreshColliders();
+
+            Assert.That(parentInteractable.colliders, Has.No.Member(childCollider));
+            Assert.That(manager.TryGetInteractableForCollider(childCollider, out associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(childInteractable));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableDisableEnablePreservesDynamicColliders()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var newCollider = interactable.gameObject.AddComponent<BoxCollider>();
+
+            interactable.RegisterCollider(newCollider);
+            Assert.That(interactable.colliders, Has.Count.EqualTo(2));
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out _), Is.True);
+
+            // Disable — unregisters from manager
+            interactable.enabled = false;
+
+            yield return null;
+
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out _), Is.False);
+            // Collider should still be in the interactable's list
+            Assert.That(interactable.colliders, Has.Count.EqualTo(2));
+            Assert.That(interactable.colliders, Contains.Item(newCollider));
+
+            // Re-enable — re-registers with manager, including the dynamically added collider
+            interactable.enabled = true;
+
+            yield return null;
+
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableRegisterColliderBeforeManagerRegistration()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create interactable but disable it before it registers
+            var go = new GameObject("Unregistered Interactable");
+            go.SetActive(false);
+            go.AddComponent<Rigidbody>().isKinematic = true;
+            var interactable = go.AddComponent<XRSimpleInteractable>();
+            var collider = go.AddComponent<BoxCollider>();
+
+            // RegisterCollider before the interactable is registered with the manager
+            interactable.RegisterCollider(collider);
+
+            Assert.That(interactable.colliders, Contains.Item(collider));
+            // Not in the map yet since the interactable isn't registered
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.False);
+
+            // Enable — triggers registration with the manager
+            go.SetActive(true);
+
+            yield return null;
+
+            // Now the collider should be in the map via normal RegisterInteractable
+            Assert.That(manager.TryGetInteractableForCollider(collider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableCollidersCleanedUpAfterColliderDestroyed()
+        {
+            // Simulates the UIDocument disable/re-enable case where the collider is
+            // destroyed on disable and a new one is created on re-enable.
+            // Verifies that stale destroyed collider references are cleaned up and
+            // the new collider is properly registered.
+            var manager = TestUtilities.CreateInteractionManager();
+            var go = new GameObject("UITK Interactable");
+            go.AddComponent<Rigidbody>().isKinematic = true;
+            var interactable = go.AddComponent<XRSimpleInteractable>();
+
+            // Simulate UIDocument creating a collider dynamically
+            var collider = go.AddComponent<BoxCollider>();
+            interactable.RegisterCollider(collider);
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(1));
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.True);
+
+            // Simulate UIDocument destroying its collider on disable
+            interactable.UnregisterCollider(collider);
+            Object.Destroy(collider);
+
+            yield return null;
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(0));
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.False);
+
+            // Simulate UIDocument creating a new collider on re-enable
+            var newCollider = go.AddComponent<BoxCollider>();
+            interactable.RegisterCollider(newCollider);
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(1));
+            Assert.That(interactable.colliders, Contains.Item(newCollider));
+            Assert.That(manager.TryGetInteractableForCollider(newCollider, out var associatedInteractable), Is.True);
+            Assert.That(associatedInteractable, Is.SameAs(interactable));
+        }
+
+        [UnityTest]
+        public IEnumerator InteractableRefreshCollidersRemovesDestroyedColliderReferences()
+        {
+            // Verifies that RefreshColliders cleans up destroyed collider references
+            // from the colliders list, matching the UIDocument disable/re-enable scenario.
+            var manager = TestUtilities.CreateInteractionManager();
+            var interactable = TestUtilities.CreateSimpleInteractable();
+            var collider = interactable.colliders.First();
+
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.True);
+
+            // Destroy the collider — simulates UIDocument.RemoveWorldSpaceCollider
+            Object.Destroy(collider);
+
+            yield return null;
+
+            // RefreshColliders should remove the destroyed reference and update the map
+            interactable.RefreshColliders();
+
+            Assert.That(interactable.colliders, Has.Count.EqualTo(0));
+            Assert.That(manager.TryGetInteractableForCollider(collider, out _), Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator PokeFilterUpdatesColliderReferenceWhenColliderReplaced()
+        {
+            var manager = TestUtilities.CreateInteractionManager();
+
+            // Create interactable with a collider and poke filter.
+            var go = new GameObject("Poke Interactable");
+            go.AddComponent<Rigidbody>().isKinematic = true;
+            var interactable = go.AddComponent<XRSimpleInteractable>();
+            var originalCollider = go.AddComponent<BoxCollider>();
+
+            var filter = go.AddComponent<XRPokeFilter>();
+
+            yield return null; // Let Start() run
+
+            Assert.That(filter.enabled, Is.True);
+            Assert.That(filter.pokeCollider, Is.EqualTo(originalCollider));
+
+            // Destroy the original collider and register a new one.
+            interactable.UnregisterCollider(originalCollider);
+            Object.Destroy(originalCollider);
+
+            yield return null;
+
+            var newCollider = go.AddComponent<BoxCollider>();
+            interactable.RegisterCollider(newCollider);
+
+            // Poke filter should update its collider reference via collidersChanged.
+            Assert.That(filter.enabled, Is.True);
+            Assert.That(filter.pokeCollider, Is.EqualTo(newCollider));
+        }
+
     }
 }

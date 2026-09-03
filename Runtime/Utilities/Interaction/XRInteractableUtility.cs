@@ -1,11 +1,17 @@
 using System;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Utility methods for Interactables.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class XRInteractableUtility
     {
         /// <summary>

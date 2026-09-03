@@ -6,6 +6,9 @@ using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Filtering
 {
@@ -13,6 +16,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
     /// Multi-column <see cref="TreeView"/> that shows the Interactables final score and the contribution of each enabled evaluator.
     /// The filter is the root of the tree. The Interactables are displayed as children of the linked Interactor that invoked the filter process.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
 #if UNITY_6000_3_OR_NEWER
     class XRTargetEvaluatorsScoreTreeView : TreeView<EntityId>
 #elif UNITY_6000_2_OR_NEWER
@@ -54,6 +60,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Filtering
         {
         }
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         class ScoreTracker
         {
             static readonly LinkedPool<List<float>> s_ScoreListPool = new LinkedPool<List<float>>

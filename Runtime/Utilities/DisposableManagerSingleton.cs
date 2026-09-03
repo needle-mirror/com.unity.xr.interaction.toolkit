@@ -1,5 +1,8 @@
 using System;
 using Unity.XR.CoreUtils.Collections;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -7,6 +10,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// Manager singleton for <see cref="IDisposable"/> objects to help ensure they are disposed at the end of the application's life.
     /// </summary>
     [AddComponentMenu("")] // Hide in menu
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [HelpURL(XRHelpURLConstants.k_DisposableManagerSingleton)]
     sealed class DisposableManagerSingleton : MonoBehaviour
     {

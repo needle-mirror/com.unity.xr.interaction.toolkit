@@ -15,6 +15,9 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
@@ -52,6 +55,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// and <see cref="SpatialTracking.TrackedPoseDriver"/>) will not work as expected
     /// since this simulator depends on the Input System to drive the simulated devices.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/Debug/XR Interaction Simulator", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionSimulator)]
     [HelpURL(XRHelpURLConstants.k_XRInteractionSimulator)]
@@ -1234,6 +1240,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         Vector2 m_Axis2DValue;
 
+        bool m_LeftControllerButtonsFrozen;
+        bool m_RightControllerButtonsFrozen;
+        ushort m_LeftControllerFrozenButtons;
+        ushort m_RightControllerFrozenButtons;
+
         int m_LeftControllerInputModeIndex;
         int m_RightControllerInputModeIndex;
         int m_LeftHandExpressionIndex;
@@ -1335,6 +1346,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             m_HMDState.Reset();
             m_LeftControllerState.Reset();
             m_RightControllerState.Reset();
+            m_LeftControllerButtonsFrozen = false;
+            m_RightControllerButtonsFrozen = false;
+            m_LeftControllerFrozenButtons = 0;
+            m_RightControllerFrozenButtons = 0;
             m_LeftHandState.Reset();
             m_RightHandState.Reset();
 
@@ -1895,14 +1910,33 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_CurrentState.deviceMode != SimulatedDeviceLifecycleManager.DeviceMode.Controller)
                 return;
 
-            if (m_LeftDeviceActionsInput.ReadIsPerformed())
+            if (m_CurrentState.targetedDeviceInput != m_PreviousState.targetedDeviceInput)
+            {
+                UpdateControllerFreezeState(m_PreviousState.manipulatingRightDevice, m_CurrentState.manipulatingRightDevice,
+                    ref m_RightControllerButtonsFrozen, ref m_RightControllerFrozenButtons, ref m_RightControllerState,
+                    m_PerformingRightPointAndClickGripInteraction, m_PerformingRightPointAndClickTriggerInteraction);
+                UpdateControllerFreezeState(m_PreviousState.manipulatingLeftDevice, m_CurrentState.manipulatingLeftDevice,
+                    ref m_LeftControllerButtonsFrozen, ref m_LeftControllerFrozenButtons, ref m_LeftControllerState,
+                    m_PerformingLeftPointAndClickGripInteraction, m_PerformingLeftPointAndClickTriggerInteraction);
+            }
+
+            var shiftHeld = m_LeftDeviceActionsInput.ReadIsPerformed();
+
+            if (!shiftHeld && m_PreviousState.leftDeviceHotkeyModifierPressed && !m_LeftControllerButtonsFrozen)
+                ClearControllerButtonInput(ref m_LeftControllerState);
+            else if (shiftHeld && !m_PreviousState.leftDeviceHotkeyModifierPressed && !m_RightControllerButtonsFrozen)
+                ClearControllerButtonInput(ref m_RightControllerState);
+
+            if (shiftHeld)
             {
                 ProcessButtonControlInput(ref m_LeftControllerState);
+                ApplyFrozenButtonState(ref m_LeftControllerState, m_LeftControllerButtonsFrozen, ref m_LeftControllerFrozenButtons);
                 ProcessAxis2DControlInput(ref m_LeftControllerState);
             }
             else
             {
                 ProcessButtonControlInput(ref m_RightControllerState);
+                ApplyFrozenButtonState(ref m_RightControllerState, m_RightControllerButtonsFrozen, ref m_RightControllerFrozenButtons);
                 ProcessAxis2DControlInput(ref m_RightControllerState);
             }
 
@@ -2283,6 +2317,96 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             controllerState.buttons = 0;
         }
 
+        void UpdateControllerFreezeState(bool wasManipulating, bool isManipulating,
+            ref bool frozen, ref ushort frozenButtons, ref XRSimulatedControllerState controllerState,
+            bool pointAndClickGrip, bool pointAndClickTrigger)
+        {
+            if (wasManipulating && !isManipulating)
+            {
+                frozen = true;
+                frozenButtons = BuildFreezeSnapshot(pointAndClickGrip, pointAndClickTrigger);
+            }
+            else if (!wasManipulating && isManipulating)
+            {
+                if (frozen)
+                    ClearFrozenButtons(ref controllerState, frozenButtons);
+                frozen = false;
+            }
+        }
+
+        ushort BuildFreezeSnapshot(bool pointAndClickGrip, bool pointAndClickTrigger)
+        {
+            ushort mask = 0;
+            if (m_GripInput.ReadIsPerformed() || pointAndClickGrip)
+                mask |= (ushort)(1 << (int)ControllerButton.GripButton);
+            if (m_TriggerInput.ReadIsPerformed() || pointAndClickTrigger)
+                mask |= (ushort)(1 << (int)ControllerButton.TriggerButton);
+            if (m_PrimaryButtonInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.PrimaryButton);
+            if (m_SecondaryButtonInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.SecondaryButton);
+            if (m_MenuInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.MenuButton);
+            if (m_Primary2DAxisClickInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.Primary2DAxisClick);
+            if (m_Secondary2DAxisClickInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.Secondary2DAxisClick);
+            if (m_Primary2DAxisTouchInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.Primary2DAxisTouch);
+            if (m_Secondary2DAxisTouchInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.Secondary2DAxisTouch);
+            if (m_PrimaryTouchInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.PrimaryTouch);
+            if (m_SecondaryTouchInput.ReadIsPerformed())
+                mask |= (ushort)(1 << (int)ControllerButton.SecondaryTouch);
+            return mask;
+        }
+
+        static void ClearFrozenButtons(ref XRSimulatedControllerState controllerState, ushort frozenButtons)
+        {
+            controllerState.buttons &= (ushort)~frozenButtons;
+            if ((frozenButtons & (1 << (int)ControllerButton.GripButton)) != 0)
+                controllerState.grip = 0f;
+            if ((frozenButtons & (1 << (int)ControllerButton.TriggerButton)) != 0)
+                controllerState.trigger = 0f;
+        }
+
+        void ApplyFrozenButtonState(ref XRSimulatedControllerState controllerState, bool isFrozen, ref ushort frozenButtons)
+        {
+            if (!isFrozen || frozenButtons == 0)
+                return;
+
+            if (m_GripInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.GripButton));
+            if (m_TriggerInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.TriggerButton));
+            if (m_PrimaryButtonInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.PrimaryButton));
+            if (m_SecondaryButtonInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.SecondaryButton));
+            if (m_MenuInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.MenuButton));
+            if (m_Primary2DAxisClickInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.Primary2DAxisClick));
+            if (m_Secondary2DAxisClickInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.Secondary2DAxisClick));
+            if (m_Primary2DAxisTouchInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.Primary2DAxisTouch));
+            if (m_Secondary2DAxisTouchInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.Secondary2DAxisTouch));
+            if (m_PrimaryTouchInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.PrimaryTouch));
+            if (m_SecondaryTouchInput.ReadWasPerformedThisFrame())
+                frozenButtons &= unchecked((ushort)~(1 << (int)ControllerButton.SecondaryTouch));
+
+            controllerState.buttons |= frozenButtons;
+
+            if ((frozenButtons & (1 << (int)ControllerButton.GripButton)) != 0)
+                controllerState.grip = m_GripAmount;
+            if ((frozenButtons & (1 << (int)ControllerButton.TriggerButton)) != 0)
+                controllerState.trigger = m_TriggerAmount;
+        }
+
         void SetTrackedStates()
         {
             m_LeftControllerState.isTracked = m_LeftControllerIsTracked;
@@ -2436,6 +2560,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if ENABLE_VR || UNITY_GAMECORE
                 ClearControllerButtonInput(ref m_LeftControllerState);
                 ClearControllerButtonInput(ref m_RightControllerState);
+                m_LeftControllerButtonsFrozen = false;
+                m_RightControllerButtonsFrozen = false;
+                m_LeftControllerFrozenButtons = 0;
+                m_RightControllerFrozenButtons = 0;
 #endif
 #if XR_HANDS_1_8_OR_NEWER
                 if (m_HandPlaybackManager.restingHandExpression.captureSequence != null)
@@ -2540,7 +2668,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         void ClearPointAndClickSelect()
         {
 #if ENABLE_VR || UNITY_GAMECORE
-            if (m_PerformingLeftPointAndClickGripInteraction)
+            if (m_PerformingLeftPointAndClickGripInteraction && !m_LeftControllerButtonsFrozen)
             {
                 m_LeftControllerState.grip = 0f;
                 m_LeftControllerState.WithButton(ControllerButton.GripButton, false);
@@ -2549,7 +2677,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     m_PerformingLeftQuickAction = false;
             }
 
-            if (m_PerformingLeftPointAndClickTriggerInteraction)
+            if (m_PerformingLeftPointAndClickTriggerInteraction && !m_LeftControllerButtonsFrozen)
             {
                 m_LeftControllerState.trigger = 0f;
                 m_LeftControllerState.WithButton(ControllerButton.TriggerButton, false);
@@ -2558,7 +2686,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     m_PerformingLeftQuickAction = false;
             }
 
-            if (m_PerformingRightPointAndClickGripInteraction)
+            if (m_PerformingRightPointAndClickGripInteraction && !m_RightControllerButtonsFrozen)
             {
                 m_RightControllerState.grip = 0f;
                 m_RightControllerState.WithButton(ControllerButton.GripButton, false);
@@ -2567,7 +2695,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     m_PerformingRightQuickAction = false;
             }
 
-            if (m_PerformingRightPointAndClickTriggerInteraction)
+            if (m_PerformingRightPointAndClickTriggerInteraction && !m_RightControllerButtonsFrozen)
             {
                 m_RightControllerState.trigger = 0f;
                 m_RightControllerState.WithButton(ControllerButton.TriggerButton, false);
@@ -2743,10 +2871,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
                 }
 
+                var hasUnfrozenLeftInteraction = !m_LeftControllerButtonsFrozen &&
+                    (m_PerformingLeftPointAndClickGripInteraction || m_PerformingLeftPointAndClickTriggerInteraction);
+                var hasUnfrozenRightInteraction = !m_RightControllerButtonsFrozen &&
+                    (m_PerformingRightPointAndClickGripInteraction || m_PerformingRightPointAndClickTriggerInteraction);
+
                 if (m_MouseClickInput.ReadWasCompletedThisFrame() ||
-                    (!m_MouseClickInput.ReadIsPerformed() &&
-                        (m_PerformingLeftPointAndClickGripInteraction || m_PerformingLeftPointAndClickTriggerInteraction ||
-                            m_PerformingRightPointAndClickGripInteraction || m_PerformingRightPointAndClickTriggerInteraction)))
+                    (!m_MouseClickInput.ReadIsPerformed() && (hasUnfrozenLeftInteraction || hasUnfrozenRightInteraction)))
                 {
                     ClearPointAndClickSelect();
                 }

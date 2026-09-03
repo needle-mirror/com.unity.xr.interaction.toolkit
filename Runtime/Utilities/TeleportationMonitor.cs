@@ -7,6 +7,9 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -78,6 +81,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
             }
         }
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         abstract class ProviderMonitor
         {
             public abstract void AddInteractor(IXRInteractor interactor);
@@ -93,6 +99,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 #pragma warning restore UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute
         }
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         class ProviderMonitor<T> : ProviderMonitor
             where T : LocomotionProvider
         {
