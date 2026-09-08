@@ -15,6 +15,9 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT
 using UnityEngine.XR.Interaction.Toolkit.AR;
 #endif
@@ -37,6 +40,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </remarks>
     /// <seealso cref="IXRInteractor"/>
     /// <seealso cref="IXRInteractable"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/XR Interaction Manager", 11)]
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_InteractionManager)]

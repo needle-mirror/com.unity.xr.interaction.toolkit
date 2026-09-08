@@ -9,6 +9,9 @@ using UnityEditor.XR.Interaction.Toolkit.Filtering;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Object = UnityEngine.Object;
 #if !UNITY_6000_4_OR_NEWER
 using Random = UnityEngine.Random;
@@ -16,6 +19,9 @@ using Random = UnityEngine.Random;
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class XRInteractionDebuggerWindow : EditorWindow
     {
         [SerializeField]
@@ -449,6 +455,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
             return visibleColumns;
         }
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static class Contents
         {
             public static GUIContent titleContent = EditorGUIUtility.TrTextContent("XR Interaction Debugger");

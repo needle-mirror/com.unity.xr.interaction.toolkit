@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
 {
@@ -8,6 +11,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion
     /// <see cref="XRBodyTransformer"/> linked to this behavior. This behavior manages the <see cref="LocomotionState"/>
     /// for each provider based on its requests for the Body Transformer.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/Locomotion/Locomotion Mediator", 11)]
     [HelpURL(XRHelpURLConstants.k_LocomotionMediator)]
     [RequireComponent(typeof(XRBodyTransformer))]

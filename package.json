@@ -1,7 +1,7 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "unity": "6000.0",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
@@ -29,12 +29,12 @@
     },
     {
       "displayName": "Hands Interaction Demo",
-      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
+      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources",
       "path": "Samples~/Hands Interaction Demo"
     },
     {
       "displayName": "XR Mouse Interaction Demo",
-      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0 or newer\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.androidxr-openxr\">Unity OpenXR Android XR</a>\n • Hands Interaction Demo sample",
+      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0 or newer\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.androidxr-openxr\">Unity OpenXR Android XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Hands Interaction Demo sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources",
       "path": "Samples~/XRMouseInteractionDemo"
     },
     {
@@ -48,19 +48,19 @@
       "path": "Samples~/XR Interaction Simulator"
     },
     {
-      "displayName": "XR Device Simulator",
-      "description": "(Legacy) Assets related to the simulation of input for XR headsets, controllers, and hands. This is the older \"classic\" version of the simulator that existed before the XR Interaction Simulator sample was introduced and lacks many of the newer features such as point-and-click interactions.",
-      "path": "Samples~/XR Device Simulator"
-    },
-    {
       "displayName": "Spatial Keyboard",
-      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • Starter Assets sample",
+      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • Starter Assets sample\n • TMP Essential Resources",
       "path": "Samples~/Spatial Keyboard"
     },
     {
       "displayName": "World Space UI",
-      "description": "This sample provides a demo scene and prefabs demonstrating how to leverage UI Toolkit and UGUI in world space in conjunction with the XR Interaction Toolkit. \n<i>Dependencies:</i>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • Unity 6.2 or newer (minimum 6000.2.0a9)",
+      "description": "This sample provides a demo scene and prefabs demonstrating how to leverage UI Toolkit and UGUI in world space in conjunction with the XR Interaction Toolkit. \n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources\n • Unity 6.2 or newer (minimum 6000.2.0a9)",
       "path": "Samples~/World Space UI"
+    },
+    {
+      "displayName": "visionOS",
+      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
+      "path": "Samples~/visionOS"
     },
     {
       "displayName": "Legacy XR Input Readers",
@@ -68,21 +68,21 @@
       "path": "Samples~/Legacy XR Input Readers"
     },
     {
-      "displayName": "visionOS",
-      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
-      "path": "Samples~/visionOS"
+      "displayName": "XR Device Simulator",
+      "description": "(Legacy) Assets related to the simulation of input for XR headsets, controllers, and hands.\n <b>Note:</b> This is the older \"classic\" version of input simulation and does not have as many features as the XR Interaction Simulator sample. This sample will be removed in a future version of the XR Interaction Toolkit.",
+      "path": "Samples~/XR Device Simulator"
     }
   ],
   "_upm": {
-    "changelog": "### Changed\n- Changed [`ICurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster) to add a [`raycastMask`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.ICurveInteractionCaster.raycastMask) property to allow getting and setting the raycast layer mask without casting to the concrete [`CurveInteractionCaster`](xref:UnityEngine.XR.Interaction.Toolkit.Interactors.Casters.CurveInteractionCaster) type.\n  - This is implemented as a [default interface member](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface#default-interface-members), so users implementing their own custom class implementing this interface may need to implement that property redirecting to its equivalent `LayerMask` property if the property name differs.\n\n### Fixed\n- Fixed [`UIInputModule`](xref:UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule) to prioritize the event camera from the canvas's raycaster over the main camera (`Camera.main`). This fixes incorrect screen-space coordinate conversions for world space canvases that use a camera other than the main camera, such as composition layer canvases.\n- Fixed `XRInteractionSimulator` throwing a `NullReferenceException` when the scene contains a Main Camera at the hierarchy root.\n- Fixed deprecated API compiler warning when importing the visionOS sample in Unity 6.4 or newer."
+    "changelog": "### Added\n- Added sticky hotkey behavior to `XRInteractionSimulator` so that controller button state persists when switching the targeted device. Pressing the same hotkey again while on the other controller cancels the sticky state.\n- Added prerequisite information to the [World Space UI sample package](xref:xri-samples-world-space-ui) and [Spatial Keyboard sample package](xref:xri-samples-spatial-keyboard) manual pages. [UUM-149121](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149121)\n\n### Fixed\n- Fixed the Hands Interaction Demo sample throwing two `CS0414` compiler warnings with the `JoystickPinchHandGesture` class when `XR Hands` package has not been installed.\n- Fixed the custom parameter editor for the [`SectorInteraction`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions.SectorInteraction) drawing its parameters (Directions, Sweep Behavior, and Press Point) twice in the UI Toolkit-based Input Actions editor, which caused duplicated fields to appear for bindings that use the Sector interaction. Note that in com.unity.inputsystem versions 1.17.0 and 1.18.0, the Sector interaction will not show any editable properties when viewing an Input Action in the Inspector window. We recommend updating Input System to version 1.20.0 to resolve that issue.\n- Fixed static-cleanup analyzer warnings when importing samples in Unity 6.5 or newer by adding the `[NoAutoStaticsCleanup]` attribute to sample types that hold static fields. [UUM-149128](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149128)\n- Fixed an API deprecation error caused by the removal of  `SetUITookitEventSystemOverride` from the EventSystem class."
   },
   "upmCi": {
-    "footprint": "d2e97d18dfbf2c51899ac89dd275e61b63783ee8"
+    "footprint": "49e27f7413dc74e6c1e9ff3847dc7a6d1cf91f93"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.6/manual/index.html",
   "repository": {
     "url": "https://github.com/Unity-Technologies/com.unity.xr.interaction.toolkit.git",
     "type": "git",
-    "revision": "47d8111c4b582d4b33a59a1dbf962f72e0f45a33"
+    "revision": "1b6a52cb522b77637f161d24ccf4430825b1627f"
   }
 }

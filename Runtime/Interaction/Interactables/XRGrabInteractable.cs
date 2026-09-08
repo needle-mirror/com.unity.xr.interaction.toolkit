@@ -13,6 +13,9 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if BURST_PRESENT
 using Unity.Burst;
@@ -61,6 +64,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
     /// </para>
     /// </remarks>
     /// <seealso cref="IXRGrabTransformer"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [SelectionBase]
     [DisallowMultipleComponent]

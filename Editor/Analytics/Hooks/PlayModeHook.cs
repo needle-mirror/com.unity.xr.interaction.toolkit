@@ -6,6 +6,9 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 {
@@ -13,6 +16,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
     /// Entry point for static callbacks that captures XR Interaction Toolkit analytics data during a play mode session.
     /// </summary>
     /// <seealso cref="XRIPlayModeEvent"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [InitializeOnLoad]
     static class PlayModeHook
     {

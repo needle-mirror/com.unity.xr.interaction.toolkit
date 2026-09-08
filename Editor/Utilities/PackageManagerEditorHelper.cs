@@ -2,12 +2,18 @@ using System;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Helper utility class for Inspector <see cref="Editor"/> classes to warn about a package dependency.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class PackageManagerEditorHelper
     {
         static class Contents

@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.Serialization;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.UI;
-using TMPro;
+#if UIELEMENTS_MODULE_PRESENT
+using UnityEngine.UIElements;
+#endif
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 
 namespace UnityEngine.XR.Interaction.Toolkit.UI
@@ -329,11 +332,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             base.ActivateModule();
 
+#if UIELEMENTS_MODULE_PRESENT
             // This is required for mouse/pointer events to work with UI Toolkit
-            if (bypassUIToolkitEvents)
-#pragma warning disable CS0618 // Type or member is obsolete
+            if (m_BypassUIToolkitEvents)
+            {
+#if UNITY_6000_2_OR_NEWER
+                // Get the current PanelInputConfiguration component and tell the uGUI
+                // EventSystem to never redirect input to UI Toolkit.
+                // If it does not exist, do not auto-create it and assume UI Toolkit usage.
+                var panelConfig = PanelInputConfiguration.current;
+                if (panelConfig != null)
+                    panelConfig.panelInputRedirection = PanelInputConfiguration.PanelInputRedirection.Never;
+#else
                 EventSystem.SetUITookitEventSystemOverride(eventSystem, false, false);
-#pragma warning restore CS0618 // Type or member is obsolete
+#endif
+            }
+#endif
 
             // Select firstSelectedGameObject if nothing is selected ATM.
             var toSelect = eventSystem.currentSelectedGameObject;
@@ -1102,7 +1116,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     return false;
             }
 
-            if (selectable is Button || selectable is Toggle || selectable is InputField || selectable is Dropdown)
+            if (selectable is UnityEngine.UI.Button || selectable is UnityEngine.UI.Toggle || selectable is InputField || selectable is Dropdown)
                 return true;
 
             if (selectable is TMP_InputField || selectable is TMP_Dropdown)

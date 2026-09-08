@@ -6,6 +6,9 @@ using UnityEngine.Assertions;
 using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
 {
@@ -23,6 +26,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
     /// this class will maintain multiple lists to achieve that desired result with processing
     /// the items, these lists are pooled and reused between instances.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     abstract class BaseRegistrationList<T>
     {
         /// <summary>
@@ -270,6 +276,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Registration
     }
 
     /// <inheritdoc />
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     sealed class RegistrationList<T> : BaseRegistrationList<T>
     {
         readonly HashSet<T> m_UnorderedBufferedAdd = new HashSet<T>();

@@ -3,12 +3,18 @@ using UnityEditor.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Transformers
 {
     /// <summary>
     /// Custom editor for an <see cref="XRDualGrabFreeTransformer"/>.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(XRDualGrabFreeTransformer), true), CanEditMultipleObjects]
     class XRDualGrabFreeTransformerEditor : BaseInteractionEditor
     {

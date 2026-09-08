@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine.Pool;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 {
@@ -21,6 +24,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
     /// <seealso cref="XRBaseInteractor.targetFilter"/>
     /// <seealso cref="XRBaseInteractor.startingTargetFilter"/>
     /// <seealso cref="IXRInteractor.GetValidTargets"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/XR Target Filter", 11)]
     [HelpURL(XRHelpURLConstants.k_XRTargetFilter)]
     public sealed class XRTargetFilter : XRBaseTargetFilter, IEnumerable<XRTargetEvaluator>

@@ -7,6 +7,9 @@ using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if UNITY_6000_2_A9_OR_NEWER
 using System.IO;
@@ -19,6 +22,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
     /// Unity Editor class which registers Project Validation rules for the UI Toolkit World Space UI sample,
     /// checking that required samples and packages are installed.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class WorldSpaceUISampleProjectValidation
     {
         const string k_SampleDisplayName = "World Space UI";

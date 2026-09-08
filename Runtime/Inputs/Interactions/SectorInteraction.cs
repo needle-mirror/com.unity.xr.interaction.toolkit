@@ -5,6 +5,9 @@ using UnityEditor;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
 {
@@ -18,6 +21,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions
     /// re-entering each direction sector depends on the configured <see cref="sweepBehavior"/>. Once the control returns
     /// to center as defined by the center threshold, the action cancels.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
 #if UNITY_EDITOR
     [InitializeOnLoad]
 #endif

@@ -26,7 +26,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         static readonly (string, string)[] s_NamespaceExceptionList =
         {
             ("All", "UnityEditor.XR.Interaction.Toolkit.Utilities.EditorComponentLocatorUtility"),
-#if UNITY_6000_7_OR_NEWER && BURST_PRESENT
+#if UNITY_6000_6_B1_OR_NEWER && BURST_PRESENT
             ("All", "System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute"),
 #endif
         };

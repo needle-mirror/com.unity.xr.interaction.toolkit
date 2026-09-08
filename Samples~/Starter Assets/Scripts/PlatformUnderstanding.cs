@@ -1,4 +1,7 @@
 using System;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if OPENXR_1_6_OR_NEWER
 using UnityEngine.XR.OpenXR;
@@ -39,6 +42,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
     /// Helper class that determines the current XR platform based on the active runtime.
     /// Currently, this only supports OpenXR Runtimes from Meta and Google.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class XRPlatformUnderstanding
     {
         const string k_RuntimeNameMeta = "Oculus";

@@ -4,6 +4,9 @@ using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if BURST_PRESENT
 using Unity.Burst;
 #endif
@@ -27,6 +30,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Utility functions related to sorting.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class SortingHelpers
     {
         /// <summary>

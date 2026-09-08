@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine.Events;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
 #endif
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     /// Behavior that provides events for when an <see cref="XRHand"/> starts and ends a poke gesture. The gesture is
     /// detected if the index finger is extended and the middle, ring, and little fingers are curled in.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class PokeGestureDetector : MonoBehaviour
     {
         [SerializeField]

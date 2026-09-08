@@ -20,6 +20,9 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
@@ -296,6 +299,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Helper class to preallocate delegates to avoid GC Alloc that would happen
         /// when passing the lambda to the methods which create one or two finger gestures.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static class TouchConverterClosureHelper
         {
 #pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Always reinitialized, don't need to explicitly reset in ResetStaticsOnLoad method.
@@ -367,6 +373,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Helper class to preallocate delegates to avoid GC Alloc that would happen
         /// when passing the lambda to the methods which reinitialize one or two finger gestures.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static partial class TouchActionConverterClosureHelper
         {
 #pragma warning disable UDR0001 // No method with RuntimeInitializeOnLoadMethod attribute -- Always reinitialized, don't need to explicitly reset field in method.

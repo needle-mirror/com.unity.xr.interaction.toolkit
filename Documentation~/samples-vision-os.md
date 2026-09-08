@@ -11,7 +11,7 @@ Importantly, a simple swap of the XR Origin (XR Rig) prefab and the introduction
 
 This sample and its dependencies are configured to run with the latest [Unity 6000.0 LTS](https://unity.com/releases/editor/qa/lts-releases) or newer. A Unity Pro license is also [required](https://unity.com/campaign/spatial) to access the PolySpatial packages.
 
-In order for this sample to function properly, a few additional packages are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
+In order for this sample to function properly, a few additional packages and samples are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
   * [Starter Assets](samples-starter-assets.md) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
   * [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) - For the materials used. PolySpatial requires the use of Shader Graph for any custom materials.
   * [AR Foundation](https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@latest/index.html) - For mixed reality support.

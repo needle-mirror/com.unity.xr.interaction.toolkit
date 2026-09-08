@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals
 {
@@ -7,6 +10,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables.Visuals
     /// Simple Interactable Visual component that demonstrates hover or selection state with emissive tinting.
     /// Note: requires use of a shader that supports emission (such as Standard shader) with the variant included in the game build.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Visual/XR Tint Interactable Visual", 11)]
     [DisallowMultipleComponent]

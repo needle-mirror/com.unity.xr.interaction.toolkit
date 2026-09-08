@@ -5,6 +5,9 @@
 #endif
 
 using UnityEngine.InputSystem;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
 {
@@ -17,6 +20,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics
     /// If you need more control over how the haptic impulse is sent, you should use the <see cref="HapticImpulsePlayer"/>
     /// with an object reference to a custom <see cref="IXRHapticImpulseProvider"/>.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class HapticsUtility
     {
         /// <summary>

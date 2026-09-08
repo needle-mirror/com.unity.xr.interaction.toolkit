@@ -6,12 +6,18 @@ using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
     /// <summary>
     /// Abstract base class from which all interactors that use inputs to drive interaction state derive from.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     public abstract partial class XRBaseInputInteractor : XRBaseInteractor, IXRActivateInteractor
     {

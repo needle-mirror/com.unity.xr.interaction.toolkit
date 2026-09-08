@@ -23,6 +23,9 @@
 
 using System;
 using Unity.XR.CoreUtils;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
@@ -83,6 +86,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls the placement of Prefabs via a tap gesture.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/AR/Deprecated/AR Placement Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARPlacementInteractable)]
     [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.")]

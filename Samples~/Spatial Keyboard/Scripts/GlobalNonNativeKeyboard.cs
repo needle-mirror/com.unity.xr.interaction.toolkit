@@ -1,11 +1,17 @@
 using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
 {
     /// <summary>
     /// Manages spawning and positioning of the global keyboard.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class GlobalNonNativeKeyboard : MonoBehaviour
     {
         public static GlobalNonNativeKeyboard instance { get; private set; }

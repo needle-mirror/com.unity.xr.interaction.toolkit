@@ -11,6 +11,9 @@ using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
@@ -22,6 +25,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
     /// <seealso cref="XRPokeFilter"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [AddComponentMenu("XR/Interactors/XR Poke Interactor", 11)]
     [HelpURL(XRHelpURLConstants.k_XRPokeInteractor)]

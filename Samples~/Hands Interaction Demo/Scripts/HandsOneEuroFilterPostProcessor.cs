@@ -1,3 +1,6 @@
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if XR_HANDS_1_2_OR_NEWER
 using System.Collections.Generic;
 using UnityEngine.XR.Hands;
@@ -9,6 +12,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
     /// <summary>
     /// A post processor for XR hand tracking data, using the One Euro filter to smooth hand positions.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
 #if XR_HANDS_1_2_OR_NEWER
     public class HandsOneEuroFilterPostProcessor : MonoBehaviour, IXRHandProcessor
 #else

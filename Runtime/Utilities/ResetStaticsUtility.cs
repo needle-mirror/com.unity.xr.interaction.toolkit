@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -9,6 +12,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// <see cref="RuntimeInitializeOnLoadMethodAttribute"/> <c>ResetStaticsOnLoad</c> method.
     /// </summary>
     /// <seealso cref="ComponentLocatorUtility{T}"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class ResetStaticsUtility
     {
         static readonly List<Action> s_Callbacks = new List<Action>();

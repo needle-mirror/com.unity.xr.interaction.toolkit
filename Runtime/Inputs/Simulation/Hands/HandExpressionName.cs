@@ -1,5 +1,8 @@
 using System;
 using UnityEngine.InputSystem.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
 {
@@ -10,6 +13,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands
     /// When compared, the strings are case-insensitive and culture-insensitive.
     /// When converting back to a string, the original casing will be preserved.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     readonly struct HandExpressionName : IEquatable<HandExpressionName>
     {
         /// <summary>

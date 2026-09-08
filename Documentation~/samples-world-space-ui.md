@@ -24,6 +24,14 @@ This sample is installed into the default location for package samples, in the `
 |**`UI Toolkit Panel Settings\`**|UI Toolkit panel settings used in the demo scene and prefabs.|
 |**`DemoScene`**|Scene that demonstrates world space UI using both UI Toolkit and uGUI.<br />See [Demo scene](#demo-scene) below.|
 
+## Prerequisites and setup
+
+In order for this sample to function properly, a few additional packages and samples are required. Install these by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
+  * [Starter Assets](xref:xri-samples-starter-assets) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
+  * [Hands Interaction Demo](xref:xri-samples-hands-interaction-demo) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area
+  * [UIElements](https://docs.unity3d.com/Manual/UIElements.html) module - The UIElements module must be enabled to use the required UI Toolkit features. This can be enabled in **Package Manager** by navigating to the **Built-in** section, click on **UIElements** in the list, and then clicking the **Enable** button in the information pane.
+  * TextMesh Pro - TMP Essential Resources must be installed. These can be imported by navigating to **Window** &gt; **TextMeshPro** &gt; **Import TMP Essential Resources**.
+
 ## Demo scene
 
 The `DemoScene` contains a UI Toolkit station and a uGUI station which demonstrate world space UI configuration. Each station contains a single modal button, a scrollview, and a set of UI controls that consist of a slider, a dropdown, buttons, and toggles.

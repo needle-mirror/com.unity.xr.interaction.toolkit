@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
@@ -13,8 +16,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
     /// it is coming in contact with. For Interactables with multiple Colliders, this will help handle the
     /// bookkeeping to know if any of the colliders are still being touched.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     class TriggerContactMonitor
     {
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         class ReferenceCounter<T> where T : Collider
         {
             public int Count => m_Items.Count;

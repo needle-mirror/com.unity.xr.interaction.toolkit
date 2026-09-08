@@ -32,9 +32,6 @@ This sample contains:
 
 In order for this sample to function properly, the [Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) package is required. Install this by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation** or by using the **Window** &gt; **Package Manager** window.
 
-> [!IMPORTANT]
-> There is a known issue when upgrading from an older version of the Starter Assets to a newer version. Script references in the Demo Scene for scripts included in the Starter Assets become disconnected when upgrading in-place. It is recommended that you delete the `Starter Assets` folder from your `Samples` directory before importing the new Starter Assets sample package.
-
 <a name="demo-scene"></a>
 ## Demo Scene
 

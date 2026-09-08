@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,6 +12,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <summary>
     /// Utility functions related to <see cref="Gizmos"/>.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class GizmoHelpers
     {
         static readonly Color s_XAxisColor = new Color(219f / 255, 62f / 255, 29f / 255, .93f);

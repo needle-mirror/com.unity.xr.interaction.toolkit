@@ -8,6 +8,9 @@ using Unity.Mathematics;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
 {
@@ -20,6 +23,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Casters
     /// The caster supports different types of hit detection, including sphere and cone casting, alongside the standard ray casting.
     /// It allows customization of parameters like the number of curve segments, casting distance, and the size of the casting radius.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/Curve Interaction Caster", 22)]
     [HelpURL(XRHelpURLConstants.k_CurveInteractionCaster)]

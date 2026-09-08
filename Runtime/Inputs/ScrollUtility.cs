@@ -1,4 +1,7 @@
 using UnityEngine.InputSystem;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 {
@@ -6,6 +9,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     /// Helper class to normalize scroll input data with compensation for bugged versions of Unity which return unexpected
     /// ranges of values.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class ScrollUtility
     {
         /// <summary>

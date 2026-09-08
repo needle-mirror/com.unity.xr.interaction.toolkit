@@ -6,6 +6,9 @@
 
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if XR_INPUT_DEVICES_AVAILABLE
 using UnityEngine.InputSystem.XR;
@@ -65,6 +68,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
     /// with the XR module, real or simulated devices registered with the Input System package, or the
     /// Hand Tracking Subsystem of OpenXR.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public static class XRInputTrackingAggregator
     {
         /// <summary>

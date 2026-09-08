@@ -22,6 +22,9 @@ using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Curves;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Slider = UnityEngine.UI.Slider;
 
 #if AR_FOUNDATION_PRESENT
@@ -43,6 +46,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// For more information about the interaction system, refer to
     /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Ray Interactor", 11)]

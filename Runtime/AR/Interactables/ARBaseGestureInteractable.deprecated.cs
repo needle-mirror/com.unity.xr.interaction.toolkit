@@ -21,6 +21,9 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
@@ -50,6 +53,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Base class that manipulates an object via a gesture.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [Obsolete("ARBaseGestureInteractable has been deprecated.")]
     public abstract class ARBaseGestureInteractable : XRBaseInteractable
     {

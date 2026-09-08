@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+## [3.6.1] - 2026-09-08
+
+### Added
+- Added sticky hotkey behavior to `XRInteractionSimulator` so that controller button state persists when switching the targeted device. Pressing the same hotkey again while on the other controller cancels the sticky state.
+- Added prerequisite information to the [World Space UI sample package](xref:xri-samples-world-space-ui) and [Spatial Keyboard sample package](xref:xri-samples-spatial-keyboard) manual pages. [UUM-149121](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149121)
+
+### Fixed
+- Fixed the Hands Interaction Demo sample throwing two `CS0414` compiler warnings with the `JoystickPinchHandGesture` class when `XR Hands` package has not been installed.
+- Fixed the custom parameter editor for the [`SectorInteraction`](xref:UnityEngine.XR.Interaction.Toolkit.Inputs.Interactions.SectorInteraction) drawing its parameters (Directions, Sweep Behavior, and Press Point) twice in the UI Toolkit-based Input Actions editor, which caused duplicated fields to appear for bindings that use the Sector interaction. Note that in com.unity.inputsystem versions 1.17.0 and 1.18.0, the Sector interaction will not show any editable properties when viewing an Input Action in the Inspector window. We recommend updating Input System to version 1.20.0 to resolve that issue.
+- Fixed static-cleanup analyzer warnings when importing samples in Unity 6.5 or newer by adding the `[NoAutoStaticsCleanup]` attribute to sample types that hold static fields. [UUM-149128](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-149128)
+- Fixed an API deprecation error caused by the removal of  `SetUITookitEventSystemOverride` from the EventSystem class.
 
 ## [3.6.0] - 2026-08-06
 

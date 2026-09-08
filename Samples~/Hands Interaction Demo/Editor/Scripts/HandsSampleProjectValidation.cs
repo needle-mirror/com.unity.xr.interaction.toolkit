@@ -9,6 +9,9 @@ using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.XR.Interaction.Toolkit.ProjectValidation;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
 {
@@ -16,6 +19,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
     /// Unity Editor class which registers Project Validation rules for the Hands Interaction Demo sample,
     /// checking that other required samples and packages are installed.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class HandsSampleProjectValidation
     {
         const string k_SampleDisplayName = "Hands Interaction Demo";

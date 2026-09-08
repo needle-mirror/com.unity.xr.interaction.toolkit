@@ -5,6 +5,9 @@ using System.Text;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.XR.Interaction.Toolkit.Utilities.Internal
@@ -33,6 +36,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Utilities.Internal
     ///</item>
     /// </list>
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomPropertyDrawer(typeof(RequireInterfaceAttribute))]
     class RequireInterfaceDrawer : PropertyDrawer
     {

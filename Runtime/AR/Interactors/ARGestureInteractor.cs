@@ -21,6 +21,9 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if !AR_FOUNDATION_PRESENT && !PACKAGE_DOCS_GENERATION
 
@@ -61,6 +64,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// To make use of this, add an <see cref="ARGestureInteractor"/> to your scene
     /// and an <see cref="ARBaseGestureInteractable"/> to any of your virtual objects.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/AR/Deprecated/AR Gesture Interactor", 22)]
     [HelpURL(XRHelpURLConstants.k_ARGestureInteractor)]
     [Obsolete("ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.")]

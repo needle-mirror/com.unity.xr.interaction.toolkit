@@ -1,10 +1,16 @@
 using System.Collections.Generic;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Utility to facilitate an efficient interpolation between two gradients.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     public class GradientUtility
     {
         // Maximum number of gradient color keys allowed.

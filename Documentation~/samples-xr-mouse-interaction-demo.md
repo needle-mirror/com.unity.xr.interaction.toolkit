@@ -21,7 +21,7 @@ This sample is installed into the default location for package samples, in the `
 > [!IMPORTANT]
 > This sample requires the [Hands Interaction Demo](samples-hands-interaction-demo.md) sample to be imported first, as the demo scene and prefabs build on top of the hand tracking rig it provides.
 
-In order for this sample to function properly, the following packages and samples are required. Install packages by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation**.
+In order for this sample to function properly, a few additional packages and samples are required. Install packages by clicking **Fix** in **Edit** &gt; **Project Settings** &gt; **XR Plug-in Management** &gt; **Project Validation**.
 
 * [Hands Interaction Demo](samples-hands-interaction-demo.md) sample - imported from Package Manager under XR Interaction Toolkit in the Samples area (including all of its own prerequisites)
 * **Unity 6 (6000.0) or newer** - Required for Android XR mouse interaction profile support

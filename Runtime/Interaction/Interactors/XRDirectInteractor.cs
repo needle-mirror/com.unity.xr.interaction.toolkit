@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 {
@@ -15,6 +18,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
     /// For more information about the interaction system, refer to
     /// <a href="xref:xri-architecture">Interaction overview</a>.
     /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [MovedFrom("UnityEngine.XR.Interaction.Toolkit")]
     [DisallowMultipleComponent]
     [AddComponentMenu("XR/Interactors/XR Direct Interactor", 11)]

@@ -7,6 +7,9 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.Hands;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
@@ -27,6 +30,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// <seealso cref="XRDeviceSimulator"/>
     /// <seealso cref="XRSimulatedController"/>
     /// <seealso cref="XRSimulatedHMD"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/Debug/Simulated Device Lifecycle Manager", 11)]
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_SimulatedDeviceLifecycleManager)]
     [HelpURL(XRHelpURLConstants.k_SimulatedDeviceLifecycleManager)]

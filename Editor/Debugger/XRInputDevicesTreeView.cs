@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.XR;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit
 {
     /// <summary>
     /// Multi-column <see cref="TreeView"/> that shows Input Devices.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
 #if UNITY_6000_2_OR_NEWER
     class XRInputDevicesTreeView : TreeView<int>
 #else
@@ -435,6 +441,9 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// Alternate version of ID generator in <see cref="XRInteractionDebuggerWindow"/> which works
         /// with multiple values that seed each row in this tree.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static class UniqueIdGenerator
         {
             // Incrementing unique ID counter, which is shared by all the row types in this tree

@@ -48,6 +48,11 @@
             "define": "UIELEMENTS_MODULE_PRESENT"
         },
         {
+            "name": "com.unity.inputsystem",
+            "expression": "1.12.0",
+            "define": "INPUT_SYSTEM_1_12_OR_NEWER"
+        },
+        {
             "name": "com.unity.xr.hands",
             "expression": "1.1.0",
             "define": "XR_HANDS_1_1_OR_NEWER"

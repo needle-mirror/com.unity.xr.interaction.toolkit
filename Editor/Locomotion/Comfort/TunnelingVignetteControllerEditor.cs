@@ -4,12 +4,18 @@ using UnityEditorInternal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Comfort
 {
     /// <summary>
     /// Custom editor for an <see cref="TunnelingVignetteController"/>.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [CustomEditor(typeof(TunnelingVignetteController), true)]
     [MovedFrom("UnityEditor.XR.Interaction.Toolkit")]
     public class TunnelingVignetteControllerEditor : BaseInteractionEditor

@@ -20,6 +20,9 @@
 
 // Modifications copyright © 2020 Unity Technologies ApS
 
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
@@ -31,6 +34,9 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
 #if !XRI_LEGACY_INPUT_DISABLED
     class MockTouch
     {
@@ -195,6 +201,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// 4. Provides helper functions for converting touch coordinates
     ///    and performing ray casts based on touches.
     /// </summary>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     static class GestureTouchesUtility
     {
         public enum TouchInputSource

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -9,6 +12,9 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// using a specified 2D axis input.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
+#if UNITY_6000_5_OR_NEWER
+    [NoAutoStaticsCleanup]
+#endif
     [AddComponentMenu("XR/Locomotion/Legacy/Continuous Move Provider (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousMoveProvider)]
     [Obsolete("DeviceBasedContinuousMoveProvider has been deprecated in version 3.0.0. Use ContinuousMoveProvider instead.")]
