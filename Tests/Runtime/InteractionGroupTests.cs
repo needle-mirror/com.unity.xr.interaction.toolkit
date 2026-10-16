@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.TestTools;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -15,7 +18,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     {
         // ReSharper disable once InconsistentNaming -- Treat this like const
         static readonly Regex k_AnyString = new Regex("");
+
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly List<IXRGroupMember> s_GroupMembers = new List<IXRGroupMember>();
+
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly HashSet<IXRGroupMember> s_OverrideGroupMembers = new HashSet<IXRGroupMember>();
 
         [TearDown]

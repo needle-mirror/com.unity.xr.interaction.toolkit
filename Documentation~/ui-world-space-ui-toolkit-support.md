@@ -64,7 +64,7 @@ Additionally, the **Collider Update Mode** defines if the UI Document will creat
 
 When using **Match 2-D document rect** or **Match 3-D bounding box**, UI Toolkit creates the collider dynamically during `LateUpdate` after the panel's first render. This means the collider does not exist when `XRBaseInteractable` discovers colliders during `Awake`. When the [XR UI Toolkit Manager](xref:xri-xr-ui-toolkit-manager) is present in the scene, it monitors for colliders created by `UIDocument` and registers them with the interactable. If an `XRPokeFilter` component is present, it will also automatically recover when the collider is detected, re-enabling itself and initializing poke interaction. No manual intervention is required.
 
-The manager also handles `UIDocument` disable/re-enable: when the component is disabled, `UIDocument` destroys its collider. The manager monitors known UI Toolkit panels each frame to detect externally destroyed colliders, clears the stale reference, and re-registers the new collider when the `UIDocument` is re-enabled.
+The manager also handles `UIDocument` disable/re-enable: when the component is disabled, `UIDocument` destroys its collider. On Unity 7 and newer, the manager subscribes to `UIDocument` collider lifecycle events for immediate detection. On older versions, it polls known UI Toolkit panels each frame to detect externally destroyed colliders. In both cases, the stale reference is cleared and the new collider is re-registered when the `UIDocument` is re-enabled.
 
 Panels with **Collider Update Mode** set to **Keep existing colliders (if any)** are skipped by the manager since their colliders are manually managed and will not be created or destroyed by `UIDocument`.
 

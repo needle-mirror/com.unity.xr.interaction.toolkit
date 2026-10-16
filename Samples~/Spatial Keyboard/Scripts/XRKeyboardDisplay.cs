@@ -388,6 +388,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
             if (args.keyboard != m_ActiveKeyboard)
                 return;
 
+            ReleaseInputFieldSelection();
+
             if (!m_AlwaysObserveKeyboard)
                 StopObservingKeyboard(m_ActiveKeyboard);
 
@@ -402,11 +404,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard
                 return;
 
             if (!m_InputField.isFocused && !m_AlwaysObserveKeyboard)
+            {
+                ReleaseInputFieldSelection();
                 StopObservingKeyboard(m_ActiveKeyboard);
+            }
 
             // The keyboard changed focus and this input field is no longer in focus
             if (!m_InputField.isFocused)
                 m_OnKeyboardFocusChanged.Invoke();
+        }
+
+        void ReleaseInputFieldSelection()
+        {
+            if (m_InputField == null)
+                return;
+
+            // Release selection so the caret stops blinking.
+            m_InputField.DeactivateInputField();
+            m_InputField.ReleaseSelection();
         }
     }
 }

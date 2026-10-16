@@ -3,6 +3,9 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
@@ -17,12 +20,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         /// Runtime types that can appear in the Inspector.
         /// These should all have HelpURLs defined.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_RuntimeTypes;
 
         /// <summary>
         /// Runtime behavior types that can appear in the Inspector.
         /// These should all have AddComponentMenu defined.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_RuntimeBehaviorTypes;
 
 #if UNITY_EDITOR

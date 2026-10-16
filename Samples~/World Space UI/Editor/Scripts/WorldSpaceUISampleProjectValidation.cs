@@ -102,7 +102,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.WorldSpaceUI
                 FixItAutomatic = true,
                 Error = true,
             },
-#if UNITY_6000_2_A9_OR_NEWER
+#if UNITY_6000_2_A9_OR_NEWER && !UNITY_7000_0_OR_NEWER
             new BuildValidationRule
             {
                 Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",

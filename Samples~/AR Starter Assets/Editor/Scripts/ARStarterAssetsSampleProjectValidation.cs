@@ -107,6 +107,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets.Editor
                 FixItAutomatic = true,
                 Error = !ProjectValidationUtility.HasSampleImported(k_Category, k_StarterAssetsSampleName),
             },
+#if !UNITY_7000_0_OR_NEWER
             new BuildValidationRule
             {
                 Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
@@ -117,6 +118,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.ARStarterAssets.Editor
                 FixItAutomatic = false,
                 Error = true,
             },
+#endif
         };
 
         [InitializeOnLoadMethod]

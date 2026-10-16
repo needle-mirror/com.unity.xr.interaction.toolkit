@@ -109,6 +109,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                         Error = InputSystem.actions != null && (InputSystem.actions.name == k_InputActionAssetName || AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(InputSystem.actions)) == k_InputActionAssetGuid),
                     });
 
+#if !UNITY_7000_0_OR_NEWER
                 s_BuildValidationRules.Add(
                     new BuildValidationRule
                     {
@@ -120,6 +121,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples
                         FixItAutomatic = false,
                         Error = true,
                     });
+#endif
             }
 
             foreach (var buildTargetGroup in s_BuildTargetGroups)

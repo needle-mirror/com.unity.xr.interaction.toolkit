@@ -1,5 +1,4 @@
 {
-    "version": 1,
     "name": "XRI Default Input Actions",
     "maps": [
         {
@@ -374,25 +373,16 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Aim Position",
+                    "name": "Thumbstick",
                     "type": "Value",
-                    "id": "c73a0160-3d9b-4dde-96f9-6a390e68778c",
-                    "expectedControlType": "Vector3",
+                    "id": "c01850c4-700b-4ae6-a187-a894afef5bbd",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Aim Rotation",
-                    "type": "Value",
-                    "id": "f208faac-e869-4280-ac9c-9b3d0ab819bb",
-                    "expectedControlType": "Quaternion",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Meta Aim Flags",
+                    "name": "Hand Meta Aim Flags",
                     "type": "Value",
                     "id": "f98e71db-49b4-4882-8991-a0e386733e87",
                     "expectedControlType": "Integer",
@@ -401,34 +391,34 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Pinch Position",
+                    "name": "Hand Aim Position",
                     "type": "Value",
-                    "id": "cac52a91-5970-4ad2-8c86-a8c0e91a1837",
+                    "id": "c73a0160-3d9b-4dde-96f9-6a390e68778c",
                     "expectedControlType": "Vector3",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Poke Position",
+                    "name": "Hand Aim Rotation",
                     "type": "Value",
-                    "id": "4c557d81-3795-4355-a83e-6f886221d011",
-                    "expectedControlType": "Vector3",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Poke Rotation",
-                    "type": "Value",
-                    "id": "0565b7f7-f841-4395-98df-a77f4dd6d9c9",
+                    "id": "f208faac-e869-4280-ac9c-9b3d0ab819bb",
                     "expectedControlType": "Quaternion",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Grip Position",
+                    "name": "Hand Aim Tracking State",
+                    "type": "Value",
+                    "id": "aadd7abb-ad9c-4b13-be99-8359393ae6d5",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Grip Position",
                     "type": "Value",
                     "id": "e1240870-ef45-4f3e-8110-ff1b9049c4ca",
                     "expectedControlType": "Vector3",
@@ -437,7 +427,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Grip Rotation",
+                    "name": "Hand Grip Rotation",
                     "type": "Value",
                     "id": "41873a55-b316-4dbe-96e6-93477eef5e47",
                     "expectedControlType": "Quaternion",
@@ -446,10 +436,91 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Thumbstick",
+                    "name": "Hand Grip Tracking State",
                     "type": "Value",
-                    "id": "c01850c4-700b-4ae6-a187-a894afef5bbd",
-                    "expectedControlType": "Vector2",
+                    "id": "1a04d6d1-71a4-44cc-ae46-560a2e7695cb",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Position",
+                    "type": "Value",
+                    "id": "cac52a91-5970-4ad2-8c86-a8c0e91a1837",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Rotation",
+                    "type": "Value",
+                    "id": "30f26967-34f5-44de-b248-184e61db68f7",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Tracking State",
+                    "type": "Value",
+                    "id": "197517ad-acbf-470a-be6a-4c9760e891a5",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Position",
+                    "type": "Value",
+                    "id": "4c557d81-3795-4355-a83e-6f886221d011",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Rotation",
+                    "type": "Value",
+                    "id": "0565b7f7-f841-4395-98df-a77f4dd6d9c9",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Tracking State",
+                    "type": "Value",
+                    "id": "b2307aed-e93b-456d-9c15-1c1ccfe67434",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Position",
+                    "type": "Value",
+                    "id": "bc1ba842-a08b-48b7-a998-ffbc70908a17",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Rotation",
+                    "type": "Value",
+                    "id": "60b5adf4-ff67-46bb-8946-6d9b43a0dab1",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Tracking State",
+                    "type": "Value",
+                    "id": "2c6a2d3c-a754-45f0-802f-fa4315049a23",
+                    "expectedControlType": "Integer",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -492,7 +563,7 @@
                 {
                     "name": "third",
                     "id": "c98fc8c8-7fc6-4909-89b6-c5b7568e7275",
-                    "path": "<XRHandDevice>{LeftHand}/deviceRotation",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -536,7 +607,7 @@
                 {
                     "name": "third",
                     "id": "ae101942-9eaa-4c53-a388-cafc3fd89bdf",
-                    "path": "<XRHandDevice>{LeftHand}/devicePosition",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -568,111 +639,23 @@
                 },
                 {
                     "name": "",
-                    "id": "34454fec-7610-497a-b1a5-d3d5f01b312c",
-                    "path": "<XRHandDevice>{LeftHand}/trackingState",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Tracking State",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "28df8d2f-b563-4377-bd11-6c8932ee591c",
-                    "path": "<MetaAimHand>{LeftHand}/devicePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "8ee39b25-fde6-4195-bc6e-68caadef9183",
-                    "path": "<HandInteraction>{LeftHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "ec4a1046-3843-445d-8ad4-a769823faa86",
-                    "path": "<HandInteractionPoses>{LeftHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d29757d4-ec35-4477-8a26-1d14acd14ba9",
-                    "path": "<HoloLensHand>{LeftHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "938b6e3d-9fc2-4fba-a049-738668dc07e5",
                     "path": "<XRHandDevice>{LeftHand}/aimPosition",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Position",
+                    "action": "Hand Aim Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "2623b909-75bd-40da-97bd-ae1ecfb0a89b",
-                    "path": "<MetaAimHand>{LeftHand}/deviceRotation",
+                    "id": "3c84bb07-3453-43ff-ad99-3f420b3d9a37",
+                    "path": "<MetaAimHand>{LeftHand}/devicePosition",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "c3ff2c3c-d1ef-40c9-8777-72ee03df3ff3",
-                    "path": "<HandInteraction>{LeftHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "68633061-addf-447b-969e-06249302eaad",
-                    "path": "<HandInteractionPoses>{LeftHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "4848899c-8c90-455a-a915-6422290f501b",
-                    "path": "<HoloLensHand>{LeftHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
+                    "action": "Hand Aim Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -683,141 +666,20 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Rotation",
+                    "action": "Hand Aim Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "Vector 3 Fallback",
-                    "id": "aff6849b-544f-473c-9d7e-da40488aa6ab",
-                    "path": "Vector3Fallback",
+                    "name": "",
+                    "id": "5eb93829-969b-4292-afee-baa0ad704936",
+                    "path": "<MetaAimHand>{LeftHand}/deviceRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": true,
+                    "action": "Hand Aim Rotation",
+                    "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "e62f5918-8922-4a59-ae42-179b1fde0d29",
-                    "path": "<XRHandDevice>{LeftHand}/pinchPosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "1e9cdc2b-24e6-4624-9bd8-02c7dcf68fb4",
-                    "path": "<HandInteraction>{LeftHand}/pinchPose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "0adea6d4-f14c-4243-8217-dd63b6529bcc",
-                    "path": "<HandInteractionPoses>{LeftHand}/pinchPose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "Vector 3 Fallback",
-                    "id": "2ef93166-d4e5-471d-8321-71e7cdec9220",
-                    "path": "Vector3Fallback",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "55020194-7022-4059-8424-8ecc0de92c13",
-                    "path": "<XRHandDevice>{LeftHand}/pokePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "9a8820cc-2172-4641-9fae-0c416b2649e2",
-                    "path": "<HandInteraction>{LeftHand}/pokePose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "ef0a4717-47f8-47a3-8dae-fd0cba366115",
-                    "path": "<HandInteractionPoses>{LeftHand}/pokePose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "Quaternion Fallback",
-                    "id": "892e5765-05a7-460a-942c-32e8a36bd441",
-                    "path": "QuaternionFallback",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "5f5fb46a-effc-4105-bb74-d30dc9cd1f43",
-                    "path": "<XRHandDevice>{LeftHand}/pokeRotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "8fba8372-e2dd-4a31-8048-45d49484323e",
-                    "path": "<HandInteraction>{LeftHand}/pokePose/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "8c1d4e9b-88f5-4966-a6e4-0f22f7bb896d",
-                    "path": "<HandInteractionPoses>{LeftHand}/pokePose/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -832,23 +694,12 @@
                 },
                 {
                     "name": "",
-                    "id": "d9f33fe3-b3bf-48c1-a8bc-dd6a4ddfba94",
-                    "path": "<XRHandDevice>{LeftHand}/isTracked",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Is Tracked",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "286f44f6-74a5-4f92-8468-42445c7a3cb8",
                     "path": "<MetaAimHand>{LeftHand}/aimFlags",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Meta Aim Flags",
+                    "action": "Hand Meta Aim Flags",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -859,7 +710,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grip Position",
+                    "action": "Hand Grip Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -870,7 +721,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grip Rotation",
+                    "action": "Hand Grip Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -882,6 +733,138 @@
                     "processors": "",
                     "groups": "",
                     "action": "Thumbstick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7361eae5-3a55-4a8e-b802-015699eaf402",
+                    "path": "<XRHandDevice>{LeftHand}/pokePosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e09487f5-0207-4d53-89f1-fb875f8d5322",
+                    "path": "<XRHandDevice>{LeftHand}/pokeRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5c0cccef-8285-408e-82ec-f024a2895357",
+                    "path": "<XRHandDevice>{LeftHand}/pinchPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7ec6cd86-7190-4065-8af5-713f87782eb1",
+                    "path": "<XRHandDevice>{LeftHand}/wristRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b0e46201-c90c-4bd6-8408-6acb212a8e25",
+                    "path": "<XRHandDevice>{LeftHand}/pinchRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5799a8d8-5feb-4c8c-9eb3-28ab298830de",
+                    "path": "<XRHandDevice>{LeftHand}/wristPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5b877818-9673-445c-b341-d83e28622138",
+                    "path": "<XRHandDevice>{LeftHand}/pokeTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8aa78c8e-78bc-4fbf-ae72-1b2a1478f042",
+                    "path": "<XRHandDevice>{LeftHand}/aimTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Aim Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cc3e1026-82ad-4165-85fb-bbb646a8e2fe",
+                    "path": "<MetaAimHand>{LeftHand}/trackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Aim Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "770441ba-bf4c-417d-845f-cfadcbbaff9c",
+                    "path": "<XRHandDevice>{LeftHand}/wristTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "25665d88-5cb0-4605-b46e-d01524bc163f",
+                    "path": "<XRHandDevice>{LeftHand}/gripTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Grip Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ca175b5f-05ee-44c5-90bb-ba5f5c48b0de",
+                    "path": "<XRHandDevice>{LeftHand}/pinchTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Tracking State",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -1555,25 +1538,16 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Aim Position",
+                    "name": "Thumbstick",
                     "type": "Value",
-                    "id": "daf49d5d-4ba8-4bf7-9010-e7cae2096907",
-                    "expectedControlType": "Vector3",
+                    "id": "b8c0ccd3-e1b6-4913-96b3-e0864c9ac6bd",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Aim Rotation",
-                    "type": "Value",
-                    "id": "148c182f-63ef-4709-8057-f6ea8070cb5c",
-                    "expectedControlType": "Quaternion",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Meta Aim Flags",
+                    "name": "Hand Meta Aim Flags",
                     "type": "Value",
                     "id": "93a75a21-033e-440c-9954-ff264afb2db9",
                     "expectedControlType": "Integer",
@@ -1582,34 +1556,34 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Pinch Position",
+                    "name": "Hand Aim Position",
                     "type": "Value",
-                    "id": "7a2e5dcd-3e49-4622-90ea-6607994f2be0",
+                    "id": "daf49d5d-4ba8-4bf7-9010-e7cae2096907",
                     "expectedControlType": "Vector3",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Poke Position",
+                    "name": "Hand Aim Rotation",
                     "type": "Value",
-                    "id": "496d56bd-afd7-495b-a326-16e4ef742bc1",
-                    "expectedControlType": "Vector3",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Poke Rotation",
-                    "type": "Value",
-                    "id": "3767652c-5427-421b-8f8d-660106453cb1",
+                    "id": "148c182f-63ef-4709-8057-f6ea8070cb5c",
                     "expectedControlType": "Quaternion",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Grip Position",
+                    "name": "Hand Aim Tracking State",
+                    "type": "Value",
+                    "id": "8aa5f830-a644-4bbd-bdce-c138d647dc8a",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Grip Position",
                     "type": "Value",
                     "id": "defe4495-ba8f-4958-b2fb-98d889e45ac5",
                     "expectedControlType": "Vector3",
@@ -1618,7 +1592,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Grip Rotation",
+                    "name": "Hand Grip Rotation",
                     "type": "Value",
                     "id": "6bc56065-b0db-4265-8cef-5c7d4f40128a",
                     "expectedControlType": "Quaternion",
@@ -1627,10 +1601,91 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Thumbstick",
+                    "name": "Hand Grip Tracking State",
                     "type": "Value",
-                    "id": "b8c0ccd3-e1b6-4913-96b3-e0864c9ac6bd",
-                    "expectedControlType": "Vector2",
+                    "id": "1b0ad8fe-1d8b-40bf-a553-bde8226f97ea",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Position",
+                    "type": "Value",
+                    "id": "7a2e5dcd-3e49-4622-90ea-6607994f2be0",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Rotation",
+                    "type": "Value",
+                    "id": "cd7ba20f-0632-4be8-b82c-44e5af06b809",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Pinch Tracking State",
+                    "type": "Value",
+                    "id": "85fdac96-ce21-4d8d-852f-407fc2ef4b22",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Position",
+                    "type": "Value",
+                    "id": "496d56bd-afd7-495b-a326-16e4ef742bc1",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Rotation",
+                    "type": "Value",
+                    "id": "3767652c-5427-421b-8f8d-660106453cb1",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Poke Tracking State",
+                    "type": "Value",
+                    "id": "743b0ff0-933f-4f45-9545-a2de9f0d2931",
+                    "expectedControlType": "Integer",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Position",
+                    "type": "Value",
+                    "id": "aa90cb10-9ef2-4ba1-b74e-61384f0763ac",
+                    "expectedControlType": "Vector3",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Rotation",
+                    "type": "Value",
+                    "id": "628d3c9d-f358-4486-87dc-3b8db5b6878b",
+                    "expectedControlType": "Quaternion",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Hand Wrist Tracking State",
+                    "type": "Value",
+                    "id": "48d9b840-1ac8-4685-b6d4-e1fac5a4bc18",
+                    "expectedControlType": "Integer",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -1673,7 +1728,7 @@
                 {
                     "name": "third",
                     "id": "b9ecb60d-341e-47cf-b50a-41d5815af8b0",
-                    "path": "<XRHandDevice>{RightHand}/deviceRotation",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -1717,7 +1772,7 @@
                 {
                     "name": "third",
                     "id": "3ef0a781-60c5-48bc-a584-f95553f8ae0a",
-                    "path": "<XRHandDevice>{RightHand}/devicePosition",
+                    "path": "",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -1749,111 +1804,23 @@
                 },
                 {
                     "name": "",
-                    "id": "714d1173-f908-4bca-951c-4adb4eb7b4c5",
-                    "path": "<XRHandDevice>{RightHand}/trackingState",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Tracking State",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "dd822fc8-c655-4a4d-87d0-9575760b6dca",
-                    "path": "<MetaAimHand>{RightHand}/devicePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e60d7767-705f-4af2-ae42-f135e6580630",
-                    "path": "<HandInteraction>{RightHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d34dafcf-a3a4-4511-a73f-1ecbfd6099c8",
-                    "path": "<HandInteractionPoses>{RightHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "720d5e83-6877-4504-9b4a-aa550c2593af",
-                    "path": "<HoloLensHand>{RightHand}/pointer/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "d5e01c2b-7d1d-4866-a59e-a2aae1290e59",
                     "path": "<XRHandDevice>{RightHand}/aimPosition",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Position",
+                    "action": "Hand Aim Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "2bb1158a-2d78-446b-9351-6f9b3f1364cb",
-                    "path": "<MetaAimHand>{RightHand}/deviceRotation",
+                    "id": "226a479e-a62d-45ee-b340-530300863c6b",
+                    "path": "<MetaAimHand>{RightHand}/devicePosition",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "256fbef4-95a6-4127-ac3e-6a259b640666",
-                    "path": "<HandInteraction>{RightHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d46291b9-775e-457b-a909-649a301d55c3",
-                    "path": "<HandInteractionPoses>{RightHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "2fac2635-e015-4fb7-9578-34b85a5d5797",
-                    "path": "<HoloLensHand>{RightHand}/pointer/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Aim Rotation",
+                    "action": "Hand Aim Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -1864,141 +1831,20 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Aim Rotation",
+                    "action": "Hand Aim Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "Vector 3 Fallback",
-                    "id": "0323576b-ec88-4459-a791-4afeada3f7c8",
-                    "path": "Vector3Fallback",
+                    "name": "",
+                    "id": "85e69598-6a3c-4344-bc55-31058aa86559",
+                    "path": "<MetaAimHand>{RightHand}/deviceRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": true,
+                    "action": "Hand Aim Rotation",
+                    "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "0bdf98f1-d1a8-443f-805e-9718b34fc6ea",
-                    "path": "<XRHandDevice>{RightHand}/pinchPosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "0bd62ec6-1259-40f6-aa0a-71b82a790764",
-                    "path": "<HandInteraction>{RightHand}/pinchPose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "7271c456-534a-4e51-9835-1ebd589a938e",
-                    "path": "<HandInteractionPoses>{RightHand}/pinchPose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Pinch Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "Vector 3 Fallback",
-                    "id": "5724159b-b0ee-4458-b567-63874ee6e24a",
-                    "path": "Vector3Fallback",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "3f5ff135-3cfa-48b6-a35c-aa52badc1d6e",
-                    "path": "<XRHandDevice>{RightHand}/pokePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "c46e492c-1618-4d10-8c99-3079cf9deda6",
-                    "path": "<HandInteraction>{RightHand}/pokePose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "34b9f870-767e-422c-b558-0708567a1a5d",
-                    "path": "<HandInteractionPoses>{RightHand}/pokePose/position",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Position",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "Quaternion Fallback",
-                    "id": "74a5f1ad-f8ed-42cf-aff3-eb911325ca7d",
-                    "path": "QuaternionFallback",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": true,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "first",
-                    "id": "595c1ccb-9c05-411a-a2fd-e892ca0c9091",
-                    "path": "<XRHandDevice>{RightHand}/pokeRotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "second",
-                    "id": "d7ce6129-ec94-4757-9595-aaf1032cae86",
-                    "path": "<HandInteraction>{RightHand}/pokePose/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
-                },
-                {
-                    "name": "third",
-                    "id": "0e7b9607-caf5-46cc-adb9-2a1500c718a4",
-                    "path": "<HandInteractionPoses>{RightHand}/pokePose/rotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Poke Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -2013,23 +1859,12 @@
                 },
                 {
                     "name": "",
-                    "id": "5a0c4fe0-639a-44e0-beeb-4e11e0dea7ef",
-                    "path": "<XRHandDevice>{RightHand}/isTracked",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Is Tracked",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "5469d4d1-9645-4397-a596-d74f876eafc2",
                     "path": "<MetaAimHand>{RightHand}/aimFlags",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Meta Aim Flags",
+                    "action": "Hand Meta Aim Flags",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -2040,7 +1875,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grip Position",
+                    "action": "Hand Grip Position",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -2051,7 +1886,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Grip Rotation",
+                    "action": "Hand Grip Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -2063,6 +1898,138 @@
                     "processors": "",
                     "groups": "",
                     "action": "Thumbstick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "59822bd6-e701-4299-bcf2-23dd82fb5bfb",
+                    "path": "<XRHandDevice>{RightHand}/aimTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Aim Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4df97532-f2a1-45ef-9784-88a6b51e851e",
+                    "path": "<MetaAimHand>{RightHand}/trackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Aim Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2e8d9285-5824-43d9-9892-9edeaef66e16",
+                    "path": "<XRHandDevice>{RightHand}/gripTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Grip Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eb39ed7f-0ff5-48fa-89d8-4b872bcb534e",
+                    "path": "<XRHandDevice>{RightHand}/pinchRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8825222d-f111-4297-8d75-79507a7b3498",
+                    "path": "<XRHandDevice>{RightHand}/pinchTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "276dcf74-c86a-41ee-9134-e877272c4986",
+                    "path": "<XRHandDevice>{RightHand}/pokeTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f25d457b-4e69-4bae-844e-6ed3e18d2cfe",
+                    "path": "<XRHandDevice>{RightHand}/wristPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "37eb7c4c-545c-4a44-bc60-8b8bc6a8e76d",
+                    "path": "<XRHandDevice>{RightHand}/wristRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Rotation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d4e92762-5e80-4189-b442-51a038e276fb",
+                    "path": "<XRHandDevice>{RightHand}/wristTrackingState",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Wrist Tracking State",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ad4bbd3e-075e-4d1e-baae-5e2d7ad169d6",
+                    "path": "<XRHandDevice>{RightHand}/pinchPosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Pinch Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "edf8f10a-efef-4202-9741-8468a77b516f",
+                    "path": "<XRHandDevice>{RightHand}/pokePosition",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Position",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "76e2f3ea-bf40-438f-9a87-0f068ca2711c",
+                    "path": "<XRHandDevice>{RightHand}/pokeRotation",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Poke Rotation",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -2597,10 +2564,28 @@
                     "name": "Teleport Mode Cancel",
                     "type": "Button",
                     "id": "d587b60c-39a0-4365-8075-477ce484ba0f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Hand Teleport Select",
+                    "type": "Button",
+                    "id": "6ec9e745-de61-4a00-896e-8477d966dad7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Hand Teleport Select Value",
+                    "type": "Value",
+                    "id": "7a6617d9-2d5c-4bf3-ad63-73a1b9ee8c17",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Turn",
@@ -2723,6 +2708,72 @@
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4a2a8e9d-153f-47fb-82ef-7d914a899073",
+                    "path": "<MetaAimHand>{RightHand}/indexPressed",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "81cb27f2-684d-4eec-8c4a-02e84dc34fbf",
+                    "path": "<HandInteraction>{RightHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "44c8e7fd-11ef-42a1-ba98-08244c792013",
+                    "path": "<XRHandDevice>{RightHand}/pinchTouched",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b3383f38-1157-40ac-81f7-6fa80087475d",
+                    "path": "<MetaAimHand>{RightHand}/pinchStrengthIndex",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bb7f1757-7f3d-4224-a32c-345adec9e27b",
+                    "path": "<HandInteraction>{RightHand}/pinchValue",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select Value",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b94af4dd-05f3-4f6a-ac11-deecf5a06767",
+                    "path": "<XRHandDevice>{RightHand}/pinchValue",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Hand Teleport Select Value",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

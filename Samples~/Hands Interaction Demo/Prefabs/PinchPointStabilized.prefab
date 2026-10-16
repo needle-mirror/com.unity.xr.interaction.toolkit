@@ -428,7 +428,7 @@ MonoBehaviour:
   m_XRHandTrackingEvents: {fileID: 0}
   m_RayInteractor: {fileID: 0}
   m_NearFarInteractor: {fileID: 0}
-  m_TargetRotation: {fileID: 0}
+  m_TargetForward: {fileID: 0}
   m_RotationSmoothingSpeed: 12
 --- !u!114 &3941121930630195656
 MonoBehaviour:

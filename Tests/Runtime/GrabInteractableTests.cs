@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Unity.XR.CoreUtils;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
@@ -22,6 +25,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRBaseInteractable.MovementType.Instantaneous,
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_GrabTransformers =
         {
             typeof(XRSingleGrabFreeTransformer),
@@ -29,6 +35,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             typeof(XRGeneralGrabTransformer),
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_MockTransformerTypes =
         {
             typeof(MockGrabTransformer),

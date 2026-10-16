@@ -9,6 +9,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
+
+## [3.7.0] - 2026-10-16
+
+### Added
+- Added `XRHandsConfigurationManager` component script for setting the `XRHandSubsystem` pose source configuration to Common Gestures. See [XR Hand Device: Configuration](xref:xrhands-hand-device#configuration) in the XR Hands documentation. This component was added to a new `Hands Configuration Manager` GameObject in the `XR Origin Hands (XR Rig)` prefab variant. This GameObject is currently deactivated to keep the pose source configuration set to Legacy until more runtimes are fully compliant with the [OpenXR: Hand Interaction Profile](xref:openxr-hand-interaction-profile).
+- Added event-driven collider registration and lifecycle support to `XRUIToolkitManager` leveraging the `UIDocument.worldSpaceColliderChanged` when running on Unity 7000.0.0a8 or newer to improve performance.
+
+### Changed
+- Changed the input actions in the `XRI Default Input Actions` asset in the Starter Assets sample to separate actions intended to be used for controllers and hand tracking to improve compatibility with the [OpenXR: Hand Interaction Profile](xref:openxr-hand-interaction-profile). Changed the `XR Origin Hands (XR Rig)` prefab variant and some nested prefabs to use the new input actions which represent different hand tracking poses. Some of the bindings for the pose input actions were removed and consolidated into the `<XRHandDevice>` which combines multiple input sources.
+- Changed recommended version of [XR Hands package](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) (com.unity.xr.hands) to 1.10.0-pre.1 or newer to support explicit wrist pose input controls in `<XRHandDevice>`.
+
+### Fixed
+- Fixed the `Hand Teleport Interactor` prefab in the Hands Interaction Demo sample to work correctly when the Hand Interaction Profile is enabled in OpenXR. This is done by using a new set of Hand Teleport input actions in the `XRI Default Input Actions` asset in the Starter Assets sample. ([UUM-144538](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-144538))
+- Fixed [XR Interaction Simulator documentation](xref:xri-xr-interaction-simulator) that incorrectly listed hand control hot keys that were previously removed. ([UUM-154070](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-154070))
+- Fixed an issue where importing package samples into Unity 7 alpha versions caused a compiler error.
+- Fixed the `JoystickPinchHandGesture` script and prefab in the Hands Interaction Demo sample to improve hand teleportation.
+  - Changed prefab to reduce smoothing of rotation aiming.
+  - Removed pitch and translation offset of the aiming ray origin in the prefab for consistency across OpenXR runtimes.
+  - Fixed to initialize the Navigator UI direction correctly upon a new teleport and avoid unintentional pitch offsets while aiming it.
+  - Fixed the directional aiming with the Navigator UI to have a consistent reference space.
+  - Fixed the rules for when to show the Navigator UI to be based on whether the orientation can be controlled rather than based on if it was a Teleportation Anchor being targeted.
+- Fixed the `PinchPointFollow` script in the Hands Interaction Demo sample to not use the full orientation of the target transform but rather just the forward direction since OpenXR runtimes can vary the y-axis. Renamed the Target Rotation property to Target Forward to reflect this change.
+- Fixed compiler warning related to `IProcessSceneWithReport` in Unity 7000.0.0a5 or newer.
+- Fixed Spatial Keyboard so the input field caret does not continue flashing after the keyboard closed.
+
 ## [3.7.0-pre.1] - 2026-09-03
 
 ### Added

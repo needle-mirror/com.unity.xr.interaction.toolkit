@@ -28,7 +28,7 @@ When you load a scene non-additively (for example, with `SceneManager.LoadSceneA
 
 This approach lets you keep the same XR Interaction Manager across scene loads, so interaction continues to work without creating a new manager each time. A simple way to set this up is to add the following component to a root GameObject:
 
-[!code-cs [dont-destroy-on-load-sample](../DocCodeSamples.Tests/DontDestroyOnLoadSample.cs)]
+[!code-cs [dont-destroy-on-load-sample](../Tests/Editor/DocCodeSamples/DontDestroyOnLoadSample.cs)]
 
 Interactors that enable UI Interaction search for the [XR UI Input Module](xref:xri-ui-input-module) component on the [Event System](ui-setup.md#event-system). You should typically also mark that Event System GameObject as `DontDestroyOnLoad`.
 

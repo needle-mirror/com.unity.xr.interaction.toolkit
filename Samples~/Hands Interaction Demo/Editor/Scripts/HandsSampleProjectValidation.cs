@@ -35,8 +35,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
 
         static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.6.2");
-        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.6.2");
-        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("1.7.3");
+        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.10.0");
+        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("1.10.0");
 
         static AddRequest s_HandsPackageAddRequest;
         static AddRequest s_ShaderGraphPackageAddRequest;
@@ -122,6 +122,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixItAutomatic = true,
                 Error = false,
             },
+#if !UNITY_7000_0_OR_NEWER
             new BuildValidationRule
             {
                 Message = $"[{k_SampleDisplayName}] TextMesh Pro - TMP Essentials must be installed for this sample.",
@@ -132,6 +133,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
                 FixItAutomatic = false,
                 Error = true,
             },
+#endif
         };
 
         [InitializeOnLoadMethod]

@@ -176,9 +176,3 @@ When manipulating **Hands**:
   - Pinch
 * K [Toggle]
   - Grab
-* L [Toggle]
-  - Thumb
-* O [Toggle]
-  - Open
-* P [Toggle]
-  - Fist

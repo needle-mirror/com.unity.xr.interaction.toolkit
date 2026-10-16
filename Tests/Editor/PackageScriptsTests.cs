@@ -4,6 +4,9 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using Unity.Collections;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Unity.XR.CoreUtils.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -23,6 +26,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         // - Use "3.0" or "3.1" etc. to apply the exception to a specific major.minor version.
         // This is used for new internal properties added in a 3.x patch that should be changed to public in 3.y.
 
+        // The exception lists below are constant and never modified.
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly (string, string)[] s_NamespaceExceptionList =
         {
             ("All", "UnityEditor.XR.Interaction.Toolkit.Utilities.EditorComponentLocatorUtility"),
@@ -31,6 +38,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 #endif
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly (string, string)[] s_InternalPropertyExceptionList =
         {
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Filtering.XRTargetFilter.evaluators has { internal get; }."),
@@ -58,6 +68,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceEventData.pressWorldPosition has { internal get; internal set; }."),
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly (string, string)[] s_InternalMethodExceptionList =
         {
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.AffordanceSystem.Theme.Audio.AudioAffordanceTheme.ValidateTheme has internal."),
@@ -100,12 +113,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.UpdateInteractableColliderMappings has internal."),
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly (string, string)[] s_PrivatePropertyExceptionList =
         {
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.XRDeviceSimulator.targetedDeviceInput has { private get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable.isTransformDirty has { private get; private set; }."),
         };
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly (string, string)[] s_EditorExceptionList =
         {
             ("All", "Field UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement.GrabMoveProviderEditor.m_Reference has private instead of protected."),

@@ -2,6 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if UNITY_EDITOR && UNITY_6000_0_50_OR_NEWER
 using UnityEditor;
 #endif
@@ -26,6 +29,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         bool m_OriginalGenerateOnTriggerStayEvents;
 #endif
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_ContactInteractors =
         {
             typeof(XRDirectInteractor),

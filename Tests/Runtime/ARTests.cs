@@ -1,5 +1,7 @@
 using NUnit.Framework;
-
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 #if AR_FOUNDATION_PRESENT
 using System;
 using System.Collections;
@@ -34,10 +36,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         Camera m_Camera;
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static GameObject s_TestPlane;
 
-        static readonly List<GestureTouchesUtility.TouchInputSource> s_TouchInputSources =
-            new List<GestureTouchesUtility.TouchInputSource>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        static readonly List<GestureTouchesUtility.TouchInputSource> s_TouchInputSources = new()
             {
 #if !XRI_LEGACY_INPUT_DISABLED
                 GestureTouchesUtility.TouchInputSource.Mock,

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.TestTools;
@@ -21,6 +24,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         /// <summary>
         /// Runtime behavior types that can appear in the Inspector that implement <see cref="IUIInteractor"/>.
         /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_RuntimeBehaviorTypes;
 
         static readonly XRInteractionRuntimeSettings.ManagerCreationMode[] s_CreationModes =

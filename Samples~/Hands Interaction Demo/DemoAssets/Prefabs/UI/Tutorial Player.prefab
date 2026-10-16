@@ -114,7 +114,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 590}
+  m_SizeDelta: {x: 800, y: 800}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5431223985810780230
 CanvasRenderer:
@@ -269,7 +269,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 752, y: 120}
+  m_SizeDelta: {x: 752, y: 200}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &8193646930078641791
 CanvasRenderer:
@@ -299,9 +299,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: To activate, face your palm upward, point forward with your index finger
-    and thumb, then pinch and move your hand circularly in order to choose the direction
-    you'll face when releasing the pinch gesture.
+  m_text: To activate teleport mode with hand tracking, curl the fingers of your
+    right hand in with your palm facing up while keeping your index finger and thumb
+    extended out. Aim the teleport ray to the desired location using any hand orientation
+    that is comfortable for you, then pinch to start teleporting. You can hold the
+    pinch and drag your hand in a circle to choose the direction you'll face. Release
+    the pinch to teleport. Release the curl to stop teleport mode.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -481,7 +484,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: XRI Hand Locomotion Demo
+  m_text: Hand Teleportation Instructions
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

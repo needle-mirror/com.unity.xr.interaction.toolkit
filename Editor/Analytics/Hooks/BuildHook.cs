@@ -13,7 +13,10 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
     /// Build processor that captures XR Interaction Toolkit analytics data during the build process.
     /// </summary>
     /// <seealso cref="XRIBuildEvent"/>
-    class BuildProcessor : IPreprocessBuildWithReport, IProcessSceneWithReport, IPostprocessBuildWithReport
+    class BuildProcessor : IPreprocessBuildWithReport, IPostprocessBuildWithReport,
+#pragma warning disable CS0618 // Type or member is obsolete -- OnProcessScene used for detecting XRI components added to each scene
+        IProcessSceneWithReport
+#pragma warning restore CS0618
     {
         XRIBuildEvent.Payload? m_PayloadObject;
         BuildReport m_BuildReport;

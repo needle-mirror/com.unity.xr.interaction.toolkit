@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -16,6 +19,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
     [TestFixture]
     class RayInteractorTests
     {
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Type[] s_RayInteractorTypes =
         {
             typeof(XRRayInteractor),

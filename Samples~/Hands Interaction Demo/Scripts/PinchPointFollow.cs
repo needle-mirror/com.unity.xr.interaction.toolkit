@@ -3,6 +3,7 @@ using Unity.XR.CoreUtils.Bindings;
 using UnityEngine.XR.Hands;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.Primitives;
 #endif
+using UnityEngine.Serialization;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
@@ -33,9 +34,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         NearFarInteractor m_NearFarInteractor;
 
         [Header("Rotation Config")]
-        [SerializeField]
-        [Tooltip("The transform to match the rotation of.")]
-        Transform m_TargetRotation;
+        [SerializeField, FormerlySerializedAs("m_TargetRotation")]
+        [Tooltip("The transform to match the forward direction of.")]
+        Transform m_TargetForward;
 
         [SerializeField]
         [Tooltip("How fast to match rotation (0 means no rotation smoothing.)")]
@@ -45,7 +46,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 #pragma warning restore CS0414
 
 #if XR_HANDS_1_2_OR_NEWER
-        bool m_HasTargetRotationTransform;
+        bool m_HasTargetForwardTransform;
         IXRRayProvider m_RayProvider;
         bool m_HasRayProvider;
         OneEuroFilterVector3 m_OneEuroFilterVector3;
@@ -76,7 +77,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 m_RayProvider = m_NearFarInteractor;
                 m_HasRayProvider = true;
             }
-            m_HasTargetRotationTransform = m_TargetRotation != null;
+            m_HasTargetForwardTransform = m_TargetForward != null;
             m_BindingsGroup.AddBinding(m_QuaternionTweenableVariable.Subscribe(newValue => transform.rotation = newValue));
 #else
             Debug.LogWarning("PinchPointFollow requires XR Hands (com.unity.xr.hands) 1.2.0 or newer. Disabling component.", this);
@@ -100,6 +101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         static bool TryGetPinchPosition(XRHandJointsUpdatedEventArgs args, out Vector3 position)
         {
 #if XR_HANDS_1_5_OR_NEWER
+            // Return the pinch pose from Common Hand Gestures if available.
             if (args.subsystem != null)
             {
                 var commonHandGestures = args.hand.handedness == Handedness.Left
@@ -120,6 +122,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
                 }
             }
 #endif
+
+            // Otherwise, compute the average point between the thumb tip and index tip joints.
+            if (!args.hand.isTracked)
+            {
+                position = Vector3.zero;
+                return false;
+            }
 
             var thumbTip = args.hand.GetJoint(XRHandJointID.ThumbTip);
             if (!thumbTip.TryGetPose(out var thumbTipPose))
@@ -149,31 +158,31 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
             // Hand pose data is in local space relative to the XR Origin.
             transform.localPosition = filteredTargetPos;
 
-            if (m_HasTargetRotationTransform && m_HasRayProvider)
+            if (m_HasTargetForwardTransform && m_HasRayProvider)
             {
+                // Use the parent Transform's up vector if available, otherwise use the world up vector.
+                // The assumption is the parent Transform matches the XR Origin rotation.
+                // This allows the XR Origin to teleport to angled surfaces or upside down surfaces
+                // and the visual will still be correct relative to the application's ground.
+                var upwards = Vector3.up;
+                var parentTransform = transform.parent;
+                if (!(parentTransform is null))
+                    upwards = parentTransform.up;
+
                 // Given that the ray endpoint is in world space, we need to use the world space transform of this point to determine the target rotation.
                 // This allows us to keep orientation consistent when moving the XR Origin for locomotion.
                 var targetDir = (m_RayProvider.rayEndPoint - transform.position).normalized;
                 if (targetDir != Vector3.zero)
                 {
-                    // Use the parent Transform's up vector if available, otherwise use the world up vector.
-                    // The assumption is the parent Transform matches the XR Origin rotation.
-                    // This allows the XR Origin to teleport to angled surfaces or upside down surfaces
-                    // and the visual will still be correct relative to the application's ground.
-                    var upwards = Vector3.up;
-                    var parentTransform = transform.parent;
-                    if (!(parentTransform is null))
-                        upwards = parentTransform.up;
-
                     var targetRot = Quaternion.LookRotation(targetDir, upwards);
 
                     // If there aren't any major swings in rotation, follow the target rotation.
-                    if (Vector3.Dot(m_TargetRotation.forward, targetDir) > 0.5f)
+                    if (Vector3.Dot(m_TargetForward.forward, targetDir) > 0.5f)
                         m_QuaternionTweenableVariable.target = targetRot;
                 }
                 else
                 {
-                    m_QuaternionTweenableVariable.target = m_TargetRotation.rotation;
+                    m_QuaternionTweenableVariable.target = Quaternion.LookRotation(m_TargetForward.forward, upwards);
                 }
 
                 var tweenTarget = m_RotationSmoothingSpeed > 0f ? m_RotationSmoothingSpeed * Time.deltaTime : 1f;

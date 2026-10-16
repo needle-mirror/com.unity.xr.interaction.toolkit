@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -28,16 +31,27 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
         static readonly Quaternion k_InvalidSnapRotation = Quaternion.Euler(0f, 90f, 0f);
 
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Gradient k_InvalidColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.red, 0f), new GradientColorKey(Color.red, 1f) },
             alphaKeys = new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) },
         };
+
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Gradient k_ValidColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
             alphaKeys = new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) },
         };
+
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
         static readonly Gradient k_BlockedColorGradient = new Gradient
         {
             colorKeys = new[] { new GradientColorKey(Color.yellow, 0f), new GradientColorKey(Color.yellow, 1f) },
